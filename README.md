@@ -1,4 +1,4 @@
-# juno-ircd version 4
+# juno-ircd version 5
 
 Yes.  
 It really is an IRC daemon.  
@@ -9,13 +9,19 @@ You can breathe again.
 There. Very good.  
   
 
+## what is juno-ircd version 5?
+
+juno5 is a fork of juno4 which does not support mesh server linking. However, it adopted
+performance fixes and new features introduced in juno4. Mesh linking was canceled because
+it isn't exactly worth the extra effort and ugly code.
+
 ## what is juno-ircd version 4?
 
 juno4 is a fork of juno3 which supports mesh server linking. No server links two servers.
 If a server disconnects, only the users on that server are lost. The rest of the network,
 including any services package, stays intact. With this setup, it is actually possible to
 have certain servers linked only to certain servers. I don't know why in the world you
-might want that, but it's possible just FYI. It also means that if a server disconnects
+might want that, but it's possible. just FYI. It also means that if a server disconnects
 from one server for whatever reason (i.e. ping timeout), it doesn't necessarily mean that
 that server is going to disconnect from the rest of the servers on the network. This
 change was a few very simple modifications to juno3's existing linking protocol. Thanks to
@@ -94,6 +100,8 @@ Kominek. It has grown to be a bit more *practical*.
   IRC networks with large loads.
 * **juno4**: also known as juno-mesh, juno4 is the first version of juno which is not a
   from-scratch rewrite. it is based on juno3 and aims to implement mesh server linking.
+* **juno5**: juno5 is a fork of juno4 (itself a fork of juno3). it includes the new
+  features introduced in juno4, but it does not support mesh server linkage.
   
 When juno2 was in development, it was named "juno" where juno1 was named "juno-ircd" as it
 always had been. When juno3 was born, juno-ircd and juno were renamed to juno1 and juno2
