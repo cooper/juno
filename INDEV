@@ -1,0 +1,927 @@
+Development log
+---------------
+
+TODO:
+
+    [H] create command blocks- just like mode blocks but for commands.
+    [H] for list modes, create mode blocks to be fired for viewing lists
+    [H] RPL_ISUPPORT
+    [H] list mode listing
+    [H] no speaking if banned in channel
+    [M] burst topic
+    [L] idle time in WHOIS
+    [L] MOTD server parameter
+    [L] add modes secret and private and then make NAMES accurate to them
+    [L] TARGMAX and target limits
+
+TODO for stability and performance:
+
+    maximum connections in x seconds
+    connection throttle
+
+STARTED BUT NOT FINISHED:
+
+    I added the ability to connect servers remotely but never made the CONNECT user command
+    capable of making it useful.
+
+    most channel modes are entirely screwed up. Permissions make little sense. 
+
+OPER FLAGS:
+
+    see_invisible:  can see invisible users in NAMES
+    connect:        use the CONNECT command locally
+    gconnect:       use the CONNECT command globally
+    modload:        use the MODLOAD command
+    modunload:      use the MODUNLOAD command
+    rehash:         use REHASH command locally
+    kill:           use KILL command locally
+    gkill:          use KILL command globally
+
+PLANS:
+
+    GENERAL:
+
+        none yet
+
+    LINKING:
+
+        rather than remote includes, send certain configuration values over the linking protocol
+        modes to be known by their names, types, or levels rather than letters
+        make the linking protocol more compact by combining commands
+
+    CHANNELS:
+
+        internally support many of the channel modes provided by charybdis
+
+API PLANS:
+
+    GENERAL:
+
+        create a module API similar to juno v2's, except with the ability to "override" commands, modes, etc
+
+        module: fake ban
+        module: abuse
+        module: named mode setting
+
+    LINKING:
+
+        none yet
+
+    CHANNELS:
+
+        support many of the channel modes provided by unrealircd and inspircd modules
+        module: channel mode to show invite notices
+
+CHANGES:
+
+3. April 30, 2011
+
+    0. April 30, 2011
+
+        0. April 30, 2011
+
+            0. Added directory finder.
+
+            1. Finished configuration parser and fetcher functions.
+
+            2. Fixed configuration parser.
+
+            3. Added load_requirements() and fatal() util.
+               user.pm is now solely for users; connection.pm will handle connections.
+
+            4. Whoops, forgot to put fatal() in @EXPORT_OK.
+               fatal() logs the method that called it now.
+               Added create_sockets() to create listening sockets and fatal() if not listening.
+               Added main loop stuff.
+               Added handler to connection.pm (kinda.)
+               Added send functions.
+
+            May 1, 2011
+
+            5. Added basic pre-registration commands and temporary incoming data handler (without any form of flood protection.)
+
+            6. Set connection->{ready} when NICK and USER have both been verified.
+               Made the configuration parser ignore blank lines.
+               Finished outgoing buffer.
+
+            7. Added user::new() and some more user.pm stuff.
+
+            8. Added connection::lookup() to a find a connection by its user or server object.
+               Finished connection.pm's data forwarding to user.pm or server.pm.
+
+            9. Finished SERVER and PASS.
+
+        1. May 1, 2011
+
+            0. Fixed realname bug.
+               Change configuration setup.
+
+            1. Fixed crash if disconnect before register.
+               Allow any drop-in replacement for IO::Socket::INET such as IO::Socket::IP or IO::Socket::INET6.
+               Finished flood protection and incoming buffer.
+
+            2. Added md5 support.
+               Changed configuration some more.
+               Added autoconnect and stuff.
+
+            3. Added more linking stuff.
+
+            May 2, 2011
+
+            4. If the credentials have been sent, don't send them again.
+
+            5. Created server::linkage for local protocol functions.
+
+        2. June 12, 2011
+
+            0. Add trim() util.
+               Keep track of server descriptions in server.pm.
+               Configuration parser now takes literal values and has improved syntax.
+               user::mine module is for handling of local user data.
+
+            1. Finished ping system!
+               Failure to respond to the first PING now leads to a registration timeout on unregistered connections.
+               Added lconf() util for fetching name configuration values.
+               
+            2. Only send PING if there isn't a pending ping.
+
+            3. Constants on and off define true and false values in the configuration.
+
+            4. server::mine contains the linking protocol handler.
+
+            June 13, 2011
+
+            5. a few fixes.
+
+            6. user::numeric contains numerics.
+               Keep track of the server users are connecting from.
+
+            7. added more functions to server::mine include send() to send data to a connected server.
+               added user::handlers and server::handlers for local handlers.
+               keep track of servers' parents.
+               other fixes.
+
+        3. June 13, 2011
+
+            0. Fixed bug where IRCd exits when attempting to write on a closed connection.
+
+            1. $user->mine->method() and $server->mine->method() now calls methods in user::mine and server::mine from a user or server object.
+
+            2. Reverted the stupid ->mine stuff.
+               Added several shortcuts to *::mine package functions.
+                 - you can, of course, call them on an object such as $server->server::mine::send()
+               Added register_handler() to server::mine - registers a CODE reference to a command handler.
+               Server now handles and sends the UID command.
+               Added server::lookup_by_id() to find a server by its SID.
+
+            June 14, 2011
+
+            3. Store server parents by object, not SID.
+               Added user::is_local() for determining if the user is on this server.
+               server::outgoing contains outgoing commands.
+               Added quit() and uid() to server::outgoing.
+               Delete all users from a server when that server splits.
+               Connects, quits, and bursts should be completely accurate now - the servers should always be synced with users.
+               Properly remove child servers, their children, their children's children, and so on when a server splits.
+
+            4. Fixed a bug that sometimes leads to a crash where the local server's parent was unknown (itself).
+
+            5. Fixed several bugs in UID.
+               Added SID to share servers from server-to-server.
+               BURST no longer sends information on users and servers that the target server is already familiar with.
+
+            June 15, 2011
+
+            6. UID handler now determines who wins a nick collision battle.
+
+            7. Added nick check to registration.
+               Fixed a bug that occurred when an unregistered connection disconnected.
+
+            8. Added loop functions to extend the main loop.
+
+        4. June 13, 2011 <- obviously time is going backwards (June 15, 2011)
+
+            0. Added hostname resolving! (don't expect it to be perfect [yet])
+
+            June 16, 2011
+
+            1. Fixed a small bug in the hostname resolver.
+               Added "forward" option to server handlers.
+               When enabled, this server forwards the line to the child servers.
+               Fixed a crash bug on nick collision.
+
+            2. Fixed more bugs in the resolver.
+
+            3. Hopefully these fixes will prevent thousands of nick collisions.
+
+            4. Just kidding; this should fix it.
+
+            5. nope, maybe this will.
+
+            6. I almost promise that it works now.
+               Fixed a small bug in quit().
+
+            7. Fixed some bugs. Hopefully it actually does work now.
+
+            8. Never mind, this will fix it.
+
+        5. June 16, 2011
+
+            0. Rewrote the hostname resolving. I think it might actually work now. (but don't believe me; I've already thought that the last 10 commits)
+
+            1. I REALLY think it will work now.
+
+            June 17, 2011
+
+            2. Cleaned up a bit.
+               Added hostname notices.
+               Added user handler and a few other things to  user::mine.
+               Fixed a bug where PINGing was done more often than it should be.
+
+            3. Finished user numeric stuff.
+               Added fake USER command.
+
+            June 20, 2011
+
+            4. Added some numerics to user connect.
+               Added LUSERS command.
+               Added MOTD command.
+
+            June 22, 2011
+
+            5. Added more numerics.
+
+            6. Added NICK user command.
+               Relay nick changes to child servers.
+               Handle NICK command from servers.
+               Added fake PING command.
+
+            7. Added INFO command.
+               Added support for SHA224 and SHA384.
+
+            July 7, 2011
+
+            8. Fixed a few small bugs.
+               Added the ability to fork and become a daemon.
+               Added NOFORK option.
+
+            July 8, 2011
+
+            9. Fixed broken NOFORK option.
+               Added RPL_ISUPPORT, but much of it is unfinished since channels don't exist yet.
+
+        6. July 8, 2011
+
+            0. beginning to work on channel.pm.
+
+            1. Added channel join method that keeps the channel time accurate.
+
+            2. Added lookup_by_name() channel function.
+               Added some other channely stuff.
+
+            3. RPL_LUSERCHANNELS should only be sent if non-zero.
+
+            4. Made some changes to the user mode system.
+               Do not change nicks if the nick is taken.
+
+            5. I probably fell asleep while writing the mode validator thingy, but now it is fixed.
+
+            6. Added is_mode() and unset_modes() user functions.
+               Fixed a bug that causes crash on user connect because you can't push to a nonexistence array reference.
+
+        7. July 17, 2011
+
+            0. Moved resolve stuff to separate "res" module.
+
+            1. split RPL_ISUPPORT into several lines when necessary.
+
+            2. random cleanup of outgoing.pm
+
+            3. added some stuff to make sure we only sent BURST once.
+
+            4. changed a few more things in burst.
+
+            5. added user mode module.
+               from here on, modes will be named rather than lettered.
+               fixed a small warning in RPL_ISUPPORT.
+
+            July 18, 2011
+
+            6. added outgoing ADDUMODE command.
+
+            7. send ADDUMODES in burst.
+
+            8. send my ADDUMODES also.
+               register internal modes to the local server.
+
+            9. handle ADDUMODEs.
+
+        8. July 18, 2011
+
+            0. handle UMODE server command.
+               added user::handle_mode_string() which translates a string of mode letters to their mode names and sets or unsets them.
+
+            1. added user->mode_string() to create mode strings to the user's local server.
+               actually send modes in UID command now.
+
+            2. handle mode strings in UID and apply the modes.
+
+            3. made it possible to add multiple user handlers of the same command (which will be useful later in the module API.)
+
+            4. did the same for server handlers.
+
+            5. added default mode settings.
+
+            6. added MODE user command.
+               handle_mode_string() now returns the final mode string, which will be used later.
+
+            7. cleaned up some stuff.
+
+            July 19, 2011
+
+            8. send MODE string back to a user when he sets user modes.
+               fixed time bug in resolving.
+
+        9. July 19, 2011
+
+            0. Fixed a small bug in the user mode handler.
+
+            1. added user mode tests. if any of the tests fail, the mode will not be accepted.
+
+            2. send UMODE to other servers.
+
+            3. added PRIVMSG handler! :D
+                 local user-to-user PRIVMSGs should work now.
+
+            4. added PRIVMSG server handler.
+                 global user-to-user PRIVMSGs should work now.
+
+            5. added a really fail MAP that will be made prettier later.
+
+            6. fixed a few things and added more numerics to LUSERS.
+
+            7. fixed something in LUSERS.
+               added nickname in use numeric.
+
+            8. fixed another LUSERS bug.
+
+            9. added NOTICE command.
+               send NOTICE from server to server.
+               fix a couple small things.
+
+    1. July 20, 2011
+
+        0. July 20, 2011
+
+            0. added join user handler. (yay, soon we will have working channels!)
+
+            1. fixed a bug in the PRIVMSG/NOTICE handler.
+
+            2. omg we have join.
+
+            3. joining a channel now sends NAMES and creation time.
+
+            4. local PRIVMSG to channel now works.
+               quit messages are sent to users in common channels now.
+
+            5. send and handle joins among servers.
+
+            6. just kidding. it will work now.
+
+            7. still kidding... maybe this will work.
+
+            8. okay, channel PRIVMSGs now work globally.
+
+            9. send channel joins in burst.
+
+        1. July 20, 2011
+
+            0. Maybe this will fix fail problem?
+
+            1. users should definitely be removed from channels properly now.
+
+            2. I should stop saying 'definitely' when i'm not sure.
+                 now they should DEFINITELY be working right.
+
+            3. i'm too unorganized to know or care what changed in this commit.
+                 why do i even keep track?
+                 odds are that i'm going to do five or six more to fix this commit because it's probably broken
+                 just like all the others.
+
+            4. maybe this will fix the flood problem.
+
+            5. or this. hash != hashref.
+
+            6. I THINK CHANNELS ACTUALLY STAY IN SYNC NOW AND I AM USING CAPITALS BECAUSE THIS COMMIT IS ACTUALLY IMPORTANT.
+
+            7. show SID in MAP.
+
+            8. added NAMES command.
+
+            9. send NICK messages globally. nicknames should be in sync at all times now.
+
+        2. July 21, 2011 (omg time please no..)
+
+            0. removed LUSERS temporarily because it sucks.
+               added OPER command, oper blocks, and oper classes!
+                 see the example configuration.
+               user->handle_mode_string now takes an optional 'force' argument that, when true, skips the mode tests.
+               this new argument is now used in the linking protocol, that way servers can force users to oper up.
+
+            1. added user functions to add/remove/check oper flags.
+
+            2. keep oper flags in sync between servers that way we can user->has_flag for non-local users.
+
+            3. only send the MODE message if the returned string isn't empty.
+               send ircop mode to other servers on /oper.
+
+            4. fixed a crash.. dunno why i put 'opers' instead of 'flags'
+
+            5. fixed a bug where you could not unset your oper mode.
+
+            6. rewrote the way mode blocks are done.
+
+            7. RPL_MYINFO now shows the actual user modes registered to the ircd.
+
+            8. connect blocks now allow wildcards in the IP address.
+
+            9. added host option to oper blocks. see example configuration.
+
+        3. July 22, 2011
+
+            0. Added WHOIS command.
+
+            July 23, 2011
+
+            1. Added ISON command.
+
+            2. Added handler description and COMMANDS command as in the earlier version of juno.
+
+            3. Added AWAY user command.
+
+            4. Send and handle AWAY messages from server to server.
+
+            5. Added away line to WHOIS command.
+               notify users when they send PRIVMSGs to away users.
+
+            6. Added QUIT command (both as a normal command a pre-registration command.)
+
+            7. might as well use the magic provided by IO::Handle.
+
+        4. July 25, 2011
+
+            0. added base of channel modes and mode handler.
+               removed useless mode test code (which was replace by mode blocks in user/modes.pm)
+
+            1. made several improvements to the channel mode handler and channel/modes.pm.
+               fixed a bug in the user mode handler where force didn't apply blocks.
+
+            2. added ADDCMODE and CMODE server commands.
+               burst ADDCMODE and CMODE.
+
+            3. added handlers for ADDCMODE and CMODE.
+
+            4. MODE handler now handles channel mode strings.
+               when modes are set to channels, they should properly be sent in MODE messages to both local and non-local members.
+               cleaned up a bit in server/handlers.
+
+            5. MODE now accepts a channel with no other parameters.
+
+            6. this should fix a few things.
+
+            7. fixed bug. now the channel modes should be sent among servers.
+
+            8. CHANMODES is now accurate!
+
+
+            July 26, 2011
+
+            9. fixed a few more things with channel modes and stuff.
+
+        5. July 26, 2011
+
+            0. FINALLY fixed the ridiculous bug that made the IRCd unpractical for use.
+               Now we know that this IRCd still has hope to become usable.
+
+            1. fixed a couple of crash bugs in channel communication.
+
+            2. send CMODE types from server-to-server.
+
+            3. added CMODE converter to translate names to modes.
+
+            4. fixed bug in the new mode converter.
+
+            5. made several major improvements to status modes!
+
+            6. added support for five prefixes.
+
+        6. July 27, 2011
+
+            0. This is too big of an update to explain in a few lines.
+
+            July 30, 2011
+
+            1. fixed a number of bugs in the burst with modes, etc.
+
+            2. added mode_string_all, which is the same as mode_string except it sends ALL modes, including status modes and list modes.
+               hopefully this will make channels stay in sync with modes (except during netsplits where the lower TS should be taken, but I'll get to that soon.)
+
+            3. more improvements in taking the lower TS.
+
+            4. remove users from status lists when they quit/part/etc.
+
+            5. delete channel data if the last user leaves the channel.
+
+            6. added PART user command.
+               added PART server command.
+               channel user lists should be 100% accurate at all times now.
+
+            7. hopefully this will fix a few bugs in channel mode syncing.
+
+            8. after all that debugging.. it turned out to be the smallest typo ever.
+
+            9. don't accept mode changes for older times.
+
+        7. July 28, 2011
+
+            0. this bug makes me so extremely angry.
+
+            1. don't allow to /connect to a server that is already connected.
+               close connection to a server if it isn't who we thought it was.
+
+            2. hopefully this fixes things.
+
+            3. only ops can set channel modes now.
+               also, I'm pretty sure that all of the bugs causing crashes because of unrecognized clients are fixed.
+
+            4. fixed a small bug in the mode handler that leaves an extra + or - on the end of mode strings.
+               please don't laugh at how i fixed it.
+
+            5. seeing as the IRCd is beginning to fill out, I added a start/stop/rehash/etc script.
+               I might even start changing the version numbers! (the protocol version has been .1 this whole time LoL)
+
+            somewhere in here I skipped like 5 days so I actually did the below in August
+
+            6. added ./juno lines to count the number of lines in your copy.
+               added ./juno mkpasswd to run the password generator.
+
+            7. I thought about this, and I think that while might be better than for here.
+
+            8. fixed a couple of things with user modes.
+
+        8. August 4, 2011
+
+            0. channel mode no_ext (no external messages) actually works now.
+
+            1. channel moderation actually works now.
+
+            2. fixed channel mode alphabetization.
+
+            3. added WHO command.
+
+            4. rewriting the main loop in order to hopefully fix some bugs and also support fakelag.
+               the same flood protection and stuff has been in juno since pIRCd and definitely needs updated for efficiency and misc. bug fixes.
+
+            5. a few small improvements to handle a heavier load.
+
+            6. more improvements to the main loop.
+
+        9. August 7, 2011
+
+            0. This is probably the biggest commit in the history of juno.
+               There are a ton of small changes, but a few in particular that I'd like to point out.
+               I found and fixed 3 memory leaks involving references referring to themselves.
+               Reference trackers now log to make sure we have no more problems with this.
+               IO::Socket::IP is now a dependency but is included with juno.
+               The GV system that juno uses has been fixed up.
+               Buffered data is now stored within socket objects so modules will be able to read them.
+               Data is now parsed immediately after it is received in full, so in cases like a large server burst the rest of the network doesn't just hang until it's over.
+               juno is smart enough now to only parse data when it is fully received - sysread sometimes hands it more than it can take in one go.
+               This is a huge update. There will probably be some more like this because I'm trying to make juno as efficient and memory-friendly as possible.
+
+            1. Fixed bug where UID was sent to servers before automatic modes were set.
+               Fixed RPL_MYINFO to have accurate channel modes.
+
+            2. Fixed the nick collision bug I think.
+               ircd no longer crashes if it tries to hash using an unloaded crypt.
+
+            Apparently 3 and 4 were skipped...
+
+            August 24, 2011
+
+            5. Added the dependencies to IO::Socket::IP to dep/.
+               Improved security and stability in several places - especially in the linking protocol where incorrect data would cause the IRCd to crash before.
+               I really need to stop doing enormous amounts of work without committing, because I end up with huge commits like this one.
+               Once again, this is a huge update spanning for / I don't really know what all I changed.
+
+    2. September 17, 2011
+
+        0. September 17, 2011
+
+            0. This is another large edit. juno3 has new dependencies, but only temporarily.
+               These dependencies are required in order to support servers with heavy traffic.
+               See README for more information.
+
+            October 10, 2011
+
+            1. added compact JELP commands: AUM, ACM, CUM outgoing and incoming handler.
+               re-added ping system after switching to IO::Async.
+
+            October 14, 2011
+
+            2. Perfected new compact JELP commands in the last few commits.
+
+            3. Fixed a bug in the limit checker.
+               Added TOPIC user command and made channel mode t functional.
+
+            October 19, 2011
+
+            4. Added server TOPIC command, sort of.
+
+            5. fixed a bug in the new TOPIC handler.
+
+            November 11, 2011
+
+            6. Added connection limit.
+               Added client limit.
+
+            November 12, 2011
+
+            7. added max per IP address.
+
+            8. added global max users per IP address.
+
+            9. added see_invisible flag to make invisible users visible in NAMES and WHO.
+               made RPL_YOUREOPER a bit more verbose.
+
+        1. November 17, 2011
+
+            0. fixed UID, SID, and server name collision bugs.
+
+            1. fixed a bug where it's possible for a server to receive useless info before burst is sent.
+
+            November 19, 2011
+
+            2. made COMMANDS prettier.
+
+            3. channel mode ban somewhat does what it should now.
+
+            4. added IRCD user command to view general ircd information.
+
+            January 1, 2012
+
+            5. added connection tracking and LUSERS command.
+
+            January 6, 2012
+
+            6. added outgoing TOPICBURST server command.
+
+        2. January 7, 2012
+
+            This is the start of the extension API and modularization of core features.
+
+            1. added API.pm, which manages module loading and unloading.
+               added API::Module, the class which all modules will use to add features.
+               began API::Base::UserCommands. API::Base::* modules are base classes of API::Module.
+               began the first module, core/ping.
+
+            2. finished core/ping.
+               updated example configuration.
+
+            3. modularized fake user command.
+
+            4. renamed the new modules to start with 'cmd_', since eventually there will be modules for more than just commands.
+               modularized MOTD command.
+
+            5. modularized NICK command.
+
+            6. moved PONG and USER to core/cmd_fakecommands.
+
+            7. modularized INFO command.
+
+            8. undid everything I just did. I have a better idea.
+
+            9. goodbye user/handlers. hello mod/core.
+
+        3. January 13, 2012
+
+            0. Check if 'initialize' is CODE in module instance creation.
+
+            1. unload users commands registered by module at module unload.
+
+            2. added MODLOAD command to core. requires 'modload' flag.
+               added more checking to ensure modules that are loaded aren't loaded again.
+
+            3. added MODUNLOAD command to core. requires 'modunload' flag.
+
+            4. added MODRELOAD command to core. requires both 'modunload' and 'modload' flags.
+               actually made MODUNLOAD work. I should have tested it earlier.
+               it is now possible to reload core, so updating juno's internal commands won't require restarting.
+
+            5. added a command verification system to core.
+
+            January 14, 2012
+
+            6. added UserModes API::Module base for registering user mode blocks. (user_modes)
+               user mode letters are now defined in the configuration. see example.
+               moved internal user modes to core module.
+
+            7. unload registered user mode blocks when unloading a module.
+
+            8. moved channel modes to the configuration.
+
+            9. fixed a couple bugs in RPL_WELCOME and RPL_MYINFO caused by channel mode modularization.
+
+        4. January 15, 2012
+
+            0. added ChannelModes API::Module base for registering channel mode blocks. (channel_modes)
+               moved internal channel mode blocks to the core module.
+
+            1. added TOPICBURST server command handler.
+
+            2. tell channel users when topic is changed by TOPICBURST.
+
+            3. I think I fixed a bug in TOPIC.
+
+            4. I'm tired of nick collision bugs, so here's my temporary solution.
+
+            5. added ServerCommands API::Module base. (server_commands)
+               moved server commands to core.
+
+            January 16, 2012
+            Goal of the day: moving outgoing server crap to core module.
+
+            6. separated core into several separate modules.
+
+            7. added OutgoingCommands API::Module base for outgoing server commands. (outgoing_commands)
+
+            8. finished core_ocommands :).
+               now I have to replace all of the old server::outgoing::* calls with the new system.
+
+            9. finished moving from the old server::outgoing::* system to the new server::mine::fire_command system.
+               I have a great feeling that commit this will cause a bug or two.
+               In other news, outgoing commands are now modularized.
+
+        5. January 16, 2012
+
+            0. fixed a bug where juno crashes if data is received from a socket that has been ->done. 
+
+            1. fixed a bug where NICK messages were not propagated properly.
+
+            January 17, 2012
+
+            2. fixed a bug in PART messages being propagated.
+               moved tons of code from run/ircd to a module, inc/ircd.pm instead.
+               this will be useful in future changes.
+
+            3. started working to make most of the ircd reloadable without restarting.
+
+            January 18, 2012
+
+            4. fixed a bug where the same oper flags would be set over and over.
+
+            5. finally fixed all of the nick collision bugs for good.
+
+            January 19, 2012
+
+            6. fixed a bug where AUM was entirely retarded. it was caused by a recent code cleanup.
+
+            7. fixed a bug where users could continuously change their nickname to their UID.
+
+            8. fixed a bug where users returning from away caused adjacent servers to crash.
+
+            January 31, 2012
+
+            9. added the ability to store data with list items in channel mode lists.
+               now, each channel mode block cannot assume that a user has operator status as they could before.
+               a new status mode/prefix system is on its way, so channel->has_basic_status won't be around much longer.
+               added ban list viewing, which should fix the issue with irssi channel synchronization.
+               temporarily, anyone can set channel modes until the new channel status system is done.
+
+        6. February 1, 2012
+
+            0. fixed channel->list_has. this fixes a ban matching bug caused by yesterday's changes.
+
+            1. added overload for users. in string context, user objects return UIDs.
+               the main advantage of this is readability in logging.
+
+            February 3, 2012
+
+            2. temporarily added a fix for iterating through list values vs. data stored with them, just until I make a less ugly solution.
+
+            3. it is quite embarrassing that this bug has existed throughout nearly two years of development.
+               masks should match exactly as expected now.
+
+            February 8, 2012
+
+            4. added REHASH command to core_ucommands. it currently supports local rehashing only.
+               this also adds the 'rehash' user flag.
+               Fixed a bug win server::linkage where autoconnect didn't work right due to module load timing.
+
+            5. this should fix a small bug where lazy mode handling created a pointless (but not harmful) CMODE message.
+
+            6. If a user is connected through a server whose parent split during a netsplit, the server that split to
+               cause this is mentioned in the user's quit message instead of the server the user is physically connected to.
+
+            February 9, 2012
+
+            7. added KILL command (local only, at the moment). it's probably slightly wrong, but after two hours of trying to figure it out, I don't really care.
+               this adds the 'kill' user flag.
+
+            February 11, 2012
+
+            8. added KILL server command, outgoing command, and extended user command to support global killing.
+               this adds the 'gkill' user flag.
+
+            9. The ServerCommand base's 'params' now has parameter type checking.
+               This commit is likely to break the entire IRCd.
+               there are two possible outcomes of this update: many, many bugs in the linking protocol will be fixed
+               or (and more likely) nothing will work at all, and trying to link two servers will lead to a crash.
+               this update breaks compatibility with ALL existing API modules, as register_server_command()'s 'params' option is now required.
+
+        7. February 11, 2012
+
+            0. I was right about breaking the entire ircd. here's the first of many upcoming bug fixes.
+
+            1. more bug fixes regarding the last couple commits.
+
+            February 12, 2012
+
+            2. For some reason, clients don't like when the H or G flag comes before prefix flags.
+
+4. February 12, 2012
+
+    0. February 12, 2012
+
+        0. February 12, 2012
+
+            0. first commit.
+
+            1. updated version info. updated README.
+
+            2. removed hideous HUP handler.
+
+            3. removed server 'params' option for register_handler() because it has been replaced by the new parameter checking.
+               removed server 'forward' option for seemingly obvious reasons.
+
+            4. in server burst, don't send nonlocal users.
+               don't send server information for any server except itself.
+
+            5. actually, it makes more sense to do it this way.
+
+            6. remove 'forward' options from core_scommands.
+               in CUM command, don't send nonlocal users.
+
+            7. don't pointlessly remember nonlocal users' prefixes in CUM.
+               fixed a bug in server command handler.
+               removed pointless code which was used for PRIVMSG and NOTICE forwarding.
+
+            8. added ERROR handler.
+
+            9. fixed bug in PRIVMSG and NOTICE handler which caused massive flooding.
+               fixed bug where QUIT message would be sent for server quits.
+
+        1. February 12, 2012
+
+            0. made a much prettier MAP command.
+
+            February 13, 2012
+
+            1. don't pointlessly send KILL messages to all children. send them to the location of the target.
+
+            2. added CONNECT server command for connecting servers remotely.
+
+            3. user->server_notice works on nonlocal users now.
+               NOTICE server command supports server noticing now.
+
+            February 14, 2012
+
+            4. new prefix system! now juno can have over 9000 prefixes just like inspircd.
+               this adds a major change in the configuration.
+               creating a new channel gives the user now status anymore (temporary).
+               hopefully I can figure out how to fix that.
+
+            February 15, 2012
+
+            5. added "normal" mode blocks for "normal" channel modes.
+               in other words, you have to have some sort of status (halfop+) to set any normal modes unless specified otherwise.
+
+            6. automatic channel modes on join work again. this is a much cleaner approach of doing this.
+               this is also used to apply modes to the user who created the channel. see example configuration for details.
+
+            7. send CMODE if modes were changed automatically when channel is created. hopefully this should fix the desync issue.
+
+            February 17, 2012
+
+            8. made COMMANDS command prettier.
+               added the fabulous and famous LOLCAT module from juno2.
+
+            February 18, 2012
+
+            9. added MODULES command for viewing loaded IRCd modules.
+
+        2. February 18, 2012
+
+            0. fixed two very-high-priority bugs where '0' can't be a PART message.
+
+            1. MODULES now shows the description of each module.

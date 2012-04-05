@@ -1,0 +1,147 @@
+#!/bin/bash
+# Copyright (c) 2010-12, Mitchell Cooper
+
+DIR=`dirname "$(cd "${0%/*}" 2>/dev/null; echo "$PWD"/"${0##*/}")"`
+ARGS=$@
+
+showusage() {
+    cat << EOF
+usage: $0 [action]
+    start       start juno IRCd
+    forcestart  attempt to start juno under any circumstances
+    stop        terminate juno IRCd
+    debug       start in NOFORK mode with printed output
+    rehash      rehash the server configuration file
+    help        print this information
+    mkpasswd    runs the password generator
+EOF
+}
+
+runningq() {
+    if [ -e "$DIR/etc/juno.pid" ]; then
+        PID=`cat $DIR/etc/juno.pid`
+        RUNNING=true
+    fi
+}
+
+splash() {
+    cat << "EOF"
+      _                     _              _
+     (_)                   (_)            | |
+      _ _   _ _ __   ___    _ _ __ ___  __| |
+     | | | | | '_ \ / _ \  | | '__/ __|/ _` |
+     | | |_| | | | | (_) |-| | | | (__| (_| |
+     | |\__,_|_| |_|\___/  |_|_|  \___|\__,_|
+    _/ |
+   |__/ 
+
+EOF
+}
+
+check_if_running() {
+    if [ ! "$RUNNING" ]; then
+        echo "juno is not running!"
+        exit 1
+    fi
+}
+
+dostart() {
+    echo "Starting juno"
+    splash
+    $DIR/run/ircd $DIR
+}
+
+start() {
+    if [ "$RUNNING" ]; then
+        echo "juno is already running!"
+        exit 1
+    fi
+    dostart
+}
+
+forcestart() {
+    if [ -e "$DIR/etc/juno.pid" ]; then
+        rm -v $DIR/etc/juno.pid
+    fi
+    dostart
+}
+
+debug() {
+    if [ "$RUNNING" ]; then
+        echo "juno is already running!"
+        exit 1
+    fi
+    echo "Running in NOFORK mode."
+    splash
+    $DIR/run/ircd $DIR NOFORK
+}
+
+stop() {
+    check_if_running
+    echo "Signaling $PID TERM"
+    kill -TERM $PID
+}
+
+main() {
+    case "${ARGS[0]}" in
+
+        start)
+            start
+            ;;
+
+        debug)
+            debug
+            ;;
+
+        forcestart)
+            forcestart
+            ;;
+
+        rehash)
+            check_if_running
+            echo "Rehashing server"
+            echo rehash > $DIR/etc/HUP
+            kill -HUP $PID
+            ;;
+
+        stop)
+            stop
+            ;;
+
+        restart)
+            stop
+            #sleep .01
+            forcestart
+            ;;
+
+        reset)
+            rm -v $DIR/etc/juno.pid
+            ;;
+
+        mkpasswd)
+            $DIR/run/mkpasswd
+            ;;
+
+        lines)
+            $DIR/run/lines
+            ;;
+
+        help)
+            showusage
+            ;;
+
+        *)
+            echo "Incorrect parameter: ${ARGS[0]}"
+            echo "$0 help for help"
+            ;;
+
+    esac
+}
+
+if [ ! "$1" ]; then
+    showusage
+    exit
+fi
+
+runningq
+main

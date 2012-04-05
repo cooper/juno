@@ -1,0 +1,118 @@
+#!/usr/bin/perl
+# Copyright (c) 2011, Mitchell Cooper
+
+use warnings;
+use strict;
+use feature 'switch';
+
+$| = 1;
+
+my @all = qw(Digest::SHA Digest::MD5);
+my @valid_types;
+
+foreach my $type (@all) {
+    print "checking for $type... ";
+    if (eval "require $type; 1") {
+        push @valid_types, $type;
+        print "yes\n"
+    }
+    else {
+        print "no\n"
+    }
+}
+
+print <<'EOF'
+
+This script is used to generate encrypted passwords in forms that are supported by juno-ircd.
+These passwords are used in the configuration such as in "connect" and "oper" blocks.
+
+EOF
+;
+
+if (!scalar @valid_types) {
+    print "but it looks like you have none of the following supported modules installed:\n";
+    foreach my $type (@all) {
+        print "$type\n"
+    }
+    exit 1
+}
+
+print "Please enter your plaintext password now.\n[password] ";
+
+my $password = <STDIN>;
+chomp $password;
+
+print "\nThe following encryption modules were found on your system:\n";
+my $i = 0;
+foreach my $type (@valid_types) {
+    print "[$i] $type\n";
+    $i++;
+}
+$i = 0;
+
+print "\nPlease enter the number corresponding with the encryption module you would like to use.\n[number] ";
+my $type = <STDIN>;
+chomp $type;
+
+if (!defined $valid_types[$type]) {
+    print "invalid selection.\n";
+    exit 1
+}
+
+$type = $valid_types[$type];
+
+given ($type) {
+    when ('Digest::SHA') { sha(); }
+    when ('Digest::MD5') {
+        $password = Digest::MD5::md5_hex($password);
+        done('md5');
+    }
+}
+
+sub sha {
+    print "\nThe module you have selected supports the following types:\n";
+    my @hex_types = qw|sha1 sha224 sha256 sha384 sha512|;
+    foreach my $hex_type (@hex_types) {
+        print "[$i] $hex_type\n";
+        $i++
+    }
+    print "\nPlease enter the number corresponding with the encryption type you would like to use.\n[number] ";
+    my $hex_type = <STDIN>;
+    chomp $type;
+
+    if (!defined $hex_types[$hex_type]) {
+        print "invalid selection.\n";
+        exit 1
+    }
+
+    $hex_type = $hex_types[$hex_type];
+
+    given ($hex_type) {
+        when ('sha1') {
+            $password = Digest::SHA::sha1_hex($password);
+            done('sha1');
+        }
+        when ('sha224') {
+            $password = Digest::SHA::sha224_hex($password);
+            done('sha224');
+        }
+        when ('sha256') {
+            $password = Digest::SHA::sha256_hex($password);
+            done('sha256');
+        }
+        when ('sha384') {
+            $password = Digest::SHA::sha384_hex($password);
+            done('sha384');
+        }
+        when ('sha512') {
+            $password = Digest::SHA::sha512_hex($password);
+            done('sha512');
+        }
+    }
+}
+
+sub done {
+    my $final_type = shift;
+    print "\nYou're all done!\nPassword: $password\nType: $final_type\n\n";
+    exit
+}
