@@ -3,14 +3,14 @@ package ircd;
 
 use warnings;
 use strict;
-use feature qw|switch say|;
+use feature qw(switch say);
 
-use utils qw[conf lconf log2 fatal gv set];
+use utils qw(conf lconf log2 fatal gv set);
 
 utils::ircd_LOAD();
 
 our @reloadable;
-my ($VERSION, %global) = '4.0.1.9';
+my ($VERSION, %global) = '5.0.0.0';
 
 sub start {
 
@@ -268,7 +268,7 @@ sub begin {
     %global = (
         NAME    => 'juno-ircd',
         VERSION => $VERSION,
-        PROTO   => '2.0.0',
+        PROTO   => '3.0.0',
         START   => time,
         NOFORK  => 'NOFORK' ~~ @ARGV,
 
