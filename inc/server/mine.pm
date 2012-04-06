@@ -34,7 +34,8 @@ sub register_handler {
     #success
     $commands{$command}{$source} = {
         code    => $ref,
-        source  => $source
+        source  => $source,
+        forward => shift
     };
     log2("$source registered $command");
     return 1
@@ -151,6 +152,9 @@ sub handle {
         # it exists- parse it.
         foreach my $source (keys %{$commands{$command}}) {
             $commands{$command}{$source}{code}($server, $line, @s);
+
+            # forward to children
+            send_children($server, $line) if $commands{$command}{$source}{forward};
         }
     }
     return 1

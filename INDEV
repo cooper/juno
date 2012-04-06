@@ -940,3 +940,5 @@ CHANGES:
 
             2. send all users in burst, even nonlocal users.
                send servers in burst.
+
+            3. added 'forward' options to server::mine::register_handler() to forward messages to child servers.
