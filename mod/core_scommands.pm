@@ -110,7 +110,7 @@ my %scommands = (
 
 our $mod = API::Module->new(
     name        => 'core_scommands',
-    version     => '0.9',
+    version     => '1.0',
     description => 'the core set of server commands',
     requires    => ['server_commands'],
     initialize  => \&init
@@ -275,6 +275,17 @@ sub privmsgnotice {
     if ($channel) {
         # tell local users
         $channel->channel::mine::send_all(':'.$source->full." $command $$channel{name} :$message", $source);
+
+        # then tell local servers if necessary
+        my %sent;
+        foreach my $usr (values %user::user) {
+            next if $server == $usr->{location}; # obviously the users of this server already know
+            next if $usr->is_local;              # obviously this user already knows
+            next if $sent{$usr->{location}};     # already sent here
+            $sent{$usr->{location}} = 1;
+            server::mine::fire_command($usr->{location}, privmsgnotice => $command, $user, $channel->{name}, $message);
+        }
+
         return 1
     }
 
