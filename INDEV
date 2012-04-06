@@ -942,3 +942,5 @@ CHANGES:
                send servers in burst.
 
             3. added 'forward' options to server::mine::register_handler() to forward messages to child servers.
+
+            4. replaced forward where necessary.
