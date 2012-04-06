@@ -933,3 +933,10 @@ CHANGES:
         0. April 5, 2012
 
             0. first commit.
+
+            1. fixed PRIVMSG forwarding.
+
+            April 6, 2012
+
+            2. send all users in burst, even nonlocal users.
+               send servers in burst.
