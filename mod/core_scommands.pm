@@ -106,7 +106,7 @@ my %scommands = (
         params  => [qw(user dummy user :rest)],
         code    => \&skill,
         forward => 1
-    }
+    },
     
     # compact
 
