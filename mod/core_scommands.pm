@@ -106,13 +106,8 @@ my %scommands = (
         params  => [qw(user dummy user :rest)],
         code    => \&skill,
         forward => 1
-    },
-    CONNECT => {
-        params  => [qw(user dummy server any)],
-        code    => \&sconnect,
-        forward => 0 # XXX idk
-    },
-
+    }
+    
     # compact
 
     AUM => {
@@ -552,24 +547,6 @@ sub skill {
 
     # we ignore any non-local users
     $tuser->{conn}->done("Killed: $reason [$$user{nick}]") if $tuser->is_local;
-}
-
-sub sconnect {
-    # user dummy   server     any
-    # :uid CONNECT source_sid target_name
-    my ($server, $data, $user, $serv, $target) = @_;
-
-    # obviously we can only connect locally
-    if ($serv != gv('SERVER')) {
-        log2('got CONNECT command for a server which is not this server.');
-        return
-    }
-
-    if (!server::linkage::connect_server($server)) {
-        $user->server_notice('CONNECT', 'couldn\'t connect to '.$server);
-    }
-
-    return 1
 }
 
 $mod
