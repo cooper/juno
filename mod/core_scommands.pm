@@ -282,7 +282,7 @@ sub umode {
 sub privmsgnotice {
     # source any            any    :rest
     # :uid   PRIVMSG|NOTICE target :message
-    my ($server, $data, $source, $command, $target, $message) = @_;
+    my ($user, $data, $source, $command, $target, $message) = @_;
 
     # is it a user?
     my $tuser = user::lookup_by_id($target);
