@@ -280,41 +280,41 @@ sub umode {
 }
 
 sub privmsgnotice {
-    # source any            any    :rest
-    # :uid   PRIVMSG|NOTICE target :message
-    my ($user, $data, $source, $command, $target, $message) = @_;
+    # user any            any    :rest
+    # :uid PRIVMSG|NOTICE target :message
+    my ($server, $data, $user, $command, $target, $message) = @_;
 
     # is it a user?
     my $tuser = user::lookup_by_id($target);
     if ($tuser) {
         # if it's mine, send it
         if ($tuser->is_local) {
-            $tuser->sendfrom($source->full, "$command $$tuser{nick} :$message");
+            $tuser->sendfrom($user->full, "$command $$tuser{nick} :$message");
             return 1
         }
+        # otherwise pass this on...
+        server::mine::fire_command($tuser->{location}, privmsgnotice => $command, $user, $tuser->{uid}, $message);
+        return 1
     }
 
     # must be a channel
     my $channel = channel::lookup_by_name($target);
     if ($channel) {
         # tell local users
-        $channel->channel::mine::send_all(':'.$source->full." $command $$channel{name} :$message", $source);
+        $channel->channel::mine::send_all(':'.$user->full." $command $$channel{name} :$message", $user);
 
         # then tell local servers if necessary
         my %sent;
         foreach my $usr (values %user::user) {
-            next if $server == $usr->{location}; # obviously the users of this server already know
-            next if $usr->is_local;              # obviously this user already knows
-            next if $sent{$usr->{location}};     # already sent here
+            next if $server == $usr->{location};
+            next if $usr->is_local;
+            next if $sent{$usr->{location}};
             $sent{$usr->{location}} = 1;
             server::mine::fire_command($usr->{location}, privmsgnotice => $command, $user, $channel->{name}, $message);
         }
 
         return 1
     }
-
-    # otherwise, wtf.
-    return
 }
 
 sub sjoin {
