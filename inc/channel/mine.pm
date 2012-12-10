@@ -119,11 +119,14 @@ sub take_lower_time {
     delete $channel->{topic};
 
     # unset all channel modes
-    my $modestring = ($channel->mode_string_all(gv('SERVER')))[0];
+    my ($modestring, $servermodestring) = $channel->mode_string_all(gv('SERVER'));
     $modestring =~ s/\+/\-/;
     send_all($channel, ':'.gv('SERVER', 'name')." MODE $$channel{name} $modestring");
-    $channel->{modes} = {};
 
+    # hackery: use the server mode string to reset all modes.
+    # ($channel, $server, $source, $modestr, $force, $over_protocol)
+    $channel->handle_mode_string(gv('SERVER'), gv('SERVER'), $servermodestring, 1, 1);
+    
     notice_all($channel, 'channel properties reset');
     return $channel->{time}
 }

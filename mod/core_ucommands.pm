@@ -476,12 +476,14 @@ sub cjoin {
             ($ur, $sr) = $channel->handle_mode_string($me, $me, $str, 1, 1);
         }
 
+
+
         # tell servers that the user joined and the automatic modes were set
         server::mine::fire_command_all(sjoin => $user, $channel, $time);
         server::mine::fire_command_all(cmode => $me, $channel, $time, $me->{sid}, $sr) if $sr;
 
         $channel->channel::mine::cjoin($user, $time, 1)
-    }
+        
 }
 
 sub names {

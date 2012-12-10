@@ -318,27 +318,21 @@ sub sjoin {
     my ($server, $data, $user, $chname, $time) = @_;
     my $channel = channel::lookup_by_name($chname);
 
-    # the channel exists, so just join
-    if ($channel) {
-        return if $channel->has_user($user);
-
-        # take the lower time
-        $channel->channel::mine::take_lower_time($time);
-
-    }
-
     # channel doesn't exist; make a new one
-    else {
+    if (!$channel) {
         $channel = channel->new({
             name => $chname,
             time => $time
         });
     }
 
-    $channel->cjoin($user, $time);
+    # take lower time if necessary, and add the user to the channel.
+    $channel->channel::mine::take_lower_time($time);
+    $channel->cjoin($user, $time) unless $channel->has_user($user);
 
-    # for each user in the channel
+    # for each user in the channel, send a JOIN message.
     $channel->channel::mine::send_all(q(:).$user->full." JOIN $$channel{name}");
+    
 }
 
 # add user flags
@@ -547,6 +541,7 @@ sub skill {
 
     # we ignore any non-local users
     $tuser->{conn}->done("Killed: $reason [$$user{nick}]") if $tuser->is_local;
+
 }
 
 $mod

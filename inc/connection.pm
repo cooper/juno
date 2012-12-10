@@ -292,7 +292,7 @@ sub done {
 
     if ($connection->{type}) {
         # share this quit with the children
-        server::mine::fire_command_all(quit => $connection, $reason) unless $connection->{type}->isa('server');
+        server::mine::fire_command_all(quit => $connection, $reason);
 
         # tell user.pm or server.pm that the connection is closed
         $connection->{type}->quit($reason)
