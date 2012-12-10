@@ -128,8 +128,6 @@ sub umode {
 sub privmsgnotice {
     my ($cmd, $source, $target, $message) = @_;
     my $id  = $source->id;
-    print "target: $target\n";
-    return "";
     my $tid = $target->id;
     ":$id $cmd $tid :$message"
 }

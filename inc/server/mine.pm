@@ -113,7 +113,7 @@ sub handle {
     my $server = shift;
 
     foreach my $line (split "\n", shift) {
-    print "GOT LINE: $line\n";
+
         my @s = split /\s+/, $line;
 
         # response to PINGs
