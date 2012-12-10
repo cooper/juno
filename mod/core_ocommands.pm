@@ -129,6 +129,8 @@ sub privmsgnotice {
     my ($cmd, $source, $target, $message) = @_;
     my $id  = $source->id;
     my $tid = $target->id;
+    print "target: $target\n";
+    return "";
     ":$id $cmd $tid :$message"
 }
 

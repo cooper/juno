@@ -111,8 +111,9 @@ sub fire_command_all {
 # handle local user data
 sub handle {
     my $server = shift;
-    foreach my $line (split "\n", shift) {
 
+    foreach my $line (split "\n", shift) {
+    print "GOT LINE: $line\n";
         my @s = split /\s+/, $line;
 
         # response to PINGs
