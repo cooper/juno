@@ -223,7 +223,7 @@ sub ready {
 
         $connection->{parent} = gv('SERVER');
         $connection->{type}   = server->new($connection);
-        #server::mine::fire_command_all(sid => $connection->{type});
+        server::mine::fire_command_all(sid => $connection->{type});
 
         # send server credentials
         if (!$connection->{sent_creds}) {
