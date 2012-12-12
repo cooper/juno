@@ -342,7 +342,6 @@ sub mode_string_all {
             # lists
             when (3) {
                 foreach my $thing ($channel->list_elements($name)) {
-                    $thing = $thing->[0]; # FIXME
                     push @modes,         $letter;
                     push @user_params,   $thing;
                     push @server_params, $thing
@@ -352,7 +351,6 @@ sub mode_string_all {
             # lists of users
             when (4) {
                 foreach my $user ($channel->list_elements($name)) {
-                    $user = $user->[0]; # FIXME.
                     push @modes,         $letter;
                     push @user_params,   $user->{nick};
                     push @server_params, $user->{uid}
