@@ -177,11 +177,6 @@ sub send_burst {
 
     $server->sendme('BURST '.time);
 
-    # send modes using compact AUM and ACM
-    my $me = gv('SERVER');
-    fire_command($server, aum => $me);
-    fire_command($server, acm => $me);
-
     # servers and mode names  	
     foreach my $serv (values %server::server) {
 
@@ -200,8 +195,10 @@ sub send_burst {
 
     # users
     foreach my $user (values %user::user) {
+    
         # ignore users the server already knows!
         next if $user->{server} == $server || $server->{sid} == $user->{source};
+        
         fire_command($server, uid => $user);
 
         # oper flags
@@ -213,6 +210,7 @@ sub send_burst {
         if (exists $user->{away}) {
             fire_command($server, away => $user)
         }
+        
     }
 
     # channels, using compact CUM
