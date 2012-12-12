@@ -73,7 +73,6 @@ sub set_mode {
 sub list_has {
     my ($channel, $name, $what) = @_;
     return unless exists $channel->{modes}->{$name};
-    return unless ref $channel->{modes}->{$name} eq 'ARRAY';
     foreach my $thing ($channel->list_elements($what)) {
         return 1 if $thing eq $what
     }
