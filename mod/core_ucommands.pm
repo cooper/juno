@@ -1138,7 +1138,7 @@ sub ukill {
 sub modules {
     my $user = shift;
     $user->server_notice("Loaded ircd modules");
-    foreach my $mod (@$main::API->loaded) {
+    foreach my $mod (@{$main::API->{loaded}}) {
         $user->server_notice("    \2$$mod{name}\2");
         $user->server_notice("        version: $$mod{version}");
         $user->server_notice("        description: $$mod{description}");
@@ -1146,6 +1146,7 @@ sub modules {
             next unless $mod->{$type};
             my @a = @{$mod->{$type}};
             next unless scalar @a;
+            $type =~ s/_/ /g;
             $user->server_notice("        $type");
             while (@a) {
                 my ($one, $two, $three) = (
