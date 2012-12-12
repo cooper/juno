@@ -92,9 +92,7 @@ sub list_matches {
 sub list_elements {
     my ($channel, $name) = @_;
     return unless exists $channel->{modes}->{$name};
-    return map {
-        ref $_ eq 'ARRAY' ? $_->[0] : $_
-    } @{$channel->{modes}->{$name}->{list}}
+    return map { $_->[0] } @{$channel->{modes}->{$name}->{list}}
 }
 
 # adds something to a list mode (such as ban)
