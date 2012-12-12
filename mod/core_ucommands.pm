@@ -257,7 +257,7 @@ contributed time, effort, love, and care to the project.
 \2Developers\2
     Mitchell Cooper, \"cooper\" <mitchell\@notroll.net> https://github.com/cooper
     Kyle Paranoid, \"mac-mini\" <mac-mini\@mac-mini.org> https://github.com/mac-mini
-    Daniel Leining, "daniel" <daniel@the-beach.co> https://github.com/blasphemy
+    Daniel Leining, \"daniel\" <daniel\@the-beach.co> https://github.com/blasphemy
     Hakkin Lain, \"Hakkin\" <hakkin\@notroll.net> https://github.com/hakkin
     Matthew Carey, \"swarley\" <matthew.b.carey\@gmail.com> https://github.com/swarley
     Alyx Marie, \"alyx\" <alyx\@malkier.net> https://github.com/alyx
