@@ -74,6 +74,8 @@ sub cmode_access {
         return;
     }
     
+    # TODO: ensure that this user is at least the $final_status unless force or server.
+    
     # set the parameter to the desired mode_name:mask format.
     $mode->{param} = $final_status.q(:).$mask;
 
@@ -100,15 +102,16 @@ sub cmode_access {
 # user joined channel event handler.
 sub on_user_joined {
     my ($event, $channel, $user) = @_;
+    my $match;
     
     # check if there is a match, and return if there is not.
     if (
-        !$channel->list_matches('access', $user->full) &&
-        !$channel->list_matches('access', $user->fullcloak)
+        !$match = $channel->list_matches('access', $user->full) &&
+        !$math  = $channel->list_matches('access', $user->fullcloak)
     ) { return }
     
     # there is, so let's continue.
-    split
+    my ($modename, $mask) = split ':', $
     
 }
 

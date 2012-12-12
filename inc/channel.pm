@@ -80,12 +80,16 @@ sub list_has {
 }
 
 # something matches in an expression list
+# returns the match if there is one.
 sub list_matches {
     my ($channel, $name, $what) = @_;
     return unless exists $channel->{modes}->{$name};
-    return 1 if match($what, map {
-        $_ =~ m/^(.{1}):(.+)/ ? (split ':', $_)[1] : $_
-    } $channel->list_elements($name));
+    foreach my $mask ($channel->list_elements($name)) {
+        my $realmask = $mask;
+        $realmask = (split ':', $_)[1] if $mask =~ m/^(.{1}):(.+)/;
+        return $mask if match($what, $realmask);
+    }
+    return;
 }
 
 # returns an array of list elements
