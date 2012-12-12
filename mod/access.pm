@@ -112,8 +112,11 @@ sub on_user_joined {
     
     # there is, so let's continue.
     my ($modename, $mask) = split ':', $match, 2;
-    print "setting $modename to $$user{nick}\n";
+    my $letter = gv('SERVER')->cmode_letter($modename);
+    my $str    = "+$letter $$user{id}";
+    my $user_mode_string  = $channel->handle_mode_string(gv('SERVER'), gv('SERVER'), $str, 1, 1);
     
+    print "mode string: $user_mode_string\n";
 }
 
 $mod
