@@ -265,7 +265,7 @@ contributed to the project.
     Corey Chex, \"Corey\" <corey\@notroll.net>
  
 Proudly brought to you by \2\x0302No\x0313Troll\x0304Plz\x0309Net\x0f
-https://notroll.net
+http://notroll.net
  
 END
     $user->numeric('RPL_INFO', $_) foreach split /\n/, $info;
