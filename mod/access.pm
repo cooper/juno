@@ -37,24 +37,24 @@ sub init {
 # access mode handler.
 sub cmode_access {
     my ($channel, $mode) = @_;
-print "1\n";
+
     # view access list.
     if (!defined $mode->{param} && $mode->{source}->isa('user')) {
         # TODO
         $mode->{do_not_set} = 1;
         return 1;
     }
-print "2\n";
+
     # for setting and unsetting -
     # split status:mask. status can be either a status name or a letter.
     my ($status, $mask) = split ':', $mode->{param}, 2;
-print "  3 \n"; 
+    
     # if either is not present, this is invalid.
     if (!defined $status || !defined $mask) {
         $mode->{do_not_set} = 1;
         return;
     }
-print "4\n";
+
     # ensure that the status is valid.
     my $final_status;
     
@@ -67,34 +67,34 @@ print "4\n";
     else {
         $final_status = $mode->{server}->cmode_name($status);
     }
-print "  6  \n";
+    
     # neither worked. give up.
     if (!defined $final_status) {
         $mode->{do_not_set} = 1;
         return;
     }
-print "  7  \n";
+    
     # TODO: ensure that this user is at least the $final_status unless force or server.
     
     # set the parameter to the desired mode_name:mask format.
     $mode->{param} = $final_status.q(:).$mask;
-print "8\n";
+
     # setting.
     if ($mode->{state}) { 
-print "   9 \n";
+    
         # this is valid; add it to the access list.
         $channel->add_to_list('access', $mode->{param},
             setby => $mode->{source}->name,
             time  => time
         );
-print "   10     \n";
+        
     }
 
     # unsetting.
     else {
         $channel->remove_from_list('access', $mode->{param});
     }
-print "11\n";
+
     push @{$mode->{params}}, $mode->{param};
     return 1
 }
