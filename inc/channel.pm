@@ -85,7 +85,7 @@ sub list_matches {
     return unless exists $channel->{modes}->{$name};
     return 1 if match($what, map {
         $_ =~ m/^(.{1}):(.+)/ ? (split ':', $_)[1] : $_
-    } $channel->list_elements($name);
+    } $channel->list_elements($name));
 }
 
 # returns an array of list elements
