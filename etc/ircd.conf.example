@@ -147,6 +147,7 @@
     send_password: "k"              # the password to send to the other server
     receive_password: "13fbd79c3d390e5d6585a21e11ff5ec1970cff0c" # the password to receive in return
     autoconnect: off                # attempt to connect to the server automatically?
+    auto_timer: 30                  # how often (in seconds) to attempt to connection if autoconnect is enabled
 
 # oper classes
 

@@ -67,7 +67,7 @@ sub lookup_by_id {
 sub lookup_by_name {
     my $name = shift;
     foreach my $server (values %server) {
-        return $server if lc $server->{name} eq $name
+        return $server if lc $server->{name} eq lc $name
     }
     return
 }

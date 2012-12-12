@@ -8,18 +8,25 @@ use strict;
 use utils qw[conf log2 gv];
 
 use IO::Async::Stream;
+use IO::Async::Timer::Countdown;
 
 # connect to a server in the configuration
-
 sub connect_server {
-    my $server = shift;
+    my $server_name = shift;
 
-    unless (exists $utils::conf{connect}{$server}) {
-        log2("Attempted to connect to nonexistent server: $server");
-        return
+    # make sure we at least have some configuration information about the server.
+    unless (exists $utils::conf{connect}{$server_name}) {
+        log2("Attempted to connect to nonexistent server: $server_name");
+        return;
+    }
+    
+    # then, ensure that the server is not connected already.
+    if (server::lookup_by_name($server_name)) {
+        log2("attempted to connect an already connected server: $server_name");
+        return;
     }
 
-    my %serv = %{$utils::conf{connect}{$server}};
+    my %serv = %{$utils::conf{connect}{$server_name}};
 
     # create the socket
     my $socket = IO::Socket::IP->new(
@@ -29,11 +36,11 @@ sub connect_server {
     );
 
     if (!$socket) {
-        log2("Could not connect to $server: ".($! ? $! : $@));
-        return
+        log2("Could not connect to $server_name: ".($! ? $! : $@));
+        return;
     }
 
-    log2("Connection established to $server");
+    log2("Connection established to $server_name");
 
     my $stream = IO::Async::Stream->new(
         read_handle  => $socket,
@@ -47,10 +54,10 @@ sub connect_server {
         read_all       => 0,
         read_len       => POSIX::BUFSIZ,
         on_read        => \&ircd::handle_data,
-        on_read_eof    => sub { $conn->done('connection closed');   $stream->close_now },
-        on_write_eof   => sub { $conn->done('connection closed');   $stream->close_now },
-        on_read_error  => sub { $conn->done('read error: ' .$_[1]); $stream->close_now },
-        on_write_error => sub { $conn->done('write error: '.$_[1]); $stream->close_now }
+        on_read_eof    => sub { _end($conn, $stream, $server_name, 'connection closed')   },
+        on_write_eof   => sub { _end($conn, $stream, $server_name, 'connection closed')   },
+        on_read_error  => sub { _end($conn, $stream, $server_name, 'read error :'.$_[1])  },
+        on_write_error => sub { _end($conn, $stream, $server_name, 'write error: '.$_[1]) }
     );
 
     $main::loop->add($stream);
@@ -67,10 +74,35 @@ sub connect_server {
     $conn->send("PASS $serv{send_password}");
 
     $conn->{sent_creds} = 1;
-    $conn->{want}       = $server;
+    $conn->{want}       = $server_name;
 
-    return $conn
+    return $conn;
 
+}
+
+sub _end {
+    my ($conn, $stream, $server_name, $reason) = @_;
+    $conn->done('write error: '.$_[1]);
+    $stream->close_now;
+    
+    # if we have an autoconnect_timer for this server, start a connection timer.
+    my $timeout = lconf('connect', $server_name, 'auto_timeout');
+    if ($timeout) {
+        log2('going to attempt to connect to '.$server_name.' in '.$timeout.' seconds.');
+        
+        # start the timer.
+        my $timer = IO::Async::Timer::Periodic->new( 
+            delay     => $timeout,
+            on_expire => sub { connect_server($server_name) }
+        );
+        
+        $main::loop->add($timer);
+        $timer->start;
+        
+    }
+    
+    # if we don't, that's all - we're done.
+    
 }
 
 1
