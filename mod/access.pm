@@ -65,7 +65,7 @@ sub cmode_access {
 
     # next, check if it is a status letter.
     else {
-        foreach my $stat (%{$utils::conf{sec}{prefixes}}) {
+        foreach my $stat (keys %{$utils::conf{sec}{prefixes}}) {
         
             # found a match.
             if (conf('prefixes', $stat) eq $status) {
