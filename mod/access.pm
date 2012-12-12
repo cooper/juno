@@ -121,9 +121,11 @@ sub on_user_joined {
     my $ustr   = "+$letter $$user{nick}";
     
     # interpret the server mode string.
-    my $user_mode_string  = $channel->handle_mode_string(gv('SERVER'), gv('SERVER'), $sstr, 1, 1);
+    # ($channel, $server, $source, $modestr, $force, $over_protocol)
+    my ($user_mode_string, $server_mdoe_string) =
+     $channel->handle_mode_string(gv('SERVER'), gv('SERVER'), $sstr, 1, 1);
     
-    print "mode string: $user_mode_string ($ustr) ($sstr)\n";
+    print "mode string: $server_mode_string / $user_mode_string ($ustr) ($sstr)\n";
 }
 
 $mod
