@@ -68,7 +68,7 @@ sub cmode_access {
         foreach my $stat (keys %{$utils::conf{sec}{prefixes}}) {
         
             # found a match.
-            if (conf('prefixes', $stat) eq $status) {
+            if (conf('prefixes', $stat)->[0] eq $status) {
                 $final_status = $stat;
                 last;
             }
