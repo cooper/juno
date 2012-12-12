@@ -245,7 +245,6 @@ sub cum {
 
     # create an array of uid!status
     foreach my $user (@{$channel->{users}}) {
-        next unless $user->is_local;
         my $str = $user->{uid};
         $str .= '!'.$prefixes{$user} if exists $prefixes{$user};
         push @userstrs, $str
