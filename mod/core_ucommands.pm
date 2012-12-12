@@ -249,20 +249,23 @@ Copyright (c) 2010-12, the juno-ircd developers
  
 This program is free software.
 You are free to modify and redistribute it under the terms of
-the New BSD license.
+the three-clause "New BSD" license (see LICENSE in source.)
  
-juno3 wouldn't be here if it weren't for the people who have
-contributed to the project.
+$NAME wouldn't be here if it weren't for the people who have
+contributed time, effort, love, and care to the project.
  
 \2Developers\2
-    Mitchell Cooper, \"cooper\" <mitchell\@notroll.net>
-    Kyle Paranoid, \"mac-mini\" <mac-mini\@mac-mini.org>
-    Alyx Marie, \"alyx\" <alyx\@malkier.net>
+    Mitchell Cooper, \"cooper\" <mitchell\@notroll.net> https://github.com/cooper
+    Kyle Paranoid, \"mac-mini\" <mac-mini\@mac-mini.org> https://github.com/mac-mini
+    Alyx Marie, \"alyx\" <alyx\@malkier.net> https://github.com/alyx
+    Hakkin Lain, \"Hakkin\" <hakkin\@notroll.net> https://github.com/hakkin
+    Matthew Carey, \"swarley\" <matthew.b.carey\@gmail.com> https://github.com/swarley
     Brandon Rodriguez, \"Beyond\" <beyond\@mailtrap.org>
     Nick Dalsheimer, \"AstroTurf\" <astronomerturf\@gmail.com>
-    Matthew Carey, \"swarley\" <matthew.b.carey\@gmail.com>
-    Hakkin Lain, \"Hakkin\" <hakkin\@notroll.net>
     Corey Chex, \"Corey\" <corey\@notroll.net>
+ 
+If you have any questions or concerns, feel free to email the above
+developers directly or contact NoTrollPlzNet at <contact\@notroll.net>
  
 Proudly brought to you by \2\x0302No\x0313Troll\x0304Plz\x0309Net\x0f
 http://notroll.net
