@@ -59,22 +59,13 @@ sub cmode_access {
     my $final_status;
     
     # first, let's see if this is a status name.
-    if (my $stat = conf('prefixes', $status)) {
+    if (defined $mode->{server}->cmode_letter($status)) {
         $final_status = $status;
     }
 
     # next, check if it is a status letter.
     else {
-        foreach my $stat (keys %{$utils::conf{sec}{prefixes}}) {
-        
-            # found a match.
-            if (conf('prefixes', $stat)->[0] eq $status) {
-                $final_status = $stat;
-                last;
-            }
-            
-            # keep looking.
-        }
+        $final_status = $mode->{server}->cmode_name($status);
     }
     
     # neither worked. give up.
@@ -117,8 +108,7 @@ sub on_user_joined {
     ) { return }
     
     # there is, so let's continue.
-    
-    # 
+    split
     
 }
 
