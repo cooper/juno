@@ -19,7 +19,7 @@ our $mod = API::Module->new(
     name        => 'LOLCAT',
     version     => '0.1',
     description => 'SPEEK LIEK A LOLCATZ!',
-    requires    => ['user_commands'],
+    requires    => ['UserCommands'],
     initialize  => \&init
 );
  

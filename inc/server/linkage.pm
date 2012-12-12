@@ -16,7 +16,7 @@ sub connect_server {
 
     # make sure we at least have some configuration information about the server.
     unless (exists $utils::conf{connect}{$server_name}) {
-        log2("Attempted to connect to nonexistent server: $server_name");
+        log2("attempted to connect to nonexistent server: $server_name");
         return;
     }
     
@@ -36,11 +36,11 @@ sub connect_server {
     );
 
     if (!$socket) {
-        log2("Could not connect to $server_name: ".($! ? $! : $@));
+        log2("could not connect to server $server_name: ".($! ? $! : $@));
         return;
     }
 
-    log2("Connection established to $server_name");
+    log2("connection established to server $server_name");
 
     my $stream = IO::Async::Stream->new(
         read_handle  => $socket,
@@ -88,7 +88,7 @@ sub _end {
     # if we have an autoconnect_timer for this server, start a connection timer.
     my $timeout = lconf('connect', $server_name, 'auto_timeout');
     if ($timeout) {
-        log2('going to attempt to connect to '.$server_name.' in '.$timeout.' seconds.');
+        log2("going to attempt to connect to server $server_name in $timeout seconds.");
         
         # start the timer.
         my $timer = IO::Async::Timer::Periodic->new( 

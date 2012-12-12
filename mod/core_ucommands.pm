@@ -156,7 +156,7 @@ our $mod = API::Module->new(
     name        => 'core_ucommands',
     version     => '1.3',
     description => 'the core set of user commands',
-    requires    => ['user_commands'],
+    requires    => ['UserCommands'],
     initialize  => \&init
 );
  
@@ -979,7 +979,7 @@ sub modload {
 
     $user->server_notice("Loading module \2$args[1]\2.");
 
-    my $result = API::load_module($args[1], "$args[1].pm");
+    my $result = $main::API->load_module($args[1], "$args[1].pm");
 
     if (!$result) {
         $user->server_notice('Module failed to load. See server log for information.');
@@ -1004,7 +1004,7 @@ sub modunload {
 
     $user->server_notice("Unloading module \2$args[1]\2.");
 
-    my $result = API::unload_module($args[1], "$args[1].pm");
+    my $result = $main::API->unload_module($args[1], "$args[1].pm");
 
     if (!$result) {
         $user->server_notice('Module failed to unload. See server log for information.');
@@ -1031,7 +1031,7 @@ sub modreload {
 
     # UNLOAD
 
-    my $result = API::unload_module($args[1], "$args[1].pm");
+    my $result = $main::API->unload_module($args[1], "$args[1].pm");
 
     if (!$result) {
         $user->server_notice('Module failed to unload. See server log for information.');
@@ -1045,7 +1045,7 @@ sub modreload {
 
     # LOAD
 
-    $result = API::load_module($args[1], "$args[1].pm");
+    $result = $main::API->load_module($args[1], "$args[1].pm");
 
     if (!$result) {
         $user->server_notice('Module failed to load. See server log for information.');
@@ -1138,7 +1138,7 @@ sub ukill {
 sub modules {
     my $user = shift;
     $user->server_notice("Loaded ircd modules");
-    foreach my $mod (@API::loaded) {
+    foreach my $mod (@$main::API->loaded) {
         $user->server_notice("    \2$$mod{name}\2");
         $user->server_notice("        version: $$mod{version}");
         $user->server_notice("        description: $$mod{description}");

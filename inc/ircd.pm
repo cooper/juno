@@ -10,7 +10,7 @@ use utils qw(conf lconf log2 fatal gv set);
 utils::ircd_LOAD();
 
 our @reloadable;
-my ($VERSION, %global) = '5.86';
+our ($VERSION, $API, %global) = '5.87';
 
 sub start {
 
@@ -39,9 +39,22 @@ sub start {
     $server->user::modes::add_internal_modes();
     $server->channel::modes::add_internal_modes();
 
-    # load required modules and API extensions
+    # load required modules
     load_requirements();
-    API::load_config();
+
+    # create API engine manager.
+    $API = $main::API = API->new(
+        log_sub  => \&api_log,
+        mod_dir  => "$main::run_dir/mod",
+        base_dir => "$main::run_dir/inc/API/Base"
+    );
+
+    # load API modules
+    log2('Loading API configuration modules');
+    if (my $mods = conf('api', 'modules')) {
+        $API->load_module($_, "$_.pm") foreach @$mods;
+    }
+    log2('Done loading modules');
 
     # listen
     create_sockets();
@@ -289,6 +302,11 @@ sub reloadable {
     $after = sub {} if ref $after ne 'CODE';
     push @reloadable, [$package, $code, $after];
     return 1
+}
+
+# API engine logging.
+sub api_log {
+    log2('[API] '.shift());
 }
 
 1

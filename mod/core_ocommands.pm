@@ -35,7 +35,7 @@ our $mod = API::Module->new(
     name        => 'core_ocommands',
     version     => '0.7',
     description => 'the core set of outgoing commands',
-    requires    => ['outgoing_commands'],
+    requires    => ['OutgoingCommands'],
     initialize  => \&init
 );
 

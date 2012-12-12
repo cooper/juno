@@ -131,7 +131,7 @@ our $mod = API::Module->new(
     name        => 'core_scommands',
     version     => '1.0',
     description => 'the core set of server commands',
-    requires    => ['server_commands'],
+    requires    => ['ServerCommands'],
     initialize  => \&init
 );
  

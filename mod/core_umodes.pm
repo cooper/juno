@@ -14,7 +14,7 @@ our $mod = API::Module->new(
     name        => 'core_umodes',
     version     => '0.1',
     description => 'the core set of user commands',
-    requires    => ['user_modes'],
+    requires    => ['UserModes'],
     initialize  => \&init
 );
  

@@ -15,7 +15,7 @@ our $mod = API::Module->new(
     name        => 'core_cmodes',
     version     => '0.2',
     description => 'the core set of channel modes',
-    requires    => ['channel_modes'],
+    requires    => ['ChannelModes'],
     initialize  => \&init
 );
  
