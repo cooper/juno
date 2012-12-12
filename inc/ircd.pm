@@ -10,7 +10,7 @@ use utils qw(conf lconf log2 fatal gv set);
 utils::ircd_LOAD();
 
 our @reloadable;
-our ($VERSION, $API, %global) = '5.88';
+our ($VERSION, $API, %global) = '5.89';
 
 sub start {
 
@@ -41,6 +41,9 @@ sub start {
 
     # load required modules
     load_requirements();
+
+    # create the evented object.
+    $main::eo = EventedObject->new;
 
     # create API engine manager.
     $API = $main::API = API->new(
@@ -237,7 +240,9 @@ sub boot {
     require server;
     require user;
     require channel;
+    
     require API;
+    require EventedObject;
 
     log2("this is $global{NAME} version $global{VERSION}");
     $main::loop = IO::Async::Loop::Epoll->new;

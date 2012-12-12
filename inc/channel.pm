@@ -8,7 +8,7 @@ use feature 'switch';
 
 use channel::mine;
 use channel::modes;
-use utils qw/log2 gv match/;
+use utils qw/log2 gv match fire_event/;
 
 our %channels;
 
@@ -136,8 +136,14 @@ sub cjoin {
 
     log2("adding $$user{nick} to $$channel{name}");
 
+    # fire before join event.
+    fire_event('channel:user_will_join' => $user);
+
     # add the user to the channel
     push @{$channel->{users}}, $user;
+    
+    # fire after join event.
+    fire_event('channel:user_joined' => $user);
 
     return $channel->{time}
 

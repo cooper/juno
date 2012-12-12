@@ -1,3 +1,6 @@
 [submodule "inc/api-engine"]
 	path = inc/api-engine
 	url = git://github.com/cooper/api-engine.git
+[submodule "inc/evented-object"]
+	path = inc/evented-object
+	url = git://github.com/cooper/evented-object.git

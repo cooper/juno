@@ -264,4 +264,15 @@ sub ircd_LOAD {
     })
 }
 
+# EVENTS
+
+sub fire_event {
+    my ($event, @args) = @_;
+    $main::eo->fire_event("juno.$event" => @args);
+}
+
+sub register_event {
+
+}
+
 1
