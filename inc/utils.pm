@@ -266,13 +266,22 @@ sub ircd_LOAD {
 
 # EVENTS
 
+# fire an event handler.
 sub fire_event {
     my ($event, @args) = @_;
     $main::eo->fire_event("juno.$event" => @args);
 }
 
+# register an event handler.
 sub register_event {
+    my $event = shift;
+    $main::eo->register_event("juno.$event", @_);
+}
 
+# delete an event handler.
+sub delete_event {
+    my ($event, $handlerID) = @_;
+    $main::eo->delete_event("juno.$event", $handlerID);
 }
 
 1

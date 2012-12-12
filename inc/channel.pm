@@ -128,22 +128,25 @@ sub remove_from_list {
 sub cjoin {
     my ($channel, $user, $time) = @_;
 
+    # fire before join event.
+    my $e1 = fire_event('channel:user_will_join' => $channel, $user);
+    
+    # a handler suggested that the join should not occur.
+    return if $e1->{join_fail};
+    
+    log2("adding $$user{nick} to $$channel{name}");
+    
     # the channel TS will change
     # if the join time is older than the channel time
     if ($time < $channel->{time}) {
         $channel->set_time($time);
     }
-
-    log2("adding $$user{nick} to $$channel{name}");
-
-    # fire before join event.
-    fire_event('channel:user_will_join' => $user);
-
+    
     # add the user to the channel
     push @{$channel->{users}}, $user;
     
     # fire after join event.
-    fire_event('channel:user_joined' => $user);
+    fire_event('channel:user_joined' => $channel, $user);
 
     return $channel->{time}
 
