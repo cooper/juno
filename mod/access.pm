@@ -122,7 +122,7 @@ sub on_user_joined {
     
     # interpret the server mode string.
     # ($channel, $server, $source, $modestr, $force, $over_protocol)
-    my ($user_mode_string, $server_mdoe_string) =
+    my ($user_mode_string, $server_mode_string) =
      $channel->handle_mode_string(gv('SERVER'), gv('SERVER'), $sstr, 1, 1);
     
     print "mode string: $server_mode_string / $user_mode_string ($ustr) ($sstr)\n";
