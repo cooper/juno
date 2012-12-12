@@ -233,7 +233,7 @@ sub cum {
 
         # lists of users
         when (4) {
-            foreach my $user (map { $_->[0] } @{$channel->{modes}->{$name}->{list}}) {
+            foreach my $user (map { print "LIST: $_\n"; $_->[0] } @{$channel->{modes}->{$name}->{list}}) {
                 next unless $user->is_local;
                 if (exists $prefixes{$user}) { $prefixes{$user} .= $letter }
                                         else { $prefixes{$user}  = $letter }
