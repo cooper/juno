@@ -1,5 +1,5 @@
 # Copyright (c) 2012, Mitchell Cooper
-package ext::core_cmodes;
+package API::Module::core_cmodes;
  
 use warnings;
 use strict;

@@ -7,7 +7,7 @@
 # unlike privmsg, it boings a PRIVMSG back to the client who sent it.
 # it only works for channels.
 
-package ext::LOLCAT;
+package API::Module::LOLCAT;
 
 use warnings;
 use strict;

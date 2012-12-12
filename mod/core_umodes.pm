@@ -1,5 +1,5 @@
 # Copyright (c) 2012, Mitchell Cooper
-package ext::core_umodes;
+package API::Module::core_umodes;
  
 use warnings;
 use strict;

@@ -1,5 +1,5 @@
 # Copyright (c) 2012, Mitchell Cooper
-package ext::core_ocommands;
+package API::Module::core_ocommands;
  
 use warnings;
 use strict;
