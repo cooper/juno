@@ -6,7 +6,7 @@ package API::Module::access;
 use warnings;
 use strict;
 
-use utils 'conf';
+use utils 'conf', 'gv';
 
 our $mod = API::Module->new(
     name        => 'access',
