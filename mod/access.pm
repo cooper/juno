@@ -47,7 +47,7 @@ sub cmode_access {
 
     # for setting and unsetting -
     # split status:mask. status can be either a status name or a letter.
-    my ($status, $mask) = split ':', $mode->{param};
+    my ($status, $mask) = split ':', $mode->{param}, 2;
     
     # if either is not present, this is invalid.
     if (!defined $status || !defined $mask) {
@@ -106,12 +106,13 @@ sub on_user_joined {
     
     # check if there is a match, and return if there is not.
     if (
-        !$match = $channel->list_matches('access', $user->full) &&
-        !$math  = $channel->list_matches('access', $user->fullcloak)
+        !defined($match = $channel->list_matches('access', $user->full))  &&
+        !defined($match = $channel->list_matches('access', $user->fullcloak))
     ) { return }
     
     # there is, so let's continue.
-    my ($modename, $mask) = split ':', $
+    my ($modename, $mask) = split ':', $matchl, 2;
+    print "setting $modename to $$user{nick}\n";
     
 }
 
