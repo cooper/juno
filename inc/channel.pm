@@ -110,6 +110,14 @@ sub add_to_list {
 
     log2("$$channel{name}: adding $parameter to $name list");
     push @{$channel->{modes}->{$name}->{list}}, [$parameter, \%opts];
+    
+    # temporary print.
+    print "ADDING.\n";
+    foreach ($channel->list_elements($name)) {
+        print "ADD: $_\n";
+    }
+    print "ADDED.\n";
+    
     return 1
 }
 
@@ -332,7 +340,7 @@ sub mode_string_all {
 
             # lists
             when (3) {
-                foreach my $thing (@{$channel->{modes}->{$name}->{list}}) {
+                foreach my $thing ($channel->list_elements($name)) {
                     $thing = $thing->[0]; # FIXME
                     push @modes,         $letter;
                     push @user_params,   $thing;
@@ -342,7 +350,7 @@ sub mode_string_all {
 
             # lists of users
             when (4) {
-                foreach my $user (@{$channel->{modes}->{$name}->{list}}) {
+                foreach my $user ($channel->list_elements($name)) {
                     $user = $user->[0]; # FIXME.
                     push @modes,         $letter;
                     push @user_params,   $user->{nick};
@@ -382,13 +390,14 @@ sub user_has_basic_status {
 }
 
 # get the highest level of a user
+# note: ->{status}{$user} is set in core_cmodes.
 sub user_get_highest_level {
     my ($channel, $user) = @_;
     if ($channel->{status}->{$user}) {
         my $res = (sort { $b <=> $a } @{$channel->{status}->{$user}})[0];
         return $res if defined $res
     }
-    return -(999**999) # negative inf (no status)
+    return -'inf' # lowest status value
 }
 
 # returns true if the two passed users have a channel in common.
