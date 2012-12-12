@@ -62,7 +62,7 @@ print "4\n";
     if (defined $mode->{server}->cmode_letter($status)) {
         $final_status = $status;
     }
-print "5\n";
+
     # next, check if it is a status letter.
     else {
         $final_status = $mode->{server}->cmode_name($status);
