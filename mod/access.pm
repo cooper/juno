@@ -113,10 +113,11 @@ sub on_user_joined {
     # there is, so let's continue.
     my ($modename, $mask) = split ':', $match, 2;
     my $letter = gv('SERVER')->cmode_letter($modename);
-    my $str    = "+$letter $$user{id}";
-    my $user_mode_string  = $channel->handle_mode_string(gv('SERVER'), gv('SERVER'), $str, 1, 1);
+    my $sstr   = "+$letter $$user{id}";
+    my $ustr   = "+$letter $$user{nick}";
+    my $user_mode_string  = $channel->handle_mode_string(gv('SERVER'), gv('SERVER'), $sstr, 1, 1);
     
-    print "mode string: $user_mode_string\n";
+    print "mode string: $user_mode_string ($ustr) ($sstr)\n";
 }
 
 $mod
