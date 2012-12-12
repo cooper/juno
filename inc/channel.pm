@@ -109,7 +109,8 @@ sub add_to_list {
     }
 
     log2("$$channel{name}: adding $parameter to $name list");
-    push @{$channel->{modes}->{$name}->{list}}, [$parameter, \%opts];
+    my $array = [$parameter, \%opts];
+    push @{$channel->{modes}->{$name}->{list}}, $array;
     
     # temporary print.
     print "ADDING.\n";
