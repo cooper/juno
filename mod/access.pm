@@ -111,7 +111,7 @@ sub on_user_joined {
     ) { return }
     
     # there is, so let's continue.
-    my ($modename, $mask) = split ':', $matchl, 2;
+    my ($modename, $mask) = split ':', $match, 2;
     print "setting $modename to $$user{nick}\n";
     
 }
