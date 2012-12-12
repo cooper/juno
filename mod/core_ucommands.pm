@@ -261,7 +261,8 @@ contributed to the project.
     Brandon Rodriguez, \"Beyond\" <beyond\@mailtrap.org>
     Nick Dalsheimer, \"AstroTurf\" <astronomerturf\@gmail.com>
     Matthew Carey, \"swarley\" <matthew.b.carey\@gmail.com>
-    Matthew Barksdale, \"matthew\" <matt\@mattwb65.com>
+    Hakkin Lain, \"Hakkin\" <hakkin\@notroll.net>
+    Corey Chex, \"Corey\" <corey\@notroll.net>
  
 Proudly brought to you by \2\x0302No\x0313Troll\x0304Plz\x0309Net\x0f
 https://notroll.net
