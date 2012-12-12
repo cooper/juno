@@ -15,9 +15,12 @@ our $mod = API::Module->new(
  
 sub init {
 
-    $mod->register_channel_event(user_joined => sub {
-        print "Got user join: @_\n";
-    });
+    $mod->register_channel_event(
+        name => 'user_joined',
+        code => sub {
+            print "Got user join: @_\n";
+        }
+    );
 
     return 1
 }
