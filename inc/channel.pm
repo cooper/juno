@@ -86,7 +86,7 @@ sub list_matches {
     return unless exists $channel->{modes}->{$name};
     foreach my $mask ($channel->list_elements($name)) {
         my $realmask = $mask;
-        $realmask = (split ':', $_)[1] if $mask =~ m/^(.{1}):(.+)/;
+        $realmask = (split ':', $_, 2)[1] if $mask =~ m/^(.+?):(.+)!(.+)\@(.+)/;
         return $mask if match($what, $realmask);
     }
     return;
