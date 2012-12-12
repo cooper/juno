@@ -484,6 +484,7 @@ sub cjoin {
 
         $channel->channel::mine::cjoin($user, $time, 1)
         
+    }
 }
 
 sub names {
