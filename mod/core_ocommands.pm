@@ -234,7 +234,6 @@ sub cum {
         # lists of users
         when (4) {
             foreach my $user ($channel->list_elements($name)) {
-                next unless $user->is_local;
                 if (exists $prefixes{$user}) { $prefixes{$user} .= $letter }
                                         else { $prefixes{$user}  = $letter }
             } # ugly br
