@@ -33,7 +33,7 @@ sub register_channel_event {
         
         # create argument list, taking with_channel into account.
         my @arglist = ($event, @_);
-        unshift @arglist, $channel if $opts{with_channel};
+        @arglist    = ($event, $channel, @_) if $opts{with_channel};
         
         # call it.
         $opts{code}(@arglist);
