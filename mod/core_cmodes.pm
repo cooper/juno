@@ -127,7 +127,7 @@ sub cmode_ban {
 
     # view list
     if (!defined $mode->{param} && $mode->{source}->isa('user')) {
-        foreach my $ban (@{$channel->{modes}->{ban}->{list}}) {
+        foreach my $ban ($channel->list_elements('ban')) {
             $mode->{source}->numeric(
                 RPL_BANLIST =>
                 $channel->{name}, $ban->[0], $ban->[1]->{setby}, $ban->[1]->{time}

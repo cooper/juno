@@ -225,7 +225,7 @@ sub cum {
 
         # lists
         when (3) {
-            foreach my $thing (@{$channel->{modes}->{$name}->{list}}) {
+            foreach my $thing ($channel->list_elements($name)) {
                 push @modes,         $letter;
                 push @server_params, $thing
             }
@@ -233,7 +233,7 @@ sub cum {
 
         # lists of users
         when (4) {
-            foreach my $user (map { print "LIST: $_\n"; $_->[0] } @{$channel->{modes}->{$name}->{list}}) {
+            foreach my $user ($channel->list_elements($name)) {
                 next unless $user->is_local;
                 if (exists $prefixes{$user}) { $prefixes{$user} .= $letter }
                                         else { $prefixes{$user}  = $letter }
