@@ -110,13 +110,6 @@ sub add_to_list {
     my $array = [$parameter, \%opts];
     push @{$channel->{modes}->{$name}->{list}}, $array;
     
-    # temporary print.
-    print "ADDING.\n";
-    foreach ($channel->list_elements($name)) {
-        print "ADD: $_\n";
-    }
-    print "ADDED.\n";
-    
     return 1
 }
 
