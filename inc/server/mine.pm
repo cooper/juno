@@ -9,6 +9,7 @@ use utils qw[log2 col gv conf];
 our (%commands, %outgoing);
 
 # register command handlers
+# ($source, $command, $callback, $forward)
 sub register_handler {
     my ($source, $command) = (shift, uc shift);
 

@@ -118,13 +118,15 @@ sub register_server_command {
 
     } if $opts{parameters} && ref $opts{parameters} eq 'ARRAY';
 
-    # register to juno
+    # register to juno: updated 12/11/2012
+    # ($source, $command, $callback, $forward)
     server::mine::register_handler(
         $mod->{name},
         $opts{name},
-        $CODE
+        $CODE,
+        $opts{forward}
     ) or return;
-
+    
     $mod->{user_commands} ||= [];
     push @{$mod->{server_commands}}, $opts{name};
     return 1
