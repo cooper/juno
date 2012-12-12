@@ -4,7 +4,7 @@ package server::mine;
 
 use warnings;
 use strict;
-use utils qw[log2 col gv];
+use utils qw[log2 col gv conf];
 
 our (%commands, %outgoing);
 
@@ -111,8 +111,13 @@ sub fire_command_all {
 # handle local user data
 sub handle {
     my $server = shift;
-
+    
     foreach my $line (split "\n", shift) {
+
+        # if logging is enabled, log.
+        if (conf('log', 'server_debug')) {
+            log2($server->{name}.q(: ).$line);
+        }
 
         my @s = split /\s+/, $line;
 

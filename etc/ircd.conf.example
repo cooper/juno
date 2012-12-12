@@ -176,3 +176,7 @@
 # and extends global which provides globalkill and globops
 # which extends local which provides localkill and locops
 # :).
+
+[ log ]
+
+#server_debug = on      # logs data received from linked servers.
