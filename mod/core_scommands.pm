@@ -141,7 +141,8 @@ sub init {
     $mod->register_server_command(
         name       => $_,
         parameters => $scommands{$_}{params}  || undef,
-        code       => $scommands{$_}{code}
+        code       => $scommands{$_}{code},
+        forward    => $scommands{$_}{forward}
     ) || return foreach keys %scommands;
 
     undef %scommands;
