@@ -1146,8 +1146,8 @@ sub modules {
             next unless $mod->{$type};
             my @a = @{$mod->{$type}};
             next unless scalar @a;
-            $type =~ s/_/ /g;
-            $user->server_notice("        $type");
+            my $mytype = $type; $mytype =~ s/_/ /g;
+            $user->server_notice("        $mytype");
             while (@a) {
                 my ($one, $two, $three) = (
                     shift @a || q..,
