@@ -83,7 +83,9 @@ sub list_has {
 sub list_matches {
     my ($channel, $name, $what) = @_;
     return unless exists $channel->{modes}->{$name};
-    return 1 if match($what, map { $_->[0] } @{$channel->{modes}->{$name}->{list}})
+    return 1 if match($what, map {
+        $_ =~ m/^(.{1}:(.+)/ ? (split ':', $_)[1] : $_
+    } $channel->list_elements($name);
 }
 
 # returns an array of list elements

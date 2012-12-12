@@ -6,6 +6,8 @@ package API::Module::access;
 use warnings;
 use strict;
 
+use utils 'conf';
+
 our $mod = API::Module->new(
     name        => 'access',
     version     => '0.1',
@@ -40,15 +42,59 @@ sub cmode_access {
     if (!defined $mode->{param} && $mode->{source}->isa('user')) {
         # TODO
         $mode->{do_not_set} = 1;
-        return 1
+        return 1;
     }
 
+    # for setting and unsetting -
+    # split status:mask. status can be either a status name or a letter.
+    my ($status, $mask) = split ':', $mode->{param};
+    
+    # if either is not present, this is invalid.
+    if (!defined $status || !defined $mask) {
+        $mode->{do_not_set} = 1;
+        return;
+    }
+
+    # ensure that the status is valid.
+    my $final_status;
+    
+    # first, let's see if this is a status name.
+    if (my $stat = conf('prefixes', $status)) {
+        $final_status = $status;
+    }
+
+    # next, check if it is a status letter.
+    else {
+        foreach my $stat (%{$utils::conf{sec}{prefixes}}) {
+        
+            # found a match.
+            if (conf('prefixes', $stat) eq $status) {
+                $final_status = $stat;
+                last;
+            }
+            
+            # keep looking.
+        }
+    }
+    
+    # neither worked. give up.
+    if (!defined $final_status) {
+        $mode->{do_not_set} = 1;
+        return;
+    }
+    
+    # set the parameter to the desired mode_name:mask format.
+    $mode->{param} = $final_status.q(:).$mask;
+
     # setting.
-    if ($mode->{state}) {
+    if ($mode->{state}) { 
+    
+        # this is valid; add it to the access list.
         $channel->add_to_list('access', $mode->{param},
             setby => $mode->{source}->name,
             time  => time
-        )
+        );
+        
     }
 
     # unsetting.
@@ -64,13 +110,15 @@ sub cmode_access {
 sub on_user_joined {
     my ($event, $channel, $user) = @_;
     
-    # check if there is a match.
+    # check if there is a match, and return if there is not.
     if (
-        $channel->list_matches('access', $user->full) ||
-        $channel->list_matches('access', $user->fullcloak)
-    ) {
-        print "USER MATCHES: $$user{nick}\n";
-    }
+        !$channel->list_matches('access', $user->full) &&
+        !$channel->list_matches('access', $user->fullcloak)
+    ) { return }
+    
+    # there is, so let's continue.
+    
+    # 
     
 }
 
