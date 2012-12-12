@@ -1,5 +1,6 @@
 # Copyright (c) 2012, Mitchell Cooper
-# provides channel access modes
+# provides channel access modes.
+# this module MUST be loaded globally for proper results.
 package API::Module::access;
 
 use warnings;
@@ -24,7 +25,8 @@ sub init {
     # register channel:user_joined event.
     $mod->register_channel_event(
         name => 'user_joined',
-        code => \&on_user_joined
+        code => \&on_user_joined,
+        with_channel => 1
     ) or return;
 
     return 1
@@ -60,6 +62,16 @@ sub cmode_access {
 
 # user joined channel event handler.
 sub on_user_joined {
+    my ($event, $channel, $user) = @_;
+    
+    # check if there is a match.
+    if (
+        $channel->list_matches('access', $user->full) ||
+        $channel->list_matches('access', $user->fullcloak)
+    ) {
+        print "USER MATCHES: $$user{nick}\n";
+    }
+    
 }
 
 $mod
