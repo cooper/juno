@@ -129,7 +129,7 @@ my %scommands = (
 
 our $mod = API::Module->new(
     name        => 'core_scommands',
-    version     => '1.0',
+    version     => '1.1',
     description => 'the core set of server commands',
     requires    => ['ServerCommands'],
     initialize  => \&init
@@ -466,6 +466,7 @@ sub cum {
         unless ($channel->has_user($user)) {
             $channel->cjoin($user, $channel->{time});
             $channel->channel::mine::send_all(q(:).$user->full." JOIN $$channel{name}");
+            fire_event('channel:user_joined' => $channel, $user);
         }
 
         next USER unless $modes;      # the mode part is obviously optional..
