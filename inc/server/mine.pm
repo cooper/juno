@@ -179,8 +179,14 @@ sub send_burst {
 
     # servers and mode names
     my ($do, %done);
+   
+    # first, send modes of this server.
+    fire_command($server, aum => $serv);
+    fire_command($server, acm => $serv);
+        
     $done{$server}      = 1;
     $done{gv('SERVER')} = 1;
+    
     $do = sub {
         my $serv = shift;
         
