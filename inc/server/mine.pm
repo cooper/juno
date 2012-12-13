@@ -179,8 +179,8 @@ sub send_burst {
 
     # servers and mode names
     my ($do, %done);
-    $done{$server}     = 1;
-    $done{gv('SERVER') = 1;
+    $done{$server}      = 1;
+    $done{gv('SERVER')} = 1;
     $do = sub {
         my $serv = shift;
         
