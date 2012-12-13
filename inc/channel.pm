@@ -151,9 +151,10 @@ sub cjoin {
     # add the user to the channel
     push @{$channel->{users}}, $user;
     
-    # fire after join event.
-    fire_event('channel:user_joined' => $channel, $user);
-
+    # note: as of 5.91, after-join event is fired in
+    # mine.pm:           for locals
+    # core_scommands.pm: for nonlocals.
+ 
     return $channel->{time}
 
 }

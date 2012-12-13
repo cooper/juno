@@ -4,7 +4,7 @@ package API::Module::core_scommands;
 use warnings;
 use strict;
  
-use utils qw(col log2 lceq lconf match cut_to_limit conf gv);
+use utils qw(col log2 lceq lconf match cut_to_limit conf gv fire_event);
 
 my %scommands = (
     SID => {
@@ -330,9 +330,12 @@ sub sjoin {
     # take lower time if necessary, and add the user to the channel.
     $channel->channel::mine::take_lower_time($time);
     $channel->cjoin($user, $time) unless $channel->has_user($user);
-
+    
     # for each user in the channel, send a JOIN message.
     $channel->channel::mine::send_all(q(:).$user->full." JOIN $$channel{name}");
+   
+    # fire after join event.
+    fire_event('channel:user_joined' => $channel, $user);
     
 }
 
