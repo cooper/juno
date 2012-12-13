@@ -178,8 +178,8 @@ sub send_burst {
     $server->sendme('BURST '.time);
 
     # servers and mode names.
-    
-    my $do;
+   
+    my ($do, %done);
     $do = sub {
         my $serv = shift;
         
