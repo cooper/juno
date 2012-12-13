@@ -80,7 +80,7 @@ sub cmode_access {
     # TODO: should we always allow over-protocol?
     if (!$mode->{force} && $mode->{source}->isa('user')) {
         my $level1 = $channel->user_get_highest_level($mode->{source});
-        my $level2 = conf('prefix', $final_status)->[2];
+        my $level2 = conf('prefixes', $final_status)->[2];
         # FIXME: major issues if improper configuration values are not array references.
         
         # the level being set is higher than the level of the setter.
