@@ -102,6 +102,7 @@ sub cmode_access {
 # user joined channel event handler.
 sub on_user_joined {
     my ($event, $channel, $user) = @_;
+    my @matches;
     
     # look for matches.
     return unless exists $channel->{modes}{access};
