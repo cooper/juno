@@ -181,8 +181,8 @@ sub send_burst {
     my ($do, %done);
    
     # first, send modes of this server.
-    fire_command($server, aum => $serv);
-    fire_command($server, acm => $serv);
+    fire_command($server, aum => gv('SERVER'));
+    fire_command($server, acm => gv('SERVER'));
         
     $done{$server}      = 1;
     $done{gv('SERVER')} = 1;
