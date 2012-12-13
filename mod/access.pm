@@ -6,11 +6,11 @@ package API::Module::access;
 use warnings;
 use strict;
 
-use utils 'conf', 'gv';
+use utils qw(conf gv match);
 
 our $mod = API::Module->new(
     name        => 'access',
-    version     => '0.2',
+    version     => '0.3',
     description => 'implements channel access modes',
     requires    => ['ChannelEvents', 'ChannelModes'],
     initialize  => \&init
@@ -102,31 +102,36 @@ sub cmode_access {
 # user joined channel event handler.
 sub on_user_joined {
     my ($event, $channel, $user) = @_;
-    my $match;
     
-    # check if there is a match, and return if there is not.
-    if (
-        !defined($match = $channel->list_matches('access', $user->full))  &&
-        !defined($match = $channel->list_matches('access', $user->fullcloak))
-    ) { return }
+    # look for matches.
+    return unless exists $channel->{modes}{access};
+    foreach my $mask ($channel->list_elements('access')) {
+        my $realmask = $mask;
+        $realmask = (split ':', $mask, 2)[1] if $mask =~ m/^(.+?):(.+)!(.+)\@(.+)/;
+        return push @matches, $mask if match($what, $realmask);
+    }
     
-    # there is, so let's continue.
-    my ($modename, $mask) = split ':', $match, 2;
-    
-    # find the mode letter.
-    my $letter = gv('SERVER')->cmode_letter($modename);
-    
-    # create mode strings for user and server.
-    my $sstr   = "+$letter $$user{uid}";
-    my $ustr   = "+$letter $$user{nick}";
-    
-    # interpret the server mode string.
-    # ($channel, $server, $source, $modestr, $force, $over_protocol)
-    my ($user_mode_string, $server_mode_string) =
-     $channel->handle_mode_string(gv('SERVER'), gv('SERVER'), $sstr, 1, 1);
-    
-    # inform the users of this server.
-    channel::mine::send_all($channel, q(:).gv('SERVER', 'name')." MODE $$channel{name} $user_mode_string");
+    foreach my $match (@matches) {
+        
+        # there is, so let's continue.
+        my ($modename, $mask) = split ':', $match, 2;
+        
+        # find the mode letter.
+        my $letter = gv('SERVER')->cmode_letter($modename);
+        
+        # create mode strings for user and server.
+        my $sstr   = "+$letter $$user{uid}";
+        my $ustr   = "+$letter $$user{nick}";
+        
+        # interpret the server mode string.
+        # ($channel, $server, $source, $modestr, $force, $over_protocol)
+        my ($user_mode_string, $server_mode_string) =
+         $channel->handle_mode_string(gv('SERVER'), gv('SERVER'), $sstr, 1, 1);
+        
+        # inform the users of this server.
+        channel::mine::send_all($channel, q(:).gv('SERVER', 'name')." MODE $$channel{name} $user_mode_string");
+        
+    }
     
     return 1;
 }
