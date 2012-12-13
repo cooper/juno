@@ -5,7 +5,7 @@ package server::linkage;
 use warnings;
 use strict;
 
-use utils qw[conf log2 gv];
+use utils qw[conf log2 gv lconf];
 
 use IO::Async::Stream;
 use IO::Async::Timer::Countdown;
