@@ -119,6 +119,7 @@ sub add_cmode {
 # cmode letter to name
 sub cmode_name {
     my ($server, $mode) = @_;
+    return unless defined $mode;
     foreach my $name (keys %{$server->{cmodes}}) {
         return $name if $mode eq $server->{cmodes}->{$name}->{letter}
     }

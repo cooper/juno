@@ -10,7 +10,7 @@ use utils qw(conf gv match);
 
 our $mod = API::Module->new(
     name        => 'access',
-    version     => '0.3',
+    version     => '0.4',
     description => 'implements channel access modes',
     requires    => ['ChannelEvents', 'ChannelModes'],
     initialize  => \&init
@@ -102,7 +102,7 @@ sub cmode_access {
 # user joined channel event handler.
 sub on_user_joined {
     my ($event, $channel, $user) = @_;
-    my @matches;
+    my (@matches, @letters);
     
     # look for matches.
     return unless exists $channel->{modes}{access};
@@ -116,27 +116,34 @@ sub on_user_joined {
         
     }
     
+    # continue through matches.
     foreach my $match (@matches) {
         
-        # there is, so let's continue.
+        # there is match, so let's continue.
         my ($modename, $mask) = split ':', $match, 2;
         
         # find the mode letter.
         my $letter = gv('SERVER')->cmode_letter($modename);
         
-        # create mode strings for user and server.
-        my $sstr   = "+$letter $$user{uid}";
-        my $ustr   = "+$letter $$user{nick}";
-        
-        # interpret the server mode string.
-        # ($channel, $server, $source, $modestr, $force, $over_protocol)
-        my ($user_mode_string, $server_mode_string) =
-         $channel->handle_mode_string(gv('SERVER'), gv('SERVER'), $sstr, 1, 1);
-        
-        # inform the users of this server.
-        channel::mine::send_all($channel, q(:).gv('SERVER', 'name')." MODE $$channel{name} $user_mode_string");
-        
+        push @letters, $letter;
     }
+    
+    # create list of letters.
+    my $letters = join('', @letters);
+    
+    # create mode strings for user and server.
+    my $uids  = ($user->{uid} .q( )) x length $letters;
+    my $nicks = ($user->{nick}.q( )) x length $letters;
+    my $sstr  = "+$letters $uids";
+    my $ustr  = "+$letters $nicks";
+    
+    # interpret the server mode string.
+    # ($channel, $server, $source, $modestr, $force, $over_protocol)
+    my ($user_mode_string, $server_mode_string) =
+     $channel->handle_mode_string(gv('SERVER'), gv('SERVER'), $sstr, 1, 1);
+    
+    # inform the users of this server.
+    channel::mine::send_all($channel, q(:).gv('SERVER', 'name')." MODE $$channel{name} $user_mode_string");
     
     return 1;
 }
