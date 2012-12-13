@@ -1,6 +1,9 @@
 # Copyright (c) 2012, Mitchell Cooper
 # provides channel access modes.
 # this module MUST be loaded globally for proper results.
+# TODO: check for status of user setting mode.
+# TODO: add support for multiple modes in a single entry.
+# TODO: show list of access if no parameters are given.
 package API::Module::access;
 
 use warnings;
@@ -39,7 +42,7 @@ sub cmode_access {
     my ($channel, $mode) = @_;
 
     # view access list.
-    if (!defined $mode->{param} && $mode->{source}->isa('user')) {
+    if (!defined $mode->{param} && $mode->{source}->isa('user') && $mode->{state}) {
         # TODO
         $mode->{do_not_set} = 1;
         return 1;

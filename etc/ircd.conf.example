@@ -39,7 +39,7 @@
 
 [ api ]
 
-    modules: ['core_ucommands', 'core_scommands', 'core_ocommands', 'core_umodes', 'core_cmodes']
+    modules: ['core_ucommands', 'core_scommands', 'core_ocommands', 'core_umodes', 'core_cmodes', 'access']
                         # modules to load automatically.
                         # you probably want to load core_*. juno is pretty much useless without those.
 
@@ -69,6 +69,10 @@
     protect_topic: [0, 't'] # only operators can set the topic  (t)
     moderated:     [0, 'm'] # only voiced and up may speak      (m)
     ban:           [3, 'b'] # channel ban                       (b)
+    
+    # these are provided by modules.
+    
+    access: [3, 'A']
 
 [ prefixes ]
 
