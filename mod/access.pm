@@ -109,7 +109,11 @@ sub on_user_joined {
     foreach my $mask ($channel->list_elements('access')) {
         my $realmask = $mask;
         $realmask = (split ':', $mask, 2)[1] if $mask =~ m/^(.+?):(.+)!(.+)\@(.+)/;
-        return push @matches, $mask if match($what, $realmask);
+        
+        # found a match.
+        push @matches, $mask
+        if match($user->full, $realmask) || match($user->fullcloak, $realmask);
+        
     }
     
     foreach my $match (@matches) {
