@@ -10,7 +10,7 @@ use utils qw(conf gv match);
 
 our $mod = API::Module->new(
     name        => 'access',
-    version     => '0.4',
+    version     => '0.5',
     description => 'implements channel access modes',
     requires    => ['ChannelEvents', 'ChannelModes'],
     initialize  => \&init
@@ -127,6 +127,8 @@ sub on_user_joined {
         
         push @letters, $letter;
     }
+    
+    return 1 unless scalar @letters;
     
     # create list of letters.
     my $letters = join('', @letters);
