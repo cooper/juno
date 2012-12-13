@@ -115,13 +115,16 @@ sub take_lower_time {
     log2("locally resetting $$channel{name} time to $time");
     my $amount = $channel->{time} - $time;
     $channel->set_time($time);
-    notice_all($channel, "channel TS set back $amount seconds");
+    notice_all($channel, 'TS setback ***');
+    notice_all($channel, "Current channel time: ".scalar(localtime $time));
+    notice_all($channel, "Channel timestamp set back \2$amount\2 seconds.");
 
-    # unset topic
-    send_all($channel, ':'.gv('SERVER', 'name')." TOPIC $$channel{name} :");
+    # unset topic.
+    send_all($channel, ':'.gv('SERVER', 'name')." TOPIC $$channel{name} :")
+     if defined $channel->{topic} && length $channel->{topic};
     delete $channel->{topic};
 
-    # unset all channel modes
+    # unset all channel modes.
     my ($modestring, $servermodestring) = $channel->mode_string_all(gv('SERVER'));
     $modestring =~ s/\+/\-/;
     send_all($channel, ':'.gv('SERVER', 'name')." MODE $$channel{name} $modestring");
@@ -130,7 +133,7 @@ sub take_lower_time {
     # ($channel, $server, $source, $modestr, $force, $over_protocol)
     $channel->handle_mode_string(gv('SERVER'), gv('SERVER'), $servermodestring, 1, 1);
     
-    notice_all($channel, 'channel properties reset');
+    notice_all($channel, 'Channel properties reset.');
     return $channel->{time}
 }
 

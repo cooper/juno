@@ -1,7 +1,6 @@
 # Copyright (c) 2012, Mitchell Cooper
 # provides channel access modes.
 # this module MUST be loaded globally for proper results.
-# TODO: check for status of user setting mode.
 # TODO: add support for multiple modes in a single entry.
 # TODO: show list of access if no parameters are given.
 package API::Module::access;
@@ -13,7 +12,7 @@ use utils qw(conf gv match);
 
 our $mod = API::Module->new(
     name        => 'access',
-    version     => '0.5',
+    version     => '0.6',
     description => 'implements channel access modes',
     requires    => ['ChannelEvents', 'ChannelModes'],
     initialize  => \&init
@@ -77,7 +76,19 @@ sub cmode_access {
         return;
     }
     
-    # TODO: ensure that this user is at least the $final_status unless force or server.
+    # ensure that this user is at least the $final_status unless force or server.
+    if (!$mode->{force} && $mode->{source}->isa('user')) {
+        my $level1 = $channel->user_get_highest_level($mode->{source});
+        my $level2 = (conf('prefix', $final_status))[2];
+        
+        # the level being set is higher than the level of the setter.
+        if ($level2 > $level1) {
+            $mode->{send_no_privs} = 1;
+            $mode->{do_not_set}    = 1;
+            return;
+        }
+        
+    }
     
     # set the parameter to the desired mode_name:mask format.
     $mode->{param} = $final_status.q(:).$mask;
