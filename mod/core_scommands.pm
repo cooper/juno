@@ -6,6 +6,8 @@ use strict;
  
 use utils qw(col log2 lceq lconf match cut_to_limit conf gv fire_event);
 
+our $VERSION = 1.2;
+
 my %scommands = (
     SID => {
         params  => [qw(server dummy any ts any any any :rest)],
@@ -129,7 +131,7 @@ my %scommands = (
 
 our $mod = API::Module->new(
     name        => 'core_scommands',
-    version     => '1.1',
+    version     => $VERSION,
     description => 'the core set of server commands',
     requires    => ['ServerCommands'],
     initialize  => \&init
@@ -418,7 +420,7 @@ sub aum {
     my ($server, $data, $serv) = (shift, shift, shift);
     foreach my $str (@_) {
         my ($name, $letter) = split /:/, $str;
-        next unless defined $letter; # just in case..
+        next if !(defined $name && length $name) || !(defined $letter && length $letter);
         $serv->add_umode($name, $letter)
     }
     return 1
@@ -430,8 +432,14 @@ sub acm {
     # :sid   ACM   name:letter:type name:letter:type
     my ($server, $data, $serv) = (shift, shift, shift);
     foreach my $str (@_) {
-        my ($name, $letter, $type) = split /:/, $str;
-        next unless defined $type;
+        my ($name, $letter, $type) = split /:/, $str, 3;
+        
+        # ensure that all values are present.
+        next if
+            !(defined $name   && length $name) ||
+            !(defined $letter && length $name) ||
+            !(defined $type   && length $name);
+            
         $serv->add_cmode($name, $letter, $type)
     }
     return 1

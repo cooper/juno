@@ -121,6 +121,7 @@ sub cmode_name {
     my ($server, $mode) = @_;
     return unless defined $mode;
     foreach my $name (keys %{$server->{cmodes}}) {
+        next unless defined $server->{cmodes}->{$name}->{letter};
         return $name if $mode eq $server->{cmodes}->{$name}->{letter}
     }
     return

@@ -33,7 +33,7 @@ my %ocommands = (
 
 our $mod = API::Module->new(
     name        => 'core_ocommands',
-    version     => '0.7',
+    version     => '0.8',
     description => 'the core set of outgoing commands',
     requires    => ['OutgoingCommands'],
     initialize  => \&init
@@ -257,12 +257,21 @@ sub cum {
 # add cmodes
 sub acm {
     my $serv  = shift;
+    my $modes = q();
+    
+    # iterate through each mode on the server.
+    foreach my $name (keys %{$serv->{cmodes}}) {
+        my ($letter, $type) = ($serv->cmode_letter($name), $serv->cmode_type($name));
+        
+        # first, make sure this isn't garbage.
+        next if !defined $letter || !defined $type;
+        
+        # it's not. append it to the mode list.
+        $modes .= " $name:$letter:$type";
 
-    my @modes = map { 
-        "$_:".$serv->cmode_letter($_).':'.$serv->cmode_type($_)
-    } keys %{$serv->{cmodes}};
+    }
 
-    ":$$serv{sid} ACM ".join(' ', @modes)
+    return ":$$serv{sid} ACM$modes";
 }
 
 # add umodes
@@ -270,7 +279,7 @@ sub aum {
     my $serv  = shift;
 
     my @modes = map {
-       "$_:".$serv->umode_letter($_)
+       "$_:".($serv->umode_letter($_) || '')
     } keys %{$serv->{umodes}};
 
     ":$$serv{sid} AUM ".join(' ', @modes)
