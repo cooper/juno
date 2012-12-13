@@ -177,11 +177,15 @@ sub send_burst {
 
     $server->sendme('BURST '.time);
 
-    # servers and mode names.
-   
+    # servers and mode names
     my ($do, %done);
+    $done{$server}     = 1;
+    $done{gv('SERVER') = 1;
     $do = sub {
         my $serv = shift;
+        
+        # already did this one.
+        return if $done{$serv};
         
         # we need to do the parent first.
         if (!$done{$serv->{parent}} && $serv->{parent} != $serv) {
@@ -192,22 +196,12 @@ sub send_burst {
         fire_command($server, sid => $serv);
         $done{$serv} = 1;
         
-    };
-    
-    foreach my $serv (values %server::server) {
-
-        # the server already knows *everything* about itself!
-        next if $serv == $server;
-
-        # the server already knows about me.
-        if ($serv != gv('SERVER')) {
-            $do->($serv);
-        }
-
         # send modes using compact AUM and ACM
         fire_command($server, aum => $serv);
-        fire_command($server, acm => $serv)
-    }
+        fire_command($server, acm => $serv);
+        
+    }; $do->($_) foreach values %server::server;
+    
 
     # users
     foreach my $user (values %user::user) {
