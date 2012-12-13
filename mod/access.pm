@@ -12,7 +12,7 @@ use utils qw(conf gv match);
 
 our $mod = API::Module->new(
     name        => 'access',
-    version     => '0.6',
+    version     => '0.7',
     description => 'implements channel access modes',
     requires    => ['ChannelEvents', 'ChannelModes'],
     initialize  => \&init
@@ -77,9 +77,11 @@ sub cmode_access {
     }
     
     # ensure that this user is at least the $final_status unless force or server.
+    # TODO: should we always allow over-protocol?
     if (!$mode->{force} && $mode->{source}->isa('user')) {
         my $level1 = $channel->user_get_highest_level($mode->{source});
-        my $level2 = (conf('prefix', $final_status))[2];
+        my $level2 = conf('prefix', $final_status)->[2];
+        # FIXME: major issues if improper configuration values are not array references.
         
         # the level being set is higher than the level of the setter.
         if ($level2 > $level1) {
