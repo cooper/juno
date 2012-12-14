@@ -6,6 +6,8 @@ use strict;
  
 use utils qw(col log2 lceq lconf match cut_to_limit conf gv);
 
+our $VERSION = 1.4;
+
 my %ucommands = (
     PING => {
         params => 1,
@@ -154,7 +156,7 @@ my %ucommands = (
 
 our $mod = API::Module->new(
     name        => 'core_ucommands',
-    version     => '1.3',
+    version     => $VERSION,
     description => 'the core set of user commands',
     requires    => ['UserCommands'],
     initialize  => \&init
@@ -189,17 +191,43 @@ sub fake_user {
 }
 
 sub motd {
-    # TODO <server> parameter
+    # TODO: <server> parameter
     my $user = shift;
-    if (!defined gv('MOTD')) {
+    my @motd_lines;
+    
+    # note: as of 5.95, MOTD is typically not stored in RAM.
+    # instead, it is read from the disk each time it is requested.
+    
+    # first, check if an MOTD is present in GV.
+    if (defined gv('MOTD') && ref gv('MOTD') eq 'ARRAY') {
+        @motd_lines = @{gv('MOTD')};
+    }
+    
+    # it is not in RAM. we will try to read from file.
+    else {
+    
+        # try to open file.
+        open my $motd, conf('file', 'motd');
+        if (!eof $motd) {
+            while (my $line = <$motd>) {
+                chomp $line;
+                push @motd_lines, $line
+            }
+        }
+
+    }
+    
+    # if there are no MOTD lines, we have no MOTD.
+    if (!scalar @motd_lines) {
         $user->numeric('ERR_NOMOTD');
-        return
+        return;
     }
+     
+    # yay, we found an MOTD. let's send it.   
     $user->numeric('RPL_MOTDSTART', gv('SERVER', 'name'));
-    foreach my $line (@{gv('MOTD')}) {
-        $user->numeric('RPL_MOTD', $line)
-    }
+    $user->numeric('RPL_MOTD', $_) foreach @motd_lines;
     $user->numeric('RPL_ENDOFMOTD');
+    
     return 1
 }
 

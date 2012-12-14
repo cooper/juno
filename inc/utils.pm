@@ -47,18 +47,7 @@ sub parse_config {
         }
 
     }
-
-    open my $motd, conf('file', 'motd');
-    if (!eof $motd) {
-        while (my $line = <$motd>) {
-            chomp $line;
-            push @{$GV{MOTD}}, $line
-        }
-    }
-    else {
-        $GV{MOTD} = undef
-    }
-
+    
     return 1
 
 }
@@ -269,6 +258,12 @@ sub ircd_LOAD {
 # fire an event handler.
 sub fire_event {
     my ($event, @args) = @_;
+    
+    # TODO: fire events on specific objects
+    
+    # For example, channel:user_joined should fire on the
+    # channel object itself as well as the main evented object.
+    
     $main::eo->fire_event("juno.$event" => @args);
 }
 
