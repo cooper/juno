@@ -205,7 +205,7 @@ sub motd {
     
     # it is not in RAM. we will try to read from file.
     elsif (open my $motd, conf('file', 'motd')) {
-        @motd_lines = map { chomp } my @lines = <$motd>;
+        @motd_lines = map { chomp; $_ } my @lines = <$motd>;
         close $motd;
     }
     
