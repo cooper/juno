@@ -6,7 +6,7 @@ use strict;
  
 use utils qw(col log2 lceq lconf match cut_to_limit conf gv);
 
-our $VERSION = 1.4;
+our $VERSION = 1.5;
 
 my %ucommands = (
     PING => {
@@ -204,17 +204,9 @@ sub motd {
     }
     
     # it is not in RAM. we will try to read from file.
-    else {
-    
-        # try to open file.
-        open my $motd, conf('file', 'motd');
-        if (!eof $motd) {
-            while (my $line = <$motd>) {
-                chomp $line;
-                push @motd_lines, $line
-            }
-        }
-
+    elsif (open my $motd, conf('file', 'motd')) {
+        @motd_lines = map { chomp } my @lines = <$motd>;
+        close $motd;
     }
     
     # if there are no MOTD lines, we have no MOTD.
