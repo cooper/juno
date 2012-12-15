@@ -22,7 +22,7 @@ sub lconf { # for named blocks
 
 sub conn {
     my ($sec, $key) = @_;
-    return $main::conf->(['connect', $sec], $key);
+    return $main::conf->get(['connect', $sec], $key);
 }
 
 # log errors/warnings
