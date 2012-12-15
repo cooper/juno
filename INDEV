@@ -142,17 +142,21 @@ CHANGES:
             0. February 18, 2011
 
                 * Adds LIST command.
+
                 * Changes filehandle to while (my $line = <$MOTD>) in user::handle_motd.
 
             1. February 19, 2011
 
                 * Adds channel mode z - ops may view what a user is saying if he or she is incapable of PRIVMSGing or NOTICEing the channel.
+
                 * Fixes a bug with sprintf in user::sendserv in WHO and NAMES where the % prefix caused issues.
 
             2. February 19, 2011
 
                 * Rehash notice is sent before actually rehashing.
+
                 * Added ISON command.
+
                 * Redid cloaking - you don't even want to know the issue before. (Now requires Digest::SHA (core))
 
             3. February 19, 2011
@@ -162,24 +166,31 @@ CHANGES:
             4. February 19, 2011
 
                 * Actually fixes bug in perl module loader with an import. (this was a fatal bug.)
+
                 * Adds --version to juno.pl
 
             5. February 19, 2011
 
                 * Does cloaking by each piece of the host rather than the entire entire host hashed.
+
                 * Adds checking for both actual host and visible host with bans.
+
                 * After forgetting, add z to CHANMODES.
+
                 * Display time properly in 003 numeric.
 
             6. February 22, 2011
 
                 * Fixes bug in NICK command that does not allow you to change your nick from say Someone to SomeOne.
+
                 * Fixes bug in NICK command where the nick change is not relayed to the user who sent it if they are in no channels.
+
                 * Fixes "Odd number of elements in hash assignment at user.pm line 344." in user::handle_nick.
 
             7. February 22, 2011
 
                 * Major cleanups in user.pm (in almost every handler).
+
                 * Replaces user::sendnum with user::numeric and the %user::numerics hash. (this has existed, but is just now being cleaned up.)
                   Note: sendnum is still a valid function; it is used in the numerics displayed upon connecting in VERSION.
 
@@ -187,17 +198,24 @@ CHANGES:
 
                 * Replaces a few various variables with %main::GV.
                   This hash is used to store information more easily with less of a mess.
+
                 * The MOTD is now stored in %main::GV rather than opening and reading the file with every /MOTD.
+
                 * Cleaned up user::new by removing all of the now broken host resolving stuff.
+
                 * Fixed channel.pm to where nonops can see the ban and mute lists but still not entirely fixed because I and e should be op-only.
 
             9. February 22, 2011
 
                 * Cleaned up numerics in channel.pm where it matters, but didn't clean up the stuff that will be eventually redone.
+
                 * Also cleaned up channel::allsend with sprintf.
+
                 * Other various cleanup in channel.pm.
+
                 * Fixed numeric 432 => 433 in handle.pm (Nick is already in use).
                   - I forgot a bracket and pushed, but then I fixed it immediately after.
+
                 * After committing a fail, I fixed channel::allsend. Syntax is now channel->allsend(string, user to be ignored or 0, sprintf values).
 
         6. February 24, 2011
@@ -205,6 +223,7 @@ CHANGES:
             0. February 24, 2011
 
                 * Cleaned up channel.pm by completely rewriting the messy handlestatus and sendmasklist subs.
+
                 * Also cleaned up the channel mode handler a bit.
                   This should fix the bug with viewing bans, exceptions, invite exceptions, and mutes.
                   Because the majority of channel.pm has been rewritten and lightly tested, it is likely that bugs will be discovered from here on.
@@ -212,34 +231,48 @@ CHANGES:
             1. February 25, 2011
 
                 * S is now for away in WHO query. (how that happened, the world may never know.)
+
                 * Added user::acceptcheck. This checks if the server is accepting new connections. (defined by limit:clients)
+                
                 * Added user::ip_accept. This prevents a user from connecting if their per-ip limit is reached. (defined by limit:perip)
                   This will also be used when Z-Line is added, forcing the user to disconnect before they finish the connection process.
                   These fixes should fix the crash that occurs when the server accepts more connections than it can handle.
+
                 * Changed ping:msg to use sprintf for the number of seconds.
+
                 * Changed SIGINT handler to quit each user properly before killing the IRCd.
+
                 * Moved juno.pl to juno, making it executable and updating documentation and ./juno --help.
 
             2. February 25, 2011
 
                 * Misc. cleanup.
+
                 * Cleaned up WHOIS numerics.
+
                 * Fixed bug in part - forgot a parameter for sprintf.
+
                 * Fixed 324 numeric (forgot +).
+
                 * Fixed "You're not a channel" in channel status setting.
+
                 * Fixed bug where anyone can set modes e, b, Z, and I.
 
             3. February 26, 2011
 
                 * Adds Z-Line.
                   This adds the zline block to the configuration.
+
                 * Fixes rehash to clear all configuration options (excluding listen) before resetting them.
 
             4. February 26, 2011
 
                 * Fixed bug where attempting to set qaohv without parameters replies with a "You're not a channel operator" numeric.
+
                 * Added channel mode l (channel user limit).
+
                 * Fixed misc. bugs in channel mode handler.
+
                 * Prepared mode handler for future modes.
 
             5. February 28, 2011
@@ -250,13 +283,17 @@ CHANGES:
             6. February 28, 2011
 
                 * Discovered bug and fixed the entire channel::dojoin subroutine.
+
                 * This bug caused various issues upon joining, such as replying with "you are banned" even if you aren't, allowing you in a +i channel without an invite, etc.
+
                 * After forgetting, add i to CHANMODES.
 
             7. March 1, 2011
 
                 * Fixed bug in channel.pm where topic changes are sent improperly.
+
                 * Fixed a similar bug in viewing topics (too many sprintf parameters).
+
                 * Fixed bug where MOTD is not reset and is instead appended upon rehash.
 
             8. March 1, 2011
@@ -272,28 +309,38 @@ CHANGES:
             0. March 1, 2011
 
                 * Channel mode A now checks both displayed and actual hosts (formerly only displayed).
+
                 * Fixed bug in part - user::fullcloak != user::nick.
 
             1. March 1, 2011
 
                 * Fixed bug where everyone gets every status in auto-access. (wow, fail)
                 * Added vhost to oper block - set virtual host upon opering.
+
                 * Fixed bug in auto-access so that you only receive each mode that applies to you once.
+
                 * Made host matching insensitive to case for bans, mutes, etc.
 
             2. March 3, 2011
 
                 * Masks in channel modes are now fully insensitive.
+
                 * Setting mode -b SOMEONE!*@* before would not remove a ban on someone!*@*, but now it will.
+
                 * Did a bit of cleanup in channel.pm.
 
             3. March 4, 2011
 
                 * Put package above use in all packages.
+
                 * Began the base of the module API.
+
                 * Added Hello World module as an example module.
+
                 * Automatically loaded modules are separated by commas in main:modules.
+
                 * If no modules are to be loaded, set as 0 to disable.
+
                 * Because the module API requires Class::Unload, added a configuration option to enable or disable the API completely.
 
             4. March 5, 2011
@@ -301,34 +348,45 @@ CHANGES:
                 * Added API::alias_register: this is used to add serverside aliases to juno more easily.
                   Unfortunately, there are not yet variables for arguments sent, but this is planned.
                   See hello world module for an example.
+
                 * All API functions must now return true value in order to be successful - see helloworld module.
+
                 * Added MODLOAD command and modload oper flag.
                 - "Prepend" should have been "append" in the commit, but "prepend" each module with .pm (this failed)
 
             5. March 5, 2011
 
                 * Fixed syntax error with .pm in API.
+
                 * Forgot to do the same in MODLOAD; fixed.
+
                 * Fixed main file to where API is not required (defined by enabled:API).
+
                 * Added API timers and a timertest module for an example.
 
             6. March 6, 2011
 
                 * A LOT of misc. cleanup, perhaps the largest cleanup in juno's history. (this is bound to result in future bugs.)
+
                 * Added --stop argument and --restart argument.
+
                 * Added TERM signal handler.
 
             7. March 6, 2011
 
                 * Fixed a major bug where the outbuffer does not clear properly.
+
                 * Fixed bug in numeric where the user object was being sent in numerics. (Fail)
+                
                 * Added a sleep to --restart argument to ensure that the process was killed before attempting to listen.
 
             8. March 7, 2011
 
                 * API modules must be named API::module::mode_name_here as of now.
                   Formerly, API::module_name_here was acceptable, but due to future API extensions this is no longer valid.
+
                 * Fixed bug in user::ison that pretty much broke the entire channel system.
+
                 * Fixed bug in NAMES and WHO commands with sprintf - no longer prefixes nick twice with % if the user is halfopped.
 
             9. March 13, 2011
@@ -336,6 +394,7 @@ CHANGES:
                 * Created a bash script to handle stop, start, rehash, etc.
                   This script allows juno to be run from any directory - juno was also edited to work properly with this script.
                   Juno may no longer be run without the use of this script unless all proper parameters are given.
+
                 * Now deleted PID file when exiting.
 
         8. March 13, 2011
@@ -343,32 +402,43 @@ CHANGES:
             0. March 13, 2011
 
                 * All API plans have been canceled.
+
                 * Moved version stuff to etc/version.
+
                 * Added restart option to ./juno.
 
             1. March 19, 2011
 
                 * Changed all spacing from two to four spaces because it looks nicer.
+
                 * Removed a few more remains of the module API.
+
                 * Removed indev from the git ignore file.
 
             2. March 20, 2011
 
                 * Moved miscellaneous functions to utils package rather than main.
+
                 * Discovered bug: nick changes are sent twice if to the user changing his nick if he is in a channel with himself. (or at least I think that's the problem.)
+
                 * "Read error" -> "Connection closed"
 
             3. March 20, 2011
 
                 * Misc. Cleanup, mostly in the invite handler. Also changed split()s.
+
                 * Majorly cleaned up bin/juno - just a cleanliness check.
+
                 * Channel mode z no longer allows users to override channel mode n; users must be in the channel to be affected by this mode.
+
                 * Added SACONNECT command like that in InspIRCd.
+
                 * Removed a few more things about the former module API from docs.
 
             4. March 24, 2011
 
                 * Made indev prettier.
+
                 * Rewrote start/stop/rehash script.
                   It now has help and version actions.
                   Attempting to run it without arguments prints the usage help.
@@ -376,40 +446,54 @@ CHANGES:
             5. March 24, 2011
 
                 * Fail, $D should be $DIR in bin/juno... who knows how that happened? Fixed.
+
                 * Version script failed, but I fixed it.
+
                 * Added LOCOPS command.
                   It's exactly the same as GLOBOPS since we currently only support one server.
                   This adds the locops oper flag.
+
                 * Fixed the "No text to send" bug.
                   Blank messages are no longer accepted.
+
                 * Fixed the bug where nick changes are sometimes sent twice.
 
             6. March 24, 2011
 
                 * Fixed bug where user mode x can be set/unset even if cloaking is not enabled.
+
                 * bin/juno now fatal()s if an attempt to listen using SSL is made and SSL is disabled in the configuration.
+
                 * Start/stop/rehash/etc script now has a forcestart option which starts juno whether or not a PID file exists.
 
             7. March 25, 2011
 
                 * Beginning redesigned module API.
-                  Added API::Module package (currently nonfunctional).
+                
+                * Added API::Module package (currently nonfunctional).
                   By the way, the API is excluded from versioning and changelog until it is functional.
+
                 * Added HelloWorld module.
 
             8. March 26, 2011
 
                 * Fixed a fatal bug in REHASH command.
+
                 * Fixed cloaking (I think)... I guess it's been like this for a long time and I just noticed.
+
                 * Fixed bug in start/stop script that preventing juno from starting without the force option.
+
                 * Fixed bug where all users were shown as using SSL in WHOIS command.
 
             9. March 27, 2011
 
                 * Misc. cleanup.
+
                 * Added CHGHOST command.
                   This adds the chghost oper flag.
+
                 * Fixed a fatal bug that occured when the outgoing buffer is not empty and a user quits.
+
                 * Updated 004 numeric.
 
         9. March 27, 2011
@@ -422,33 +506,46 @@ CHANGES:
 
                 * Cleaned up user.pm A LOT.
                   (Expect new bugs.)
+
                 * Moved user numerics to utils.
+
                 * Moved user handlers to a new package called userhandlers.
+
                 * Did some other cleanup in bin/juno and utils.pm.
 
             2. March 29, 2011
 
                 * Replaced splits by / / in the user handler to split by whitespace.
                   This fixes several bugs that allowed an incorrect number of parameters in command handlers, causing all kinds of messups.
+
                 * Replaced some undefined functions from the transition from user.pm to userhandlers.pm...
                   This fixes several fatal bugs, but don't be surprised to find more.
+
                 * Added channel::prefix to fetch a user prefix.
                   NAMES command now uses this function.
+
                 * WHOIS queries now display the channels that a user is in.
+
                 * Fixed bug in user mode handler where modes i and x were thought to be nonexistent.
 
             3. March 30, 2011
 
                 * Did some cleanup in bin/juno.
+
                 * Fixed bug where include didn't work in the configuration at all because confparse() unsets options before parsing a file.
 
             4. March 30, 2011
 
                 * Cleaned up channel.pm A LOT.
+
                 * Fixed several bugs... maybe they'd be listed here if Filezilla didn't cause me to lose my unsaved data.
+
                 * Fatal bug fix: sha1 != sha256 in loading of the cloaking module.
+
                 * Fixed bug in user::quit, caused by user.pm cleanup in 0.9.1 that didn't relay quits correctly at all.
+
                 * user::numeric uses int now.
+
                 * Fixed bug where it's possible to a kick user when they are not in the channel.
 
             5. April 2, 2011
@@ -456,23 +553,33 @@ CHANGES:
                 * Finished API::Module.
                   This adds enabled:api to enable the module API.
                   It also adds main:modules to load modules on startup.
+
                 * Finished API::Command.
+
                 * Fixed bug where QUIT is not sent to a user when he is /kill'd.
+
                 * Finished HelloWorld module.
+
                 * Cleaned up configuration parser.
 
             6. April 2, 2011
 
                 * Added mode limit to new channel mode handler as defined by limit:chanmodes.
+
                 * Added updown module.
+
                 * Fixed several bugs in channel mode handler.
+
                 * API register_command now requires a command description parameter.
+
                 * Added COMMANDS command to list commands.
 
             7. April 6, 2011
 
                 * Fixed bug in handle.pm where USER didn't give a numeric if the username was invalid.
+
                 * Cleanup: user.pm handle.pm.
+
                 * The largest cleanup of 0.9 begins here (userhandlers.pm.)
                   Expect new bugs to come about.
                   I'm completely ignoring the versioning system for a while so that new bugs from here on can be marked as "caused by userhandlers cleanup."
@@ -480,26 +587,39 @@ CHANGES:
             8. April 6, 2011
 
                 * Bug fix: no such nick/channel in MODE when setting or viewing a channel mode.
+
                 * Bug fix: parameter messups in OPER command.
+
                 * up module's UP command no longer sets modes that are already set.
+
                 * Added sync module.
+
                 * Cleanup.
+
                 * Added API::Core: registers core API commands MODLOAD and MODUNLOAD.
                   In order to be considered a "successful" unload, modules must return a true value in their void subroutine.
                   This adds the modload and modunload oper flags.
+
                 * Notices from API::Module and API::Command are now snotice()d as well as say()d.
 
             9. April 7, 2011
 
                 * Bug fix: TOPIC was blank if less than the character limit.
+
                 * Auto-status mode A now supports multiple statuses in a single mode.
                   For example, mode +A qao:*!*@* grants modes q, a, and o to all users.
+
                 * Added Denny's API::Loop. This registers a code block to be executed each time juno runs through the main loop.
+
                 * Added example::loop module.
+
                 * Cleanup.
+
                 * Fix bug in WHOIS where it said "no such server" when doing WHOIS <nick> <nick>.
+
                 * New wiki: https://github.com/cooper879/juno/wiki
                 * Modes in 004 are accurate now I think.
+
                 * Fixed bug in ping timeout.
 
     1. April 10, 2011
@@ -515,27 +635,36 @@ CHANGES:
 
                 * Fixed fatal bug where ./juno rehash crashes server. :(
                 * Fixed bug in channel mode handler where l could not be unset and other stuff failed.
+
                 * Added rules module by ebest97.
                   The directory to the rules file is set by rules:file configuration option.
+
                 * Added admin module by ebest97.
                   The lines are defined by admin:line1, admin:line2, and admin:line3.
+
                 * Redid oper privs system to be based on individual flags, not oper accounts.
                   $user->{oper} no longer exists; use $user->ismode('o').
+
                 * Added grant module.
                   It requires 1.0.1 and above.
 
             2. April 12, 2011
 
                 * Added an easy way to setup "oper classes" (sorta.) See the example configuration.
+
                 * Fix bug: set o if granted flags when o is not set.
 
             3. April 16, 2011
 
                 * Fixed a bug in del_privs that caused an endless loop. :(
                 * Added UNGRANT command to grant module.
+
                 * Fixed several bugs in new oper system, one of which was fatal.
+
                 * Fixed bug in topic char limit.
+
                 * Added message char limit (PRIVMSG and NOTICE), defined by limit:msg.
+
                 * Added PRIVS command to grant module.
 
             4. April 18, 2011
@@ -543,21 +672,33 @@ CHANGES:
                 * What's an operatgror? o_O
                 * Channel automodes now support parameters. (you'll probably laugh at how I made that possible.)
                   Also, nonexistent modes will be ignored.
+
                 * Added genssl and mkpasswd options to ./juno script.
+
                 * Added currently nonfunctional module manager.
+
                 * Added ./juno mod to enter the module manager.
+
                 * Moved API modules to juno-mods repository.
+
                 * Two modules can no longer have the same name.
+
                 * Added API::Event.
 
             5. April 22, 2011
 
                 * The module manager isn't quite finished but is now officially supported in dev-1.0.5.
+
                 * Added ./juno debug to start in NOFORK mode.
+
                 * Fixed fatal bug in API events.
+
                 * Strip whitespace from the end of a snotice().
+
                 * API::Core's MODUNLOAD command now requires the modload flag rather than modunload.
+
                 * API::Core's MODLOAD and MODUNLOAD commands now accept the 'modules' oper flag.
+
                 * Since just about every command has a parameter check, juno's command handler now has built-in parameter check.
                   API::Command now has an optional parameter for extended options. This will be used for future options as well.
                   The params option sets the required number of parameters for the command to be successful.
@@ -569,36 +710,53 @@ CHANGES:
 
                 * Changed all of the handlers in userhandlers.pm to use the new parameter option.
                   I wouldn't be all that surprised if this caused a few bugs here and there.
+
                 * Fixed bug where the module API was loading modules relative to the location where you started juno rather than juno's installation directory.
+
                 * Made /COMMANDS prettier.
+
                 * Added 'flag' option to register_command.
                   If the user does not have the specified flag, a "permission denied" numeric error will be displayed.
+
                 * Fixed a bug in the new params option where the command counted as a parameter.
+
                 * Z-Lines are now D-Lines as to follow STATS numerics in rfc2812. The configuration now accepts either zline or dline.
+
                 * Added time2seconds() and add_commas() utils.
+
                 * Edited userhandlers.pm to use the new 'flag' extended option.
 
             7. April 24, 2011
 
                 * Made the README prettier.
+
                 * Added a valid_ipv4() util and a disgusting valid_ipv6() one too.
+
                 * Fixed bug: sometimes MODE takes only one parameter.
 
             8. April 25, 2011
 
                 * The module manager now uses both its version and juno's version to validate compatibility.
                   In order to use our module server, you must upgrade juno.
+
                 * The module manager no longer allows non-compatible modules to be installed.
+
                 * K-Line check shouldn't check nick!ident@host. I fail.
+
                 * Fixed the API::Core "no such file or directory" error every time.
+
                 * checkkline() was using nick instead of user. I fail.
+
                 * Fixed checkkline() so now it doesn't send a quit server notice if a k-lined user attempts to connect.
+
                 * checkkline() is no longer case-sensitive.
 
             9. April 26, 2011
 
                 * utils.pm cleanup.
+
                 * Added numerics 252, 254, and 255 to LUSERS.
+
                 * Finished channel mode k and fixed join to work properly with it.
                   JOIN channel,channel key,key
 
@@ -607,7 +765,9 @@ CHANGES:
             0. April 28, 2011
 
                 * Now supports commands in the form of ':source command' (you'd think this would have been done a long time ago.)
+
                 * Fixed bug in API::Command where an incorrect parameter in register_command could potentially cause a crash.
+
                 * Fixed bug where you can't return from being away.
 
 3. April 30, 2011
