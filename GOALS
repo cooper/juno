@@ -60,7 +60,7 @@ accomplished through the implementation of the EventedObject framework.
         b.
         c.
 
-[ ] 6. removed JELP from core and merge it into a module along with the core JELP commands
+[ ] 6. remove JELP from core and merge it into a module along with the core JELP commands
        in order to allow multiple linking protocols rather than strictly JELP.
        
         a. create an API that allows parsers to be bound to certain ports

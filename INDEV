@@ -21,9 +21,6 @@ TODO for stability and performance:
 
 STARTED BUT NOT FINISHED:
 
-    I added the ability to connect servers remotely but never made the CONNECT user command
-    capable of making it useful.
-
     most channel modes are entirely screwed up. Permissions make little sense. 
 
 OPER FLAGS:
@@ -946,3 +943,46 @@ CHANGES:
             4. replaced forward where necessary.
             
             5. removed broken server CONNECT command.
+            
+            6. addresses an server-crashing issue where PRIVMSGing to a channel could sometimes cause a fatal error.
+            
+            NON-VERSIONED
+            
+            0. replaced SID propogation.
+            
+            VERSIONING SYSTEM CHANGED: juno-ircd now uses single decimal versions, such as 5.34.
+            
+    8. when channel timestamp is changed, the server removes all channel modes using handle_mode_string().
+    
+        81. adds log:server_debug option, which logs all incoming linking protocol data.
+        
+        82. list_elements() now double checks the data type of each element, just in case.
+        
+        83. don't send AUM and ACM twice.
+        
+        84. fixes the issue where some users are not propogated properly in channels.
+        
+        85. resolves an issue where some users were added to status lists two times.
+        
+        86. adds the 'auto_timeout' connect block configuration key, which allows you to specify a time frequency in seconds for attempting to connect to the server.
+        
+        87. juno now depends on API Engine rather than using its own module API system. API Engine's objective interface is, for the most part, compatible with the former juno3 API.
+        
+        88. fixes an issue where MODULES command does not work correctly.
+        
+        89. juno now depends on the EventedObject framework.
+        
+    9. includes the new ChannelEvents API engine base, allowing modules to safely attach handlers to channel-related events without the worry of events being called if the module is unloaded. this version also adds register_event() and delete_event() IRCd utilities.
+    
+        91. fires channel:user_joined event in channel::mine::cjoin() and core_scommands::sjoin() to ensure that it is fired AFTER the join command is sent to users of the channel.
+        
+        92. fire user_joined event after CUM.
+        
+        93.  fixes an issue where a server SID command might be sent before its parent's, causing multi-jump links to work improperly.
+        
+        94. adds protection to prevent nonexistent modes from being registered to servers. for example, '::4' in an ACM command would be ignored.
+        
+        95. rather than storing the message of the day in memory, it will be read each time. this addresses an issue where the MOTD is doubled in size after each REHASH command.
+        
+        96. improved MOTD command.
+
