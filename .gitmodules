@@ -1,6 +1,6 @@
-[submodule "inc/api-engine"]
-	path = inc/api-engine
+[submodule "lib/api-engine"]
+	path = lib/api-engine
 	url = git://github.com/cooper/api-engine.git
-[submodule "inc/evented-object"]
-	path = inc/evented-object
+[submodule "lib/evented-object"]
+	path = lib/evented-object
 	url = git://github.com/cooper/evented-object.git
