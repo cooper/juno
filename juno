@@ -48,7 +48,7 @@ check_if_running() {
 dostart() {
     echo "Starting juno"
     splash
-    $DIR/run/ircd $DIR
+    $DIR/bin/ircd $DIR
 }
 
 start() {
@@ -73,7 +73,7 @@ debug() {
     fi
     echo "Running in NOFORK mode."
     splash
-    $DIR/run/ircd $DIR NOFORK
+    $DIR/bin/ircd $DIR NOFORK
 }
 
 stop() {
@@ -119,11 +119,11 @@ main() {
             ;;
 
         mkpasswd)
-            $DIR/run/mkpasswd
+            $DIR/bin/mkpasswd
             ;;
 
         lines)
-            $DIR/run/lines
+            $DIR/bin/lines
             ;;
 
         help)

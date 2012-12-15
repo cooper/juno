@@ -1684,4 +1684,6 @@ CHANGES:
         95. rather than storing the message of the day in memory, it will be read each time. this addresses an issue where the MOTD is doubled in size after each REHASH command.
         
         96. improved MOTD command.
+        
+        97. moved inc/ to lib/, run/ to bin/. juno has historically been using these improper directory names for nearly three years.
 

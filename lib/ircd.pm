@@ -10,7 +10,7 @@ use utils qw(conf lconf log2 fatal gv set);
 utils::ircd_LOAD();
 
 our @reloadable;
-our ($VERSION, $API, %global) = '5.96';
+our ($VERSION, $API, %global) = '5.97';
 
 sub start {
 
@@ -49,7 +49,7 @@ sub start {
     $API = $main::API = API->new(
         log_sub  => \&api_log,
         mod_dir  => "$main::run_dir/mod",
-        base_dir => "$main::run_dir/inc/API/Base"
+        base_dir => "$main::run_dir/lib/API/Base"
     );
 
     # load API modules
@@ -272,11 +272,12 @@ sub become_daemon {
         open my $pidfh, '>', "$main::run_dir/etc/juno.pid" or fatal("Can't write $main::run_dir/etc/juno.pid");
         $utils::GV{PID} = fork;
         say $pidfh gv('PID') if gv('PID');
-        close $pidfh
+        close $pidfh;
+        
     }
 
     exit if gv('PID');
-    POSIX::setsid()
+    POSIX::setsid();
 }
 
 sub begin {

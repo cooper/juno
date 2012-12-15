@@ -24,7 +24,7 @@ BEGIN {
     }
 
     chdir $run_dir or die "Can't access run directory.\n";
-    unshift @INC, "$run_dir/inc", "$run_dir/inc/api-engine", "$run_dir/inc/evented-object";
+    unshift @INC, "$run_dir/lib", "$run_dir/lib/api-engine", "$run_dir/lib/evented-object";
 
     require ircd;
     ircd::begin()
