@@ -26,7 +26,7 @@ sub connect_server {
         return;
     }
 
-    my %serv = $ircd::conf->(['connect', $server_name]);
+    my %serv = conf(['connect', $server_name]);
 
     # create the socket
     my $socket = IO::Socket::IP->new(
