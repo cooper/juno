@@ -27,7 +27,7 @@ BEGIN {
     unshift @INC, (
         "$run_dir/lib",
         "$run_dir/lib/api-engine",
-        "$run_dir/lib/evented-object"
+        "$run_dir/lib/evented-object",
         "$run_dir/lib/evented-configuration"
     );
 
