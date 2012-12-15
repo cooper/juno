@@ -77,7 +77,7 @@ sub start {
 
     # auto server connect
     foreach my $name (keys $conf->names_of_block('connect')) {
-        if (conf(['connect', $name], 'autoconnect') {
+        if (conf(['connect', $name], 'autoconnect')) {
             log2("autoconnecting to $name...");
             server::linkage::connect_server($name)
         }
