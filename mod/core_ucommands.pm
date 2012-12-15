@@ -282,6 +282,7 @@ contributed time, effort, love, and care to the project.
     Matthew Carey, \"swarley\" <matthew.b.carey\@gmail.com> https://github.com/swarley
     Alyx Wolcott, \"alyx\" <contact\@alyxw.me> https://github.com/alyx
     Carl Harris, \"Kitty\" <kitty\@xdk2.net> https://github.com/xKitty
+    Clay Freeman, \"clayfreeman\" <clay\@irishninjas.com> https://github.com/clayfreeman
     Brandon Rodriguez, \"beyond\" <beyond\@mailtrap.org>
     Nick Dalsheimer, \"AstroTurf\" <astronomerturf\@gmail.com>
     Corey Chex, \"Corey\" <corey\@notroll.net>
