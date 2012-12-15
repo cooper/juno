@@ -41,8 +41,8 @@ sub add_internal_modes {
     foreach my $name ($ircd::conf->keys_of_block(['modes', 'channel'])) {
         $server->add_cmode(
             $name,
-            (conf(['modes', 'channel'], $name))[1],
-            (conf(['modes', 'channel'], $name))[0]
+            (conf(['modes', 'channel'], $name))->[1],
+            (conf(['modes', 'channel'], $name))->[0]
         );
 
     }
