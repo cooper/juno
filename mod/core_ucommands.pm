@@ -280,8 +280,9 @@ contributed time, effort, love, and care to the project.
     Daniel Leining, \"daniel\" <daniel\@the-beach.co> https://github.com/blasphemy
     Hakkin Lain, \"Hakkin\" <hakkin\@notroll.net> https://github.com/hakkin
     Matthew Carey, \"swarley\" <matthew.b.carey\@gmail.com> https://github.com/swarley
-    Alyx Marie, \"alyx\" <alyx\@malkier.net> https://github.com/alyx
-    Brandon Rodriguez, \"Beyond\" <beyond\@mailtrap.org>
+    Alyx Wolcott, \"alyx\" <contact\@alyxw.me> https://github.com/alyx
+    Carl Harris, \"Kitty\" <kitty\@xdk2.net> https://github.com/xKitty
+    Brandon Rodriguez, \"beyond\" <beyond\@mailtrap.org>
     Nick Dalsheimer, \"AstroTurf\" <astronomerturf\@gmail.com>
     Corey Chex, \"Corey\" <corey\@notroll.net>
  
