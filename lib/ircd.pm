@@ -76,7 +76,7 @@ sub start {
     log2("server initialization complete");
 
     # auto server connect
-    foreach my $name (keys $conf->names_of_block('connect')) {
+    foreach my $name ($conf->names_of_block('connect')) {
         if (conf(['connect', $name], 'autoconnect')) {
             log2("autoconnecting to $name...");
             server::linkage::connect_server($name)
