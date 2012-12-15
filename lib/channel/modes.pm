@@ -5,7 +5,7 @@ package channel::modes;
 use warnings;
 use strict;
 
-use utils 'log2';
+use utils qw(log2 conf);
 
 # constants
 #sub normal        () { 0 }
@@ -30,19 +30,19 @@ sub add_internal_modes {
     log2('registering channel status modes');
 
     # [letter, symbol, name]
-    foreach my $name (keys %{$utils::conf{sec}{prefixes}}) {
-        my $p = $utils::conf{sec}{prefixes}{$name};
+    foreach my $name ($ircd::conf->keys_of_block('prefixes')) {
+        my $p = conf('prefixes', $name);
         $server->add_cmode($name, $p->[0], 4);
         $prefixes{$p->[2]} = [ $p->[0], $p->[1], $name ]
     }
 
     log2("registering channel mode letters");
 
-    foreach my $name (keys %{$utils::conf{modes}{channel}}) {
+    foreach my $name ($ircd::conf->keys_of_block(['modes', 'channel'])) {
         $server->add_cmode(
             $name,
-            $utils::conf{modes}{channel}{$name}[1],
-            $utils::conf{modes}{channel}{$name}[0]
+            (conf(['modes', 'channel'], $name))[1],
+            (conf(['modes', 'channel'], $name))[0]
         );
 
     }
@@ -112,7 +112,7 @@ sub fire {
 
 # get a +modes string
 sub mode_string {
-    my @modes = sort { $a cmp $b } map { $_->[1] } values %{$utils::conf{modes}{channel}};
+    my @modes = sort { $a cmp $b } map { $_->[1] } $ircd::conf->values_of_block('modes', 'channel');
     return join '', @modes
 }
 

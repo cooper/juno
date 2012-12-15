@@ -15,7 +15,7 @@ sub connect_server {
     my $server_name = shift;
 
     # make sure we at least have some configuration information about the server.
-    unless (exists $utils::conf{connect}{$server_name}) {
+    unless ($ircd::conf->has_block(['connect', $sever_name])) {
         log2("attempted to connect to nonexistent server: $server_name");
         return;
     }
@@ -26,7 +26,7 @@ sub connect_server {
         return;
     }
 
-    my %serv = %{$utils::conf{connect}{$server_name}};
+    my %serv = $ircd::conf->(['connect', $server_name]);
 
     # create the socket
     my $socket = IO::Socket::IP->new(

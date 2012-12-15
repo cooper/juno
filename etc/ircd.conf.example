@@ -1,179 +1,173 @@
-# the format of this configuration should be fairly self-explanatory.
-# you may space it out as you wish for clarity; whitespace is ignored.
-
-#   unnamed blocks:
-#       a shortcut to a "sec" block
-#       Format: [type]
-#       Example: [server]
-#       Could also be written as a named sec block: [sec:server]
-
-#   named blocks:
-#       Format: [type:name]
-#       Example: [oper:cooper]
-
-#   keys and values:
-#       Format: key:value
-#       The value is literal Perl.
-#       constants on and off are provided for true and false values
-#       Example: name:"NoTrollPlzNet"
-#       Example: pid:$$
-#       Example: autoconnect:off
+# juno-ircd configuration.
+#
+# this configuration is in Evented::Configuration format.
+# https://github.com/cooper/evented-configuration
+#
+# values may be any valid SCALAR Perl value, such as numbers, strings, and array references.
 
 [ enabled ]
-                    # for password encryption   (link, oper, etc.)
-    sha: on         # SHA-1/224/256/384/512     (core Perl module)
-    md5: off        # probably less secure      (core Perl module)
-    resolve: on     # enable hostname resolving (useful, but not light)
+
+sha = on         # SHA-1/224/256/384/512     (core Perl module)
+md5 = off        # arguably less secure      (core Perl module)
 
 [ network ]
 
-    name: "NoTrollPlzNet"
+name = "NoTrollPlzNet"
 
 [ server ]
 
-    name: "cooper.on.fgt-transit.com"           # the name of the server
-    description: "juno development server"      # the description of the server
-    sex: "male"                                 # the server's sex (preferably male or female)
-    id: 0                                       # the SID
-                                                #   must be unique to the network or things *WILL* screw up
+name        = "cooper.on.fgt-transit.com"       # the name of the server
+description = "juno development server"         # the description of the server
+sex         = "male"                            # the server's sex (preferably male or female)
+id          = 0                                 # the SID of the server
+
+# server ID must be unique to the network or things *WILL* screw up
 
 [ api ]
 
-    modules: ['core_ucommands', 'core_scommands', 'core_ocommands', 'core_umodes', 'core_cmodes', 'access']
-                        # modules to load automatically.
-                        # you probably want to load core_*. juno is pretty much useless without those.
+# modules to load automatically.
+# you probably want to load core_*. juno is pretty much useless without core modules.
+
+modules: ['core_ucommands', 'core_scommands', 'core_ocommands', 'core_umodes', 'core_cmodes', 'access']
 
 [ modes: user ]
 
-    ircop:     'o'      # user mode letters. If these are provided, the modes will exist.
-    invisible: 'i'      # if they are not provided, the modes will not exist. You can choose
-                        # any letter to correspond with a mode without changing the internal
-                        # working of the IRCd. If you chose to add a rule here for a mode that
-                        # does nothing, the mode will still exist - it will just be useless.
+ircop     = 'o'     # user mode letters. If these are provided, the modes will exist.
+invisible = 'i'     # if they are not provided, the modes will not exist. You can choose
+                    # any letter to correspond with a mode without changing the internal
+                    # working of the IRCd. If you chose to add a rule here for a mode that
+                    # does nothing, the mode will still exist - it will just be useless.
 
 [ modes: channel ]
 
-    # channel mode letters and their types.
-    # the type MUST comply with the mode name, but you may switch
-    # the letters as you please without changing the internal working.
-    # the types are:
-    #   normal (0)
-    #   parameter (1)
-    #   parameter_set (2)
-    #   list (3)
-    #   status (4)
+# channel mode letters and their types.
+# the type MUST comply with the mode name, but you may switch
+# the letters as you please without changing the internal working.
+# the types are:
+#   normal (0)
+#   parameter (1)
+#   parameter_set (2)
+#   list (3)
+#   status (4)
 
-    # status modes should NOT be placed here. please see the prefixes section below.
+# status modes should NOT be placed here. please see the prefixes section below.
 
-    no_ext:        [0, 'n'] # no external channel messages      (n)
-    protect_topic: [0, 't'] # only operators can set the topic  (t)
-    moderated:     [0, 'm'] # only voiced and up may speak      (m)
-    ban:           [3, 'b'] # channel ban                       (b)
-    
-    # these are provided by modules.
-    
-    access: [3, 'A']
+no_ext        = [0, 'n'] # no external channel messages      (n)
+protect_topic = [0, 't'] # only operators can set the topic  (t)
+moderated     = [0, 'm'] # only voiced and up may speak      (m)
+ban           = [3, 'b'] # channel ban                       (b)
+
+# these are provided by modules.
+
+access = [3, 'A']   # access list mode (A)
 
 [ prefixes ]
 
-    # channel prefixes.
-    # to disable a channel prefix mode provided by core, remove any of these lines.
-    # any of this can be modified, but it is typically a good idea to leave op and voice
-    # intact. the format is [letter, prefix, level]. any status mode with a higher level
-    # has more privs than one with a lower level. for example, admins can't kick owners
-    # because two is greater than one. op should be 0. for things that check for basic
-    # channel status such as plain old mode setting, a user with any of the following will
-    # be allowed to do these things: "owner", "admin", "op", "halfop". however, this
-    # does not mean that juno is hard coded to five prefixes. this list might be extended
-    # by modules which allow you to add different prefixes at different levels.
+# channel status prefixes.
+# to disable a channel prefix mode provided by core, remove any of these lines.
+# any of this can be modified, but it is typically a good idea to leave op and voice
+# intact. the format is [letter, prefix, level]. any status mode with a higher level
+# has more privs than one with a lower level. for example, admins can't kick owners
+# because two is greater than one. op should be 0. for things that check for basic
+# channel status such as plain old mode setting, a user with any of the following will
+# be allowed to do these things: "owner", "admin", "op", "halfop". however, this
+# does not mean that juno is hard coded to five prefixes. this list might be extended
+# by modules which allow you to add different prefixes at different levels.
 
-    owner:  ['q', '~', 2 ]
-    admin:  ['a', '&', 1 ]
-    op:     ['o', '@', 0 ]
-    halfop: ['h', '%', -1]
-    voice:  ['v', '+', -2]
+owner  = ['q', '~',  2]
+admin  = ['a', '&',  1]
+op     = ['o', '@',  0]
+halfop = ['h', '%', -1]
+voice  = ['v', '+', -2]
 
 [ users ]
 
-    automodes: "+i"     # modes set to users on connect
+automodes = "+i"     # modes set to users on connect
 
 [ channels ]
 
-    automodes: "+ntqo +user +user" # modes set on channel creation. "+user" will be
-                                   # replaced with the user who created the channel.
+automodes = "+ntqo +user +user" # modes set on channel creation. "+user" will be
+                                # replaced with the user who created the channel.
 
 [ flood ]
 
-    lines: 50                   # flooding options:
-    bytes: 1                    #   defaults are usually sufficient.
-    message: "excess flood"
+lines   = 50                # flooding options:
+bytes   = 1                 #   defaults are usually sufficient.
+message = "excess flood"
 
 [ limit ]
-                        # the maximum number of characters in...
-    nick: 32            # nicknames
-    topic: 1000         # channel topics
-    kickmsg: 300        # kick messages
-    channelname: 50     # channel names
-    away: 100           # away reasons
 
-                        # the max number of...
-    connection: 100     # connections
-    perip: 3            # connections per IP address (local connections)
-    globalperip: 5      # connections per IP address (global users)
-    client: 50          # users
+# the maximum number of characters in...
+
+nick        = 32        # nicknames
+topic       = 1000      # channel topics
+kickmsg     = 300       # kick messages
+channelname = 50        # channel names
+away        = 100       # away messages
+
+# the max number of...
+connection  = 100    # connections
+perip       = 3      # connections per IP address (local connections)
+globalperip = 5      # connections per IP address (global users)
+client      = 50     # users
 
 [ file ]
 
-    motd: "etc/motd.conf"       # the path to the MOTD file
+motd = "etc/ircd.motd" # the path to the MOTD file
 
 [ ping: server ]
 
-    frequency: 20           # server ping section:
-    timeout: 500            #   defaults are usually sufficient.
+frequency = 20           # server ping section:
+timeout   = 500          #   defaults are usually sufficient.
 
 [ ping: user ]
 
-    message: "Ping timeout"     # user ping section:
-    frequency: 30               # defaults are usually sufficient.
-    timeout: 120
+message   = "Ping timeout"   # user ping section:
+frequency = 30               # defaults are usually sufficient.
+timeout   = 120
 
 
 [ listen: 0.0.0.0 ]
-                                    # <--- the address to bind to should be the block name
-    port: [6667..6669, 7000]        # separated by commas, nested by [].
-                                    #   ranges are supported.
+
+# the address to bind to should be the block name.
+# you can have as many listen blocks as you please, one per address.
+
+port = [6667..6669, 7000]        # separated by commas, nested by [].
+                                 #   ranges are supported.
 
 [ connect: server1.netbookwashers.info ]
-                                    # <--- the name of the opposite server should be the block name
-    address: "67.202.109.243"       # the IP to connect to OR to accept connections from (accept wildcards, must always be an IP)
-    port: 7000                      # the port to connect to
-    encryption: "sha1"              # encryption of the receive password - make sure it is enabled
-    send_password: "k"              # the password to send to the other server
-    receive_password: "13fbd79c3d390e5d6585a21e11ff5ec1970cff0c" # the password to receive in return
-    autoconnect: off                # attempt to connect to the server automatically?
-    auto_timer: 30                  # how often (in seconds) to attempt to connection if autoconnect is enabled
+                                # <--- the name of the opposite server should be the block name
+address          = "67.202.109.243" # the IP to connect to OR to accept connections from (accept wildcards, must always be an IP)
+port             = 7000             # the port to connect to
+encryption       = "sha1"           # encryption of the receive password - make sure it is enabled
+send_password    = "k"              # the password to send to the other server
+receive_password = "13fbd79c3d390e5d6585a21e11ff5ec1970cff0c" # the password to receive in return, encryped in the above crypt
+autoconnect      = off              # attempt to connect to the server automatically?
+auto_timer       = 30               # how often (in seconds) to attempt to connection if autoconnect is enabled
 
 # oper classes
 
 [ operclass: local ]
-    flags: [qw/localkill locops see_invisible/]       # list of oper flags
+
+flags = [qw/kill locops see_invisible rehash/] # list of oper flags
 
 [ operclass: global ]
-    extends: 'local'                    # gets the flags from local
-    flags: [qw/globalkill globops/]     # and adds these flags
+
+extends = 'local'                     # gets the flags from local
+flags   = [qw/gkill globops grehash/] # and adds these flags
 
 [ operclass: netadmin ]
 
-    extends: 'global'                   # gets the flags from both global and local
-    flags: [qw/grant/]                  # and adds these flags
+extends = 'global'                   # gets the flags from both global and local
+flags   = [qw/grant/]                # and adds these flags
 
 [ oper: cooper ]
 
-    class: "netadmin"                   # their oper class
-    host: ['*@127.0.0.*', 'me@::1', 'cooper@*.in.comcast.net'] # an array ref of hosts to accept
-    password: "13fbd79c3d390e5d6585a21e11ff5ec1970cff0c" # the password, encrypted in the below crypt
-    encryption: "sha1"                  # the encryption to use in the password
-    flags: [qw/some_flag some_other/]   # list of oper flags
+class      = "netadmin"                 # their oper class
+host       = ['*@127.0.0.*', 'me@::1', 'cooper@*.in.comcast.net'] # an array ref of hosts to accept
+password   = "13fbd79c3d390e5d6585a21e11ff5ec1970cff0c"           # the password, encrypted in the below crypt
+encryption = "sha1"                     # the encryption to use in the password
+flags      = [qw/some_flag some_other/] # list of oper flags
 
 # the above oper example ends up with flags: localkill, locops, globalkill, globops, grant, some_flag, some_other
 # because it has its own flags and is in the netadmins class
@@ -184,4 +178,4 @@
 
 [ log ]
 
-#server_debug: on      # logs data received from linked servers.
+#server_debug = on      # logs data received from linked servers.

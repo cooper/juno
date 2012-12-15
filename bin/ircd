@@ -10,7 +10,7 @@ local ($0,     $SIG{TERM},        $SIG{KILL},        $SIG{PIPE}        ) =
 local ($SIG{HUP},         $SIG{__WARN__}                               ) =
       (\&ircd::signalhup, \&ircd::WARNING                              );
 
-our ($run_dir, $loop);
+our ($run_dir, $loop, $API, $conf);
 
 BEGIN {
     # find the directory to run from
@@ -24,7 +24,12 @@ BEGIN {
     }
 
     chdir $run_dir or die "Can't access run directory.\n";
-    unshift @INC, "$run_dir/lib", "$run_dir/lib/api-engine", "$run_dir/lib/evented-object";
+    unshift @INC, (
+        "$run_dir/lib",
+        "$run_dir/lib/api-engine",
+        "$run_dir/lib/evented-object"
+        "$run_dir/lib/evented-configuration"
+    );
 
     require ircd;
     ircd::begin()

@@ -1687,3 +1687,5 @@ CHANGES:
         
         97. moved inc/ to lib/, run/ to bin/. juno has historically been using these improper directory names for nearly three years.
 
+        98. juno is now dependent on Evented::Configuration and includes it as a submodule.
+        

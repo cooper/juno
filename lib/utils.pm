@@ -6,70 +6,23 @@ use warnings;
 use strict;
 use feature qw[switch say];
 
-our (%conf, %GV);
-
-# parse a configuration file
-
-sub parse_config {
-
-    my ($file, $fh) = shift;
-    open my $config, '<', $file or die "$!\n";
-    my ($i, $block, $name, $key, $val) = 0;
-    while (my $line = <$config>) {
-
-        $i++;
-        $line = trim($line);
-        next unless $line;
-        next if $line =~ m/^#/;
-
-        # a block with a name
-        if ($line =~ m/^\[(.*?):(.*)\]$/) {
-            $block = trim($1);
-            $name  = trim($2);
-        }
-
-        # a nameless block
-        elsif ($line =~ m/^\[(.*)\]$/) {
-            $block = 'sec';
-            $name  = trim($1);
-        }
-
-        # a key and value
-        elsif ($line =~ m/^(\s*)(\w*):(.*)$/ && defined $block) {
-            $key = trim($2);
-            $val = eval trim($3);
-            die "Invalid value in $file line $i: $@" if $@;
-            $conf{$block}{$name}{$key} = $val;
-        }
-
-        else {
-            die "Invalid line $i of $file\n"
-        }
-
-    }
-    
-    return 1
-
-}
+our %GV;
 
 # fetch a configuration file
 
 sub conf {
     my ($sec, $key) = @_;
-    return $conf{sec}{$sec}{$key} if exists $conf{sec}{$sec}{$key};
-    return
+    return $main::conf->get($sec, $key);
 }
 
 sub lconf { # for named blocks
     my ($block, $sec, $key) = @_;
-    return $conf{$block}{$sec}{$key} if exists $conf{$block}{$sec}{$key};
-    return
+    return $main::conf->get([$block, $sec], $key);
 }
 
 sub conn {
     my ($sec, $key) = @_;
-    return $conf{connect}{$sec}{$key} if exists $conf{connect}{$sec}{$key};
-    return
+    return $main::conf->(['connect', $sec], $key);
 }
 
 # log errors/warnings
@@ -243,10 +196,8 @@ sub import {
 sub ircd_LOAD {
     # savor GV and conf
     ircd::reloadable(sub {
-        $main::TMP_CONF = \%conf;
         $main::TMP_GV   = \%GV;
     }, sub {
-        %conf = %{$main::TMP_CONF};
         %GV   = %{$main::TMP_GV};
         undef $main::TMP_CONF;
         undef $main::TMP_GV

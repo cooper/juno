@@ -135,8 +135,8 @@ sub chanmodes {
     #   status (4)
     my (%m, @a);
     @a[3, 1, 2, 0] = (q.., q.., q.., q..);
-    foreach my $name (keys %{$utils::conf{modes}{channel}}) {
-        my ($type, $letter) = @{$utils::conf{modes}{channel}{$name}};
+    foreach my $name ($ircd::conf->keys_of_block(['modes', 'channel'])) {
+        my ($type, $letter) = @{conf(['modes', 'channel'], $name)};
         $m{$type} = [] unless $m{$type};
         push @{$m{$type}}, $letter
     }

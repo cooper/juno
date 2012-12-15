@@ -10,14 +10,16 @@ use utils qw(conf lconf log2 fatal gv set);
 utils::ircd_LOAD();
 
 our @reloadable;
-our ($VERSION, $API, %global) = '5.97';
+our ($VERSION, $API, $conf, %global) = '5.98';
 
 sub start {
 
     log2('Started server at '.scalar(localtime gv('START')));
 
     # parse the configuration
-    utils::parse_config('etc/ircd.conf') or die "Can't parse configuration.\n";
+    require Evented::Configuration;
+    $conf = $main::conf = Evented::Configuration->new(undef, "$main::run_dir/etc/ircd.conf");
+    $conf->parse_config or die "can't parse configuration.\n";
 
     # create the main server object
     my $server = server->new({
@@ -74,9 +76,8 @@ sub start {
     log2("server initialization complete");
 
     # auto server connect
-    foreach my $name (keys %{$utils::conf{connect}}) {
-        my $serv = $utils::conf{connect}{$name};
-        if ($serv->{autoconnect}) {
+    foreach my $name (keys $conf->names_of_block('connect')) {
+        if (conf(['connect', $name], 'autoconnect') {
             log2("autoconnecting to $name...");
             server::linkage::connect_server($name)
         }
@@ -110,8 +111,8 @@ sub load_requirements {
 }
 
 sub create_sockets {
-    foreach my $addr (keys %{$utils::conf{listen}}) {
-      foreach my $port (@{$utils::conf{listen}{$addr}->{port}}) {
+    foreach my $addr ($conf->names_of_block('listen')) {
+      foreach my $port (@{$conf->get(['listen', $addr], 'port')}) {
 
         # create the loop listener
         my $listener = IO::Async::Listener->new(on_stream => \&handle_connect);

@@ -5,7 +5,7 @@ package user::modes;
 use warnings;
 use strict;
 
-use utils 'log2';
+use utils qw(log2 conf);
 
 my %blocks;
 
@@ -13,17 +13,17 @@ my %blocks;
 # mode is associated with what letter as defined by the configuration
 sub add_internal_modes {
     my $server = shift;
-    return unless $utils::conf{modes}{user};
+    return unless $ircd::conf->has_block(['modes', 'user']);
     log2("registering user mode letters");
-    foreach my $name (keys %{$utils::conf{modes}{user}}) {
-        $server->add_umode($name, $utils::conf{modes}{user}{$name});
+    foreach my $name ($ircd::conf->keys_of_block(['modes', 'user'])) {
+        $server->add_umode($name, conf(['modes', 'user'], $name));
     }
     log2("end of user mode letters");
 }
 
 # returns a string of every mode
 sub mode_string {
-    my @modes = sort { $a cmp $b } values %{$utils::conf{modes}{user}};
+    my @modes = sort { $a cmp $b } $ircd::conf->values_of_block(['modes', 'user']);
     return join '', @modes
 }
 

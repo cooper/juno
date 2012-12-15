@@ -784,7 +784,7 @@ sub sconnect {
     }
 
     # make sure the server exists
-    if (!exists $utils::conf{connect}{$server}) {
+    if (!$ircd::conf->has_block($server)) {
         $user->server_notice('CONNECT', 'no such server '.$server);
         return
     }
