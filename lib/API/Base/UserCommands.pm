@@ -114,11 +114,6 @@ sub register_user_command {
                     $id   = 1;
                     $type = $t;
                 }
-               
-                # if $type has an identifier, filter it out first.
-                my ($id, $name) = split '.', $arg, 2;
-                if (defined $name) { $type = $name }
-                else               { $id   = $arg  }
                 
                 # global lookup
                 given ($type) {
