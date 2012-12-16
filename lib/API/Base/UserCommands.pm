@@ -189,7 +189,7 @@ sub register_user_command {
                 }
                 
                 default {
-                    log2("unknown parameter type $_!");
+                    log2("unknown parameter type $type!");
                     return;
                 }
                 
