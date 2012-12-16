@@ -37,6 +37,11 @@ sub register_user_command {
     # if parameters is present and does not look like a number...
     if ($opts{parameters} && !looks_like_number($opts{parameters})) {
 
+        # if it is not an array reference, it's a whitespace-separated string.
+        if (ref $opts{parameters} ne 'ARRAY') {
+            $opts{parameters} = [ split /\s/, $opts{parameters} ];
+        }
+
         # parse argument type attributes.
         my $required_parameters;
         my @argttributes; my $i = -1;
