@@ -34,13 +34,12 @@ sub register_user_command {
     #     any     plain old string
     #     ts      timestamp
 
-    $CODE = sub {
-        my ($user, $data, @args) = @_;
-        my ($i, $required_parameters, @final_parameters) = (-1, 0);
-
+    # if parameters is present and does not look like a number...
+    if ($opts{parameters} && !looks_like_number($opts{parameters})) {
 
         # parse argument type attributes.
-        my @argttributes;
+        my $required_parameters;
+        my @argttributes; my $i = -1;
         foreach (@{$opts{parameters}}) { $i++;
         
             # type(attribute1,att2,att3)
@@ -63,96 +62,97 @@ sub register_user_command {
             }
             
         }
-        
-        # check argument count.
-        if (scalar @args < $required_parameters) {
-            $user->numeric(ERR_NEEDMOREPARAMS => $args[0]);
-            return;
-        }
 
-        $i = -1;
-        foreach (@{$opts{parameters}}) { $i++;
-
-            # global lookup
-            when ('source') {
-                my $source =
-                     server::lookup_by_name($args[$i])  ||
-                    channel::lookup_by_name($args[$i])  ||
-                       user::lookup_by_nick($args[$i]);
-                return unless $source;
-                push @final_parameters, $source;
+        # create the new handler.
+        $CODE = sub {
+            my ($user, $data, @args) = @_;
+            my ($i, @final_parameters) = (-1, 0);
+            
+            # check argument count.
+            if (scalar @args < $required_parameters) {
+                $user->numeric(ERR_NEEDMOREPARAMS => $args[0]);
+                return;
             }
 
-            # server lookup
-            when ('server') {
-                my $server = server::lookup_by_name(col($args[$i]));
-                return unless $server;
-                push @final_parameters, $server;
-            }
+            $i = -1;
+            foreach (@{$opts{parameters}}) { $i++;
 
-            # user lookup
-            when ('user') {
-                my $nickname = (split ',', col($args[$i]))[0];
-                my $usr = user::lookup_by_nick($nickname);
-
-                # not found, send no such nick.
-                if (!$usr) {
-                    $user->numeric(ERR_NOSUCHNICK => $nickname);
-                    return;
+                # global lookup
+                when ('source') {
+                    my $source =
+                         server::lookup_by_name($args[$i])  ||
+                        channel::lookup_by_name($args[$i])  ||
+                           user::lookup_by_nick($args[$i]);
+                    return unless $source;
+                    push @final_parameters, $source;
                 }
 
-                push @final_parameters, $usr;
-            }
-
-            # channel lookup
-            when ('channel') {
-                my $chaname = (split ',', col($args[$i]))[0];
-                my $channel = channel::lookup_by_name($chaname);
-                
-                # not found, send no such channel.
-                if (!$channel) {
-                    $user->numeric(ERR_NOSUCHCHANNEL => $chaname);
-                    return;
+                # server lookup
+                when ('server') {
+                    my $server = server::lookup_by_name(col($args[$i]));
+                    return unless $server;
+                    push @final_parameters, $server;
                 }
-                
-                push @final_parameters, $channel;
+
+                # user lookup
+                when ('user') {
+                    my $nickname = (split ',', col($args[$i]))[0];
+                    my $usr = user::lookup_by_nick($nickname);
+
+                    # not found, send no such nick.
+                    if (!$usr) {
+                        $user->numeric(ERR_NOSUCHNICK => $nickname);
+                        return;
+                    }
+
+                    push @final_parameters, $usr;
+                }
+
+                # channel lookup
+                when ('channel') {
+                    my $chaname = (split ',', col($args[$i]))[0];
+                    my $channel = channel::lookup_by_name($chaname);
+                    
+                    # not found, send no such channel.
+                    if (!$channel) {
+                        $user->numeric(ERR_NOSUCHCHANNEL => $chaname);
+                        return;
+                    }
+                    
+                    push @final_parameters, $channel;
+                }
+
+                # the rest of a message
+                when (':rest') {
+                    my $str = (split /\s+/, $data, ($i + 1))[$i];
+                    push @final_parameters, col($str);
+                }
+
+                # the rest of the message as separate parameters
+                when (['...', '@rest']) {
+                    push @final_parameters, @args[$i..$#args];
+                }
+
+                # any string
+                when (['a', 'any', 'ts']) {
+                    push @final_parameters, $args[$i];
+                }
+
+                # ignore a parameter
+                when ('dummy') { }
+
             }
 
-            # the rest of a message
-            when (':rest') {
-                my $str = (split /\s+/, $data, ($i + 1))[$i];
-                push @final_parameters, col($str);
-            }
-
-            # the rest of the message as separate parameters
-            when (['...', '@rest']) {
-                push @final_parameters, @args[$i..$#args];
-            }
-
-            # any string
-            when (['a', 'any', 'ts']) {
-                push @final_parameters, $args[$i];
-            }
-
-            # ignore a parameter
-            when ('dummy') { }
+            # call the actual handler.
+            $opts{code}($user, $data, @final_parameters);
 
         }
-
-        $opts{code}($user, $data, @final_parameters);
-
-    } if $opts{parameters} && !looks_like_number($opts{parameters});
+    }
 
     # if parameters is provided and still exists, that means it was not an ARRAY reference.
     # if it looks like a number, it is a number of parameters to allow.
-    if ($CODE == $opts{code} && looks_like_number($opts{parameters})) {
+    elsif (defined $opts{parameters} && looks_like_number($opts{parameters})) {
         $parameters = $opts{parameters};
-    }
-    
-    # otherwise, it is a string of space-separated parameter types
-    # if it is not an ARRAY reference.
-    elsif ($CODE != $opts{code} && ref $opts{parameters} ne 'ARRAY') {
-        $opts{parameters} = [ split /\s/, $opts{parameters} ];
     }
     
     # register to juno.
