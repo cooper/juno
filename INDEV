@@ -1695,4 +1695,4 @@ CHANGES:
 
     0. the UserCommands base now allows you to use attributes to specify different behavior for parameter checking. this adds the first attribute, 'opt', which allows you to specify that a parameter is optional. this way, ERR_NEEDMOREPARAMS will not be sent if it is absent. in addition to these changes, you can now use a whitespace-separated string of parameter types rather than an array reference in register_user_command_handler().
     
-        01. 
+        01. parameter checking can now specify a value other than boolean, which will typically be a numerical identifier of another parameter. this also adds the 'inchan' channel attribute, which ensures that the user sending the command is in that channel, sending ERR_NOTINCHAN otherwise.

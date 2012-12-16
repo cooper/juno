@@ -1197,6 +1197,8 @@ sub kick {
     # dummy           channel   user     :rest(opt)
     my ($user, $data, $channel, $t_user,   $reason) = @_;
     
+    # check if the user has basic status in the channel.
+    
     # $channel->channel::mine::send_all(':'.$user->full." MODE $$channel{name} $user_result");
     print "$user kicking $t_user from $channel\n";
 }

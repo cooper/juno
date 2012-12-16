@@ -33,6 +33,17 @@ sub register_user_command {
     #     @rest   the rest of the message as a space-separated list
     #     any     plain old string
     #     ts      timestamp
+    
+    # attributes:
+    #
+    #   opt
+    #       indicates an optional parameter
+    #       this parameter will not be taken account when counting the number of
+    #       parameters (used to determine whether or not enough parameters are given)
+    #
+    #   inchan
+    #       for channels, gives up and sends ERR_NOTONCHANNEL if the user sending the
+    #       command is not in the channel. Ex: channel(inchan)     
 
     # if parameters is present and does not look like a number...
     if ($opts{parameters} && !looks_like_number($opts{parameters})) {
@@ -47,11 +58,18 @@ sub register_user_command {
         my @argttributes; my $i = -1;
         foreach (@{$opts{parameters}}) { $i++;
         
-            # type(attribute1,att2,att3)
+            # type(attribute1,att2:val,att3)
             if (/(.+)\((.+)\)/) {
                 $opts{parameters}[$i] = $1;
                 my $attributes = {};
-                $attributes->{trim($_)} = 1 foreach split ',', $2;
+                
+                # get the values of each attribute.
+                foreach (split ',', $2) {
+                    my $attr = trim($_);
+                    my ($name, $val) = split ':', $attr, 2;
+                    $attributes->{$name} = defined $val ? $val : 1;
+                }
+                
                 $argttributes[$i] = $attributes;
             }
             
@@ -62,7 +80,7 @@ sub register_user_command {
             
             # unless there is an 'opt' (optional) attribute,
             # increase required parameter count.
-            unless ($argttributes[$i]{opt}) {print "no opt for $_\n";
+            unless ($argttributes[$i]{opt}) {
                 $required_parameters++;
             }
             
@@ -71,7 +89,7 @@ sub register_user_command {
         # create the new handler.
         $CODE = sub {
             my ($user, $data, @args) = @_;
-            my ($i, @final_parameters) = -1;
+            my ($i, @final_parameters, %param_id) = -1;
             
             # check argument count.
             if (scalar @args < $required_parameters) {
@@ -82,26 +100,33 @@ sub register_user_command {
             $i = -1;
             foreach (@{$opts{parameters}}) { $i++;
 
+                my $arg = $args[$i];
+                
+                # if $_ has an identifier, filter it out first.
+                my ($id, $name) = split '.', $arg, 2;
+                if (defined $name) { $_  = $name }
+                else               { $id = $arg  }
+                
                 # global lookup
                 when ('source') {
                     my $source =
-                         server::lookup_by_name($args[$i])  ||
-                        channel::lookup_by_name($args[$i])  ||
-                           user::lookup_by_nick($args[$i]);
+                         server::lookup_by_name($arg)  ||
+                        channel::lookup_by_name($arg)  ||
+                           user::lookup_by_nick($arg);
                     return unless $source;
-                    push @final_parameters, $source;
+                    push @final_parameters, $param_id{$id} = $source;
                 }
 
                 # server lookup
                 when ('server') {
-                    my $server = server::lookup_by_name(col($args[$i]));
+                    my $server = server::lookup_by_name(col($arg));
                     return unless $server;
-                    push @final_parameters, $server;
+                    push @final_parameters, $param_id{$id} = $server;
                 }
 
                 # user lookup
                 when ('user') {
-                    my $nickname = (split ',', col($args[$i]))[0];
+                    my $nickname = (split ',', col($arg))[0];
                     my $usr = user::lookup_by_nick($nickname);
 
                     # not found, send no such nick.
@@ -110,12 +135,12 @@ sub register_user_command {
                         return;
                     }
 
-                    push @final_parameters, $usr;
+                    push @final_parameters, $param_id{$id} = $usr;
                 }
 
                 # channel lookup
                 when ('channel') {
-                    my $chaname = (split ',', col($args[$i]))[0];
+                    my $chaname = (split ',', col($arg))[0];
                     my $channel = channel::lookup_by_name($chaname);
                     
                     # not found, send no such channel.
@@ -124,7 +149,13 @@ sub register_user_command {
                         return;
                     }
                     
-                    push @final_parameters, $channel;
+                    # if 'inchan' attribute, the requesting user must be in the channel.
+                    if ($argttributes[$i]{inchan} && !$channel->has_user($user)) {
+                        $user->numeric(ERR_NOTONCHANNEL => $channel->{name});
+                        return;
+                    }
+                    
+                    push @final_parameters, $param_id{$id} = $channel;
                 }
 
                 # the rest of a message
@@ -140,7 +171,7 @@ sub register_user_command {
 
                 # any string
                 when (['a', 'any', 'ts']) {
-                    push @final_parameters, $args[$i];
+                    push @final_parameters, $arg;
                 }
 
                 # ignore a parameter
