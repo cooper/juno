@@ -71,7 +71,7 @@ sub register_user_command {
         # create the new handler.
         $CODE = sub {
             my ($user, $data, @args) = @_;
-            my ($i, @final_parameters) = (-1, 0);
+            my ($i, @final_parameters) = -1;
             
             # check argument count.
             if (scalar @args < $required_parameters) {
@@ -130,7 +130,7 @@ sub register_user_command {
                 # the rest of a message
                 when (':rest') {
                     my $str = (split /\s+/, $data, ($i + 1))[$i];
-                    push @final_parameters, col($str);
+                    push @final_parameters, col($str) if defined $str;
                 }
 
                 # the rest of the message as separate parameters

@@ -1194,7 +1194,7 @@ sub modules {
 # KICK #channel1,#channel2 user1,user2 :reason
 sub kick {
     # KICK            #channel  nickname :reason
-    #                 channel   user     :rest
+    # dummy           channel   user     :rest(opt)
     my ($user, $data, $channel, $t_user,   $reason) = @_;
     
     # $channel->channel::mine::send_all(':'.$user->full." MODE $$channel{name} $user_result");
