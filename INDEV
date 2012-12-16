@@ -1703,3 +1703,5 @@ CHANGES:
         
         04. adds add_cap(), remove_cap(), and has_cap() methods to connections for managing client compatibility flags.
         
+        05. this should fix an issue where even channel owners cannot set bans.
+        

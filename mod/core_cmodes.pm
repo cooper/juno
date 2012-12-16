@@ -13,7 +13,7 @@ my %cmodes = (
 
 our $mod = API::Module->new(
     name        => 'core_cmodes',
-    version     => '0.2',
+    version     => '0.3',
     description => 'the core set of channel modes',
     requires    => ['ChannelModes'],
     initialize  => \&init
@@ -141,9 +141,13 @@ sub cmode_ban {
     }
 
     # needs privs.
-    if (!$mode->{force} && $mode->{source}->is_local) {
+    if (!$mode->{force}
+        && $mode->{source}->isa('user')
+        && !$channel->user_has_basic_status($mode->{source})) {
+        
         $mode->{send_no_privs} = 1;
-        return
+        return;
+        
     }
 
     # setting
