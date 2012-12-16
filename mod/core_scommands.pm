@@ -568,7 +568,7 @@ sub kick {
     my ($source, $channel, $t_user, $reason) = @_;
     
     # determine the reason.
-    my $reason_string = defined $reason ? $reason : $user->{nick};
+    my $reason_string = defined $reason ? $reason : $source->name;
     
     # tell the local users of the channel.
     $channel->channel::mine::send_all(':'.$source->full." KICK $$channel{name} $$t_user{nick} :$reason_string");

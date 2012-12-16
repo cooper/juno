@@ -1219,7 +1219,7 @@ sub kick {
     $channel->remove_user($t_user);
 
     # tell the other servers.
-    server::mine::fire_command_all(kick => $user, $channel, $_user, $reason_string);
+    server::mine::fire_command_all(kick => $user, $channel, $t_user, $reason_string);
 
     return 1;
 }
