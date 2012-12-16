@@ -159,8 +159,7 @@ my %ucommands = (
     },
     LIST => {
         code   => \&list,
-        desc   => 'view information of channels on the server',
-        params => []
+        desc   => 'view information of channels on the server'
     }
 );
 
