@@ -101,7 +101,7 @@ sub register_user_command {
             foreach my $t (@{$opts{parameters}}) { $i++;
                 my ($type, $id);
                 my $arg = $args[$i];
-                my @s   = split '.', $t, 2;
+                my @s   = split /\./, $t, 2;
                 
                 # if @s has two elements, it had an identifier.
                 if (scalar @s == 2) {
