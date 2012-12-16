@@ -44,8 +44,8 @@ sub register_user_command {
         foreach (@{$opts{parameters}}) { $i++;
         
             # type(attribute1,att2,att3)
-            if (/(.+)\(.+\)/) {
-                $opts{parameters} = $1;
+            if (/(.+)\((.+)\)/) {
+                $opts{parameters}[$i] = $1;
                 my $attributes = {};
                 $attributes->{trim($_)} = 1 foreach split ',', $2;
                 push @argttributes, $attributes;
