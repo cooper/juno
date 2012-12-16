@@ -5,7 +5,7 @@ use warnings;
 use strict;
 use v5.10;
 
-use utils 'log2';
+use utils qw(log2 col);
 
 use Scalar::Util 'looks_like_number';
 
