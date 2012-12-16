@@ -1705,3 +1705,5 @@ CHANGES:
         
         05. this should fix an issue where even channel owners cannot set bans.
         
+        06. fixes a crashing issue with REHASH.
+        

@@ -6,7 +6,7 @@ use strict;
  
 use utils qw(col log2 lceq lconf match cut_to_limit conf gv);
 
-our $VERSION = 1.6;
+our $VERSION = 1.7;
 
 my %ucommands = (
     PING => {
@@ -1109,7 +1109,7 @@ sub rehash {
         return
     }
 
-    if (utils::parse_config('etc/ircd.conf')) {
+    if ($main::conf->parse_config) {
         $user->server_notice('rehash', 'configuration loaded successfully');
         return 1
     }

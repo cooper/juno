@@ -10,7 +10,7 @@ use utils qw(conf lconf log2 fatal gv set);
 utils::ircd_LOAD();
 
 our @reloadable;
-our ($VERSION, $API, $conf, %global) = '6.05';
+our ($VERSION, $API, $conf, %global) = '6.06';
 
 sub start {
 
