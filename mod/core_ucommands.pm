@@ -1210,10 +1210,10 @@ sub kick {
     }
     
     # determine the reason.
-    my $reason_string = defined $reason ? ":$reason" : '';
+    my $reason_string = defined $reason ? $reason : $user->{nick};
     
     # tell the local users of the channel.
-    $channel->channel::mine::send_all(':'.$user->full." KICK $$channel{name} $$t_user{nick}$reason_string");
+    $channel->channel::mine::send_all(':'.$user->full." KICK $$channel{name} $$t_user{nick} :$reason_string");
     
     # remove the user from the channel.
     $channel->remove_user($t_user);

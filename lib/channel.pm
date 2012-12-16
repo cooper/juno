@@ -162,9 +162,6 @@ sub cjoin {
 # remove a user
 sub remove {
     my ($channel, $user) = @_;
-    log2("removing $$user{nick} from $$channel{name}");
-    my @new = grep { $_ != $user } @{$channel->{users}};
-    $channel->{users} = \@new;
 
     # remove the user from status lists
     foreach my $name (keys %{$channel->{modes}}) {
@@ -180,6 +177,12 @@ sub remove {
         undef $channel;
         return
     }
+
+    # remove the user.
+    my @new = grep { $_ != $user } @{$channel->{users}};
+    $channel->{users} = \@new;
+    
+    log2("removed $$user{nick} from $$channel{name}");
 
     return 1
 }
