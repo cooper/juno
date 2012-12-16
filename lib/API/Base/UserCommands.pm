@@ -100,14 +100,16 @@ sub register_user_command {
             $i = -1;
             foreach (@{$opts{parameters}}) { $i++;
 
+                my $type = $_;
                 my $arg = $args[$i];
                 
-                # if $_ has an identifier, filter it out first.
+                # if $type has an identifier, filter it out first.
                 my ($id, $name) = split '.', $arg, 2;
-                if (defined $name) { $_  = $name }
-                else               { $id = $arg  }
+                if (defined $name) { $type = $name }
+                else               { $id   = $arg  }
                 
                 # global lookup
+                given ($type) {
                 when ('source') {
                     my $source =
                          server::lookup_by_name($arg)  ||
@@ -176,7 +178,8 @@ sub register_user_command {
 
                 # ignore a parameter
                 when ('dummy') { }
-
+                
+                }
             }
 
             # call the actual handler.
