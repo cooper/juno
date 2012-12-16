@@ -19,7 +19,7 @@ sub register_user_command {
         log2("user command $opts{name} does not have '$what' option.");
         return
     }
-
+    
     $mod->{user_commands} ||= [];
     my $CODE       = $opts{code};
     my $parameters = 0;
@@ -114,11 +114,11 @@ sub register_user_command {
 
         $opts{code}($user, $data, @final_parameters);
 
-    } and delete $opts{parameters} if $opts{parameters} && ref $opts{parameters} eq 'ARRAY';
+    } if $opts{parameters} && ref $opts{parameters} eq 'ARRAY';
 
     # if parameters is provided and still exists, that means it was not an ARRAY reference.
     # if it looks like a number, it is a number of parameters to allow.
-    if (defined $opts{parameters} && looks_like_number($opts{parameters})) {
+    if ($CODE == $opts{code} && looks_like_number($opts{parameters})) {
         $parameters = $opts{parameters};
     }
 
