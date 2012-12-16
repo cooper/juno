@@ -98,12 +98,23 @@ sub register_user_command {
             }
 
             $i = -1;
-            foreach (@{$opts{parameters}}) { $i++;
-
-                my $type = $_;
+            foreach $t (@{$opts{parameters}}) { $i++;
+                my ($type, $id);
                 my $arg = $args[$i];
-                return unless defined $arg;
+                my @s   = split '.', $arg, 2;
                 
+                # if @s has two elements, it had an identifier.
+                if (scalar @s == 2) {
+                    $id   = $s[0];
+                    $type = $s[1];
+                }
+                
+                # otherwise, it didn't.
+                else {
+                    $id   = 1;
+                    $type = $t;
+                }
+               
                 # if $type has an identifier, filter it out first.
                 my ($id, $name) = split '.', $arg, 2;
                 if (defined $name) { $type = $name }
