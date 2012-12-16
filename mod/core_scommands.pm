@@ -565,7 +565,7 @@ sub skill {
 sub kick {
     # source dummy channel user :rest
     # :id    KICK  channel uid  :reason
-    my ($source, $channel, $t_user, $reason) = @_;print "got KICK: @_\n";return;
+    my ($server, $data, $source, $channel, $t_user, $reason) = @_;
     
     # determine the reason.
     my $reason_string = defined $reason ? $reason : $source->name;
