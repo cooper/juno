@@ -65,7 +65,7 @@ sub register_user_command {
 
             # user lookup
             when ('user') {
-                my $nickname = split ',', col($args[$i]);
+                my $nickname = (split ',', col($args[$i]))[0];
                 my $usr = user::lookup_by_nick($nickname);
 
                 # not found, send no such nick.
@@ -79,7 +79,7 @@ sub register_user_command {
 
             # channel lookup
             when ('channel') {
-                my $chaname = split ',', col($args[$i]);
+                my $chaname = (split ',', col($args[$i]))[0];
                 my $channel = channel::lookup_by_name($chaname);
                 
                 # not found, send no such channel.
