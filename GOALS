@@ -72,3 +72,8 @@ accomplished through the implementation of the EventedObject framework.
         b. add multi-prefix support.
         c. etc...
         
+[ ] 8. move registration commands out of core.
+
+        a. this will allow modules to modify CAP, NICK, USER, SERVER, and PASS commands.
+        b. this is especially important now with the implementation of CAP.
+        
