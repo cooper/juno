@@ -28,12 +28,13 @@ my %ocommands = (
     acm           => \&acm,
     aum           => \&aum,
     kill          => \&skill,
-    connect       => \&sconnect
+    connect       => \&sconnect,
+    kick          => \&kick
 );
 
 our $mod = API::Module->new(
     name        => 'core_ocommands',
-    version     => '0.8',
+    version     => '0.9',
     description => 'the core set of outgoing commands',
     requires    => ['OutgoingCommands'],
     initialize  => \&init
@@ -283,6 +284,14 @@ sub aum {
     } keys %{$serv->{umodes}};
 
     ":$$serv{sid} AUM ".join(' ', @modes)
+}
+
+# KICK command.
+sub kick {
+    my ($source, $channel, $target, $reason) = @_;
+    my $sourceid = $source->can('id') ? $source->id : '';
+    my $targetid = $target->can('id') ? $target->id : '';
+    return ":$source KICK $$channel{name} $targetid :$reason";
 }
 
 $mod

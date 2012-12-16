@@ -1699,3 +1699,5 @@ CHANGES:
         
         02. finally added KICK user command.
         
+        03. adds KICK outgoing command and JELP command. KICKs are now synchronized through the linking protocol.
+        

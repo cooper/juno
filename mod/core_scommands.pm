@@ -6,7 +6,7 @@ use strict;
  
 use utils qw(col log2 lceq lconf match cut_to_limit conf gv fire_event);
 
-our $VERSION = 1.2;
+our $VERSION = 1.3;
 
 my %scommands = (
     SID => {
@@ -125,6 +125,11 @@ my %scommands = (
     CUM => {
         params  => [qw(server dummy any ts any :rest)],
         code    => \&cum,
+        forward => 1
+    },
+    KICK => {
+        params  => [qw(source dummy channel user :rest)],
+        code    => \&kick,
         forward => 1
     }
 );
@@ -555,6 +560,23 @@ sub skill {
     # we ignore any non-local users
     $tuser->{conn}->done("Killed: $reason [$$user{nick}]") if $tuser->is_local;
 
+}
+
+sub kick {
+    # source dummy user :rest
+    # :id    KICK  uid  :reason
+    my ($source, $channel, $target, $reason) = @_;
+    
+    # determine the reason.
+    my $reason_string = defined $reason ? $reason : $user->{nick};
+    
+    # tell the local users of the channel.
+    $channel->channel::mine::send_all(':'.$user->full." KICK $$channel{name} $$t_user{nick} :$reason_string");
+    
+    # remove the user from the channel.
+    $channel->remove_user($t_user);
+    
+    return 1;
 }
 
 $mod
