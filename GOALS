@@ -20,8 +20,8 @@ accomplished through the implementation of the EventedObject framework.
 
 [ ] 1. improved support for basic IRC commands
 
-        a. LIST command
-        b. KICK command
+[√]     a. LIST command
+[√]     b. KICK command
         c. INVITE command
         d. STATS command
         e. LINKS command

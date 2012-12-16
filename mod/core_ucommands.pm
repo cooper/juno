@@ -6,7 +6,7 @@ use strict;
  
 use utils qw(col log2 lceq lconf match cut_to_limit conf gv);
 
-our $VERSION = 1.7;
+our $VERSION = 1.8;
 
 my %ucommands = (
     PING => {
@@ -156,6 +156,11 @@ my %ucommands = (
         code   => \&kick,
         desc   => 'forcibly remove a user from a channel',
         params => 'dummy channel(inchan) user :rest(opt)'
+    },
+    LIST => {
+        code   => \&list,
+        desc   => 'view information of channels on the server',
+        params => []
     }
 );
 
@@ -1221,6 +1226,26 @@ sub kick {
     # tell the other servers.
     server::mine::fire_command_all(kick => $user, $channel, $t_user, $reason_string);
 
+    return 1;
+}
+
+sub list {
+    my ($user, $data, @args) = @_;
+    
+    #:ashburn.va.mac-mini.org 321 k Channel :Users  Name
+    $user->numeric('RPL_LISTSTART');
+
+    # send for each channel in no particular order.
+    foreach my $channel (values %channel::channels) {
+       # 322 RPL_LIST "<channel> <# visible> :<topic>"
+        my $number_of_users = scalar keys %{$channel->{users}};
+        my $channel_topic   = defined $channel->{topic} ? $channel->{topic} : '';
+        $user->numeric(RPL_LIST => $channel->{name}, $number_of_users, $channel_topic);
+    }
+
+    # TODO: implement list for specific channels.
+
+    $user->numeric('RPL_LISTEND');
     return 1;
 }
 

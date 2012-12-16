@@ -1707,3 +1707,5 @@ CHANGES:
         
         06. fixes a crashing issue with REHASH.
         
+        07. adds LIST user command, which allows users to see information about channels on the IRC server.
+        
