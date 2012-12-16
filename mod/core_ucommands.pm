@@ -155,7 +155,7 @@ my %ucommands = (
     KICK => {
         code   => \&kick,
         desc   => 'forcibly remove a user from a channel',
-        params => 'dummy channel user :rest(opt)'
+        params => 'dummy channel(inchan) user :rest(opt)'
     }
 );
 
@@ -1193,8 +1193,8 @@ sub modules {
 # forcibly remove a user from a channel.
 # KICK #channel1,#channel2 user1,user2 :reason
 sub kick {
-    # KICK            #channel  nickname :reason
-    # dummy           channel   user     :rest(opt)
+    # KICK            #channel          nickname :reason
+    # dummy           channel(inchan)   user     :rest(opt)
     my ($user, $data, $channel, $t_user,   $reason) = @_;
     
     # check if the user has basic status in the channel.
