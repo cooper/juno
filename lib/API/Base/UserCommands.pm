@@ -152,7 +152,7 @@ sub register_user_command {
     # otherwise, it is a string of space-separated parameter types
     # if it is not an ARRAY reference.
     elsif ($CODE != $opts{code} && ref $opts{parameters} ne 'ARRAY') {
-        $parameters = [ split /\s/, $opts{parameters} ];
+        $opts{parameters} = [ split /\s/, $opts{parameters} ];
     }
     
     # register to juno.
