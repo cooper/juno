@@ -102,6 +102,7 @@ sub register_user_command {
 
                 my $type = $_;
                 my $arg = $args[$i];
+                return unless defined $arg;
                 
                 # if $type has an identifier, filter it out first.
                 my ($id, $name) = split '.', $arg, 2;
