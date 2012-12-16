@@ -1193,14 +1193,35 @@ sub modules {
 # forcibly remove a user from a channel.
 # KICK #channel1,#channel2 user1,user2 :reason
 sub kick {
-    # KICK            #channel          nickname :reason
-    # dummy           channel(inchan)   user     :rest(opt)
-    my ($user, $data, $channel, $t_user,   $reason) = @_;
+    # KICK            #channel        nickname :reason
+    # dummy           channel(inchan) user     :rest(opt)
+    my ($user, $data, $channel,       $t_user, $reason) = @_;
     
     # check if the user has basic status in the channel.
+    if (!$channel->user_has_basic_status($user)) {
+        $user->numeric(ERR_CHANOPRIVSNEEDED => $channel->{name});
+        return;
+    }
     
-    # $channel->channel::mine::send_all(':'.$user->full." MODE $$channel{name} $user_result");
-    print "$user kicking $t_user from $channel\n";
+    # if the user has a lower status level than the target, he can't kick him.
+    if ($channel->user_get_highest_level($t_user) > $channel->user_get_highest_level($user)) {
+        $user->numeric(ERR_CHANOPRIVSNEEDED => $channel->{name});
+        return;
+    }
+    
+    # determine the reason.
+    my $reason_string = defined $reason ? ":$reason" : '';
+    
+    # tell the local users of the channel.
+    $channel->channel::mine::send_all(':'.$user->full." KICK $$channel{name} $$t_user{nick}$reason_string");
+    
+    # remove the user from the channel.
+    $channel->remove_user($t_user);
+
+    # tell the other servers. TODO
+    
+
+    return 1;
 }
 
 $mod
