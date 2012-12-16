@@ -155,7 +155,7 @@ my %ucommands = (
     KICK => {
         code   => \&kick,
         desc   => 'forcibly remove a user from a channel',
-        params => [qw(channel user :rest)]
+        params => [qw(dummy channel user :rest)]
     }
 );
 
