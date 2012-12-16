@@ -5,7 +5,7 @@ use warnings;
 use strict;
 use v5.10;
 
-use utils qw(log2 col);
+use utils qw(log2 col trim);
 
 use Scalar::Util 'looks_like_number';
 
@@ -36,14 +36,41 @@ sub register_user_command {
 
     $CODE = sub {
         my ($user, $data, @args) = @_;
-        my ($i, @final_parameters) = -1;
+        my ($i, $required_parameters, @final_parameters) = (-1, 0);
 
+
+        # parse argument type attributes.
+        my @argttributes;
+        foreach (@{$opts{parameters}}) {
+        
+            # type(attribute1,att2,att3)
+            if (/(.+)\(.+\)/) {
+                $opts{parameters} = $1;
+                my $attributes = {};
+                $attributes{trim($_)} = 1 foreach split ',' $2;
+                push @argttributes, $attributes;
+            }
+            
+            # no attribute list, no attributes.
+            else {
+                push @argttributes, {};
+            }
+            
+            # unless there is an 'opt' (optional) attribute,
+            # increase required parameter count.
+            unless ($argttributes[$i]{opt}) {
+                $required_parameters++;
+            }
+            
+        }
+        
         # check argument count.
-        if (scalar @args < scalar @{$opts{parameters}}) {
-            $user->numeric(ERR_NEEDMOREPARAMS => $opts{name});
+        if (scalar @args < $required_parameters) {
+            $user->numeric(ERR_NEEDMOREPARAMS => $args[0]);
             return;
         }
 
+        $i = -1;
         foreach (@{$opts{parameters}}) { $i++;
 
             # global lookup
@@ -114,15 +141,21 @@ sub register_user_command {
 
         $opts{code}($user, $data, @final_parameters);
 
-    } if $opts{parameters} && ref $opts{parameters} eq 'ARRAY';
+    } if $opts{parameters} && !looks_like_number($opts{parameters});
 
     # if parameters is provided and still exists, that means it was not an ARRAY reference.
     # if it looks like a number, it is a number of parameters to allow.
     if ($CODE == $opts{code} && looks_like_number($opts{parameters})) {
         $parameters = $opts{parameters};
     }
-
-    # register to juno
+    
+    # otherwise, it is a string of space-separated parameter types
+    # if it is not an ARRAY reference.
+    elsif ($CODE != $opts{code} && ref $opts{parameters} ne 'ARRAY') {
+        $parameters = [ split /\s/, $opts{parameters} ];
+    }
+    
+    # register to juno.
     user::mine::register_handler(
         $mod->{name},
         $opts{name},
