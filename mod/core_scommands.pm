@@ -565,13 +565,13 @@ sub skill {
 sub kick {
     # source dummy user :rest
     # :id    KICK  uid  :reason
-    my ($source, $channel, $target, $reason) = @_;
+    my ($source, $channel, $t_user, $reason) = @_;
     
     # determine the reason.
     my $reason_string = defined $reason ? $reason : $user->{nick};
     
     # tell the local users of the channel.
-    $channel->channel::mine::send_all(':'.$user->full." KICK $$channel{name} $$t_user{nick} :$reason_string");
+    $channel->channel::mine::send_all(':'.$source->full." KICK $$channel{name} $$t_user{nick} :$reason_string");
     
     # remove the user from the channel.
     $channel->remove_user($t_user);
