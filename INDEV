@@ -1701,3 +1701,5 @@ CHANGES:
         
         03. adds KICK outgoing command and JELP command. KICKs are now synchronized through the linking protocol.
         
+        04. adds add_cap(), remove_cap(), and has_cap() methods to connections for managing client compatibility flags.
+        

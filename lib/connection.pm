@@ -318,6 +318,41 @@ sub done {
 
 }
 
+###########################
+### CLIENT CAPABILITIES ###
+###########################
+
+
+# has client capability
+sub has_cap {
+    my ($connection, $flag) = @_;
+    return $flag ~~ @{$connection->{cap}}
+}
+
+
+# add client capability
+sub add_cap {
+    my $connection = shift;
+    my @flags = grep { !$connection->has_cap($_) } @_;
+    log2("adding capability flags to $connection: @flags");
+    push @{$connection->{cap}}, @flags
+}
+
+# remove client capability
+sub remove_cap {
+    my $connection = shift;
+    my @remove     = @_;
+    my %r;
+    log2("removing capability flags from $connection: @remove");
+
+    @r{@remove}++;
+
+    my @new        = grep { !exists $r{$_} } @{$connection->{cap}};
+    $connection->{flags} = \@new;
+}
+
+
+
 sub DESTROY {
     my $connection = shift;
     log2("$connection destroyed");
