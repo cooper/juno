@@ -152,6 +152,11 @@ my %ucommands = (
         code   => \&modules,
         desc   => 'view loaded IRCd modules'
     },
+    KICK => {
+        code   => \&kick,
+        desc   => 'forcibly remove a user from a channel',
+        params => [qw(channel user :rest)];
+    }
 );
 
 our $mod = API::Module->new(
@@ -168,7 +173,7 @@ sub init {
     $mod->register_user_command(
         name        => $_,
         description => $ucommands{$_}{desc},
-        parameters  => $ucommands{$_}{params} || undef,
+        parameters  => $ucommands{$_}{parameters} || $ucommands{$_}{params} || undef,
         code        => $ucommands{$_}{code}
     ) || return foreach keys %ucommands;
 
@@ -1183,6 +1188,17 @@ sub modules {
     }
     $user->server_notice("End of modules");
     return 1
+}
+
+# forcibly remove a user from a channel.
+# KICK #channel1,#channel2 user1,user2 :reason
+sub kick {
+    # KICK            #channel  nickname :reason
+    #                 channel   user     :rest
+    my ($user, $data, $channel, $t_user,   $reason) = @_;
+    
+    # $channel->channel::mine::send_all(':'.$user->full." MODE $$channel{name} $user_result");
+    print "$user kicking $t_user from $channel\n";
 }
 
 $mod
