@@ -184,6 +184,10 @@ sub remove {
     return 1
 }
 
+# alias remove_user.
+sub remove_user;
+*remove_user = *remove;
+
 # user is on channel
 sub has_user {
     my ($channel, $user) = @_;
