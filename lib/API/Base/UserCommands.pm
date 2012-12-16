@@ -114,7 +114,7 @@ sub register_user_command {
 
         $opts{code}($user, $data, @final_parameters);
 
-    } && delete $opts{parameters} if $opts{parameters} && ref $opts{parameters} eq 'ARRAY';
+    } and delete $opts{parameters} if $opts{parameters} && ref $opts{parameters} eq 'ARRAY';
 
     # if parameters is provided and still exists, that means it was not an ARRAY reference.
     # if it looks like a number, it is a number of parameters to allow.
