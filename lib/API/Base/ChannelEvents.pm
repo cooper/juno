@@ -46,7 +46,7 @@ sub register_channel_event {
     return $callb_name;
 }
 
-sub unload {
+sub _unload {
     my ($class, $mod) = @_;
     log2("unloading channel events registered by $$mod{name}");
     delete_event(@$_) foreach @{$mod->{channel_events}};

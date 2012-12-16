@@ -29,7 +29,7 @@ sub register_user_mode_block {
     return 1
 }
 
-sub unload {
+sub _unload {
     my ($class, $mod) = @_;
     log2("unloading user modes registered by $$mod{name}");
 

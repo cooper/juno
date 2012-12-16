@@ -132,7 +132,7 @@ sub register_server_command {
     return 1
 }
 
-sub unload {
+sub _unload {
     my ($class, $mod) = @_;
     log2("unloading server commands registered by $$mod{name}");
     server::mine::delete_handler($_) foreach @{$mod->{server_commands}};

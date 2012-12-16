@@ -29,7 +29,7 @@ sub register_channel_mode_block {
     return 1
 }
 
-sub unload {
+sub _unload {
     my ($class, $mod) = @_;
     log2("unloading channel modes registered by $$mod{name}");
 

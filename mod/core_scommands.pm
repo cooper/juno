@@ -563,8 +563,8 @@ sub skill {
 }
 
 sub kick {
-    # source dummy user :rest
-    # :id    KICK  uid  :reason
+    # source dummy channel user :rest
+    # :id    KICK  channel uid  :reason
     my ($source, $channel, $t_user, $reason) = @_;
     
     # determine the reason.

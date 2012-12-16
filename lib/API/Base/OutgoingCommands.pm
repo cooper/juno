@@ -30,7 +30,7 @@ sub register_outgoing_command {
     return 1
 }
 
-sub unload {
+sub _unload {
     my ($class, $mod) = @_;
     log2("unloading outgoing commands registered by $$mod{name}");
     server::mine::delete_outgoing_handler($_) foreach @{$mod->{outgoing_commands}};
