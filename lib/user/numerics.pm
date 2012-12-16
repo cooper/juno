@@ -61,6 +61,7 @@ my %numerics = (
     RPL_WHOISHOST        => ['378', '%s :is connecting from *@%s %s'                                      ],
     RPL_YOUREOPER        => ['381', ':You now have flags: %s'                                             ],
     ERR_NOSUCHNICK       => ['401', '%s :No such nick/channel'                                            ],
+    ERR_NOSUCHSERVER     => ['402', '%s :No such server'                                                  ],
     ERR_NOSUCHCHANNEL    => ['403', '%s :No such channel'                                                 ],
     ERR_CANNOTSENDTOCHAN => ['404', '%s :%s'                                                              ],
     ERR_NOTEXTTOSEND     => ['412', ':No text to send'                                                    ],

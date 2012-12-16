@@ -66,3 +66,9 @@ accomplished through the implementation of the EventedObject framework.
         a. create an API that allows parsers to be bound to certain ports
         b. create a module that implements the TS6 protocol
 
+[ ] 7. support IRCv3 CAP.
+
+        a. add SASL support.
+        b. add multi-prefix support.
+        c. etc...
+        
