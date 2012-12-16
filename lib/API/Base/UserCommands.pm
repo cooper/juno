@@ -219,7 +219,7 @@ sub register_user_command {
     return 1
 }
 
-sub unload {
+sub _unload {
     my ($class, $mod) = @_;
     log2("unloading user commands registered by $$mod{name}");
     user::mine::delete_handler($_) foreach @{$mod->{user_commands}};
