@@ -47,7 +47,7 @@ sub register_user_command {
             if (/(.+)\(.+\)/) {
                 $opts{parameters} = $1;
                 my $attributes = {};
-                $attributes{trim($_)} = 1 foreach split ',', $2;
+                $attributes->{trim($_)} = 1 foreach split ',', $2;
                 push @argttributes, $attributes;
             }
             
