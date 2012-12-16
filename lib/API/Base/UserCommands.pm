@@ -181,6 +181,11 @@ sub register_user_command {
                 when ('dummy') { }
                 
                 }
+                
+                default {
+                    return;
+                }
+                
             }
 
             # call the actual handler.
