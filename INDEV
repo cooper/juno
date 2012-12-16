@@ -1691,5 +1691,8 @@ CHANGES:
         
         99. the UserCommands base now allows convenience parameter fetching, similar to what is found in the ServerCommands base. Rather than looking up users and servers using their numerical identifiers, UserCommands uses nicknames and server names. If a user, channel, or server cannot be looked up, a numeric will be sent to say so. If less parameters are received than are registered for parsing, a numeric reply will be sent.
         
-6. the UserCommands base now allows you to use attributes to specify different behavior for parameter checking. this adds the first attribute, 'opt', which allows you to specify that a parameter is optional. this way, ERR_NEEDMOREPARAMS will not be sent if it is absent. in addition to these changes, you can now use a whitespace-separated string of parameter types rather than an array reference in register_user_command_handler().
-        
+6. juno version 6, started December 15, 2012.
+
+    0. the UserCommands base now allows you to use attributes to specify different behavior for parameter checking. this adds the first attribute, 'opt', which allows you to specify that a parameter is optional. this way, ERR_NEEDMOREPARAMS will not be sent if it is absent. in addition to these changes, you can now use a whitespace-separated string of parameter types rather than an array reference in register_user_command_handler().
+    
+        01. 

@@ -41,7 +41,7 @@ sub register_user_command {
 
         # parse argument type attributes.
         my @argttributes;
-        foreach (@{$opts{parameters}}) {
+        foreach (@{$opts{parameters}}) { $i++;
         
             # type(attribute1,att2,att3)
             if (/(.+)\(.+\)/) {
