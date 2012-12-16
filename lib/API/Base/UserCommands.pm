@@ -98,7 +98,7 @@ sub register_user_command {
             }
 
             $i = -1;
-            foreach $t (@{$opts{parameters}}) { $i++;
+            foreach my $t (@{$opts{parameters}}) { $i++;
                 my ($type, $id);
                 my $arg = $args[$i];
                 my @s   = split '.', $arg, 2;
