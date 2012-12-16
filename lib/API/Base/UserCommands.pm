@@ -48,17 +48,17 @@ sub register_user_command {
                 $opts{parameters}[$i] = $1;
                 my $attributes = {};
                 $attributes->{trim($_)} = 1 foreach split ',', $2;
-                push @argttributes, $attributes;
+                $argttributes[$i] = $attributes;
             }
             
             # no attribute list, no attributes.
             else {
-                push @argttributes, {};
+                $argttributes[$i] = {};
             }
             
             # unless there is an 'opt' (optional) attribute,
             # increase required parameter count.
-            unless ($argttributes[$i]{opt}) {
+            unless ($argttributes[$i]{opt}) {print "no opt for $_\n";
                 $required_parameters++;
             }
             
