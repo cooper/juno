@@ -186,11 +186,10 @@ sub register_user_command {
                 # ignore a parameter
                 when ('dummy') { }
                 
-                }
-                
                 default {
                     log2("unknown parameter type $type!");
                     return;
+                }
                 }
                 
             }
