@@ -1238,7 +1238,7 @@ sub list {
     foreach my $channel (values %channel::channels) {
        # 322 RPL_LIST "<channel> <# visible> :<topic>"
         my $number_of_users = scalar @{$channel->{users}};
-        my $channel_topic   = defined $channel->{topic} ? $channel->{topic} : '';
+        my $channel_topic   = defined $channel->{topic}{topic} ? $channel->{topic}{topic} : '';
         $user->numeric(RPL_LIST => $channel->{name}, $number_of_users, $channel_topic);
     }
 
