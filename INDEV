@@ -1713,3 +1713,5 @@ CHANGES:
         
         09. juno now implements Evented::Database. If all goes well, this should work seamlessly without any changes to juno's core as Evented::Database is designed to be API-compatible with Evented::Configuration.
         
+    1. juno-ircd version is now being branded as 'kedler-ircd' rather than juno6.
+        

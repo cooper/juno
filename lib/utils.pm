@@ -20,6 +20,13 @@ sub lconf { # for named blocks
     return $main::conf->get([$block, $sec], $key);
 }
 
+# store something in the database.
+sub db_store {
+    my ($block, $key, $value) = @_;
+    return $main::conf->store($block, $key, $value);
+}
+
+# TODO: pending removal.
 sub conn {
     my ($sec, $key) = @_;
     return $main::conf->get(['connect', $sec], $key);

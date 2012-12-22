@@ -1,4 +1,4 @@
-# juno-ircd version 5
+# kedler-ircd version 6
 
 Yes.  
 It really is an IRC daemon.  
@@ -8,6 +8,15 @@ It's written in Perl.
 You can breathe again.  
 There. Very good.  
   
+## what is kedler-ircd?
+
+kedler is juno-ircd version 6, which is a continuation of juno-ircd version 5, itself a
+fork of juno-ircd 4 without mesh linking. it aims to implement most (hopefully all) of the
+commands, modes, etc. specified in the standard set of IRC functionalities. it also has
+many improved APIs. kedler also aims to be more event-driven than any other version of
+juno, making it even more extensible through modules. on top of these changes, the core of
+kedler is much cleaner and more uniform than any past version. see GOALS for a full list
+of features planned for implementation in this version of juno-ircd.
 
 ## what is juno-ircd version 5?
 

@@ -10,7 +10,7 @@ use utils qw(conf lconf log2 fatal gv set);
 utils::ircd_LOAD();
 
 our @reloadable;
-our ($VERSION, $API, $conf, %global) = '6.09';
+our ($VERSION, $API, $conf, %global) = '6.1';
 
 sub start {
 
@@ -295,9 +295,10 @@ sub begin {
     # that will eventually be moved to GV after startup
 
     %global = (
-        NAME    => 'juno-ircd',
+        NAME    => 'kedler-ircd',  # long name
+        SNAME   => 'kedler',       # short name
         VERSION => $VERSION,
-        PROTO   => '3.0.0',
+        PROTO   => '6.1',
         START   => time,
         NOFORK  => 'NOFORK' ~~ @ARGV,
 
