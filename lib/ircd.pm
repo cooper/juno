@@ -10,15 +10,24 @@ use utils qw(conf lconf log2 fatal gv set);
 utils::ircd_LOAD();
 
 our @reloadable;
-our ($VERSION, $API, $conf, %global) = '6.08';
+our ($VERSION, $API, $conf, %global) = '6.09';
 
 sub start {
 
     log2('Started server at '.scalar(localtime gv('START')));
 
-    # parse the configuration
+
     require Evented::Configuration;
-    $conf = $main::conf = Evented::Configuration->new(undef, "$main::run_dir/etc/ircd.conf");
+    require Evented::Database;
+    
+    # set up the configuration/database.
+    # TEMPORARILY use no database until we read [database] block.
+    $conf = $main::conf = Evented::Database->new(
+        db       => undef,
+        conffile => "$main::run_dir/etc/ircd.conf"
+    );
+    
+    # parse the configuration.
     $conf->parse_config or die "can't parse configuration.\n";
 
     # create the main server object

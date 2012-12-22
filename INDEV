@@ -1711,3 +1711,5 @@ CHANGES:
         
         08. juno now depends on the Evented::Database package and includes it as submodule.
         
+        09. juno now implements Evented::Database. If all goes well, this should work seamlessly without any changes to juno's core as Evented::Database is designed to be API-compatible with Evented::Configuration.
+        
