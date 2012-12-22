@@ -1243,7 +1243,8 @@ sub list {
     }
 
     # TODO: implement list for specific channels.
-
+    # TODO: +s and +p
+    
     $user->numeric('RPL_LISTEND');
     return 1;
 }

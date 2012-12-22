@@ -1709,3 +1709,5 @@ CHANGES:
         
         07. adds LIST user command, which allows users to see information about channels on the IRC server.
         
+        08. juno now depends on the Evented::Database package and includes it as submodule.
+        
