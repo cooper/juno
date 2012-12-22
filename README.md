@@ -67,7 +67,7 @@ included as submodules.
 
 * [EventedObject](https://github.com/cooper/evented-object) - provides methods to fire and respond to events on objects.
 * [Evented::Configuration](https://github.com/cooper/evented-configuration) - a configuration class which fires events when values are changed.
-* [Evented::Database](https://github.com/cooper/evented-database) - a database class based upon Evented::Configuration with seamless database functionality in a configuration class.
+* [Evented::Database](https://github.com/cooper/evented-database) - a database based upon Evented::Configuration with seamless database functionality in a configuration class.
 * [API Engine](https://github.com/cooper/api-engine) - an extensible API class based on the original APIs of juno, providing a base for juno's module interfaces.
 
 ## fetching and updating
@@ -109,9 +109,7 @@ for use in juno.
 
 You should never use any of juno's executable files in the 'bin' directory directly.
 Instead, juno includes a start script that sets the necessary environment variables needed
-to run the software.  
-Start with `./juno start`.  
-Stop with `./juno stop`.  
+to run the software. Start with `./juno start`. Stop with `./juno stop`.
 Rehash with `./juno rehash`.
 
 # History of this software
@@ -122,12 +120,12 @@ Kominek. It has grown to be a bit more *practical*.
 * **pIRCd**: very buggy, lacking features other than traditional IRC features, poorly coded.
   during its time it was one of few IRCds that featured SSL support.
 * **pIRCd2**: the same as pIRCd, except you can use dollar signs in your nicks, like Ke$ha.
-* **juno-ircd**: very poorly written but has more features: five prefixes instead of two,
+* **juno-ircd (juno1)**: very poorly written but has more features: five prefixes instead of two,
   multi-prefix, CAP, channel link mode, internal logging channel, network administrator
   support, oper-override mode, channel mute mode, kline command, an almost-working buggy
   linking protocol, and a network name configuration option.
 **and that's when I realized pIRCd blows.**
-* **juno**: rewritten from scratch, *far* more usable than any other previous version. This
+* **juno (juno2)**: rewritten from scratch, *far* more usable than any other previous version. This
   version of juno is what I would consider to be "fully-featured." It has an easy-to-use
   module API and just about every channel mode you can think of. However, it does not
   support server linking at all.
@@ -141,7 +139,7 @@ Kominek. It has grown to be a bit more *practical*.
   from-scratch rewrite. it is based on juno3 and aims to implement mesh server linking.
 * **juno5**: juno5 is a fork of juno4 (itself a fork of juno3). it includes the new
   features introduced in juno4, but it does not support mesh server linkage.
-* **kedler**: kedler-ircd is a major leap for juno, as it introduces many features no
+* **kedler-ircd**: kedler-ircd is a major leap for juno, as it introduces many features no
   earlier version had. as well as implementing the core set of IRC commands and modes,
   kedler features an event-driven core, making it even more extensibe than juno3. kedler
   also implements new APIs for all of its new features. it attempts to move JELP out of
