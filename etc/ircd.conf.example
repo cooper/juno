@@ -10,6 +10,11 @@
 sha = on         # SHA-1/224/256/384/512     (core Perl module)
 md5 = off        # arguably less secure      (core Perl module)
 
+[ database ]
+
+type = "sqlite"      # type of database (currently only sqlite is supported)
+file = "etc/juno.db" # the location of database file
+
 [ network ]
 
 name = "NoTrollPlzNet"
