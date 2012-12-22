@@ -274,7 +274,7 @@ sub info {
 
 \2***\2 this is \2$NAME\2 version \2$VERSION\2.\2 ***\2
  
-Copyright (c) 2010-12, the juno-ircd developers
+Copyright (c) 2010-12, the $NAME developers
  
 This program is free software.
 You are free to modify and redistribute it under the terms of
