@@ -139,7 +139,7 @@ Kominek. It has grown to be a bit more *practical*.
   from-scratch rewrite. it is based on juno3 and aims to implement mesh server linking.
 * **juno5**: juno5 is a fork of juno4 (itself a fork of juno3). it includes the new
   features introduced in juno4, but it does not support mesh server linkage.
-* **kedler-ircd**: kedler-ircd is a major leap for juno, as it introduces many features no
+* **kedler-ircd (juno6)**: kedler-ircd is a major leap for juno, as it introduces many features no
   earlier version had. as well as implementing the core set of IRC commands and modes,
   kedler features an event-driven core, making it even more extensibe than juno3. kedler
   also implements new APIs for all of its new features. it attempts to move JELP out of
