@@ -10,13 +10,36 @@ use utils qw(conf lconf log2 fatal gv set);
 utils::ircd_LOAD();
 
 our @reloadable;
-our ($VERSION, $API, $conf, %global) = '6.1';
+our ($VERSION, $API, $conf, %global) = '6.11';
 
 sub start {
 
     log2('Started server at '.scalar(localtime gv('START')));
 
+    # add these to @INC if they are not there already.
+    my @add_inc = (
+        "$run_dir/lib/api-engine",
+        "$run_dir/lib/evented-object",
+        "$run_dir/lib/evented-configuration",
+        "$run_dir/lib/evented-database"
+    ); foreach (@add_inc) { push @INC, $_ unless $_ ~~ @INC }
 
+    # IO::Async and friends
+    require IO::Async::Listener;
+    require IO::Async::Timer::Periodic;
+    require IO::Socket::IP;
+
+    # juno components
+    require connection;
+    require server;
+    require user;
+    require channel;
+    
+    # API Engine
+    require API;
+    
+    # EventedObject and friends
+    require EventedObject;
     require Evented::Configuration;
     require Evented::Database;
     
@@ -31,20 +54,24 @@ sub start {
     $conf->parse_config or die "can't parse configuration.\n";
 
     # create the main server object
-    my $server = server->new({
-        source => conf('server', 'id'),
-        sid    => conf('server', 'id'),
-        name   => conf('server', 'name'),
-        desc   => conf('server', 'description'),
-        proto  => gv('PROTO'),
-        ircd   => gv('VERSION'),
-        time   => gv('START'),
-        parent => { name => 'self' } # temporary for logging
-    });
+    if (!$utils::GV{SERVER}) {
+    
+        my $server = server->new({
+            source => conf('server', 'id'),
+            sid    => conf('server', 'id'),
+            name   => conf('server', 'name'),
+            desc   => conf('server', 'description'),
+            proto  => gv('PROTO'),
+            ircd   => gv('VERSION'),
+            time   => gv('START'),
+            parent => { name => 'self' } # temporary for logging
+        });
 
-    # how is this possible?!?!
-    $server->{parent}  =
-    $utils::GV{SERVER} = $server;
+        # how is this possible?!?!
+        $server->{parent}  =
+        $utils::GV{SERVER} = $server;
+        
+    }
 
     # register modes
     $server->user::modes::add_internal_modes();
@@ -240,19 +267,11 @@ sub ping_check {
 }
 
 sub boot {
-    require POSIX;
-    require IO::Async::Loop::Epoll;
-    require IO::Async::Listener;
-    require IO::Async::Timer::Periodic;
-    require IO::Socket::IP;
 
-    require connection;
-    require server;
-    require user;
-    require channel;
-    
-    require API;
-    require EventedObject;
+    # load mandatory boot stuff.
+    require POSIX;
+    require IO::Async;
+    require IO::Async::Loop::Epoll;
 
     log2("this is $global{NAME} version $global{VERSION}");
     $main::loop = IO::Async::Loop::Epoll->new;
@@ -291,6 +310,7 @@ sub become_daemon {
 }
 
 sub begin {
+
     # set global variables
     # that will eventually be moved to GV after startup
 

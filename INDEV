@@ -1714,4 +1714,6 @@ CHANGES:
         09. juno now implements Evented::Database. If all goes well, this should work seamlessly without any changes to juno's core as Evented::Database is designed to be API-compatible with Evented::Configuration.
         
     1. juno-ircd version is now being branded as 'kedler-ircd' rather than juno6.
+    
+        11. these few changes allow you to reload ircd.pm even after a new submodule dependency is added. changes to @INC are now made in ircd.pm rather than in the main package. also, only packages vital to booting are loaded in boot() and begin(). instead, they are loaded in start().
         

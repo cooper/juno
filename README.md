@@ -8,7 +8,7 @@ It's written in Perl.
 You can breathe again.  
 There. Very good.  
   
-# INTRODUCTION to kedler-ircd
+# introduction to kedler-ircd
 
 This IRC server daemon is written in the Perl programming language. It is based on the
 code of juno-ircd version 3, a from-scratch rewrite of the former juno-ircd version 2.
@@ -56,8 +56,8 @@ before.
 * IO::Async::Loop::Epoll (optimization on Linux)
 * IO::Async::Timer (probably included)
 * IO::Async::Stream (?)
-* IO::Async::Protocol::LineStream
-* IO::Async::Protocol::Stream
+* IO::Async::Protocol::LineStream (?)
+* IO::Async::Protocol::Stream (?)
 * etc...
 
 ### EventedObject and packages based on it
@@ -109,8 +109,8 @@ for use in juno.
 
 You should never use any of juno's executable files in the 'bin' directory directly.
 Instead, juno includes a start script that sets the necessary environment variables needed
-to run the software. Start with `./juno start`. Stop with `./juno stop`.
-Rehash with `./juno rehash`.
+to run the software.
+Start with `./juno start`. Stop with `./juno stop`. Rehash with `./juno rehash`.
 
 # History of this software
 
