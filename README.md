@@ -109,7 +109,7 @@ for use in juno.
 
 You should never use any of juno's executable files in the 'bin' directory directly.
 Instead, juno includes a start script that sets the necessary environment variables needed
-to run the software.
+to run the software.  
 Start with `./juno start`. Stop with `./juno stop`. Rehash with `./juno rehash`.
 
 # History of this software
