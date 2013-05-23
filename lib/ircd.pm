@@ -10,7 +10,7 @@ use utils qw(conf lconf log2 fatal gv set);
 utils::ircd_LOAD();
 
 our @reloadable;
-our ($VERSION, $API, $conf, %global) = '6.11';
+our ($VERSION, $API, $conf, %global) = '6.12';
 
 sub start {
 
@@ -19,7 +19,7 @@ sub start {
     # add these to @INC if they are not there already.
     my @add_inc = (
         "$run_dir/lib/api-engine",
-        "$run_dir/lib/evented-object",
+        "$run_dir/lib/eventedobject",
         "$run_dir/lib/evented-configuration",
         "$run_dir/lib/evented-database"
     ); foreach (@add_inc) { push @INC, $_ unless $_ ~~ @INC }
