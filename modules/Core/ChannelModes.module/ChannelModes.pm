@@ -1,5 +1,5 @@
-# Copyright (c) 2012, Mitchell Cooper
-package API::Module::core_cmodes;
+# Copyright (c) 2009-13, Mitchell Cooper
+package API::Module::Core::ChannelModes;
  
 use warnings;
 use strict;
@@ -12,7 +12,7 @@ my %cmodes = (
 );
 
 our $mod = API::Module->new(
-    name        => 'core_cmodes',
+    name        => 'Core::ChannelModes',
     version     => '0.3',
     description => 'the core set of channel modes',
     requires    => ['ChannelModes'],

@@ -1,5 +1,5 @@
-# Copyright (c) 2012, Mitchell Cooper
-package API::Module::core_ocommands;
+# Copyright (c) 2009-13, Mitchell Cooper
+package API::Module::Core::OutgoingCommands;
  
 use warnings;
 use strict;
@@ -33,7 +33,7 @@ my %ocommands = (
 );
 
 our $mod = API::Module->new(
-    name        => 'core_ocommands',
+    name        => 'Core::OutgoingCommands',
     version     => '0.9',
     description => 'the core set of outgoing commands',
     requires    => ['OutgoingCommands'],

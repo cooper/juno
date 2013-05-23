@@ -1,5 +1,5 @@
-# Copyright (c) 2012, Mitchell Cooper
-package API::Module::core_scommands;
+# Copyright (c) 2009-13, Mitchell Cooper
+package API::Module::Core::ServerCommands;
  
 use warnings;
 use strict;
@@ -135,7 +135,7 @@ my %scommands = (
 );
 
 our $mod = API::Module->new(
-    name        => 'core_scommands',
+    name        => 'Core::ServerCommands',
     version     => $VERSION,
     description => 'the core set of server commands',
     requires    => ['ServerCommands'],

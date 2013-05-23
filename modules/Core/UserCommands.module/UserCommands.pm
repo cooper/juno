@@ -1,5 +1,5 @@
-# Copyright (c) 2012, Mitchell Cooper
-package API::Module::core_ucommands;
+# Copyright (c) 2009-13, Mitchell Cooper
+package API::Module::Core::UserCommands;
  
 use warnings;
 use strict;
@@ -164,7 +164,7 @@ my %ucommands = (
 );
 
 our $mod = API::Module->new(
-    name        => 'core_ucommands',
+    name        => 'Core::UserCommands',
     version     => $VERSION,
     description => 'the core set of user commands',
     requires    => ['UserCommands'],
@@ -1168,16 +1168,15 @@ sub ukill {
 
 sub modules {
     my $user = shift;
-    $user->server_notice("Loaded ircd modules");
+    $user->server_notice(modules => 'Loaded IRCd modules list');
     foreach my $mod (@{$main::API->{loaded}}) {
-        $user->server_notice("    \2$$mod{name}\2");
-        $user->server_notice("        version: $$mod{version}");
-        $user->server_notice("        description: $$mod{description}");
+        $user->server_notice("    \2$$mod{name}\2 $$mod{version}");
+        $user->server_notice("        $$mod{description}");
         foreach my $type (qw|user_commands server_commands channel_modes user_modes outgoing_commands|) {
             next unless $mod->{$type};
             my @a = @{$mod->{$type}};
             next unless scalar @a;
-            my $mytype = $type; $mytype =~ s/_/ /g;
+            my $mytype = $type; $mytype =~ s/_/ /g; $mytype = ucfirst $mytype;
             $user->server_notice("        $mytype");
             while (@a) {
                 my ($one, $two, $three) = (
@@ -1190,7 +1189,7 @@ sub modules {
             }
         }
     }
-    $user->server_notice("End of modules");
+    $user->server_notice(modules => 'End of IRCd modules list');
     return 1
 }
 

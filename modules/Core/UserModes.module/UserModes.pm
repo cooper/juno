@@ -1,5 +1,5 @@
-# Copyright (c) 2012, Mitchell Cooper
-package API::Module::core_umodes;
+# Copyright (c) 2009-13, Mitchell Cooper
+package API::Module::Core::UserModes;
  
 use warnings;
 use strict;
@@ -11,7 +11,7 @@ my %umodes = (
 );
 
 our $mod = API::Module->new(
-    name        => 'core_umodes',
+    name        => 'Core::UserModes',
     version     => '0.1',
     description => 'the core set of user modes',
     requires    => ['UserModes'],
