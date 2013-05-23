@@ -11,7 +11,7 @@ use strict;
 use utils qw(conf gv match);
 
 our $mod = API::Module->new(
-    name        => 'access',
+    name        => 'Access',
     version     => '0.7',
     description => 'implements channel access modes',
     requires    => ['ChannelEvents', 'ChannelModes'],
