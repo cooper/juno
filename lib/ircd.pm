@@ -10,7 +10,7 @@ use utils qw(conf lconf log2 fatal gv set);
 utils::ircd_LOAD();
 
 our @reloadable;
-our ($VERSION, $API, $conf, %global) = '6.12';
+our ($VERSION, $API, $conf, %global) = '6.13';
 
 sub start {
 
@@ -18,11 +18,11 @@ sub start {
 
     # add these to @INC if they are not there already.
     my @add_inc = (
-        "$run_dir/lib/api-engine",
-        "$run_dir/lib/eventedobject",
-        "$run_dir/lib/evented-configuration",
-        "$run_dir/lib/evented-database"
-    ); foreach (@add_inc) { push @INC, $_ unless $_ ~~ @INC }
+        "$::run_dir/lib/api-engine",
+        "$::run_dir/lib/eventedobject",
+        "$::run_dir/lib/evented-configuration",
+        "$::run_dir/lib/evented-database"
+    ); foreach (@add_inc) { unshift @INC, $_ unless $_ ~~ @INC }
 
     # IO::Async and friends
     require IO::Async::Listener;
@@ -54,9 +54,10 @@ sub start {
     $conf->parse_config or die "can't parse configuration.\n";
 
     # create the main server object
-    if (!$utils::GV{SERVER}) {
+    my $server = $utils::GV{SERVER};
+    if (!$server) {
     
-        my $server = server->new({
+        $server = server->new({
             source => conf('server', 'id'),
             sid    => conf('server', 'id'),
             name   => conf('server', 'name'),
@@ -86,7 +87,7 @@ sub start {
     # create API engine manager.
     $API = $main::API = API->new(
         log_sub  => \&api_log,
-        mod_dir  => "$main::run_dir/mod",
+        mod_dir  => "$main::run_dir/modules",
         base_dir => "$main::run_dir/lib/API/Base"
     );
 
@@ -271,10 +272,10 @@ sub boot {
     # load mandatory boot stuff.
     require POSIX;
     require IO::Async;
-    require IO::Async::Loop::Epoll;
+    require IO::Async::Loop;
 
     log2("this is $global{NAME} version $global{VERSION}");
-    $main::loop = IO::Async::Loop::Epoll->new;
+    $main::loop = IO::Async::Loop->new;
     %utils::GV = %global;
     undef %global;
 
