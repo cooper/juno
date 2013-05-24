@@ -33,7 +33,7 @@ my %ocommands = (
 );
 
 our $mod = API::Module->new(
-    name        => 'Core::OutgoingCommands',
+    name        => 'OutgoingCommands',
     version     => '0.9',
     description => 'the core set of outgoing commands',
     requires    => ['OutgoingCommands'],

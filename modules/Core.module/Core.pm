@@ -18,7 +18,7 @@ sub init {
 
     my @sub = qw(ServerCommands OutgoingCommands UserModes ChannelModes UserCommands);
     
-    # load Omegle event submodule.
+    # load submodules.
     foreach (@sub) {
         $mod->load_submodule($_) or return;
     }

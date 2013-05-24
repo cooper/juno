@@ -164,7 +164,7 @@ my %ucommands = (
 );
 
 our $mod = API::Module->new(
-    name        => 'Core::UserCommands',
+    name        => 'UserCommands',
     version     => $VERSION,
     description => 'the core set of user commands',
     requires    => ['UserCommands'],
@@ -1170,7 +1170,8 @@ sub modules {
     my $user = shift;
     $user->server_notice(modules => 'Loaded IRCd modules list');
     foreach my $mod (@{$main::API->{loaded}}) {
-        $user->server_notice("    \2$$mod{name}\2 $$mod{version}");
+        my $name = $mod->full_name;
+        $user->server_notice("    \2$name\2 $$mod{version}");
         $user->server_notice("        $$mod{description}");
         foreach my $type (qw|user_commands server_commands channel_modes user_modes outgoing_commands|) {
             next unless $mod->{$type};

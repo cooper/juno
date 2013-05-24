@@ -135,7 +135,7 @@ my %scommands = (
 );
 
 our $mod = API::Module->new(
-    name        => 'Core::ServerCommands',
+    name        => 'ServerCommands',
     version     => $VERSION,
     description => 'the core set of server commands',
     requires    => ['ServerCommands'],
