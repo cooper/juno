@@ -55,7 +55,7 @@ sub delete_handler {
     delete $commands{$command}
 }
 
-# register user numerics
+# register user numeric
 sub register_numeric {
     my ($source, $numeric) = (shift, shift);
 
@@ -148,14 +148,31 @@ sub server_notice {
     }
 }
 
+# send a numeric to a local user.
 sub numeric {
-    my ($user, $num) = (shift, shift);
-    if (exists $numerics{$num}) {
-        $user->sendserv($numerics{$num}[0]." $$user{nick} ".sprintf($numerics{$num}[1], @_));
-        return 1
+    my ($user, $const, $response) = (shift, shift);
+    
+    # does not exist.
+    if (!$numerics{$const}) {
+        log2("attempted to send nonexistent numeric $const");
+        return;
     }
-    log2("attempted to send nonexistent numeric $num");
-    return
+    
+    my ($num, $val) = @{$numerics{$const}};
+    
+    # CODE reference for numeric response.
+    if (ref $val eq 'CODE') {
+        $response = $val->($user, @_);
+    }
+    
+    # formatted string.
+    else {
+        $response = sprintf $numerics{$num}[1], @_;
+    }
+    
+    $user->sendserv("$num $$user{nick} $response");
+    return 1;
+    
 }
 
 # send welcomes

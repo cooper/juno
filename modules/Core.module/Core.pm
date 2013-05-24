@@ -16,7 +16,7 @@ our $mod = API::Module->new(
 # initialize.
 sub init {
 
-    my @sub = qw(ServerCommands OutgoingCommands UserModes ChannelModes UserCommands);
+    my @sub = qw(ServerCommands OutgoingCommands UserModes ChannelModes UserNumerics UserCommands);
     
     # load submodules.
     foreach (@sub) {
