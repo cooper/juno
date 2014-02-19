@@ -170,6 +170,10 @@ sub remove {
         }
     }
 
+    # remove the user.
+    my @new = grep { $_ != $user } @{$channel->{users}};
+    $channel->{users} = \@new;
+    
     # delete the channel if this is the last user
     if (!scalar @{$channel->{users}}) {
         delete $channels{lc($channel->{name})};
@@ -177,10 +181,6 @@ sub remove {
         undef $channel;
         return
     }
-
-    # remove the user.
-    my @new = grep { $_ != $user } @{$channel->{users}};
-    $channel->{users} = \@new;
     
     log2("removed $$user{nick} from $$channel{name}");
 
