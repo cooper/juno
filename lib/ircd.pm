@@ -19,8 +19,8 @@ sub start {
     # add these to @INC if they are not there already.
     my @add_inc = (
         "$::run_dir/lib/api-engine",
-        "$::run_dir/lib/eventedobject",
-        "$::run_dir/lib/evented-configuration",
+        "$::run_dir/lib/evented-object/lib",
+        "$::run_dir/lib/evented-configuration/lib",
         "$::run_dir/lib/evented-database"
     ); foreach (@add_inc) { unshift @INC, $_ unless $_ ~~ @INC }
 
@@ -38,8 +38,8 @@ sub start {
     # API Engine
     require API;
     
-    # EventedObject and friends
-    require EventedObject;
+    # Evented::Object and friends
+    require Evented::Object;
     require Evented::Configuration;
     require Evented::Database;
     
@@ -82,7 +82,7 @@ sub start {
     load_requirements();
 
     # create the evented object.
-    $main::eo = EventedObject->new;
+    $main::eo = Evented::Object->new;
 
     # create API engine manager.
     $API = $main::API = API->new(

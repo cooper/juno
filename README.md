@@ -60,12 +60,12 @@ before.
 * IO::Async::Protocol::Stream (?)
 * etc...
 
-### EventedObject and packages based on it
+### Evented::Object and packages based on it
 
 Since version 5, juno-ircd has depended on many of the "Evented" packages. These are all
 included as submodules.
 
-* [EventedObject](https://github.com/cooper/evented-object) - provides methods to fire and respond to events on objects.
+* [Evented::Object](https://github.com/cooper/evented-object) - provides methods to fire and respond to events on objects.
 * [Evented::Configuration](https://github.com/cooper/evented-configuration) - a configuration class which fires events when values are changed.
 * [Evented::Database](https://github.com/cooper/evented-database) - a database based upon Evented::Configuration with seamless database functionality in a configuration class.
 * [API Engine](https://github.com/cooper/api-engine) - an extensible API class based on the original APIs of juno, providing a base for juno's module interfaces.
