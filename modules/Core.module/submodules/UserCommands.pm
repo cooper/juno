@@ -135,10 +135,6 @@ my %ucommands = (
         desc   => 'reload an IRCd extension',
         params => 1
     },
-    VERIFY => {
-        code   => \&verify,
-        desc   => 'verify doing something which could be harmful'
-    },
     REHASH => {
         code   => \&rehash,
         desc   => 'reload the server configuration'
@@ -274,11 +270,11 @@ sub info {
 
 \2***\2 this is \2$NAME\2 version \2$VERSION\2.\2 ***\2
  
-Copyright (c) 2010-12, the $NAME developers
+Copyright (c) 2010-14, the $NAME developers
  
 This program is free software.
 You are free to modify and redistribute it under the terms of
-the three-clause "New BSD" license (see LICENSE in source.)
+the three-clause "New" BSD license (see LICENSE in source.)
  
 $NAME wouldn't be here if it weren't for the people who have
 contributed time, effort, love, and care to the project.
@@ -297,7 +293,7 @@ contributed time, effort, love, and care to the project.
     Corey Chex, \"Corey\" <corey\@notroll.net>
  
 If you have any questions or concerns, feel free to email the above
-developers directly or contact NoTrollPlzNet at <contact\@notroll.net>
+developers directly or contact NoTrollPlzNet at <contact\@notroll.net>.
  
 Proudly brought to you by \2\x0302No\x0313Troll\x0304Plz\x0309Net\x0f
 http://notroll.net
@@ -951,7 +947,7 @@ sub ircd {
     $user->server_notice('    startup time');
     $user->server_notice('        '.POSIX::strftime('%a %b %d %Y at %H:%M:%S %Z', localtime gv('START')));
     $user->server_notice('    loaded modules');
-    $user->server_notice("        $_") foreach keys %INC;
+    $user->server_notice("        $_") foreach keys %INC; # FIXME: oper flag?
     $user->server_notice('    for module info see MODULES');
     $user->server_notice('    for command list see COMMANDS');
     $user->server_notice('    for license see INFO');
@@ -1090,20 +1086,6 @@ sub modreload {
     }
 }
 
-sub verify {
-    my ($user, $data, @args) = @_;
-    if ($user->{cmd_verify} && ref $user->{cmd_verify} eq 'CODE') {
-        $user->server_notice('Okay, if you say so...');
-        $user->{cmd_verify}->(@args);
-        delete $user->{cmd_verify};
-    }
-
-    # nothing
-    else {
-        $user->server_notice('Sorry, nothing to verify.');
-    }
-}
-
 sub rehash {
     my ($user, $data, @args) = @_;
 
@@ -1180,13 +1162,8 @@ sub modules {
             my $mytype = $type; $mytype =~ s/_/ /g; $mytype = ucfirst $mytype;
             $user->server_notice("        $mytype");
             while (@a) {
-                my ($one, $two, $three) = (
-                    shift @a || q..,
-                    shift @a || q..,
-                    shift @a || q..
-                );
-                ($one, $two, $three) = (lc $one, lc $two, lc $three);
-                $user->server_notice("            - $one $two $three");
+                while (@a && @b < 5) { push @b, lc shift @a }
+                $user->server_notice('            - '.join(', ', @b));
             }
         }
     }

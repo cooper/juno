@@ -180,7 +180,7 @@ sub terminate {
 
     # delete all users/servers/other
     foreach my $connection (values %connection::connection) {
-        $connection->done('shutting down');
+        $connection->done('Shutting down');
     }
 
     log2("deleting PID file");
@@ -253,7 +253,7 @@ sub handle_data {
 sub ping_check {
     foreach my $connection (values %connection::connection) {
         if (!$connection->{type}) {
-            $connection->done('registration timeout') if time - $connection->{time} > 30;
+            $connection->done('Registration timeout') if time - $connection->{time} > 30;
             next
         }
         my $type = $connection->isa('user') ? 'user' : 'server';
