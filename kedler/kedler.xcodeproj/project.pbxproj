@@ -7,6 +7,15 @@
 	objects = {
 
 /* Begin PBXFileReference section */
+		A747C2B718B46103005BBC6D /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		A747C2B818B46103005BBC6D /* Build.PL */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Build.PL; sourceTree = "<group>"; };
+		A747C2BC18B46103005BBC6D /* EventFire.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = EventFire.pm; sourceTree = "<group>"; };
+		A747C2BD18B46103005BBC6D /* Object.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Object.pm; sourceTree = "<group>"; };
+		A747C2BE18B46103005BBC6D /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		A747C2BF18B46103005BBC6D /* Makefile.PL */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Makefile.PL; sourceTree = "<group>"; };
+		A747C2C018B46103005BBC6D /* MANIFEST */ = {isa = PBXFileReference; lastKnownFileType = text; path = MANIFEST; sourceTree = "<group>"; };
+		A747C2C118B46103005BBC6D /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
+		A747C2C318B46103005BBC6D /* EventedObject.t */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = EventedObject.t; sourceTree = "<group>"; };
 		A75C5CCD18B43219007780A3 /* ircd */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = ircd; sourceTree = "<group>"; };
 		A75C5CCE18B43219007780A3 /* lines */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = lines; sourceTree = "<group>"; };
 		A75C5CCF18B43219007780A3 /* mkpasswd */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = mkpasswd; sourceTree = "<group>"; };
@@ -38,10 +47,6 @@
 		A75C5CFA18B4321A007780A3 /* Database.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Database.pm; sourceTree = "<group>"; };
 		A75C5CFB18B4321A007780A3 /* FORMAT.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = FORMAT.md; sourceTree = "<group>"; };
 		A75C5CFC18B4321A007780A3 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
-		A75C5CFE18B4321A007780A3 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
-		A75C5CFF18B4321A007780A3 /* EventedObject.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = EventedObject.pm; sourceTree = "<group>"; };
-		A75C5D0018B4321A007780A3 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
-		A75C5D0118B4321A007780A3 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
 		A75C5D0218B4321A007780A3 /* ircd.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = ircd.pm; sourceTree = "<group>"; };
 		A75C5D0318B4321A007780A3 /* res.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = res.pm; sourceTree = "<group>"; };
 		A75C5D0518B4321A007780A3 /* linkage.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = linkage.pm; sourceTree = "<group>"; };
@@ -67,6 +72,54 @@
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
+		A747C2B618B46103005BBC6D /* evented-object */ = {
+			isa = PBXGroup;
+			children = (
+				A747C2B718B46103005BBC6D /* .gitignore */,
+				A747C2B818B46103005BBC6D /* Build.PL */,
+				A747C2B918B46103005BBC6D /* lib */,
+				A747C2BE18B46103005BBC6D /* LICENSE */,
+				A747C2BF18B46103005BBC6D /* Makefile.PL */,
+				A747C2C018B46103005BBC6D /* MANIFEST */,
+				A747C2C118B46103005BBC6D /* README.md */,
+				A747C2C218B46103005BBC6D /* t */,
+			);
+			path = "evented-object";
+			sourceTree = "<group>";
+		};
+		A747C2B918B46103005BBC6D /* lib */ = {
+			isa = PBXGroup;
+			children = (
+				A747C2BA18B46103005BBC6D /* Evented */,
+			);
+			path = lib;
+			sourceTree = "<group>";
+		};
+		A747C2BA18B46103005BBC6D /* Evented */ = {
+			isa = PBXGroup;
+			children = (
+				A747C2BB18B46103005BBC6D /* Object */,
+				A747C2BD18B46103005BBC6D /* Object.pm */,
+			);
+			path = Evented;
+			sourceTree = "<group>";
+		};
+		A747C2BB18B46103005BBC6D /* Object */ = {
+			isa = PBXGroup;
+			children = (
+				A747C2BC18B46103005BBC6D /* EventFire.pm */,
+			);
+			path = Object;
+			sourceTree = "<group>";
+		};
+		A747C2C218B46103005BBC6D /* t */ = {
+			isa = PBXGroup;
+			children = (
+				A747C2C318B46103005BBC6D /* EventedObject.t */,
+			);
+			path = t;
+			sourceTree = "<group>";
+		};
 		A75C5CC518B43206007780A3 = {
 			isa = PBXGroup;
 			children = (
@@ -210,17 +263,6 @@
 			path = Evented;
 			sourceTree = "<group>";
 		};
-		A75C5CFD18B4321A007780A3 /* eventedobject */ = {
-			isa = PBXGroup;
-			children = (
-				A75C5CFE18B4321A007780A3 /* .gitignore */,
-				A75C5CFF18B4321A007780A3 /* EventedObject.pm */,
-				A75C5D0018B4321A007780A3 /* LICENSE */,
-				A75C5D0118B4321A007780A3 /* README.md */,
-			);
-			path = eventedobject;
-			sourceTree = "<group>";
-		};
 		A75C5D0418B4321A007780A3 /* server */ = {
 			isa = PBXGroup;
 			children = (
@@ -287,10 +329,10 @@
 		A75C5D2018B43268007780A3 /* Submodules */ = {
 			isa = PBXGroup;
 			children = (
-				A75C5CFD18B4321A007780A3 /* eventedobject */,
-				A75C5CE718B4321A007780A3 /* api-engine */,
+				A747C2B618B46103005BBC6D /* evented-object */,
 				A75C5CF218B4321A007780A3 /* evented-configuration */,
 				A75C5CF718B4321A007780A3 /* evented-database */,
+				A75C5CE718B4321A007780A3 /* api-engine */,
 			);
 			name = Submodules;
 			path = ../lib;
