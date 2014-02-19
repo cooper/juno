@@ -57,16 +57,15 @@ sub delete_handler {
 
 # register user numeric
 sub register_numeric {
-    my ($source, $numeric) = (shift, shift);
-
+    my ($source, $numeric, $num, $fmt) = @_;
+print "REG: @_\n";
     # does it already exist?
     if (exists $numerics{$numeric}) {
         log2("attempted to register $numeric which already exists");
         return
     }
 
-    my ($num, $str) = (shift, shift);
-    $numerics{$numeric} = [$num, $str];
+    $numerics{$numeric} = [$num, $fmt];
     log2("$source registered $numeric $num");
     return 1
 }
@@ -82,7 +81,7 @@ sub delete_numeric {
     }
 
     delete $numerics{$numeric};
-    log2("$source deleted $numeric $num");
+    log2("$source deleted $numeric");
     
     return 1
 }
@@ -174,8 +173,8 @@ sub numeric {
         return;
     }
     
-    my ($num, $val) = @{$numerics{$const}};
-    
+    my ($num, $val) = @{ $numerics{$const} };
+
     # CODE reference for numeric response.
     if (ref $val eq 'CODE') {
         $response = $val->($user, @_);
@@ -183,7 +182,7 @@ sub numeric {
     
     # formatted string.
     else {
-        $response = sprintf $numerics{$num}[1], @_;
+        $response = sprintf $val, @_;
     }
     
     $user->sendserv("$num $$user{nick} $response");

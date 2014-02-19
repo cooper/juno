@@ -86,13 +86,13 @@ our $mod = API::Module->new(
     name        => 'UserNumerics',
     version     => '0.1',
     description => 'the core set of user numerics',
-    requires    => ['UserModes'],
+    requires    => ['UserNumerics'],
     initialize  => \&init
 );
  
 sub init {
 
-    $mod->register_numeric(
+    $mod->register_user_numeric(
         name    => $_,
         number  => $numerics{$_}[0],
         format  => $numerics{$_}[1]

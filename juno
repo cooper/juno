@@ -73,7 +73,9 @@ debug() {
     fi
     echo "Running in NOFORK mode."
     splash
-    $DIR/bin/ircd $DIR NOFORK
+    $DIR/bin/ircd $DIR NOFORK & pid=$!
+    trap ' echo "Signaling $pid TERM"; kill -TERM $pid' INT
+    wait $pid
 }
 
 stop() {

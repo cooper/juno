@@ -5,9 +5,7 @@ use warnings;
 use strict;
 use v5.10;
 
-use utils qw(log2 col trim);
-
-use Scalar::Util 'looks_like_number';
+use utils qw(log2);
 
 sub register_user_numeric {
     my ($mod, %opts) = @_;
@@ -16,12 +14,12 @@ sub register_user_numeric {
     foreach my $what (qw|name number format|) {
         next if exists $opts{$what};
         $opts{name} ||= 'unknown';
-        log2("user mode block $opts{name} does not have '$what' option.");
+        log2("user numeric $opts{name} does not have '$what' option.");
         return
     }
 
     # register the mode block
-    user::modes::register_numeric(
+    user::mine::register_numeric(
         $mod->{name},
         $opts{name},
         $opts{number},
