@@ -13,11 +13,11 @@ my %numerics = (
                             #                              ------------------                             #
                             #      these are internal numerics that will be registered to user::mine.     #
                             ###############################################################################
-    #RPL_WELCOME          => ['001', 'Welcome to the %s IRC Network %s!%s@%s'                              ],
-    #RPL_YOURHOST         => ['002', ':Your host is %s, running version %s'                                ],
-    #RPL_CREATED          => ['003', ':This server was created %s'                                         ],
-    #RPL_MYINFO           => ['004', '%s %s %s %s'                                                         ],
-    #RPL_ISUPPORT         => ['005', '%s:are supported by this server'                                     ],
+    RPL_WELCOME          => ['001', 'Welcome to the %s IRC Network %s!%s@%s'                              ],
+    RPL_YOURHOST         => ['002', ':Your host is %s, running version %s'                                ],
+    RPL_CREATED          => ['003', ':This server was created %s'                                         ],
+    RPL_MYINFO           => ['004', '%s %s %s %s'                                                         ],
+    RPL_ISUPPORT         => ['005', '%s:are supported by this server'                                     ],
     RPL_MAP              => ['015', ':%s'                                                                 ],
     RPL_MAPEND           => ['017', ':End of MAP'                                                         ],
     RPL_UMODEIS          => ['221', '%s'                                                                  ],
@@ -92,10 +92,15 @@ our $mod = API::Module->new(
  
 sub init {
 
-
+    $mod->register_numeric(
+        name    => $_,
+        number  => $numerics{$_}[0],
+        format  => $numerics{$_}[1]
+    ) foreach keys %numerics;
+    
     undef %numerics;
-
-    return 1
+    
+    return 1;
 }
 
 $mod

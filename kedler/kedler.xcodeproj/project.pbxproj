@@ -243,8 +243,8 @@
 		A75C5D0F18B4321A007780A3 /* Modules */ = {
 			isa = PBXGroup;
 			children = (
-				A75C5D1018B4321A007780A3 /* Access.pm */,
 				A75C5D1118B4321A007780A3 /* Core.module */,
+				A75C5D1018B4321A007780A3 /* Access.pm */,
 				A75C5D1A18B4321A007780A3 /* LOLCAT.pm */,
 			);
 			name = Modules;

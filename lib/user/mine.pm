@@ -71,6 +71,22 @@ sub register_numeric {
     return 1
 }
 
+# unregister user numeric
+sub delete_numeric {
+    my ($source, $numeric) = (shift, shift);
+
+    # does it exist?
+    if (!exists $numerics{$numeric}) {
+        log2("attempted to delete $numeric which does not exists");
+        return
+    }
+
+    delete $numerics{$numeric};
+    log2("$source deleted $numeric $num");
+    
+    return 1
+}
+
 sub handle {
     my $user = shift;
     foreach my $line (split "\n", shift) {
