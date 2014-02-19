@@ -7,6 +7,6 @@
 [submodule "lib/evented-database"]
 	path = lib/evented-database
 	url = git://github.com/cooper/evented-database.git
-[submodule "lib/eventedobject"]
-	path = lib/eventedobject
-	url = git://github.com/cooper/eventedobject.git
+[submodule "lib/evented-object"]
+	path = lib/evented-object
+	url = git://github.com/cooper/evented-object.git
