@@ -32,7 +32,6 @@ sub new {
     #}
     #else {
         $connection->{host} = $connection->{ip};
-        $connection->send(':'.gv('SERVER', 'name').' NOTICE * :*** hostname resolving is not enabled on this server');
     #}
 
     # update total connection count

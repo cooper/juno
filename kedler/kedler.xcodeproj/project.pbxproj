@@ -165,7 +165,7 @@
 		A75C5D0F18B4321A007780A3 /* Modules */ = {
 			isa = PBXGroup;
 			children = (
-				A75C5D1118B4321A007780A3 /* Core.module */,
+				A75C5D1118B4321A007780A3 /* Core module */,
 				A75C5D1018B4321A007780A3 /* Access.pm */,
 				A75C5D1A18B4321A007780A3 /* LOLCAT.pm */,
 			);
@@ -173,16 +173,17 @@
 			path = ../modules;
 			sourceTree = "<group>";
 		};
-		A75C5D1118B4321A007780A3 /* Core.module */ = {
+		A75C5D1118B4321A007780A3 /* Core module */ = {
 			isa = PBXGroup;
 			children = (
 				A75C5D1218B4321A007780A3 /* Core.pm */,
-				A75C5D1318B4321A007780A3 /* submodules */,
+				A75C5D1318B4321A007780A3 /* Submodules */,
 			);
+			name = "Core module";
 			path = Core.module;
 			sourceTree = "<group>";
 		};
-		A75C5D1318B4321A007780A3 /* submodules */ = {
+		A75C5D1318B4321A007780A3 /* Submodules */ = {
 			isa = PBXGroup;
 			children = (
 				A75C5D1418B4321A007780A3 /* ChannelModes.pm */,
@@ -192,6 +193,7 @@
 				A75C5D1818B4321A007780A3 /* UserModes.pm */,
 				A75C5D1918B4321A007780A3 /* UserNumerics.pm */,
 			);
+			name = Submodules;
 			path = submodules;
 			sourceTree = "<group>";
 		};

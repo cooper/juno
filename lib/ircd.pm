@@ -10,7 +10,7 @@ use utils qw(conf lconf log2 fatal gv set);
 utils::ircd_LOAD();
 
 our @reloadable;
-our ($VERSION, $API, $conf, %global) = '6.14';
+our ($VERSION, $API, $conf, %global) = '6.15';
 
 sub start {
 
@@ -231,10 +231,10 @@ sub handle_connect {
         read_all       => 0,
         read_len       => POSIX::BUFSIZ(),
         on_read        => \&handle_data,
-        on_read_eof    => sub { $conn->done('connection closed'); $stream->close_now   },
-        on_write_eof   => sub { $conn->done('connection closed'); $stream->close_now   },
-        on_read_error  => sub { $conn->done('read error: ' .$_[1]); $stream->close_now },
-        on_write_error => sub { $conn->done('write error: '.$_[1]); $stream->close_now }
+        on_read_eof    => sub { $conn->done('Connection closed'); $stream->close_now   },
+        on_write_eof   => sub { $conn->done('Connection closed'); $stream->close_now   },
+        on_read_error  => sub { $conn->done('Read error: ' .$_[1]); $stream->close_now },
+        on_write_error => sub { $conn->done('Write error: '.$_[1]); $stream->close_now }
     );
 
     $main::loop->add($stream)
@@ -262,7 +262,7 @@ sub ping_check {
             $connection->{ping_in_air} = 1
         }
         if (time - $connection->{last_response} >= lconf('ping', $type, 'timeout')) {
-            $connection->done('ping timeout: '.(time - $connection->{last_response}).' seconds')
+            $connection->done('Ping timeout: '.(time - $connection->{last_response}).' seconds')
         }
     }
 }
