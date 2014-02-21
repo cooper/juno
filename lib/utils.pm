@@ -200,17 +200,6 @@ sub import {
     *{$package.'::'.$_} = *{__PACKAGE__.'::'.$_} foreach @_[1..$#_]
 }
 
-sub ircd_LOAD {
-    # savor GV and conf
-    ircd::reloadable(sub {
-        $main::TMP_GV   = \%GV;
-    }, sub {
-        %GV   = %{$main::TMP_GV};
-        undef $main::TMP_CONF;
-        undef $main::TMP_GV
-    })
-}
-
 # EVENTS
 
 # fire an event handler.

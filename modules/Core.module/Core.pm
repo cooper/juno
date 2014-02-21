@@ -15,13 +15,12 @@ our $mod = API::Module->new(
 
 # initialize.
 sub init {
-
-    my @sub = qw(ServerCommands OutgoingCommands UserModes ChannelModes UserNumerics UserCommands);
     
     # load submodules.
-    foreach (@sub) {
-        $mod->load_submodule($_) or return;
-    }
+    $mod->load_submodule($_) || return foreach qw(
+        ServerCommands OutgoingCommands UserModes
+        ChannelModes UserNumerics UserCommands
+    );
 
     return 1;   
 }

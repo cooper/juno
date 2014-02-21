@@ -495,8 +495,14 @@ sub cjoin {
         return if $channel->has_user($user);
         my ($me, $ur, $sr) = gv('SERVER');
 
-        # check for ban
-        if ($channel->list_matches('ban', $user->fullcloak) || $channel->list_matches('ban', $user->full)) {
+        # check for ban.
+        my $banned = $channel->list_matches('ban', $user->fullcloak) ||
+                     $channel->list_matches('ban', $user->full);
+        my $exempt = $channel->list_matches('except', $user->fullcloak) ||
+                     $channel->list_matches('except', $user->full);
+        
+        # yep, banned.
+        if ($banned && !$exempt) {
             $user->numeric('ERR_BANNEDFROMCHAN', $channel->{name});
             return
         }
@@ -627,7 +633,8 @@ sub oper {
     server::mine::fire_command_all(oper => $user, @flags);
 
     # okay, we should have a complete list of flags now.
-    log2("$$user{nick}!$$user{ident}\@$$user{host} has opered as $args[1] and now has flags: @flags");
+    log2("$$user{nick}!$$user{ident}\@$$user{host} has opered as $args[1] and was granted flags: @flags");
+    $user->server_notice('You now have flags: '.join(' ', @{ $user->{flags} }));
 
     # this will set ircop as well as send a MODE to the user
     my $result = $user->handle_mode_string('+'.$user->{server}->umode_letter('ircop'), 1);
@@ -635,8 +642,8 @@ sub oper {
         server::mine::fire_command_all(umode => $user, $result);
         $user->sendfrom($user->{nick}, "MODE $$user{nick} :$result");
     }
-
-    $user->numeric('RPL_YOUREOPER', join(' ', @{$user->{flags}}));
+    
+    $user->numeric('RPL_YOUREOPER');
     return 1
 }
 
@@ -1162,6 +1169,7 @@ sub modules {
             my $mytype = $type; $mytype =~ s/_/ /g; $mytype = ucfirst $mytype;
             $user->server_notice("        $mytype");
             while (@a) {
+                my @b;
                 while (@a && @b < 5) { push @b, lc shift @a }
                 $user->server_notice('            - '.join(', ', @b));
             }

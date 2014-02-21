@@ -7,10 +7,7 @@ use feature qw(switch say);
 
 use utils qw(conf lconf log2 fatal gv set);
 
-utils::ircd_LOAD();
-
-our @reloadable;
-our ($VERSION, $API, $conf, %global) = '6.15';
+our ($VERSION, $API, $conf, %global) = '6.2';
 
 sub start {
 
@@ -329,17 +326,6 @@ sub begin {
         max_global_user_count => 0,
         max_local_user_count  => 0
     )
-}
-
-# sets a package as reloadable for updates
-sub reloadable {
-    my $package = caller;
-    my $code    = shift || 0;
-    my $after   = shift || 0;
-    $code  = sub {} if ref $code  ne 'CODE';
-    $after = sub {} if ref $after ne 'CODE';
-    push @reloadable, [$package, $code, $after];
-    return 1
 }
 
 # API engine logging.

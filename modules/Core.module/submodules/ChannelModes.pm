@@ -8,7 +8,9 @@ my %cmodes = (
     no_ext        => \&cmode_normal,
     protect_topic => \&cmode_normal,
     moderated     => \&cmode_normal,
-    ban           => \&cmode_ban
+    ban           => sub { cmode_banlike('ban',    @_) },
+    except        => sub { cmode_banlike('except', @_) },
+    invite_except => sub { cmode_banlike('invite', @_) }
 );
 
 our $mod = API::Module->new(
@@ -117,54 +119,60 @@ sub register_statuses {
 
 sub cmode_normal {
     my ($channel, $mode) = @_;
-    if (!$mode->{force} && $mode->{source}->is_local) {
+    if (!$mode->{force} && $mode->{source}->is_local &&
+     !$channel->user_has_basic_status($mode->{source})) {
         $mode->{send_no_privs} = 1;
-        return
+        return;
     }
-    return 1
+    return 1;
 }
 
-sub cmode_ban {
-    my ($channel, $mode) = @_;
+sub cmode_banlike {
+    my ($list, $channel, $mode) = @_;
 
-    # view list
+    # view list.
     if (!defined $mode->{param} && $mode->{source}->isa('user')) {
-        foreach my $ban ($channel->list_elements('ban')) {
-            $mode->{source}->numeric(
-                RPL_BANLIST =>
-                $channel->{name}, $ban->[0], $ban->[1]->{setby}, $ban->[1]->{time}
-            )
-        }
-        $mode->{source}->numeric(RPL_ENDOFBANLIST => $channel->{name});
+        
+        # send each list item.
+        my $name = uc($list).q(LIST);
+        $mode->{source}->numeric("RPL_$name" =>
+            $channel->{name},
+            $_->[0],
+            $_->[1]{setby},
+            $_->[1]{time}
+        ) foreach $channel->list_elements($list);
+        
+        # end of list.
+        $mode->{source}->numeric("RPL_ENDOF$name" => $channel->{name});
+        
         $mode->{do_not_set} = 1;
-        return 1
+        return 1;
     }
 
     # needs privs.
-    if (!$mode->{force}
-        && $mode->{source}->isa('user')
-        && !$channel->user_has_basic_status($mode->{source})) {
-        
+    if (!$mode->{force} && $mode->{source}->isa('user')
+     && !$channel->user_has_basic_status($mode->{source})) {
         $mode->{send_no_privs} = 1;
         return;
-        
     }
 
-    # setting
+    # setting.
     if ($mode->{state}) {
-        $channel->add_to_list('ban', $mode->{param},
+        $channel->add_to_list($list, $mode->{param},
             setby => $mode->{source}->name,
             time  => time
-        )
+        );
     }
 
-    # unsetting
+    # unsetting.
     else {
-        $channel->remove_from_list('ban', $mode->{param});
+        $channel->remove_from_list($list, $mode->{param});
     }
 
-    push @{$mode->{params}}, $mode->{param};
-    return 1
+    # add the parameter.
+    push @{ $mode->{params} }, $mode->{param};
+    
+    return 1;
 }
 
 $mod

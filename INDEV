@@ -1716,4 +1716,16 @@ CHANGES:
     1. juno-ircd version 6 is now being branded as 'kedler-ircd' rather than juno6.
     
         11. these few changes allow you to reload ircd.pm even after a new submodule dependency is added. changes to @INC are now made in ircd.pm rather than in the main package. also, only packages vital to booting are loaded in boot() and begin(). instead, they are loaded in start().
+
+        12. updated to a new version of EventedObject.
         
+        13. update API Engine and Evented::Configuration.
+        
+        14. update to newer API Engine module structure (directory structure).
+        
+        15. permanently broke kedler.
+
+    2. development resumed after a very long idle period.
+        added channel modes ban exception (e) and invite exception (I).
+        removed disgusting code for an old idea that went very wrong.
+
