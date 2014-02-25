@@ -78,11 +78,13 @@ sub register_user_command {
                 $argttributes[$i] = {};
             }
             
-            # unless there is an 'opt' (optional) attribute,
+            # unless there is an 'opt' (optional) attribute
+            # or it is one of these fake parameters
+            next if $argttributes[$i]{opt};
+            next if $_ eq 'command';
+            
             # increase required parameter count.
-            unless ($argttributes[$i]{opt}) {
-                $required_parameters++;
-            }
+            $required_parameters++;
             
         }
 
@@ -91,14 +93,14 @@ sub register_user_command {
             my ($user, $data, @args) = @_;
             my ($i, @final_parameters, %param_id) = -1;
             
+            # remove the command.
+            my $command = shift @args;
+            
             # check argument count.
             if (scalar @args < $required_parameters) {
                 $user->numeric(ERR_NEEDMOREPARAMS => $args[0]);
                 return;
             }
-            
-            # remove the command.
-            my $command = shift @args;
 
             foreach my $t (@{$opts{parameters}}) { $i++;
                 my ($type, $id);

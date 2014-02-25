@@ -163,6 +163,11 @@ my %ucommands = (
         code   => \&modelist,
         desc   => 'view entries of a channel mode list',
         params => 'channel(inchan) any'
+    },
+    EVAL => {
+        code   => \&seval,
+        desc   => 'evaluate a line of Perl code',
+        params => ':rest'
     }
 );
 
@@ -1107,12 +1112,13 @@ sub rehash {
         return
     }
 
+    $user->numeric(RPL_REHASHING => $main::conf->{conffile});
     if ($main::conf->parse_config) {
-        $user->server_notice('rehash', 'configuration loaded successfully');
+        $user->server_notice('rehash', 'Configuration loaded successfully');
         return 1
     }
 
-    $user->server_notice('rehash', 'there was an error parsing the configuration.');
+    $user->server_notice('rehash', 'There was an error parsing the configuration');
     return
 }
 
@@ -1261,6 +1267,26 @@ sub modelist {
         $user->server_notice("| $item");
     }
     $user->server_notice('modelist', "End of \2$list\2 list");
+    
+    return 1;
+}
+
+sub seval {
+    my ($user, $data, $code) = @_;
+    
+    # make sure they have eval flag
+    if (!$user->has_flag('eval')) {
+        $user->numeric('ERR_NOPRIVILEGES');
+        return;
+    }
+    
+    # evaluate.
+    my $result = eval $code;
+
+    # send the result to the user.
+    $user->server_notice('eval', $result // $@ // "\2undef\2");
+    
+    return 1;
 }
 
 $mod

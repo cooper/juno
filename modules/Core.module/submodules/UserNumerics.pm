@@ -66,6 +66,7 @@ my %numerics = (
     RPL_WHOISMODES       => [379, '%s :is using modes %s'                                                 ],
     RPL_WHOISHOST        => [378, '%s :is connecting from *@%s %s'                                        ],
     RPL_YOUREOPER        => [381, ':You are now an IRC operator'                                          ],
+    RPL_REHASHING        => [382, '%s :Rehashing server configuration file'                               ],
     ERR_NOSUCHNICK       => [401, '%s :No such nick/channel'                                              ],
     ERR_NOSUCHSERVER     => [402, '%s :No such server'                                                    ],
     ERR_NOSUCHCHANNEL    => [403, '%s :No such channel'                                                   ],
