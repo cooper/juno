@@ -12,7 +12,7 @@ use utils qw(conf v match);
 
 our $mod = API::Module->new(
     name        => 'Access',
-    version     => '0.7',
+    version     => '0.9',
     description => 'implements channel access modes',
     requires    => ['ChannelEvents', 'ChannelModes'],
     initialize  => \&init
@@ -139,8 +139,6 @@ sub cmode_access {
 }
 
 # user joined channel event handler.
-# TODO: don't add the same mode for multiple matches
-# TODO: don't add modes the user already has
 sub on_user_joined {
     my ($event, $channel, $user) = @_;
     my (@matches, @letters);
@@ -158,6 +156,7 @@ sub on_user_joined {
     }
     
     # continue through matches.
+    my %done;
     foreach my $match (@matches) {
         
         # there is match, so let's continue.
@@ -166,7 +165,12 @@ sub on_user_joined {
         # find the mode letter.
         my $letter = v('SERVER')->cmode_letter($modename);
         
+        # user already has this status.
+        next if $done{$letter};
+        next if $channel->user_is($user, $modename);
+        
         push @letters, $letter;
+        $done{$letter} = 1;
     }
     
     return 1 unless scalar @letters;

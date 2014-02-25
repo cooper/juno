@@ -1735,3 +1735,5 @@ CHANGES:
         22. fixed a bug that allows ops to grant themselves channel ownership.
         
         23. added UP command to the Access module.
+        
+        24. Access no longer grants statuses that have already been granted.
