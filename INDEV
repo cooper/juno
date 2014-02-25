@@ -1737,3 +1737,6 @@ CHANGES:
         23. added UP command to the Access module.
         
         24. Access no longer grants statuses that have already been granted.
+        
+        25. fixed a bug where ops cannot grant status to those of an already higher status.
+            all core modules now share the IRCd version.

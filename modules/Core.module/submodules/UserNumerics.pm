@@ -89,7 +89,7 @@ my %numerics = (
 
 our $mod = API::Module->new(
     name        => 'UserNumerics',
-    version     => '0.1',
+    version     => $ircd::VERSION,
     description => 'the core set of user numerics',
     requires    => ['UserNumerics'],
     initialize  => \&init

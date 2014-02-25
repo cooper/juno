@@ -12,7 +12,7 @@ my %umodes = (
 
 our $mod = API::Module->new(
     name        => 'UserModes',
-    version     => '0.1',
+    version     => $ircd::VERSION,
     description => 'the core set of user modes',
     requires    => ['UserModes'],
     initialize  => \&init

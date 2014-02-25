@@ -6,7 +6,7 @@ use strict;
  
 use utils qw(col log2 lceq lconf match cut_to_limit conf v);
 
-our $VERSION = 1.8;
+our $VERSION = $ircd::VERSION;
 
 my %ucommands = (
     PING => {

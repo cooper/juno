@@ -15,7 +15,7 @@ my %cmodes = (
 
 our $mod = API::Module->new(
     name        => 'ChannelModes',
-    version     => '0.3',
+    version     => $ircd::VERSION,
     description => 'the core set of channel modes',
     requires    => ['ChannelModes'],
     initialize  => \&init
@@ -76,6 +76,7 @@ sub register_statuses {
                 return unless $channel->user_has_basic_status($source);
 
                 # he has a higher status..
+                return 1 if $mode->{state};
                 return if $channel->user_get_highest_level($source) <
                           $channel->user_get_highest_level($target);
 
