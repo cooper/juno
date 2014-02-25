@@ -6,7 +6,20 @@ use warnings;
 use strict;
 use feature qw[switch say];
 
-our %GV;
+use Scalar::Util qw(looks_like_number);
+
+our %v;
+
+# array contains
+sub contains (+$) {
+    my ($array, $item) = @_;
+    my $num = looks_like_number($item);
+    foreach (@$array) {
+        return 1 if $_ eq $item;
+        return 1 if $num && looks_like_number($_) && $num == $_;
+    }
+    return;
+}
 
 # fetch a configuration file
 
@@ -167,26 +180,16 @@ sub crypt {
     return $what
 }
 
-# GV
+# variables
 
-sub gv {
-    # can't use do{given{
-    # compatibility with 5.12 XXX
-    given (scalar @_) {
-        when (1) { return $GV{+shift}                 }
-        when (2) { return $GV{+shift}{+shift}         }
-        when (3) { return $GV{+shift}{+shift}{+shift} }
-    }
-    return
+sub v : lvalue {
+    my $h = \%v;
+    while (scalar @_ != 1) { $h = $h->{ +shift } }
+    return $h->{ +shift };
 }
 
 sub set ($$) {
-    my $set = shift;
-    if (uc $set eq $set) {
-        log2("can't set $set");
-        return;
-    }
-    $GV{$set} = shift
+    $v{ +shift } = shift
 }
 
 # for configuration values

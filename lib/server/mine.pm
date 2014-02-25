@@ -4,7 +4,7 @@ package server::mine;
 
 use warnings;
 use strict;
-use utils qw[log2 col gv conf];
+use utils qw[log2 col v conf];
 
 our (%commands, %outgoing);
 
@@ -181,11 +181,11 @@ sub send_burst {
     my ($do, %done);
    
     # first, send modes of this server.
-    fire_command($server, aum => gv('SERVER'));
-    fire_command($server, acm => gv('SERVER'));
+    fire_command($server, aum => v('SERVER'));
+    fire_command($server, acm => v('SERVER'));
         
     $done{$server}      = 1;
-    $done{gv('SERVER')} = 1;
+    $done{v('SERVER')} = 1;
     
     $do = sub {
         my $serv = shift;
@@ -288,7 +288,7 @@ sub send {
 
 sub sendme {
     my $server = shift;
-    $server->sendfrom(gv('SERVER', 'sid'), @_)
+    $server->sendfrom(v('SERVER', 'sid'), @_)
 }
 
 # send data from a UID or SID

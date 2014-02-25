@@ -8,7 +8,7 @@ package API::Module::access;
 use warnings;
 use strict;
 
-use utils qw(conf gv match);
+use utils qw(conf v match);
 
 our $mod = API::Module->new(
     name        => 'Access',
@@ -139,7 +139,7 @@ sub on_user_joined {
         my ($modename, $mask) = split ':', $match, 2;
         
         # find the mode letter.
-        my $letter = gv('SERVER')->cmode_letter($modename);
+        my $letter = v('SERVER')->cmode_letter($modename);
         
         push @letters, $letter;
     }
@@ -158,10 +158,10 @@ sub on_user_joined {
     # interpret the server mode string.
     # ($channel, $server, $source, $modestr, $force, $over_protocol)
     my ($user_mode_string, $server_mode_string) =
-     $channel->handle_mode_string(gv('SERVER'), gv('SERVER'), $sstr, 1, 1);
+     $channel->handle_mode_string(v('SERVER'), v('SERVER'), $sstr, 1, 1);
     
     # inform the users of this server.
-    channel::mine::send_all($channel, q(:).gv('SERVER', 'name')." MODE $$channel{name} $user_mode_string");
+    channel::mine::send_all($channel, q(:).v('SERVER', 'name')." MODE $$channel{name} $user_mode_string");
     
     return 1;
 }

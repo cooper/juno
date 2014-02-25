@@ -5,7 +5,7 @@ use warnings;
 use strict;
 use feature 'switch';
 
-use utils qw(gv);
+use utils qw(v);
 
 my %ocommands = (
     quit          => \&quit,
@@ -104,7 +104,7 @@ sub topicburst {
         $channel->{topic}->{time},
         $channel->{topic}->{topic}
     );
-    my $sid = gv('SERVER')->{sid};
+    my $sid = v('SERVER')->{sid};
     ":$sid $cmd"
 }
 
@@ -207,7 +207,7 @@ sub skill {
 # channel user membership (channel burst)
 sub cum {
     my $channel = shift;
-    # modes are from the perspective of this server, gv:SERVER
+    # modes are from the perspective of this server, v:SERVER
 
     my (%prefixes, @userstrs);
 
@@ -215,8 +215,8 @@ sub cum {
     my @set_modes = sort { $a cmp $b } keys %{$channel->{modes}};
 
     foreach my $name (@set_modes) {
-      my $letter = gv('SERVER')->cmode_letter($name);
-      given (gv('SERVER')->cmode_type($name)) {
+      my $letter = v('SERVER')->cmode_letter($name);
+      given (v('SERVER')->cmode_type($name)) {
 
         # modes with 0 or 1 parameters
         when ([0, 1, 2]) { push @modes, $letter; continue }
@@ -252,7 +252,7 @@ sub cum {
     }
 
     # note: use "-" if no users present
-    ':'.gv('SERVER')->{sid}." CUM $$channel{name} $$channel{time} ".(join(',', @userstrs) || '-')." :$modestr"
+    ':'.v('SERVER')->{sid}." CUM $$channel{name} $$channel{time} ".(join(',', @userstrs) || '-')." :$modestr"
 }
 
 # add cmodes

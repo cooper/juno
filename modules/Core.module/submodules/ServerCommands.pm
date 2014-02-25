@@ -4,7 +4,7 @@ package API::Module::Core::ServerCommands;
 use warnings;
 use strict;
  
-use utils qw(col log2 lceq lconf match cut_to_limit conf gv fire_event);
+use utils qw(col log2 lceq lconf match cut_to_limit conf v fire_event);
 
 our $VERSION = 1.3;
 
@@ -392,7 +392,7 @@ sub cmode {
     return 1 if !$user_result || $user_result =~ m/^(\+|\-)$/;
 
     # convert it to our view
-    $user_result  = $perspective->convert_cmode_string(gv('SERVER'), $user_result);
+    $user_result  = $perspective->convert_cmode_string(v('SERVER'), $user_result);
     my $from      = $source->isa('user') ? $source->full : $source->isa('server') ? $source->{name} : 'MagicalFairyPrincess';
     $channel->channel::mine::send_all(":$from MODE $$channel{name} $user_result");
 }
@@ -489,7 +489,7 @@ sub cum {
         # but I think it is a clever way of doing it.
         my $final_modestr = $modes.' '.(($uid.' ') x length $modes);
         my ($user_result, $server_result) = $channel->handle_mode_string($serv, $serv, $final_modestr, 1, 1);
-        $user_result  = $serv->convert_cmode_string(gv('SERVER'), $user_result);
+        $user_result  = $serv->convert_cmode_string(v('SERVER'), $user_result);
         $channel->channel::mine::send_all(":$$serv{name} MODE $$channel{name} $user_result");
     }
     return 1

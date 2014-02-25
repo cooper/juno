@@ -13,7 +13,7 @@ use overload
 use user::mine;
 use user::numerics;
 use user::modes;
-use utils qw[log2 gv set];
+use utils qw[log2 v set];
 
 our %user;
 
@@ -32,12 +32,12 @@ sub new {
     log2("new user from $$user{server}{name}: $$user{uid} $$user{nick}!$$user{ident}\@$$user{host} [$$user{real}]");
 
     # update max local and global user counts
-    my $max_l = gv('max_local_user_count');
-    my $max_g = gv('max_global_user_count');
+    my $max_l = v('max_local_user_count');
+    my $max_g = v('max_global_user_count');
     my $c_l   = scalar grep { $_->is_local } values %user;
     my $c_g   = scalar values %user;
-    set('max_local_user_count',  $c_l) if $c_l > $max_l;
-    set('max_global_user_count', $c_g) if $c_g > $max_g;
+    v('max_local_user_count')  = $c_l if $c_l > $max_l;
+    v('max_global_user_count') = $c_g if $c_g > $max_g;
 
     return $user
 
@@ -232,7 +232,7 @@ sub lookup_by_id {
 }
 
 sub is_local {
-    return shift->{server} == gv('SERVER')
+    return shift->{server} == v('SERVER')
 }
 
 sub full {

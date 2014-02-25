@@ -1728,4 +1728,7 @@ CHANGES:
     2. development resumed after a very long idle period.
         added channel modes ban exception (e) and invite exception (I).
         removed disgusting code for an old idea that went very wrong.
+        
+        21. improved server variable system.
+            reenabled DNS resolution using IO::Async's built-in resolver.
 

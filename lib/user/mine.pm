@@ -6,7 +6,7 @@ package user::mine;
 use warnings;
 use strict;
 
-use utils qw[col log2 conf gv];
+use utils qw[col log2 conf v];
 
 our (%numerics, %commands);
 
@@ -147,7 +147,7 @@ sub sendserv {
         log2("can't send data to a nonlocal user! please report this error by $sub. $$user{nick}");
         return
     }
-    $user->{conn}->send(map { ':'.gv('SERVER', 'name')." $_" } @_)
+    $user->{conn}->send(map { ':'.v('SERVER', 'name')." $_" } @_)
 }
 
 # a notice from server
@@ -156,10 +156,10 @@ sub server_notice {
     my ($user, @args) = @_;
     my $msg = $args[1] ? "*** $args[0]: $args[1]" : $args[0];
     if ($user->is_local) {
-        $user->{conn}->send(':'.gv('SERVER', 'name')." NOTICE $$user{nick} :$msg");
+        $user->{conn}->send(':'.v('SERVER', 'name')." NOTICE $$user{nick} :$msg");
     }
     else {
-        server::mine::fire_command($user->{location}, privmsgnotice => 'NOTICE', gv('SERVER'), $user, $msg);
+        server::mine::fire_command($user->{location}, privmsgnotice => 'NOTICE', v('SERVER'), $user, $msg);
     }
 }
 
@@ -199,9 +199,9 @@ sub new_connection {
 
     # send numerics
     $user->numeric('RPL_WELCOME', conf('network', 'name'), $user->{nick}, $user->{ident}, $user->{host});
-    $user->numeric('RPL_YOURHOST', gv('SERVER', 'name'), gv('NAME').q(-).gv('VERSION'));
-    $user->numeric('RPL_CREATED', POSIX::strftime('%a %b %d %Y at %H:%M:%S %Z', localtime gv('START')));
-    $user->numeric('RPL_MYINFO', gv('SERVER', 'name'), gv('NAME').q(-).gv('VERSION'), user::modes::mode_string(), channel::modes::mode_string());
+    $user->numeric('RPL_YOURHOST', v('SERVER', 'name'), v('NAME').q(-).v('VERSION'));
+    $user->numeric('RPL_CREATED', POSIX::strftime('%a %b %d %Y at %H:%M:%S %Z', localtime v('START')));
+    $user->numeric('RPL_MYINFO', v('SERVER', 'name'), v('NAME').q(-).v('VERSION'), user::modes::mode_string(), channel::modes::mode_string());
     $user->user::numerics::rpl_isupport();
 
     # LUSERS and MOTD

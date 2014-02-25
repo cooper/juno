@@ -5,7 +5,7 @@ package res;
 use warnings;
 use strict;
 
-use utils qw/log2 gv/;
+use utils qw/log2 v/;
 
 sub resolve_address {
     my $conn = shift;

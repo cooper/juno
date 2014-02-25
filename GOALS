@@ -77,8 +77,10 @@ accomplished through the implementation of the EventedObject framework.
         a. this will allow modules to modify CAP, NICK, USER, SERVER, and PASS commands.
         b. this is especially important now with the implementation of CAP.
         
- 9. create an API for ban extensions.
+9. create an API for ban extensions. use centralized matching.
  
 10. make a way for modules to intercept actions such as joining a channel.
     I currently am quite disgusted by the hardcoded ban/except checking in the user
     commands module. This should be more modular. far more modular.
+    
+11. I hate the ::mine packages. perhaps subclassing would be more appropriate.

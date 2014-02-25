@@ -5,7 +5,7 @@ package server::linkage;
 use warnings;
 use strict;
 
-use utils qw[conf log2 gv lconf];
+use utils qw[conf log2 v lconf];
 
 use IO::Async::Stream;
 use IO::Async::Timer::Countdown;
@@ -64,11 +64,11 @@ sub connect_server {
 
     # send server credentials.
     $conn->send(sprintf 'SERVER %s %s %s %s :%s',
-        gv('SERVER', 'sid'),
-        gv('SERVER', 'name'),
-        gv('PROTO'),
-        gv('VERSION'),
-        gv('SERVER', 'desc')
+        v('SERVER', 'sid'),
+        v('SERVER', 'name'),
+        v('PROTO'),
+        v('VERSION'),
+        v('SERVER', 'desc')
     );
 
     $conn->send("PASS $serv{send_password}");

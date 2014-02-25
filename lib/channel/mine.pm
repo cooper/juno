@@ -8,7 +8,7 @@ package channel::mine;
 use warnings;
 use strict;
 
-use utils qw[log2 conf gv fire_event];
+use utils qw[log2 conf v fire_event];
 
 # omg hax
 # it has the same name as the one in channel.pm.
@@ -81,7 +81,7 @@ sub notice_all {
     foreach my $user (@{$channel->{users}}) {
         next unless $user->is_local;
         next if defined $ignore && $ignore == $user;
-        $user->send(":".gv('SERVER', 'name')." NOTICE $$channel{name} :*** $what");
+        $user->send(":".v('SERVER', 'name')." NOTICE $$channel{name} :*** $what");
     }
     return 1
 }
@@ -120,18 +120,18 @@ sub take_lower_time {
     notice_all($channel, "Channel timestamp set back \2$amount\2 seconds.");
 
     # unset topic.
-    send_all($channel, ':'.gv('SERVER', 'name')." TOPIC $$channel{name} :")
+    send_all($channel, ':'.v('SERVER', 'name')." TOPIC $$channel{name} :")
      if defined $channel->{topic} && length $channel->{topic};
     delete $channel->{topic};
 
     # unset all channel modes.
-    my ($modestring, $servermodestring) = $channel->mode_string_all(gv('SERVER'));
+    my ($modestring, $servermodestring) = $channel->mode_string_all(v('SERVER'));
     $modestring =~ s/\+/\-/;
-    send_all($channel, ':'.gv('SERVER', 'name')." MODE $$channel{name} $modestring");
+    send_all($channel, ':'.v('SERVER', 'name')." MODE $$channel{name} $modestring");
 
     # hackery: use the server mode string to reset all modes.
     # ($channel, $server, $source, $modestr, $force, $over_protocol)
-    $channel->handle_mode_string(gv('SERVER'), gv('SERVER'), $servermodestring, 1, 1);
+    $channel->handle_mode_string(v('SERVER'), v('SERVER'), $servermodestring, 1, 1);
     
     notice_all($channel, 'Channel properties reset.');
     return $channel->{time}

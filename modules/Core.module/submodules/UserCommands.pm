@@ -4,7 +4,7 @@ package API::Module::Core::UserCommands;
 use warnings;
 use strict;
  
-use utils qw(col log2 lceq lconf match cut_to_limit conf gv);
+use utils qw(col log2 lceq lconf match cut_to_limit conf v);
 
 our $VERSION = 1.8;
 
@@ -187,7 +187,7 @@ sub init {
 
 sub ping {
     my ($user, $data, @s) = @_;
-    $user->sendserv('PONG '.gv('SERVER', 'name').' :'.col($s[1]))
+    $user->sendserv('PONG '.v('SERVER', 'name').' :'.col($s[1]))
 }
 
 sub fake_user {
@@ -203,9 +203,9 @@ sub motd {
     # note: as of 5.95, MOTD is typically not stored in RAM.
     # instead, it is read from the disk each time it is requested.
     
-    # first, check if an MOTD is present in GV.
-    if (defined gv('MOTD') && ref gv('MOTD') eq 'ARRAY') {
-        @motd_lines = @{gv('MOTD')};
+    # first, check if an MOTD is present in v.
+    if (defined v('MOTD') && ref v('MOTD') eq 'ARRAY') {
+        @motd_lines = @{v('MOTD')};
     }
     
     # it is not in RAM. we will try to read from file.
@@ -221,7 +221,7 @@ sub motd {
     }
      
     # yay, we found an MOTD. let's send it.   
-    $user->numeric('RPL_MOTDSTART', gv('SERVER', 'name'));
+    $user->numeric('RPL_MOTDSTART', v('SERVER', 'name'));
     $user->numeric('RPL_MOTD', $_) foreach @motd_lines;
     $user->numeric('RPL_ENDOFMOTD');
     
@@ -264,7 +264,7 @@ sub nick {
 }
 
 sub info {
-    my ($NAME, $VERSION) = (gv('NAME'), gv('VERSION'));
+    my ($NAME, $VERSION) = (v('NAME'), v('VERSION'));
     my $user = shift;
     my $info = <<"END";
 
@@ -448,7 +448,7 @@ sub cmap {
     # TODO this will be much prettier later!
     my $user  = shift;
     my $total = scalar values %user::user;
-    my $me    = gv('SERVER');
+    my $me    = v('SERVER');
     my $users = scalar grep { $_->{server} == $me } values %user::user;
     my $per   = int $users / $total * 100;
 
@@ -493,11 +493,11 @@ sub cjoin {
         }
 
         return if $channel->has_user($user);
-        my ($me, $ur, $sr) = gv('SERVER');
+        my ($me, $ur, $sr) = v('SERVER');
 
         # check for ban.
-        my $banned = $channel->list_matches('ban', $user->fullcloak) ||
-                     $channel->list_matches('ban', $user->full);
+        my $banned = $channel->list_matches('ban',    $user->fullcloak) ||
+                     $channel->list_matches('ban',    $user->full);
         my $exempt = $channel->list_matches('except', $user->fullcloak) ||
                      $channel->list_matches('except', $user->full);
         
@@ -513,8 +513,6 @@ sub cjoin {
             $str    =~ s/\+user/$$user{uid}/g;
             ($ur, $sr) = $channel->handle_mode_string($me, $me, $str, 1, 1);
         }
-
-
 
         # tell servers that the user joined and the automatic modes were set
         server::mine::fire_command_all(sjoin => $user, $channel, $time);
@@ -950,9 +948,9 @@ sub ircd {
     my $user = shift;
     $user->server_notice('*** ircd information');
     $user->server_notice('    version');
-    $user->server_notice('        '.gv('NAME').' version '.gv('VERSION').' proto '.gv('PROTO'));
+    $user->server_notice('        '.v('NAME').' version '.v('VERSION').' proto '.v('PROTO'));
     $user->server_notice('    startup time');
-    $user->server_notice('        '.POSIX::strftime('%a %b %d %Y at %H:%M:%S %Z', localtime gv('START')));
+    $user->server_notice('        '.POSIX::strftime('%a %b %d %Y at %H:%M:%S %Z', localtime v('START')));
     $user->server_notice('    loaded modules');
     $user->server_notice("        $_") foreach keys %INC; # FIXME: oper flag?
     $user->server_notice('    for module info see MODULES');
@@ -981,16 +979,16 @@ sub lusers {
     my $l_users  = scalar grep { $_->is_local } values %user::user;
 
     # get connection count and max connection count
-    my $conn     = gv('connection_count');
-    my $conn_max = gv('max_connection_count');
+    my $conn     = v('connection_count');
+    my $conn_max = v('max_connection_count');
 
     # get oper count and channel count
     my $opers = scalar grep { $_->is_mode('ircop') } values %user::user;
     my $chans = scalar keys %channel::channel;
 
     # get max global and max local
-    my $m_global = gv('max_global_user_count');
-    my $m_local  = gv('max_local_user_count');
+    my $m_global = v('max_global_user_count');
+    my $m_local  = v('max_local_user_count');
 
     # send numerics
     $user->numeric(RPL_LUSERCLIENT   => $g_not_invisible, $g_invisible, $servers);

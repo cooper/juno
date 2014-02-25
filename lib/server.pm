@@ -8,7 +8,7 @@ use feature 'switch';
 
 use server::mine;
 use server::linkage;
-use utils qw[log2 gv];
+use utils qw[log2 v];
 
 our %server;
 
@@ -192,7 +192,7 @@ sub cmode_takes_parameter {
 }
 
 sub is_local {
-    return shift == gv('SERVER')
+    return shift == v('SERVER')
 }
 
 # returns an array of child servers

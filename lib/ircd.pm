@@ -5,13 +5,13 @@ use warnings;
 use strict;
 use feature qw(switch say);
 
-use utils qw(conf lconf log2 fatal gv set);
+use utils qw(conf lconf log2 fatal v set);
 
-our ($VERSION, $API, $conf, %global) = '6.2';
+our ($VERSION, $API, $conf, %global) = '6.21';
 
 sub start {
 
-    log2('Started server at '.scalar(localtime gv('START')));
+    log2('Started server at '.scalar(localtime v('START')));
 
     # add these to @INC if they are not there already.
     my @add_inc = (
@@ -51,7 +51,7 @@ sub start {
     $conf->parse_config or die "can't parse configuration.\n";
 
     # create the main server object
-    my $server = $utils::GV{SERVER};
+    my $server = $utils::v{SERVER};
     if (!$server) {
     
         $server = server->new({
@@ -59,15 +59,15 @@ sub start {
             sid    => conf('server', 'id'),
             name   => conf('server', 'name'),
             desc   => conf('server', 'description'),
-            proto  => gv('PROTO'),
-            ircd   => gv('VERSION'),
-            time   => gv('START'),
+            proto  => v('PROTO'),
+            ircd   => v('VERSION'),
+            time   => v('START'),
             parent => { name => 'self' } # temporary for logging
         });
 
         # how is this possible?!?!
         $server->{parent}  =
-        $utils::GV{SERVER} = $server;
+        $utils::v{SERVER} = $server;
         
     }
 
@@ -255,7 +255,7 @@ sub ping_check {
         }
         my $type = $connection->isa('user') ? 'user' : 'server';
         if (time - $connection->{last_ping} >= lconf('ping', $type, 'frequency')) {
-            $connection->send('PING :'.gv('SERVER')->{name}) unless $connection->{ping_in_air};
+            $connection->send('PING :'.v('SERVER')->{name}) unless $connection->{ping_in_air};
             $connection->{ping_in_air} = 1
         }
         if (time - $connection->{last_response} >= lconf('ping', $type, 'timeout')) {
@@ -273,7 +273,7 @@ sub boot {
 
     log2("this is $global{NAME} version $global{VERSION}");
     $main::loop = IO::Async::Loop->new;
-    %utils::GV = %global;
+    %utils::v = %global;
     undef %global;
 
     start();
@@ -286,7 +286,7 @@ sub loop {
 
 sub become_daemon {
     # become a daemon
-    if (!gv('NOFORK')) {
+    if (!v('NOFORK')) {
         log2('Becoming a daemon...');
 
         # since there will be no input or output from here on,
@@ -297,20 +297,20 @@ sub become_daemon {
 
         # write the PID file that is used by the start/stop/rehash script.
         open my $pidfh, '>', "$main::run_dir/etc/juno.pid" or fatal("Can't write $main::run_dir/etc/juno.pid");
-        $utils::GV{PID} = fork;
-        say $pidfh gv('PID') if gv('PID');
+        $utils::v{PID} = fork;
+        say $pidfh v('PID') if v('PID');
         close $pidfh;
         
     }
 
-    exit if gv('PID');
+    exit if v('PID');
     POSIX::setsid();
 }
 
 sub begin {
 
     # set global variables
-    # that will eventually be moved to GV after startup
+    # that will eventually be moved to v after startup
 
     %global = (
         NAME    => 'kedler-ircd',  # long name

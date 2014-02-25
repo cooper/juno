@@ -8,7 +8,7 @@ use feature 'switch';
 
 use Socket::GetAddrInfo;
 
-use utils qw[log2 col conn conf match gv set];
+use utils qw[log2 col conn conf match v set];
 
 our ($ID, %connection) = 'a';
 
@@ -19,28 +19,28 @@ sub new {
     bless my $connection = {
         stream        => $stream,
         ip            => $stream->{write_handle}->peerhost,
-        source        => gv('SERVER', 'sid'),
+        source        => v('SERVER', 'sid'),
         time          => time,
         last_ping     => time,
         last_response => time
     }, $class;
 
     # resolve hostname
-    #if (conf qw/enabled resolve/) {
-    #    $connection->send(':'.gv('SERVER', 'name').' NOTICE * :*** Looking up your hostname...');
-    #    res::resolve_address($connection)
-    #}
-    #else {
+    if (conf qw/enabled resolve/) {
+        require res;
+        $connection->send(':'.v('SERVER', 'name').' NOTICE * :*** Looking up your hostname...');
+        res::resolve_address($connection)
+    }
+    else {
         $connection->{host} = $connection->{ip};
-    #}
+    }
 
     # update total connection count
-    my $count = gv('connection_count');
-    set('connection_count', $count + 1);
+    v('connection_count')++;
 
     # update maximum connection count
-    if ((scalar keys %connection) + 1 > gv('max_connection_count')) {
-        set('max_connection_count', (scalar keys %connection) + 1);
+    if ((scalar keys %connection) + 1 > v('max_connection_count')) {
+        v('max_connection_count') = 1 + scalar keys %connection;
     }
 
     log2("Processing connection from $$connection{ip}");
@@ -76,13 +76,13 @@ sub handle {
 
             # nick exists
             if (user::lookup_by_nick($nick)) {
-                $connection->send(':'.gv('SERVER', 'name')." 433 * $nick :Nickname is already in use.");
+                $connection->send(':'.v('SERVER', 'name')." 433 * $nick :Nickname is already in use.");
                 return
             }
 
             # invalid chars
             if (!utils::validnick($nick)) {
-                $connection->send(':'.gv('SERVER', 'name')." 432 * $nick :Erroneous nickname");
+                $connection->send(':'.v('SERVER', 'name')." 432 * $nick :Erroneous nickname");
                 return
             }
 
@@ -183,7 +183,7 @@ sub handle {
 
 sub wrong_par {
     my ($connection, $cmd) = @_;
-    $connection->send(':'.gv('SERVER', 'name').' 461 '
+    $connection->send(':'.v('SERVER', 'name').' 461 '
       .($connection->{nick} ? $connection->{nick} : '*').
       " $cmd :Not enough parameters");
     return
@@ -201,9 +201,9 @@ sub ready {
             return
         }
 
-        $connection->{uid}      = gv('SERVER', 'sid').++$ID;
-        $connection->{server}   = gv('SERVER');
-        $connection->{location} = gv('SERVER');
+        $connection->{uid}      = v('SERVER', 'sid').++$ID;
+        $connection->{server}   = v('SERVER');
+        $connection->{location} = v('SERVER');
         $connection->{cloak}    = $connection->{host};
         $connection->{modes}    = '';
         $connection->{type}     = user->new($connection);        
@@ -220,13 +220,13 @@ sub ready {
             return
         }
 
-        $connection->{parent} = gv('SERVER');
+        $connection->{parent} = v('SERVER');
         $connection->{type}   = server->new($connection);
         server::mine::fire_command_all(sid => $connection->{type});
 
         # send server credentials
         if (!$connection->{sent_creds}) {
-            $connection->send(sprintf 'SERVER %s %s %s %s :%s', gv('SERVER', 'sid'), gv('SERVER', 'name'), gv('PROTO'), gv('VERSION'), gv('SERVER', 'desc'));
+            $connection->send(sprintf 'SERVER %s %s %s %s :%s', v('SERVER', 'sid'), v('SERVER', 'name'), v('PROTO'), v('VERSION'), v('SERVER', 'desc'));
             $connection->send('PASS '.conn($connection->{name}, 'send_password'))
         }
 
