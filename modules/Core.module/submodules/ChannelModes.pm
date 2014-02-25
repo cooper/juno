@@ -70,7 +70,7 @@ sub register_statuses {
         }
 
         if (!$mode->{force} && $source->is_local) {
-            my $check = sub {
+            my $check1 = sub {
 
                 # no basic status
                 return unless $channel->user_has_basic_status($source);
@@ -79,11 +79,19 @@ sub register_statuses {
                 return if $channel->user_get_highest_level($source) <
                           $channel->user_get_highest_level($target);
 
-                return 1
+                return 1;
+            };
+            
+            my $check2 = sub {
+
+                # the source's highest status is not enough.
+                return if $channel->user_get_highest_level($source) < $level;
+
+                return 1;
             };
 
             # the above test(s) failed
-            if (!$check->()) {
+            if (!$check1->() || !$check2->()) {
                 $mode->{send_no_privs} = 1;
                 return
             }
