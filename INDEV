@@ -1742,3 +1742,5 @@ CHANGES:
             all core modules now share the IRCd version.
 
         26. added MODELIST command.
+        
+        27. MODELIST now accepts mode letters as well.

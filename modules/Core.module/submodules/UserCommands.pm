@@ -1241,8 +1241,22 @@ sub list {
 
 sub modelist {
     my ($user, $data, $channel, $list) = @_;
+    
+    # one-character list name indicates a channel mode.
+    if (length $list == 1) {
+        $list = gv('SERVER')->cmode_name($list);
+        $user->server_notice('No such mode') and return unless defined $list;
+    }
+    
+    # no items in the list.
+    my @items = $channel->list_elements($list);
+    if (!@items) {
+        $user->server_notice('The list is empty');
+        return;
+    }
+    
     $user->server_notice("$$channel{name} \2$list\2 list");
-    foreach my $item ($channel->list_elements($list)) {
+    foreach my $item (@items) {
         $item = $item->{nick} if blessed $item && $item->isa('user');
         $user->server_notice("| $item");
     }
