@@ -7,10 +7,6 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		A747C2C418B462B4005BBC6D /* api-engine */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "api-engine"; sourceTree = "<group>"; };
-		A747C2C518B462B4005BBC6D /* evented-configuration */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "evented-configuration"; sourceTree = "<group>"; };
-		A747C2C618B462B4005BBC6D /* evented-database */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "evented-database"; sourceTree = "<group>"; };
-		A747C2C718B462B4005BBC6D /* evented-object */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "evented-object"; sourceTree = "<group>"; };
 		A75C5CCD18B43219007780A3 /* ircd */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = ircd; sourceTree = "<group>"; };
 		A75C5CCE18B43219007780A3 /* lines */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = lines; sourceTree = "<group>"; };
 		A75C5CCF18B43219007780A3 /* mkpasswd */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = mkpasswd; sourceTree = "<group>"; };
@@ -64,7 +60,6 @@
 				A75C5CCC18B43219007780A3 /* Executables */,
 				A75C5CD118B43219007780A3 /* Configuration */,
 				A75C5D1F18B43242007780A3 /* Documentation */,
-				A75C5D2018B43268007780A3 /* Submodules */,
 			);
 			sourceTree = "<group>";
 		};
@@ -206,18 +201,6 @@
 				A75C5D0E18B4321A007780A3 /* LICENSE */,
 			);
 			name = Documentation;
-			sourceTree = "<group>";
-		};
-		A75C5D2018B43268007780A3 /* Submodules */ = {
-			isa = PBXGroup;
-			children = (
-				A747C2C418B462B4005BBC6D /* api-engine */,
-				A747C2C518B462B4005BBC6D /* evented-configuration */,
-				A747C2C618B462B4005BBC6D /* evented-database */,
-				A747C2C718B462B4005BBC6D /* evented-object */,
-			);
-			name = Submodules;
-			path = ../lib;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
