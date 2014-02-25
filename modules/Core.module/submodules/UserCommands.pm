@@ -1244,7 +1244,7 @@ sub modelist {
     
     # one-character list name indicates a channel mode.
     if (length $list == 1) {
-        $list = gv('SERVER')->cmode_name($list);
+        $list = v('SERVER')->cmode_name($list);
         $user->server_notice('No such mode') and return unless defined $list;
     }
     
