@@ -271,7 +271,7 @@ sub nick {
 }
 
 sub info {
-    my ($NAME, $VERSION) = (v('NAME'), v('VERSION'));
+    my ($NAME, $VERSION) = (v('LNAME'), v('VERSION'));
     my $user = shift;
     my $info = <<"END";
 

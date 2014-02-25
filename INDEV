@@ -1744,3 +1744,6 @@ CHANGES:
         26. added MODELIST command.
         
         27. MODELIST now accepts mode letters as well.
+        
+        28. Access's UP command now uses the parameter handler.
+            prefer short IRCd name over the full name.

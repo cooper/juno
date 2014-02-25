@@ -37,7 +37,7 @@ sub init {
     $mod->register_user_command(
         name        => 'up',
         description => 'grant yourself with your access privileges',
-        parameters  => 1,
+        parameters  => 'dummy channel(inchan)',
         code        => \&cmd_up
     ) or return;
 
@@ -45,14 +45,7 @@ sub init {
 }
 
 sub cmd_up {
-    my ($user, $data, @args) = @_;
-    my $channel = channel::lookup_by_name($args[1]);
-    
-    # no such channel.
-    if (!$channel) {
-        $user->numeric(ERR_NOSUCHCHANNEL => $args[1]);
-        return;
-    }
+    my ($user, $data, $channel) = @_;
     
     # pretend join.
     on_user_joined(undef, $channel, $user);

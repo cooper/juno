@@ -7,7 +7,7 @@ use feature qw(switch say);
 
 use utils qw(conf lconf log2 fatal v set);
 
-our ($VERSION, $API, $conf, %global) = '6.27';
+our ($VERSION, $API, $conf, %global) = '6.28';
 
 sub start {
 
@@ -313,8 +313,8 @@ sub begin {
     # that will eventually be moved to v after startup
 
     %global = (
-        NAME    => 'kedler-ircd',  # long name
-        SNAME   => 'kedler',       # short name
+        NAME    => 'kedler',      # short name
+        LNAME   => 'kedler-ircd', # long name
         VERSION => $VERSION,
         PROTO   => '6.1',
         START   => time,
