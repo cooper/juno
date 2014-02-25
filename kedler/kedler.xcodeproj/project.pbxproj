@@ -100,21 +100,13 @@
 				A75C5D0C18B4321A007780A3 /* user.pm */,
 				A75C5D0818B4321A007780A3 /* user */,
 				A75C5D0D18B4321A007780A3 /* utils.pm */,
-				A75C5CDE18B4321A007780A3 /* API */,
+				A75C5CDF18B4321A007780A3 /* API bases */,
 			);
 			name = kedler;
 			path = ../lib;
 			sourceTree = "<group>";
 		};
-		A75C5CDE18B4321A007780A3 /* API */ = {
-			isa = PBXGroup;
-			children = (
-				A75C5CDF18B4321A007780A3 /* Base */,
-			);
-			path = API;
-			sourceTree = "<group>";
-		};
-		A75C5CDF18B4321A007780A3 /* Base */ = {
+		A75C5CDF18B4321A007780A3 /* API bases */ = {
 			isa = PBXGroup;
 			children = (
 				A75C5CE018B4321A007780A3 /* ChannelEvents.pm */,
@@ -125,7 +117,8 @@
 				A75C5CE518B4321A007780A3 /* UserModes.pm */,
 				A75C5CE618B4321A007780A3 /* UserNumerics.pm */,
 			);
-			path = Base;
+			name = "API bases";
+			path = API/Base;
 			sourceTree = "<group>";
 		};
 		A75C5CED18B4321A007780A3 /* Channel */ = {

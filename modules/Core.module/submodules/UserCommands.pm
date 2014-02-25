@@ -3,7 +3,9 @@ package API::Module::Core::UserCommands;
  
 use warnings;
 use strict;
- 
+
+use Scalar::Util qw(blessed);
+
 use utils qw(col log2 lceq lconf match cut_to_limit conf v);
 
 our $VERSION = $ircd::VERSION;
@@ -156,6 +158,11 @@ my %ucommands = (
     LIST => {
         code   => \&list,
         desc   => 'view information of channels on the server'
+    },
+    MODELIST => {
+        code   => \&modelist,
+        desc   => 'view entries of a channel mode list',
+        params => 'dummy channel(inchan) any'
     }
 );
 
@@ -1230,6 +1237,16 @@ sub list {
     
     $user->numeric('RPL_LISTEND');
     return 1;
+}
+
+sub modelist {
+    my ($user, $data, $channel, $list) = @_;
+    $user->server_notice("$$channel{name} \2$list\2 list");
+    foreach my $item ($channel->list_elements($list)) {
+        $item = $item->{nick} if blessed $item && $item->isa('user');
+        $user->server_notice("| $item");
+    }
+    $user->server_notice("End of \2$list\2 list");
 }
 
 $mod

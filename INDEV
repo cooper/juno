@@ -1740,3 +1740,5 @@ CHANGES:
         
         25. fixed a bug where ops cannot grant status to those of an already higher status.
             all core modules now share the IRCd version.
+
+        26. added MODELIST command.
