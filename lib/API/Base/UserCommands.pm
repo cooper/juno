@@ -96,8 +96,10 @@ sub register_user_command {
                 $user->numeric(ERR_NEEDMOREPARAMS => $args[0]);
                 return;
             }
+            
+            # remove the command.
+            my $command = shift @args;
 
-            $i = -1;
             foreach my $t (@{$opts{parameters}}) { $i++;
                 my ($type, $id);
                 my $arg = $args[$i];
@@ -113,6 +115,11 @@ sub register_user_command {
                 else {
                     $id   = 1;
                     $type = $t;
+                }
+                
+                # inject command
+                when ('command') {
+                    push @final_parameters, $command;
                 }
                 
                 # global lookup
@@ -168,8 +175,11 @@ sub register_user_command {
                 }
 
                 # the rest of a message
+                # 0   1    2  3     4
+                #          0  1     2
+                # :hi KICK #k mitch :message
                 when (':rest') {
-                    my $str = (split /\s+/, $data, ($i + 1))[$i];
+                    my $str = (split /\s+/, $data, $i + 2)[-1];
                     push @final_parameters, col($str) if defined $str;
                 }
 

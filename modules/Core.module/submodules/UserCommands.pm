@@ -153,7 +153,7 @@ my %ucommands = (
     KICK => {
         code   => \&kick,
         desc   => 'forcibly remove a user from a channel',
-        params => 'dummy channel(inchan) user :rest(opt)'
+        params => 'channel(inchan) user :rest(opt)'
     },
     LIST => {
         code   => \&list,
@@ -162,7 +162,7 @@ my %ucommands = (
     MODELIST => {
         code   => \&modelist,
         desc   => 'view entries of a channel mode list',
-        params => 'dummy channel(inchan) any'
+        params => 'channel(inchan) any'
     }
 );
 
@@ -1255,12 +1255,12 @@ sub modelist {
         return;
     }
     
-    $user->server_notice("$$channel{name} \2$list\2 list");
+    $user->server_notice('modelist', "$$channel{name} \2$list\2 list");
     foreach my $item (@items) {
         $item = $item->{nick} if blessed $item && $item->isa('user');
         $user->server_notice("| $item");
     }
-    $user->server_notice("End of \2$list\2 list");
+    $user->server_notice('modelist', "End of \2$list\2 list");
 }
 
 $mod

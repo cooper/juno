@@ -1747,3 +1747,7 @@ CHANGES:
         
         28. Access's UP command now uses the parameter handler.
             prefer short IRCd name over the full name.
+            
+        29. fixed an issue where the :rest matcher splits the data properly but does not return the appropriate piece of data.
+            the 'dummy' identifier is no longer needed to skip of the command name.
+            the command name will only be included if the 'command' matcher is explicitly provided.
