@@ -1733,3 +1733,5 @@ CHANGES:
             reenabled DNS resolution using IO::Async's built-in resolver.
 
         22. fixed a bug that allows ops to grant themselves channel ownership.
+        
+        23. added UP command to the Access module.

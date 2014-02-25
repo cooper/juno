@@ -33,7 +33,30 @@ sub init {
         with_channel => 1
     ) or return;
 
+    # register UP command.
+    $mod->register_user_command(
+        name        => 'up',
+        description => 'grant yourself with your access privileges',
+        parameters  => 1,
+        code        => \&cmd_up
+    ) or return;
+
     return 1
+}
+
+sub cmd_up {
+    my ($user, $data, @args) = @_;
+    my $channel = channel::lookup_by_name($args[1]);
+    
+    # no such channel.
+    if (!$channel) {
+        $user->numeric(ERR_NOSUCHCHANNEL => $args[1]);
+        return;
+    }
+    
+    # pretend join.
+    on_user_joined(undef, $channel, $user);
+    
 }
 
 # access mode handler.
@@ -116,6 +139,8 @@ sub cmode_access {
 }
 
 # user joined channel event handler.
+# TODO: don't add the same mode for multiple matches
+# TODO: don't add modes the user already has
 sub on_user_joined {
     my ($event, $channel, $user) = @_;
     my (@matches, @letters);

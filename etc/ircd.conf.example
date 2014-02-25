@@ -33,7 +33,7 @@ id          = 0                                 # the SID of the server
 # modules to load automatically.
 # you probably want to load core_*. juno is pretty much useless without core modules.
 
-modules: ['core_ucommands', 'core_scommands', 'core_ocommands', 'core_umodes', 'core_cmodes', 'access']
+modules: ['Core', 'Access']
 
 [ modes: user ]
 
@@ -61,6 +61,8 @@ no_ext        = [0, 'n'] # no external channel messages      (n)
 protect_topic = [0, 't'] # only operators can set the topic  (t)
 moderated     = [0, 'm'] # only voiced and up may speak      (m)
 ban           = [3, 'b'] # channel ban                       (b)
+except        = [3, 'e'] # ban exception                     (e)
+invite_except = [3, 'I'] # invite-only exception             (I)
 
 # these are provided by modules.
 
