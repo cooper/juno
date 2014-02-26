@@ -163,7 +163,7 @@ my %ucommands = (
     EVAL => {
         code   => \&seval,
         desc   => 'evaluate a line of Perl code',
-        params => ':rest'
+        params => '-oper(eval) :rest'
     }
 );
 
@@ -1149,15 +1149,30 @@ sub ukill {
 sub modules {
     my $user = shift;
     $user->server_notice(modules => 'Loaded IRCd modules list');
-    foreach my $mod (@{$main::API->{loaded}}) {
+    
+    # code for each module.
+    my (%done, $code);
+    $code = sub {
+        my $mod = shift;
+        $code->($mod->{parent}) if $mod->{parent};
+
+        # did this already.
         my $name = $mod->full_name;
+        return if $done{$name};
+        
         $user->server_notice("    \2$name\2 $$mod{version}");
         $user->server_notice("        $$mod{description}");
         foreach my $type (qw|user_commands server_commands channel_modes user_modes outgoing_commands|) {
+        
+            # find items in this category.
             next unless $mod->{$type};
-            my @a = @{$mod->{$type}};
-            next unless scalar @a;
-            my $mytype = $type; $mytype =~ s/_/ /g; $mytype = ucfirst $mytype;
+            my @a = @{ $mod->{$type} } or next;
+            
+            # transform those into a human-readable form.
+            my $mytype = $type;
+            $mytype =~ s/_/ /g;
+            $mytype = ucfirst $mytype;
+            
             $user->server_notice("        $mytype");
             while (@a) {
                 my @b;
@@ -1165,7 +1180,13 @@ sub modules {
                 $user->server_notice('            - '.join(', ', @b));
             }
         }
-    }
+        
+        $done{$name} = 1;
+    };
+    
+    # do each module.
+    $code->($_) foreach @{ $main::API->{loaded} };
+    
     $user->server_notice(modules => 'End of IRCd modules list');
     return 1
 }
@@ -1253,12 +1274,6 @@ sub modelist {
 
 sub seval {
     my ($user, $data, $code) = @_;
-    
-    # make sure they have eval flag
-    if (!$user->has_flag('eval')) {
-        $user->numeric('ERR_NOPRIVILEGES');
-        return;
-    }
     
     # evaluate.
     my $result = eval $code;

@@ -1758,3 +1758,6 @@ CHANGES:
         
         31. removed IRCd command. I have never seen anything so useless in my entire life.
             user command parameter matchers that start with '-' are not considered in the argument count.
+            
+        32. added -oper matcher that checks for an oper flag in the parameter parser.
+            always show parent modules before submodules in MODULES command.

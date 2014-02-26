@@ -98,7 +98,7 @@ sub register_user_command {
             
             # check argument count.
             if (scalar @args < $required_parameters) {
-                $user->numeric(ERR_NEEDMOREPARAMS => $args[0]);
+                $user->numeric(ERR_NEEDMOREPARAMS => $command);
                 return;
             }
 
@@ -106,7 +106,7 @@ sub register_user_command {
                 my ($type, $id);
                 my $arg = $args[$i];
                 my @s   = split /\./, $t, 2;
-                
+
                 # if @s has two elements, it had an identifier.
                 if (scalar @s == 2) {
                     $id   = $s[0];
@@ -119,13 +119,26 @@ sub register_user_command {
                     $type = $t;
                 }
                 
+                given ($type) {
+                
                 # inject command
                 when ('command') {
                     push @final_parameters, $command;
                 }
                 
+                # oper flag check
+                when ('oper') {
+                    foreach my $flag (keys %{ $argttributes[$i] }) {
+                        if (!$user->has_flag($flag)) {
+                            $user->numeric('ERR_NOPRIVILEGES', $flag);
+                            return;
+                        }
+                        # FIXME: what if you did opt or some other
+                        # option here. that wouldn't be a flag.
+                    }
+                }
+                
                 # global lookup
-                given ($type) {
                 when ('source') {
                     my $source =
                          server::lookup_by_name($arg)  ||
