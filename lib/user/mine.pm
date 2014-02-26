@@ -154,7 +154,7 @@ sub sendserv {
 # revision: supports nonlocal users as well now
 sub server_notice {
     my ($user, @args) = @_;
-    my $msg = $args[1] ? "*** $args[0]: $args[1]" : $args[0];
+    my $msg = defined $args[1] ? "*** $args[0]: $args[1]" : $args[0];
     if ($user->is_local) {
         $user->{conn}->send(':'.v('SERVER', 'name')." NOTICE $$user{nick} :$msg");
     }

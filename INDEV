@@ -1755,3 +1755,6 @@ CHANGES:
     3. added RPL_REHASHING.
         fixed an issue where the user command parameter count was sometimes inaccurate.
         added EVAL command and the associated 'eval' oper flag.
+        
+        31. removed IRCd command. I have never seen anything so useless in my entire life.
+            user command parameter matchers that start with '-' are not considered in the argument count.

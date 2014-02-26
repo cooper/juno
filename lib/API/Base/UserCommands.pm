@@ -81,7 +81,7 @@ sub register_user_command {
             # unless there is an 'opt' (optional) attribute
             # or it is one of these fake parameters
             next if $argttributes[$i]{opt};
-            next if $_ eq 'command';
+            next if s/^-//; # ex: -command or -id.command
             
             # increase required parameter count.
             $required_parameters++;

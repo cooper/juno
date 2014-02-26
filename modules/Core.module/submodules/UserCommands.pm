@@ -114,10 +114,6 @@ my %ucommands = (
         code   => \&topic,
         desc   => 'view or set the topic of a channel'
     },
-    IRCD => {
-        code   => \&ircd,
-        desc   => 'view ircd information'
-    },
     LUSERS => {
         code   => \&lusers,
         desc   => 'view connection count statistics'
@@ -956,22 +952,6 @@ sub topic {
     return 1
 }
 
-sub ircd {
-    my $user = shift;
-    $user->server_notice('*** ircd information');
-    $user->server_notice('    version');
-    $user->server_notice('        '.v('NAME').' version '.v('VERSION').' proto '.v('PROTO'));
-    $user->server_notice('    startup time');
-    $user->server_notice('        '.POSIX::strftime('%a %b %d %Y at %H:%M:%S %Z', localtime v('START')));
-    $user->server_notice('    loaded modules');
-    $user->server_notice("        $_") foreach keys %INC; # FIXME: oper flag?
-    $user->server_notice('    for module info see MODULES');
-    $user->server_notice('    for command list see COMMANDS');
-    $user->server_notice('    for license see INFO');
-    $user->server_notice('*** End of ircd information');
-    return 1
-}
-
 sub lusers {
     my ($user, $data, @args) = @_;
 
@@ -1284,7 +1264,9 @@ sub seval {
     my $result = eval $code;
 
     # send the result to the user.
-    $user->server_notice('eval', $result // $@ // "\2undef\2");
+    my $i = 0;
+    $user->server_notice($i++ ? "eval ($i)" : 'eval', $_)
+      foreach split "\n", $result // ($@ || "\2undef\2");
     
     return 1;
 }
