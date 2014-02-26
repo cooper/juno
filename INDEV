@@ -1765,3 +1765,5 @@ CHANGES:
         33. always prioritize the core modules over all others in MODULES command.
         
         34. this more sophisticated MODULES command only allows 50 bytes per line length.
+        
+        35. corrected multiple bugs in the UserCommands API base parameter handler.

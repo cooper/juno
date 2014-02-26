@@ -54,9 +54,11 @@ sub register_user_command {
         }
 
         # parse argument type attributes.
-        my $required_parameters;
-        my @argttributes; my $i = -1;
-        foreach (@{$opts{parameters}}) { $i++;
+        my $required_parameters;    # number of parameters that will be checked
+        my @match_attr;             # matcher attributes (i.e. opt)
+        
+        my $i = -1;
+        foreach (@{ $opts{parameters} }) { $i++;
         
             # type(attribute1,att2:val,att3)
             if (/(.+)\((.+)\)/) {
@@ -70,18 +72,18 @@ sub register_user_command {
                     $attributes->{$name} = defined $val ? $val : 1;
                 }
                 
-                $argttributes[$i] = $attributes;
+                $match_attr[$i] = $attributes;
             }
             
             # no attribute list, no attributes.
             else {
-                $argttributes[$i] = {};
+                $match_attr[$i] = {};
             }
             
             # unless there is an 'opt' (optional) attribute
             # or it is one of these fake parameters
-            next if $argttributes[$i]{opt};
-            next if s/^-//; # ex: -command or -id.command
+            next if $match_attr[$i]{opt};
+            next if m/^-/; # ex: -command or -id.command
             
             # increase required parameter count.
             $required_parameters++;
@@ -90,30 +92,35 @@ sub register_user_command {
 
         # create the new handler.
         $CODE = sub {
-            my ($user, $data, @args) = @_;
-            my ($i, @final_parameters, %param_id) = -1;
+            my ($user, $data, @params) = @_;
+            my (@final_parameters, %param_id);
+
+            # param_i = current actual parameter index
+            # match_i = current matcher index
+            # (because a matcher might not really be a parameter matcher at all)
+            my ($param_i, $match_i) = (-1, -1);
             
             # remove the command.
-            my $command = shift @args;
+            my $command = shift @params;
             
             # check argument count.
-            if (scalar @args < $required_parameters) {
+            if (scalar @params < $required_parameters) {
                 $user->numeric(ERR_NEEDMOREPARAMS => $command);
                 return;
             }
 
-            foreach my $t (@{$opts{parameters}}) { $i++;
-                my ($type, $id);
-                my $arg = $args[$i];
-                my @s   = split /\./, $t, 2;
+            foreach my $_t (@{$opts{parameters}}) {
 
-                # if @s has two elements, it had an identifier.
-                if (scalar @s == 2) {
-                    $id   = $s[0];
-                    $type = $s[1];
-                }
-                
-                # otherwise, it didn't.
+                # if it starts with -,
+                # don't increment current parameter.
+                $match_i++;
+                $param_i++ unless (my $t = $_t) =~ s/^-//; # modify copy
+
+                # split into a type and possibly an identifier.
+                my ($type, $id);
+                my $param = $params[$param_i];
+                my @s     = split /\./, $t, 2;
+                if (scalar @s == 2) { ($id, $type) = @s }
                 else {
                     $id   = 1;
                     $type = $t;
@@ -128,7 +135,7 @@ sub register_user_command {
                 
                 # oper flag check
                 when ('oper') {
-                    foreach my $flag (keys %{ $argttributes[$i] }) {
+                    foreach my $flag (keys %{ $match_attr[$match_i] }) {
                         if (!$user->has_flag($flag)) {
                             $user->numeric('ERR_NOPRIVILEGES', $flag);
                             return;
@@ -141,23 +148,23 @@ sub register_user_command {
                 # global lookup
                 when ('source') {
                     my $source =
-                         server::lookup_by_name($arg)  ||
-                        channel::lookup_by_name($arg)  ||
-                           user::lookup_by_nick($arg);
+                         server::lookup_by_name($param)  ||
+                        channel::lookup_by_name($param)  ||
+                           user::lookup_by_nick($param);
                     return unless $source;
                     push @final_parameters, $param_id{$id} = $source;
                 }
 
                 # server lookup
                 when ('server') {
-                    my $server = server::lookup_by_name(col($arg));
+                    my $server = server::lookup_by_name(col($param));
                     return unless $server;
                     push @final_parameters, $param_id{$id} = $server;
                 }
 
                 # user lookup
                 when ('user') {
-                    my $nickname = (split ',', col($arg))[0];
+                    my $nickname = (split ',', col($param))[0];
                     my $usr = user::lookup_by_nick($nickname);
 
                     # not found, send no such nick.
@@ -171,7 +178,7 @@ sub register_user_command {
 
                 # channel lookup
                 when ('channel') {
-                    my $chaname = (split ',', col($arg))[0];
+                    my $chaname = (split ',', col($param))[0];
                     my $channel = channel::lookup_by_name($chaname);
                     
                     # not found, send no such channel.
@@ -181,7 +188,7 @@ sub register_user_command {
                     }
                     
                     # if 'inchan' attribute, the requesting user must be in the channel.
-                    if ($argttributes[$i]{inchan} && !$channel->has_user($user)) {
+                    if ($match_attr[$match_i]{inchan} && !$channel->has_user($user)) {
                         $user->numeric(ERR_NOTONCHANNEL => $channel->{name});
                         return;
                     }
@@ -194,27 +201,29 @@ sub register_user_command {
                 #          0  1     2
                 # :hi KICK #k mitch :message
                 when (':rest') {
-                    my $str = (split /\s+/, $data, $i + 2)[-1];
+                    my $str = (split /\s+/, $data, $param_i + 2)[-1];
                     push @final_parameters, col($str) if defined $str;
                 }
 
                 # the rest of the message as separate parameters
                 when (['...', '@rest']) {
-                    push @final_parameters, @args[$i..$#args];
+                    push @final_parameters, @params[$param_i..$#params];
                 }
 
                 # any string
                 when (['a', 'any', 'ts']) {
-                    push @final_parameters, $arg;
+                    push @final_parameters, $param;
                 }
 
                 # ignore a parameter
                 when ('dummy') { }
                 
+                # uknown!
                 default {
                     log2("unknown parameter type $type!");
                     return;
                 }
+                
                 }
                 
             }
