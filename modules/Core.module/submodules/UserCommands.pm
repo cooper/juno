@@ -1162,7 +1162,10 @@ sub modules {
         
         $user->server_notice("    \2$name\2 $$_mod{version}");
         $user->server_notice("        $$_mod{description}");
-        foreach my $type (qw|user_commands server_commands channel_modes user_modes outgoing_commands|) {
+        foreach my $type (qw|
+            user_commands server_commands channel_modes user_modes
+            outgoing_commands user_numerics
+        |) {
         
             # find items in this category.
             next unless $_mod->{$type};
@@ -1173,12 +1176,18 @@ sub modules {
             $mytype =~ s/_/ /g;
             $mytype = ucfirst $mytype;
             
+            # only allow 50 bytes per line.
             $user->server_notice("        $mytype");
             while (@a) {
-                my @b;
-                while (@a && @b < 5) { push @b, lc shift @a }
-                $user->server_notice('            - '.join(', ', @b));
+                my ($line, @b) = '';
+                while (@a) {
+                    push @b, my $c = lc shift @a;
+                    $line = '            - '.join(', ', @b);
+                    last if length $line >= 50;
+                }
+                $user->server_notice($line);
             }
+            
         }
         
         $done{$name} = 1;
@@ -1188,7 +1197,7 @@ sub modules {
     $code->($mod->{parent});
     $code->($_) foreach
         sort { $a->full_name cmp $b->full_name }
-        grep { $_->{parent} == $mod->{parent} }
+        grep { $_->{parent} && $_->{parent} == $mod->{parent} }
         @{ $main::API->{loaded} };
     
     # do each other module.
