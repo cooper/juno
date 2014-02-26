@@ -1153,20 +1153,20 @@ sub modules {
     # code for each module.
     my (%done, $code);
     $code = sub {
-        my $mod = shift;
-        $code->($mod->{parent}) if $mod->{parent};
+        my $_mod = shift;
+        $code->($_mod->{parent}) if $_mod->{parent};
 
         # did this already.
-        my $name = $mod->full_name;
+        my $name = $_mod->full_name;
         return if $done{$name};
         
-        $user->server_notice("    \2$name\2 $$mod{version}");
-        $user->server_notice("        $$mod{description}");
+        $user->server_notice("    \2$name\2 $$_mod{version}");
+        $user->server_notice("        $$_mod{description}");
         foreach my $type (qw|user_commands server_commands channel_modes user_modes outgoing_commands|) {
         
             # find items in this category.
-            next unless $mod->{$type};
-            my @a = @{ $mod->{$type} } or next;
+            next unless $_mod->{$type};
+            my @a = @{ $_mod->{$type} } or next;
             
             # transform those into a human-readable form.
             my $mytype = $type;
@@ -1184,8 +1184,17 @@ sub modules {
         $done{$name} = 1;
     };
     
-    # do each module.
-    $code->($_) foreach @{ $main::API->{loaded} };
+    # do the core modules first.
+    $code->($mod->{parent});
+    $code->($_) foreach
+        sort { $a->full_name cmp $b->full_name }
+        grep { $_->{parent} == $mod->{parent} }
+        @{ $main::API->{loaded} };
+    
+    # do each other module.
+    $code->($_) foreach
+        sort { $a->full_name cmp $b->full_name }
+        @{ $main::API->{loaded} };
     
     $user->server_notice(modules => 'End of IRCd modules list');
     return 1
