@@ -1,5 +1,7 @@
 #!/usr/bin/perl
 # Copyright (c) 2010-12, Mitchell Cooper
+# TODO: there should be a way for code refs to be registered like this
+# then we should be able to put this stuff in the UserNumerics core module.
 package user::numerics;
 
 use warnings;

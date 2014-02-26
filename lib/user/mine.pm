@@ -58,7 +58,7 @@ sub delete_handler {
 # register user numeric
 sub register_numeric {
     my ($source, $numeric, $num, $fmt) = @_;
-print "REG: @_\n";
+
     # does it already exist?
     if (exists $numerics{$numeric}) {
         log2("attempted to register $numeric which already exists");
@@ -72,7 +72,7 @@ print "REG: @_\n";
 
 # unregister user numeric
 sub delete_numeric {
-    my ($source, $numeric) = (shift, shift);
+    my ($source, $numeric) = @_;
 
     # does it exist?
     if (!exists $numerics{$numeric}) {

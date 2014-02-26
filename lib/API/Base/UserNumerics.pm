@@ -35,7 +35,7 @@ sub register_user_numeric {
 sub _unload {
     my ($class, $mod) = @_;
     log2("unloading user numerics registered by $$mod{name}");
-    user::mine::delete_numeric($_) foreach @{ $mod->{user_numerics} };
+    user::mine::delete_numeric($mod->{name}, $_) foreach @{ $mod->{user_numerics} };
     log2("done unloading numerics");
     return 1
 }

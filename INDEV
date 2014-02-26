@@ -1767,3 +1767,5 @@ CHANGES:
         34. this more sophisticated MODULES command only allows 50 bytes per line length.
         
         35. corrected multiple bugs in the UserCommands API base parameter handler.
+        
+        36. fixed an issue where user numerics could not be unregistered.
