@@ -121,21 +121,22 @@ my %ucommands = (
     MODLOAD => {
         code   => \&modload,
         desc   => 'load an IRCd extension',
-        params => 1
+        params => '-oper(modules) any'
     },
     MODUNLOAD => {
         code   => \&modunload,
         desc   => 'unload an IRCd extension',
-        params => 1
+        params => '-oper(modules) any'
     },
     MODRELOAD => {
         code   => \&modreload,
         desc   => 'reload an IRCd extension',
-        params => 1
+        params => '-oper(modules) any'
     },
     REHASH => {
         code   => \&rehash,
-        desc   => 'reload the server configuration'
+        desc   => 'reload the server configuration',
+        params => '-oper(rehash)'
     },
     KILL => {
         code   => \&ukill,
@@ -993,113 +994,73 @@ sub lusers {
 }
 
 sub modload {
-    my ($user, $data, @args) = @_;
+    my ($user, $data, $mod_name) = @_;
+    $user->server_notice("Loading module \2$mod_name\2.");
 
-    # must have modload flag
-    if (!$user->has_flag('modload')) {
-        $user->numeric('ERR_NOPRIVILEGES');
-        return
-    }
+    # attempt.
+    my $result = $main::API->load_module($mod_name, "$mod_name.pm");
 
-    $user->server_notice("Loading module \2$args[1]\2.");
-
-    my $result = $main::API->load_module($args[1], "$args[1].pm");
-
+    # failure.
     if (!$result) {
         $user->server_notice('Module failed to load. See server log for information.');
-        return
+        return;
     }
 
-    # success
+    # success.
     else {
         $user->server_notice('Module loaded successfully.');
-        return 1
+        return 1;
     }
+    
 }
 
 sub modunload {
-    my ($user, $data, @args) = @_;
+    my ($user, $data, $mod_name) = @_;
+    $user->server_notice("Unloading module \2$mod_name\2.");
 
-    # must have modunload flag
-    if (!$user->has_flag('modunload')) {
-        $user->numeric('ERR_NOPRIVILEGES');
-        return
-    }
-
-    $user->server_notice("Unloading module \2$args[1]\2.");
-
-    my $result = $main::API->unload_module($args[1], "$args[1].pm");
-
+    # attempt.
+    my $result = $main::API->unload_module($mod_name, "$mod_name.pm");
+    
+    # failure.
     if (!$result) {
         $user->server_notice('Module failed to unload. See server log for information.');
-        return
+        return;
     }
 
-    # success
+    # success.
     else {
         $user->server_notice('Module unloaded successfully.');
-        return 1
+        return 1;
     }
+    
 }
 
 sub modreload {
-    my ($user, $data, @args) = @_;
-
-    # must have mod(un)load flags
-    if (!$user->has_flag('modunload') || !$user->has_flag('modload')) {
-        $user->numeric('ERR_NOPRIVILEGES');
-        return
-    }
-
-    $user->server_notice("Reloading module \2$args[1]\2.");
-
-    # UNLOAD
-
-    my $result = $main::API->unload_module($args[1], "$args[1].pm");
-
-    if (!$result) {
-        $user->server_notice('Module failed to unload. See server log for information.');
-        return
-    }
-
-    # success
-    else {
-        $user->server_notice('Module unloaded successfully.');
-    }
-
-    # LOAD
-
-    $result = $main::API->load_module($args[1], "$args[1].pm");
-
-    if (!$result) {
-        $user->server_notice('Module failed to load. See server log for information.');
-        return
-    }
-
-    # success
-    else {
-        $user->server_notice('Module loaded successfully.');
-        return 1
-    }
+    my ($user, $data, $mod_name) = @_;
+    $user->server_notice("Reloading module \2$mod_name\2.");
+    
+    # simply handle the other two commands.
+    my $modload = \&modload;
+    modunload ($user, undef, $mod_name) or return;
+    $modload->($user, undef, $mod_name) or return;
+    
+    return 1;
 }
 
 sub rehash {
-    my ($user, $data, @args) = @_;
+    my $user = shift;
 
-    # make sure they have rehash flag
-    if (!$user->has_flag('rehash')) {
-        $user->numeric('ERR_NOPRIVILEGES');
-        return
-    }
-
+    # rehash.
     $user->numeric(RPL_REHASHING => $main::conf->{conffile});
     if ($main::conf->parse_config) {
         $user->server_notice('rehash', 'Configuration loaded successfully');
-        return 1
+        return 1;
     }
 
+    # error.
     $user->server_notice('rehash', 'There was an error parsing the configuration');
-    return
+    return;
+    
 }
 
 sub ukill {
@@ -1174,8 +1135,9 @@ sub modules {
                 my ($line, @b) = '';
                 while (@a) {
                     push @b, my $c = lc shift @a;
-                    $line = '            - '.join(', ', @b);
-                    last if length $line >= 50;
+                    my $line_maybe = '            - '.join(', ', @b);
+                    last if length $line_maybe >= 60;
+                    $line = $line_maybe;
                 }
                 $user->server_notice($line);
             }

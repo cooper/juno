@@ -1772,3 +1772,7 @@ CHANGES:
         
         37. solved a malfunction where the IRCd crashes if a user commits virtual suicide (/killing oneself).
             updated KILL command to the UserCommands parameter handler.
+            
+        38. improved MODULES command to not allow more than 60 characters per line.
+            updated MODLOAD, MODUNLOAD, and MODRELOAD commands to the UserCommands parameter handler.
+            MODRELOAD now holds a reference to the MODLOAD handler in order to retain it and prevent its premature disposal.

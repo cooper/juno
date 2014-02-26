@@ -94,7 +94,7 @@
 				A75C5CF118B4321A007780A3 /* connection.pm */,
 				A75C5D0318B4321A007780A3 /* res.pm */,
 				A75C5CF018B4321A007780A3 /* channel.pm */,
-				A75C5CED18B4321A007780A3 /* Channel */,
+				A75C5CED18B4321A007780A3 /* channel */,
 				A75C5D0718B4321A007780A3 /* server.pm */,
 				A75C5D0418B4321A007780A3 /* server */,
 				A75C5D0C18B4321A007780A3 /* user.pm */,
@@ -121,13 +121,12 @@
 			path = API/Base;
 			sourceTree = "<group>";
 		};
-		A75C5CED18B4321A007780A3 /* Channel */ = {
+		A75C5CED18B4321A007780A3 /* channel */ = {
 			isa = PBXGroup;
 			children = (
 				A75C5CEE18B4321A007780A3 /* mine.pm */,
 				A75C5CEF18B4321A007780A3 /* modes.pm */,
 			);
-			name = Channel;
 			path = channel;
 			sourceTree = "<group>";
 		};
