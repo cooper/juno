@@ -140,7 +140,7 @@ my %ucommands = (
     KILL => {
         code   => \&ukill,
         desc   => 'forcibly remove a user from the server',
-        params => 2
+        params => 'user :rest' # oper flags handled later
     },
     MODULES => {
         code   => \&modules,
@@ -1103,26 +1103,18 @@ sub rehash {
 }
 
 sub ukill {
-    my ($user, $data, @args) = @_;
+    my ($user, $data, $tuser, $reason) = @_;
 
-    my $tuser  = user::lookup_by_nick($args[1]);
-    my $reason = col((split /\s+/, $data, 3)[2]);
-
-    # no such nick
-    if (!$tuser) {
-        $user->numeric(ERR_NOSUCHNICK => $args[1]);
-        return
-    }
-
+    # local user.
     if ($tuser->is_local) {
 
         # make sure they have kill flag
         if (!$user->has_flag('kill')) {
-            $user->numeric('ERR_NOPRIVILEGES');
-            return
+            $user->numeric(ERR_NOPRIVILEGES => 'kill');
+            return;
         }
 
-        $tuser->{conn}->done("Killed: $reason [$$user{nick}]");
+        $tuser->{conn}->done("Killed by $$user{nick}: $reason");
     }
 
     # tell other servers.
@@ -1135,14 +1127,14 @@ sub ukill {
 
         # make sure they have gkill flag
         if (!$user->has_flag('gkill')) {
-            $user->numeric('ERR_NOPRIVILEGES');
-            return
+            $user->numeric(ERR_NOPRIVILEGES => 'gkill');
+            return;
         }
 
         server::mine::fire_command($tuser->{location}, kill => $user, $tuser, $reason);
     }
 
-    $user->server_notice('kill', "$$tuser{nick} has been killed.");
+    $user->server_notice('kill', "$$tuser{nick} has been killed");
     return 1
 }
 
@@ -1244,7 +1236,7 @@ sub kick {
 }
 
 sub list {
-    my ($user, $data, @args) = @_;
+    my $user = shift;
     
     #:ashburn.va.mac-mini.org 321 k Channel :Users  Name
     $user->numeric('RPL_LISTSTART');

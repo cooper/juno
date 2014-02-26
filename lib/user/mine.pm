@@ -122,32 +122,22 @@ sub send {
     my $user = shift;
     if (!$user->{conn}) {
         my $sub = (caller 1)[3];
-        log2("can't send data to a nonlocal user! please report this error by $sub. $$user{nick}");
-        return
+        log2("can't send data to a nonlocal or disconnected user! $$user{nick}");
+        return;
     }
-    $user->{conn}->send(@_)
+    $user->{conn}->send(@_);
 }
 
 # send data with a source
 sub sendfrom {
     my ($user, $source) = (shift, shift);
-    if (!$user->{conn}) {
-        my $sub = (caller 1)[3];
-        log2("can't send data to a nonlocal user! please report this error by $sub. $$user{nick}");
-        return
-    }
-    $user->{conn}->send(map { ":$source $_" } @_)
+    $user->send(map { ":$source $_" } @_)
 }
 
 # send data with this server as the source
 sub sendserv {
     my $user = shift;
-    if (!$user->{conn}) {
-        my $sub = (caller 1)[3];
-        log2("can't send data to a nonlocal user! please report this error by $sub. $$user{nick}");
-        return
-    }
-    $user->{conn}->send(map { ':'.v('SERVER', 'name')." $_" } @_)
+    $user->send(map { ':'.v('SERVER', 'name')." $_" } @_)
 }
 
 # a notice from server
@@ -155,12 +145,21 @@ sub sendserv {
 sub server_notice {
     my ($user, @args) = @_;
     my $msg = defined $args[1] ? "*** $args[0]: $args[1]" : $args[0];
+    
+    # user is local.
     if ($user->is_local) {
-        $user->{conn}->send(':'.v('SERVER', 'name')." NOTICE $$user{nick} :$msg");
+        $user->send(':'.v('SERVER', 'name')." NOTICE $$user{nick} :$msg");
+        return 1;
     }
-    else {
-        server::mine::fire_command($user->{location}, privmsgnotice => 'NOTICE', v('SERVER'), $user, $msg);
-    }
+    
+    # not local; pass it on.
+    server::mine::fire_command($user->{location}, privmsgnotice =>
+        'NOTICE',
+        v('SERVER'),
+        $user,
+        $msg
+    );
+    
 }
 
 # send a numeric to a local user.

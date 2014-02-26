@@ -1769,3 +1769,6 @@ CHANGES:
         35. corrected multiple bugs in the UserCommands API base parameter handler.
         
         36. fixed an issue where user numerics could not be unregistered.
+        
+        37. solved a malfunction where the IRCd crashes if a user commits virtual suicide (/killing oneself).
+            updated KILL command to the UserCommands parameter handler.
