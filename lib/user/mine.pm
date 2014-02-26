@@ -164,7 +164,7 @@ sub server_notice {
 
 # send a numeric to a local user.
 sub numeric {
-    my ($user, $const, $response) = (shift, shift);
+    my ($user, $const, @response) = (shift, shift);
     
     # does not exist.
     if (!$numerics{$const}) {
@@ -176,15 +176,15 @@ sub numeric {
 
     # CODE reference for numeric response.
     if (ref $val eq 'CODE') {
-        $response = $val->($user, @_);
+        @response = $val->($user, @_);
     }
     
     # formatted string.
     else {
-        $response = sprintf $val, @_;
+        @response = sprintf $val, @_;
     }
     
-    $user->sendserv("$num $$user{nick} $response");
+    $user->sendserv("$num $$user{nick} $_") foreach @response;
     return 1;
     
 }
@@ -197,11 +197,16 @@ sub new_connection {
     $user->handle_mode_string(conf qw/users automodes/);
 
     # send numerics
-    $user->numeric('RPL_WELCOME', conf('network', 'name'), $user->{nick}, $user->{ident}, $user->{host});
-    $user->numeric('RPL_YOURHOST', v('SERVER', 'name'), v('NAME').q(-).v('VERSION'));
-    $user->numeric('RPL_CREATED', POSIX::strftime('%a %b %d %Y at %H:%M:%S %Z', localtime v('START')));
-    $user->numeric('RPL_MYINFO', v('SERVER', 'name'), v('NAME').q(-).v('VERSION'), user::modes::mode_string(), channel::modes::mode_string());
-    $user->user::numerics::rpl_isupport();
+    $user->numeric(RPL_WELCOME  => conf('network', 'name'), $user->{nick}, $user->{ident}, $user->{host});
+    $user->numeric(RPL_YOURHOST => v('SERVER', 'name'), v('NAME').q(-).v('VERSION'));
+    $user->numeric(RPL_CREATED  => POSIX::strftime('%a %b %d %Y at %H:%M:%S %Z', localtime v('START')));
+    $user->numeric(RPL_MYINFO   =>
+        v('SERVER', 'name'),
+        v('NAME').q(-).v('VERSION'),
+        user::modes::mode_string(),
+        channel::modes::mode_string()
+    );
+    $user->numeric('RPL_ISUPPORT');
 
     # LUSERS and MOTD
     $user->handle('LUSERS');

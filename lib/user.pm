@@ -11,7 +11,6 @@ use overload
     bool     => sub { 1         };
 
 use user::mine;
-use user::numerics;
 use user::modes;
 use utils qw[log2 v set];
 

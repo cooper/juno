@@ -7,7 +7,7 @@ use feature qw(switch say);
 
 use utils qw(conf lconf log2 fatal v set);
 
-our ($VERSION, $API, $conf, %global) = '6.38';
+our ($VERSION, $API, $conf, %global) = '6.39';
 
 sub start {
 

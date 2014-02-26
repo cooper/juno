@@ -1776,3 +1776,8 @@ CHANGES:
         38. improved MODULES command to not allow more than 60 characters per line.
             updated MODLOAD, MODUNLOAD, and MODRELOAD commands to the UserCommands parameter handler.
             MODRELOAD now holds a reference to the MODLOAD handler in order to retain it and prevent its premature disposal.
+            
+        39. deleted user::numerics package - no longer used.
+            all remaining numerics have been moved to the UserNumerics core module.
+            code reference numeric handlers are now accepted. a list of resulting lines is returned.
+            RPL_ISUPPORT now takes configured except and invite except mode letters into account.

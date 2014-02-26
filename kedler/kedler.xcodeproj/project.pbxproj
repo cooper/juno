@@ -34,7 +34,6 @@
 		A75C5D0718B4321A007780A3 /* server.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = server.pm; sourceTree = "<group>"; };
 		A75C5D0918B4321A007780A3 /* mine.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = mine.pm; sourceTree = "<group>"; };
 		A75C5D0A18B4321A007780A3 /* modes.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = modes.pm; sourceTree = "<group>"; };
-		A75C5D0B18B4321A007780A3 /* numerics.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = numerics.pm; sourceTree = "<group>"; };
 		A75C5D0C18B4321A007780A3 /* user.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = user.pm; sourceTree = "<group>"; };
 		A75C5D0D18B4321A007780A3 /* utils.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = utils.pm; sourceTree = "<group>"; };
 		A75C5D0E18B4321A007780A3 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
@@ -144,7 +143,6 @@
 			children = (
 				A75C5D0918B4321A007780A3 /* mine.pm */,
 				A75C5D0A18B4321A007780A3 /* modes.pm */,
-				A75C5D0B18B4321A007780A3 /* numerics.pm */,
 			);
 			path = user;
 			sourceTree = "<group>";

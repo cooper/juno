@@ -4,7 +4,7 @@ package API::Module::Core::UserNumerics;
 use warnings;
 use strict;
  
-use utils 'log2';
+use utils qw(log2 conf v);
 
 
 my %numerics = (
@@ -17,7 +17,7 @@ my %numerics = (
     RPL_YOURHOST         => ['002', ':Your host is %s, running version %s'                                ],
     RPL_CREATED          => ['003', ':This server was created %s'                                         ],
     RPL_MYINFO           => ['004', '%s %s %s %s'                                                         ],
-    RPL_ISUPPORT         => ['005', '%s:are supported by this server'                                     ],
+    RPL_ISUPPORT         => ['005', \&rpl_isupport                                                        ],
     RPL_MAP              => ['015', ':%s'                                                                 ],
     RPL_MAPEND           => ['017', ':End of MAP'                                                         ],
     # 3 digits           => [#############################################################################],
@@ -107,6 +107,91 @@ sub init {
     undef %numerics;
     
     return 1;
+}
+
+# RPL_ISUPPORT
+sub rpl_isupport {
+    my ($user, $server) = (shift, v('SERVER'));
+    my $listmodes = join '', sort map { $_->{letter} }
+      grep { $_->{type} == 3 } values %{ $server->{cmodes} };
+
+    my %things = (
+        PREFIX      => &isp_prefix,
+        CHANTYPES   => '#',                         # TODO: only global channels supported
+        CHANMODES   => &isp_chanmodes,
+        MODES       => 5,                           # TODO: currently unlimited
+        CHANLIMIT   => '#:100',                     # TODO: currently unlimited
+        NICKLEN     => conf('limit', 'nick'),
+        MAXLIST     => "$listmodes:1000",           # TODO: currently unlimited
+        NETWORK     => conf('network', 'name'),
+        EXCEPTS     => $server->cmode_letter('except'),
+        INVEX       => $server->cmode_letter('invite_except'),
+        CASEMAPPING => 'rfc1459',
+        TOPICLEN    => conf('limit', 'topic'),
+        KICKLEN     => conf('limit', 'kickmsg'),
+        CHANNELLEN  => conf('limit', 'channelname'),
+        RFC2812     => 'YES',
+        FNC         => 'YES',
+        AWAYLEN     => conf('limit', 'away'),
+        MAXTARGETS  => 1                            # TODO: currently unconfigurable
+      # ELIST       => 'YES'                        # TODO: not implemented yet
+    );
+
+    my ($curr, @lines) = (0, '');
+    while (my ($param, $val) = each %things) {
+    
+        # configuration value probably nonexistent.
+        next unless defined $val;
+        
+        # only allow around 140 chars per line.
+        if (length $lines[$curr] > 135) {
+            $curr++;
+            $lines[$curr] = '';
+        }
+        
+        $lines[$curr] .= $val eq 'YES' ? "$param " : "$param=$val ";
+    }
+
+    return map { "$_:are supported by this server" } @lines
+}
+
+# CHANMODES in RPL_ISUPPORT.
+sub isp_chanmodes {
+    #   normal          (0)
+    #   parameter       (1)
+    #   parameter_set   (2)
+    #   list            (3)
+    #   status          (4)
+    my %m;
+    my @a = ('', '', '', '');
+    
+    # find each mode letter.
+    foreach my $name ($ircd::conf->keys_of_block(['modes', 'channel'])) {
+        my ($type, $letter) = @{ conf(['modes', 'channel'], $name) };
+        $m{$type} = [] unless $m{$type};
+        push @{ $m{$type} }, $letter;
+    }
+
+    # alphabetize.
+    foreach my $type (keys %m) {
+        my @alphabetized = sort { $a cmp $b } @{ $m{$type} };
+        $a[$type] = join '', @alphabetized
+    }
+
+    return "$a[3],$a[1],$a[2],$a[0]";
+}
+
+# PREFIX in RPL_ISUPPORT.
+sub isp_prefix {
+    my ($modestr, $prefixes) = ('', '');
+    
+    # sort from largest to smallest level.
+    foreach my $level (sort { $b <=> $a } keys %channel::modes::prefixes) {
+        $modestr  .= $channel::modes::prefixes{$level}[0];
+        $prefixes .= $channel::modes::prefixes{$level}[1];
+    }
+    
+    return "($modestr)$prefixes";
 }
 
 $mod
