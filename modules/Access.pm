@@ -37,7 +37,7 @@ sub init {
     $mod->register_user_command(
         name        => 'up',
         description => 'grant yourself with your access privileges',
-        parameters  => 'dummy channel(inchan)',
+        parameters  => 'channel(inchan)',
         code        => \&cmd_up
     ) or return;
 
