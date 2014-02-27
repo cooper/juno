@@ -6,8 +6,6 @@ use warnings;
 use strict;
 use feature 'switch';
 
-use channel::mine;
-use channel::modes;
 use utils qw/log2 v match fire_event/;
 
 our %channels;

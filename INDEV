@@ -1781,3 +1781,6 @@ CHANGES:
             all remaining numerics have been moved to the UserNumerics core module.
             code reference numeric handlers are now accepted. a list of resulting lines is returned.
             RPL_ISUPPORT now takes configured except and invite except mode letters into account.
+            
+    4. ircd.pm now manages all component packages of the ircd as well as all dependency packages.
+        ircd::start() can be safely called multiple times after the ircd boots.

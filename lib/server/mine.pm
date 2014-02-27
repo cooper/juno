@@ -4,6 +4,7 @@ package server::mine;
 
 use warnings;
 use strict;
+
 use utils qw[log2 col v conf];
 
 our (%commands, %outgoing);

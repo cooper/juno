@@ -23,7 +23,7 @@ sub register_user_numeric {
         $mod->{name},
         $opts{name},
         $opts{number},
-        $opts{format}
+        $opts{format} // $opts{code}
     ) or return;
 
     $mod->{user_numerics} ||= [];

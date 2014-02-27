@@ -6,8 +6,6 @@ use warnings;
 use strict;
 use feature 'switch';
 
-use server::mine;
-use server::linkage;
 use utils qw[log2 v];
 
 our %server;

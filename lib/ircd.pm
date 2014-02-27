@@ -3,14 +3,36 @@ package ircd;
 
 use warnings;
 use strict;
-use feature qw(switch say);
+use 5.010;
 
 use utils qw(conf lconf log2 fatal v set);
 
-our ($VERSION, $API, $conf, %global) = '6.39';
+our ($VERSION, $API, $conf, $loop, $timer, %global) = '6.4';
+
+# all non-module packages always loaded in the IRCd.
+our @always_loaded = qw(
+
+    utils
+    channel     channel::mine   channel::modes
+    user        user::mine      user::modes
+    server      server::mine    server::linkage
+    connection  res             ircd
+
+);
+
+# these might be loaded, but don't load them if they're not.
+our @maybe_loaded = qw(
+
+    API::Base::ChannelEvents        API::Base::ChannelModes
+    API::Base::OutgoingCommands     API::Base::ServerCommands
+    API::Base::UserCommands         API::Base::UserModes
+    API::Base::UserNumerics
+
+);
 
 sub start {
-
+    my $boot = shift;
+    
     log2('Started server at '.scalar(localtime v('START')));
 
     # add these to @INC if they are not there already.
@@ -20,25 +42,9 @@ sub start {
         "$::run_dir/lib/evented-configuration/lib",
         "$::run_dir/lib/evented-database"
     ); foreach (@add_inc) { unshift @INC, $_ unless $_ ~~ @INC }
-
-    # IO::Async and friends
-    require IO::Async::Listener;
-    require IO::Async::Timer::Periodic;
-    require IO::Socket::IP;
-
-    # juno components
-    require connection;
-    require server;
-    require user;
-    require channel;
     
-    # API Engine
-    require API;
-    
-    # Evented::Object and friends
-    require Evented::Object;
-    require Evented::Configuration;
-    require Evented::Database;
+    # load or reload all dependency packages.
+    load_dependencies($boot);
     
     # set up the configuration/database.
     # TEMPORARILY use no database until we read [database] block.
@@ -49,6 +55,9 @@ sub start {
     
     # parse the configuration.
     $conf->parse_config or die "can't parse configuration.\n";
+
+    # load or reload optional packages.
+    load_optionals($boot);
 
     # create the main server object
     my $server = $utils::v{SERVER};
@@ -72,44 +81,48 @@ sub start {
     }
 
     # register modes
+    # FIXME: is this safe to be called multiple times?
+    # I think it is, but maybe we should delete the modes before (re-)adding them.
+    # that way, if any modes are deleted, they won't hang around afterward.
     $server->user::modes::add_internal_modes();
     $server->channel::modes::add_internal_modes();
 
-    # load required modules
-    load_requirements();
-
     # create the evented object.
-    $main::eo = Evented::Object->new;
+    $main::eo ||= Evented::Object->new;
 
     # create API engine manager.
-    $API = $main::API = API->new(
+    $API ||= $main::API ||= API->new(
         log_sub  => \&api_log,
         mod_dir  => "$main::run_dir/modules",
         base_dir => "$main::run_dir/lib/API/Base"
     );
 
-    # load API modules
+    # load API modules.
+    # FIXME: is this safe to call multiple times?
     log2('Loading API configuration modules');
     if (my $mods = conf('api', 'modules')) {
         $API->load_module($_, "$_.pm") foreach @$mods;
     }
     log2('Done loading modules');
 
-    # listen
+    # listen.
     create_sockets();
 
-    # ping timer
-    my $freq = lconf('ping', 'user', 'frequency');
-    my $timer = IO::Async::Timer::Periodic->new( 
+    # ping timer.
+    $loop->remove($timer) if $timer;
+    $timer = IO::Async::Timer::Periodic->new(
         interval       => 30,
         on_tick        => \&ping_check
     );
-    $main::loop->add($timer);
+    $loop->add($timer);
     $timer->start;
 
     log2("server initialization complete");
 
-    # auto server connect
+    # auto server connect.
+    # FIXME: don't try to connect during reload if already connected.
+    # honestly this needs to be moved to an event for after loading the configuration;
+    # even if it's a rehash or something it should check for this.
     foreach my $name ($conf->names_of_block('connect')) {
         if (conf(['connect', $name], 'autoconnect')) {
             log2("autoconnecting to $name...");
@@ -119,38 +132,95 @@ sub start {
 
 }
 
-sub load_requirements {
-
-    if (defined( my $pkg = conf qw[class normal_package] )) {
-        log2('Loading '.$pkg);
-        $pkg =~ s/::/\//g;
-        require "$pkg.pm"
+# load or reload a package.
+sub load_or_reload {
+    my ($name, $min_v, $boot, $set_v, $dont_load) = @_;
+    (my $file = "$name.pm") =~ s/::/\//g;
+    
+    # not loaded; don't load it.
+    return if !$INC{$file} && $dont_load;
+    
+    # it might be loaded with an appropriate version already.
+    if ((my $v = $name->VERSION // -1) >= $min_v) {
+        log2("$name is loaded and up-to-date ($v)");
+        return;
     }
-
-    if (conf qw[enabled sha]) {
-        log2('Loading Digest::SHA');
-        require Digest::SHA
+    
+    # set package version.
+    if ($set_v) {
+        no strict 'refs';
+        ${"${name}::VERSION"} = $set_v;
+        print "SET ${name}::VERSION = $set_v\n";
     }
-
-    if (conf qw[enabled md5]) {
-        log2('Loading Digest::MD5');
-        require Digest::MD5
+    
+    # it hasn't been loaded yet at all.
+    # use require to load it the first time.
+    if ($boot || !$INC{$file}) {
+        log2("Loading $name");
+        require $file or log2("Very bad error: could not load $name!".($@ || $!));
+        return;
     }
+    
+    # load it.
+    log2("Reloading package $name");
+    do $file or log2("Very bad error: could not load $name! ".($@ || $!)) and return;
+    
+    # version check.
+    if ((my $v = $name->VERSION // -1) < $min_v) {
+        log2("Very bad error: $name is outdated ($min_v required, $v loaded)");
+        return;
+    }
+    
+    return 1;
+}
 
-    #if (conf qw[enabled resolve]) {
-    #    log2('Loading res, Net::IP, Net::DNS');
-    #    require res
-    #}
+# load our package dependencies.
+sub load_dependencies {
+    my $boot = shift;
+    
+    # main dependencies.
+    load_or_reload('IO::Async::Loop',               0.60, $boot);
+    load_or_reload('IO::Async::Stream',             0.60, $boot);
+    load_or_reload('IO::Async::Listener',           0.60, $boot);
+    load_or_reload('IO::Async::Timer::Periodic',    0.60, $boot);
+    load_or_reload('IO::Async::Timer::Countdown',   0.60, $boot);
+    load_or_reload('IO::Socket::IP',                0.25, $boot);
+    load_or_reload('API',                           2.23, $boot);
+    load_or_reload('Evented::Object',               3.90, $boot);
+    load_or_reload('Evented::Configuration',        3.30, $boot);
+    load_or_reload('Evented::Database',             0.50, $boot);
+    
+    # juno components.
+    load_or_reload($_, $VERSION, $boot, $VERSION, undef) foreach @always_loaded;
+    load_or_reload($_, $VERSION, $boot, $VERSION, 1    ) foreach @maybe_loaded;
+
+    
+}
+
+# load configured optional packages.
+sub load_optionals {
+    my $boot = shift;
+    
+    # encryption.
+    load_or_reload('Digest::SHA', 0, $boot) if conf qw[enabled sha];
+    load_or_reload('Digest::MD5', 0, $boot) if conf qw[enabled md5];
 
 }
 
 sub create_sockets {
+
+    # TODO: keep track of these, and allow rehashing to change this.
+    state $done;
+    return if $done;
+        # FIXME: do the above and ignore anything that hasn't changed
+        # when reloading because this will be called multiple times.
+    
     foreach my $addr ($conf->names_of_block('listen')) {
       foreach my $port (@{$conf->get(['listen', $addr], 'port')}) {
 
         # create the loop listener
         my $listener = IO::Async::Listener->new(on_stream => \&handle_connect);
-        $main::loop->add($listener);
+        $loop->add($listener);
 
         # create the socket
         my $socket = IO::Socket::IP->new(
@@ -167,7 +237,9 @@ sub create_sockets {
 
         log2("Listening on [$addr]:$port");
     } }
-    return 1
+    
+    $done = 1;
+    return 1;
 }
 
 # stop the ircd
@@ -234,7 +306,7 @@ sub handle_connect {
         on_write_error => sub { $conn->done('Write error: '.$_[1]); $stream->close_now }
     );
 
-    $main::loop->add($stream)
+    $loop->add($stream)
 }
 
 # handle incoming data
@@ -272,16 +344,16 @@ sub boot {
     require IO::Async::Loop;
 
     log2("this is $global{NAME} version $global{VERSION}");
-    $main::loop = IO::Async::Loop->new;
+    $main::loop = $loop = IO::Async::Loop->new;
     %utils::v = %global;
     undef %global;
 
-    start();
+    start(1);
     become_daemon();
 }
 
 sub loop {
-    $main::loop->loop_forever
+    $loop->loop_forever
 }
 
 sub become_daemon {

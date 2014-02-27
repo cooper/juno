@@ -10,8 +10,6 @@ use overload
     '0+'     => sub { shift     },
     bool     => sub { 1         };
 
-use user::mine;
-use user::modes;
 use utils qw[log2 v set];
 
 our %user;

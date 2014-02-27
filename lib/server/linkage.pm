@@ -7,9 +7,6 @@ use strict;
 
 use utils qw[conf log2 v lconf];
 
-use IO::Async::Stream;
-use IO::Async::Timer::Countdown;
-
 # connect to a server in the configuration
 sub connect_server {
     my $server_name = shift;
