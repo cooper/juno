@@ -34,7 +34,7 @@ my %ocommands = (
 
 our $mod = API::Module->new(
     name        => 'OutgoingCommands',
-    version     => $ircd::VERSION,
+    version     => $API::Module::Core::VERSION,
     description => 'the core set of outgoing commands',
     requires    => ['OutgoingCommands'],
     initialize  => \&init

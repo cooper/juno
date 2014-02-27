@@ -8,7 +8,7 @@ use Scalar::Util qw(blessed);
 
 use utils qw(col log2 lceq lconf match cut_to_limit conf v);
 
-our $VERSION = $ircd::VERSION;
+our $VERSION = $API::Module::Core::VERSION;
 
 my %ucommands = (
     PING => {
@@ -1267,10 +1267,10 @@ sub version {
     my ($user, $data, $server) = (shift, shift, shift || v('SERVER'));
     $user->numeric(RPL_VERSION =>
         v('NAME'),               # all
-        v('VERSION'),            # of
+        $ircd::VERSION,          # of
         $server->{name},         # this
-        $ircd::VERSION,          # is
-        $ircd::VERSION,          # wrong.
+        $main::VERSION,          # is
+        $ircd::VERSION,          # wrong for nonlocal servers.
         $VERSION                 # TODO: send this info over protocol.
     );
     $user->numeric('RPL_ISUPPORT') if $server->is_local;

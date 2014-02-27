@@ -15,7 +15,7 @@ my %cmodes = (
 
 our $mod = API::Module->new(
     name        => 'ChannelModes',
-    version     => $ircd::VERSION,
+    version     => $API::Module::Core::VERSION,
     description => 'the core set of channel modes',
     requires    => ['ChannelModes'],
     initialize  => \&init

@@ -5,9 +5,9 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils qw(conf lconf log2 fatal v set);
+use utils qw(conf lconf log2 fatal v set trim);
 
-our ($VERSION, $API, $conf, $loop, $timer, %global) = '6.41';
+our ($VERSION, $API, $conf, $loop, $timer, %global) = get_version();
 
 # all non-module packages always loaded in the IRCd.
 our @always_loaded = qw(
@@ -34,7 +34,8 @@ sub start {
     my $boot = shift;
     
     log2('Started server at '.scalar(localtime v('START')));
-
+    $utils::v{VERSION} = $VERSION;
+    
     # add these to @INC if they are not there already.
     my @add_inc = (
         "$::run_dir/lib/api-engine",
@@ -403,6 +404,18 @@ sub begin {
 # API engine logging.
 sub api_log {
     log2('[API] '.shift());
+}
+
+# get version from VERSION file.
+# $main::VERSION = version of IRCd when it was started; version of static code
+# $ircd::VERSION = version of ircd.pm and all reloadable packages at last reload
+# $API::Module::Core::VERSION = version of the core module currently
+# v('VERSION') = same as $ircd::VERSION
+sub get_version {
+    open my $fh, '<', "$::run_dir/VERSION" or log2("Cannot open VERSION: $!") and return;
+    my $version = trim(<$fh>);
+    close $fh;
+    return $version;
 }
 
 1

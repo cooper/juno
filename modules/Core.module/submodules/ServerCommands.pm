@@ -6,7 +6,7 @@ use strict;
  
 use utils qw(col log2 lceq lconf match cut_to_limit conf v fire_event);
 
-our $VERSION = $ircd::VERSION;
+our $VERSION = $API::Module::Core::VERSION;
 
 my %scommands = (
     SID => {

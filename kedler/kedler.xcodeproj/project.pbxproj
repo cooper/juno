@@ -48,6 +48,7 @@
 		A75C5D1A18B4321A007780A3 /* LOLCAT.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = LOLCAT.pm; sourceTree = "<group>"; };
 		A75C5D1B18B4321A007780A3 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		A75C5D1D18B4321A007780A3 /* rfc-2812 */ = {isa = PBXFileReference; lastKnownFileType = text; name = "rfc-2812"; path = "../rfc-2812"; sourceTree = "<group>"; };
+		A765E0BF18BEE68500B3E448 /* VERSION */ = {isa = PBXFileReference; lastKnownFileType = text; name = VERSION; path = ../VERSION; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -185,6 +186,7 @@
 		A75C5D1F18B43242007780A3 /* Documentation */ = {
 			isa = PBXGroup;
 			children = (
+				A765E0BF18BEE68500B3E448 /* VERSION */,
 				A75C5CD618B43219007780A3 /* INDEV */,
 				A75C5CD418B43219007780A3 /* GOALS */,
 				A75C5D1B18B4321A007780A3 /* README.md */,

@@ -11,6 +11,7 @@ local ( $SIG{HUP},                     $SIG{__WARN__}                        ) =
       ( \&ircd::signalhup,             \&ircd::WARNING                       );
 
 our ($run_dir, $loop, $API, $conf);
+our $VERSION;
 
 BEGIN {
     # find the directory to run from
@@ -27,7 +28,8 @@ BEGIN {
     unshift @INC, "$run_dir/lib";
     
     require ircd;
-    ircd::begin()
+    $VERSION = ircd::get_version();
+    ircd::begin();
 }
 
 ircd::boot();

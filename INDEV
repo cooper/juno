@@ -1787,3 +1787,7 @@ CHANGES:
         
         41. fixed an issue where real parameter matchers would be matched to nothing if no parameters remain.
             added VERSION command.
+            
+        42. current version is now stored in the VERSION file.
+            $::VERSION will remain static from start, but $ircd::VERSION may change with each reload of the ircd core.
+            updated VERSION command accordingly.

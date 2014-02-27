@@ -6,9 +6,11 @@ use strict;
 use utf8;
 use API::Module;
 
+our $VERSION = ircd::get_version();
+
 our $mod = API::Module->new(
     name        => 'Core',
-    version     => $ircd::VERSION,
+    version     => $VERSION,
     description => 'provides a set of core commands, modes, and more.',
     initialize  => \&init
 );
