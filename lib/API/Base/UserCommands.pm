@@ -54,8 +54,8 @@ sub register_user_command {
         }
 
         # parse argument type attributes.
-        my $required_parameters;    # number of parameters that will be checked
-        my @match_attr;             # matcher attributes (i.e. opt)
+        my $required_parameters = 0; # number of parameters that will be checked
+        my @match_attr;              # matcher attributes (i.e. opt)
         
         my $i = -1;
         foreach (@{ $opts{parameters} }) { $i++;
@@ -114,7 +114,11 @@ sub register_user_command {
                 # if it starts with -,
                 # don't increment current parameter.
                 $match_i++;
-                $param_i++ unless (my $t = $_t) =~ s/^-//; # modify copy
+                
+                # is this a fake (ignored) matcher?
+                my ($t, $fake) = $_t;
+                if ($t =~ s/^-//) { $fake = 1 }
+                else { $param_i ++ }
 
                 # split into a type and possibly an identifier.
                 my ($type, $id);
@@ -125,6 +129,10 @@ sub register_user_command {
                     $id   = 1;
                     $type = $t;
                 }
+                
+                # if this is not a fake matcher, and if there is no parameter,
+                # we should skip this. well, we should be done with the rest, too.
+                last if !$fake && !defined $param;
                 
                 given ($type) {
                 
@@ -158,7 +166,13 @@ sub register_user_command {
                 # server lookup
                 when ('server') {
                     my $server = server::lookup_by_name(col($param));
-                    return unless $server;
+
+                    # not found, send no such server.
+                    if (!$server) {
+                        $user->numeric(ERR_NOSUCHSERVER => col($param));
+                        return;
+                    }
+
                     push @final_parameters, $param_id{$id} = $server;
                 }
 

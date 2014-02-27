@@ -53,6 +53,7 @@ my %numerics = (
     RPL_ENDOFINVITELIST  => [347, '%s :End of channel invite list'                                        ],
     RPL_EXCEPTLIST       => [348, '%s %s'                                                                 ],
     RPL_ENDOFEXCEPTLIST  => [349, '%s :End of channel exception list'                                     ],
+    RPL_VERSION          => [351, '%s-%s. %s :start(%s);cur(%s);core(%s)'                                 ],
     RPL_WHOREPLY         => [352, '%s %s %s %s %s %s :0 %s'                                               ],
     RPL_NAMEREPLY        => [353, '%s %s :%s'                                                             ],
     RPL_ENDOFNAMES       => [366, '%s :End of NAMES list'                                                 ],

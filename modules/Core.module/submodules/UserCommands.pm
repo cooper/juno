@@ -165,6 +165,11 @@ my %ucommands = (
         code   => \&seval,
         desc   => 'evaluate a line of Perl code',
         params => '-oper(eval) :rest'
+    },
+    VERSION => {
+        code   => \&version,
+        desc   => 'view server version information',
+        params => 'server(opt)'
     }
 );
 
@@ -1256,6 +1261,19 @@ sub seval {
       foreach split "\n", $result // ($@ || "\2undef\2");
     
     return 1;
+}
+
+sub version {
+    my ($user, $data, $server) = (shift, shift, shift || v('SERVER'));
+    $user->numeric(RPL_VERSION =>
+        v('NAME'),               # all
+        v('VERSION'),            # of
+        $server->{name},         # this
+        $ircd::VERSION,          # is
+        $ircd::VERSION,          # wrong.
+        $VERSION                 # TODO: send this info over protocol.
+    );
+    $user->numeric('RPL_ISUPPORT') if $server->is_local;
 }
 
 $mod
