@@ -26,6 +26,8 @@ sub register_ircd_event {
         %opts # last so it can override
     );
     
+    log2("$$mod{name} register callback for ircd event $event_name: $callb_name");
+    
     # store for later.
     push @{$mod->{ircd_events}}, [$event_name, $callb_name];
     

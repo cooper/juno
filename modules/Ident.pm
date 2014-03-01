@@ -5,6 +5,8 @@ package API::Module::Ident;
 use warnings;
 use strict;
 
+use Net::Ident; # TODO: load dynamically
+
 use utils qw(conf v match);
 
 our $mod = API::Module->new(
@@ -16,8 +18,17 @@ our $mod = API::Module->new(
 );
 
 sub init {
-
+    $mod->register_ircd_event('connection.new' => \&connection_new) or return;
     return 1;
+}
+
+sub connection_new {
+    my ($connection, $event) = @_;
+
+    # prevent connection registration from completing.
+    #$connection->reg_wait();
+
+    
 }
 
 $mod

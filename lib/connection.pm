@@ -18,6 +18,7 @@ sub new {
     bless my $connection = {
         stream        => $stream,
         ip            => $stream->{write_handle}->peerhost,
+        host          => $stream->{write_handle}->peerhost,
         source        => v('SERVER', 'sid'),
         time          => time,
         last_ping     => time,
@@ -181,9 +182,6 @@ sub reg_continue {
 sub ready {
     my $connection = shift;
 
-    # if  host doesn't exist, use IP.
-    $connection->{host}   //= $connection->{ip};
-
     # must be a user
     if (exists $connection->{nick}) {
 
@@ -244,15 +242,20 @@ sub ready {
 
 # send data to the socket
 sub send {
+    my $connection = shift;
+    return unless $connection->{stream};
+    return if $connection->{goodbye};
     return shift->{stream}->write(shift()."\r\n");
+}
+
+sub sock {
+    return shift->{stream}{read_handle};
 }
 
 # end a connection
 
 sub done {
-
     my ($connection, $reason, $silent) = @_;
-
     log2("Closing connection from $$connection{ip}: $reason");
 
     if ($connection->{type}) {

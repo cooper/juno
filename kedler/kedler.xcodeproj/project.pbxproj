@@ -51,6 +51,7 @@
 		A75C5D1B18B4321A007780A3 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		A75C5D1D18B4321A007780A3 /* rfc-2812 */ = {isa = PBXFileReference; lastKnownFileType = text; name = "rfc-2812"; path = "../rfc-2812"; sourceTree = "<group>"; };
 		A765E0BF18BEE68500B3E448 /* VERSION */ = {isa = PBXFileReference; lastKnownFileType = text; name = VERSION; path = ../VERSION; sourceTree = "<group>"; };
+		A782BD6A18C2907900D137A3 /* Resolve.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Resolve.pm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -158,6 +159,7 @@
 				A75C5D1018B4321A007780A3 /* Access.pm */,
 				A75C5D1A18B4321A007780A3 /* LOLCAT.pm */,
 				A71BE82018C191A5003A2C1A /* Ident.pm */,
+				A782BD6A18C2907900D137A3 /* Resolve.pm */,
 			);
 			name = Modules;
 			path = ../modules;

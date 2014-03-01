@@ -32,7 +32,10 @@ sub new_connection {
     
     # become an event listener.
     $connection->add_listener($pool, 'connection');
-    
+
+    # fire connection creation event.
+    $connection->fire_event('new');
+
     # update total connection count
     v('connection_count')++;
 

@@ -1802,3 +1802,7 @@ CHANGES:
     
         51. all IRCd events without specific objects are now handled through the Events API base.
             utils::fire_event() has been removed because all events are now fired directly on channels, servers, users, etc.
+            
+        52. Goodbye $main::eo - the pool object replaced this functionality.
+            connection host must default to IP even before ->ready() is called in case of a registration timeout.
+            extra protection: check if connection is still alive just in case in ->send().

@@ -92,10 +92,7 @@ sub start {
     # that way, if any modes are deleted, they won't hang around afterward.
     $server->user::modes::add_internal_modes();
     $server->channel::modes::add_internal_modes();
-
-    # create the evented object.
-    $main::eo ||= Evented::Object->new;
-
+    
     # create API engine manager.
     $API ||= $main::API ||= API->new(
         log_sub  => \&api_log,
