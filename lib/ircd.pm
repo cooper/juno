@@ -16,9 +16,9 @@ our @always_loaded = qw(
     user        user::mine      user::modes
     server      server::mine    server::linkage
     channel     channel::mine   channel::modes
-    connection  res             ircd
+    connection  ircd
 
-);
+); # ircd must be last
 
 # these might be loaded, but don't load them if they're not.
 our @maybe_loaded = qw(

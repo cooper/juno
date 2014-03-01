@@ -33,7 +33,7 @@ id          = 0                                 # the SID of the server
 # modules to load automatically.
 # you probably want to load core_*. juno is pretty much useless without core modules.
 
-modules: ['Core', 'Access']
+modules: ['Core', 'Access', 'Resolve']
 
 [ modes: user ]
 

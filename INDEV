@@ -1806,3 +1806,5 @@ CHANGES:
         52. Goodbye $main::eo - the pool object replaced this functionality.
             connection host must default to IP even before ->ready() is called in case of a registration timeout.
             extra protection: check if connection is still alive just in case in ->send().
+            
+        53. added Resolve module. this replaces the res package.
