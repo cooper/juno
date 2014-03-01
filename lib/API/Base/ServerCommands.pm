@@ -67,7 +67,7 @@ sub register_server_command {
 
             # server lookup
             when ('server') {
-                my $server = server::lookup_by_id(my $id = col($args[$i]));
+                my $server = $main::pool->lookup_server(my $id = col($args[$i]));
                 if (!$server) {
                     log2("could not get server: $id");
                     $server->{conn}->done('Protocol error.');
@@ -78,7 +78,7 @@ sub register_server_command {
 
             # user lookup
             when ('user') {
-                my $user = user::lookup_by_id(my $id = col($args[$i]));
+                my $user = $main::pool->lookup_user(my $id = col($args[$i]));
                 if (!$user) {
                     log2("could not get user: $id");
                     $server->{conn}->done('Protocol error.');
@@ -89,7 +89,7 @@ sub register_server_command {
 
             # channel lookup
             when ('channel') {
-                my $channel = channel::lookup_by_name(my $chname = col($args[$i]));
+                my $channel = $main::pool->lookup_channel(my $chname = col($args[$i]));
                 if (!$channel) {
                     log2("could not get channel: $chname");
                     $server->{conn}->done('Protocol error.');

@@ -114,7 +114,7 @@ sub init {
 sub rpl_isupport {
     my ($user, $server) = (shift, v('SERVER'));
     my $listmodes = join '', sort map { $_->{letter} }
-      grep { $_->{type} == 3 } values %{ $server->{cmodes} };
+      grep { $_->{type} // -1 == 3 } values %{ $server->{cmodes} };
 
     my %things = (
         PREFIX      => &isp_prefix,

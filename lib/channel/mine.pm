@@ -93,7 +93,7 @@ sub send_all_user {
     $user->sendfrom($user->full, $what);
     my %sent = ( $user => 1 );
 
-    foreach my $channel (values %channel::channels) {
+    foreach my $channel ($main::pool->channels) {
         next unless $channel->has_user($user);
 
         # send to each member

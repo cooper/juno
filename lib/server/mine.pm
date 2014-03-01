@@ -207,11 +207,11 @@ sub send_burst {
         fire_command($server, aum => $serv);
         fire_command($server, acm => $serv);
         
-    }; $do->($_) foreach values %server::server;
+    }; $do->($_) foreach $main::pool->servers;
     
 
     # users
-    foreach my $user (values %user::user) {
+    foreach my $user ($main::pool->users) {
     
         # ignore users the server already knows!
         next if $user->{server} == $server || $server->{sid} == $user->{source};
@@ -231,7 +231,7 @@ sub send_burst {
     }
 
     # channels, using compact CUM
-    foreach my $channel (values %channel::channels) {
+    foreach my $channel ($main::pool->channels) {
         fire_command($server, cum => $channel);
         fire_command($server, topicburst => $channel) if $channel->{topic}
     }
@@ -249,7 +249,7 @@ sub send_burst {
 sub send_children {
     my $ignore = shift;
 
-    foreach my $server (values %server::server) {
+    foreach my $server ($main::pool->servers) {
 
         # don't send to ignored
         if (defined $ignore && $server == $ignore) {

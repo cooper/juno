@@ -171,15 +171,15 @@ sub sid {
     $ref->{source} = $server->{sid};
 
     # do not allow SID or server name collisions
-    if (server::lookup_by_id($ref->{sid}) || server::lookup_by_name($ref->{name})) {
+    if ($main::pool->lookup_server($ref->{sid}) || $main::pool->lookup_server_name($ref->{name})) {
         log2("duplicate SID $$ref{sid} or server name $$ref{name}; dropping $$server{name}");
         $server->{conn}->done('attempted to introduce existing server');
         return
     }
 
     # create a new server
-    my $serv = server->new($ref);
-    return 1
+    my $serv = $main::pool->new_server(%$ref);
+    return 1;
 }
 
 sub uid {
@@ -193,7 +193,7 @@ sub uid {
     $ref->{location} = $server;
 
     # uid collision?
-    if (user::lookup_by_id($ref->{uid})) {
+    if ($main::pool->lookup_user($ref->{uid})) {
         # can't tolerate this.
         # the server is either not a juno server or is bugged/mentally unstable.
         log2("duplicate UID $$ref{uid}; dropping $$server{name}");
@@ -201,7 +201,7 @@ sub uid {
     }
 
     # nick collision?
-    my $used = user::lookup_by_nick($ref->{nick});
+    my $used = $main::pool->lookup_user_nick($ref->{nick});
     if ($used) {
         log2("nick collision! $$ref{nick}");
         if ($ref->{time} > $used->{time}) {
@@ -222,7 +222,7 @@ sub uid {
     }
 
     # create a new user
-    my $user = user->new($ref);
+    my $user = $main::pool->new_user(%$ref);
 
     # set modes
     $user->handle_mode_string($ref->{modes}, 1);
@@ -288,7 +288,7 @@ sub privmsgnotice {
     my ($server, $data, $user, $command, $target, $message) = @_;
 
     # is it a user?
-    my $tuser = user::lookup_by_id($target);
+    my $tuser = $main::pool->lookup_user($target);
     if ($tuser) {
         # if it's mine, send it
         if ($tuser->is_local) {
@@ -301,14 +301,14 @@ sub privmsgnotice {
     }
 
     # must be a channel
-    my $channel = channel::lookup_by_name($target);
+    my $channel = $main::pool->lookup_channel($target);
     if ($channel) {
         # tell local users
         $channel->channel::mine::send_all(':'.$user->full." $command $$channel{name} :$message", $user);
 
         # then tell local servers if necessary
         my %sent;
-        foreach my $usr (values %user::user) {
+        foreach my $usr ($main::pool->users) {
             next if $server == $usr->{location};
             next if $usr->is_local;
             next if $sent{$usr->{location}};
@@ -324,14 +324,14 @@ sub sjoin {
     # user dummy any     ts
     # :uid JOIN  channel time
     my ($server, $data, $user, $chname, $time) = @_;
-    my $channel = channel::lookup_by_name($chname);
+    my $channel = $main::pool->lookup_channel($chname);
 
     # channel doesn't exist; make a new one
     if (!$channel) {
-        $channel = channel->new({
+        $channel = $main::pool->new_channel(
             name => $chname,
             time => $time
-        });
+        );
     }
 
     # take lower time if necessary, and add the user to the channel.
@@ -457,7 +457,10 @@ sub cum {
     my ($server, $data, $serv, $chname, $ts, $userstr, $modestr) = @_;
 
     # we cannot assume that this a new channel
-    my $channel = channel::lookup_by_name($chname) || channel->new({ name => $chname, time => $ts});
+    my $channel = $main::pool->lookup_channel($chname) || $main::pool->new_channel(
+        name => $chname,
+        time => $ts
+    );
     my $newtime = $channel->channel::mine::take_lower_time($ts);
 
     # lazy mode handling..
@@ -473,7 +476,7 @@ sub cum {
 
     USER: foreach my $str (split /,/, $userstr) {
         my ($uid, $modes) = split /!/, $str;
-        my $user          = user::lookup_by_id($uid) or next USER;
+        my $user          = $main::pool->lookup_user($uid) or next USER;
 
         # join the new users
         unless ($channel->has_user($user)) {

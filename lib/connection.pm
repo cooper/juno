@@ -4,13 +4,12 @@ package connection;
 
 use warnings;
 use strict;
-use feature 'switch';
+use 5.010;
+use parent 'Evented::Object';
 
 use Socket::GetAddrInfo;
 
 use utils qw[log2 col conn conf match v set];
-
-our ($ID, %connection) = 'a';
 
 sub new {
     my ($class, $stream) = @_;
@@ -19,7 +18,6 @@ sub new {
     bless my $connection = {
         stream        => $stream,
         ip            => $stream->{write_handle}->peerhost,
-        host          => $stream->{write_handle}->peerhost,
         source        => v('SERVER', 'sid'),
         time          => time,
         last_ping     => time,
@@ -32,16 +30,8 @@ sub new {
     # in servers - one for PASS, one for SERVER.
     $connection->reg_wait(2);
 
-    # update total connection count
-    v('connection_count')++;
-
-    # update maximum connection count
-    if ((scalar keys %connection) + 1 > v('max_connection_count')) {
-        v('max_connection_count') = 1 + scalar keys %connection;
-    }
-
     log2("Processing connection from $$connection{ip}");
-    return $connection{$stream} = $connection;
+    return $connection;
 }
 
 sub handle {
@@ -72,7 +62,7 @@ sub handle {
             my $nick = col(shift @args);
 
             # nick exists
-            if (user::lookup_by_nick($nick)) {
+            if ($main::pool->lookup_user_nick($nick)) {
                 $connection->send(':'.v('SERVER', 'name')." 433 * $nick :Nickname is already in use.");
                 return
             }
@@ -192,21 +182,27 @@ sub reg_continue {
 sub ready {
     my $connection = shift;
 
+    # if  host doesn't exist, use IP.
+    $connection->{host}   //= $connection->{ip};
+
     # must be a user
     if (exists $connection->{nick}) {
 
         # if the client limit has been reached, hang up
-        if (scalar(grep { $_->{type} && $_->{type}->isa('user') } values %connection) >= conf('limit', 'client')) {
-            $connection->done('not accepting clients');
-            return
-        }
-
-        $connection->{uid}      = v('SERVER', 'sid').++$ID;
+        # FIXME: completely broken since pool creation. not sure what to do with this.
+        #my $count = scalar grep { ($_->{type} || '')->isa('user') } values %connection;
+        #if ($count >= conf('limit', 'client')) {
+        #    $connection->done('Not accepting clients');
+        #    return;
+        #}
+        
         $connection->{server}   = v('SERVER');
         $connection->{location} = v('SERVER');
-        $connection->{cloak}    = $connection->{host};
-        $connection->{modes}    = '';
-        $connection->{type}     = user->new($connection);        
+        $connection->{cloak}  //= $connection->{host};
+
+
+        # create a new user.
+        $connection->{type}     = $main::pool->new_user(%$connection);
     }
 
     # must be a server
@@ -221,7 +217,7 @@ sub ready {
         }
 
         $connection->{parent} = v('SERVER');
-        $connection->{type}   = server->new($connection);
+        $connection->{type}   = $main::pool->new_server(%$connection);
         server::mine::fire_command_all(sid => $connection->{type});
 
         # send server credentials
@@ -252,24 +248,6 @@ sub send {
     return shift->{stream}->write(shift()."\r\n");
 }
 
-# find by a user or server object
-sub lookup {
-    my $obj = shift;
-    foreach my $conn (values %connection) {
-        # found a match
-        return $conn if $conn->{type} == $obj
-    }
-
-    # no matches
-    return
-}
-
-# find by a stream
-sub lookup_by_stream {
-    my $stream = shift;
-    return $connection{$stream};
-}
-
 # end a connection
 
 sub done {
@@ -288,7 +266,7 @@ sub done {
     $connection->send("ERROR :Closing Link: $$connection{host} ($reason)") unless $silent;
 
     # remove from connection list
-    delete $connection{$connection->{stream}}; # XXX select
+    $connection->{pool}->delete_connection($connection);
 
     $connection->{stream}->close_when_empty; # will close it WHEN the buffer is empty
 

@@ -1,9 +1,9 @@
-# Copyright (c) 2012, Mitchell Cooper
+# Copyright (c) 2012-14, Mitchell Cooper
 # provides channel access modes.
 # this module MUST be loaded globally for proper results.
 # TODO: add support for multiple modes in a single entry.
 # TODO: show list of access if no parameters are given.
-package API::Module::access;
+package API::Module::Access;
 
 use warnings;
 use strict;
@@ -12,7 +12,7 @@ use utils qw(conf v match);
 
 our $mod = API::Module->new(
     name        => 'Access',
-    version     => '0.9',
+    version     => '0.91',
     description => 'implements channel access modes',
     requires    => ['ChannelEvents', 'ChannelModes'],
     initialize  => \&init

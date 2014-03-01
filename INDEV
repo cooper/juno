@@ -868,7 +868,7 @@ CHANGES:
                  - you can, of course, call them on an object such as $server->server::mine::send()
                Added register_handler() to server::mine - registers a CODE reference to a command handler.
                Server now handles and sends the UID command.
-               Added server::lookup_by_id() to find a server by its SID.
+               Added $main::pool->lookup_server() to find a server by its SID.
 
             June 14, 2011
 
@@ -1797,3 +1797,5 @@ CHANGES:
             
         44. use increments and decrements during connection registration.
             this will allow modules to temporarily halt a the registration; i.e. for a hostname lookup.
+            
+    5. created pool, a single object that contains and manages all other objects in a single place rather across many packages.

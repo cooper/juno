@@ -7,15 +7,15 @@ use 5.010;
 
 use utils qw(conf lconf log2 fatal v set trim);
 
-our ($VERSION, $API, $conf, $loop, $timer, %global) = get_version();
+our ($VERSION, $API, $conf, $loop, $pool, $timer, %global) = get_version();
 
 # all non-module packages always loaded in the IRCd.
 our @always_loaded = qw(
 
-    utils
-    channel     channel::mine   channel::modes
+    utils       pool
     user        user::mine      user::modes
     server      server::mine    server::linkage
+    channel     channel::mine   channel::modes
     connection  res             ircd
 
 );
@@ -60,11 +60,16 @@ sub start {
     # load or reload optional packages.
     load_optionals($boot);
 
-    # create the main server object
+    # create the pool.
+    if (!$main::pool) {
+        $pool = $main::pool = pool->new();
+    }
+
+    # create the main server object.
     my $server = $utils::v{SERVER};
     if (!$server) {
     
-        $server = server->new({
+        $server = $pool->new_server(
             source => conf('server', 'id'),
             sid    => conf('server', 'id'),
             name   => conf('server', 'name'),
@@ -73,7 +78,7 @@ sub start {
             ircd   => v('VERSION'),
             time   => v('START'),
             parent => { name => 'self' } # temporary for logging
-        });
+        );
 
         # how is this possible?!?!
         $server->{parent}  =
@@ -248,7 +253,7 @@ sub terminate {
     log2("removing all connections for server shutdown");
 
     # delete all users/servers/other
-    foreach my $connection (values %connection::connection) {
+    foreach my $connection ($main::pool->connections) {
         $connection->done('Shutting down');
     }
 
@@ -282,19 +287,19 @@ sub handle_connect {
 
     # if the connection IP limit has been reached, disconnect
     my $ip = $stream->{write_handle}->peerhost;
-    if (scalar(grep { $_->{ip} eq $ip } values %connection::connection) >= conf('limit', 'perip')) {
+    if (scalar(grep { $_->{ip} eq $ip } $main::pool->connections) >= conf('limit', 'perip')) {
         $stream->close_now;
         return
     }
 
     # if the global user IP limit has been reached, disconnect
-    if (scalar(grep { $_->{ip} eq $ip } values %user::user) >= conf('limit', 'globalperip')) {
+    if (scalar(grep { $_->{ip} eq $ip } $main::pool->users) >= conf('limit', 'globalperip')) {
         $stream->close_now;
         return
     }
 
     # create connection object
-    my $conn = connection->new($stream);
+    my $conn = $pool->new_connection(stream => $stream);
 
     $stream->configure(
         read_all       => 0,
@@ -312,7 +317,7 @@ sub handle_connect {
 # handle incoming data
 sub handle_data {
     my ($stream, $buffer) = @_;
-    my $connection = connection::lookup_by_stream($stream);
+    my $connection = $main::pool->lookup_connection($stream);
     while ($$buffer =~ s/^(.*?)\n//) {
         $connection->handle($1)
     }
@@ -320,7 +325,7 @@ sub handle_data {
 
 # send out PINGs and check for timeouts
 sub ping_check {
-    foreach my $connection (values %connection::connection) {
+    foreach my $connection ($main::pool->connections) {
         if (!$connection->{type}) {
             $connection->done('Registration timeout') if time - $connection->{time} > 30;
             next

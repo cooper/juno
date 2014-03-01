@@ -5,69 +5,40 @@ package server;
 use warnings;
 use strict;
 use feature 'switch';
+use parent 'Evented::Object';
 
 use utils qw[log2 v];
 
-our %server;
-
 sub new {
-
-    my ($class, $ref) = @_;
-
-    # create the server object
-    bless my $server = {}, $class;
-    $server->{$_} = $ref->{$_} foreach qw[sid name proto ircd desc time parent source];
-
-    $server->{umodes}       = {}; ################
-    $server->{cmodes}       = {}; # named modes! #
-                                  ################
-    $server{$server->{sid}} = $server;
-    log2("new server $$server{sid}:$$server{name} $$server{proto}-$$server{ircd} parent:$$server{parent}{name} [$$server{desc}]");
-
-    return $server
-
+    my ($class, %opts) = @_;
+    return bless {
+        umodes   => {},
+        cmodes   => {},
+        users    => [],
+        children => [],
+        %opts
+    }, $class;
 }
 
 sub quit {
     my ($server, $reason, $why) = @_;
-    $why ||= $server->{name}.q( ).$server->{parent}->{name};
+    $why //= $server->{name}.q( ).$server->{parent}->{name};
 
     log2("server $$server{name} has quit: $reason");
 
-    # delete all of the server's users
-    foreach my $user (values %user::user) {
-        $user->quit($why) if $user->{server} == $server
-    }
-
-    log2("server $$server{name}'s data has been deleted.");
-
-    delete $server{$server->{sid}};
-
-    # now we must do the same for each of the servers' children and their children and so on
-    foreach my $serv (values %server) {
+    # all children must be disposed of.
+    foreach my $serv (@{ $server->{children} }) {
         next if $serv == $server;
-        $serv->quit('parent server has disconnected', $why) if $serv->{parent} == $server
+        $serv->quit('parent server has disconnected', $why);
     }
 
-    undef $server;
-    return 1
-
-}
-
-# find by SID
-sub lookup_by_id {
-    my $sid = shift;
-    return $server{$sid} if exists $server{$sid};
-    return
-}
-
-# find by name
-sub lookup_by_name {
-    my $name = shift;
-    foreach my $server (values %server) {
-        return $server if lc $server->{name} eq lc $name
+    # delete all of the server's users.
+    foreach my $user (@{ $server->{users} }) {
+        $user->quit($why);
     }
-    return
+
+    $server->{pool}->delete_server($server);
+    return 1;
 }
 
 # add a user mode
@@ -193,12 +164,6 @@ sub is_local {
     return shift == v('SERVER')
 }
 
-# returns an array of child servers
-sub children {
-    my $server = shift;
-    return grep { $_->{parent} == $server } values %server;
-}
-
 sub DESTROY {
     my $server = shift;
     log2("$server destroyed");
@@ -211,9 +176,11 @@ sub sendfrom { &server::mine::sendfrom }
 sub sendme   { &server::mine::sendme   }
 
 # other
-sub id   { shift->{sid}  }
-sub full { shift->{name} }
-sub name { shift->{name} }
+sub id       { shift->{sid}      }
+sub full     { shift->{name}     }
+sub name     { shift->{name}     }
+sub children { shift->{children} }
+
 
 1
 

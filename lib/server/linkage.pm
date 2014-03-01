@@ -18,7 +18,7 @@ sub connect_server {
     }
     
     # then, ensure that the server is not connected already.
-    if (server::lookup_by_name($server_name)) {
+    if ($main::pool->lookup_server_name($server_name)) {
         log2("attempted to connect an already connected server: $server_name");
         return;
     }
@@ -45,7 +45,7 @@ sub connect_server {
     );
 
     # create connection object 
-    my $conn = connection->new($stream);
+    my $conn = $main::pool->new_connection(stream => $stream);
 
     $stream->configure(
         read_all       => 0,

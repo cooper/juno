@@ -51,7 +51,9 @@ sub register_statuses {
 
         my ($channel, $mode) = @_;
         my $source = $mode->{source};
-        my $target = $mode->{proto} ? user::lookup_by_id($mode->{param}) : user::lookup_by_nick($mode->{param});
+        my $target = $mode->{proto} ?
+            $main::pool->lookup_user($mode->{param}) :
+            $main::pool->lookup_user_nick($mode->{param});
 
         # make sure the target user exists
         if (!$target) {

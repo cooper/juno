@@ -5,31 +5,17 @@ package channel;
 use warnings;
 use strict;
 use feature 'switch';
+use parent 'Evented::Object';
 
 use utils qw/log2 v match fire_event/;
 
-our %channels;
-
 sub new {
-    my ($class, $ref) = @_;
-
-    # create the channel object
-    bless my $channel = {}, $class;
-    $channel->{$_}    = $ref->{$_} foreach qw/name time/;
-    $channel->{users} = []; # array ref of user objects
-    $channel->{modes} = {}; # named modes
-
-    # make sure it doesn't exist already
-    if (exists $channels{lc($ref->{name})}) {
-        log2("attempted to create channel that already exists: $$ref{name}");
-        return
-    }
-
-    # add to the channel hash
-    $channels{lc($ref->{name})} = $channel;
-    log2("new channel $$ref{name} at $$ref{time}");
-
-    return $channel
+    my ($class, %opts) = @_;
+    return bless {
+        users => [],
+        modes => {},
+        %opts
+    }, $class;
 }
 
 # named mode stuff
@@ -173,16 +159,13 @@ sub remove {
     $channel->{users} = \@new;
     
     # delete the channel if this is the last user
-    if (!scalar @{$channel->{users}}) {
-        delete $channels{lc($channel->{name})};
-        log2("deleted $$channel{name} data");
-        undef $channel;
-        return
+    if (!scalar @{ $channel->{users} }) {
+        $channel->{pool}->delete_channel($channel);
     }
     
     log2("removed $$user{nick} from $$channel{name}");
 
-    return 1
+    return 1;
 }
 
 # alias remove_user.
@@ -409,22 +392,6 @@ sub user_get_highest_level {
         return $res if defined $res
     }
     return -'inf' # lowest status value
-}
-
-# returns true if the two passed users have a channel in common.
-# well actually it returns the first match found, but that's usually useless.
-sub in_common {
-    my ($user1, $user2) = @_;
-    foreach my $channel (values %channels) {
-        return $channel if $channel->has_user($user1) && $channel->has_user($user2)
-    }
-    return
-}
-
-# find a channel by its name
-sub lookup_by_name {
-    my $name = lc shift;
-    return $channels{$name}
 }
 
 sub id   { shift->{name} }

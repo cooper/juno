@@ -4,6 +4,9 @@ package user;
 
 use warnings;
 use strict;
+use 5.010;
+use parent 'Evented::Object';
+
 use overload
     fallback => 1,
     '""'     => sub { shift->id },
@@ -12,32 +15,15 @@ use overload
 
 use utils qw[log2 v set];
 
-our %user;
-
 # create a new user
 
 sub new {
-
-    my ($class, $ref) = @_;
-    
-    # create the user object
-    bless my $user      = {}, $class;
-    $user->{$_}         = $ref->{$_} foreach qw[nick ident real host ip ssl uid time server cloak source location];
-    $user->{modes}      = []; # named modes!
-    $user->{flags}      = []; # oper flags
-    $user{$user->{uid}} = $user;
-    log2("new user from $$user{server}{name}: $$user{uid} $$user{nick}!$$user{ident}\@$$user{host} [$$user{real}]");
-
-    # update max local and global user counts
-    my $max_l = v('max_local_user_count');
-    my $max_g = v('max_global_user_count');
-    my $c_l   = scalar grep { $_->is_local } values %user;
-    my $c_g   = scalar values %user;
-    v('max_local_user_count')  = $c_l if $c_l > $max_l;
-    v('max_global_user_count') = $c_g if $c_g > $max_g;
-
-    return $user
-
+    my ($class, %opts) = @_;
+    return bless {
+        modes => [],
+        flags => [],
+        %opts
+    }, $class;
 }
 
 # named mode stuff
@@ -78,7 +64,7 @@ sub quit {
     # search for local users that know this client
     # and send the quit to them.
 
-    foreach my $channel (values %channel::channels) {
+    foreach my $channel ($main::pool->channels) {
         next unless $channel->has_user($user);
         $channel->remove($user);
         foreach my $usr (@{$channel->{users}}) {
@@ -89,7 +75,7 @@ sub quit {
         }
     }
 
-    delete $user{$user->{uid}};
+    $user->{pool}->delete_user($user);
     undef $user;
 }
 
@@ -210,22 +196,6 @@ sub unset_away {
     my $user = shift;
     log2("$$user{nick} has returned from being away: $$user{away}");
     delete $user->{away};
-}
-
-# lookup functions
-
-sub lookup_by_nick {
-    my $nick = lc shift;
-    foreach my $user (values %user) {
-        return $user if lc $user->{nick} eq $nick
-    }
-    return
-}
-
-sub lookup_by_id {
-    my $uid = shift;
-    return $user{$uid} if exists $user{$uid};
-    return
 }
 
 sub is_local {

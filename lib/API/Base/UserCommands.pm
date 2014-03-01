@@ -156,16 +156,16 @@ sub register_user_command {
                 # global lookup
                 when ('source') {
                     my $source =
-                         server::lookup_by_name($param)  ||
-                        channel::lookup_by_name($param)  ||
-                           user::lookup_by_nick($param);
+                         $main::pool->lookup_server_name($param)  ||
+                        $main::pool->lookup_channel($param)  ||
+                           $main::pool->lookup_user_nick($param);
                     return unless $source;
                     push @final_parameters, $param_id{$id} = $source;
                 }
 
                 # server lookup
                 when ('server') {
-                    my $server = server::lookup_by_name(col($param));
+                    my $server = $main::pool->lookup_server_name(col($param));
 
                     # not found, send no such server.
                     if (!$server) {
@@ -179,7 +179,7 @@ sub register_user_command {
                 # user lookup
                 when ('user') {
                     my $nickname = (split ',', col($param))[0];
-                    my $usr = user::lookup_by_nick($nickname);
+                    my $usr = $main::pool->lookup_user_nick($nickname);
 
                     # not found, send no such nick.
                     if (!$usr) {
@@ -193,7 +193,7 @@ sub register_user_command {
                 # channel lookup
                 when ('channel') {
                     my $chaname = (split ',', col($param))[0];
-                    my $channel = channel::lookup_by_name($chaname);
+                    my $channel = $main::pool->lookup_channel($chaname);
                     
                     # not found, send no such channel.
                     if (!$channel) {

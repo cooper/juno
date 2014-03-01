@@ -40,7 +40,7 @@ sub init {
 sub lolcat {
     my ($user, $data, @args) = @_;
     my $msg   = translate(col((split /\s+/, $data, 3)[2]));
-    return unless my $where = channel::lookup_by_name($args[1]);
+    return unless my $where = $main::pool->lookup_channel($args[1]);
     my $cmd   = q(:).$user->full." PRIVMSG $$where{name} :$msg";
     $user->send($cmd) if $user->handle("PRIVMSG $$where{name} :$msg");
 }

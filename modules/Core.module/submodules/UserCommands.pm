@@ -258,7 +258,7 @@ sub nick {
         }
 
         # check for existing nick
-        if (user::lookup_by_nick($newnick)) {
+        if ($main::pool->lookup_user_nick($newnick)) {
             $user->numeric('ERR_NICKNAMEINUSE', $newnick);
             return
         }
@@ -341,7 +341,7 @@ sub mode {
     }
 
     # is it a channel, then?
-    if (my $channel = channel::lookup_by_name($args[1])) {
+    if (my $channel = $main::pool->lookup_channel($args[1])) {
 
         # viewing
         if (!defined $args[2]) {
@@ -370,7 +370,7 @@ sub mode {
     }
 
     # hmm.. maybe it's another user
-    if (user::lookup_by_nick($args[1])) {
+    if ($main::pool->lookup_user_nick($args[1])) {
         $user->numeric('ERR_USERSDONTMATCH');
         return
     }
@@ -396,7 +396,7 @@ sub privmsgnotice {
     }
 
     # is it a user?
-    my $tuser = user::lookup_by_nick($args[1]);
+    my $tuser = $main::pool->lookup_user_nick($args[1]);
     if ($tuser) {
 
         # TODO here check for user modes preventing
@@ -420,7 +420,7 @@ sub privmsgnotice {
     }
 
     # must be a channel
-    my $channel = channel::lookup_by_name($args[1]);
+    my $channel = $main::pool->lookup_channel($args[1]);
     if ($channel) {
 
         # no external messages?
@@ -443,7 +443,7 @@ sub privmsgnotice {
 
         # then tell local servers
         my %sent;
-        foreach my $usr (values %user::user) {
+        foreach my $usr ($main::pool->users) {
             next if $usr->is_local;
             next if $sent{$usr->{location}};
             $sent{$usr->{location}} = 1;
@@ -461,23 +461,23 @@ sub privmsgnotice {
 sub cmap {
     # TODO this will be much prettier later!
     my $user  = shift;
-    my $total = scalar values %user::user;
+    my $total = scalar $main::pool->users;
     my $me    = v('SERVER');
-    my $users = scalar grep { $_->{server} == $me } values %user::user;
+    my $users = scalar grep { $_->{server} == $me } $main::pool->users;
     my $per   = int $users / $total * 100;
 
     $user->numeric('RPL_MAP', "- \2$$me{sid}\2 $$me{name} ($$me{ircd}): $users [$per\%]");
 
     my $avg;
-    foreach my $server (values %server::server) {
+    foreach my $server ($main::pool->servers) {
         next if $server == $me;
-        $users = scalar grep { $_->{server} == $server } values %user::user;
+        $users = scalar grep { $_->{server} == $server } $main::pool->users;
         $per   = int $users / $total * 100;
         $avg  += $users;
         $user->numeric('RPL_MAP', "    - \2$$server{sid}\2 $$server{name} ($$server{ircd}): $users [$per\%]");
     }
 
-    my $average = int $avg / scalar values %server::server;
+    my $average = int $avg / scalar $main::pool->servers;
     $user->numeric('RPL_MAP', "- Total of $total users, average $average users per server");
     $user->numeric('RPL_MAPEND');
 }
@@ -494,16 +494,16 @@ sub cjoin {
         }
 
         # if the channel exists, just join
-        my $channel = channel::lookup_by_name($chname);
+        my $channel = $main::pool->lookup_channel($chname);
         my $time    = time;
 
         # otherwise create a new one
         if (!$channel) {
             $new     = 1;
-            $channel = channel->new({
+            $channel = $main::pool->new_channel(
                 name   => $chname,
                 'time' => $time
-            });
+            );
         }
 
         return if $channel->has_user($user);
@@ -542,7 +542,7 @@ sub names {
     foreach my $chname (split ',', $args[1]) {
         # nonexistent channels return no error,
         # and RPL_ENDOFNAMES is sent no matter what
-        my $channel = channel::lookup_by_name($chname);
+        my $channel = $main::pool->lookup_channel($chname);
         $channel->channel::mine::names($user) if $channel;
         $user->numeric('RPL_ENDOFNAMES', $channel ? $channel->{name} : $chname);
     }
@@ -665,7 +665,7 @@ sub whois {
 
     # this is the way inspircd does it so I can too
     my $query = $args[2] ? $args[2] : $args[1];
-    my $quser = user::lookup_by_nick($query);
+    my $quser = $main::pool->lookup_user_nick($query);
 
     # exists?
     if (!$quser) {
@@ -708,7 +708,7 @@ sub ison {
 
     # for each nick, lookup and add if exists
     foreach my $nick (@args[1..$#args]) {
-        my $user = user::lookup_by_nick(col($nick));
+        my $user = $main::pool->lookup_user_nick(col($nick));
         push @found, $user->{nick} if $user
     }
 
@@ -776,7 +776,7 @@ sub part {
     my $reason = defined $args[2] ? col($m[2]) : q();
 
     foreach my $chname (split ',', $args[1]) {
-        my $channel = channel::lookup_by_name($chname);
+        my $channel = $main::pool->lookup_channel($chname);
 
         # channel doesn't exist
         if (!$channel) {
@@ -816,7 +816,7 @@ sub sconnect {
     }
 
     # make sure it's not already connected
-    if (server::lookup_by_name($server)) {
+    if ($main::pool->lookup_server_name($server)) {
         $user->server_notice('CONNECT', "$server is already connected.");
         return
     }
@@ -852,14 +852,14 @@ sub who {
 
     # match all, like the above note says
     if ($query eq '0') {
-        foreach my $quser (values %user::user) {
+        foreach my $quser ($main::pool->users) {
             $matches{$quser->{uid}} = $quser
         }
         # I used UIDs so there are no duplicates
     }
 
     # match an exact channel name
-    elsif (my $channel = channel::lookup_by_name($query)) {
+    elsif (my $channel = $main::pool->lookup_channel($query)) {
         $match_pattern = $channel->{name};
         foreach my $quser (@{$channel->{users}}) {
             $matches{$quser->{uid}} = $quser;
@@ -869,7 +869,7 @@ sub who {
 
     # match a pattern
     else {
-        foreach my $quser (values %user::user) {
+        foreach my $quser ($main::pool->users) {
             foreach my $pattern ($quser->{nick}, $quser->{ident}, $quser->{host},
               $quser->{real}, $quser->{server}->{name}) {
                 $matches{$quser->{uid}} = $quser if match($pattern, $query);
@@ -884,7 +884,10 @@ sub who {
         my $who_flags = delete $quser->{who_flags} || '';
 
         # weed out invisibles
-        next if ($quser->is_mode('invisible') && !channel::in_common($user, $quser) && !$user->has_flag('see_invisible'));
+        next if
+          $quser->is_mode('invisible')                   &&
+          !$main::pool->channel_in_common($user, $quser) &&
+          !$user->has_flag('see_invisible');
 
         # rfc2812:
         # If the "o" parameter is passed only operators are returned according
@@ -903,7 +906,7 @@ sub who {
 sub topic {
     my ($user, $data, @args) = @_;
     $args[1] =~ s/,(.*)//; # XXX: comma separated list won't work here!
-    my $channel = channel::lookup_by_name($args[1]);
+    my $channel = $main::pool->lookup_channel($args[1]);
 
     # existent channel?
     if (!$channel) {
@@ -963,25 +966,25 @@ sub lusers {
 
     # get server count
     my $servers   = scalar keys %server::server;
-    my $l_servers = scalar grep { $_->is_local } values %server::server;
+    my $l_servers = scalar grep { $_->is_local } $main::pool->servers;
 
     # get x users, x invisible, and total global
     my ($g_not_invisible, $g_invisible) = (0, 0);
-    foreach my $user (values %user::user) {
+    foreach my $user ($main::pool->users) {
         $g_invisible++, next if $user->is_mode('invisible');
         $g_not_invisible++
     }
     my $g_users = $g_not_invisible + $g_invisible;
 
     # get local users
-    my $l_users  = scalar grep { $_->is_local } values %user::user;
+    my $l_users  = scalar grep { $_->is_local } $main::pool->users;
 
     # get connection count and max connection count
     my $conn     = v('connection_count');
     my $conn_max = v('max_connection_count');
 
     # get oper count and channel count
-    my $opers = scalar grep { $_->is_mode('ircop') } values %user::user;
+    my $opers = scalar grep { $_->is_mode('ircop') } $main::pool->users;
     my $chans = scalar keys %channel::channel;
 
     # get max global and max local

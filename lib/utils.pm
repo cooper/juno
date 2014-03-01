@@ -74,9 +74,9 @@ sub col {
 # find an object by it's id (server, user) or channel name
 sub global_lookup {
     my $id = shift;
-    my $server = server::lookup_by_id($id);
-    my $user   = user::lookup_by_id($id);
-    my $chan   = channel::lookup_by_name($id);
+    my $server = $main::pool->lookup_server($id);
+    my $user   = $main::pool->lookup_user($id);
+    my $chan   = $main::pool->lookup_channel($id);
     return $server ? $server : ( $user ? $user : ( $chan ? $chan : undef ) )
 }
 
