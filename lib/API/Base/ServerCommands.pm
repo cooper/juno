@@ -40,6 +40,11 @@ sub register_server_command {
         my ($server, $data, @args) = @_;
         my ($i, @final_parameters) = -1;
 
+        # if it is not an array reference, it's a whitespace-separated string.
+        if (ref $opts{parameters} ne 'ARRAY') {
+            $opts{parameters} = [ split /\s/, $opts{parameters} ];
+        }
+
         # check argument count
         if (scalar @args < scalar @{$opts{parameters}}) {
             log2("not enough arguments for $opts{name}");

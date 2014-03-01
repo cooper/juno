@@ -151,7 +151,6 @@ sub load_or_reload {
     if ($set_v) {
         no strict 'refs';
         ${"${name}::VERSION"} = $set_v;
-        print "SET ${name}::VERSION = $set_v\n";
     }
     
     # it hasn't been loaded yet at all.

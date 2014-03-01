@@ -10,102 +10,102 @@ our $VERSION = $API::Module::Core::VERSION;
 
 my %scommands = (
     SID => {
-        params  => [qw(server dummy any ts any any any :rest)],
+        params  => 'server dummy any ts any any any :rest',
         code    => \&sid,
         forward => 1
     },
     UID => {
-        params  => [qw(server dummy any ts any any any any any any :rest)],
+        params  => 'server dummy any ts any any any any any any :rest',
         code    => \&uid,
         forward => 1
     },
     QUIT => {
-        params  => [qw(source dummy :rest)],
+        params  => 'source dummy :rest',
         code    => \&quit,
         forward => 1
     },
     NICK => {
-        params  => [qw(user dummy any)],
+        params  => 'user dummy any',
         code    => \&nick,
         forward => 1
     },
     BURST => {
-        params  => [qw(server)],
+        params  => 'server',
         code    => \&burst,
         forward => 1
     },
     ENDBURST => {
-        params  => [qw(server)],
+        params  => 'server',
         code    => \&endburst,
         forward => 1
     },
     ADDUMODE => {
-        params  => [qw(server dummy any any)],
+        params  => 'server dummy any any',
         code    => \&addumode,
         forward => 1
     },
     UMODE => {
-        params  => [qw(user dummy any)],
+        params  => 'user dummy any',
         code    => \&umode,
         forward => 1
     },
     PRIVMSG => {
-        params  => [qw(source any any :rest)],
+        params  => 'source any any :rest',
         code    => \&privmsgnotice,
         forward => 0 # we have to do this manually
     },
     NOTICE => {
-        params  => [qw(source any any :rest)],
+        params  => 'source any any :rest',
         code    => \&privmsgnotice,
         forward => 0 # we have to do this manually
     },
     JOIN => {
-        params  => [qw(user dummy any ts)],
+        params  => 'user dummy any ts',
         code    => \&sjoin,
         forward => 1
     },
     OPER => {
-        params  => [qw(user dummy @rest)],
+        params  => 'user dummy @rest',
         code    => \&oper,
         forward => 1
     },
     AWAY => {
-        params  => [qw(user dummy :rest)],
+        params  => 'user dummy :rest',
         code    => \&away,
         forward => 1
     },
     RETURN => {
-        params  => [qw(user)],
+        params  => 'user',
         code    => \&return_away,
         forward => 1
     },
     ADDCMODE => {
-        params  => [qw(server dummy any any any)],
+        params  => 'server dummy any any any',
         code    => \&addcmode,
         forward => 1
     },
     CMODE => {
-        params  => [qw(source dummy channel ts server :rest)],
+        params  => 'source dummy channel ts server :rest',
         code    => \&cmode,
         forward => 1
     },
     PART => {
-        params  => [qw(user dummy channel ts :rest)],
+        params  => 'user dummy channel ts :rest',
         code    => \&part,
         forward => 1
     },
     TOPIC => {
-        params  => [qw(source dummy channel ts ts :rest)],
+        params  => 'source dummy channel ts ts :rest',
         code    => \&topic,
         forward => 1
     },
     TOPICBURST => {
-        params  => [qw(source dummy channel ts any ts :rest)],
+        params  => 'source dummy channel ts any ts :rest',
         code    => \&topicburst,
         forward => 1
     },
     KILL => {
-        params  => [qw(user dummy user :rest)],
+        params  => 'user dummy user :rest',
         code    => \&skill,
         forward => 1
     },
@@ -113,22 +113,22 @@ my %scommands = (
     # compact
 
     AUM => {
-        params  => [qw(server dummy @rest)],
+        params  => 'server dummy @rest',
         code    => \&aum,
         forward => 1
     },
     ACM => {
-        params  => [qw(server dummy @rest)],
+        params  => 'server dummy @rest',
         code    => \&acm,
         forward => 1
     },
     CUM => {
-        params  => [qw(server dummy any ts any :rest)],
+        params  => 'server dummy any ts any :rest',
         code    => \&cum,
         forward => 1
     },
     KICK => {
-        params  => [qw(source dummy channel user :rest)],
+        params  => 'source dummy channel user :rest',
         code    => \&kick,
         forward => 1
     }
@@ -147,7 +147,7 @@ sub init {
     # register server commands
     $mod->register_server_command(
         name       => $_,
-        parameters => $scommands{$_}{params}  || undef,
+        parameters => $scommands{$_}{params} || undef,
         code       => $scommands{$_}{code},
         forward    => $scommands{$_}{forward}
     ) || return foreach keys %scommands;

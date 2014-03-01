@@ -1791,3 +1791,6 @@ CHANGES:
         42. current version is now stored in the VERSION file.
             $::VERSION will remain static from start, but $ircd::VERSION may change with each reload of the ircd core.
             updated VERSION command accordingly.
+            
+        43. the ServerCommands API base now assumes a nonreference scalar value to be a space-separated list.
+            the ServerCommands core module has been updated accordingly.
