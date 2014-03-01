@@ -1794,3 +1794,6 @@ CHANGES:
             
         43. the ServerCommands API base now assumes a nonreference scalar value to be a space-separated list.
             the ServerCommands core module has been updated accordingly.
+            
+        44. use increments and decrements during connection registration.
+            this will allow modules to temporarily halt a the registration; i.e. for a hostname lookup.

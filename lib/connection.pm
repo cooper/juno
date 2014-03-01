@@ -19,21 +19,18 @@ sub new {
     bless my $connection = {
         stream        => $stream,
         ip            => $stream->{write_handle}->peerhost,
+        host          => $stream->{write_handle}->peerhost,
         source        => v('SERVER', 'sid'),
         time          => time,
         last_ping     => time,
-        last_response => time
+        last_response => time,
+        wait          => 0
     }, $class;
 
-    # resolve hostname
-    if (conf qw/enabled resolve/) {
-        require res;
-        $connection->send(':'.v('SERVER', 'name').' NOTICE * :*** Looking up your hostname...');
-        res::resolve_address($connection)
-    }
-    else {
-        $connection->{host} = $connection->{ip};
-    }
+    # two initial waits:
+    # in clients - one for NICK, one for USER.
+    # in servers - one for PASS, one for SERVER.
+    $connection->reg_wait(2);
 
     # update total connection count
     v('connection_count')++;
@@ -44,7 +41,7 @@ sub new {
     }
 
     log2("Processing connection from $$connection{ip}");
-    return $connection{$stream} = $connection
+    return $connection{$stream} = $connection;
 }
 
 sub handle {
@@ -88,9 +85,7 @@ sub handle {
 
             # set the nick
             $connection->{nick} = $nick;
-
-            # the user is ready if their USER info has been sent
-            $connection->ready if exists $connection->{ident} && exists $connection->{host}
+            $connection->reg_continue;
 
         }
 
@@ -99,16 +94,14 @@ sub handle {
             # set ident and real name
             if (defined $args[3]) {
                 $connection->{ident} = $args[0];
-                $connection->{real}  = col((split /\s+/, $data, 5)[4])
+                $connection->{real}  = col((split /\s+/, $data, 5)[4]);
+                $connection->reg_continue;
             }
 
             # not enough parameters
             else {
                 return $connection->wrong_par('USER')
             }
-
-            # the user is ready if their NICK has been sent
-            $connection->ready if exists $connection->{nick} && exists $connection->{host}
 
         }
 
@@ -129,27 +122,24 @@ sub handle {
             }
 
             # find a matching server
-
             if (defined ( my $addr = conn($connection->{name}, 'address') )) {
 
                 # check for matching IPs
-
                 if (!match($connection->{ip}, $addr)) {
                     $connection->done('Invalid credentials');
-                    return
+                    return;
                 }
 
             }
 
             # no such server
-
             else {
                 $connection->done('Invalid credentials');
-                return
+                return;
             }
 
-            # if a password has been sent, it's ready
-            $connection->ready if exists $connection->{pass} && exists $connection->{host}
+            # made it.
+            $connection->reg_continue;
 
         }
 
@@ -159,10 +149,8 @@ sub handle {
             return $connection->wrong_par('PASS') if not defined $args[0];
 
             $connection->{pass} = shift @args;
-
-            # if a server has been sent, it's ready
-            $connection->ready if exists $connection->{name} && exists $connection->{host}
-
+            $connection->reg_continue;
+            
         }
 
         when ('QUIT') {
@@ -187,6 +175,18 @@ sub wrong_par {
       .($connection->{nick} ? $connection->{nick} : '*').
       " $cmd :Not enough parameters");
     return
+}
+
+# increase the wait count.
+sub reg_wait {
+    my ($connection, $inc) = (shift, shift || 1);
+    $connection->{wait} += $inc;
+}
+
+# decrease the wait count.
+sub reg_continue {
+    my ($connection, $inc) = (shift, shift || 1);
+    $connection->ready unless $connection->{wait} -= $inc;
 }
 
 sub ready {
@@ -247,17 +247,6 @@ sub ready {
 
 }
 
-sub somewhat_ready {
-    my $connection = shift;
-    if (exists $connection->{nick} && exists $connection->{ident}) {
-        return 1
-    }
-    if (exists $connection->{name} && exists $connection->{pass}) {
-        return 1
-    }
-    return
-}
-
 # send data to the socket
 sub send {
     return shift->{stream}->write(shift()."\r\n");
@@ -303,10 +292,8 @@ sub done {
 
     $connection->{stream}->close_when_empty; # will close it WHEN the buffer is empty
 
-    # fixes memory leak:
-    # referencing to ourself, etc.
-    # perl doesn't know to destroy unless we do this
-    delete $connection->{type}->{conn};
+    # destroy these references, just in case.
+    delete $connection->{type}{conn};
     delete $connection->{type};
 
     # prevent confusion if more data is received
@@ -327,7 +314,6 @@ sub has_cap {
     my ($connection, $flag) = @_;
     return $flag ~~ @{$connection->{cap}}
 }
-
 
 # add client capability
 sub add_cap {

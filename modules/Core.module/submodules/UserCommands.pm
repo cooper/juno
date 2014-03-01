@@ -187,7 +187,7 @@ sub init {
     $mod->register_user_command(
         name        => $_,
         description => $ucommands{$_}{desc},
-        parameters  => $ucommands{$_}{parameters} || $ucommands{$_}{params} || undef,
+        parameters  => $ucommands{$_}{params},
         code        => $ucommands{$_}{code}
     ) || return foreach keys %ucommands;
 
