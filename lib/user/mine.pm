@@ -86,7 +86,22 @@ sub delete_numeric {
     return 1
 }
 
+####################
+### USER METHODS ###
+####################
+
+sub safe {
+    my $user = shift;
+    if (!$user->is_local) {
+        my $caller = caller;
+        log2("Attempted to call ->$caller() on nonlocal user");
+        return;
+    }
+    return ($user, @_);
+}
+
 sub handle {
+    @_ = &safe or return;
     my $user = shift;
     foreach my $line (split "\n", shift) {
 
@@ -119,6 +134,7 @@ sub handle {
 }
 
 sub send {
+    @_ = &safe or return;
     my $user = shift;
     if (!$user->{conn}) {
         my $sub = (caller 1)[3];
@@ -143,6 +159,7 @@ sub sendserv {
 # a notice from server
 # revision: supports nonlocal users as well now
 sub server_notice {
+    @_ = &safe or return;
     my ($user, @args) = @_;
     my $msg = defined $args[1] ? "*** $args[0]: $args[1]" : $args[0];
     
@@ -164,6 +181,7 @@ sub server_notice {
 
 # send a numeric to a local user.
 sub numeric {
+    @_ = &safe or return;
     my ($user, $const, @response) = (shift, shift);
     
     # does not exist.
@@ -191,6 +209,7 @@ sub numeric {
 
 # send welcomes
 sub new_connection {
+    @_ = &safe or return;
     my $user = shift;
 
     # set modes

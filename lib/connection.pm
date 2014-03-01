@@ -8,6 +8,7 @@ use 5.010;
 use parent 'Evented::Object';
 
 use Socket::GetAddrInfo;
+use Scalar::Util 'weaken';
 
 use utils qw[log2 col conn conf match v set];
 
@@ -233,11 +234,9 @@ sub ready {
         warn 'intergalactic alien has been found';
     }
     
-    # memory leak (fixed)
-    $connection->{type}->{conn} = $connection;
-    user::mine::new_connection($connection->{type}) if $connection->{type}->isa('user');
-    return $connection->{ready} = 1
-
+    weaken($connection->{type}{conn} = $connection);
+    $connection->{type}->new_connection if $connection->{type}->isa('user');
+    return $connection->{ready} = 1;
 }
 
 # send data to the socket
@@ -245,7 +244,7 @@ sub send {
     my $connection = shift;
     return unless $connection->{stream};
     return if $connection->{goodbye};
-    return shift->{stream}->write(shift()."\r\n");
+    return $connection->{stream}->write(shift()."\r\n");
 }
 
 sub sock {

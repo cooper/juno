@@ -1808,3 +1808,5 @@ CHANGES:
             extra protection: check if connection is still alive just in case in ->send().
             
         53. added Resolve module. this replaces the res package.
+        
+        54. all users inherit from the user::mine package now. these methods check if the user is local before doing anything dangerous.

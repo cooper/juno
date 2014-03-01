@@ -5,7 +5,7 @@ package user;
 use warnings;
 use strict;
 use 5.010;
-use parent 'Evented::Object';
+use parent qw(Evented::Object user::mine);
 
 use overload
     fallback => 1,
@@ -217,15 +217,7 @@ sub DESTROY {
     log2("$user destroyed");
 }
 
-# local shortcuts
-
-sub handle        { &user::mine::handle        }
-sub send          { &user::mine::send          }
-sub sendfrom      { &user::mine::sendfrom      }
-sub sendserv      { &user::mine::sendserv      }
-sub server_notice { &user::mine::server_notice }
-sub numeric       { &user::mine::numeric       }
-sub id            { shift->{uid}               }
-sub name          { shift->{nick}              }
+sub id            { shift->{uid}  }
+sub name          { shift->{nick} }
 
 1
