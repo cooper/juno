@@ -4,7 +4,7 @@ package API::Module::Core::ServerCommands;
 use warnings;
 use strict;
  
-use utils qw(col log2 lceq lconf match cut_to_limit conf v fire_event);
+use utils qw(col log2 lceq lconf match cut_to_limit conf v);
 
 our $VERSION = $API::Module::Core::VERSION;
 
@@ -342,7 +342,8 @@ sub sjoin {
     $channel->channel::mine::send_all(q(:).$user->full." JOIN $$channel{name}");
    
     # fire after join event.
-    fire_event('channel:user_joined' => $channel, $user);
+    $channel->fire_event(user_joined => $user);
+
     
 }
 
@@ -482,7 +483,7 @@ sub cum {
         unless ($channel->has_user($user)) {
             $channel->cjoin($user, $channel->{time});
             $channel->channel::mine::send_all(q(:).$user->full." JOIN $$channel{name}");
-            fire_event('channel:user_joined' => $channel, $user);
+            $channel->fire_event(user_joined => $user);
         }
 
         next USER unless $modes;      # the mode part is obviously optional..

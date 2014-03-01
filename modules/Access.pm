@@ -14,7 +14,7 @@ our $mod = API::Module->new(
     name        => 'Access',
     version     => '0.91',
     description => 'implements channel access modes',
-    requires    => ['ChannelEvents', 'ChannelModes'],
+    requires    => ['Events', 'ChannelModes'],
     initialize  => \&init
 );
 
@@ -27,11 +27,7 @@ sub init {
     ) or return;
 
     # register channel:user_joined event.
-    $mod->register_channel_event(
-        name => 'user_joined',
-        code => \&on_user_joined,
-        with_channel => 1
-    ) or return;
+    $mod->register_ircd_event('channel.user_joined' => \&on_user_joined) or return;
 
     # register UP command.
     $mod->register_user_command(
@@ -133,7 +129,7 @@ sub cmode_access {
 
 # user joined channel event handler.
 sub on_user_joined {
-    my ($event, $channel, $user) = @_;
+    my ($channel, $event, $user) = @_;
     my (@matches, @letters);
     
     # look for matches.

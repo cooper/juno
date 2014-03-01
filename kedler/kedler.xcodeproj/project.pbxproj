@@ -18,7 +18,7 @@
 		A75C5CD418B43219007780A3 /* GOALS */ = {isa = PBXFileReference; lastKnownFileType = text; name = GOALS; path = ../GOALS; sourceTree = "<group>"; };
 		A75C5CD618B43219007780A3 /* INDEV */ = {isa = PBXFileReference; lastKnownFileType = text; name = INDEV; path = ../INDEV; sourceTree = "<group>"; };
 		A75C5CD818B4321A007780A3 /* juno */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = juno; path = ../juno; sourceTree = "<group>"; };
-		A75C5CE018B4321A007780A3 /* ChannelEvents.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = ChannelEvents.pm; sourceTree = "<group>"; };
+		A75C5CE018B4321A007780A3 /* Events.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Events.pm; sourceTree = "<group>"; };
 		A75C5CE118B4321A007780A3 /* ChannelModes.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = ChannelModes.pm; sourceTree = "<group>"; };
 		A75C5CE218B4321A007780A3 /* OutgoingCommands.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = OutgoingCommands.pm; sourceTree = "<group>"; };
 		A75C5CE318B4321A007780A3 /* ServerCommands.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; lineEnding = 0; path = ServerCommands.pm; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.perl; };
@@ -112,7 +112,7 @@
 		A75C5CDF18B4321A007780A3 /* API bases */ = {
 			isa = PBXGroup;
 			children = (
-				A75C5CE018B4321A007780A3 /* ChannelEvents.pm */,
+				A75C5CE018B4321A007780A3 /* Events.pm */,
 				A75C5CE118B4321A007780A3 /* ChannelModes.pm */,
 				A75C5CE218B4321A007780A3 /* OutgoingCommands.pm */,
 				A75C5CE318B4321A007780A3 /* ServerCommands.pm */,

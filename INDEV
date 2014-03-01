@@ -1799,3 +1799,6 @@ CHANGES:
             this will allow modules to temporarily halt a the registration; i.e. for a hostname lookup.
             
     5. created pool, a single object that contains and manages all other objects in a single place rather across many packages.
+    
+        51. all IRCd events without specific objects are now handled through the Events API base.
+            utils::fire_event() has been removed because all events are now fired directly on channels, servers, users, etc.

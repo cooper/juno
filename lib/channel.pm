@@ -7,7 +7,7 @@ use strict;
 use feature 'switch';
 use parent 'Evented::Object';
 
-use utils qw/log2 v match fire_event/;
+use utils qw(log2 v match);
 
 sub new {
     my ($class, %opts) = @_;
@@ -119,10 +119,10 @@ sub cjoin {
     my ($channel, $user, $time) = @_;
 
     # fire before join event.
-    my $e1 = fire_event('channel:user_will_join' => $channel, $user);
+    my $e = $channel->fire_event(user_will_join => $user);
     
     # a handler suggested that the join should not occur.
-    return if $e1->{join_fail};
+    return if $e->{join_fail};
     
     log2("adding $$user{nick} to $$channel{name}");
     

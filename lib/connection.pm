@@ -30,7 +30,6 @@ sub new {
     # in servers - one for PASS, one for SERVER.
     $connection->reg_wait(2);
 
-    log2("Processing connection from $$connection{ip}");
     return $connection;
 }
 

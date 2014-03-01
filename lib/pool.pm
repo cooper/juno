@@ -41,6 +41,7 @@ sub new_connection {
         v('max_connection_count') = 1 + scalar keys %{ $pool->{connections} };
     }
     
+    log2("processing connection from $$connection{ip}");
     return $connection;
 }
 
@@ -157,7 +158,7 @@ sub new_user {
     push @{ $opts{server}{users} }, $user;
 
     log2(
-        "new user from $$user{server}{name}: $$user{uid}" .
+        "new user from $$user{server}{name}: $$user{uid} " .
         "$$user{nick}!$$user{ident}\@$$user{host} [$$user{real}]"
     );
     return $user;

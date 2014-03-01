@@ -23,7 +23,7 @@ our @always_loaded = qw(
 # these might be loaded, but don't load them if they're not.
 our @maybe_loaded = qw(
 
-    API::Base::ChannelEvents        API::Base::ChannelModes
+    API::Base::Events               API::Base::ChannelModes
     API::Base::OutgoingCommands     API::Base::ServerCommands
     API::Base::UserCommands         API::Base::UserModes
     API::Base::UserNumerics
@@ -305,8 +305,8 @@ sub handle_connect {
         read_all       => 0,
         read_len       => POSIX::BUFSIZ(),
         on_read        => \&handle_data,
-        on_read_eof    => sub { $conn->done('Connection closed'); $stream->close_now   },
-        on_write_eof   => sub { $conn->done('Connection closed'); $stream->close_now   },
+        on_read_eof    => sub { $conn->done('Connection closed');   $stream->close_now },
+        on_write_eof   => sub { $conn->done('Connection closed');   $stream->close_now },
         on_read_error  => sub { $conn->done('Read error: ' .$_[1]); $stream->close_now },
         on_write_error => sub { $conn->done('Write error: '.$_[1]); $stream->close_now }
     );

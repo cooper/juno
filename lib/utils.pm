@@ -203,30 +203,4 @@ sub import {
     *{$package.'::'.$_} = *{__PACKAGE__.'::'.$_} foreach @_[1..$#_]
 }
 
-# EVENTS
-
-# fire an event handler.
-sub fire_event {
-    my ($event, @args) = @_;
-    
-    # TODO: fire events on specific objects
-    
-    # For example, channel:user_joined should fire on the
-    # channel object itself as well as the main evented object.
-    
-    $main::eo->fire_event("juno.$event" => @args);
-}
-
-# register an event handler.
-sub register_event {
-    my $event = shift;
-    $main::eo->register_event("juno.$event", @_);
-}
-
-# delete an event handler.
-sub delete_event {
-    my ($event, $handlerID) = @_;
-    $main::eo->delete_event("juno.$event", $handlerID);
-}
-
 1

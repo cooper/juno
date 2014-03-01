@@ -8,7 +8,7 @@ package channel::mine;
 use warnings;
 use strict;
 
-use utils qw[log2 conf v fire_event];
+use utils qw[log2 conf v];
 
 # omg hax
 # it has the same name as the one in channel.pm.
@@ -34,7 +34,7 @@ sub cjoin {
     $user->numeric('RPL_ENDOFNAMES', $channel->{name});
     
     # fire after join event.
-    fire_event('channel:user_joined' => $channel, $user);
+    $channel->fire_event(user_joined => $user);
 
     return $channel->{time};
 }
