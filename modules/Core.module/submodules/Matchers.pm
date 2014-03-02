@@ -39,8 +39,21 @@ sub standard_matcher {
 
 sub oper_matcher {
     my ($event, $user, @list) = @_;
-    grep { $_ eq '$o' } @list or return;
-    return $event->{matched} = 1 if $user->is_mode('ircop');
+    return unless $user->is_mode('ircop');
+    
+    foreach my $item (@list) {
+    
+        # just check if opered.
+        return $event->{matched} = 1 if $item eq '$o';
+        
+        # match a specific oper flag.
+        next unless $item =~ m/^\$o:(.+)/;
+        return $event->{matched} = 1 if $user->has_flag($1);
+        
+    }
+    
+    return unless grep { $_ eq '$o' } @list;
+    return $event->{matched} = 1;
     return;
 }
 

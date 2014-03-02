@@ -1848,3 +1848,6 @@ CHANGES:
             682. fixed the above commit for real.
             
             683. fixed the above commit for sure.
+            
+        69. it makes way more sense to check if the user is an oper before checking the list.
+            match $o:<flag> to any oper with flag <flag>.
