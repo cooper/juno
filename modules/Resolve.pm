@@ -9,7 +9,7 @@ use utils qw(conf v match);
 
 our $mod = API::Module->new(
     name        => 'Resolve',
-    version     => '0.1',
+    version     => '0.2',
     description => 'resolve hostnames',
     requires    => ['Events'],
     initialize  => \&init
@@ -61,17 +61,12 @@ sub on_resolved_ip {
 sub on_resolved_host {
     my ($connection, @addrs) = @_;
 
-    # only accept exactly one record.
-    # TODO: this needs to be specific to the IP version.
-    if (scalar @addrs != 1) {
-        on_error($connection);
-        return;
-    }
-
-    # see if the result matches the original IP
-    my $addr = (Socket::GetAddrInfo::getnameinfo($addrs[0]->{addr}))[1];
-
-    if ($addr eq $connection->{temp_host}) {
+    # see if any result matches.
+    foreach my $a (@addrs) {
+        my $addr = (Socket::GetAddrInfo::getnameinfo($a->{addr}))[1] or next;
+        next unless $addr eq $connection->{temp_host};
+        
+        $connection->send(q(:).v('SERVER', 'name').' NOTICE * :*** Found your hostname');
         $connection->{host} = delete $connection->{temp_host};
         $connection->reg_continue;
         return 1;

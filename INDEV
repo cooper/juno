@@ -1822,3 +1822,5 @@ CHANGES:
         59. ::modes packages deleted; all remaining functionality moved to the pool object.
         
     6. clean up old code that was moved to pool package.
+    
+        61. the Resolve module now accepts any record to match rather than ignoring multiple records.
