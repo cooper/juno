@@ -238,4 +238,38 @@ sub new_connection {
     server::mine::fire_command_all(uid => $user);
 }
 
+# send to all members of channels in common
+# with a user but only once.
+# note: the source user does not need to be local.
+# TODO: eventually, I would like to have channels stored in user.
+sub send_to_channels {
+    my ($user, $what) = @_;
+    
+    # this user included.
+    $user->sendfrom($user->full, $what);
+    my %sent = ( $user => 1 );
+
+    # check each channel.
+    foreach my $channel ($main::pool->channels) {
+    
+        # source is not in this channel.
+        next unless $channel->has_user($user);
+
+        # send to each member.
+        foreach my $usr (@{ $channel->{users} }) {
+        
+            # not local.
+            next unless $usr->is_local;
+            
+            # already sent there.
+            next if $sent{$usr};
+            
+            $usr->sendfrom($user->full, $what);
+            $sent{$usr} = 1;
+        }
+    }
+    
+    return 1;
+}
+
 1

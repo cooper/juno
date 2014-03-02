@@ -5,7 +5,7 @@ package channel;
 use warnings;
 use strict;
 use feature 'switch';
-use parent 'Evented::Object';
+use parent qw(Evented::Object channel::mine);
 
 use utils qw(log2 v match);
 

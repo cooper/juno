@@ -179,7 +179,7 @@ sub on_user_joined {
      $channel->handle_mode_string(v('SERVER'), v('SERVER'), $sstr, 1, 1);
     
     # inform the users of this server.
-    channel::mine::send_all($channel, q(:).v('SERVER', 'name')." MODE $$channel{name} $user_mode_string");
+    $channel->send_all(q(:).v('SERVER', 'name')." MODE $$channel{name} $user_mode_string");
     
     return 1;
 }

@@ -1810,3 +1810,5 @@ CHANGES:
         53. added Resolve module. this replaces the res package.
         
         54. all users inherit from the user::mine package now. these methods check if the user is local before doing anything dangerous.
+
+        55. did the same for channel::mine. channel::mine::cjoin() was renamed to localjoin() due to conflicting names.

@@ -14,10 +14,10 @@ use utils qw[log2 conf v];
 # it has the same name as the one in channel.pm.
 # the only difference is that this one sends
 # the mode changes around
-sub cjoin {
+sub localjoin {
     my ($channel, $user, $time, $force) = @_;
     if ($channel->has_user($user)) {
-        return unless $force
+        return unless $force;
     }
     else {
         $channel->cjoin($user, $time);
@@ -84,27 +84,6 @@ sub notice_all {
         $user->send(":".v('SERVER', 'name')." NOTICE $$channel{name} :*** $what");
     }
     return 1
-}
-
-# send to all members of channels in common
-# with a user, but only once.
-sub send_all_user {
-    my ($user, $what) = @_;
-    $user->sendfrom($user->full, $what);
-    my %sent = ( $user => 1 );
-
-    foreach my $channel ($main::pool->channels) {
-        next unless $channel->has_user($user);
-
-        # send to each member
-        foreach my $usr (@{$channel->{users}}) {
-            next unless $usr->is_local;
-            next if $sent{$usr};
-            $usr->sendfrom($user->full, $what);
-            $sent{$usr} = 1
-        }
-
-    }
 }
 
 # take the lower time of a channel and unset higher time stuff

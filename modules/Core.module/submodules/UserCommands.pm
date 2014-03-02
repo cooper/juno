@@ -270,7 +270,7 @@ sub nick {
     }
 
     # tell ppl
-    $user->channel::mine::send_all_user("NICK $newnick");
+    $user->send_to_channels("NICK $newnick");
 
     # change it
     $user->change_nick($newnick);
@@ -345,7 +345,7 @@ sub mode {
 
         # viewing
         if (!defined $args[2]) {
-            $channel->channel::mine::modes($user);
+            $channel->modes($user);
             return 1
         }
 
@@ -363,7 +363,7 @@ sub mode {
         return if (!$user_result || $user_result =~ m/^(\-|\+)$/); # nothing changed
 
         # tell the channel users
-        $channel->channel::mine::send_all(':'.$user->full." MODE $$channel{name} $user_result");
+        $channel->send_all(':'.$user->full." MODE $$channel{name} $user_result");
         server::mine::fire_command_all(cmode => $user, $channel, $channel->{time}, $user->{server}->{sid}, $server_result);
 
         return 1
@@ -439,7 +439,7 @@ sub privmsgnotice {
                 
 
         # tell local users
-        $channel->channel::mine::send_all(':'.$user->full." $command $$channel{name} :$message", $user);
+        $channel->send_all(':'.$user->full." $command $$channel{name} :$message", $user);
 
         # then tell local servers
         my %sent;
@@ -532,7 +532,7 @@ sub cjoin {
         server::mine::fire_command_all(sjoin => $user, $channel, $time);
         server::mine::fire_command_all(cmode => $me, $channel, $time, $me->{sid}, $sr) if $sr;
 
-        $channel->channel::mine::cjoin($user, $time, 1)
+        $channel->localjoin($user, $time, 1);
         
     }
 }
@@ -543,7 +543,7 @@ sub names {
         # nonexistent channels return no error,
         # and RPL_ENDOFNAMES is sent no matter what
         my $channel = $main::pool->lookup_channel($chname);
-        $channel->channel::mine::names($user) if $channel;
+        $channel->names($user) if $channel;
         $user->numeric('RPL_ENDOFNAMES', $channel ? $channel->{name} : $chname);
     }
 }
@@ -792,7 +792,7 @@ sub part {
 
         # remove the user and tell the other channel's users and servers
         my $ureason = defined $reason ? " :$reason" : q();
-        $channel->channel::mine::send_all(':'.$user->full." PART $$channel{name}$ureason");
+        $channel->send_all(':'.$user->full." PART $$channel{name}$ureason");
         server::mine::fire_command_all(part => $user, $channel, $channel->{time}, $reason);
         $channel->remove($user);
 
@@ -863,7 +863,7 @@ sub who {
         $match_pattern = $channel->{name};
         foreach my $quser (@{$channel->{users}}) {
             $matches{$quser->{uid}} = $quser;
-            $quser->{who_flags}     = $channel->channel::mine::prefix($quser);
+            $quser->{who_flags}     = $channel->prefix($quser);
         }
     }
 
@@ -925,7 +925,7 @@ sub topic {
         }
 
         my $topic = cut_to_limit('topic', col((split /\s+/, $data, 3)[2]));
-        $channel->channel::mine::send_all(':'.$user->full." TOPIC $$channel{name} :$topic");
+        $channel->send_all(':'.$user->full." TOPIC $$channel{name} :$topic");
         server::mine::fire_command_all(topic => $user, $channel, time, $topic);
 
         # set it
@@ -1194,7 +1194,7 @@ sub kick {
     my $reason_string = defined $reason ? $reason : $user->{nick};
     
     # tell the local users of the channel.
-    $channel->channel::mine::send_all(':'.$user->full." KICK $$channel{name} $$t_user{nick} :$reason_string");
+    $channel->send_all(':'.$user->full." KICK $$channel{name} $$t_user{nick} :$reason_string");
     
     # remove the user from the channel.
     $channel->remove_user($t_user);

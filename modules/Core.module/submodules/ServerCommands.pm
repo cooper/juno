@@ -210,13 +210,13 @@ sub uid {
         }
         elsif ($ref->{time} < $used->{time}) {
             # you lose
-            $used->channel::mine::send_all_user("NICK $$used{uid}");
+            $used->send_to_channels("NICK $$used{uid}");
             $used->change_nick($used->{uid});
         }
         else {
             # we both lose
             $ref->{nick} = $ref->{uid};
-            $used->channel::mine::send_all_user("NICK $$used{uid}");
+            $used->send_to_channels("NICK $$used{uid}");
             $used->change_nick($used->{uid});
         }
     }
@@ -247,7 +247,7 @@ sub nick {
     my ($server, $data, $user, $newnick) = @_;
 
     # tell ppl
-    $user->channel::mine::send_all_user("NICK $newnick");
+    $user->send_to_channels("NICK $newnick");
     $user->change_nick($newnick);
 }
 
@@ -304,7 +304,7 @@ sub privmsgnotice {
     my $channel = $main::pool->lookup_channel($target);
     if ($channel) {
         # tell local users
-        $channel->channel::mine::send_all(':'.$user->full." $command $$channel{name} :$message", $user);
+        $channel->send_all(':'.$user->full." $command $$channel{name} :$message", $user);
 
         # then tell local servers if necessary
         my %sent;
@@ -335,11 +335,11 @@ sub sjoin {
     }
 
     # take lower time if necessary, and add the user to the channel.
-    $channel->channel::mine::take_lower_time($time);
+    $channel->take_lower_time($time);
     $channel->cjoin($user, $time) unless $channel->has_user($user);
     
     # for each user in the channel, send a JOIN message.
-    $channel->channel::mine::send_all(q(:).$user->full." JOIN $$channel{name}");
+    $channel->send_all(q(:).$user->full." JOIN $$channel{name}");
    
     # fire after join event.
     $channel->fire_event(user_joined => $user);
@@ -385,7 +385,7 @@ sub cmode {
 
     # ignore if time is older and take lower time
     return if $time > $channel->{time};
-    $channel->channel::mine::take_lower_time($time);
+    $channel->take_lower_time($time);
 
     my ($user_result, $server_result) = $channel->handle_mode_string(
         $perspective, $source, $modestr, 1, 1
@@ -395,7 +395,7 @@ sub cmode {
     # convert it to our view
     $user_result  = $perspective->convert_cmode_string(v('SERVER'), $user_result);
     my $from      = $source->isa('user') ? $source->full : $source->isa('server') ? $source->{name} : 'MagicalFairyPrincess';
-    $channel->channel::mine::send_all(":$from MODE $$channel{name} $user_result");
+    $channel->send_all(":$from MODE $$channel{name} $user_result");
 }
 
 sub part {
@@ -404,7 +404,7 @@ sub part {
     my ($server, $data, $user, $channel, $time, $reason) = @_;
 
     # take the lower time
-    $channel->channel::mine::take_lower_time($time);
+    $channel->take_lower_time($time);
 
     # ?!?!!?!
     if (!$channel->has_user($user)) {
@@ -415,7 +415,7 @@ sub part {
     # remove the user and tell the local channel users
     $channel->remove($user);
     $reason = defined $reason ? " :$reason" : q();
-    $channel->channel::mine::send_all(':'.$user->full." PART $$channel{name}$reason");
+    $channel->send_all(':'.$user->full." PART $$channel{name}$reason");
     return 1
 }
 
@@ -462,7 +462,7 @@ sub cum {
         name => $chname,
         time => $ts
     );
-    my $newtime = $channel->channel::mine::take_lower_time($ts);
+    my $newtime = $channel->take_lower_time($ts);
 
     # lazy mode handling..
     # pretend to receive a CMODE.
@@ -482,7 +482,7 @@ sub cum {
         # join the new users
         unless ($channel->has_user($user)) {
             $channel->cjoin($user, $channel->{time});
-            $channel->channel::mine::send_all(q(:).$user->full." JOIN $$channel{name}");
+            $channel->send_all(q(:).$user->full." JOIN $$channel{name}");
             $channel->fire_event(user_joined => $user);
         }
 
@@ -494,7 +494,7 @@ sub cum {
         my $final_modestr = $modes.' '.(($uid.' ') x length $modes);
         my ($user_result, $server_result) = $channel->handle_mode_string($serv, $serv, $final_modestr, 1, 1);
         $user_result  = $serv->convert_cmode_string(v('SERVER'), $user_result);
-        $channel->channel::mine::send_all(":$$serv{name} MODE $$channel{name} $user_result");
+        $channel->send_all(":$$serv{name} MODE $$channel{name} $user_result");
     }
     return 1
 }
@@ -507,12 +507,12 @@ sub topic {
     # check that channel exists
     return unless $channel;
 
-    if ($channel->channel::mine::take_lower_time($ts) != $ts) {
+    if ($channel->take_lower_time($ts) != $ts) {
         # bad channel time
         return
     }
 
-    $channel->channel::mine::send_all(':'.$source->full." TOPIC $$channel{name} :$topic");
+    $channel->send_all(':'.$source->full." TOPIC $$channel{name} :$topic");
 
     # set it
     if (length $topic) {
@@ -534,12 +534,12 @@ sub topicburst {
     # :sid   TOPICBURST channel ts   setby time :topic
     my ($server, $data, $source, $channel, $ts, $setby, $time, $topic) = @_;
 
-    if ($channel->channel::mine::take_lower_time($ts) != $ts) {
+    if ($channel->take_lower_time($ts) != $ts) {
         # bad channel time
         return
     }
 
-    $channel->channel::mine::send_all(':'.$source->full." TOPIC $$channel{name} :$topic");
+    $channel->send_all(':'.$source->full." TOPIC $$channel{name} :$topic");
 
     # set it
     if (length $topic) {
@@ -575,7 +575,7 @@ sub kick {
     my $reason_string = defined $reason ? $reason : $source->name;
     
     # tell the local users of the channel.
-    $channel->channel::mine::send_all(':'.$source->full." KICK $$channel{name} $$t_user{nick} :$reason_string");
+    $channel->send_all(':'.$source->full." KICK $$channel{name} $$t_user{nick} :$reason_string");
     
     # remove the user from the channel.
     $channel->remove_user($t_user);
