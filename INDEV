@@ -1843,5 +1843,5 @@ CHANGES:
 
         68. no longer limit masks to nick!user@host in Access module.
 
-
+            681. fixed the above commit.
 
