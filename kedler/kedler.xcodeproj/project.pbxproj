@@ -26,7 +26,6 @@
 		A75C5CE518B4321A007780A3 /* UserModes.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = UserModes.pm; sourceTree = "<group>"; };
 		A75C5CE618B4321A007780A3 /* UserNumerics.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = UserNumerics.pm; sourceTree = "<group>"; };
 		A75C5CEE18B4321A007780A3 /* mine.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = mine.pm; sourceTree = "<group>"; };
-		A75C5CEF18B4321A007780A3 /* modes.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = modes.pm; sourceTree = "<group>"; };
 		A75C5CF018B4321A007780A3 /* channel.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = channel.pm; path = /Users/cooper879/Projects/kedler/lib/channel.pm; sourceTree = "<absolute>"; };
 		A75C5CF118B4321A007780A3 /* connection.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; lineEnding = 0; path = connection.pm; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.perl; };
 		A75C5D0218B4321A007780A3 /* ircd.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = ircd.pm; sourceTree = "<group>"; };
@@ -34,7 +33,6 @@
 		A75C5D0618B4321A007780A3 /* mine.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = mine.pm; sourceTree = "<group>"; };
 		A75C5D0718B4321A007780A3 /* server.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = server.pm; path = /Users/cooper879/Projects/kedler/lib/server.pm; sourceTree = "<absolute>"; };
 		A75C5D0918B4321A007780A3 /* mine.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = mine.pm; sourceTree = "<group>"; };
-		A75C5D0A18B4321A007780A3 /* modes.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = modes.pm; sourceTree = "<group>"; };
 		A75C5D0C18B4321A007780A3 /* user.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = user.pm; path = /Users/cooper879/Projects/kedler/lib/user.pm; sourceTree = "<absolute>"; };
 		A75C5D0D18B4321A007780A3 /* utils.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; lineEnding = 0; path = utils.pm; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.perl; };
 		A75C5D0E18B4321A007780A3 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
@@ -125,7 +123,6 @@
 			children = (
 				A75C5CF018B4321A007780A3 /* channel.pm */,
 				A75C5CEE18B4321A007780A3 /* mine.pm */,
-				A75C5CEF18B4321A007780A3 /* modes.pm */,
 			);
 			path = channel;
 			sourceTree = "<group>";
@@ -145,7 +142,6 @@
 			children = (
 				A75C5D0C18B4321A007780A3 /* user.pm */,
 				A75C5D0918B4321A007780A3 /* mine.pm */,
-				A75C5D0A18B4321A007780A3 /* modes.pm */,
 			);
 			path = user;
 			sourceTree = "<group>";

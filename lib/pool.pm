@@ -454,5 +454,125 @@ sub fire_command_all {
     return 1
 }
 
+########################
+### USER MODE BLOCKS ###
+########################
+
+# register a block check to a mode
+sub register_user_mode_block {
+    my ($pool, $name, $what, $code) = @_;
+
+    # check if it is CODE
+    if (ref $code ne 'CODE') {
+        log2((caller)[0]." tried to register a block to $name that isn't CODE.");
+        return
+    }
+
+    # make sure this one doesn't exist
+    if (exists $pool->{user_modes}{$name}{$what}) {
+        log2((caller)[0]." tried to register $what to $name which is already registered");
+        return
+    }
+
+    # success
+    $pool->{user_modes}{$name}{$what} = $code;
+    log2("registered $name from $what");
+    return 1
+}
+
+# delete a block
+sub delete_user_mode_block {
+    my ($pool, $name, $what) = @_;
+    if (exists $pool->{user_modes}{$name}{$what}) {
+        delete $pool->{user_modes}{$name}{$what};
+        log2("deleting user mode block for $name: $what");
+        return 1
+    }
+    return
+}
+
+# call on mode change
+sub fire_user_mode {
+    my ($pool, $user, $state, $name) = @_;
+    if (!exists $pool->{user_modes}{$name}) {
+        # nothing to do
+        return 1
+    }
+
+    # call each block
+    foreach my $block (values %{$pool->{user_modes}{$name}}) {
+        return unless $block->($user, $state)
+    }
+
+    # all returned true
+    return 1
+}
+
+###########################
+### CHANNEL MODE BLOCKS ###
+###########################
+
+# types:
+#   normal          (0)
+#   parameter       (1)
+#   parameter_set   (2)
+#   list            (3)
+#   status          (4)
+
+# register a block check to a mode
+sub register_channel_mode_block {
+    my ($pool, $name, $what, $code) = @_;
+    if (ref $code ne 'CODE') {
+        log2((caller)[0]." tried to register a block to $name that isn't CODE.");
+        return
+    }
+    if (exists $pool->{channel_modes}{$name}{$what}) {
+        log2((caller)[0]." tried to register $name to $what which is already registered");
+        return
+    }
+    log2("registered $name from $what");
+    $pool->{channel_modes}{$name}{$what} = $code;
+    return 1
+}
+
+# delete a block
+sub delete_channel_mode_block {
+    my ($pool, $name, $what) = @_;
+    if (exists $pool->{channel_modes}{$name}{$what}) {
+        delete $pool->{channel_modes}{$name}{$what};
+        log2("deleting user mode block for $name: $what");
+        return 1
+    }
+    return
+}
+
+sub fire_channel_mode {
+    my (
+        $pool, $channel, $server, $source, $state, $name,
+        $parameter, $parameters, $force, $over_protocol
+    ) = @_;
+
+    if (!exists $pool->{channel_modes}{$name}) {
+        # nothing to do
+        return 1
+    }
+
+    # create a hashref with info
+    my $this = {
+        channel => $channel,
+        server  => $server,
+        source  => $source,
+        state   => $state,
+        param   => $parameter,
+        params  => $parameters,
+        force   => $force,
+        proto   => $over_protocol
+    };
+
+    foreach my $block (values %{$pool->{channel_modes}{$name}}) {
+        return (undef, $this) unless $block->($channel, $this)
+    }
+    return (1, $this)
+}
 
 1

@@ -13,9 +13,9 @@ our ($VERSION, $API, $conf, $loop, $pool, $timer, %global) = get_version();
 our @always_loaded = qw(
 
     utils       pool
-    user        user::mine      user::modes
+    user        user::mine
     server      server::mine    server::linkage
-    channel     channel::mine   channel::modes
+    channel     channel::mine
     connection  ircd
 
 ); # ircd must be last

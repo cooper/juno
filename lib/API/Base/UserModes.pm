@@ -18,7 +18,7 @@ sub register_user_mode_block {
     }
 
     # register the mode block
-    user::modes::register_block(
+    $main::pool->register_user_mode_block(
         $opts{name},
         $mod->{name},
         $opts{code}
@@ -35,7 +35,7 @@ sub _unload {
 
     # delete 1 at a time
     foreach my $name (@{$mod->{user_modes}}) {
-        user::modes::delete_block($name, $mod->{name});
+        $main::pool->delete_user_mode_block($name, $mod->{name});
     }
 
     log2("done unloading modes");
