@@ -257,4 +257,202 @@ sub delete_channel {
 
 sub channels { values %{ shift->{channels} } }
 
+#############################
+### USER COMMAND HANDLERS ###
+#############################
+
+# register command handlers
+sub register_user_handler {
+    my ($pool, $source, $command) = (shift, shift, uc shift);
+
+    # does it already exist?
+    if (exists $pool->{user_commands}{$command}) {
+        log2("attempted to register $command which already exists");
+        return
+    }
+
+    my $params = shift;
+
+    # ensure that it is CODE
+    my $ref = shift;
+    if (ref $ref ne 'CODE') {
+        log2("not a CODE reference for $command");
+        return
+    }
+
+    my $desc = shift;
+
+    # success
+    $pool->{user_commands}{$command} = {
+        code    => $ref,
+        params  => $params,
+        source  => $source,
+        desc    => $desc
+    };
+    log2("$source registered $command: $desc");
+    return 1
+}
+
+# unregister handler
+sub delete_user_handler {
+    my ($pool, $command) = (shift, uc shift);
+    log2("deleting handler $command");
+    delete $pool->{user_commands}{$command};
+}
+
+sub user_handlers {
+    my ($pool, $command) = (shift, uc shift);
+    return $pool->{user_commands}{$command};
+}
+
+#####################
+### USER NUMERICS ###
+#####################
+
+# register user numeric
+sub register_numeric {
+    my ($pool, $source, $numeric, $num, $fmt) = @_;
+
+    # does it already exist?
+    if (exists $pool->{numerics}{$numeric}) {
+        log2("attempted to register $numeric which already exists");
+        return;
+    }
+
+    $pool->{numerics}{$numeric} = [$num, $fmt];
+    log2("$source registered $numeric $num");
+    return 1;
+}
+
+# unregister user numeric
+sub delete_numeric {
+    my ($pool, $source, $numeric) = @_;
+
+    # does it exist?
+    if (!exists $pool->{numerics}{$numeric}) {
+        log2("attempted to delete $numeric which does not exists");
+        return;
+    }
+
+    delete $pool->{numerics}{$numeric};
+    log2("$source deleted $numeric");
+    
+    return 1;
+}
+
+sub numeric {
+    my ($pool, $numeric) = @_;
+    return $pool->{numerics}{$numeric};
+}
+
+###############################
+### SERVER COMMAND HANDLERS ###
+###############################
+
+
+# register command handlers
+# ($source, $command, $callback, $forward)
+sub register_server_handler {
+    my ($pool, $source, $command) = (shift, shift, uc shift);
+
+    # does it already exist?
+    if (exists $pool->{server_commands}{$command}) {
+        log2("attempted to register $command which already exists");
+        return
+    }
+
+    # ensure that it is CODE
+    my $ref = shift;
+    if (ref $ref ne 'CODE') {
+        log2("not a CODE reference for $command");
+        return
+    }
+
+    #success
+    $pool->{server_commands}{$command} = {
+        code    => $ref,
+        source  => $source,
+        forward => shift
+    };
+    log2("$source registered $command");
+    return 1
+}
+
+# unregister
+sub delete_server_handler {
+    my ($pool, $command) = (shift, uc shift);
+    log2("deleting handler $command");
+    delete $pool->{server_commands}{$command};
+}
+
+sub server_handlers {
+    my ($pool, $command) = (shift, uc shift);
+    return values $pool->{server_commands}{$command};
+}
+
+################################
+### OUTGOING SERVER COMMANDS ###
+################################
+
+# register outgoing command handlers
+sub register_outgoing_handler {
+    my ($pool, $source, $command) = (shift, shift, uc shift);
+
+    # does it already exist?
+    if (exists $pool->{outgoing_commands}{$command}) {
+        log2("attempted to register $command which already exists");
+        return
+    }
+
+    # ensure that it is CODE
+    my $ref = shift;
+    if (ref $ref ne 'CODE') {
+        log2("not a CODE reference for $command");
+        return
+    }
+
+    # success
+    $pool->{outgoing_commands}{$command} = {
+        code    => $ref,
+        source  => $source
+    };
+    log2("$source registered $command");
+    return 1
+}
+
+# unregister
+sub delete_outgoing_handler {
+    my ($pool, $command) = (shift, uc shift);
+    log2("deleting handler $command");
+    delete $pool->{outgoing_commands}{$command}
+}
+
+# fire outgoing
+sub fire_command {
+    my ($pool, $server, $command, @args) = (shift, shift, uc shift, @_);
+    if (!$pool->{outgoing_commands}{$command}) {
+        log2((caller)[0]." fired $command which does not exist");
+        return
+    }
+
+    # send
+    $server->send($pool->{outgoing_commands}{$command}{code}(@args));
+
+    return 1
+}
+
+sub fire_command_all {
+    my ($pool, $command, @args) = (shift, uc shift, @_);
+    if (!$pool->{outgoing_commands}{$command}) {
+        log2((caller)[0]." fired $command which does not exist");
+        return
+    }
+
+    # send
+    v('SERVER')->send_children(undef, $pool->{outgoing_commands}{$command}{code}(@args));
+
+    return 1
+}
+
+
 1

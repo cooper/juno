@@ -1814,3 +1814,5 @@ CHANGES:
         55. did the same for channel::mine. channel::mine::cjoin() was renamed to localjoin() due to conflicting names.
         
         56. did the same for server::mine.
+        
+        57. all user command handlers, server command handlers, outgoing server command formatters, user numeric handlers, etc. have been moved from their ::mine packages to the pool object.

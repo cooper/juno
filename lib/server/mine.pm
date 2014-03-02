@@ -7,113 +7,6 @@ use strict;
 
 use utils qw[log2 col v conf];
 
-our (%commands, %outgoing);
-
-# register command handlers
-# ($source, $command, $callback, $forward)
-sub register_handler {
-    my ($source, $command) = (shift, uc shift);
-
-    # does it already exist?
-    if (exists $commands{$command}) {
-        log2("attempted to register $command which already exists");
-        return
-    }
-
-    # ensure that it is CODE
-    my $ref = shift;
-    if (ref $ref ne 'CODE') {
-        log2("not a CODE reference for $command");
-        return
-    }
-
-    # one per source
-    if (exists $commands{$command}{$source}) {
-        log2("$source already registered $command; aborting");
-        return
-    }
-
-    #success
-    $commands{$command}{$source} = {
-        code    => $ref,
-        source  => $source,
-        forward => shift
-    };
-    log2("$source registered $command");
-    return 1
-}
-
-# unregister
-sub delete_handler {
-    my $command = uc shift;
-    log2("deleting handler $command");
-    delete $commands{$command}
-}
-
-# register outgoing command handlers
-sub register_outgoing_handler {
-    my ($source, $command) = (shift, uc shift);
-
-    # does it already exist?
-    if (exists $outgoing{$command}) {
-        log2("attempted to register $command which already exists");
-        return
-    }
-
-    # ensure that it is CODE
-    my $ref = shift;
-    if (ref $ref ne 'CODE') {
-        log2("not a CODE reference for $command");
-        return
-    }
-
-    #success
-    $outgoing{$command} = {
-        code    => $ref,
-        source  => $source
-    };
-    log2("$source registered $command");
-    return 1
-}
-
-# unregister
-sub delete_outgoing_handler {
-    my $command = uc shift;
-    log2("deleting handler $command");
-    delete $outgoing{$command}
-}
-
-# fire outgoing
-sub fire_command {
-    my ($server, $command, @args) = (shift, uc shift, @_);
-    if (!$outgoing{$command}) {
-        log2((caller)[0]." fired $command which does not exist");
-        return
-    }
-
-    # send
-    $server->send($outgoing{$command}{code}(@args));
-
-    return 1
-}
-
-sub fire_command_all {
-    my ($command, @args) = (uc shift, @_);
-    if (!$outgoing{$command}) {
-        log2((caller)[0]." fired $command which does not exist");
-        return
-    }
-
-    # send
-    send_children(undef, $outgoing{$command}{code}(@args));
-
-    return 1
-}
-
-######################
-### SERVER METHODS ###
-######################
-
 # handle local user data
 sub handle {
     my $server = shift;
@@ -156,17 +49,19 @@ sub handle {
         # if it doesn't exist, ignore it and move on.
         # it might make sense to assume incompatibility and drop the server,
         # but I don't want to do that because
-        if (!$commands{$command}) {
+        my @handlers = $main::pool->server_handlers;
+        if (!@handlers) {
             log2("unknown command $command; ignoring it");
-            next
+            next;
         }
 
         # it exists- parse it.
-        foreach my $source (keys %{$commands{$command}}) {
-            $commands{$command}{$source}{code}($server, $line, @s);
+        foreach my $handler (@handlers) {
+            $handler->{code}($server, $line, @s);
 
-            # forward to children
-            send_children($server, $line) if $commands{$command}{$source}{forward};
+            # forward to children.
+            # $server is used here so that it will be ignored.
+            send_children($server, $line) if $handler->{forward};
         }
     }
     return 1
@@ -250,6 +145,8 @@ sub send_burst {
 }
 
 # send data to all of my children.
+# this actually sends it to all connected servers.
+# it is only intended to be called with this server object.
 sub send_children {
     my $ignore = shift;
 

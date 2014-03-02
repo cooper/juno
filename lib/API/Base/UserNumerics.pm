@@ -19,7 +19,7 @@ sub register_user_numeric {
     }
 
     # register the mode block
-    user::mine::register_numeric(
+    $main::pool->register_numeric(
         $mod->{name},
         $opts{name},
         $opts{number},
@@ -35,7 +35,7 @@ sub register_user_numeric {
 sub _unload {
     my ($class, $mod) = @_;
     log2("unloading user numerics registered by $$mod{name}");
-    user::mine::delete_numeric($mod->{name}, $_) foreach @{ $mod->{user_numerics} };
+    $main::pool->delete_numeric($mod->{name}, $_) foreach @{ $mod->{user_numerics} };
     log2("done unloading numerics");
     return 1
 }

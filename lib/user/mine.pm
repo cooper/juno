@@ -8,88 +8,6 @@ use strict;
 
 use utils qw[col log2 conf v];
 
-our (%numerics, %commands);
-
-# register command handlers
-sub register_handler {
-    my ($source, $command) = (shift, uc shift);
-
-    # does it already exist?
-    if (exists $commands{$command}) {
-        log2("attempted to register $command which already exists");
-        return
-    }
-
-    my $params = shift;
-
-    # ensure that it is CODE
-    my $ref = shift;
-    if (ref $ref ne 'CODE') {
-        log2("not a CODE reference for $command");
-        return
-    }
-
-    # one per source
-    if (exists $commands{$command}{$source}) {
-        log2("$source already registered $command; aborting");
-        return
-    }
-
-    my $desc = shift;
-
-    # success
-    $commands{$command}{$source} = {
-        code    => $ref,
-        params  => $params,
-        source  => $source,
-        desc    => $desc
-    };
-    log2("$source registered $command: $desc");
-    return 1
-}
-
-# unregister
-sub delete_handler {
-    my $command = uc shift;
-    log2("deleting handler $command");
-    delete $commands{$command}
-}
-
-# register user numeric
-sub register_numeric {
-    my ($source, $numeric, $num, $fmt) = @_;
-
-    # does it already exist?
-    if (exists $numerics{$numeric}) {
-        log2("attempted to register $numeric which already exists");
-        return
-    }
-
-    $numerics{$numeric} = [$num, $fmt];
-    log2("$source registered $numeric $num");
-    return 1
-}
-
-# unregister user numeric
-sub delete_numeric {
-    my ($source, $numeric) = @_;
-
-    # does it exist?
-    if (!exists $numerics{$numeric}) {
-        log2("attempted to delete $numeric which does not exists");
-        return
-    }
-
-    delete $numerics{$numeric};
-    log2("$source deleted $numeric");
-    
-    return 1
-}
-
-####################
-### USER METHODS ###
-####################
-
 sub safe {
     my $user = shift;
     if (!$user->is_local) {
@@ -113,11 +31,11 @@ sub handle {
 
         my $command = uc $s[0];
 
-        if ($commands{$command}) { # an existing handler
+        if ($main::pool->user_handlers($command)) { # an existing handler
 
-            foreach my $source (keys %{$commands{$command}}) {
-                if ($#s >= $commands{$command}{$source}{params}) {
-                    $commands{$command}{$source}{code}($user, $line, @s)
+            foreach my $handler ($main::pool->user_handlers($command)) {
+                if ($#s >= $handler->{params}) {
+                    $handler->{code}($user, $line, @s)
                 }
                 else { # not enough parameters
                     $user->numeric('ERR_NEEDMOREPARAMS', $s[0])
@@ -185,12 +103,12 @@ sub numeric {
     my ($user, $const, @response) = (shift, shift);
     
     # does not exist.
-    if (!$numerics{$const}) {
+    if (!$main::pool->numeric($const)) {
         log2("attempted to send nonexistent numeric $const");
         return;
     }
     
-    my ($num, $val) = @{ $numerics{$const} };
+    my ($num, $val) = @{ $main::pool->numeric($const) };
 
     # CODE reference for numeric response.
     if (ref $val eq 'CODE') {
@@ -235,7 +153,7 @@ sub new_connection {
     $user->sendfrom($user->{nick}, "MODE $$user{nick} :".$user->mode_string);
 
     # tell other servers
-    server::mine::fire_command_all(uid => $user);
+    $main::pool->fire_command_all(uid => $user);
 }
 
 # send to all members of channels in common

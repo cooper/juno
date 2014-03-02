@@ -274,7 +274,7 @@ sub nick {
 
     # change it
     $user->change_nick($newnick);
-    server::mine::fire_command_all(nickchange => $user);
+    $main::pool->fire_command_all(nickchange => $user);
 }
 
 sub info {
@@ -329,7 +329,7 @@ sub mode {
             my $result = $user->handle_mode_string($args[2]);
             return if !$result || $result =~ m/^(\-|\+)$/;
             $user->sendfrom($user->{nick}, "MODE $$user{nick} :$result");
-            server::mine::fire_command_all(umode => $user, $result);
+            $main::pool->fire_command_all(umode => $user, $result);
             return 1
         }
 
@@ -364,7 +364,7 @@ sub mode {
 
         # tell the channel users
         $channel->send_all(':'.$user->full." MODE $$channel{name} $user_result");
-        server::mine::fire_command_all(cmode => $user, $channel, $channel->{time}, $user->{server}->{sid}, $server_result);
+        $main::pool->fire_command_all(cmode => $user, $channel, $channel->{time}, $user->{server}->{sid}, $server_result);
 
         return 1
     }
@@ -529,8 +529,8 @@ sub cjoin {
         }
 
         # tell servers that the user joined and the automatic modes were set
-        server::mine::fire_command_all(sjoin => $user, $channel, $time);
-        server::mine::fire_command_all(cmode => $me, $channel, $time, $me->{sid}, $sr) if $sr;
+        $main::pool->fire_command_all(sjoin => $user, $channel, $time);
+        $main::pool->fire_command_all(cmode => $me, $channel, $time, $me->{sid}, $sr) if $sr;
 
         $channel->localjoin($user, $time, 1);
         
@@ -642,7 +642,7 @@ sub oper {
     my %h = map { $_ => 1 } @flags;
     @flags = keys %h; # should remove duplicates
     $user->add_flags(@flags);
-    server::mine::fire_command_all(oper => $user, @flags);
+    $main::pool->fire_command_all(oper => $user, @flags);
 
     # okay, we should have a complete list of flags now.
     log2("$$user{nick}!$$user{ident}\@$$user{host} has opered as $args[1] and was granted flags: @flags");
@@ -651,7 +651,7 @@ sub oper {
     # this will set ircop as well as send a MODE to the user
     my $result = $user->handle_mode_string('+'.$user->{server}->umode_letter('ircop'), 1);
     if ($result && $result ne '+') {
-        server::mine::fire_command_all(umode => $user, $result);
+        $main::pool->fire_command_all(umode => $user, $result);
         $user->sendfrom($user->{nick}, "MODE $$user{nick} :$result");
     }
     
@@ -746,7 +746,7 @@ sub away {
     if (defined $args[1]) {
         my $reason = cut_to_limit('away', col((split /\s+/, $data, 2)[1]));
         $user->set_away($reason);
-        server::mine::fire_command_all(away => $user);
+        $main::pool->fire_command_all(away => $user);
         $user->numeric('RPL_NOWAWAY');
         return 1
     }
@@ -754,7 +754,7 @@ sub away {
     # unsetting
     return unless exists $user->{away};
     $user->unset_away;
-    server::mine::fire_command_all(return_away => $user);
+    $main::pool->fire_command_all(return_away => $user);
     $user->numeric('RPL_UNAWAY');
 }
 
@@ -793,7 +793,7 @@ sub part {
         # remove the user and tell the other channel's users and servers
         my $ureason = defined $reason ? " :$reason" : q();
         $channel->send_all(':'.$user->full." PART $$channel{name}$ureason");
-        server::mine::fire_command_all(part => $user, $channel, $channel->{time}, $reason);
+        $main::pool->fire_command_all(part => $user, $channel, $channel->{time}, $reason);
         $channel->remove($user);
 
     }
@@ -926,7 +926,7 @@ sub topic {
 
         my $topic = cut_to_limit('topic', col((split /\s+/, $data, 3)[2]));
         $channel->send_all(':'.$user->full." TOPIC $$channel{name} :$topic");
-        server::mine::fire_command_all(topic => $user, $channel, time, $topic);
+        $main::pool->fire_command_all(topic => $user, $channel, time, $topic);
 
         # set it
         if (length $topic) {
@@ -1200,7 +1200,7 @@ sub kick {
     $channel->remove_user($t_user);
 
     # tell the other servers.
-    server::mine::fire_command_all(kick => $user, $channel, $t_user, $reason_string);
+    $main::pool->fire_command_all(kick => $user, $channel, $t_user, $reason_string);
 
     return 1;
 }

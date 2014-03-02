@@ -255,7 +255,7 @@ sub register_user_command {
     }
     
     # register to juno.
-    user::mine::register_handler(
+    $main::pool->register_user_handler(
         $mod->{name},
         $opts{name},
         $parameters,
@@ -270,7 +270,7 @@ sub register_user_command {
 sub _unload {
     my ($class, $mod) = @_;
     log2("unloading user commands registered by $$mod{name}");
-    user::mine::delete_handler($_) foreach @{$mod->{user_commands}};
+    $main::pool->delete_user_handler($_) foreach @{$mod->{user_commands}};
     log2("done unloading commands");
     return 1
 }

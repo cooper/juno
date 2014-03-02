@@ -216,7 +216,7 @@ sub ready {
 
         $connection->{parent} = v('SERVER');
         $connection->{type}   = $main::pool->new_server(%$connection);
-        server::mine::fire_command_all(sid => $connection->{type});
+        $main::pool->fire_command_all(sid => $connection->{type});
 
         # send server credentials
         if (!$connection->{sent_creds}) {
@@ -259,7 +259,7 @@ sub done {
 
     if ($connection->{type}) {
         # share this quit with the children
-        server::mine::fire_command_all(quit => $connection, $reason);
+        $main::pool->fire_command_all(quit => $connection, $reason);
 
         # tell user.pm or server.pm that the connection is closed
         $connection->{type}->quit($reason)

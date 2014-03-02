@@ -96,9 +96,9 @@
 				A71BE82118C19286003A2C1A /* pool.pm */,
 				A75C5CF118B4321A007780A3 /* connection.pm */,
 				A75C5D0D18B4321A007780A3 /* utils.pm */,
-				A75C5CED18B4321A007780A3 /* channel */,
-				A75C5D0418B4321A007780A3 /* server */,
 				A75C5D0818B4321A007780A3 /* user */,
+				A75C5D0418B4321A007780A3 /* server */,
+				A75C5CED18B4321A007780A3 /* channel */,
 				A75C5CDF18B4321A007780A3 /* API bases */,
 			);
 			name = kedler;

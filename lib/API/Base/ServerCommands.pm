@@ -125,7 +125,7 @@ sub register_server_command {
 
     # register to juno: updated 12/11/2012
     # ($source, $command, $callback, $forward)
-    server::mine::register_handler(
+    $main::pool->register_server_handler(
         $mod->{name},
         $opts{name},
         $CODE,
@@ -140,7 +140,7 @@ sub register_server_command {
 sub _unload {
     my ($class, $mod) = @_;
     log2("unloading server commands registered by $$mod{name}");
-    server::mine::delete_handler($_) foreach @{$mod->{server_commands}};
+    $main::pool->delete_server_handler($_) foreach @{$mod->{server_commands}};
     log2("done unloading commands");
     return 1
 }
