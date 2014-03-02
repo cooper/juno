@@ -9,24 +9,6 @@ use utils qw(log2 conf);
 
 my %blocks;
 
-# this just tells the internal server what
-# mode is associated with what letter as defined by the configuration
-sub add_internal_modes {
-    my $server = shift;
-    return unless $ircd::conf->has_block(['modes', 'user']);
-    log2("registering user mode letters");
-    foreach my $name ($ircd::conf->keys_of_block(['modes', 'user'])) {
-        $server->add_umode($name, conf(['modes', 'user'], $name));
-    }
-    log2("end of user mode letters");
-}
-
-# returns a string of every mode
-sub mode_string {
-    my @modes = sort { $a cmp $b } $ircd::conf->values_of_block(['modes', 'user']);
-    return join '', @modes
-}
-
 # here we create the internal mode "blocks"
 # which are called by a mode handler.
 # if any blocks of a mode return false,

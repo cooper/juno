@@ -44,9 +44,9 @@ sub init {
 
 # status modes
 sub register_statuses {
- foreach my $level (sort { $b <=> $a } keys %channel::modes::prefixes) {
+ foreach my $level (sort { $b <=> $a } keys %ircd::channel_mode_prefixes) {
 
-    my $modename = $channel::modes::prefixes{$level}[2];
+    my $modename = $ircd::channel_mode_prefixes{$level}[2];
     $mod->register_channel_mode_block( name => $modename, code => sub {
 
         my ($channel, $mode) = @_;

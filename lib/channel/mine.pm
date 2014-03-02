@@ -121,8 +121,8 @@ sub take_lower_time {
 sub prefix {
     my ($channel, $user) = @_;
     my $level = $channel->user_get_highest_level($user);
-    if (defined $level && $channel::modes::prefixes{$level}) {
-        return $channel::modes::prefixes{$level}[1]
+    if (defined $level && $ircd::channel_mode_prefixes{$level}) {
+        return $ircd::channel_mode_prefixes{$level}[1]
     }
     return q..
 }

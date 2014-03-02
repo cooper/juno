@@ -187,9 +187,9 @@ sub isp_prefix {
     my ($modestr, $prefixes) = ('', '');
     
     # sort from largest to smallest level.
-    foreach my $level (sort { $b <=> $a } keys %channel::modes::prefixes) {
-        $modestr  .= $channel::modes::prefixes{$level}[0];
-        $prefixes .= $channel::modes::prefixes{$level}[1];
+    foreach my $level (sort { $b <=> $a } keys %ircd::channel_mode_prefixes) {
+        $modestr  .= $ircd::channel_mode_prefixes{$level}[0];
+        $prefixes .= $ircd::channel_mode_prefixes{$level}[1];
     }
     
     return "($modestr)$prefixes";

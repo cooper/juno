@@ -140,8 +140,8 @@ sub new_connection {
     $user->numeric(RPL_MYINFO   =>
         v('SERVER', 'name'),
         v('NAME').q(-).v('VERSION'),
-        user::modes::mode_string(),
-        channel::modes::mode_string()
+        ircd::user_mode_string(),
+        ircd::channel_mode_string()
     );
     $user->numeric('RPL_ISUPPORT');
 

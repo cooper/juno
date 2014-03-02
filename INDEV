@@ -1816,3 +1816,5 @@ CHANGES:
         56. did the same for server::mine.
         
         57. all user command handlers, server command handlers, outgoing server command formatters, user numeric handlers, etc. have been moved from their ::mine packages to the pool object.
+        
+        58. moved mode configuration functions out of ::mode packages and into the ircd package.

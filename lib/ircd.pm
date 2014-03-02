@@ -86,12 +86,10 @@ sub start {
         
     }
 
-    # register modes
-    # FIXME: is this safe to be called multiple times?
-    # I think it is, but maybe we should delete the modes before (re-)adding them.
-    # that way, if any modes are deleted, they won't hang around afterward.
-    $server->user::modes::add_internal_modes();
-    $server->channel::modes::add_internal_modes();
+    # register modes.
+    # TODO: delete then re-add.
+    add_internal_channel_modes($server);
+    add_internal_user_modes($server);
     
     # create API engine manager.
     $API ||= $main::API ||= API->new(
@@ -417,6 +415,67 @@ sub get_version {
     my $version = trim(<$fh>);
     close $fh;
     return $version;
+}
+
+#####################
+### CHANNEL MODES ###
+#####################
+
+our %channel_mode_prefixes;
+
+# this just tells the internal server what
+# mode is associated with what letter and type by configuration
+sub add_internal_channel_modes {
+    my $server = shift;
+    log2('registering channel status modes');
+
+    # [letter, symbol, name]
+    foreach my $name ($ircd::conf->keys_of_block('prefixes')) {
+        my $p = conf('prefixes', $name);
+        $server->add_cmode($name, $p->[0], 4);
+        $channel_mode_prefixes{$p->[2]} = [ $p->[0], $p->[1], $name ]
+    }
+
+    log2("registering channel mode letters");
+
+    foreach my $name ($ircd::conf->keys_of_block(['modes', 'channel'])) {
+        $server->add_cmode(
+            $name,
+            (conf(['modes', 'channel'], $name))->[1],
+            (conf(['modes', 'channel'], $name))->[0]
+        );
+
+    }
+
+    log2("end of internal modes");
+}
+
+# get a +modes string
+sub channel_mode_string {
+    my @modes = sort { $a cmp $b } map { $_->[1] } $ircd::conf->values_of_block('modes', 'channel');
+    return join '', @modes
+}
+
+##################
+### USER MODES ###
+##################
+
+# this just tells the internal server what
+# mode is associated with what letter as defined by the configuration
+sub add_internal_user_modes {
+    my $server = shift;
+    return unless $ircd::conf->has_block(['modes', 'user']);
+    log2("registering user mode letters");
+    foreach my $name ($ircd::conf->keys_of_block(['modes', 'user'])) {
+        $server->add_umode($name, conf(['modes', 'user'], $name));
+    }
+    log2("end of user mode letters");
+}
+
+# returns a string of every mode
+sub user_mode_string {
+    my @modes = sort { $a cmp $b } $ircd::conf->values_of_block(['modes', 'user']);
+    return join '', @modes
 }
 
 1

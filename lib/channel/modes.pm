@@ -23,33 +23,6 @@ use utils qw(log2 conf);
 
 our (%blocks, %prefixes);
 
-# this just tells the internal server what
-# mode is associated with what letter and type by configuration
-sub add_internal_modes {
-    my $server = shift;
-    log2('registering channel status modes');
-
-    # [letter, symbol, name]
-    foreach my $name ($ircd::conf->keys_of_block('prefixes')) {
-        my $p = conf('prefixes', $name);
-        $server->add_cmode($name, $p->[0], 4);
-        $prefixes{$p->[2]} = [ $p->[0], $p->[1], $name ]
-    }
-
-    log2("registering channel mode letters");
-
-    foreach my $name ($ircd::conf->keys_of_block(['modes', 'channel'])) {
-        $server->add_cmode(
-            $name,
-            (conf(['modes', 'channel'], $name))->[1],
-            (conf(['modes', 'channel'], $name))->[0]
-        );
-
-    }
-
-    log2("end of internal modes");
-}
-
 # register a block check to a mode
 sub register_block {
     my ($name, $what, $code) = @_;
@@ -108,12 +81,6 @@ sub fire {
         return (undef, $this) unless $block->($channel, $this)
     }
     return (1, $this)
-}
-
-# get a +modes string
-sub mode_string {
-    my @modes = sort { $a cmp $b } map { $_->[1] } $ircd::conf->values_of_block('modes', 'channel');
-    return join '', @modes
 }
 
 1
