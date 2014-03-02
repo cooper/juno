@@ -13,9 +13,9 @@ sub register_matcher {
     
     # register the event.
     $main::pool->register_event(
-        user_match  => $opts{code},
-        name        => $callb_name,
-        %opts # last so it can override
+        user_match => $opts{code},
+        %opts,
+        name => $callb_name,
     ) or return;
     
     log2("$$mod{name} registered $opts{name} matcher");

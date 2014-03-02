@@ -191,9 +191,9 @@ sub load_dependencies {
     load_or_reload('Evented::Database',             0.50, $boot);
     
     # juno components.
-    load_or_reload($_, $VERSION, $boot, $VERSION, undef) foreach @always_loaded;
-    load_or_reload($_, $VERSION, $boot, $VERSION, 1    ) foreach @maybe_loaded;
-
+    my $v = get_version();
+    load_or_reload($_, $v, $boot, $VERSION, undef) foreach @always_loaded;
+    load_or_reload($_, $v, $boot, $VERSION, 1    ) foreach @maybe_loaded;
     
 }
 

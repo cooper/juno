@@ -1123,7 +1123,7 @@ sub modules {
         $user->server_notice("        $$_mod{description}");
         foreach my $type (qw|
             user_commands server_commands channel_modes user_modes
-            outgoing_commands user_numerics
+            outgoing_commands user_numerics matchers
         |) {
         
             # find items in this category.
