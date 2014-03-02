@@ -268,7 +268,7 @@ sub register_user_handler {
     # does it already exist?
     if (exists $pool->{user_commands}{$command}) {
         log2("attempted to register $command which already exists");
-        return
+        return;
     }
 
     my $params = shift;
@@ -277,7 +277,7 @@ sub register_user_handler {
     my $ref = shift;
     if (ref $ref ne 'CODE') {
         log2("not a CODE reference for $command");
-        return
+        return;
     }
 
     my $desc = shift;
@@ -289,8 +289,9 @@ sub register_user_handler {
         source  => $source,
         desc    => $desc
     };
+    
     log2("$source registered $command: $desc");
-    return 1
+    return 1;
 }
 
 # unregister handler
@@ -358,14 +359,14 @@ sub register_server_handler {
     # does it already exist?
     if (exists $pool->{server_commands}{$command}) {
         log2("attempted to register $command which already exists");
-        return
+        return;
     }
 
     # ensure that it is CODE
     my $ref = shift;
     if (ref $ref ne 'CODE') {
         log2("not a CODE reference for $command");
-        return
+        return;
     }
 
     #success
@@ -374,8 +375,9 @@ sub register_server_handler {
         source  => $source,
         forward => shift
     };
+    
     log2("$source registered $command");
-    return 1
+    return 1;
 }
 
 # unregister
@@ -394,118 +396,122 @@ sub server_handlers {
 ### OUTGOING SERVER COMMANDS ###
 ################################
 
-# register outgoing command handlers
+# register an outgoing server command.
 sub register_outgoing_handler {
     my ($pool, $source, $command) = (shift, shift, uc shift);
 
     # does it already exist?
     if (exists $pool->{outgoing_commands}{$command}) {
         log2("attempted to register $command which already exists");
-        return
+        return;
     }
 
-    # ensure that it is CODE
+    # ensure that it is CODE.
     my $ref = shift;
     if (ref $ref ne 'CODE') {
         log2("not a CODE reference for $command");
-        return
+        return;
     }
 
-    # success
+    # success.
     $pool->{outgoing_commands}{$command} = {
         code    => $ref,
         source  => $source
     };
+    
     log2("$source registered $command");
-    return 1
+    return 1;
 }
 
-# unregister
+# delete an outgoing server command.
 sub delete_outgoing_handler {
     my ($pool, $command) = (shift, uc shift);
     log2("deleting handler $command");
-    delete $pool->{outgoing_commands}{$command}
+    delete $pool->{outgoing_commands}{$command};
 }
 
-# fire outgoing
+# fire an outgoing server command for a single server.
 sub fire_command {
     my ($pool, $server, $command, @args) = (shift, shift, uc shift, @_);
+    
+    # command does not exist.
     if (!$pool->{outgoing_commands}{$command}) {
         log2((caller)[0]." fired $command which does not exist");
-        return
+        return;
     }
 
-    # send
+    # send to one server.
     $server->send($pool->{outgoing_commands}{$command}{code}(@args));
 
-    return 1
+    return 1;
 }
 
+# fire an outgoing server command for all servers.
 sub fire_command_all {
     my ($pool, $command, @args) = (shift, uc shift, @_);
+    
+    # command does not exist.
     if (!$pool->{outgoing_commands}{$command}) {
         log2((caller)[0]." fired $command which does not exist");
-        return
+        return;
     }
 
-    # send
+    # send to all children.
     v('SERVER')->send_children(undef, $pool->{outgoing_commands}{$command}{code}(@args));
 
-    return 1
+    return 1;
 }
 
 ########################
 ### USER MODE BLOCKS ###
 ########################
 
-# register a block check to a mode
+# register a user mode block.
 sub register_user_mode_block {
     my ($pool, $name, $what, $code) = @_;
 
-    # check if it is CODE
+    # not a code reference.
     if (ref $code ne 'CODE') {
         log2((caller)[0]." tried to register a block to $name that isn't CODE.");
-        return
+        return;
     }
 
-    # make sure this one doesn't exist
+    # already exists from this source.
     if (exists $pool->{user_modes}{$name}{$what}) {
         log2((caller)[0]." tried to register $what to $name which is already registered");
-        return
+        return;
     }
 
-    # success
     $pool->{user_modes}{$name}{$what} = $code;
     log2("registered $name from $what");
-    return 1
+    return 1;
 }
 
-# delete a block
+# delete a user mode block.
 sub delete_user_mode_block {
     my ($pool, $name, $what) = @_;
     if (exists $pool->{user_modes}{$name}{$what}) {
         delete $pool->{user_modes}{$name}{$what};
         log2("deleting user mode block for $name: $what");
-        return 1
+        return 1;
     }
-    return
+    return;
 }
 
-# call on mode change
+# fire a user mode.
 sub fire_user_mode {
     my ($pool, $user, $state, $name) = @_;
-    if (!exists $pool->{user_modes}{$name}) {
-        # nothing to do
-        return 1
-    }
 
-    # call each block
+    # nothing to do.
+    return 1 unless exists $pool->{user_modes}{$name};
+
+    # call each block.
     foreach my $block (values %{$pool->{user_modes}{$name}}) {
-        return unless $block->($user, $state)
+        return unless $block->($user, $state);
     }
 
     # all returned true
-    return 1
+    return 1;
 }
 
 ###########################
@@ -519,45 +525,49 @@ sub fire_user_mode {
 #   list            (3)
 #   status          (4)
 
-# register a block check to a mode
+# register a block check to a mode.
 sub register_channel_mode_block {
     my ($pool, $name, $what, $code) = @_;
+    
+    # not a code reference.
     if (ref $code ne 'CODE') {
         log2((caller)[0]." tried to register a block to $name that isn't CODE.");
-        return
+        return;
     }
+    
+    # it exists already from this source.
     if (exists $pool->{channel_modes}{$name}{$what}) {
         log2((caller)[0]." tried to register $name to $what which is already registered");
-        return
+        return;
     }
+    
     log2("registered $name from $what");
     $pool->{channel_modes}{$name}{$what} = $code;
-    return 1
+    return 1;
 }
 
-# delete a block
+# delete a channel mode block.
 sub delete_channel_mode_block {
     my ($pool, $name, $what) = @_;
     if (exists $pool->{channel_modes}{$name}{$what}) {
         delete $pool->{channel_modes}{$name}{$what};
         log2("deleting user mode block for $name: $what");
-        return 1
+        return 1;
     }
-    return
+    return;
 }
 
+# fire a channel mode.
 sub fire_channel_mode {
     my (
         $pool, $channel, $server, $source, $state, $name,
         $parameter, $parameters, $force, $over_protocol
     ) = @_;
 
-    if (!exists $pool->{channel_modes}{$name}) {
-        # nothing to do
-        return 1
-    }
+    # nothing to do.
+    return 1 unless exists $pool->{channel_modes}{$name};
 
-    # create a hashref with info
+    # create a hashref with info.
     my $this = {
         channel => $channel,
         server  => $server,
@@ -569,10 +579,12 @@ sub fire_channel_mode {
         proto   => $over_protocol
     };
 
+    # fire each block.
     foreach my $block (values %{$pool->{channel_modes}{$name}}) {
-        return (undef, $this) unless $block->($channel, $this)
+        return (undef, $this) unless $block->($channel, $this);
     }
-    return (1, $this)
+    
+    return (1, $this);
 }
 
 1

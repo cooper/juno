@@ -1820,3 +1820,5 @@ CHANGES:
         58. moved mode configuration functions out of ::mode packages and into the ircd package.
 
         59. ::modes packages deleted; all remaining functionality moved to the pool object.
+        
+    6. clean up old code that was moved to pool package.
