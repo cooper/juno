@@ -13,7 +13,6 @@ md5 = off        # arguably less secure      (core Perl module)
 [ database ]
 
 type = "sqlite"      # type of database (currently only sqlite is supported)
-file = "etc/juno.db" # the location of database file
 
 [ network ]
 

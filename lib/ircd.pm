@@ -60,6 +60,13 @@ sub start {
 
     # load or reload optional packages.
     load_optionals($boot);
+    
+    # create the database object.
+    if (conf('database', 'type') eq 'sqlite') {
+        my $dbfile  = "$main::run_dir/db/conf.db";
+        $conf->{db} = DBI->connect("dbi:SQLite:dbname=$dbfile", '', '');
+        $conf->create_tables_maybe;
+    }
 
     # create the pool.
     if (!$main::pool) {
@@ -205,6 +212,7 @@ sub load_optionals {
     # encryption.
     load_or_reload('Digest::SHA', 0, $boot) if conf qw[enabled sha];
     load_or_reload('Digest::MD5', 0, $boot) if conf qw[enabled md5];
+    load_or_reload('DBD::SQLite', 0, $boot) if conf('database', 'type') eq 'sqlite';
 
 }
 

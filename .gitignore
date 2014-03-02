@@ -25,3 +25,4 @@ etc/HUP
 dev/
 *~
 *.old
+db/*.db
