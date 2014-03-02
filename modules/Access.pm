@@ -12,7 +12,7 @@ use utils qw(conf v match);
 
 our $mod = API::Module->new(
     name        => 'Access',
-    version     => '1.01',
+    version     => '1.02',
     description => 'implements channel access modes',
     requires    => ['Events', 'ChannelModes'],
     initialize  => \&init
@@ -44,7 +44,7 @@ sub cmd_up {
     my ($user, $data, $channel) = @_;
     
     # pretend join.
-    on_user_joined(undef, $channel, $user);
+    on_user_joined($channel, $event, $user);
     
 }
 
