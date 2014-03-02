@@ -5,7 +5,7 @@ package server;
 use warnings;
 use strict;
 use feature 'switch';
-use parent 'Evented::Object';
+use parent qw(Evented::Object server::mine);
 
 use utils qw[log2 v];
 
@@ -169,13 +169,7 @@ sub DESTROY {
     log2("$server destroyed");
 }
 
-# local shortcuts
-sub handle   { &server::mine::handle   }
-sub send     { &server::mine::send     }
-sub sendfrom { &server::mine::sendfrom }
-sub sendme   { &server::mine::sendme   }
-
-# other
+# shortcuts
 sub id       { shift->{sid}      }
 sub full     { shift->{name}     }
 sub name     { shift->{name}     }

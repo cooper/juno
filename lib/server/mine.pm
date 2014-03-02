@@ -110,6 +110,10 @@ sub fire_command_all {
     return 1
 }
 
+######################
+### SERVER METHODS ###
+######################
+
 # handle local user data
 sub handle {
     my $server = shift;
@@ -245,7 +249,7 @@ sub send_burst {
     return 1
 }
 
-# send data to all of my children
+# send data to all of my children.
 sub send_children {
     my $ignore = shift;
 
@@ -253,7 +257,7 @@ sub send_children {
 
         # don't send to ignored
         if (defined $ignore && $server == $ignore) {
-            next
+            next;
         }
 
         # don't try to send to non-locals
@@ -285,8 +289,7 @@ sub send {
     $server->{conn}->send(@_)
 }
 
-# send data from ME
-
+# send data to a server from THIS server.
 sub sendme {
     my $server = shift;
     $server->sendfrom(v('SERVER', 'sid'), @_)
@@ -294,7 +297,7 @@ sub sendme {
 
 sub sendserv { &sendme }
 
-# send data from a UID or SID
+# send data from a UID or SID.
 sub sendfrom {
     my ($server, $from) = (shift, shift);
     $server->send(map { ":$from $_" } @_)

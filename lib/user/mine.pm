@@ -170,7 +170,7 @@ sub server_notice {
     }
     
     # not local; pass it on.
-    server::mine::fire_command($user->{location}, privmsgnotice =>
+    $user->{location}->fire_command(privmsgnotice =>
         'NOTICE',
         v('SERVER'),
         $user,
@@ -246,7 +246,7 @@ sub send_to_channels {
     my ($user, $what) = @_;
     
     # this user included.
-    $user->sendfrom($user->full, $what);
+    $user->sendfrom($user->full, $what) if $user->is_local;
     my %sent = ( $user => 1 );
 
     # check each channel.
