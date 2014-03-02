@@ -15,10 +15,17 @@ our $mod = API::Module->new(
 );
  
 sub init {
+
     $mod->register_matcher(
         name => 'standard',
         code => \&standard_matcher
     ) or return;
+    
+    $mod->register_matcher(
+        name => 'oper',
+        code => \&oper_matcher
+    ) or return;
+    
     return 1;
 }
 
@@ -27,6 +34,13 @@ sub standard_matcher {
     foreach my $mask ($user->full, $user->fullcloak, $user->fullip) {
         return $event->{matched} = 1 if _match($mask, @list);
     }
+    return;
+}
+
+sub oper_matcher {
+    my ($event, $user, @list) = @_;
+    grep { $_ eq '$o' } @list or return;
+    return $event->{matched} = 1 if $user->is_mode('ircop');
     return;
 }
 

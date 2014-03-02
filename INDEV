@@ -1837,7 +1837,9 @@ CHANGES:
             fixed a fatal issue where variables in the ircd package were overwritten by undef during reload.
             the standard matcher now immediately skips anything not in the nick!user@host format.
 
+        66. version intentionally skipped.
 
+        67. added $o matcher for opers.
 
 
 
