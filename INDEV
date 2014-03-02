@@ -1841,8 +1841,7 @@ CHANGES:
 
         67. added $o matcher for opers.
 
-
-
+        68. no longer limit masks to nick!user@host in Access module.
 
 
 

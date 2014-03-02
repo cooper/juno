@@ -12,7 +12,7 @@ use utils qw(conf v match);
 
 our $mod = API::Module->new(
     name        => 'Access',
-    version     => '0.91',
+    version     => '1.0',
     description => 'implements channel access modes',
     requires    => ['Events', 'ChannelModes'],
     initialize  => \&init
@@ -136,7 +136,7 @@ sub on_user_joined {
     return unless exists $channel->{modes}{access};
     foreach my $mask ($channel->list_elements('access')) {
         my $realmask = $mask;
-        $realmask = (split ':', $mask, 2)[1] if $mask =~ m/^(.+?):(.+)!(.+)\@(.+)/;
+        $realmask = (split ':', $mask, 2)[1] if $mask =~ m/^(.+?):(.+)$/;
         
         # found a match.
         push @matches, $mask if match($user, $realmask);
