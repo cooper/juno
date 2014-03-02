@@ -95,10 +95,11 @@ sub validnick {
     my $limit = conf('limit', 'nick');
 
     # valid characters
-    return if (length $str < 1 ||
-      length $str > $limit ||
-      ($str =~ m/^\d/) ||
-      $str =~ m/[^A-Za-z-0-9-\[\]\\\`\^\|\{\}\_]/);
+    return if (
+        length $str < 1         or
+        length $str > $limit    or
+        $str !~ m/^[A-Za-z_`\-^\|\\\{}\[\]][A-Za-z_0-9`\-^\|\\\{}\[\]]*$/
+    );
 
     # success
     return 1
@@ -116,25 +117,12 @@ sub validchan {
 # match a host to a list
 sub match {
     my ($mask, @list) = @_;
-    $mask = lc $mask;
-    my @aregexps;
-
-    # convert IRC expression to Perl expression.
-    @list = map {
-        $_ = "\Q$_\E";  # escape all non-alphanumeric characters.
-        s/\\\?/\./g;    # replace "\?" with "."
-        s/\\\*/\.\*/g;  # replace "\*" with ".*"
-        s/\\\@/\@/g;    # replace "\@" with "@"
-        s/\\\!/\!/g;    # replace "\!" with "!"
-        lc
+    return grep { $mask =~ /^$_$/ } map {
+        $_ = lc quotemeta;
+        s/\\\*/[\x01-\xFF]{0,}/g;
+        s/\\\?/[\x01-\xFF]{1,1}/g;
+        $_
     } @list;
-
-    # success
-    return 1 if grep { $mask =~ m/^$_$/ } @list;
-
-    # no matches
-    return
-
 }
 
 sub lceq {

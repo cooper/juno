@@ -49,6 +49,7 @@
 		A75C5D1D18B4321A007780A3 /* rfc-2812 */ = {isa = PBXFileReference; lastKnownFileType = text; name = "rfc-2812"; path = "../rfc-2812"; sourceTree = "<group>"; };
 		A765E0BF18BEE68500B3E448 /* VERSION */ = {isa = PBXFileReference; lastKnownFileType = text; name = VERSION; path = ../VERSION; sourceTree = "<group>"; };
 		A782BD6A18C2907900D137A3 /* Resolve.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Resolve.pm; sourceTree = "<group>"; };
+		A79514CD18C2EECC00838C46 /* Matching.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Matching.pm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -113,6 +114,7 @@
 				A75C5CE418B4321A007780A3 /* UserCommands.pm */,
 				A75C5CE518B4321A007780A3 /* UserModes.pm */,
 				A75C5CE618B4321A007780A3 /* UserNumerics.pm */,
+				A79514CD18C2EECC00838C46 /* Matching.pm */,
 			);
 			name = "API bases";
 			path = API/Base;
