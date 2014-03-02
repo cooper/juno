@@ -133,8 +133,8 @@ sub on_user_joined {
     my (@matches, @letters);
     
     # look for matches.
-    return unless exists $channel->{modes}{access};
-    foreach my $mask ($channel->list_elements('access')) {
+    my @items = $channel->list_elements('access') or return 1;
+    foreach my $mask (@items) {
         my $realmask = (split ':', $mask, 2)[-1];
         
         # found a match.

@@ -125,7 +125,7 @@ sub match {
 sub _match {
     my ($mask, @list) = @_;
     return unless $mask =~ m/^(.+)\!(.+)\@(.+)$/;
-    return grep { $mask =~ /^$_$/ } map {
+    return scalar grep { $mask =~ /^$_$/ } map {
         $_ = lc quotemeta;
         s/\\\*/[\x01-\xFF]{0,}/g;
         s/\\\?/[\x01-\xFF]{1,1}/g;

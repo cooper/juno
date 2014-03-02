@@ -1851,3 +1851,8 @@ CHANGES:
             
         69. it makes way more sense to check if the user is an oper before checking the list.
             match $o:<flag> to any oper with flag <flag>.
+            
+    7. always return a scalar value from match().
+        update Evented::Database.
+        other random changes.
+        
