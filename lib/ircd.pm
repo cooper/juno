@@ -211,8 +211,7 @@ sub load_optionals {
 sub create_sockets {
 
     # TODO: keep track of these, and allow rehashing to change this.
-    state $done;
-    return if $done;
+    return if $main::sockets_done;
         # FIXME: do the above and ignore anything that hasn't changed
         # when reloading because this will be called multiple times.
     
@@ -239,7 +238,7 @@ sub create_sockets {
         log2("Listening on [$addr]:$port");
     } }
     
-    $done = 1;
+    $main::sockets_done = 1;
     return 1;
 }
 

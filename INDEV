@@ -1856,3 +1856,5 @@ CHANGES:
         update Evented::Database.
         other random changes.
         
+        71. temporarily use a main package variable to determine if sockets were created already.
+
