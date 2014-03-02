@@ -193,8 +193,8 @@ sub load_dependencies {
     
     # juno components.
     my $v = get_version();
-    load_or_reload($_, $v, $boot, $VERSION, undef) foreach @always_loaded;
-    load_or_reload($_, $v, $boot, $VERSION, 1    ) foreach @maybe_loaded;
+    load_or_reload($_, $v, $boot, $v, undef) foreach @always_loaded;
+    load_or_reload($_, $v, $boot, $v, 1    ) foreach @maybe_loaded;
     
 }
 
