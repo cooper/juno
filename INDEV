@@ -1832,3 +1832,15 @@ CHANGES:
             the match() utility function now calls $pool->user_match() if the item being matched is a blessed object.
             
         64. read VERSION file for the minimum version of juno components in load_or_reload().
+
+        65. do not use the module name in matcher callback names.
+            fixed a fatal issue where variables in the ircd package were overwritten by undef during reload.
+            the standard matcher now immediately skips anything not in the nick!user@host format.
+
+
+
+
+
+
+
+

@@ -9,21 +9,19 @@ use utils 'log2';
 
 sub register_matcher {
     my ($mod, %opts) = @_;
-    my $callb_name   = "$$mod{name}.$opts{name}";
     
     # register the event.
     $main::pool->register_event(
         user_match => $opts{code},
-        %opts,
-        name => $callb_name,
+        %opts
     ) or return;
     
     log2("$$mod{name} registered $opts{name} matcher");
     
     # store for later.
-    push @{ $mod->{matchers} ||= [] }, $callb_name;
+    push @{ $mod->{matchers} ||= [] }, $opts{name};
     
-    return $callb_name;
+    return $opts{name};
 }
 
 sub _unload {

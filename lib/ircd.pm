@@ -7,7 +7,8 @@ use 5.010;
 
 use utils qw(conf lconf log2 fatal v set trim);
 
-our ($VERSION, $API, $conf, $loop, $pool, $timer, %global) = get_version();
+our ($VERSION, $API, $conf, $loop, $pool, $timer, %global);
+$VERSION = get_version();
 
 # all non-module packages always loaded in the IRCd.
 our @always_loaded = qw(
