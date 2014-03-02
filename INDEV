@@ -1826,3 +1826,7 @@ CHANGES:
         61. the Resolve module now accepts any record to match rather than ignoring multiple records.
         
         62. improved match() and validnick() utilities.
+        
+        63. created Matching API base for registering user matching event callbacks.
+            created Matchers core module which provides the standard matchers.
+            the match() utility function now calls $pool->user_match() if the item being matched is a blessed object.

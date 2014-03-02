@@ -207,6 +207,11 @@ sub full {
     "$$user{nick}!$$user{ident}\@$$user{host}"
 }
 
+sub fullip {
+    my $user = shift;
+    "$$user{nick}!$$user{ident}\@$$user{ip}"
+}
+
 sub fullcloak {
     my $user = shift;
     "$$user{nick}!$$user{ident}\@$$user{cloak}"

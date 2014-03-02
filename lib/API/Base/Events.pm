@@ -24,9 +24,9 @@ sub register_ircd_event {
         name             => $callb_name,
         with_evented_obj => 1,
         %opts # last so it can override
-    );
+    ) or return;
     
-    log2("$$mod{name} register callback for ircd event $event_name: $callb_name");
+    log2("$$mod{name} registered callback for ircd event $event_name: $callb_name");
     
     # store for later.
     push @{$mod->{ircd_events}}, [$event_name, $callb_name];

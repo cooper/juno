@@ -6,7 +6,7 @@ use warnings;
 use strict;
 use feature qw[switch say];
 
-use Scalar::Util qw(looks_like_number);
+use Scalar::Util qw(blessed looks_like_number);
 
 our %v;
 
@@ -114,8 +114,15 @@ sub validchan {
     return 1
 }
 
-# match a host to a list
+# match a list
 sub match {
+    my ($what, @list) = @_;
+    return $main::pool->user_match($what, @list) if blessed $what;
+    return _match($what, @list);
+}
+
+# basic matcher.
+sub _match {
     my ($mask, @list) = @_;
     return grep { $mask =~ /^$_$/ } map {
         $_ = lc quotemeta;

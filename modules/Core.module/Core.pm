@@ -21,7 +21,7 @@ sub init {
     # load submodules.
     $mod->load_submodule($_) || return foreach qw(
         ServerCommands OutgoingCommands UserModes
-        ChannelModes UserNumerics UserCommands
+        ChannelModes UserNumerics UserCommands Matchers
     );
 
     return 1;   

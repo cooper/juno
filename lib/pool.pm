@@ -587,4 +587,14 @@ sub fire_channel_mode {
     return (1, $this);
 }
 
+#####################
+### USER MATCHERS ###
+#####################
+
+sub user_match {
+    my ($pool, $user, @list) = @_;
+    my $e = $pool->fire_event(user_match => $user, @list);
+    return $e->{matched};
+}
+
 1

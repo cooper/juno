@@ -510,10 +510,8 @@ sub cjoin {
         my ($me, $ur, $sr) = v('SERVER');
 
         # check for ban.
-        my $banned = $channel->list_matches('ban',    $user->fullcloak) ||
-                     $channel->list_matches('ban',    $user->full);
-        my $exempt = $channel->list_matches('except', $user->fullcloak) ||
-                     $channel->list_matches('except', $user->full);
+        my $banned = $channel->list_matches('ban',    $user);
+        my $exempt = $channel->list_matches('except', $user);
         
         # yep, banned.
         if ($banned && !$exempt) {
@@ -567,7 +565,7 @@ sub oper {
         # a reference of several addresses
         if (ref $addr eq 'ARRAY') {
             match: foreach my $host (@$addr) {
-                if (match($user->full, $host) || match("$$user{nick}!$$user{ident}\@$$user{ip}", $host)) {
+                if (match($user, $host)) {
                     $win = 1;
                     last match
                 }
@@ -576,7 +574,7 @@ sub oper {
 
         # must just be a string of 1 address
         else {
-            if (match($user->{host}, $addr) || match($user->{ip}, $addr)) {
+            if (match($user, $addr)) {
                 $win = 1
             }
         }

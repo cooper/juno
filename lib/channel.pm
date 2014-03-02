@@ -64,7 +64,7 @@ sub list_has {
 }
 
 # something matches in an expression list
-# returns the match if there is one.
+# returns the match if there is one. $what = a user
 sub list_matches {
     my ($channel, $name, $what) = @_;
     return unless exists $channel->{modes}->{$name};

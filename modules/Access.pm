@@ -139,8 +139,7 @@ sub on_user_joined {
         $realmask = (split ':', $mask, 2)[1] if $mask =~ m/^(.+?):(.+)!(.+)\@(.+)/;
         
         # found a match.
-        push @matches, $mask
-        if match($user->full, $realmask) || match($user->fullcloak, $realmask);
+        push @matches, $mask if match($user, $realmask);
         
     }
     

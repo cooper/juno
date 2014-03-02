@@ -50,6 +50,7 @@
 		A765E0BF18BEE68500B3E448 /* VERSION */ = {isa = PBXFileReference; lastKnownFileType = text; name = VERSION; path = ../VERSION; sourceTree = "<group>"; };
 		A782BD6A18C2907900D137A3 /* Resolve.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Resolve.pm; sourceTree = "<group>"; };
 		A79514CD18C2EECC00838C46 /* Matching.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Matching.pm; sourceTree = "<group>"; };
+		A79514CE18C301D600838C46 /* Matchers.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Matchers.pm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -180,6 +181,7 @@
 				A75C5D1718B4321A007780A3 /* UserCommands.pm */,
 				A75C5D1818B4321A007780A3 /* UserModes.pm */,
 				A75C5D1918B4321A007780A3 /* UserNumerics.pm */,
+				A79514CE18C301D600838C46 /* Matchers.pm */,
 			);
 			name = Submodules;
 			path = submodules;
