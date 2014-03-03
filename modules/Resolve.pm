@@ -9,7 +9,7 @@ use utils qw(conf v match);
 
 our $mod = API::Module->new(
     name        => 'Resolve',
-    version     => '0.2',
+    version     => '0.3',
     description => 'resolve hostnames',
     requires    => ['Events'],
     initialize  => \&init
@@ -28,7 +28,8 @@ sub connection_new {
 
 sub resolve_address {
     my $connection = shift;
-
+    return if $connection->{goodbye};
+    
     # prevent connection registration from completing.
     $connection->reg_wait;
 
@@ -43,6 +44,7 @@ sub resolve_address {
 
 sub on_resolved_ip {
     my ($connection, $host) = @_;
+    return if $connection->{goodbye};
 
     # temporarily store the host
     $connection->{temp_host} = $host;
@@ -60,6 +62,7 @@ sub on_resolved_ip {
 
 sub on_resolved_host {
     my ($connection, @addrs) = @_;
+    return if $connection->{goodbye};
 
     # see if any result matches.
     foreach my $a (@addrs) {
@@ -80,6 +83,8 @@ sub on_resolved_host {
 
 sub on_error {
     my $connection = shift;
+    return if $connection->{goodbye};
+
     $connection->send(q(:).v('SERVER', 'name').' NOTICE * :*** Couldn\'t resolve your hostname');
     delete $connection->{temp_host};
     $connection->reg_continue;

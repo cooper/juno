@@ -1870,3 +1870,5 @@ CHANGES:
         76. fixed a fatal issue where nick changing causes immediate IRCd crash due to lookup_by_nick().
             added ->change_user_nick() method to the pool object to replace that functionality.
             annihilated a bug in which nickname changes to the same nickname in a different case were ignored.
+            
+        7. added additional safety checks to Resolve module.
