@@ -196,6 +196,23 @@ sub delete_user {
     return 1;
 }
 
+# change a user's nickname.
+sub change_user_nick {
+    my ($pool, $user, $newnick) = @_;
+    
+    # make sure it doesn't exist first.
+    if ($pool->lookup_user_nick($newnick) != $user) {
+        log2("attempted to change nicks to a nickname that already exists! $newnick");
+        return;
+    }
+    
+    # it does not exist.
+    delete $pool->{nicks}{ lc $user->{nick} };
+    $pool->{nicks}{lc $newnick} = $user;
+    
+    return 1;
+}
+
 sub users { values %{ shift->{users} } }
 
 ################

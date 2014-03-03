@@ -81,15 +81,9 @@ sub quit {
 
 sub change_nick {
     my ($user, $newnick) = @_;
-
-    # make sure it doesn't exist first
-    if (lookup_by_nick($newnick)) {
-        log2("attempted to change nicks to a nickname that already exists! $newnick");
-        return
-    }
-
+    $user->{pool}->change_user_nick($user, $newnick) or return;
     log2("$$user{nick} -> $newnick");
-    $user->{nick} = $newnick
+    $user->{nick} = $newnick;
 }
 
 # handle a mode string and convert the mode letters to their mode

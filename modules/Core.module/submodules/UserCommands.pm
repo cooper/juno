@@ -246,28 +246,27 @@ sub motd {
 sub nick {
     my ($user, $data, @args) = @_;
     my $newnick = col($args[1]);
+    my $me      = lc $user->{nick} eq lc $newnick;
 
     if ($newnick eq '0') {
-        $newnick = $user->{uid}
+        $newnick = $user->{uid};
     }
     else {
         # check for valid nick
         if (!utils::validnick($newnick)) {
             $user->numeric('ERR_ERRONEUSNICKNAME', $newnick);
-            return
+            return;
         }
 
         # check for existing nick
-        if ($main::pool->lookup_user_nick($newnick)) {
+        if ($main::pool->lookup_user_nick($newnick) != $user) {
             $user->numeric('ERR_NICKNAMEINUSE', $newnick);
-            return
+            return;
         }
     }
 
     # ignore stupid nick changes
-    if (lceq $user->{nick} => $newnick) {
-        return
-    }
+    return if $user->{nick} eq $newnick;
 
     # tell ppl
     $user->send_to_channels("NICK $newnick");

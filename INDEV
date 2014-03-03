@@ -1867,3 +1867,6 @@ CHANGES:
         75. solved an issue where hostmask matching was half-case-sensitive, causing any mask with an uppercase letter to fail.
             created Database API base for accessing DBI databases in the configured format.
         
+        76. fixed a fatal issue where nick changing causes immediate IRCd crash due to lookup_by_nick().
+            added ->change_user_nick() method to the pool object to replace that functionality.
+            annihilated a bug in which nickname changes to the same nickname in a different case were ignored.
