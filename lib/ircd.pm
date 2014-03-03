@@ -320,9 +320,9 @@ sub handle_connect {
 # handle incoming data
 sub handle_data {
     my ($stream, $buffer) = @_;
-    my $connection = $main::pool->lookup_connection($stream);
+    my $connection = $main::pool->lookup_connection($stream) or return;
     while ($$buffer =~ s/^(.*?)\n//) {
-        $connection->handle($1)
+        $connection->handle($1);
     }
 }
 

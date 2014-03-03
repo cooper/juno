@@ -1862,3 +1862,5 @@ CHANGES:
         
         73. implemented SQLite support for use with the Evented::Database configuration instance.
 
+        74. fixed a fatal error in which data sent after QUIT but before EOF causes ->handle to be called on a dead connection.
+
