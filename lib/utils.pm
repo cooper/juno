@@ -123,7 +123,7 @@ sub match {
 
 # basic matcher.
 sub _match {
-    my ($mask, @list) = @_;
+    my ($mask, @list) = (lc shift, @_);
     return unless $mask =~ m/^(.+)\!(.+)\@(.+)$/;
     return scalar grep { $mask =~ /^$_$/ } map {
         $_ = lc quotemeta;

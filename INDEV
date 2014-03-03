@@ -1864,3 +1864,6 @@ CHANGES:
 
         74. fixed a fatal error in which data sent after QUIT but before EOF causes ->handle to be called on a dead connection.
 
+        75. solved an issue where hostmask matching was half-case-sensitive, causing any mask with an uppercase letter to fail.
+            created Database API base for accessing DBI databases in the configured format.
+        
