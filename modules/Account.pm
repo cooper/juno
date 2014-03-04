@@ -7,7 +7,7 @@ use 5.010;
 
 our $db;
 
-use utils qw(v log2);
+use utils qw(v log2 conf);
 
 our $mod = API::Module->new(
     name        => 'Account',
@@ -50,6 +50,16 @@ sub init {
         code        => \&cmd_register
     );
     
+    # LOGIN command.
+    # /LOGIN <password>
+    # /LOGIN <accountname> <password>
+    $mod->register_user_command(
+        name        => 'LOGIN',
+        description => 'log in to an account',
+        parameters  => 'any any(opt)',
+        code        => \&cmd_login
+    );
+    
     # RPL_LOGGEDIN and RPL_LOGGEDOUT.
     $mod->register_user_numeric(
         name   => 'RPL_LOGGEDIN',
@@ -90,16 +100,22 @@ sub register_account {
     # it exists already.
     return if account_info($account);
     
+    # determine ID.
     my $time = time;
     my $id   = next_available_id();
 
+    # encrypt password.
+    my $encrypt = conf('account', 'encryption')     || 'sha1';
+    $password   = utils::crypt($password, $encrypt) || $password;
+
     # insert.
     $db->do(q{INSERT INTO accounts(
-        id, name, password, created, cserver, csid, updated, userver, usid
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) }, undef,
+        id, name, password, encrypt, created, cserver, csid, updated, userver, usid
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) }, undef,
         $id,
         $account,
         $password,
+        $encrypt,
         $time,
         $server->{name},
         $server->{sid},
@@ -111,19 +127,22 @@ sub register_account {
 
 # log a user into an account.
 sub login_account {
-    my ($account, $user, $password,) = @_;
+    my ($account, $user, $password) = @_;
     
     # fetch the account information.
     my $act = account_info($account);
     if (!$act) {
-        log2("error: can't log $$user{nick} into account $account");
-        $user->server_notice('login', 'Error loading account data') if $user->is_local;
+        $user->server_notice('login', 'No such account') if $user->is_local;
         return;
     }
     
     # if password is defined, we're checking the password.
     if (defined $password) {
-        # TODO: this
+        $password = utils::crypt($password, $act->{encrypt});
+        if ($password ne $act->{password}) {
+            $user->server_notice('login', 'Password incorrect') if $user->is_local;
+            return;
+        }
     }
     
     # log in.
@@ -133,7 +152,7 @@ sub login_account {
     my $str  = $user->handle_mode_string("+$mode", 1);
     if ($user->is_local) {
         $user->numeric(RPL_LOGGEDIN => $act->{name}, $act->{name});
-        $user->sendfrom($user->{nick}, "MODE $$user{nick} :$str");
+        $user->sendfrom($user->{nick}, "MODE $$user{nick} :$str") if $str;
     }
     
     return 1;
@@ -141,19 +160,27 @@ sub login_account {
 
 # log a user out.
 sub logout_account {
-    my $user = shift;
+    my ($user, $mode_set) = @_;
     
     # not logged in.
     if (!$user->{account}) {
+        # TODO: this.
         return;
     }
 
     # success.
     delete $user->{account};
-    my $mode = v('SERVER')->umode_letter('registered');
-    my $str  = $user->handle_mode_string("-$mode");
+    
+    # mode already unset?
+    my ($mode, $str);
+    if (!$mode_set) {
+        $mode = v('SERVER')->umode_letter('registered');
+        $str  = $user->handle_mode_string("-$mode");
+    }
+    
+    # send logged out.
     if ($user->is_local) {
-        $user->sendfrom($user->{nick}, "MODE $$user{nick} :$str");
+        $user->sendfrom($user->{nick}, "MODE $$user{nick} :$str") if $str;
         $user->numeric('RPL_LOGGEDOUT');
     }
 
@@ -166,7 +193,7 @@ sub umode_registered {
     return if $state; # never allow setting.
 
     # but always allow them to unset it.
-    logout_account($user);
+    logout_account($user, 1);
     return 1;
 }
 
@@ -193,6 +220,23 @@ sub cmd_register {
     login_account($account, $user, undef, 1);
     
     return 1;
+}
+
+# LOGIN command.
+# /LOGIN <password>
+# /LOGIN <accountname> <password>
+sub cmd_login {
+    my ($user, $data, $account, $password) = @_;
+    
+    # no account name.
+    if (!defined $password) {
+        $password = $account;
+        $account  = $user->{nick};
+    }
+    
+    # login.
+    login_account($account, $user, $password);
+    
 }
 
 $mod

@@ -138,7 +138,8 @@ sub handle_mode_string {
     $str =~ s/\-\+/\+/g;
 
     log2("end of mode handle");
-    return $str
+    return '' if $str eq '+' || $str eq '-';
+    return $str;
 }
 
 # returns a +modes string

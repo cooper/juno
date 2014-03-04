@@ -1871,9 +1871,11 @@ CHANGES:
             added ->change_user_nick() method to the pool object to replace that functionality.
             annihilated a bug in which nickname changes to the same nickname in a different case were ignored.
             
-        77.added additional safety checks to Resolve module.
+        77. added additional safety checks to Resolve module.
 
         78. added convenient methods to the Database API base: create_table(), table_exists(), create_or_alter_table().
             included start of Account module.
             
         79. more work to Account module.
+        
+    8. finished REGISTER and LOGIN commands.
