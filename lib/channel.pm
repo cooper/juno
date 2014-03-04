@@ -108,9 +108,9 @@ sub remove_from_list {
     my ($channel, $name, $what) = @_;
     return unless $channel->list_has($name, $what);
 
-    my @old = @{$channel->{modes}->{$name}->{list}};
-    my @new = grep { $_->[0] ne $what } @old;
-    $channel->{modes}->{$name}->{list} = \@new;
+    my @new = grep { $_->[0] ne $what } @{ $channel->{modes}{$name}{list} };
+    $channel->{modes}{$name}{list} = \@new;
+    
     log2("$$channel{name}: removing $what from $name list");
 }
 
@@ -382,14 +382,15 @@ sub user_has_basic_status {
 }
 
 # get the highest level of a user
-# note: ->{status}{$user} is set in core_cmodes.
+# [letter, symbol, name]
 sub user_get_highest_level {
     my ($channel, $user) = @_;
-    if ($channel->{status}->{$user}) {
-        my $res = (sort { $b <=> $a } @{$channel->{status}->{$user}})[0];
-        return $res if defined $res
+    my $biggest = -'inf';
+    foreach my $level (keys %ircd::channel_mode_prefixes) {
+        my ($letter, $symbol, $name) = @{ $ircd::channel_mode_prefixes{$level} };
+        $biggest = $level if $level > $biggest && $channel->list_has($name, $user);
     }
-    return -'inf' # lowest status value
+    return $biggest;
 }
 
 sub id   { shift->{name} }

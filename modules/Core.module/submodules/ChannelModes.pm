@@ -100,19 +100,6 @@ sub register_statuses {
             }
         }
 
-        # add/remove status
-        $channel->{status}->{$target} ||= [];
-        my $statuses = $channel->{status}->{$target};
-
-        if ($mode->{state}) {
-            push @$statuses, $level
-        }
-        else {
-            @$statuses = grep { $_ != $level } @$statuses
-        }
-
-        $channel->{status}->{$target} = $statuses;
-
         # [USER RESPONSE, SERVER RESPONSE]
         push @{$mode->{params}}, [$target->{nick}, $target->{uid}];
         my $do = $mode->{state} ? 'add_to_list' : 'remove_from_list';

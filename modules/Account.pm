@@ -11,7 +11,7 @@ use utils qw(v log2 conf);
 
 our $mod = API::Module->new(
     name        => 'Account',
-    version     => '0.2',
+    version     => '0.3',
     description => '',
     requires    => [
                         'Database', 'UserCommands', 'UserNumerics',
@@ -77,6 +77,12 @@ sub init {
         name => 'registered',
         code => \&umode_registered
     );
+    
+    # account matcher.
+    $mod->register_matcher(
+        name => 'account',
+        code => \&account_matcher
+    ) or return;
     
     return 1;
 }
@@ -237,6 +243,27 @@ sub cmd_login {
     # login.
     login_account($account, $user, $password);
     
+}
+
+# account mask matcher.
+sub account_matcher {
+    my ($event, $user, @list) = @_;
+    return unless $user->is_mode('registered');
+    
+    foreach my $item (@list) {
+    
+        # just check if registered.
+        return $event->{matched} = 1 if $item eq '$r';
+        
+        # match a specific account.
+        next unless $item =~ m/^\$r:(.+)/;
+        return $event->{matched} = 1 if lc $user->{account}{name} eq lc $1;
+        
+    }
+    
+    return unless grep { $_ eq '$r' } @list;
+    return $event->{matched} = 1;
+    return;
 }
 
 $mod

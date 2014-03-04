@@ -1879,3 +1879,6 @@ CHANGES:
         79. more work to Account module.
         
     8. finished REGISTER and LOGIN commands.
+
+        81. fixed a ridiculous bug in channel status mode tracking.
+            
