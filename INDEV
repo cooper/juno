@@ -1875,3 +1875,5 @@ CHANGES:
 
         78. added convenient methods to the Database API base: create_table(), table_exists(), create_or_alter_table().
             included start of Account module.
+            
+        79. more work to Account module.

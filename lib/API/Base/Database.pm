@@ -43,6 +43,30 @@ sub create_table {
     return defined $db->do($query, undef, @columns);
 }
 
+# select a hashref.
+sub db_hashref {
+    my ($mod, $db, $query, @args) = @_;
+    my $sth = $db->prepare($query);
+    $sth->execute(@args) or return;
+    return $sth->fetchrow_hashref;
+}
+
+# select an arrayref.
+sub db_arrayref {
+    my ($mod, $db, $query, @args) = @_;
+    my $sth = $db->prepare($query);
+    $sth->execute(@args) or return;
+    return $sth->fetchrow_arrayref;
+}
+
+# select a single value.
+sub db_single {
+    my ($mod, $db, $query, @args) = @_;
+    my $sth = $db->prepare($query);
+    $sth->execute(@args) or return;
+    return $sth->fetchrow_arrayref->[0];
+}
+
 # create a table if necessary.
 # add new columns if necessary.
 sub create_or_alter_table {

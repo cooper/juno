@@ -20,6 +20,9 @@ sub new {
 ###################
 
 # create a connection.
+# note: if ever adding new things to any new() subs,
+# keep in mind that those will obviously not be present in
+# existing objects after an IRCd reload.
 sub new_connection {
     my ($pool, %opts) = @_;
     my $connection = connection->new($opts{stream}) or return;

@@ -32,15 +32,15 @@ id          = 0                                 # the SID of the server
 # modules to load automatically.
 # you probably want to load core_*. juno is pretty much useless without core modules.
 
-modules: ['Core', 'Access', 'Resolve']
+modules: ['Core', 'Access', 'Resolve', 'Account']
 
 [ modes: user ]
 
-ircop     = 'o'     # user mode letters. If these are provided, the modes will exist.
-invisible = 'i'     # if they are not provided, the modes will not exist. You can choose
-                    # any letter to correspond with a mode without changing the internal
-                    # working of the IRCd. If you chose to add a rule here for a mode that
-                    # does nothing, the mode will still exist - it will just be useless.
+ircop      = 'o'     # user mode letters. If these are provided, the modes will exist.
+invisible  = 'i'     # if they are not provided, the modes will not exist. You can choose
+registered = 'r'     # any letter to correspond with a mode without changing the internal
+                     # working of the IRCd. If you chose to add a rule here for a mode that
+                     # does nothing, the mode will still exist - it will just be useless.
 
 [ modes: channel ]
 
