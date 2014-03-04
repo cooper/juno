@@ -12,7 +12,7 @@ use utils qw(v log2 conf);
 our $mod = API::Module->new(
     name        => 'Account',
     version     => '0.3',
-    description => '',
+    description => 'Account management',
     requires    => [
                         'Database', 'UserCommands', 'UserNumerics',
                         'UserModes', 'Matching', 'ServerCommands'

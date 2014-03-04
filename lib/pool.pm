@@ -204,7 +204,8 @@ sub change_user_nick {
     my ($pool, $user, $newnick) = @_;
     
     # make sure it doesn't exist first.
-    if ($pool->lookup_user_nick($newnick) != $user) {
+    my $in_use = $pool->lookup_user_nick($newnick);
+    if ($in_use && $in_use != $user) {
         log2("attempted to change nicks to a nickname that already exists! $newnick");
         return;
     }

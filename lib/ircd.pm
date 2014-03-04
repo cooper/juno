@@ -27,7 +27,7 @@ our @maybe_loaded = qw(
     API::Base::Events               API::Base::ChannelModes
     API::Base::OutgoingCommands     API::Base::ServerCommands
     API::Base::UserCommands         API::Base::UserModes
-    API::Base::UserNumerics
+    API::Base::UserNumerics         API::Base::Database
 
 );
 

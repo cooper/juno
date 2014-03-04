@@ -252,6 +252,7 @@ sub nick {
         $newnick = $user->{uid};
     }
     else {
+    
         # check for valid nick
         if (!utils::validnick($newnick)) {
             $user->numeric('ERR_ERRONEUSNICKNAME', $newnick);
@@ -259,10 +260,12 @@ sub nick {
         }
 
         # check for existing nick
-        if ($main::pool->lookup_user_nick($newnick) != $user) {
+        my $in_use = $main::pool->lookup_user_nick($newnick);
+        if ($in_use && $in_use != $user) {
             $user->numeric('ERR_NICKNAMEINUSE', $newnick);
             return;
         }
+        
     }
 
     # ignore stupid nick changes
