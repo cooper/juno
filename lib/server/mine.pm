@@ -200,4 +200,10 @@ sub sendfrom {
     $server->send(map { ":$from $_" } @_)
 }
 
+# convenient for $server->fire_command
+sub fire_command {
+    my $server = shift;
+    return $server->{pool}->fire_command($server, @_);
+}
+
 1
