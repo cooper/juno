@@ -62,8 +62,8 @@ sub delete_connection {
     my ($pool, $connection) = @_;
     
     # forget it.
-    delete $connection->{pool};
     delete $pool->{connections}{ $connection->{stream} };
+    delete $connection->{pool};
     
     log2("deleted connection from $$connection{ip}");
     return 1;

@@ -1891,3 +1891,4 @@ CHANGES:
             
         84. fixed an issue where SERVER command does not work at all because of changes to match().
             
+        85. this should fix an occasional crash in connection closure.

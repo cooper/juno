@@ -255,6 +255,8 @@ sub sock {
 
 sub done {
     my ($connection, $reason, $silent) = @_;
+    return if $connection->{goodbye};
+    
     log2("Closing connection from $$connection{ip}: $reason");
 
     if ($connection->{type}) {
@@ -267,8 +269,8 @@ sub done {
     $connection->send("ERROR :Closing Link: $$connection{host} ($reason)") unless $silent;
 
     # remove from connection list
-    $connection->{pool}->delete_connection($connection);
-
+    $connection->{pool}->delete_connection($connection) if $connection->{pool};
+    
     $connection->{stream}->close_when_empty; # will close it WHEN the buffer is empty
 
     # destroy these references, just in case.
