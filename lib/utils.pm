@@ -77,7 +77,7 @@ sub global_lookup {
     my $server = $main::pool->lookup_server($id);
     my $user   = $main::pool->lookup_user($id);
     my $chan   = $main::pool->lookup_channel($id);
-    return $server ? $server : ( $user ? $user : ( $chan ? $chan : undef ) )
+    return $server // $user // $chan;
 }
 
 # remove leading and trailing whitespace

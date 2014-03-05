@@ -1899,5 +1899,7 @@ CHANGES:
         
         88. fixed a crash that occurred only when a UID command was sent on a user with no modes.
         
+        89. solved a problem that prevented servers from linking properly due to pre-registration notices from the Resolve module.
+        
 
 

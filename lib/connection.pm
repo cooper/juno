@@ -241,10 +241,10 @@ sub ready {
 
 # send data to the socket
 sub send {
-    my $connection = shift;
+    my ($connection, @msg) = @_;
     return unless $connection->{stream};
     return if $connection->{goodbye};
-    return $connection->{stream}->write(shift()."\r\n");
+    $connection->{stream}->write("$_\r\n") foreach grep { defined } @msg;
 }
 
 sub sock {

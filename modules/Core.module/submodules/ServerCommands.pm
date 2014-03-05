@@ -50,12 +50,12 @@ my %scommands = (
         forward => 1
     },
     PRIVMSG => {
-        params  => 'source any any :rest',
+        params  => 'any any any :rest',
         code    => \&privmsgnotice,
         forward => 0 # we have to do this manually
     },
     NOTICE => {
-        params  => 'source any any :rest',
+        params  => 'any any any :rest',
         code    => \&privmsgnotice,
         forward => 0 # we have to do this manually
     },
@@ -287,18 +287,26 @@ sub umode {
 sub privmsgnotice {
     # user any            any    :rest
     # :uid PRIVMSG|NOTICE target :message
-    my ($server, $data, $user, $command, $target, $message) = @_;
+    my ($server, $data, $sourcestr, $command, $target, $message) = @_;
+    
+    # find the source.
+    # this must be done manually because the source matcher disconnects
+    # servers for protocol error when receiving notices from server name
+    # such as "lookup up your hostname," "found your hostname," etc.
+    $sourcestr = col($sourcestr);
+    my $source = $main::pool->lookup_user($sourcestr) ||
+                 $main::pool->lookup_server($sourcestr) or return;
 
     # is it a user?
     my $tuser = $main::pool->lookup_user($target);
     if ($tuser) {
         # if it's mine, send it
         if ($tuser->is_local) {
-            $tuser->sendfrom($user->full, "$command $$tuser{nick} :$message");
+            $tuser->sendfrom($source->full, "$command $$tuser{nick} :$message");
             return 1
         }
         # otherwise pass this on...
-        $tuser->{location}->fire_command(privmsgnotice => $command, $user, $tuser, $message);
+        $tuser->{location}->fire_command(privmsgnotice => $command, $source, $tuser, $message);
         return 1
     }
 
@@ -306,7 +314,7 @@ sub privmsgnotice {
     my $channel = $main::pool->lookup_channel($target);
     if ($channel) {
         # tell local users
-        $channel->send_all(':'.$user->full." $command $$channel{name} :$message", $user);
+        $channel->send_all(':'.$source->full." $command $$channel{name} :$message", $source);
 
         # then tell local servers if necessary
         my %sent;
@@ -315,7 +323,7 @@ sub privmsgnotice {
             next if $usr->is_local;
             next if $sent{$usr->{location}};
             $sent{$usr->{location}} = 1;
-            $usr->{location}->fire_command(privmsgnotice => $command, $user, $channel, $message);
+            $usr->{location}->fire_command(privmsgnotice => $command, $source, $channel, $message);
         }
 
         return 1

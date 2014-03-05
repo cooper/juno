@@ -143,7 +143,7 @@ port = [6667..6669, 7000]        # separated by commas, nested by [].
 
 [ connect: server1.netbookwashers.info ]
                                 # <--- the name of the opposite server should be the block name
-address          = "67.202.109.243" # the IP to connect to OR to accept connections from (accept wildcards, must always be an IP)
+address          = "67.202.109.243" # the IP to connect to OR to accept connections from (does not accept wildcards)
 port             = 7000             # the port to connect to
 encryption       = "sha1"           # encryption of the receive password - make sure it is enabled
 send_password    = "k"              # the password to send to the other server

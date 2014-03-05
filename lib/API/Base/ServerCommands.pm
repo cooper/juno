@@ -60,7 +60,7 @@ sub register_server_command {
                 if (!$source) {
                     log2("could not get source: $id");
                     $server->{conn}->done('Protocol error.');
-                    return
+                    return;
                 }
                 push @final_parameters, $source
             }
