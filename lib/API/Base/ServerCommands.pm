@@ -52,7 +52,7 @@ sub register_server_command {
             return
         }
 
-        foreach (@{$opts{parameters}}) { $i++;
+        foreach (@{ $opts{parameters} }) { $i++;
 
             # global lookup
             when ('source') {
@@ -121,7 +121,7 @@ sub register_server_command {
 
         $opts{code}($server, $data, @final_parameters);
 
-    } if $opts{parameters} && ref $opts{parameters} eq 'ARRAY';
+    } if $opts{parameters};
 
     # register to juno: updated 12/11/2012
     # ($source, $command, $callback, $forward)

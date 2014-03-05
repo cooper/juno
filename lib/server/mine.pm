@@ -49,7 +49,7 @@ sub handle {
         # if it doesn't exist, ignore it and move on.
         # it might make sense to assume incompatibility and drop the server,
         # but I don't want to do that because
-        my @handlers = $main::pool->server_handlers;
+        my @handlers = $main::pool->server_handlers($command);
         if (!@handlers) {
             log2("unknown command $command; ignoring it");
             next;

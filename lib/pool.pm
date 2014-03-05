@@ -137,6 +137,9 @@ sub servers { values %{ shift->{servers} } }
 sub new_user {
     my ($pool, %opts) = @_;
     
+    # no server provided; default to this server.
+    $opts{server} //= v('SERVER');
+    
     # no UID provided; generate one.
     $opts{uid} //= v('SERVER', 'sid').$pool->{user_i}++;
     
@@ -410,7 +413,7 @@ sub delete_server_handler {
 
 sub server_handlers {
     my ($pool, $command) = (shift, uc shift);
-    return values $pool->{server_commands}{$command};
+    return $pool->{server_commands}{$command};
 }
 
 ################################

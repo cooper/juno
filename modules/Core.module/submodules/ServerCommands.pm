@@ -168,7 +168,7 @@ sub sid {
 
     my $ref        = {};
     $ref->{$_}     = shift @args foreach qw[parent sid time name proto ircd desc];
-    $ref->{source} = $server->{sid};
+    $ref->{source} = $server->{sid}; # source = SID we learned about the server from
 
     # do not allow SID or server name collisions
     if ($main::pool->lookup_server($ref->{sid}) || $main::pool->lookup_server_name($ref->{name})) {
@@ -186,11 +186,13 @@ sub uid {
     # server dummy any ts any   any  any   any  any   any :rest
     # :sid   UID   uid ts modes nick ident host cloak ip  :realname
     my ($server, $data, @args) = @_;
-
+    
     my $ref          = {};
     $ref->{$_}       = shift @args foreach qw[server uid time modes nick ident host cloak ip real];
-    $ref->{source}   = $server->{sid};
+    $ref->{source}   = $server->{sid}; # source = SID we learned about the user from
     $ref->{location} = $server;
+    # location = the server through which this server can access the user.
+    # the location is not necessarily the same as the user's server.
 
     # uid collision?
     if ($main::pool->lookup_user($ref->{uid})) {
