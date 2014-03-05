@@ -116,7 +116,7 @@ sub handle {
             if (defined ( my $addr = conn($connection->{name}, 'address') )) {
 
                 # check for matching IPs
-                if (!match($connection->{ip}, $addr)) {
+                if (lc $connection->{ip} ne $addr) {
                     $connection->done('Invalid credentials');
                     return;
                 }
