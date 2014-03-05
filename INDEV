@@ -1883,4 +1883,7 @@ CHANGES:
         81. fixed a ridiculous bug in channel status mode tracking.
         
         82. fixed broken nick change.
+        
+        83. removed unnecessary code in channel matcher blocks.
+            added a bit of spam protection to the Account module's REGISTER command.
             

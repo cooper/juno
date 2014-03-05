@@ -11,8 +11,8 @@ use utils qw(v log2 conf);
 
 our $mod = API::Module->new(
     name        => 'Account',
-    version     => '0.3',
-    description => 'Account management',
+    version     => '0.4',
+    description => 'Account registration and management',
     requires    => [
                         'Database', 'UserCommands', 'UserNumerics',
                         'UserModes', 'Matching', 'ServerCommands'
@@ -209,6 +209,12 @@ sub umode_registered {
 sub cmd_register {
     my ($user, $data, $account, $password) = @_;
     
+    # already registered.
+    if (defined $user->{registered}) {
+        $user->server_notice('register', 'You have already registered');
+        return;
+    }
+    
     # no account name.
     if (!defined $password) {
         $password = $account;
@@ -224,6 +230,7 @@ sub cmd_register {
     # success.
     $user->server_notice('register', 'Registration successful');
     login_account($account, $user, undef, 1);
+    $user->{registered} = 1;
     
     return 1;
 }
@@ -261,8 +268,6 @@ sub account_matcher {
         
     }
     
-    return unless grep { $_ eq '$r' } @list;
-    return $event->{matched} = 1;
     return;
 }
 

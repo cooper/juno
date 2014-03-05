@@ -52,8 +52,6 @@ sub oper_matcher {
         
     }
     
-    return unless grep { $_ eq '$o' } @list;
-    return $event->{matched} = 1;
     return;
 }
 

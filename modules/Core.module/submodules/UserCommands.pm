@@ -438,7 +438,6 @@ sub privmsgnotice {
             $user->numeric('ERR_CANNOTSENDTOCHAN', $channel->{name}, 'channel is moderated');
             return
         }
-                
 
         # tell local users
         $channel->send_all(':'.$user->full." $command $$channel{name} :$message", $user);
