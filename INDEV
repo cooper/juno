@@ -1895,6 +1895,9 @@ CHANGES:
         
         86. added fire_command() method to server::mine for direct use on a server object.
         
-        87. an issue in the ServerCommands base parameter handler that lead to several fatal errors.
+        87. fixed an issue in the ServerCommands base parameter handler that lead to several fatal errors.
         
+        88. fixed a crash that occurred only when a UID command was sent on a user with no modes.
+        
+
 

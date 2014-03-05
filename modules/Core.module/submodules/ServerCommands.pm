@@ -191,6 +191,7 @@ sub uid {
     $ref->{$_}       = shift @args foreach qw[server uid time modes nick ident host cloak ip real];
     $ref->{source}   = $server->{sid}; # source = SID we learned about the user from
     $ref->{location} = $server;
+    my $modestr      = delete $ref->{modes};
     # location = the server through which this server can access the user.
     # the location is not necessarily the same as the user's server.
 
@@ -227,10 +228,9 @@ sub uid {
     my $user = $main::pool->new_user(%$ref);
 
     # set modes
-    $user->handle_mode_string($ref->{modes}, 1);
+    $user->handle_mode_string($modestr, 1);
 
-    return 1
-
+    return 1;
 }
 
 sub quit {
