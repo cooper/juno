@@ -1902,4 +1902,8 @@ CHANGES:
         89. solved a problem that prevented servers from linking properly due to pre-registration notices from the Resolve module.
         
     9. fixed a few random quirks.
+    
+        91. added ->do_mode_string() methods to channel::mine and user::mine. these methods handle a mode string, tell local users about the change, and send the mode string to other servers if necessary.
+            update modules according to this change.
+            the Access module no longer has to be loaded across all servers in order to work properly.
 

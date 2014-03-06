@@ -328,17 +328,14 @@ sub mode {
 
         # mode change
         if (defined $args[2]) {
-            my $result = $user->handle_mode_string($args[2]);
-            return if !$result || $result =~ m/^(\-|\+)$/;
-            $user->sendfrom($user->{nick}, "MODE $$user{nick} :$result");
-            $main::pool->fire_command_all(umode => $user, $result);
-            return 1
+            $user->do_mode_string($args[2]);
+            return 1;
         }
 
         # mode view
         else {
             $user->numeric('RPL_UMODEIS', $user->mode_string);
-            return 1
+            return 1;
         }
     }
 
@@ -348,27 +345,14 @@ sub mode {
         # viewing
         if (!defined $args[2]) {
             $channel->modes($user);
-            return 1
+            return 1;
         }
 
         # setting
-
-        # does he have op?
-        #if (!$channel->user_has_basic_status($user)) {
-        #    $user->numeric('ERR_CHANOPRIVSNEEDED', $channel->{name});
-        #    return
-        #}
-        # DISABLED, at least for now. we'll see how this will be done later.
-
         my $modestr = join ' ', @args[2..$#args];
-        my ($user_result, $server_result) = $channel->handle_mode_string($user->{server}, $user, $modestr);
-        return if (!$user_result || $user_result =~ m/^(\-|\+)$/); # nothing changed
-
-        # tell the channel users
-        $channel->send_all(':'.$user->full." MODE $$channel{name} $user_result");
-        $main::pool->fire_command_all(cmode => $user, $channel, $channel->{time}, $user->{server}->{sid}, $server_result);
-
-        return 1
+        $channel->do_mode_string($user->{server}, $user, $modestr);
+        return 1;
+        
     }
 
     # hmm.. maybe it's another user
@@ -510,7 +494,7 @@ sub cjoin {
         }
 
         return if $channel->has_user($user);
-        my ($me, $ur, $sr) = v('SERVER');
+        my $me = v('SERVER');
 
         # check for ban.
         my $banned = $channel->list_matches('ban',    $user);
@@ -525,13 +509,12 @@ sub cjoin {
         if ($new) {
             $channel->cjoin($user, $time); # early join
             my $str = conf('channels', 'automodes') || '';
-            $str    =~ s/\+user/$$user{uid}/g;
-            ($ur, $sr) = $channel->handle_mode_string($me, $me, $str, 1, 1);
+            $str =~ s/\+user/$$user{uid}/g;
+            $channel->do_mode_string($me, $me, $str, 1, 1);
         }
 
         # tell servers that the user joined and the automatic modes were set
         $main::pool->fire_command_all(sjoin => $user, $channel, $time);
-        $main::pool->fire_command_all(cmode => $me, $channel, $time, $me->{sid}, $sr) if $sr;
 
         $channel->localjoin($user, $time, 1);
         
@@ -649,15 +632,11 @@ sub oper {
     log2("$$user{nick}!$$user{ident}\@$$user{host} has opered as $args[1] and was granted flags: @flags");
     $user->server_notice('You now have flags: '.join(' ', @{ $user->{flags} }));
 
-    # this will set ircop as well as send a MODE to the user
-    my $result = $user->handle_mode_string('+'.$user->{server}->umode_letter('ircop'), 1);
-    if ($result && $result ne '+') {
-        $main::pool->fire_command_all(umode => $user, $result);
-        $user->sendfrom($user->{nick}, "MODE $$user{nick} :$result");
-    }
+    # set ircop, send MODE to the user, and tell other servers.
+    $user->do_mode_string('+'.$user->{server}->umode_letter('ircop'), 1);
     
     $user->numeric('RPL_YOUREOPER');
-    return 1
+    return 1;
 }
 
 sub whois {

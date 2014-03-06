@@ -227,7 +227,7 @@ sub uid {
     # create a new user
     my $user = $main::pool->new_user(%$ref);
 
-    # set modes
+    # set modes.
     $user->handle_mode_string($modestr, 1);
 
     return 1;
@@ -396,16 +396,11 @@ sub cmode {
     # ignore if time is older and take lower time
     return if $time > $channel->{time};
     $channel->take_lower_time($time);
-
-    my ($user_result, $server_result) = $channel->handle_mode_string(
-        $perspective, $source, $modestr, 1, 1
-    );
-    return 1 if !$user_result || $user_result =~ m/^(\+|\-)$/;
-
-    # convert it to our view
-    $user_result  = $perspective->convert_cmode_string(v('SERVER'), $user_result);
-    my $from      = $source->isa('user') ? $source->full : $source->isa('server') ? $source->{name} : 'MagicalFairyPrincess';
-    $channel->send_all(":$from MODE $$channel{name} $user_result");
+    
+    # handle the mode string and send to local users.
+    $channel->do_mode_string($perspective, $source, $modestr, 1, 1);
+    
+    return 1;
 }
 
 sub part {
@@ -499,12 +494,10 @@ sub cum {
         next USER unless $modes;      # the mode part is obviously optional..
         next USER if $newtime != $ts; # the time battle was lost
 
-        # lazy mode setting
-        # but I think it is a clever way of doing it.
+        # set modes. tell our local users.
         my $final_modestr = $modes.' '.(($uid.' ') x length $modes);
-        my ($user_result, $server_result) = $channel->handle_mode_string($serv, $serv, $final_modestr, 1, 1);
-        $user_result  = $serv->convert_cmode_string(v('SERVER'), $user_result);
-        $channel->send_all(":$$serv{name} MODE $$channel{name} $user_result");
+        $channel->do_mode_string($serv, $serv, $final_modestr, 1, 1);
+        
     }
     return 1
 }

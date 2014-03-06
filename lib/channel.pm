@@ -251,8 +251,7 @@ sub handle_mode_string {
         }
     }
 
-    # it's easier to do this than it is to
-    # keep track of them
+    # it's easier to do this than it is to keep track of them
     $str =~ s/\+\+/\+/g;
     $str =~ s/\-\+/\+/g;
     $str =~ s/\-\-/\-/g; 

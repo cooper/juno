@@ -131,6 +131,7 @@ sub cmode_access {
 sub on_user_joined {
     my ($channel, $event, $user) = @_;
     my (@matches, @letters);
+    next unless $user->is_local;
     
     # look for matches.
     my @items = $channel->list_elements('access') or return 1;
@@ -165,19 +166,14 @@ sub on_user_joined {
     # create list of letters.
     my $letters = join('', @letters);
     
-    # create mode strings for user and server.
+    # create mode string.
     my $uids  = ($user->{uid} .q( )) x length $letters;
     my $nicks = ($user->{nick}.q( )) x length $letters;
     my $sstr  = "+$letters $uids";
-    my $ustr  = "+$letters $nicks";
     
-    # interpret the server mode string.
+    # handle it locally (this sends to other servers too).
     # ($channel, $server, $source, $modestr, $force, $over_protocol)
-    my ($user_mode_string, $server_mode_string) =
-     $channel->handle_mode_string(v('SERVER'), v('SERVER'), $sstr, 1, 1);
-    
-    # inform the users of this server.
-    $channel->send_all(q(:).v('SERVER', 'name')." MODE $$channel{name} $user_mode_string");
+    $channel->do_mode_string($user->{server}, $user, $sstr, 1, 1);
     
     return 1;
 }

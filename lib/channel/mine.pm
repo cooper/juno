@@ -75,6 +75,11 @@ sub send_all {
     return 1
 }
 
+sub sendfrom_all {
+    my ($channel, $who, $what, $ignore) = @_;
+    return send_all($channel, ":$who $what", $ignore);
+}
+
 # send a notice to every user
 sub notice_all {
     my ($channel, $what, $ignore) = @_;
@@ -104,16 +109,15 @@ sub take_lower_time {
     delete $channel->{topic};
 
     # unset all channel modes.
-    my ($modestring, $servermodestring) = $channel->mode_string_all(v('SERVER'));
-    $modestring =~ s/\+/\-/;
-    send_all($channel, ':'.v('SERVER', 'name')." MODE $$channel{name} $modestring");
-
     # hackery: use the server mode string to reset all modes.
-    # ($channel, $server, $source, $modestr, $force, $over_protocol)
+    # note: we can't use do_mode_string() because it would send to other servers.
+    my ($modestring, $servermodestring) = $channel->mode_string_all(v('SERVER'));
+    $modestring =~ s/\+/\-/; # switch from set to unset
+    sendfrom_all($channel, v('SERVER', 'name'), "MODE $$channel{name} $modestring");
     $channel->handle_mode_string(v('SERVER'), v('SERVER'), $servermodestring, 1, 1);
     
     notice_all($channel, 'Channel properties reset.');
-    return $channel->{time}
+    return $channel->{time};
 }
 
 # I hate this subroutine.
@@ -125,6 +129,34 @@ sub prefix {
         return $ircd::channel_mode_prefixes{$level}[1]
     }
     return q..
+}
+
+# handle a mode string, tell our local users, and tell other servers.
+sub do_mode_string {
+    my ($channel, $perspective, $source, $modestr, $force, $protocol) = @_;
+    
+    # handle the mode.
+    my ($user_result, $server_result) = $channel->handle_mode_string(
+        $perspective, $source, $modestr, $force, $protocol
+    );
+    return unless $user_result;
+
+    # tell the channel's users.
+    my $local_ustr =
+        $perspective == v('SERVER') ? $user_result :
+        $perspective->convert_cmode_string(v('SERVER'), $user_result);
+    $channel->sendfrom_all($source->full, "MODE $$channel{name} $local_ustr");
+    
+    # stop here if it's not a local user or this server.
+    return unless $source->is_local;
+    
+    # the source is our user or this server, so tell other servers.
+    # ($source, $channel, $time, $perspective, $server_modestr)
+    $main::pool->fire_command_all(cmode =>
+        $source, $channel, $channel->{time},
+        $perspective->{sid}, $server_result
+    );
+    
 }
 
 1

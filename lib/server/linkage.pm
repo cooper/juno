@@ -29,7 +29,8 @@ sub connect_server {
     my $socket = IO::Socket::IP->new(
         PeerAddr => $serv{address},
         PeerPort => $serv{port},
-        Proto    => 'tcp'
+        Proto    => 'tcp',
+        Timeout  => 5
     );
 
     if (!$socket) {

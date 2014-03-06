@@ -130,7 +130,8 @@ sub new_connection {
     @_ = &safe or return;
     my $user = shift;
 
-    # set modes
+    # set modes.
+    # note: we don't use do_mode_string() because we wait until afterward to send MODE.
     $user->handle_mode_string(conf qw/users automodes/);
 
     # send numerics
@@ -188,6 +189,22 @@ sub send_to_channels {
     }
     
     return 1;
+}
+
+# handle a modestring, send to the local user, send to other servers.
+sub do_mode_string {
+    my ($user, $modestr, $force) = @_;
+    
+    # handle.
+    my $result = $user->handle_mode_string($modestr, $force) or return;
+    
+    # not local; don't do more.
+    return unless $user->is_local;
+    
+    # tell the user himself and other servers.
+    $user->sendfrom($user->{nick}, "MODE $$user{nick} :$result");
+    $main::pool->fire_command_all(umode => $user, $result);
+    
 }
 
 1

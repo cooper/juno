@@ -154,19 +154,20 @@ sub login_account {
     # log in.
     $user->{account}{id}   = $act->{id};
     $user->{account}{name} = $act->{name};
+    
+    # handle and send mode string if local.
     my $mode = v('SERVER')->umode_letter('registered');
-    my $str  = $user->handle_mode_string("+$mode", 1);
-    if ($user->is_local) {
-        $user->numeric(RPL_LOGGEDIN => $act->{name}, $act->{name});
-        $user->sendfrom($user->{nick}, "MODE $$user{nick} :$str") if $str;
-    }
+    $user->do_mode_string("+$mode", 1);
+    
+    # if local, send logged in numeric.
+    $user->numeric(RPL_LOGGEDIN => $act->{name}, $act->{name}) if $user->is_local;
     
     return 1;
 }
 
 # log a user out.
 sub logout_account {
-    my ($user, $mode_set) = @_;
+    my ($user, $in_mode_unset) = @_;
     
     # not logged in.
     if (!$user->{account}) {
@@ -177,18 +178,15 @@ sub logout_account {
     # success.
     delete $user->{account};
     
-    # mode already unset?
+    # handle & send mode string if we're not doing so already.
     my ($mode, $str);
-    if (!$mode_set) {
+    if (!$in_mode_unset) {
         $mode = v('SERVER')->umode_letter('registered');
-        $str  = $user->handle_mode_string("-$mode");
+        $user->do_mode_string("-$mode", 1);
     }
     
-    # send logged out.
-    if ($user->is_local) {
-        $user->sendfrom($user->{nick}, "MODE $$user{nick} :$str") if $str;
-        $user->numeric('RPL_LOGGEDOUT');
-    }
+    # send logged out if local.
+    $user->numeric('RPL_LOGGEDOUT') if $user->is_local;
 
     return 1;
 }
