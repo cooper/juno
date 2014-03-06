@@ -131,9 +131,15 @@ sub prefix {
     return q..
 }
 
+# same as do_mode_string() except it never sends to other servers.
+sub do_mode_string_local {
+    $_[6] = 1;
+    do_mode_string(@_);
+}
+
 # handle a mode string, tell our local users, and tell other servers.
 sub do_mode_string {
-    my ($channel, $perspective, $source, $modestr, $force, $protocol) = @_;
+    my ($channel, $perspective, $source, $modestr, $force, $protocol, $local_only) = @_;
 
     # handle the mode.
     my ($user_result, $server_result) = $channel->handle_mode_string(
@@ -155,7 +161,7 @@ sub do_mode_string {
     $main::pool->fire_command_all(cmode =>
         $source, $channel, $channel->{time},
         $perspective->{sid}, $server_result
-    );
+    ) unless $local_only;
     
 }
 

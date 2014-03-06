@@ -1917,4 +1917,8 @@ CHANGES:
         95. handle modes from the local server rather than the user in Access module.
         
         96. solved an issue where some users may not be ->quit()ted during netsplit due to modification of the {users} array during iteration.
+        
+        97. fixed broken CONNECT command.
+            added ->do_mode_string_local() which is the same as ->do_mode_string() except it doesn't tell other servers about the change.
+
 

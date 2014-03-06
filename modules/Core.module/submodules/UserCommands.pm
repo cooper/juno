@@ -784,23 +784,22 @@ sub part {
 }
 
 sub sconnect {
-    my ($user, $data, @args) = @_;
-    my $server = $args[1];
+    my ($user, $data, $sname) = @_;
 
     # make sure the server exists
-    if (!$ircd::conf->has_block($server)) {
-        $user->server_notice('CONNECT', 'no such server '.$server);
+    if (!$ircd::conf->has_block($sname)) {
+        $user->server_notice('CONNECT', 'no such server '.$sname);
         return
     }
 
     # make sure it's not already connected
-    if ($main::pool->lookup_server_name($server)) {
-        $user->server_notice('CONNECT', "$server is already connected.");
+    if ($main::pool->lookup_server_name($sname)) {
+        $user->server_notice('CONNECT', "$sname is already connected.");
         return
     }
 
-    if (!server::linkage::connect_server($server)) {
-        $user->server_notice('CONNECT', 'couldn\'t connect to '.$server);
+    if (!server::linkage::connect_server($sname)) {
+        $user->server_notice('CONNECT', 'couldn\'t connect to '.$sname);
     }
 }
 

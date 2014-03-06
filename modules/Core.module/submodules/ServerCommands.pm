@@ -497,7 +497,7 @@ sub cum {
 
         # set modes. tell our local users.
         my $final_modestr = $modes.' '.(($uid.' ') x length $modes);
-        $channel->do_mode_string($serv, $serv, $final_modestr, 1, 1);
+        $channel->do_mode_string_local($serv, $serv, $final_modestr, 1, 1);
         
     }
     return 1
