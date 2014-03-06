@@ -112,10 +112,10 @@ sub take_lower_time {
     # unset all channel modes.
     # hackery: use the server mode string to reset all modes.
     # note: we can't use do_mode_string() because it would send to other servers.
-    my ($modestring, $servermodestring) = $channel->mode_string_all(v('SERVER'));
-    $modestring =~ s/\+/\-/; # switch from set to unset
-    sendfrom_all($channel, v('SERVER', 'name'), "MODE $$channel{name} $modestring");
-    $channel->handle_mode_string(v('SERVER'), v('SERVER'), $servermodestring, 1, 1);
+    my ($u_str, $s_str) = $channel->mode_string_all(v('SERVER'));
+    substr($u_str, 0, 1) = '-'; substr($s_str, 0, 1) = '-';
+    sendfrom_all($channel, v('SERVER', 'name'), "MODE $$channel{name} $u_str");
+    $channel->handle_mode_string(v('SERVER'), v('SERVER'), $s_str, 1, 1);
     
     notice_all($channel, 'Channel properties reset');
     return $channel->{time};
