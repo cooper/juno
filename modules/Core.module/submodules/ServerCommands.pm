@@ -237,7 +237,8 @@ sub quit {
     # source  dummy  :rest
     # :source QUIT   :reason
     my ($server, $data, $source, $reason) = @_;
-
+    return if $source == v('SERVER');
+    
     # delete the server or user
     $source->quit($reason);
 }

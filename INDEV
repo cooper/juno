@@ -1906,4 +1906,8 @@ CHANGES:
         91. added ->do_mode_string() methods to channel::mine and user::mine. these methods handle a mode string, tell local users about the change, and send the mode string to other servers if necessary.
             update modules according to this change.
             the Access module no longer has to be loaded across all servers in order to work properly.
+            
+        92. fixed an issue where protocol errors lead to a QUIT command that causes the receiving server to dispose of its own server object.
+            improved logging in ServerCommands parameter handler.
+            
 

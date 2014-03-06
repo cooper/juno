@@ -12,7 +12,7 @@ use utils qw(conf v match);
 
 our $mod = API::Module->new(
     name        => 'Access',
-    version     => '1.03',
+    version     => '1.1',
     description => 'implements channel access modes',
     requires    => ['Events', 'ChannelModes'],
     initialize  => \&init
@@ -131,7 +131,7 @@ sub cmode_access {
 sub on_user_joined {
     my ($channel, $event, $user) = @_;
     my (@matches, @letters);
-    next unless $user->is_local;
+    return unless $user->is_local;
     
     # look for matches.
     my @items = $channel->list_elements('access') or return 1;

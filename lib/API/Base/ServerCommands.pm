@@ -24,8 +24,9 @@ sub register_server_command {
         return
     }
 
-    my $CODE = $opts{code};
-
+    my $CODE    = $opts{code};
+    my $command = $opts{name};
+    
     # parameters:
     #     channel channel name lookup
     #     source  global ID lookup
@@ -58,7 +59,7 @@ sub register_server_command {
             when ('source') {
                 my $source = utils::global_lookup(my $id = col($args[$i]));
                 if (!$source) {
-                    log2("could not get source: $id");
+                    log2("$command could not get source: $id");
                     $server->{conn}->done('Protocol error.');
                     return;
                 }
@@ -69,7 +70,7 @@ sub register_server_command {
             when ('server') {
                 my $server = $main::pool->lookup_server(my $id = col($args[$i]));
                 if (!$server) {
-                    log2("could not get server: $id");
+                    log2("$command could not get server: $id");
                     $server->{conn}->done('Protocol error.');
                     return
                 }
@@ -80,7 +81,7 @@ sub register_server_command {
             when ('user') {
                 my $user = $main::pool->lookup_user(my $id = col($args[$i]));
                 if (!$user) {
-                    log2("could not get user: $id");
+                    log2("$command could not get user: $id");
                     $server->{conn}->done('Protocol error.');
                     return
                 }
@@ -91,7 +92,7 @@ sub register_server_command {
             when ('channel') {
                 my $channel = $main::pool->lookup_channel(my $chname = col($args[$i]));
                 if (!$channel) {
-                    log2("could not get channel: $chname");
+                    log2("$command could not get channel: $chname");
                     $server->{conn}->done('Protocol error.');
                     return
                 }
