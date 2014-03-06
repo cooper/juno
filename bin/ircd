@@ -6,11 +6,11 @@ use strict;
 use feature qw|switch say|;
 
 local ( $0,         $SIG{TERM},        $SIG{KILL},        $SIG{PIPE}         ) =
-      ( 'kedler',   \&ircd::terminate, \&ircd::terminate, \&ircd::signalpipe );
+      ( 'juno',     \&ircd::terminate, \&ircd::terminate, \&ircd::signalpipe );
 local ( $SIG{HUP},                     $SIG{__WARN__}                        ) =
       ( \&ircd::signalhup,             \&ircd::WARNING                       );
 
-our ($run_dir, $loop, $API, $conf, $pool);
+our ($run_dir, $loop, $API, $conf, $pool, %v);
 our $VERSION;
 
 BEGIN {

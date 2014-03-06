@@ -137,7 +137,11 @@ sub send_burst {
     # channels, using compact CUM
     foreach my $channel ($main::pool->channels) {
         fire_command($server, cum => $channel);
-        fire_command($server, topicburst => $channel) if $channel->{topic}
+        
+        # there is no topic or this server is how we got the topic.
+        next if !$channel->{topic} || $channel->{topic}{source} == $server;
+        
+        fire_command($server, topicburst => $channel);
     }
 
     $server->sendme('ENDBURST '.time);

@@ -43,8 +43,8 @@ sub new_connection {
     v('connection_count')++;
 
     # update maximum connection count
-    if ((scalar keys %{ $pool->{connections} }) + 1 > v('max_connection_count')) {
-        v('max_connection_count') = 1 + scalar keys %{ $pool->{connections} };
+    if (scalar keys %{ $pool->{connections} } > v('max_connection_count')) {
+        v('max_connection_count') = scalar keys %{ $pool->{connections} };
     }
     
     log2("processing connection from $$connection{ip}");
@@ -154,6 +154,9 @@ sub new_user {
     
     # become an event listener.
     $user->add_listener($pool, 'user');
+
+    # add the user to the server.
+    push @{ $opts{server}{users} }, $user;
     
     # update max local and global user counts.
     my $max_l = v('max_local_user_count');
@@ -162,9 +165,6 @@ sub new_user {
     my $c_g   = scalar values %{ $pool->{users} };
     v('max_local_user_count')  = $c_l if $c_l > $max_l;
     v('max_global_user_count') = $c_g if $c_g > $max_g;
-
-    # add the user to the server.
-    push @{ $opts{server}{users} }, $user;
 
     log2(
         "new user from $$user{server}{name}: $$user{uid} " .

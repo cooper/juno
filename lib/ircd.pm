@@ -35,7 +35,7 @@ sub start {
     my $boot = shift;
     
     log2('Started server at '.scalar(localtime v('START')));
-    $utils::v{VERSION} = $VERSION;
+    $main::v{VERSION} = $VERSION;
     
     # add these to @INC if they are not there already.
     my @add_inc = (
@@ -74,7 +74,7 @@ sub start {
     }
 
     # create the main server object.
-    my $server = $utils::v{SERVER};
+    my $server = $main::v{SERVER};
     if (!$server) {
     
         $server = $pool->new_server(
@@ -90,7 +90,7 @@ sub start {
 
         # how is this possible?!?!
         $server->{parent}  =
-        $utils::v{SERVER} = $server;
+        $main::v{SERVER} = $server;
         
     }
 
@@ -353,7 +353,7 @@ sub boot {
 
     log2("this is $global{NAME} version $global{VERSION}");
     $main::loop = $loop = IO::Async::Loop->new;
-    %utils::v = %global;
+    %main::v = %global;
     undef %global;
 
     start(1);
@@ -377,7 +377,7 @@ sub become_daemon {
 
         # write the PID file that is used by the start/stop/rehash script.
         open my $pidfh, '>', "$main::run_dir/etc/juno.pid" or fatal("Can't write $main::run_dir/etc/juno.pid");
-        $utils::v{PID} = fork;
+        $main::v{PID} = fork;
         say $pidfh v('PID') if v('PID');
         close $pidfh;
         
@@ -393,8 +393,8 @@ sub begin {
     # that will eventually be moved to v after startup
 
     %global = (
-        NAME    => 'kedler',      # short name
-        LNAME   => 'kedler-ircd', # long name
+        NAME    => 'vulpia',      # short name
+        LNAME   => 'vulpia-ircd', # long name
         VERSION => $VERSION,
         PROTO   => '6.1',
         START   => time,

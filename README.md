@@ -33,6 +33,10 @@ in another repository. This is the juno5 repository. If you wish to update an ex
 copy of juno5, you can do so by changing the `.git/config` file to use the 'kedler'
 repository rather than the 'juno5' repository. Then, simply `git pull`.
 
+## what is vulpia-ircd?
+
+vulpia is juno-ircd version 7, a continuation of kedler.
+
 ## installation
 
 juno is designed to be used out-of-the-box. It comes with a working configuration and, up

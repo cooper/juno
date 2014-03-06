@@ -8,8 +8,6 @@ use feature qw[switch say];
 
 use Scalar::Util qw(blessed looks_like_number);
 
-our %v;
-
 # array contains
 sub contains (+$) {
     my ($array, $item) = @_;
@@ -173,19 +171,19 @@ sub crypt {
         return $what;
     }
 
-    return $what
+    return $what;
 }
 
 # variables
 
 sub v : lvalue {
-    my $h = \%v;
+    my $h = \%main::v;
     while (scalar @_ != 1) { $h = $h->{ +shift } }
     return $h->{ +shift };
 }
 
 sub set ($$) {
-    $v{ +shift } = shift
+    $main::v{ +shift } = shift
 }
 
 # for configuration values

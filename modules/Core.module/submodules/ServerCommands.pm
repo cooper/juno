@@ -521,9 +521,10 @@ sub topic {
     # set it
     if (length $topic) {
         $channel->{topic} = {
-            setby => $source->full,
-            time  => $time,
-            topic => $topic
+            setby  => $source->full,
+            time   => $time,
+            topic  => $topic,
+            source => $server->{sid}
         };
     }
     else {
@@ -548,9 +549,10 @@ sub topicburst {
     # set it
     if (length $topic) {
         $channel->{topic} = {
-            setby => $setby,
-            time  => $time,
-            topic => $topic
+            setby  => $setby,
+            time   => $time,
+            topic  => $topic,
+            source => $server->{sid} # source = SID of server location where topic set
         };
     }
     else {
