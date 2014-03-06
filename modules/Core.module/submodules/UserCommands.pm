@@ -100,7 +100,7 @@ my %ucommands = (
         desc   => 'leave a channel'
     },
     CONNECT => {
-        params => 1,
+        params => '-oper(connect) any',
         code   => \&sconnect,
         desc   => 'connect to a server'
     },
@@ -460,7 +460,7 @@ sub privmsgnotice {
 }
 
 sub cmap {
-    # TODO this will be much prettier later!
+    # TODO: this will be much prettier later!
     my $user  = shift;
     my $total = scalar $main::pool->users;
     my $me    = v('SERVER');
@@ -478,7 +478,9 @@ sub cmap {
         $user->numeric('RPL_MAP', "    - \2$$server{sid}\2 $$server{name} ($$server{ircd}): $users [$per\%]");
     }
 
-    my $average = int $avg / scalar $main::pool->servers;
+    my @servers = $main::pool->servers;
+    my $average = int($avg / scalar @servers + 0.5);
+    
     $user->numeric('RPL_MAP', "- Total of $total users, average $average users per server");
     $user->numeric('RPL_MAPEND');
 }
@@ -801,12 +803,6 @@ sub part {
 sub sconnect {
     my ($user, $data, @args) = @_;
     my $server = $args[1];
-
-    # make sure they have connect flag
-    if (!$user->has_flag('connect')) {
-        $user->numeric('ERR_NOPRIVILEGES');
-        return
-    }
 
     # make sure the server exists
     if (!$ircd::conf->has_block($server)) {

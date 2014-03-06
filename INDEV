@@ -1901,5 +1901,5 @@ CHANGES:
         
         89. solved a problem that prevented servers from linking properly due to pre-registration notices from the Resolve module.
         
-
+    9. fixed a few random quirks.
 

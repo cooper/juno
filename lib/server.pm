@@ -37,7 +37,7 @@ sub quit {
         $user->quit($why);
     }
 
-    $server->{pool}->delete_server($server);
+    $server->{pool}->delete_server($server) if $server->{pool};
     return 1;
 }
 

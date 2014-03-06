@@ -75,8 +75,7 @@ sub quit {
         }
     }
 
-    $user->{pool}->delete_user($user);
-    undef $user;
+    $user->{pool}->delete_user($user) if $user->{pool};
 }
 
 sub change_nick {

@@ -33,7 +33,8 @@ sub handle {
 
         if (uc $s[0] eq 'ERROR') {
             log2("received ERROR from $$server{name}");
-            next
+            $server->{conn}->done('Received ERROR') if $server->{conn};
+            return;
         }
 
         # server is ready for BURST
