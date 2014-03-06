@@ -29,9 +29,8 @@ sub localjoin {
         $usr->sendfrom($user->full, "JOIN $$channel{name}")
     }
 
-    names($channel, $user);
     $user->handle("TOPIC $$channel{name}") if $channel->{topic};
-    $user->numeric('RPL_ENDOFNAMES', $channel->{name});
+    names($channel, $user);
     
     # fire after join event.
     $channel->fire_event(user_joined => $user);
@@ -56,7 +55,8 @@ sub names {
         $str[$curr] .= prefix($channel, $usr).$usr->{nick}.q( );
         $curr++ if length $str[$curr] > 500
     }
-    $user->numeric('RPL_NAMEREPLY', '=', $channel->{name}, $_) foreach @str
+    $user->numeric('RPL_NAMEREPLY', '=', $channel->{name}, $_) foreach @str;
+    $user->numeric('RPL_ENDOFNAMES', $channel->{name});
 }
 
 sub modes {

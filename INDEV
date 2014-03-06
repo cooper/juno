@@ -1921,4 +1921,6 @@ CHANGES:
         97. fixed broken CONNECT command.
             added ->do_mode_string_local() which is the same as ->do_mode_string() except it doesn't tell other servers about the change.
 
+        98. not sure why but topic information was sent awkwardly between names list and RPL_ENDOF_NAMES.
+
 
