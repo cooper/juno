@@ -1926,10 +1926,13 @@ CHANGES:
         99. fixed a few bugs in server burst.
         
         
-7.  juno-ircd version 7 is now being branded as vulpia.
-    fixed broken CONNECT command (again).
-    moved global variables from utils to main package, fixing an issue where they were discarded during ircd reload.
-    corrected a flaw that caused the connection count to be incorrect.
-    don't send TOPICBURST to the server we obtained the topic from.
+7. juno-ircd version 7 is now being branded as vulpia.
+
+    0. fixed broken CONNECT command (again).
+        moved global variables from utils to main package, fixing an issue where they were discarded during ircd reload.
+        corrected a flaw that caused the connection count to be incorrect.
+        don't send TOPICBURST to the server we obtained the topic from.
+        
+        01. renamed project files to juno so I don't have to mess with it after every major version increment.
 
 

@@ -60,7 +60,7 @@
 		A75C5CC518B43206007780A3 = {
 			isa = PBXGroup;
 			children = (
-				A75C5CDD18B4321A007780A3 /* kedler */,
+				A75C5CDD18B4321A007780A3 /* vulpia */,
 				A75C5D0F18B4321A007780A3 /* Modules */,
 				A75C5CCC18B43219007780A3 /* Executables */,
 				A75C5CD118B43219007780A3 /* Configuration */,
@@ -92,7 +92,7 @@
 			path = ../etc;
 			sourceTree = "<group>";
 		};
-		A75C5CDD18B4321A007780A3 /* kedler */ = {
+		A75C5CDD18B4321A007780A3 /* vulpia */ = {
 			isa = PBXGroup;
 			children = (
 				A75C5D0218B4321A007780A3 /* ircd.pm */,
@@ -104,7 +104,7 @@
 				A75C5CED18B4321A007780A3 /* channel */,
 				A75C5CDF18B4321A007780A3 /* API bases */,
 			);
-			name = kedler;
+			name = vulpia;
 			path = ../lib;
 			sourceTree = "<group>";
 		};
@@ -213,7 +213,7 @@
 			attributes = {
 				LastUpgradeCheck = 0500;
 			};
-			buildConfigurationList = A75C5CC918B43206007780A3 /* Build configuration list for PBXProject "kedler" */;
+			buildConfigurationList = A75C5CC918B43206007780A3 /* Build configuration list for PBXProject "juno" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -244,7 +244,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		A75C5CC918B43206007780A3 /* Build configuration list for PBXProject "kedler" */ = {
+		A75C5CC918B43206007780A3 /* Build configuration list for PBXProject "juno" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A75C5CCA18B43206007780A3 /* Debug */,
