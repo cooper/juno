@@ -104,9 +104,10 @@ sub take_lower_time {
     notice_all($channel, "Channel timestamp set back \2$amount\2 seconds.");
 
     # unset topic.
-    send_all($channel, ':'.v('SERVER', 'name')." TOPIC $$channel{name} :")
-     if defined $channel->{topic} && length $channel->{topic};
-    delete $channel->{topic};
+    if ($channel->{topic}) {
+        send_all($channel, ':'.v('SERVER', 'name')." TOPIC $$channel{name} :");
+        delete $channel->{topic};
+    }
 
     # unset all channel modes.
     # hackery: use the server mode string to reset all modes.
@@ -116,7 +117,7 @@ sub take_lower_time {
     sendfrom_all($channel, v('SERVER', 'name'), "MODE $$channel{name} $modestring");
     $channel->handle_mode_string(v('SERVER'), v('SERVER'), $servermodestring, 1, 1);
     
-    notice_all($channel, 'Channel properties reset.');
+    notice_all($channel, 'Channel properties reset');
     return $channel->{time};
 }
 

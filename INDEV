@@ -1935,4 +1935,5 @@ CHANGES:
         
         01. renamed project files to juno so I don't have to mess with it after every major version increment.
 
+        02. only send a single mode string for status modes in CUM command handler.
 

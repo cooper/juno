@@ -481,6 +481,7 @@ sub cum {
     # no users
     return 1 if $userstr eq '-';
 
+    my ($uids_modestr, @uids) = '';
     USER: foreach my $str (split /,/, $userstr) {
         my ($uid, $modes) = split /!/, $str;
         my $user          = $main::pool->lookup_user($uid) or next USER;
@@ -495,11 +496,13 @@ sub cum {
         next USER unless $modes;      # the mode part is obviously optional..
         next USER if $newtime != $ts; # the time battle was lost
 
-        # set modes. tell our local users.
-        my $final_modestr = $modes.' '.(($uid.' ') x length $modes);
-        $channel->do_mode_string_local($serv, $serv, $final_modestr, 1, 1);
+        $uids_modestr .= $modes;
+        push @uids, $uid for 1 .. length $modes;
         
     }
+    $uids_modestr = join(' ', '+'.$uids_modestr, @uids);
+    $channel->do_mode_string_local($serv, $serv, $uids_modestr, 1, 1);
+    
     return 1
 }
 
