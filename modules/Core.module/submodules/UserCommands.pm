@@ -494,7 +494,7 @@ sub cjoin {
         }
 
         return if $channel->has_user($user);
-        my $me = v('SERVER');
+        my ($me, $ustr) = v('SERVER');
 
         # check for ban.
         my $banned = $channel->list_matches('ban',    $user);
@@ -506,16 +506,20 @@ sub cjoin {
             return
         }
 
+        # new channel. join internally (without telling the user) & set auto modes.
+        # note: we can't use do_mode_string() here because CMODE must come after SJOIN.
         if ($new) {
             $channel->cjoin($user, $time); # early join
             my $str = conf('channels', 'automodes') || '';
             $str =~ s/\+user/$$user{uid}/g;
-            $channel->do_mode_string($me, $me, $str, 1, 1);
+            ($ustr, undef) = $channel->handle_mode_string($me, $me, $str, 1, 1);
         }
 
-        # tell servers that the user joined and the automatic modes were set
+        # tell servers that the user joined and the automatic modes were set.
         $main::pool->fire_command_all(sjoin => $user, $channel, $time);
+        $main::pool->fire_command_all(cmode => $me, $channel, $time, $me->{sid}, $ustr) if $ustr;
 
+        # do the actual local join.
         $channel->localjoin($user, $time, 1);
         
     }

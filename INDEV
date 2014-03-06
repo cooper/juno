@@ -1910,4 +1910,8 @@ CHANGES:
         92. fixed an issue where protocol errors lead to a QUIT command that causes the receiving server to dispose of its own server object.
             improved logging in ServerCommands parameter handler.
             
+        93. can't use do_mode_string() in user JOIN command handler because CMODE must be sent after SJOIN.
+        
+        
+
 
