@@ -1911,7 +1911,7 @@ CHANGES:
             improved logging in ServerCommands parameter handler.
             
         93. can't use do_mode_string() in user JOIN command handler because CMODE must be sent after SJOIN.
-        
-        
+
+        94. use server mode string for ->fire_command() in JOIN user command handler.
 
 

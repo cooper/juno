@@ -494,7 +494,7 @@ sub cjoin {
         }
 
         return if $channel->has_user($user);
-        my ($me, $ustr) = v('SERVER');
+        my ($me, $sstr) = v('SERVER');
 
         # check for ban.
         my $banned = $channel->list_matches('ban',    $user);
@@ -512,12 +512,12 @@ sub cjoin {
             $channel->cjoin($user, $time); # early join
             my $str = conf('channels', 'automodes') || '';
             $str =~ s/\+user/$$user{uid}/g;
-            ($ustr, undef) = $channel->handle_mode_string($me, $me, $str, 1, 1);
+            (undef, $sstr) = $channel->handle_mode_string($me, $me, $str, 1, 1);
         }
 
         # tell servers that the user joined and the automatic modes were set.
         $main::pool->fire_command_all(sjoin => $user, $channel, $time);
-        $main::pool->fire_command_all(cmode => $me, $channel, $time, $me->{sid}, $ustr) if $ustr;
+        $main::pool->fire_command_all(cmode => $me, $channel, $time, $me->{sid}, $sstr) if $sstr;
 
         # do the actual local join.
         $channel->localjoin($user, $time, 1);

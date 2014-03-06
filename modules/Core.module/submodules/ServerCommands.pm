@@ -390,8 +390,8 @@ sub addcmode {
 
 # set a mode on a channel
 sub cmode {
-    # source  dummy channel ts   server      :rest
-    # :source CMODE channel time perspective :modestr
+    #                   source   channel   ts     server        :rest
+    #                  :source   channel   time   perspective   :modestr
     my ($server, $data, $source, $channel, $time, $perspective, $modestr) = @_;
 
     # ignore if time is older and take lower time
