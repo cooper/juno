@@ -191,7 +191,8 @@ sub delete_user {
     
     # remove from server.
     # this isn't a very efficient way to do this.
-    @{ $user->{server}{users} } = grep { $_ != $user} @{ $user->{server}{users} };
+    my $users = $user->{server}{users};
+    @$users = grep { $_ != $user } @$users;
     
     # forget it.
     delete $user->{pool};

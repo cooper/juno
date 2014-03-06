@@ -22,7 +22,7 @@ sub new {
 
 sub quit {
     my ($server, $reason, $why) = @_;
-    $why //= $server->{name}.q( ).$server->{parent}->{name};
+    $why //= $server->{name}.q( ).$server->{parent}{name};
 
     log2("server $$server{name} has quit: $reason");
 
@@ -33,7 +33,8 @@ sub quit {
     }
 
     # delete all of the server's users.
-    foreach my $user (@{ $server->{users} }) {
+    my @users = @{ $server->{users} };
+    foreach my $user (@users) {
         $user->quit($why);
     }
 

@@ -30,7 +30,7 @@ sub localjoin {
     }
 
     names($channel, $user);
-    $user->handle("TOPIC $$channel{name}") if exists $channel->{topic};
+    $user->handle("TOPIC $$channel{name}") if $channel->{topic};
     $user->numeric('RPL_ENDOFNAMES', $channel->{name});
     
     # fire after join event.

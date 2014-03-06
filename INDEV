@@ -1915,4 +1915,6 @@ CHANGES:
         94. use server mode string for ->fire_command() in JOIN user command handler.
 
         95. handle modes from the local server rather than the user in Access module.
+        
+        96. solved an issue where some users may not be ->quit()ted during netsplit due to modification of the {users} array during iteration.
 
