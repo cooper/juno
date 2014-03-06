@@ -134,7 +134,7 @@ sub prefix {
 # handle a mode string, tell our local users, and tell other servers.
 sub do_mode_string {
     my ($channel, $perspective, $source, $modestr, $force, $protocol) = @_;
-    print "PROTO($protocol) STR($modestr)\n";
+
     # handle the mode.
     my ($user_result, $server_result) = $channel->handle_mode_string(
         $perspective, $source, $modestr, $force, $protocol

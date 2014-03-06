@@ -12,7 +12,7 @@ use utils qw(conf v match);
 
 our $mod = API::Module->new(
     name        => 'Access',
-    version     => '1.1',
+    version     => '1.2',
     description => 'implements channel access modes',
     requires    => ['Events', 'ChannelModes'],
     initialize  => \&init
@@ -173,7 +173,7 @@ sub on_user_joined {
     
     # handle it locally (this sends to other servers too).
     # ($channel, $server, $source, $modestr, $force, $over_protocol)
-    $channel->do_mode_string($user->{server}, $user, $sstr, 1, 1);
+    $channel->do_mode_string($user->{server}, $user->{server}, $sstr, 1, 1);
     
     return 1;
 }
