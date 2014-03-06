@@ -84,15 +84,19 @@ sub send_burst {
     # first, send modes of this server.
     fire_command($server, aum => v('SERVER'));
     fire_command($server, acm => v('SERVER'));
-        
-    $done{$server}      = 1;
-    $done{v('SERVER')} = 1;
+    
+    # don't send info for this server or the server we're sending to.
+    $done{$server}       = 1;
+    $done{ v('SERVER') } = 1;
     
     $do = sub {
         my $serv = shift;
         
         # already did this one.
         return if $done{$serv};
+        
+        # we learned about this server from the server we're sending to.
+        return if defined $serv->{source} && $serv->{source} == $server;
         
         # we need to do the parent first.
         if (!$done{$serv->{parent}} && $serv->{parent} != $serv) {
@@ -114,7 +118,7 @@ sub send_burst {
     foreach my $user ($main::pool->users) {
     
         # ignore users the server already knows!
-        next if $user->{server} == $server || $server->{sid} == $user->{source};
+        next if $user->{server} == $server || $user->{source} == $server;
         
         fire_command($server, uid => $user);
 
