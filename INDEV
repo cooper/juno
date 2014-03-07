@@ -1939,5 +1939,6 @@ CHANGES:
         
         03. fixed channel mode reset problem where + was not replaced with - because retarding.
         
-
+        04. I think this should fix an issue where CMODE is sent even in ->handle_mode_local().
+            removed annoying notices in channel mode reset.
 

@@ -99,9 +99,6 @@ sub take_lower_time {
     log2("locally resetting $$channel{name} time to $time");
     my $amount = $channel->{time} - $time;
     $channel->set_time($time);
-    notice_all($channel, 'TS setback ***');
-    notice_all($channel, "Current channel time: ".scalar(localtime $time));
-    notice_all($channel, "Channel timestamp set back \2$amount\2 seconds.");
 
     # unset topic.
     if ($channel->{topic}) {
@@ -117,7 +114,7 @@ sub take_lower_time {
     sendfrom_all($channel, v('SERVER', 'name'), "MODE $$channel{name} $u_str");
     $channel->handle_mode_string(v('SERVER'), v('SERVER'), $s_str, 1, 1);
     
-    notice_all($channel, 'Channel properties reset');
+    notice_all($channel, "New channel time: ".scalar(localtime $time)." (set back \2$amount\2 seconds)");
     return $channel->{time};
 }
 
@@ -133,14 +130,12 @@ sub prefix {
 }
 
 # same as do_mode_string() except it never sends to other servers.
-sub do_mode_string_local {
-    $_[6] = 1;
-    do_mode_string(@_);
-}
+sub do_mode_string_local { _do_mode_string(1, @_) }
 
 # handle a mode string, tell our local users, and tell other servers.
-sub do_mode_string {
-    my ($channel, $perspective, $source, $modestr, $force, $protocol, $local_only) = @_;
+sub  do_mode_string { _do_mode_string(undef, @_) }
+sub _do_mode_string {
+    my ($local_only, $channel, $perspective, $source, $modestr, $force, $protocol) = @_;
 
     # handle the mode.
     my ($user_result, $server_result) = $channel->handle_mode_string(

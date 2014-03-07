@@ -30,7 +30,7 @@
 		A75C5CF118B4321A007780A3 /* connection.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; lineEnding = 0; path = connection.pm; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.perl; };
 		A75C5D0218B4321A007780A3 /* ircd.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = ircd.pm; sourceTree = "<group>"; };
 		A75C5D0518B4321A007780A3 /* linkage.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = linkage.pm; sourceTree = "<group>"; };
-		A75C5D0618B4321A007780A3 /* mine.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = mine.pm; sourceTree = "<group>"; };
+		A75C5D0618B4321A007780A3 /* mine.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = mine.pm; sourceTree = "<group>"; wrapsLines = 0; };
 		A75C5D0718B4321A007780A3 /* server.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = server.pm; path = /Users/cooper879/Projects/kedler/lib/server.pm; sourceTree = "<absolute>"; };
 		A75C5D0918B4321A007780A3 /* mine.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = mine.pm; sourceTree = "<group>"; };
 		A75C5D0C18B4321A007780A3 /* user.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = user.pm; path = /Users/cooper879/Projects/kedler/lib/user.pm; sourceTree = "<absolute>"; };
