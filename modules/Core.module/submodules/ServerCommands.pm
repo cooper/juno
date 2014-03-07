@@ -322,8 +322,8 @@ sub privmsgnotice {
         foreach my $usr ($main::pool->users) {
             next if $server == $usr->{location};
             next if $usr->is_local;
-            next if $sent{$usr->{location}};
-            $sent{$usr->{location}} = 1;
+            next if $sent{$usr->{location} };
+            $sent{$usr->{location} } = 1;
             $usr->{location}->fire_command(privmsgnotice => $command, $source, $channel, $message);
         }
 
@@ -494,7 +494,8 @@ sub cum {
         }
 
         next USER unless $modes;      # the mode part is obviously optional..
-        next USER if $newtime != $ts; # the time battle was lost
+        next USER if $newtime != $ts; # the time battle was lost.
+        next USER if $user->is_local; # we know modes for local user already.
 
         $uids_modestr .= $modes;
         push @uids, $uid for 1 .. length $modes;

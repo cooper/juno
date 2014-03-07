@@ -47,7 +47,7 @@ sub register_server_command {
         }
 
         # check argument count
-        if (scalar @args < scalar @{$opts{parameters}}) {
+        if (scalar @args < scalar @{ $opts{parameters} }) {
             log2("not enough arguments for $opts{name}");
             $server->{conn}->done('Protocol error.');
             return
@@ -134,14 +134,14 @@ sub register_server_command {
     ) or return;
     
     $mod->{user_commands} ||= [];
-    push @{$mod->{server_commands}}, $opts{name};
+    push @{ $mod->{server_commands} }, $opts{name};
     return 1
 }
 
 sub _unload {
     my ($class, $mod) = @_;
     log2("unloading server commands registered by $$mod{name}");
-    $main::pool->delete_server_handler($_) foreach @{$mod->{server_commands}};
+    $main::pool->delete_server_handler($_) foreach @{ $mod->{server_commands} };
     log2("done unloading commands");
     return 1
 }

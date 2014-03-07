@@ -101,7 +101,7 @@ sub register_statuses {
         }
 
         # [USER RESPONSE, SERVER RESPONSE]
-        push @{$mode->{params}}, [$target->{nick}, $target->{uid}];
+        push @{ $mode->{params} }, [$target->{nick}, $target->{uid}];
         my $do = $mode->{state} ? 'add_to_list' : 'remove_from_list';
         $channel->$do($modename, $target);
         return 1

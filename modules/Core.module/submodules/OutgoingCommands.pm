@@ -100,9 +100,9 @@ sub topicburst {
         'TOPICBURST %s %d %s %d :%s',
         $channel->{name},
         $channel->{time},
-        $channel->{topic}->{setby},
-        $channel->{topic}->{time},
-        $channel->{topic}->{topic}
+        $channel->{topic}{setby},
+        $channel->{topic}{time},
+        $channel->{topic}{topic}
     );
     my $sid = v('SERVER')->{sid};
     ":$sid $cmd"
@@ -212,7 +212,7 @@ sub cum {
     my (%prefixes, @userstrs);
 
     my (@modes, @user_params, @server_params);
-    my @set_modes = sort { $a cmp $b } keys %{$channel->{modes}};
+    my @set_modes = sort { $a cmp $b } keys %{ $channel->{modes} };
 
     foreach my $name (@set_modes) {
       my $letter = v('SERVER')->cmode_letter($name);
@@ -222,7 +222,7 @@ sub cum {
         when ([0, 1, 2]) { push @modes, $letter; continue }
 
         # modes with EXACTLY ONE parameter
-        when ([1, 2]) { push @server_params, $channel->{modes}->{$name}->{parameter} }
+        when ([1, 2]) { push @server_params, $channel->{modes}{$name}{parameter} }
 
         # lists
         when (3) {
@@ -245,7 +245,7 @@ sub cum {
     my $modestr = '+'.join(' ', join('', @modes), @server_params);
 
     # create an array of uid!status
-    foreach my $user (@{$channel->{users}}) {
+    foreach my $user (@{ $channel->{users} }) {
         my $str = $user->{uid};
         $str .= '!'.$prefixes{$user} if exists $prefixes{$user};
         push @userstrs, $str
@@ -261,7 +261,7 @@ sub acm {
     my $modes = q();
     
     # iterate through each mode on the server.
-    foreach my $name (keys %{$serv->{cmodes}}) {
+    foreach my $name (keys %{ $serv->{cmodes} }) {
         my ($letter, $type) = ($serv->cmode_letter($name), $serv->cmode_type($name));
         
         # first, make sure this isn't garbage.
@@ -281,7 +281,7 @@ sub aum {
 
     my @modes = map {
        "$_:".($serv->umode_letter($_) || '')
-    } keys %{$serv->{umodes}};
+    } keys %{ $serv->{umodes} };
 
     ":$$serv{sid} AUM ".join(' ', @modes)
 }

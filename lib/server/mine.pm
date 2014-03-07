@@ -99,7 +99,7 @@ sub send_burst {
         return if defined $serv->{source} && $serv->{source} == $server;
         
         # we need to do the parent first.
-        if (!$done{$serv->{parent}} && $serv->{parent} != $serv) {
+        if (!$done{ $serv->{parent} } && $serv->{parent} != $serv) {
             $do->($serv->{parent});
         }
         
@@ -123,8 +123,8 @@ sub send_burst {
         fire_command($server, uid => $user);
 
         # oper flags
-        if (scalar @{$user->{flags}}) {
-            fire_command($server, oper => $user, @{$user->{flags}})
+        if (scalar @{ $user->{flags} }) {
+            fire_command($server, oper => $user, @{ $user->{flags} })
         }
 
         # away reason

@@ -22,7 +22,7 @@ sub new {
 
 sub is_mode {
     my ($channel, $name) = @_;
-    return exists $channel->{modes}->{$name}
+    return exists $channel->{modes}{$name}
 }
 
 sub unset_mode {
@@ -34,7 +34,7 @@ sub unset_mode {
     }
 
     # it is, so remove it
-    delete $channel->{modes}->{$name};
+    delete $channel->{modes}{$name};
     log2("$$channel{name} -$name");
     return 1
 }
@@ -44,7 +44,7 @@ sub unset_mode {
 # $channel->set_mode('moderated');
 sub set_mode {
     my ($channel, $name, $parameter) = @_;
-    $channel->{modes}->{$name} = {
+    $channel->{modes}{$name} = {
         parameter => $parameter,
         time      => time
         # list for list modes and status
@@ -56,7 +56,7 @@ sub set_mode {
 # list has something
 sub list_has {
     my ($channel, $name, $what) = @_;
-    return unless exists $channel->{modes}->{$name};
+    return unless exists $channel->{modes}{$name};
     foreach my $thing ($channel->list_elements($name)) {
         return 1 if $thing eq $what
     }
@@ -67,7 +67,7 @@ sub list_has {
 # returns the match if there is one.
 sub list_matches {
     my ($channel, $name, $what) = @_;
-    return unless exists $channel->{modes}->{$name};
+    return unless exists $channel->{modes}{$name};
     foreach my $mask ($channel->list_elements($name)) {
         my $realmask = $mask;
         $realmask = (split ':', $mask, 2)[1] if $mask =~ m/^(.+?):(.+)!(.+)\@(.+)/;
@@ -79,28 +79,28 @@ sub list_matches {
 # returns an array of list elements
 sub list_elements {
     my ($channel, $name) = @_;
-    return unless exists $channel->{modes}->{$name};
-    return map { $_->[0] } @{ $channel->{modes}->{$name}->{list} }
+    return unless exists $channel->{modes}{$name};
+    return map { $_->[0] } @{ $channel->{modes}{$name}{list} }
 }
 
 # adds something to a list mode (such as ban)
 sub add_to_list {
     my ($channel, $name, $parameter, %opts) = @_;
-    $channel->{modes}->{$name} = {
+    $channel->{modes}{$name} = {
         time => time,
         list => []
-    } unless exists $channel->{modes}->{$name};
+    } unless exists $channel->{modes}{$name};
 
     # no duplicates plz
     if ($channel->list_has($name, $parameter)) {
-        return
+        return;
     }
 
     log2("$$channel{name}: adding $parameter to $name list");
     my $array = [$parameter, \%opts];
-    push @{$channel->{modes}->{$name}->{list}}, $array;
+    push @{ $channel->{modes}{$name}{list} }, $array;
     
-    return 1
+    return 1;
 }
 
 # removes something from a list
@@ -112,6 +112,7 @@ sub remove_from_list {
     $channel->{modes}{$name}{list} = \@new;
     
     log2("$$channel{name}: removing $what from $name list");
+    return 1;
 }
 
 # user joins channel
@@ -133,7 +134,7 @@ sub cjoin {
     }
     
     # add the user to the channel
-    push @{$channel->{users}}, $user;
+    push @{ $channel->{users} }, $user;
     
     # note: as of 5.91, after-join event is fired in
     # mine.pm:           for locals
@@ -148,14 +149,14 @@ sub remove {
     my ($channel, $user) = @_;
 
     # remove the user from status lists
-    foreach my $name (keys %{$channel->{modes}}) {
+    foreach my $name (keys %{ $channel->{modes} }) {
         if (v('SERVER')->cmode_type($name) == 4) {
             $channel->remove_from_list($name, $user);
         }
     }
 
     # remove the user.
-    my @new = grep { $_ != $user } @{$channel->{users}};
+    my @new = grep { $_ != $user } @{ $channel->{users} };
     $channel->{users} = \@new;
     
     # delete the channel if this is the last user
@@ -175,7 +176,7 @@ sub remove_user;
 # user is on channel
 sub has_user {
     my ($channel, $user) = @_;
-    foreach my $usr (@{$channel->{users}}) {
+    foreach my $usr (@{ $channel->{users} }) {
         return 1 if $usr == $user
     }
     return
@@ -291,7 +292,7 @@ sub handle_mode_string {
 sub mode_string {
     my ($channel, $server) = @_;
     my (@modes, @params);
-    my @set_modes = sort { $a cmp $b } keys %{$channel->{modes}};
+    my @set_modes = sort { $a cmp $b } keys %{ $channel->{modes} };
     foreach my $name (@set_modes) {
         given ($server->cmode_type($name)) {
             when (0) { }
@@ -300,7 +301,7 @@ sub mode_string {
             default  { next }
         }
         push @modes, $server->cmode_letter($name);
-        if (my $param = $channel->{modes}->{$name}->{parameter}) {
+        if (my $param = $channel->{modes}{$name}{parameter}) {
             push @params, $param
         }
     }
@@ -313,7 +314,7 @@ sub mode_string {
 sub mode_string_all {
     my ($channel, $server) = @_;
     my (@modes, @user_params, @server_params);
-    my @set_modes = sort { $a cmp $b } keys %{$channel->{modes}};
+    my @set_modes = sort { $a cmp $b } keys %{ $channel->{modes} };
 
     foreach my $name (@set_modes) {
         my $letter = $server->cmode_letter($name);
@@ -327,8 +328,8 @@ sub mode_string_all {
 
             # modes with ONE parameter
             when ([1, 2]) {
-                push @user_params,   $channel->{modes}->{$name}->{parameter};
-                push @server_params, $channel->{modes}->{$name}->{parameter}
+                push @user_params,   $channel->{modes}{$name}{parameter};
+                push @server_params, $channel->{modes}{$name}{parameter}
             }
 
             # lists

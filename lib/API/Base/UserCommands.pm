@@ -109,7 +109,7 @@ sub register_user_command {
                 return;
             }
 
-            foreach my $_t (@{$opts{parameters}}) {
+            foreach my $_t (@{ $opts{parameters} }) {
 
                 # if it starts with -,
                 # don't increment current parameter.
@@ -263,14 +263,14 @@ sub register_user_command {
         $opts{description}
     ) or return;
 
-    push @{$mod->{user_commands}}, $opts{name};
+    push @{ $mod->{user_commands} }, $opts{name};
     return 1
 }
 
 sub _unload {
     my ($class, $mod) = @_;
     log2("unloading user commands registered by $$mod{name}");
-    $main::pool->delete_user_handler($_) foreach @{$mod->{user_commands}};
+    $main::pool->delete_user_handler($_) foreach @{ $mod->{user_commands} };
     log2("done unloading commands");
     return 1
 }

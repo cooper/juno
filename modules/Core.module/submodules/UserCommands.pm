@@ -430,8 +430,8 @@ sub privmsgnotice {
         my %sent;
         foreach my $usr ($main::pool->users) {
             next if $usr->is_local;
-            next if $sent{$usr->{location}};
-            $sent{$usr->{location}} = 1;
+            next if $sent{ $usr->{location} };
+            $sent{ $usr->{location} } = 1;
             $usr->{location}->fire_command(privmsgnotice => $command, $user, $channel, $message);
         }
 
@@ -665,7 +665,7 @@ sub whois {
     $user->numeric('RPL_WHOISCHANNELS', $quser->{nick}, join(' ', @channels)) if @channels;
 
     # server 
-    $user->numeric('RPL_WHOISSERVER', $quser->{nick}, $quser->{server}->{name}, $quser->{server}->{desc});
+    $user->numeric('RPL_WHOISSERVER', $quser->{nick}, $quser->{server}{name}, $quser->{server}{desc});
 
     # IRC operator
     $user->numeric('RPL_WHOISOPERATOR', $quser->{nick}) if $quser->is_mode('ircop');
@@ -713,7 +713,7 @@ sub commands {
 
     # send a notice for each command
     foreach my $command (keys %user::mine::commands) {
-        foreach my $source (keys %{$user::mine::commands{$command}}) {
+        foreach my $source (keys %{ $user::mine::commands{$command} }) {
             $user->server_notice(sprintf "\2%-${i}s\2 %-${i}s", $command,
                 q(:).$user::mine::commands{$command}{$source}{desc}, $source)
         }
@@ -830,7 +830,7 @@ sub who {
     # match all, like the above note says
     if ($query eq '0') {
         foreach my $quser ($main::pool->users) {
-            $matches{$quser->{uid}} = $quser
+            $matches{ $quser->{uid} } = $quser
         }
         # I used UIDs so there are no duplicates
     }
@@ -838,9 +838,9 @@ sub who {
     # match an exact channel name
     elsif (my $channel = $main::pool->lookup_channel($query)) {
         $match_pattern = $channel->{name};
-        foreach my $quser (@{$channel->{users}}) {
-            $matches{$quser->{uid}} = $quser;
-            $quser->{who_flags}     = $channel->prefix($quser);
+        foreach my $quser (@{ $channel->{users} }) {
+            $matches{ $quser->{uid} } = $quser;
+            $quser->{who_flags}       = $channel->prefix($quser);
         }
     }
 
@@ -848,8 +848,8 @@ sub who {
     else {
         foreach my $quser ($main::pool->users) {
             foreach my $pattern ($quser->{nick}, $quser->{ident}, $quser->{host},
-              $quser->{real}, $quser->{server}->{name}) {
-                $matches{$quser->{uid}} = $quser if match($pattern, $query);
+              $quser->{real}, $quser->{server}{name}) {
+                $matches{ $quser->{uid} } = $quser if match($pattern, $query);
             }
         }
         # this doesn't have to match anyone
@@ -873,7 +873,7 @@ sub who {
 
         # found a match
         $who_flags = (defined $quser->{away} ? 'G' : 'H') . $who_flags . ($quser->is_mode('ircop') ? '*' : q||);
-        $user->numeric('RPL_WHOREPLY', $match_pattern, $quser->{ident}, $quser->{host}, $quser->{server}->{name}, $quser->{nick}, $who_flags, $quser->{real});
+        $user->numeric('RPL_WHOREPLY', $match_pattern, $quser->{ident}, $quser->{host}, $quser->{server}{name}, $quser->{nick}, $who_flags, $quser->{real});
     }
 
     $user->numeric('RPL_ENDOFWHO', $query);
@@ -924,8 +924,8 @@ sub topic {
 
         # topic set
         if (exists $channel->{topic}) {
-            $user->numeric(RPL_TOPIC        => $channel->{name}, $channel->{topic}->{topic});
-            $user->numeric(RPL_TOPICWHOTIME => $channel->{name}, $channel->{topic}->{setby}, $channel->{topic}->{time});
+            $user->numeric(RPL_TOPIC        => $channel->{name}, $channel->{topic}{topic});
+            $user->numeric(RPL_TOPICWHOTIME => $channel->{name}, $channel->{topic}{setby}, $channel->{topic}{time});
         }
 
         # no topic set
@@ -1191,7 +1191,7 @@ sub list {
     # send for each channel in no particular order.
     foreach my $channel (values %channel::channels) {
        # 322 RPL_LIST "<channel> <# visible> :<topic>"
-        my $number_of_users = scalar @{$channel->{users}};
+        my $number_of_users = scalar @{ $channel->{users} };
         my $channel_topic   = defined $channel->{topic}{topic} ? $channel->{topic}{topic} : '';
         $user->numeric(RPL_LIST => $channel->{name}, $number_of_users, $channel_topic);
     }

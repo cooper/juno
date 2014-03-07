@@ -30,7 +30,7 @@ sub new {
 
 sub is_mode {
     my ($user, $mode) = @_;
-    $mode ~~ @{$user->{modes}}
+    $mode ~~ @{ $user->{modes} }
 }
 
 sub unset_mode {
@@ -43,7 +43,7 @@ sub unset_mode {
 
     # he is, so remove it
     log2("$$user{nick} -$name");
-    @{$user->{modes}} = grep { $_ ne $name } @{$user->{modes}}
+    @{ $user->{modes} } = grep { $_ ne $name } @{ $user->{modes} }
 
 }
 
@@ -51,7 +51,7 @@ sub set_mode {
     my ($user, $name) = @_;
     return if $user->is_mode($name);
     log2("$$user{nick} +$name");
-    push @{$user->{modes}}, $name
+    push @{ $user->{modes} }, $name
 }
 
 sub quit {
@@ -67,7 +67,7 @@ sub quit {
     foreach my $channel ($main::pool->channels) {
         next unless $channel->has_user($user);
         $channel->remove($user);
-        foreach my $usr (@{$channel->{users}}) {
+        foreach my $usr (@{ $channel->{users} }) {
             next unless $usr->is_local;
             next if $sent{$usr};
             $usr->sendfrom($user->full, "QUIT :$reason");
@@ -145,7 +145,7 @@ sub handle_mode_string {
 sub mode_string {
     my $user = shift;
     my $string = '+';
-    foreach my $name (@{$user->{modes}}) {
+    foreach my $name (@{ $user->{modes} }) {
         $string .= $user->{server}->umode_letter($name)
     }
     return $string
@@ -156,7 +156,7 @@ sub add_flags {
     my $user  = shift;
     my @flags = grep { !$user->has_flag($_) } @_;
     log2("adding flags to $$user{nick}: @flags");
-    push @{$user->{flags}}, @flags
+    push @{ $user->{flags} }, @flags
 }
 
 # remove oper flags
@@ -168,14 +168,14 @@ sub remove_flags {
 
     @r{@remove}++;
 
-    my @new        = grep { !exists $r{$_} } @{$user->{flags}};
+    my @new        = grep { !exists $r{$_} } @{ $user->{flags} };
     $user->{flags} = \@new;
 }
 
 # has oper flag
 sub has_flag {
     my ($user, $flag) = @_;
-    return $flag ~~ @{$user->{flags}}
+    return $flag ~~ @{ $user->{flags} }
 }
 
 # set away msg

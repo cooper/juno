@@ -24,7 +24,7 @@ sub localjoin {
     }
 
     # for each user in the channel
-    foreach my $usr (@{$channel->{users}}) {
+    foreach my $usr (@{ $channel->{users} }) {
         next unless $usr->is_local;
         $usr->sendfrom($user->full, "JOIN $$channel{name}")
     }
@@ -44,7 +44,7 @@ sub names {
     my ($channel, $user) = @_;
     my @str;
     my $curr = 0;
-    foreach my $usr (@{$channel->{users}}) {
+    foreach my $usr (@{ $channel->{users} }) {
 
         # if this user is invisible, do not show him unless the querier is in a common
         # channel or has the see_invisible flag.
@@ -67,7 +67,7 @@ sub modes {
 
 sub send_all {
     my ($channel, $what, $ignore) = @_;
-    foreach my $user (@{$channel->{users}}) {
+    foreach my $user (@{ $channel->{users} }) {
         next unless $user->is_local;
         next if defined $ignore && $ignore == $user;
         $user->send($what);
@@ -83,7 +83,7 @@ sub sendfrom_all {
 # send a notice to every user
 sub notice_all {
     my ($channel, $what, $ignore) = @_;
-    foreach my $user (@{$channel->{users}}) {
+    foreach my $user (@{ $channel->{users} }) {
         next unless $user->is_local;
         next if defined $ignore && $ignore == $user;
         $user->send(":".v('SERVER', 'name')." NOTICE $$channel{name} :*** $what");
@@ -110,7 +110,7 @@ sub take_lower_time {
     # hackery: use the server mode string to reset all modes.
     # note: we can't use do_mode_string() because it would send to other servers.
     my ($u_str, $s_str) = $channel->mode_string_all(v('SERVER'));
-    substr($u_str, 0, 1) = '-'; substr($s_str, 0, 1) = '-';
+    substr($u_str, 0, 1) = substr($s_str, 0, 1) = '-';
     sendfrom_all($channel, v('SERVER', 'name'), "MODE $$channel{name} $u_str");
     $channel->handle_mode_string(v('SERVER'), v('SERVER'), $s_str, 1, 1);
     

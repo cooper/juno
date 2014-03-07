@@ -531,7 +531,7 @@ sub fire_user_mode {
     return 1 unless exists $pool->{user_modes}{$name};
 
     # call each block.
-    foreach my $block (values %{$pool->{user_modes}{$name}}) {
+    foreach my $block (values %{ $pool->{user_modes}{$name} }) {
         return unless $block->($user, $state);
     }
 
@@ -605,7 +605,7 @@ sub fire_channel_mode {
     };
 
     # fire each block.
-    foreach my $block (values %{$pool->{channel_modes}{$name}}) {
+    foreach my $block (values %{ $pool->{channel_modes}{$name} }) {
         return (undef, $this) unless $block->($channel, $this);
     }
     

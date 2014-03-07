@@ -29,7 +29,7 @@ sub register_ircd_event {
     log2("$$mod{name} registered callback for ircd event $event_name: $callb_name");
     
     # store for later.
-    push @{$mod->{ircd_events}}, [$event_name, $callb_name];
+    push @{ $mod->{ircd_events} }, [$event_name, $callb_name];
     
     return $callb_name;
 }
@@ -37,7 +37,7 @@ sub register_ircd_event {
 sub _unload {
     my ($class, $mod) = @_;
     log2("unloading ircd events registered by $$mod{name}");
-    $main::pool->delete_event(@$_) foreach @{$mod->{ircd_events}};
+    $main::pool->delete_event(@$_) foreach @{ $mod->{ircd_events} };
     log2("done unloading ircd events");
     return 1
 }

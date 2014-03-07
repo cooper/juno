@@ -293,7 +293,7 @@ sub done {
 # has client capability
 sub has_cap {
     my ($connection, $flag) = @_;
-    return $flag ~~ @{$connection->{cap}}
+    return $flag ~~ @{ $connection->{cap} }
 }
 
 # add client capability
@@ -301,7 +301,7 @@ sub add_cap {
     my $connection = shift;
     my @flags = grep { !$connection->has_cap($_) } @_;
     log2("adding capability flags to $connection: @flags");
-    push @{$connection->{cap}}, @flags
+    push @{ $connection->{cap} }, @flags
 }
 
 # remove client capability
@@ -313,7 +313,7 @@ sub remove_cap {
 
     @r{@remove}++;
 
-    my @new        = grep { !exists $r{$_} } @{$connection->{cap}};
+    my @new        = grep { !exists $r{$_} } @{ $connection->{cap} };
     $connection->{flags} = \@new;
 }
 
@@ -326,7 +326,7 @@ sub DESTROY {
 
 # get the IO object
 sub obj {
-    shift->{stream}->{write_handle} # XXX select
+    shift->{stream}{write_handle} # XXX select
 }
 
 1

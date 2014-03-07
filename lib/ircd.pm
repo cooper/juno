@@ -224,7 +224,7 @@ sub create_sockets {
         # when reloading because this will be called multiple times.
     
     foreach my $addr ($conf->names_of_block('listen')) {
-      foreach my $port (@{$conf->get(['listen', $addr], 'port')}) {
+      foreach my $port (@{ $conf->get(['listen', $addr], 'port')}) {
 
         # create the loop listener
         my $listener = IO::Async::Listener->new(on_stream => \&handle_connect);

@@ -26,14 +26,14 @@ sub register_outgoing_command {
         $opts{code}
     ) or return;
 
-    push @{$mod->{outgoing_commands}}, $opts{name};
+    push @{ $mod->{outgoing_commands} }, $opts{name};
     return 1
 }
 
 sub _unload {
     my ($class, $mod) = @_;
     log2("unloading outgoing commands registered by $$mod{name}");
-    $main::pool->delete_outgoing_handler($_) foreach @{$mod->{outgoing_commands}};
+    $main::pool->delete_outgoing_handler($_) foreach @{ $mod->{outgoing_commands} };
     log2("done unloading commands");
     return 1
 }

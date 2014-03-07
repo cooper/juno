@@ -123,7 +123,7 @@ sub cmode_access {
         $channel->remove_from_list('access', $mode->{param});
     }
 
-    push @{$mode->{params}}, $mode->{param};
+    push @{ $mode->{params} }, $mode->{param};
     return 1
 }
 

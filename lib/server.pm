@@ -45,7 +45,7 @@ sub quit {
 # add a user mode
 sub add_umode {
     my ($server, $name, $mode) = @_;
-    $server->{umodes}->{$name} = {
+    $server->{umodes}{$name} = {
         letter => $mode
     };
     log2("$$server{name} registered $mode:$name");
@@ -55,8 +55,8 @@ sub add_umode {
 # umode letter to name
 sub umode_name {
     my ($server, $mode) = @_;
-    foreach my $name (keys %{$server->{umodes}}) {
-        return $name if $mode eq $server->{umodes}->{$name}->{letter}
+    foreach my $name (keys %{ $server->{umodes} }) {
+        return $name if $mode eq $server->{umodes}{$name}{letter}
     }
     return
 }
@@ -64,7 +64,7 @@ sub umode_name {
 # umode name to letter
 sub umode_letter {
     my ($server, $name) = @_;
-    return $server->{umodes}->{$name}->{letter}
+    return $server->{umodes}{$name}{letter}
 }
 
 # add a channel mode
@@ -78,7 +78,7 @@ sub umode_letter {
 # i don't if that's necessary
 sub add_cmode {
     my ($server, $name, $mode, $type) = @_;
-    $server->{cmodes}->{$name} = {
+    $server->{cmodes}{$name} = {
         letter => $mode,
         type   => $type
     };
@@ -90,9 +90,9 @@ sub add_cmode {
 sub cmode_name {
     my ($server, $mode) = @_;
     return unless defined $mode;
-    foreach my $name (keys %{$server->{cmodes}}) {
-        next unless defined $server->{cmodes}->{$name}->{letter};
-        return $name if $mode eq $server->{cmodes}->{$name}->{letter}
+    foreach my $name (keys %{ $server->{cmodes} }) {
+        next unless defined $server->{cmodes}{$name}{letter};
+        return $name if $mode eq $server->{cmodes}{$name}{letter}
     }
     return
 }
@@ -100,13 +100,13 @@ sub cmode_name {
 # cmode name to letter
 sub cmode_letter {
     my ($server, $name) = @_;
-    return $server->{cmodes}->{$name}->{letter}
+    return $server->{cmodes}{$name}{letter}
 }
 
 # type
 sub cmode_type {
     my ($server, $name) = @_;
-    return $server->{cmodes}->{$name}->{type}
+    return $server->{cmodes}{$name}{type}
 }
 
 # change 1 server's mode string to another server's
@@ -131,7 +131,7 @@ sub convert_cmode_string {
 
 sub cmode_takes_parameter {
     my ($server, $name, $state) = @_;
-    given ($server->{cmodes}->{$name}->{type}) {
+    given ($server->{cmodes}{$name}{type}) {
         # always give a parameter
         when (1) {
             return 1
