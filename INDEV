@@ -1956,9 +1956,12 @@ CHANGES:
             
         08. channel ->list_elements() takes an optional argument to include all information like setby and time.
             fixed an issue where /LIST command shows no channels.
-            fixed an fatal issue when viewing a list for banlike.
+            fixed a fatal issue when viewing a list for banlike.
             
-
+        09. fixed ->cmode_string_difference(). I think it is now flawless.
+            this should eliminate all mode flooding during server bursts.
+            do not sent TOPICBURST to the server we got the topic from.
+            this should eliminate topic flooding during server bursts.
         
 
 

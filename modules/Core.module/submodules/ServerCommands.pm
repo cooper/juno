@@ -516,9 +516,7 @@ sub cum {
     my $command_modestr = join(' ', '+'.$other_modes.$uids_modes, @other_params, @uids);
     
     # determine the difference. handle it locally if there is one.
-    print "DIFFERENCE BETWEEN ($old_modestr) and ($command_modestr) IS";
     my $difference = $serv->cmode_string_difference($old_modestr, $command_modestr);
-    print "$difference\n";
     $channel->do_mode_string_local($serv, $serv, $difference, 1, 1) if $difference;
     
     return 1;

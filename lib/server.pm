@@ -183,6 +183,9 @@ sub cmode_takes_parameter {
 # parameters exist for a mode type intended to
 # have only a single parameter such as +l.
 #
+# both mode strings should only be +modes and have
+# no - states because CUM only shows current modes.
+#
 # also, it will not work correctly if multiple
 # instances of the same parameter are in either
 # string; ex. +bb *!*@* *!*@*
@@ -190,76 +193,102 @@ sub cmode_takes_parameter {
 sub cmode_string_difference {
     my ($server, $o_modestr, $n_modestr) = @_;
 
-    # split into +something, @params
+    # split into modes, @params
     my ($o_modes, @o_params) = split ' ', $o_modestr;
     my ($n_modes, @n_params) = split ' ', $n_modestr;
-    
-    # determine the original values. $o_modes_p{b}{'hi!*@*'} = 1
-    my $state = 1;
+    substr($o_modes, 0, 1) = substr($n_modes, 0, 1) = '';
+
+    # determine the original values. ex. $o_modes_p{b}{'hi!*@*'} = 1
     my (@o_modes, %o_modes_p);
     foreach my $letter (split //, $o_modes) {
     
-        # state changes.
-        $state   = 1, next if $letter eq '+';
-        $state   = 0, next if $letter eq '-';
-        
         # find mode name and type.
         my $name = $server->cmode_name($letter) or next;
-        my $type = $server->cmode_type($name)   or next;
+        my $type = $server->cmode_type($name);
         
         # this type takes a parameter.
-        if ($server->cmode_takes_parameter($name)) {
-            my $param = shift @o_params or next;
-            $o_modes_p{$letter}{$param} = 1     if  $state;
-            delete $o_modes_p{$letter}{$param}  if !$state;
+        if ($server->cmode_takes_parameter($name, 1)) {
+            defined(my $param = shift @o_params) or next;
+            $o_modes_p{$letter}{$param} = 1;
+            next;
         }
         
         # no parameter.
-        push @o_modes, $letter                      if  $state;
-        @o_modes = grep { $_ ne $letter } @o_modes  if !$state;
-        
+        push @o_modes, $letter;
+       
     }
 
-    # find the differences.
-    # modes_added       = modes present in the new string but not old
-    # modes_added_p     = same as above but with parameters
-    # modes_removed     = modes in old but not in new
-    # modes_removed_p   = same as above but with parameters
-    $state = 0;
-    my (@modes_added, %modes_added_p, @modes_removed, %modes_removed_p);
+    # find the new modes.
+    # modes_added   = modes present in the new string but not old
+    # modes_added_p = same as above but with parameters
+
+    my (@modes_added, %modes_added_p);
     foreach my $letter (split //, $n_modes) {
-        
-        # state changes.
-        $state   = 1, next if $letter eq '+';
-        $state   = 0, next if $letter eq '-';
 
         # find mode name and type.
         my $name = $server->cmode_name($letter) or next;
-        my $type = $server->cmode_type($name)   or next;
+        my $type = $server->cmode_type($name);
         
         # this type takes a parameter.
-        if ($server->cmode_takes_parameter($name)) {
-            my $param = shift @o_params or next;
-            
+        if ($server->cmode_takes_parameter($name, 1)) {
+            defined(my $param = shift @n_params) or next;
+
             # it's in the original.
-            if ($state && $o_modes_p{$letter}{$param}) {
-                delete $o_modes_p{$letter}{$param};
+            my $m = $o_modes_p{$letter};
+            if ($m && $m->{$param}) {
+                delete $m->{$param};
+                delete $o_modes_p{$letter} if !scalar keys %$m;
             }
             
-            # it's not there.
+            # not there.
             else {
-                
+                $modes_added_p{$letter}{$param} = 1;
             }
             
             next;
         }
         
         # no parameter.
-        push @o_modes, $letter if $state;
-        @o_modes = grep { $_ ne $letter } @o_modes if not $state;
+
+        # it's in the original.
+        if ($letter ~~ @o_modes) {
+            @o_modes = grep { $_ ne $letter } @o_modes;
+        }
+        
+        # not there.
+        else {
+            push @modes_added, $letter;
+        }
         
     }
+    
+    # at this point, anything in @o_modes or %o_modes_p is not
+    # present in the new mode string but is in the old.
 
+    # create the mode string with all added modes.
+    my ($final_str, @final_p) = '';
+
+    # add new modes found in new string but not old.
+    $final_str .= '+' if scalar @modes_added || scalar keys %modes_added_p;
+    $final_str .= join '', @modes_added;
+    foreach my $letter (keys %modes_added_p) {
+        foreach my $param (keys %{ $modes_added_p{$letter} }) {
+            $final_str .= $letter;
+            push @final_p, $param;
+        }
+    }
+    
+    # remove modes from original not found in new.
+    $final_str .= '-' if scalar @o_modes || scalar keys %o_modes_p;
+    $final_str .= join '', @o_modes;
+    foreach my $letter (keys %o_modes_p) {
+        foreach my $param (keys %{ $o_modes_p{$letter} }) {
+            $final_str .= $letter;
+            push @final_p, $param;
+        }
+    }
+  
+    return join ' ', $final_str, @final_p;
 }
 
 sub is_local {
