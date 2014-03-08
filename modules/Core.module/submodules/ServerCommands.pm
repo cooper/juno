@@ -242,7 +242,7 @@ sub quit {
     # tell other servers.
     # note: must be done manually because it
     # should not be done if $source is this server
-    $server->send_children($line);
+    $server->send_children($data);
     
     # delete the server or user
     $source->quit($reason);
