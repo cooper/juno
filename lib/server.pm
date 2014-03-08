@@ -170,14 +170,18 @@ sub cmode_takes_parameter {
 #       $o_modestr = +ntb *!*@*
 #       $n_modestr = +nibe *!*@* mitch!*@*
 #   result
-#       +ie mitch!*@*
-#
-#   notice how the t is missing in the new mode string,
-#   but this is ignored
+#       +ie-t mitch!*@*
 #
 # o_modestr = original, the original.
 # n_modestr = new, the primary one that dictates.
-# currently only supports all + state.
+#
+# note that this is intended to be used for strings
+# produced by the ircd, such as in the CUM command,
+# and this does not handle stupidity well.
+#
+# specifically, it does not check if multiple
+# parameters exist for a mode type intended to
+# have only a single parameter such as +l.
 #
 sub cmode_string_difference {
     my ($server, $o_modestr, $n_modestr) = @_;
@@ -187,42 +191,80 @@ sub cmode_string_difference {
     my ($n_modes, @n_params) = split ' ', $n_modestr;
     
     # determine the original values.
+    my $state = 1;
     my (@o_modes, %o_modes_p);
     foreach my $letter (split //, $o_modes) {
-        next if $letter eq '+';
+        $state   = 1, next if $letter eq '+';
+        $state   = 0, next if $letter eq '-';
         my $name = $server->cmode_name($letter);
         
         # this type takes a parameter.
         if ($server->cmode_takes_parameter($name)) {
-            $o_modes_p{$letter} = shift @o_params;
+            my $value = shift @o_params;
+            my $a     = $o_modes_p{$letter} ||= [];
+            
+            push @$a, $value                    if  $state;
+            @$a = grep { $_ ne $value } @$a     if !$state;
+        
             next;
         }
         
         # no parameter.
-        push @o_modes, $letter;
+        push @o_modes, $letter if $state;
+        @o_modes = grep { $_ ne $letter } if not $state;
         
     }
 
     # search for differences.
+    $state = 1;
     my (@n_modes, %n_modes_p);
     foreach my $letter (split //, $n_modes) {
-        next if $letter eq '+';
+        $state   = 1, next if $letter eq '+';
+        $state   = 0, next if $letter eq '-';
         my $name = $server->cmode_name($letter);
         
         # this type takes a parameter.
         if ($server->cmode_takes_parameter($name)) {
             my $value = shift @n_params;
+            my $b     = $n_modes_p{$letter} ||= [];
+
+            if ($state) {
+
+                # already there.
+                my $a = $o_modes_p{$letter};
+                next if $a && $value ~~ @$a;
+                
+                # not there.
+                push @$b, $value;
+                
+            }
             
-            # already there and equal.
-            next if exists $o_modes_p{$letter} && $value eq $o_modes_p{$letter};
+            else {
             
-            $n_modes_p{$letter} = $value;
+                # not there.
+                my $a = $o_modes_p{$letter};
+                next if not $a && $value ~~ @$a;
+            
+                # is there.
+                @$b = grep { $_ ne $value } @$b;
+                
+            }
+            
             next;
         }
         
         # no parameter.
-        next if $letter ~~ @o_modes; # already have it.
-        push @n_modes, $letter;
+        
+        if ($state) {
+            next if $letter ~~ @o_modes; # already have it.
+            push @n_modes, $letter;
+        }
+        
+        else {
+            next if $letter ~~ @o_modes; # don't have it.
+            push @n_modes, $letter;
+        }
+        
         
     }
 

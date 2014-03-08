@@ -1951,6 +1951,9 @@ CHANGES:
                 
         07. added server method ->cmode_string_difference().
             if all goes well, this should eleminate the mode spamming during server bursts.
+            
+                071. changes to ->cmode_string_difference().
+            
         
 
 
