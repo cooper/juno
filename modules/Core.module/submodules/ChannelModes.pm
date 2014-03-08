@@ -138,7 +138,7 @@ sub cmode_banlike {
             $_->[0],
             $_->[1]{setby},
             $_->[1]{time}
-        ) foreach $channel->list_elements($list);
+        ) foreach $channel->list_elements($list, 1);
         
         # end of list.
         $mode->{source}->numeric("RPL_ENDOF$name" => $channel->{name});

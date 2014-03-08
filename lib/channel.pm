@@ -78,9 +78,11 @@ sub list_matches {
 
 # returns an array of list elements
 sub list_elements {
-    my ($channel, $name) = @_;
+    my ($channel, $name, $all) = @_;
     return unless exists $channel->{modes}{$name};
-    return map { $_->[0] } @{ $channel->{modes}{$name}{list} }
+    my @list = @{ $channel->{modes}{$name}{list} };
+    if ($all)  { return @list }
+    return map { $_->[0]      } @list;
 }
 
 # adds something to a list mode (such as ban)

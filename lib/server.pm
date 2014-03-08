@@ -183,6 +183,10 @@ sub cmode_takes_parameter {
 # parameters exist for a mode type intended to
 # have only a single parameter such as +l.
 #
+# also, it will not work correctly if multiple
+# instances of the same parameter are in either
+# string; ex. +bb *!*@* *!*@*
+#
 sub cmode_string_difference {
     my ($server, $o_modestr, $n_modestr) = @_;
 
@@ -190,86 +194,72 @@ sub cmode_string_difference {
     my ($o_modes, @o_params) = split ' ', $o_modestr;
     my ($n_modes, @n_params) = split ' ', $n_modestr;
     
-    # determine the original values.
+    # determine the original values. $o_modes_p{b}{'hi!*@*'} = 1
     my $state = 1;
     my (@o_modes, %o_modes_p);
     foreach my $letter (split //, $o_modes) {
+    
+        # state changes.
         $state   = 1, next if $letter eq '+';
         $state   = 0, next if $letter eq '-';
-        my $name = $server->cmode_name($letter);
+        
+        # find mode name and type.
+        my $name = $server->cmode_name($letter) or next;
+        my $type = $server->cmode_type($name)   or next;
         
         # this type takes a parameter.
         if ($server->cmode_takes_parameter($name)) {
-            my $value = shift @o_params;
-            my $a     = $o_modes_p{$letter} ||= [];
-            
-            push @$a, $value                    if  $state;
-            @$a = grep { $_ ne $value } @$a     if !$state;
+            my $param = shift @o_params or next;
+            $o_modes_p{$letter}{$param} = 1     if  $state;
+            delete $o_modes_p{$letter}{$param}  if !$state;
+        }
         
+        # no parameter.
+        push @o_modes, $letter                      if  $state;
+        @o_modes = grep { $_ ne $letter } @o_modes  if !$state;
+        
+    }
+
+    # find the differences.
+    # modes_added       = modes present in the new string but not old
+    # modes_added_p     = same as above but with parameters
+    # modes_removed     = modes in old but not in new
+    # modes_removed_p   = same as above but with parameters
+    $state = 0;
+    my (@modes_added, %modes_added_p, @modes_removed, %modes_removed_p);
+    foreach my $letter (split //, $n_modes) {
+        
+        # state changes.
+        $state   = 1, next if $letter eq '+';
+        $state   = 0, next if $letter eq '-';
+
+        # find mode name and type.
+        my $name = $server->cmode_name($letter) or next;
+        my $type = $server->cmode_type($name)   or next;
+        
+        # this type takes a parameter.
+        if ($server->cmode_takes_parameter($name)) {
+            my $param = shift @o_params or next;
+            
+            # it's in the original.
+            if ($state && $o_modes_p{$letter}{$param}) {
+                delete $o_modes_p{$letter}{$param};
+            }
+            
+            # it's not there.
+            else {
+                
+            }
+            
             next;
         }
         
         # no parameter.
         push @o_modes, $letter if $state;
-        @o_modes = grep { $_ ne $letter } if not $state;
+        @o_modes = grep { $_ ne $letter } @o_modes if not $state;
         
     }
 
-    # search for differences.
-    $state = 1;
-    my (@n_modes, %n_modes_p);
-    foreach my $letter (split //, $n_modes) {
-        $state   = 1, next if $letter eq '+';
-        $state   = 0, next if $letter eq '-';
-        my $name = $server->cmode_name($letter);
-        
-        # this type takes a parameter.
-        if ($server->cmode_takes_parameter($name)) {
-            my $value = shift @n_params;
-            my $b     = $n_modes_p{$letter} ||= [];
-
-            if ($state) {
-
-                # already there.
-                my $a = $o_modes_p{$letter};
-                next if $a && $value ~~ @$a;
-                
-                # not there.
-                push @$b, $value;
-                
-            }
-            
-            else {
-            
-                # not there.
-                my $a = $o_modes_p{$letter};
-                next if not $a && $value ~~ @$a;
-            
-                # is there.
-                @$b = grep { $_ ne $value } @$b;
-                
-            }
-            
-            next;
-        }
-        
-        # no parameter.
-        
-        if ($state) {
-            next if $letter ~~ @o_modes; # already have it.
-            push @n_modes, $letter;
-        }
-        
-        else {
-            next if $letter ~~ @o_modes; # don't have it.
-            push @n_modes, $letter;
-        }
-        
-        
-    }
-
-    my $f_str = join(' ', '+'.join('', @n_modes, keys %n_modes_p), values %n_modes_p);
-    return $f_str eq '+' ? '' : $f_str;
 }
 
 sub is_local {

@@ -1954,6 +1954,11 @@ CHANGES:
             
                 071. changes to ->cmode_string_difference().
             
+        08. channel ->list_elements() takes an optional argument to include all information like setby and time.
+            fixed an issue where /LIST command shows no channels.
+            fixed an fatal issue when viewing a list for banlike.
+            
+
         
 
 

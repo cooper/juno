@@ -666,7 +666,7 @@ sub whois {
     $user->numeric('RPL_WHOISUSER', $quser->{nick}, $quser->{ident}, $quser->{host}, $quser->{real});
 
     # channels
-    my @channels = map { $_->{name} } grep { $_->has_user($quser) } values %channel::channels;
+    my @channels = map { $_->{name} } grep { $_->has_user($quser) } $main::pool->channels;
     $user->numeric('RPL_WHOISCHANNELS', $quser->{nick}, join(' ', @channels)) if @channels;
 
     # server 
@@ -1194,7 +1194,7 @@ sub list {
     $user->numeric('RPL_LISTSTART');
 
     # send for each channel in no particular order.
-    foreach my $channel (values %channel::channels) {
+    foreach my $channel ($main::pool->channels) {
        # 322 RPL_LIST "<channel> <# visible> :<topic>"
         my $number_of_users = scalar @{ $channel->{users} };
         my $channel_topic   = defined $channel->{topic}{topic} ? $channel->{topic}{topic} : '';
