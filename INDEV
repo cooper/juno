@@ -1949,8 +1949,9 @@ CHANGES:
         
                 061. $line -> $data
                 
+        07. added server method ->cmode_string_difference().
+            if all goes well, this should eleminate the mode spamming during server bursts.
         
-        
-        
+
 
 

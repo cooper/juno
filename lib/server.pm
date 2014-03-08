@@ -161,6 +161,75 @@ sub cmode_takes_parameter {
     return
 }
 
+#
+# takes a channel mode string and compares
+# it with another, returning the difference.
+# basically, for example,
+#
+#   given
+#       $o_modestr = +ntb *!*@*
+#       $n_modestr = +nibe *!*@* mitch!*@*
+#   result
+#       +ie mitch!*@*
+#
+#   notice how the t is missing in the new mode string,
+#   but this is ignored
+#
+# o_modestr = original, the original.
+# n_modestr = new, the primary one that dictates.
+# currently only supports all + state.
+#
+sub cmode_string_difference {
+    my ($server, $o_modestr, $n_modestr) = @_;
+
+    # split into +something, @params
+    my ($o_modes, @o_params) = split ' ', $o_modestr;
+    my ($n_modes, @n_params) = split ' ', $n_modestr;
+    
+    # determine the original values.
+    my (@o_modes, %o_modes_p);
+    foreach my $letter (split //, $o_modes) {
+        next if $letter eq '+';
+        my $name = $server->cmode_name($letter);
+        
+        # this type takes a parameter.
+        if ($server->cmode_takes_parameter($name)) {
+            $o_modes_p{$letter} = shift @o_params;
+            next;
+        }
+        
+        # no parameter.
+        push @o_modes, $letter;
+        
+    }
+
+    # search for differences.
+    my (@n_modes, %n_modes_p);
+    foreach my $letter (split //, $n_modes) {
+        next if $letter eq '+';
+        my $name = $server->cmode_name($letter);
+        
+        # this type takes a parameter.
+        if ($server->cmode_takes_parameter($name)) {
+            my $value = shift @n_params;
+            
+            # already there and equal.
+            next if exists $o_modes_p{$letter} && $value eq $o_modes_p{$letter};
+            
+            $n_modes_p{$letter} = $value;
+            next;
+        }
+        
+        # no parameter.
+        next if $letter ~~ @o_modes; # already have it.
+        push @n_modes, $letter;
+        
+    }
+
+    my $f_str = join(' ', '+'.join('', @n_modes, keys %n_modes_p), values %n_modes_p);
+    return $f_str eq '+' ? '' : $f_str;
+}
+
 sub is_local {
     return shift == v('SERVER')
 }

@@ -474,21 +474,24 @@ sub cum {
         name => $chname,
         time => $ts
     );
-    my $newtime = $channel->take_lower_time($ts);
 
-    # lazy mode handling..
-    # pretend to receive a CMODE.
-    # revision: use cmode() directly otherwise fake CMODE messages will be forwarded to children.
-    if ($newtime == $ts) { # won the time battle
-        my $cdata   = ":$$serv{sid} CMODE $$channel{name} $$channel{time} $$serv{sid} :$modestr";
-        cmode($server, $cdata, $serv, $channel, $channel->{time}, $serv, $modestr);
+    # store mode string before any possible changes.
+    # take the new time if it's older.
+    my @after_params;       # params after changes.
+    my $after_modestr = ''; # mode string after changes.
+    my $old_modestr   = $channel->mode_string_all($serv);
+    my $newtime       = $channel->take_lower_time($ts);
+
+    # the ts for this command equals the channel time now or already did,
+    # so either way, we must now handle the modes in this command.
+    if ($newtime == $ts) {
+
     }
 
-    # no users
-    return 1 if $userstr eq '-';
-
-    my ($uids_modestr, @uids) = '';
+    # determine the user mode string.
+    my ($uids_modes, @uids) = '';
     USER: foreach my $str (split /,/, $userstr) {
+        last if $userstr eq '-';
         my ($uid, $modes) = split /!/, $str;
         my $user          = $main::pool->lookup_user($uid) or next USER;
 
@@ -503,14 +506,22 @@ sub cum {
         next USER if $newtime != $ts; # the time battle was lost.
         next USER if $user->is_local; # we know modes for local user already.
 
-        $uids_modestr .= $modes;
+        $uids_modes .= $modes;
         push @uids, $uid for 1 .. length $modes;
         
     }
-    $uids_modestr = join(' ', '+'.$uids_modestr, @uids);
-    $channel->do_mode_string_local($serv, $serv, $uids_modestr, 1, 1);
     
-    return 1
+    # combine this with the other modes.
+    my ($other_modes, @other_params) = split ' ', $modestr;
+    my $command_modestr = join(' ', '+'.$other_modes.$uids_modes, @other_params, @uids);
+    
+    # determine the difference. handle it locally if there is one.
+    print "DIFFERENCE BETWEEN ($old_modestr) and ($command_modestr) IS";
+    my $difference = $serv->cmode_string_difference($old_modestr, $command_modestr);
+    print "$difference\n";
+    $channel->do_mode_string_local($serv, $serv, $difference, 1, 1) if $difference;
+    
+    return 1;
 }
 
 sub topic {
