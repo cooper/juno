@@ -515,9 +515,14 @@ sub cum {
     my ($other_modes, @other_params) = split ' ', $modestr;
     my $command_modestr = join(' ', '+'.$other_modes.$uids_modes, @other_params, @uids);
     
-    # determine the difference. handle it locally if there is one.
-    my $difference = $serv->cmode_string_difference($old_modestr, $command_modestr);
-    $channel->do_mode_string_local($serv, $serv, $difference, 1, 1) if $difference;
+    # the channel time is the same as in the command, so the modes are valid.
+    if ($newtime == $ts) {
+    
+        # determine the difference. handle it locally if there is one.
+        my $difference = $serv->cmode_string_difference($old_modestr, $command_modestr);
+        $channel->do_mode_string_local($serv, $serv, $difference, 1, 1) if $difference;
+        
+    }
     
     return 1;
 }

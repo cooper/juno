@@ -1963,6 +1963,7 @@ CHANGES:
             do not sent TOPICBURST to the server we got the topic from.
             this should eliminate topic flooding during server bursts.
         
+    1. fixed an issue where the modes in a CUM command were handled even if the time was newer.
 
 
 
