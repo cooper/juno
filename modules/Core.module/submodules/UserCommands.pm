@@ -170,6 +170,11 @@ my %ucommands = (
         code   => \&version,
         desc   => 'view server version information',
         params => 'server(opt)'
+    },
+    SQUIT => {
+        code   => \&squit,
+        desc   => 'disconnect a server',
+        params => '-oper(squit) server'
     }
 );
 
@@ -219,7 +224,7 @@ sub motd {
     
     # first, check if an MOTD is present in v.
     if (defined v('MOTD') && ref v('MOTD') eq 'ARRAY') {
-        @motd_lines = @{v('MOTD')};
+        @motd_lines = @{ v('MOTD') };
     }
     
     # it is not in RAM. we will try to read from file.
@@ -1254,6 +1259,20 @@ sub version {
         $VERSION                 # TODO: send this info over protocol.
     );
     $user->numeric('RPL_ISUPPORT') if $server->is_local;
+}
+
+sub squit {
+    my ($user, $data, $server) =  @_;
+    
+    # no direct connection. might be local server or a
+    # psuedoserver or a server reached through another server.
+    if (!$server->{conn}) {
+        $user->server_notice('squit', 'server is not connected');
+        return;
+    }
+    
+    $server->{conn}->done('SQUIT command');
+    $user->server_notice('squit', "$$server{name} disconnected");
 }
 
 $mod

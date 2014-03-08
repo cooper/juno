@@ -1944,7 +1944,8 @@ CHANGES:
             
         05. cleanup.
         
-        
+        06. added SQUIT user command and squit oper flag.
+            fixed issue where QUIT messages for a server are forwarded to other servers.
         
 
 

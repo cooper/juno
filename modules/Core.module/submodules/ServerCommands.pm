@@ -21,8 +21,8 @@ my %scommands = (
     },
     QUIT => {
         params  => 'source dummy :rest',
-        code    => \&quit,
-        forward => 1
+        code    => \&quit
+      # forward => handled manually
     },
     NICK => {
         params  => 'user dummy any',
@@ -52,12 +52,12 @@ my %scommands = (
     PRIVMSG => {
         params  => 'any any any :rest',
         code    => \&privmsgnotice,
-        forward => 0 # we have to do this manually
+      # forward => handled manually
     },
     NOTICE => {
         params  => 'any any any :rest',
         code    => \&privmsgnotice,
-        forward => 0 # we have to do this manually
+      # forward => handled manually
     },
     JOIN => {
         params  => 'user dummy any ts',
@@ -239,8 +239,14 @@ sub quit {
     my ($server, $data, $source, $reason) = @_;
     return if $source == v('SERVER');
     
+    # tell other servers.
+    # note: must be done manually because it
+    # should not be done if $source is this server
+    $server->send_children($line);
+    
     # delete the server or user
     $source->quit($reason);
+    
 }
 
 # handle a nickchange
