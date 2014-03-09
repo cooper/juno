@@ -1969,6 +1969,8 @@ CHANGES:
         
         12. solved an issue where channel ->take_local_time() method conflicts with the new mode handling in the CUM command handler.
         
+        13. fixed broken ISON command.
+
         
         
         

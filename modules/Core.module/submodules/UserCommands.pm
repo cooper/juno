@@ -698,10 +698,10 @@ sub ison {
     # for each nick, lookup and add if exists
     foreach my $nick (@args[1..$#args]) {
         my $user = $main::pool->lookup_user_nick(col($nick));
-        push @found, $user->{nick} if $user
+        push @found, $user->{nick} if $user;
     }
 
-    $user->numeric('RPL_ISON', join('', @found));
+    $user->numeric('RPL_ISON', join(' ', @found));
 }
 
 sub commands {
