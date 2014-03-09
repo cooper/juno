@@ -115,7 +115,7 @@ away        = 100       # away messages
 connection  = 100    # connections
 perip       = 3      # connections per IP address (local connections)
 globalperip = 5      # connections per IP address (global users)
-client      = 50     # users
+client      = 80     # users
 
 [ file ]
 

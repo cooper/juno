@@ -1991,8 +1991,10 @@ CHANGES:
             
         17. fixed a bug where TOPICBURST was not handled at all if no topic existed locally beforehand.
             
+        18. store all {source}s as SIDs rather than server objects to prevent forgotten references and avoid confusion.
             
-            
+
+        
             
             
             

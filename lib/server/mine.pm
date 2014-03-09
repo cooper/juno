@@ -96,7 +96,7 @@ sub send_burst {
         return if $done{$serv};
         
         # we learned about this server from the server we're sending to.
-        return if defined $serv->{source} && $serv->{source} == $server;
+        return if defined $serv->{source} && $serv->{source} == $server->{sid};
         
         # we need to do the parent first.
         if (!$done{ $serv->{parent} } && $serv->{parent} != $serv) {
@@ -118,7 +118,7 @@ sub send_burst {
     foreach my $user ($main::pool->users) {
     
         # ignore users the server already knows!
-        next if $user->{server} == $server || $user->{source} == $server;
+        next if $user->{server} == $server || $user->{source} == $server->{sid};
         
         fire_command($server, uid => $user);
 

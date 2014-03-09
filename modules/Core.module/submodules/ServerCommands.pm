@@ -168,7 +168,7 @@ sub sid {
 
     my $ref        = {};
     $ref->{$_}     = shift @args foreach qw[parent sid time name proto ircd desc];
-    $ref->{source} = $server; # source = server we learned about the server from
+    $ref->{source} = $server->{sid}; # source = sid we learned about the server from
 
     # do not allow SID or server name collisions
     if ($main::pool->lookup_server($ref->{sid}) || $main::pool->lookup_server_name($ref->{name})) {
@@ -189,7 +189,7 @@ sub uid {
     
     my $ref          = {};
     $ref->{$_}       = shift @args foreach qw[server uid time modes nick ident host cloak ip real];
-    $ref->{source}   = $server; # source = server we learned about the user from
+    $ref->{source}   = $server->{sid}; # source = sid we learned about the user from
     $ref->{location} = $server;
     my $modestr      = delete $ref->{modes};
     # location = the server through which this server can access the user.
