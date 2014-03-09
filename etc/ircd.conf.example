@@ -167,13 +167,13 @@ flags   = [qw/gkill globops grehash/] # and adds these flags
 extends = 'global'                   # gets the flags from both global and local
 flags   = [qw/grant/]                # and adds these flags
 
-[ oper: cooper ]
+[ oper: admin ]
 
 class      = "netadmin"                 # their oper class
-host       = ['*@127.0.0.*', 'me@::1', 'cooper@*.in.comcast.net'] # an array ref of hosts to accept
-password   = "13fbd79c3d390e5d6585a21e11ff5ec1970cff0c"           # the password, encrypted in the below crypt
+host       = ['*@*']                    # an array ref of hosts to accept
+password   = "d033e22ae348aeb5660fc2140aec35850c4da997" # the password, encrypted in the below crypt (default admin)
 encryption = "sha1"                     # the encryption to use in the password
-flags      = [qw/some_flag some_other/] # list of oper flags
+flags      = [qw/all/]                  # list of oper flags
 
 # the above oper example ends up with flags: localkill, locops, globalkill, globops, grant, some_flag, some_other
 # because it has its own flags and is in the netadmins class

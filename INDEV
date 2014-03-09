@@ -25,14 +25,23 @@ STARTED BUT NOT FINISHED:
 
 OPER FLAGS:
 
+    all:            grants all privileges
+
     see_invisible:  can see invisible users in NAMES
-    connect:        use the CONNECT command locally
-    gconnect:       use the CONNECT command globally
-    modload:        use the MODLOAD command
-    modunload:      use the MODUNLOAD command
+
+    modules:        use MODLOAD, MODUNLOAD, and MODRELOAD commands
+
     rehash:         use REHASH command locally
+
     kill:           use KILL command locally
     gkill:          use KILL command globally
+    
+    connect:        use the CONNECT command locally
+#   gconnect:       use the CONNECT command globally
+
+    squit:          use the SQUIT command locally
+#   gsquit:         use the SQUIT command globally
+
 
 PLANS:
 
@@ -1976,6 +1985,28 @@ CHANGES:
             added no_status option to ->mode_string_all(), returning all modes except status modes.
 
         15. only send TOPIC to channel users if the topic information in TOPICBURST differs from current topic.
+
+        16. fixed an issue where the configured ping settings for server were always used regardless of the connection type.
+            added 'all' oper flag which grants all privileges.
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+
+
+
+
+
 
         
         

@@ -175,7 +175,11 @@ sub remove_flags {
 # has oper flag
 sub has_flag {
     my ($user, $flag) = @_;
-    return $flag ~~ @{ $user->{flags} }
+    foreach (@{ $user->{flags} }) {
+        return 1 if $_ eq $flag;
+        return 1 if $_ eq 'all';
+    }
+    return;
 }
 
 # set away msg
