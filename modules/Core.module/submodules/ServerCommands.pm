@@ -553,8 +553,9 @@ sub topic {
         return
     }
 
-    $channel->send_all(':'.$source->full." TOPIC $$channel{name} :$topic");
-
+    # tell users.
+    $channel->sendfrom_all($source->full, " TOPIC $$channel{name} :$topic");
+    
     # set it
     if (length $topic) {
         $channel->{topic} = {
@@ -581,8 +582,12 @@ sub topicburst {
         return
     }
 
-    $channel->send_all(':'.$source->full." TOPIC $$channel{name} :$topic");
-
+    # tell users.
+    my $t = $channel->topic;
+    if ($t and $t->{topic} ne $topic || $t->{setby} ne $setby || $t->{time} != $time) {
+        $channel->sendfrom_all($source->full, " TOPIC $$channel{name} :$topic");
+    }
+    
     # set it
     if (length $topic) {
         $channel->{topic} = {

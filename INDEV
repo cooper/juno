@@ -1975,6 +1975,8 @@ CHANGES:
             added ->mode_string_status(), which is like ->mode_string() except for status modes only.
             added no_status option to ->mode_string_all(), returning all modes except status modes.
 
+        15. only send TOPIC to channel users if the topic information in TOPICBURST differs from current topic.
+
         
         
         
