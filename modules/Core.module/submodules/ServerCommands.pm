@@ -584,7 +584,7 @@ sub topicburst {
 
     # tell users.
     my $t = $channel->topic;
-    if ($t and $t->{topic} ne $topic || $t->{setby} ne $setby || $t->{time} != $time) {
+    if (!$t or $t and $t->{topic} ne $topic || $t->{setby} ne $setby || $t->{time} != $time) {
         $channel->sendfrom_all($source->full, " TOPIC $$channel{name} :$topic");
     }
     
@@ -598,10 +598,10 @@ sub topicburst {
         };
     }
     else {
-        delete $channel->{topic}
+        delete $channel->{topic};
     }
 
-    return 1
+    return 1;
 }
 
 sub skill {

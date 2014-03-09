@@ -1989,6 +1989,7 @@ CHANGES:
         16. fixed an issue where the configured ping settings for server were always used regardless of the connection type.
             added 'all' oper flag which grants all privileges.
             
+        17. fixed a bug where TOPICBURST was not handled at all if no topic existed locally beforehand.
             
             
             
