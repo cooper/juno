@@ -480,7 +480,7 @@ sub cum {
     my @after_params;       # params after changes.
     my $after_modestr = ''; # mode string after changes.
     my $old_modestr   = $channel->mode_string_all($serv);
-    my $newtime       = $channel->take_lower_time($ts);
+    my $newtime       = $channel->take_lower_time($ts, 1);
 
     # the ts for this command equals the channel time now or already did,
     # so either way, we must now handle the modes in this command.

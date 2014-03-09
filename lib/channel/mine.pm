@@ -93,7 +93,7 @@ sub notice_all {
 
 # take the lower time of a channel and unset higher time stuff
 sub take_lower_time {
-    my ($channel, $time) = @_;
+    my ($channel, $time, $ignore_modes) = @_;
     return $channel->{time} if $time >= $channel->{time}; # never take a time that isn't lower
 
     log2("locally resetting $$channel{name} time to $time");
@@ -109,10 +109,14 @@ sub take_lower_time {
     # unset all channel modes.
     # hackery: use the server mode string to reset all modes.
     # note: we can't use do_mode_string() because it would send to other servers.
-    my ($u_str, $s_str) = $channel->mode_string_all(v('SERVER'));
-    substr($u_str, 0, 1) = substr($s_str, 0, 1) = '-';
-    sendfrom_all($channel, v('SERVER', 'name'), "MODE $$channel{name} $u_str");
-    $channel->handle_mode_string(v('SERVER'), v('SERVER'), $s_str, 1, 1);
+    # note: we don't do this for CUM cmd ($ignore_modes = 1) because it handles
+    #       modes in a prettier manner.
+    if (!$ignore_modes) {
+        my ($u_str, $s_str) = $channel->mode_string_all(v('SERVER'));
+        substr($u_str, 0, 1) = substr($s_str, 0, 1) = '-';
+        sendfrom_all($channel, v('SERVER', 'name'), "MODE $$channel{name} $u_str");
+        $channel->handle_mode_string(v('SERVER'), v('SERVER'), $s_str, 1, 1);
+    }
     
     notice_all($channel, "New channel time: ".scalar(localtime $time)." (set back \2$amount\2 seconds)");
     return $channel->{time};

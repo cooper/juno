@@ -1966,4 +1966,11 @@ CHANGES:
     1. fixed an issue where the modes in a CUM command were handled even if the time was newer.
 
         11. fixed a bug where topic was sometimes not deleted properly and caused multiple problems.
+        
+        12. solved an issue where channel ->take_local_time() method conflicts with the new mode handling in the CUM command handler.
+        
+        
+        
+        
+
 
