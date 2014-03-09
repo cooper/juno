@@ -1965,5 +1965,5 @@ CHANGES:
         
     1. fixed an issue where the modes in a CUM command were handled even if the time was newer.
 
-
+    2. fixed a bug where topic was sometimes not deleted properly and caused multiple problems.
 

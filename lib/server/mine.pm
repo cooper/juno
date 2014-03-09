@@ -139,7 +139,7 @@ sub send_burst {
         fire_command($server, cum => $channel);
         
         # there is no topic or this server is how we got the topic.
-        next if !$channel->{topic} || $channel->{topic}{source} == $server->{sid};
+        next if !$channel->topic || $channel->topic->{source} == $server->{sid};
         
         fire_command($server, topicburst => $channel);
     }

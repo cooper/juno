@@ -29,7 +29,7 @@ sub localjoin {
         $usr->sendfrom($user->full, "JOIN $$channel{name}")
     }
 
-    $user->handle("TOPIC $$channel{name}") if $channel->{topic};
+    $user->handle("TOPIC $$channel{name}") if $channel->topic;
     names($channel, $user);
     
     # fire after join event.
@@ -101,8 +101,8 @@ sub take_lower_time {
     $channel->set_time($time);
 
     # unset topic.
-    if ($channel->{topic}) {
-        send_all($channel, ':'.v('SERVER', 'name')." TOPIC $$channel{name} :");
+    if ($channel->topic) {
+        sendfrom_all($channel, v('SERVER', 'name'), "TOPIC $$channel{name} :");
         delete $channel->{topic};
     }
 

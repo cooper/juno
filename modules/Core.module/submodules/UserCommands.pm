@@ -928,9 +928,10 @@ sub topic {
     else {
 
         # topic set
-        if (exists $channel->{topic}) {
-            $user->numeric(RPL_TOPIC        => $channel->{name}, $channel->{topic}{topic});
-            $user->numeric(RPL_TOPICWHOTIME => $channel->{name}, $channel->{topic}{setby}, $channel->{topic}{time});
+        my $topic = $channel->topic;
+        if ($topic) {
+            $user->numeric(RPL_TOPIC        => $channel->{name}, $topic->{topic});
+            $user->numeric(RPL_TOPICWHOTIME => $channel->{name}, $topic->{setby}, $topic->{time});
         }
 
         # no topic set
@@ -1197,7 +1198,7 @@ sub list {
     foreach my $channel ($main::pool->channels) {
        # 322 RPL_LIST "<channel> <# visible> :<topic>"
         my $number_of_users = scalar @{ $channel->{users} };
-        my $channel_topic   = defined $channel->{topic}{topic} ? $channel->{topic}{topic} : '';
+        my $channel_topic   = $channel->topic ? $channel->topic->{topic} : '';
         $user->numeric(RPL_LIST => $channel->{name}, $number_of_users, $channel_topic);
     }
 

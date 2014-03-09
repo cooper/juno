@@ -395,6 +395,16 @@ sub user_get_highest_level {
     return $biggest;
 }
 
+# fetch the topic or return undef if none.
+sub topic {
+    my $channel = shift;
+    return $channel->{topic} if
+      defined $channel->{topic}{topic} &&
+      length $channel->{topic}{topic};
+    delete $channel->{topic};
+    return;
+}
+
 sub id   { shift->{name} }
 sub name { shift->{name} }
 
