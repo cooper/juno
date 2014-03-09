@@ -479,14 +479,10 @@ sub cum {
     # take the new time if it's older.
     my @after_params;       # params after changes.
     my $after_modestr = ''; # mode string after changes.
-    my $old_modestr   = $channel->mode_string_all($serv);
-    my $newtime       = $channel->take_lower_time($ts, 1);
-
-    # the ts for this command equals the channel time now or already did,
-    # so either way, we must now handle the modes in this command.
-    if ($newtime == $ts) {
-
-    }
+    my $old_modestr   = $channel->mode_string_all($serv, 1); # all but status
+    my $old_s_modestr = $channel->mode_string_status($serv); # status only
+    my $old_time      = $channel->{time};
+    my $new_time      = $channel->take_lower_time($ts, 1);
 
     # determine the user mode string.
     my ($uids_modes, @uids) = '';
@@ -503,7 +499,7 @@ sub cum {
         }
 
         next USER unless $modes;      # the mode part is obviously optional..
-        next USER if $newtime != $ts; # the time battle was lost.
+        next USER if $new_time != $ts; # the time battle was lost.
         next USER if $user->is_local; # we know modes for local user already.
 
         $uids_modes .= $modes;
@@ -515,11 +511,28 @@ sub cum {
     my ($other_modes, @other_params) = split ' ', $modestr;
     my $command_modestr = join(' ', '+'.$other_modes.$uids_modes, @other_params, @uids);
     
-    # the channel time is the same as in the command, so the modes are valid.
-    if ($newtime == $ts) {
+    # the channel time is the same as in the command, so new modes are valid.
+    if ($new_time == $ts) {
     
-        # determine the difference. handle it locally if there is one.
+        # determine the difference between
+        # $old_modestr     (all former modes except status)
+        # $command_modestr (all new modes including status)
         my $difference = $serv->cmode_string_difference($old_modestr, $command_modestr);
+        
+        # the command time took over, so we need to remove our current status modes.
+        if ($new_time < $old_time) {
+            substr($old_s_modestr, 0, 1) = '-';
+            
+            # separate each string into modes and params.
+            my ($s_modes, @s_params) = split ' ', $old_s_modestr;
+            my ($d_modes, @d_params) = split ' ', $difference;
+            
+            # combine.
+            $difference = join(' ', join('', $d_modes, $s_modes), @d_params, @s_params);
+
+        }
+        
+        # handle the mode string locally.
         $channel->do_mode_string_local($serv, $serv, $difference, 1, 1) if $difference;
         
     }

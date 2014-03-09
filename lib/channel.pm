@@ -313,8 +313,9 @@ sub mode_string {
 
 # includes ALL modes
 # returns a string for users and a string for servers
+# $no_status = all but status modes
 sub mode_string_all {
-    my ($channel, $server) = @_;
+    my ($channel, $server, $no_status) = @_;
     my (@modes, @user_params, @server_params);
     my @set_modes = sort { $a cmp $b } keys %{ $channel->{modes} };
 
@@ -345,6 +346,7 @@ sub mode_string_all {
 
             # lists of users
             when (4) {
+                next if $no_status;
                 foreach my $user ($channel->list_elements($name)) {
                     push @modes,         $letter;
                     push @user_params,   $user->{nick};
@@ -354,6 +356,31 @@ sub mode_string_all {
 
             # idk
             default  { next }
+        }
+    }
+
+    # make +modes params strings
+    my $user_string   = '+'.join(' ', join('', @modes), @user_params);
+    my $server_string = '+'.join(' ', join('', @modes), @server_params);
+
+    # returns both a user string and a server string
+    return ($user_string, $server_string)
+}
+
+# same mode_string except for status modes only.
+sub mode_string_status {
+    my ($channel, $server) = @_;
+    my (@modes, @user_params, @server_params);
+    my @set_modes = sort { $a cmp $b } keys %{ $channel->{modes} };
+
+    foreach my $name (@set_modes) {
+        my $letter = $server->cmode_letter($name);
+        next unless $server->cmode_type($name) == 4;
+
+        foreach my $user ($channel->list_elements($name)) {
+            push @modes,         $letter;
+            push @user_params,   $user->{nick};
+            push @server_params, $user->{uid};
         }
     }
 
