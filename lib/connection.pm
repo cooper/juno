@@ -64,13 +64,13 @@ sub handle {
 
             # nick exists
             if ($main::pool->lookup_user_nick($nick)) {
-                $connection->send(':'.v('SERVER', 'name')." 433 * $nick :Nickname is already in use.");
+                $connection->sendme("433 * $nick :Nickname is already in use.");
                 return
             }
 
             # invalid chars
             if (!utils::validnick($nick)) {
-                $connection->send(':'.v('SERVER', 'name')." 432 * $nick :Erroneous nickname");
+                $connection->sendme("432 * $nick :Erroneous nickname");
                 return
             }
 
@@ -162,10 +162,9 @@ sub handle {
 
 sub wrong_par {
     my ($connection, $cmd) = @_;
-    $connection->send(':'.v('SERVER', 'name').' 461 '
-      .($connection->{nick} ? $connection->{nick} : '*').
-      " $cmd :Not enough parameters");
-    return
+    my $nick = $connection->{nick} // '*';
+    $connection->sendme("461 $nick $cmd :Not enough parameters");
+    return;
 }
 
 # increase the wait count.
@@ -245,6 +244,22 @@ sub send {
     return unless $connection->{stream};
     return if $connection->{goodbye};
     $connection->{stream}->write("$_\r\n") foreach grep { defined } @msg;
+}
+
+# send data with a source
+sub sendfrom {
+    my ($connection, $source) = (shift, shift);
+    $connection->send(map { ":$source $_" } @_);
+}
+
+# send data from ME
+sub sendme {
+    my $connection = shift;
+    my $source =
+        $connection->{type} && $connection->{type}->isa('server') ?
+        v('SERVER', 'sid')                                        :
+        v('SERVER', 'name');
+    $connection->sendfrom($source, @_);
 }
 
 sub sock {

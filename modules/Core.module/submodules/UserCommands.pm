@@ -185,7 +185,9 @@ our $mod = API::Module->new(
     requires    => ['UserCommands'],
     initialize  => \&init
 );
- 
+
+my $me = v('SERVER');
+
 sub init {
 
     # register user commands
@@ -206,7 +208,7 @@ sub init {
 
 sub ping {
     my ($user, $data, @s) = @_;
-    $user->sendserv('PONG '.v('SERVER', 'name').' :'.col($s[1]))
+    $user->sendme('PONG '.v('SERVER', 'name').' :'.col($s[1]))
 }
 
 sub fake_user {
@@ -429,7 +431,7 @@ sub privmsgnotice {
         }
 
         # tell local users
-        $channel->send_all(':'.$user->full." $command $$channel{name} :$message", $user);
+        $channel->sendfrom_all($user->full, " $command $$channel{name} :$message", $user);
 
         # then tell local servers
         my %sent;
@@ -452,7 +454,6 @@ sub cmap {
     # TODO: this will be much prettier later!
     my $user  = shift;
     my $total = scalar $main::pool->users;
-    my $me    = v('SERVER');
     my $users = scalar grep { $_->{server} == $me } $main::pool->users;
     my $per   = int $users / $total * 100;
 
@@ -499,7 +500,7 @@ sub cjoin {
         }
 
         return if $channel->has_user($user);
-        my ($me, $sstr) = v('SERVER');
+        my $sstr;
 
         # check for ban.
         my $banned = $channel->list_matches('ban',    $user);
@@ -781,7 +782,7 @@ sub part {
 
         # remove the user and tell the other channel's users and servers
         my $ureason = defined $reason ? " :$reason" : q();
-        $channel->send_all(':'.$user->full." PART $$channel{name}$ureason");
+        $channel->sendfrom_all($user->full, " PART $$channel{name}$ureason");
         $main::pool->fire_command_all(part => $user, $channel, $channel->{time}, $reason);
         $channel->remove($user);
 
@@ -907,7 +908,7 @@ sub topic {
         }
 
         my $topic = cut_to_limit('topic', col((split /\s+/, $data, 3)[2]));
-        $channel->send_all(':'.$user->full." TOPIC $$channel{name} :$topic");
+        $channel->sendfrom_all($user->full, " TOPIC $$channel{name} :$topic");
         $main::pool->fire_command_all(topic => $user, $channel, time, $topic);
 
         # set it
@@ -1177,7 +1178,7 @@ sub kick {
     my $reason_string = defined $reason ? $reason : $user->{nick};
     
     # tell the local users of the channel.
-    $channel->send_all(':'.$user->full." KICK $$channel{name} $$t_user{nick} :$reason_string");
+    $channel->sendfrom_all($user->full, " KICK $$channel{name} $$t_user{nick} :$reason_string");
     
     # remove the user from the channel.
     $channel->remove_user($t_user);
@@ -1214,7 +1215,7 @@ sub modelist {
     
     # one-character list name indicates a channel mode.
     if (length $list == 1) {
-        $list = v('SERVER')->cmode_name($list);
+        $list = $me->cmode_name($list);
         $user->server_notice('No such mode') and return unless defined $list;
     }
     
@@ -1250,7 +1251,7 @@ sub seval {
 }
 
 sub version {
-    my ($user, $data, $server) = (shift, shift, shift || v('SERVER'));
+    my ($user, $data, $server) = (shift, shift, shift || $me);
     $user->numeric(RPL_VERSION =>
         v('NAME'),               # all
         $ircd::VERSION,          # of

@@ -201,8 +201,6 @@ sub sendme {
     $server->sendfrom(v('SERVER', 'sid'), @_)
 }
 
-sub sendserv { &sendme }
-
 # send data from a UID or SID.
 sub sendfrom {
     my ($server, $from) = (shift, shift);

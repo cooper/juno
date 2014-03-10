@@ -65,13 +65,13 @@ sub send {
 # send data with a source
 sub sendfrom {
     my ($user, $source) = (shift, shift);
-    $user->send(map { ":$source $_" } @_)
+    $user->send(map { ":$source $_" } @_);
 }
 
 # send data with this server as the source
-sub sendserv {
+sub sendme {
     my $user = shift;
-    $user->send(map { ':'.v('SERVER', 'name')." $_" } @_)
+    $user->sendfrom(v('SERVER', 'name'), @_);
 }
 
 # a notice from server
@@ -83,7 +83,7 @@ sub server_notice {
     
     # user is local.
     if ($user->is_local) {
-        $user->send(':'.v('SERVER', 'name')." NOTICE $$user{nick} :$msg");
+        $user->sendme("NOTICE $$user{nick} :$msg");
         return 1;
     }
     
@@ -120,7 +120,7 @@ sub numeric {
         @response = sprintf $val, @_;
     }
     
-    $user->sendserv("$num $$user{nick} $_") foreach @response;
+    $user->sendme("$num $$user{nick} $_") foreach @response;
     return 1;
     
 }

@@ -1993,6 +1993,36 @@ CHANGES:
             
         18. store all {source}s as SIDs rather than server objects to prevent forgotten references and avoid confusion.
             
+        19. fully replaced user ->sendserv() with ->sendme().
+            added ->sendfrom() and ->sendme() to connection.pm so that they can now be used for unregistered connections.
+            set lexical variable $me in modules where the local server object is accessed frequently.
+            make proper use of channel ->sendfrom_all() in places where it was not utilized already.
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
 
         
             

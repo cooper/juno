@@ -40,6 +40,8 @@ our $mod = API::Module->new(
     initialize  => \&init
 );
 
+my $me = v('SERVER');
+
 sub init {
 
     # register outgoing commands
@@ -104,8 +106,7 @@ sub topicburst {
         $channel->{topic}{time},
         $channel->{topic}{topic}
     );
-    my $sid = v('SERVER')->{sid};
-    ":$sid $cmd"
+    ":$$me{sid} $cmd"
 }
 
 
@@ -215,8 +216,8 @@ sub cum {
     my @set_modes = sort { $a cmp $b } keys %{ $channel->{modes} };
 
     foreach my $name (@set_modes) {
-      my $letter = v('SERVER')->cmode_letter($name);
-      given (v('SERVER')->cmode_type($name)) {
+      my $letter = $s->cmode_letter($name);
+      given ($s->cmode_type($name)) {
 
         # modes with 0 or 1 parameters
         when ([0, 1, 2]) { push @modes, $letter; continue }
@@ -252,7 +253,7 @@ sub cum {
     }
 
     # note: use "-" if no users present
-    ':'.v('SERVER')->{sid}." CUM $$channel{name} $$channel{time} ".(join(',', @userstrs) || '-')." :$modestr"
+    ":$$me{sid} CUM $$channel{name} $$channel{time} ".(join(',', @userstrs) || '-')." :$modestr"
 }
 
 # add cmodes

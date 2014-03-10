@@ -321,7 +321,7 @@ sub privmsgnotice {
     my $channel = $main::pool->lookup_channel($target);
     if ($channel) {
         # tell local users
-        $channel->send_all(':'.$source->full." $command $$channel{name} :$message", $source);
+        $channel->sendfrom_all($source->full, " $command $$channel{name} :$message", $source);
 
         # then tell local servers if necessary
         my %sent;
@@ -427,7 +427,7 @@ sub part {
     # remove the user and tell the local channel users
     $channel->remove($user);
     $reason = defined $reason ? " :$reason" : q();
-    $channel->send_all(':'.$user->full." PART $$channel{name}$reason");
+    $channel->sendfrom_all($user->full, " PART $$channel{name}$reason");
     return 1
 }
 
@@ -623,7 +623,7 @@ sub kick {
     my $reason_string = defined $reason ? $reason : $source->name;
     
     # tell the local users of the channel.
-    $channel->send_all(':'.$source->full." KICK $$channel{name} $$t_user{nick} :$reason_string");
+    $channel->sendfrom_all($source->full, " KICK $$channel{name} $$t_user{nick} :$reason_string");
     
     # remove the user from the channel.
     $channel->remove_user($t_user);
