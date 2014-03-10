@@ -409,45 +409,20 @@ sub privmsgnotice {
         else {
             $tuser->{location}->fire_command(privmsgnotice => $command, $user, $tuser, $message);
         }
-        return 1
+        return 1;
     }
 
     # must be a channel
     my $channel = $main::pool->lookup_channel($args[1]);
     if ($channel) {
-
-        # no external messages?
-        if ($channel->is_mode('no_ext') && !$channel->has_user($user)) {
-            $user->numeric('ERR_CANNOTSENDTOCHAN', $channel->{name}, 'no external messages');
-            return
-        }
-
-        # moderation and no voice?
-        if ($channel->is_mode('moderated')   &&
-          !$channel->user_is($user, 'voice') &&
-          !$channel->user_has_basic_status($user)) {
-            $user->numeric('ERR_CANNOTSENDTOCHAN', $channel->{name}, 'channel is moderated');
-            return
-        }
-
-        # tell local users
-        $channel->sendfrom_all($user->full, " $command $$channel{name} :$message", $user);
-
-        # then tell local servers
-        my %sent;
-        foreach my $usr ($main::pool->users) {
-            next if $usr->is_local;
-            next if $sent{ $usr->{location} };
-            $sent{ $usr->{location} } = 1;
-            $usr->{location}->fire_command(privmsgnotice => $command, $user, $channel, $message);
-        }
-
-        return 1
+        $channel->handle_privmsgnotice($command, $user, $message);
+        return 1;
     }
 
     # no such nick/channel
     $user->numeric('ERR_NOSUCHNICK', $args[1]);
-    return
+    return;
+    
 }
 
 sub cmap {

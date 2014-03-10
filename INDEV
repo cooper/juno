@@ -2000,6 +2000,8 @@ CHANGES:
             
                 191. $s -> $me
                 
+    2. added ->handle_privmsgnotice() method to channel::local - handles privmsg, forwards to all local users in channel, forwards to all servers with a user in channel.
+        updated PRIVMSG/NOTICE server and user command handlers accordingly.
         
             
             

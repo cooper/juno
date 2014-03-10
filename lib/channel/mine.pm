@@ -165,4 +165,60 @@ sub _do_mode_string {
     
 }
 
+# handle a privmsg. send it to our local users and other servers.
+sub handle_privmsgnotice {
+    my ($channel, $command, $source, $message) = @_;
+    my $user   = $source->isa('user')   ? $source : undef;
+    my $server = $source->isa('server') ? $source : undef;
+    
+    
+    # it's a user.
+    if ($user) {
+    
+        # no external messages?
+        if ($channel->is_mode('no_ext') && !$channel->has_user($user)) {
+            $user->numeric(ERR_CANNOTSENDTOCHAN => $channel->{name}, 'No external messages');
+            return;
+        }
+
+        # moderation and no voice?
+        if ($channel->is_mode('moderated')   &&
+          !$channel->user_is($user, 'voice') &&
+          !$channel->user_has_basic_status($user)) {
+            $user->numeric(ERR_CANNOTSENDTOCHAN => $channel->{name}, 'Channel is moderated');
+            return;
+        }
+
+    }
+
+    # tell local users.
+    $channel->sendfrom_all($source->full, " $command $$channel{name} :$message", $source);
+
+    # then tell local servers.
+    my %sent;
+    foreach my $usr (@{ $channel->{users} }) {
+    
+        # local users already know.
+        next if $usr->is_local;
+        
+        # the source user is reached through this user's server,
+        # or the source is the server we know the user from.
+        next if $user   && $usr->{location} == $user->{location};
+        next if $server && $usr->{location}{sid} == $server->{sid};
+        
+        # already sent to this server.
+        next if $sent{ $usr->{location} };
+        
+        $usr->{location}->fire_command(privmsgnotice => $command, $user, $channel, $message);
+        $sent{ $usr->{location} } = 1;
+
+    }
+    
+    # fire event.
+    $channel->fire_event($command => $user, $message);
+
+    return 1;
+    
+}
+
 1

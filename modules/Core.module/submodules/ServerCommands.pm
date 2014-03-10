@@ -307,34 +307,27 @@ sub privmsgnotice {
     # is it a user?
     my $tuser = $main::pool->lookup_user($target);
     if ($tuser) {
+    
         # if it's mine, send it
         if ($tuser->is_local) {
             $tuser->sendfrom($source->full, "$command $$tuser{nick} :$message");
-            return 1
+            return 1;
         }
+        
         # otherwise pass this on...
         $tuser->{location}->fire_command(privmsgnotice => $command, $source, $tuser, $message);
-        return 1
+        
+        return 1;
     }
 
-    # must be a channel
+    # must be a channel.
     my $channel = $main::pool->lookup_channel($target);
     if ($channel) {
-        # tell local users
-        $channel->sendfrom_all($source->full, " $command $$channel{name} :$message", $source);
-
-        # then tell local servers if necessary
-        my %sent;
-        foreach my $usr ($main::pool->users) {
-            next if $server == $usr->{location};
-            next if $usr->is_local;
-            next if $sent{$usr->{location} };
-            $sent{$usr->{location} } = 1;
-            $usr->{location}->fire_command(privmsgnotice => $command, $source, $channel, $message);
-        }
-
-        return 1
+        $channel->handle_privmsgnotice($command, $source, $message);
+        return 1;
     }
+    
+    return;
 }
 
 sub sjoin {
