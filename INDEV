@@ -1998,6 +1998,9 @@ CHANGES:
             set lexical variable $me in modules where the local server object is accessed frequently.
             make proper use of channel ->sendfrom_all() in places where it was not utilized already.
             
+                191. $s -> $me
+                
+        
             
             
             

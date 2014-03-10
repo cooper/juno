@@ -216,8 +216,8 @@ sub cum {
     my @set_modes = sort { $a cmp $b } keys %{ $channel->{modes} };
 
     foreach my $name (@set_modes) {
-      my $letter = $s->cmode_letter($name);
-      given ($s->cmode_type($name)) {
+      my $letter = $me->cmode_letter($name);
+      given ($me->cmode_type($name)) {
 
         # modes with 0 or 1 parameters
         when ([0, 1, 2]) { push @modes, $letter; continue }
