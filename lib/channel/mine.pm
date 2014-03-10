@@ -215,7 +215,7 @@ sub handle_privmsgnotice {
     }
     
     # fire event.
-    $channel->fire_event($command => $user, $message);
+    $channel->fire_event(lc $command => $user, $message);
 
     return 1;
     
