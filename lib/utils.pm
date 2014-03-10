@@ -4,7 +4,8 @@ package utils;
 
 use warnings;
 use strict;
-use feature qw[switch say];
+use 5.010;
+use utf8;
 
 use Scalar::Util qw(blessed looks_like_number);
 

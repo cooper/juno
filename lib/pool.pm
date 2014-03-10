@@ -328,7 +328,7 @@ sub delete_user_handler {
 
 sub user_handlers {
     my ($pool, $command) = (shift, uc shift);
-    return $pool->{user_commands}{$command};
+    return $pool->{user_commands}{$command} // ();
 }
 
 #####################
@@ -414,7 +414,7 @@ sub delete_server_handler {
 
 sub server_handlers {
     my ($pool, $command) = (shift, uc shift);
-    return $pool->{server_commands}{$command};
+    return $pool->{server_commands}{$command} // ();
 }
 
 ################################

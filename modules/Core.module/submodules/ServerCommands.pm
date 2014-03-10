@@ -577,7 +577,7 @@ sub topicburst {
 
     # tell users.
     my $t = $channel->topic;
-    if (!$t or $t and $t->{topic} ne $topic || $t->{setby} ne $setby || $t->{time} != $time) {
+    if (!$t or $t && $t->{topic} ne $topic) {
         $channel->sendfrom_all($source->full, " TOPIC $$channel{name} :$topic");
     }
     

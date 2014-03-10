@@ -2004,7 +2004,10 @@ CHANGES:
         updated PRIVMSG/NOTICE server and user command handlers accordingly.
         
         21. created Fantasy module for channel fantasy commands.
-            
+        
+        22. slightly improved fantasy module with some stupidity checks, but it still needs a lot of work.
+            fixed an issue where iterating ->user_handlers() or ->server_handlers() methods may cause a crash due to return of undef rather than an empty list.
+
             
             
             

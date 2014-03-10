@@ -23,7 +23,7 @@ sub handle {
     my $user = shift;
     foreach my $line (split "\n", shift) {
 
-        my @s = split /\s+/, $line;
+        my @s = split /\s/, $line;
 
         if ($s[0] =~ m/^:/) { # lazy way of deciding if there is a source provided
             shift @s
