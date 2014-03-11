@@ -2011,6 +2011,8 @@ CHANGES:
         23. fantasy commands are only handled now if the user command handler was registered with the fantasy option enabled.
             updating core and other modules accordingly.
             
+        24. added Reload module to reload the entire IRCd in one command.
+
 
             
             

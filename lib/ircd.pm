@@ -139,6 +139,7 @@ sub start {
         }
     }
 
+    return 1;
 }
 
 # load or reload a package.

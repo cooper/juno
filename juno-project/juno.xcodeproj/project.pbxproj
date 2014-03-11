@@ -54,6 +54,7 @@
 		A79514CF18C3ECD900838C46 /* Database.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Database.pm; sourceTree = "<group>"; wrapsLines = 0; };
 		A79514D118C431C900838C46 /* Account.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Account.pm; sourceTree = "<group>"; };
 		A79514D218C67F7500838C46 /* Fantasy.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Fantasy.pm; sourceTree = "<group>"; };
+		A7CD6BF418CEA09300FBEFD6 /* Reload.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Reload.pm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -163,6 +164,7 @@
 				A782BD6A18C2907900D137A3 /* Resolve.pm */,
 				A79514D118C431C900838C46 /* Account.pm */,
 				A79514D218C67F7500838C46 /* Fantasy.pm */,
+				A7CD6BF418CEA09300FBEFD6 /* Reload.pm */,
 			);
 			name = Modules;
 			path = ../modules;

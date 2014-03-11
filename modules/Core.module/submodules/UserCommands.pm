@@ -1088,8 +1088,8 @@ sub modules {
         my $name = $_mod->full_name;
         return if $done{$name};
         
-        $user->server_notice("    \2$name\2 $$_mod{version}");
-        $user->server_notice("        $$_mod{description}");
+        $user->server_notice("\2$name\2 $$_mod{version}");
+        $user->server_notice("    $$_mod{description}");
         foreach my $type (qw|
             user_commands server_commands channel_modes user_modes
             outgoing_commands user_numerics matchers
@@ -1105,7 +1105,7 @@ sub modules {
             $mytype = ucfirst $mytype;
             
             # only allow 50 bytes per line.
-            $user->server_notice("        $mytype");
+            $user->server_notice("    $mytype");
             while (@a) {
                 my ($line, @b) = '';
                 while (@a) {
