@@ -7,7 +7,7 @@ use strict;
 
 our $mod = API::Module->new(
     name        => 'Reload',
-    version     => '0.1',
+    version     => '0.2',
     description => 'reload entire IRCd in one command',
     requires    => ['UserCommands'],
     initialize  => \&init
@@ -26,19 +26,21 @@ sub init {
 
 sub cmd_reload {
     my ($user, $data) = @_;
-    my $v = $ircd::VERSION;
+    my $ver = $ircd::VERSION;
     $user->server_notice(reload => 'Reloading IRCd');
     
     # ignore submodules.
-    my @mods_loaded = map { $_->full_name } grep { !$_->{parent} }
-      @{ $main::API->{loaded} };
+    my @mods_loaded = grep { !$_->{parent} } @{ $main::API->{loaded} };
     
     # unload them all.
     $user->server_notice('Unloading modules');
-    foreach my $name (@mods_loaded) {
+    my %vers;
+    foreach my $m (@mods_loaded) {
+        my $name = $m->full_name;
         $user->server_notice("    * $name");
         $main::API->unload_module($name) or
           $user->server_notice("$name refused to unload. See log.") and last;
+        $vers{$name} = $m->{version};
     }
     
     # reload IRCd core.
@@ -48,15 +50,19 @@ sub cmd_reload {
     
     # load all modules that were loaded.
     $user->server_notice('Loading modules');
-    foreach my $name (@mods_loaded) {
-        $user->server_notice("    * $name");
-        $main::API->load_module($name, "$name.pm") or
-          $user->server_notice("$name refused to load. See log.") and last;
+    foreach my $m (@mods_loaded) {
+        my $name = $m->full_name;
+        my $res  = $main::API->load_module($name, "$name.pm");
+           $m    = $main::API->get_module($name);
+        my $old  = $vers{$name} // 0;
+        my $v    = $m->{version} > ($old) ? "($old -> $$m{version})" : '';
+        $user->server_notice("    * $name $v");
+        $res or $user->server_notice("$name refused to load. See log."), last;
     }
     
     # difference in version.
     $user->server_notice(reload =>
-        $ircd::VERSION != $v ? "Server upgraded from $v to $ircd::VERSION" :
+        $ircd::VERSION != $ver ? "Server upgraded from $ver to $ircd::VERSION" :
         'Server reload complete'
     );
     

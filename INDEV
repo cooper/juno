@@ -2013,6 +2013,7 @@ CHANGES:
             
         24. added Reload module to reload the entire IRCd in one command.
 
+        25. improved Reload module.
 
             
             
