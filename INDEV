@@ -2008,6 +2008,10 @@ CHANGES:
         22. slightly improved fantasy module with some stupidity checks, but it still needs a lot of work.
             fixed an issue where iterating ->user_handlers() or ->server_handlers() methods may cause a crash due to return of undef rather than an empty list.
 
+        23. fantasy commands are only handled now if the user command handler was registered with the fantasy option enabled.
+            updating core and other modules accordingly.
+            
+
             
             
             

@@ -30,7 +30,8 @@ sub init {
         name        => 'lolcat',
         description => 'SPEEK LIEK A LOLCATZ!',
         parameters  => 2,
-        code        => \&lolcat
+        code        => \&lolcat,
+        fantasy     => 1
     ) or return;
 
     return 1

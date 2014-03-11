@@ -40,7 +40,8 @@ my %ucommands = (
     MODE => {
         params => 1,
         code   => \&mode,
-        desc   => 'view or change user and channel modes'
+        desc   => 'view or change user and channel modes',
+        fntsy  => 1
     },
     PRIVMSG => {
         params => 2,
@@ -64,7 +65,8 @@ my %ucommands = (
     NAMES => {
         params => 1,
         code   => \&names,
-        desc   => 'view the user list of a channel'
+        desc   => 'view the user list of a channel',
+        fntsy  => 1
     },
     OPER => {
         params => 2,
@@ -97,7 +99,8 @@ my %ucommands = (
     PART => {
         params => 1,
         code   => \&part,
-        desc   => 'leave a channel'
+        desc   => 'leave a channel',
+        fntsy  => 1
     },
     CONNECT => {
         params => '-oper(connect) any',
@@ -107,12 +110,14 @@ my %ucommands = (
     WHO => {
         params => 1,
         code   => \&who,
-        desc   => 'familiarize your client with users matching a pattern'
+        desc   => 'familiarize your client with users matching a pattern',
+        fntsy  => 1
     },
     TOPIC => {
         params => 1,
         code   => \&topic,
-        desc   => 'view or set the topic of a channel'
+        desc   => 'view or set the topic of a channel',
+        fntsy  => 1
     },
     LUSERS => {
         code   => \&lusers,
@@ -150,7 +155,8 @@ my %ucommands = (
     KICK => {
         code   => \&kick,
         desc   => 'forcibly remove a user from a channel',
-        params => 'channel(inchan) user :rest(opt)'
+        params => 'channel(inchan) user :rest(opt)',
+        fntsy  => 1
     },
     LIST => {
         code   => \&list,
@@ -159,7 +165,8 @@ my %ucommands = (
     MODELIST => {
         code   => \&modelist,
         desc   => 'view entries of a channel mode list',
-        params => 'channel(inchan) any'
+        params => 'channel(inchan) any',
+        fntsy  => 1
     },
     EVAL => {
         code   => \&seval,
@@ -195,7 +202,8 @@ sub init {
         name        => $_,
         description => $ucommands{$_}{desc},
         parameters  => $ucommands{$_}{params},
-        code        => $ucommands{$_}{code}
+        code        => $ucommands{$_}{code},
+        fantasy     => $ucommands{$_}{fntsy}
     ) || return foreach keys %ucommands;
 
     undef %ucommands;

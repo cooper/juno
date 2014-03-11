@@ -296,23 +296,21 @@ sub register_user_handler {
         return;
     }
 
-    my $params = shift;
+    my ($params, $ref, $desc, $fantasy) = @_;
 
     # ensure that it is CODE
-    my $ref = shift;
     if (ref $ref ne 'CODE') {
         log2("not a CODE reference for $command");
         return;
     }
-
-    my $desc = shift;
 
     # success
     $pool->{user_commands}{$command} = {
         code    => $ref,
         params  => $params,
         source  => $source,
-        desc    => $desc
+        desc    => $desc,
+        fantasy => $fantasy
     };
     
     log2("$source registered $command: $desc");

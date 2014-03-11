@@ -34,7 +34,8 @@ sub init {
         name        => 'up',
         description => 'grant yourself with your access privileges',
         parameters  => 'channel(inchan)',
-        code        => \&cmd_up
+        code        => \&cmd_up,
+        fantasy     => 1
     ) or return;
 
     return 1

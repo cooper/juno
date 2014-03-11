@@ -260,7 +260,8 @@ sub register_user_command {
         $opts{name},
         $parameters,
         $CODE,
-        $opts{description}
+        $opts{description},
+        $opts{fantasy}
     ) or return;
 
     push @{ $mod->{user_commands} }, $opts{name};
