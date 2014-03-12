@@ -113,7 +113,7 @@ sub cmode_type {
 sub convert_cmode_string {
     my ($server, $server2, $modestr) = @_;
     my $string = '';
-    my @m      = split /\s/, $modestr;
+    my @m      = split /\s+/, $modestr;
     my $modes  = shift @m;
     
     foreach my $letter (split //, $modes) {

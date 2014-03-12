@@ -25,13 +25,13 @@ sub channel_privmsg {
     my ($cmd, $args) = (lc $1, $2);
     
     # prevents e.g. !privmsg !privmsg or !lolcat !kick
-    my $second_p = (split /\s/, $message)[1];
+    my $second_p = (split /\s+/, $message)[1];
     return if substr($second_p, 0, 1) eq '!';
     
     my @handlers = $main::pool->user_handlers($cmd) or return;
     
     my $line = length $args ? "$cmd $$channel{name} $args" : "$cmd $$channel{name}";
-    my @s    = split /\s/, $line;
+    my @s    = split /\s+/, $line;
     foreach my $handler (@handlers) {
         next unless $handler->{fantasy};
         next unless $#s >= $handler->{params};

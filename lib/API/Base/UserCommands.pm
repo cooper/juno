@@ -51,7 +51,7 @@ sub register_user_command {
 
         # if it is not an array reference, it's a whitespace-separated string.
         if (ref $opts{parameters} ne 'ARRAY') {
-            $opts{parameters} = [ split /\s/, $opts{parameters} ];
+            $opts{parameters} = [ split /\s+/, $opts{parameters} ];
         }
 
         # parse argument type attributes.

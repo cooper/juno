@@ -2033,6 +2033,7 @@ CHANGES:
             
             311. fixed the above attempt which did not work due to retarding.
             
+        32. reverted changes from a while ago when I removed the + from these regexes. the + is mandatory because it will match multiple instances of whitespace rather than a single character, the default behavior.
 
             
             

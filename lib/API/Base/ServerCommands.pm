@@ -45,7 +45,7 @@ sub register_server_command {
 
         # if it is not an array reference, it's a whitespace-separated string.
         if (ref $opts{parameters} ne 'ARRAY') {
-            $opts{parameters} = [ split /\s/, $opts{parameters} ];
+            $opts{parameters} = [ split /\s+/, $opts{parameters} ];
         }
 
         # check argument count
