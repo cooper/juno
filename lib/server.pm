@@ -114,9 +114,9 @@ sub convert_cmode_string {
     my ($server, $server2, $modestr) = @_;
     my $string = '';
     my @m      = split /\s/, $modestr;
-    my $modes;
+    my $modes  = shift @m;
     
-    foreach my $letter (split //, $modes = shift @m) {
+    foreach my $letter (split //, $modes) {
         my $new = $letter;
 
         # translate it.

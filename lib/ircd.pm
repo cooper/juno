@@ -10,7 +10,8 @@ use Module::Loaded qw(is_loaded);
 
 use utils qw(conf lconf log2 fatal v set trim);
 
-our ($VERSION, $API, $conf, $loop, $pool, $timer, %global, $boot);
+our (  $VERSION,   $API,   $conf,   $loop,   $pool,   $timer, %global, $boot) =
+    ($::VERSION, $::API, $::conf, $::loop, $::pool, $::timer);
 $VERSION = get_version();
 
 # all non-module packages always loaded in the IRCd.
@@ -121,7 +122,7 @@ sub start {
 
     # ping timer.
     $loop->remove($timer) if $timer;
-    $timer = IO::Async::Timer::Periodic->new(
+    $timer = $main::timer = IO::Async::Timer::Periodic->new(
         interval       => 30,
         on_tick        => \&ping_check
     );

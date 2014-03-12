@@ -2024,6 +2024,9 @@ CHANGES:
             
         28. created DOWN command in Access module.
             
+        29. since we now call class_unload() to all packages including ircd.pm, all of these crucial variables were undefined after reload.
+
+
             
             
             
