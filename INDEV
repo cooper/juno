@@ -2018,7 +2018,9 @@ CHANGES:
         26. improved ->user_has_basic_status() method by checking if the user has level 0 or higher rather than using hardcoded mode names.
             automatically grant op if user is in access list for a level greater than op.
 
-            
+        27. improved reloading mechanisms to utilize Module::Loaded.
+            updated the included API Engine.
+            fixed a major bug where API bases are never reloaded because those package versions were not set on load.
             
             
             

@@ -7,6 +7,8 @@ use feature 'switch';
 
 use utils qw(log2 col);
 
+our $VERSION = $ircd::VERSION;
+
 # code: the callback.
 # priority: the optional priority. (descending order)
 # returns the callback name.

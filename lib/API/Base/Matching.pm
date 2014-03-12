@@ -7,6 +7,8 @@ use 5.010;
 
 use utils 'log2';
 
+our $VERSION = $ircd::VERSION;
+
 sub register_matcher {
     my ($mod, %opts) = @_;
     

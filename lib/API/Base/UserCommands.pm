@@ -6,8 +6,9 @@ use strict;
 use v5.10;
 
 use utils qw(log2 col trim);
-
 use Scalar::Util 'looks_like_number';
+
+our $VERSION = $ircd::VERSION;
 
 sub register_user_command {
     my ($mod, %opts) = @_;

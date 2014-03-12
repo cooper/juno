@@ -6,6 +6,8 @@ use strict;
 
 use utils 'log2';
 
+our $VERSION = $ircd::VERSION;
+
 sub register_channel_mode_block {
     my ($mod, %opts) = @_;
 

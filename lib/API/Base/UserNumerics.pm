@@ -7,6 +7,8 @@ use v5.10;
 
 use utils qw(log2);
 
+our $VERSION = $ircd::VERSION;
+
 sub register_user_numeric {
     my ($mod, %opts) = @_;
 

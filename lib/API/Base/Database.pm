@@ -7,6 +7,8 @@ use 5.010;
 
 use utils qw(log2 conf);
 
+our $VERSION = $ircd::VERSION;
+
 sub database {
     my ($mod, $name) = @_;
     

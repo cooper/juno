@@ -5,9 +5,12 @@ use warnings;
 use strict;
 use 5.010;
 
+# core modules that pretty much never change.
+use Module::Loaded qw(is_loaded);
+
 use utils qw(conf lconf log2 fatal v set trim);
 
-our ($VERSION, $API, $conf, $loop, $pool, $timer, %global);
+our ($VERSION, $API, $conf, $loop, $pool, $timer, %global, $boot);
 $VERSION = get_version();
 
 # all non-module packages always loaded in the IRCd.
@@ -32,7 +35,6 @@ our @maybe_loaded = qw(
 );
 
 sub start {
-    my $boot = shift;
     
     log2('Started server at '.scalar(localtime v('START')));
     $main::v{VERSION} = $VERSION;
@@ -46,7 +48,7 @@ sub start {
     ); foreach (@add_inc) { unshift @INC, $_ unless $_ ~~ @INC }
     
     # load or reload all dependency packages.
-    load_dependencies($boot);
+    load_dependencies();
     
     # set up the configuration/database.
     # TEMPORARILY use no database until we read [database] block.
@@ -59,7 +61,7 @@ sub start {
     $conf->parse_config or die "can't parse configuration.\n";
 
     # load or reload optional packages.
-    load_optionals($boot);
+    load_optionals();
     
     # create the database object.
     if (conf('database', 'type') eq 'sqlite') {
@@ -144,17 +146,21 @@ sub start {
 
 # load or reload a package.
 sub load_or_reload {
-    my ($name, $min_v, $boot, $set_v, $dont_load) = @_;
+    my ($name, $min_v, $set_v, $dont_load) = @_;
     (my $file = "$name.pm") =~ s/::/\//g;
     
     # not loaded; don't load it.
-    return if !$INC{$file} && $dont_load;
+    return if !is_loaded($name) && $dont_load;
     
     # it might be loaded with an appropriate version already.
     if ((my $v = $name->VERSION // -1) >= $min_v) {
         log2("$name is loaded and up-to-date ($v)");
         return;
     }
+    
+    # at this point, we're going to load it.
+    # if it's loaded already, we should unload it now.
+    API::class_unload($name) if is_loaded($name);
     
     # set package version.
     if ($set_v) {
@@ -164,7 +170,7 @@ sub load_or_reload {
     
     # it hasn't been loaded yet at all.
     # use require to load it the first time.
-    if ($boot || !$INC{$file}) {
+    if ($boot) {
         log2("Loading $name");
         require $file or log2("Very bad error: could not load $name!".($@ || $!));
         return;
@@ -185,35 +191,33 @@ sub load_or_reload {
 
 # load our package dependencies.
 sub load_dependencies {
-    my $boot = shift;
     
     # main dependencies.
-    load_or_reload('IO::Async::Loop',               0.60, $boot);
-    load_or_reload('IO::Async::Stream',             0.60, $boot);
-    load_or_reload('IO::Async::Listener',           0.60, $boot);
-    load_or_reload('IO::Async::Timer::Periodic',    0.60, $boot);
-    load_or_reload('IO::Async::Timer::Countdown',   0.60, $boot);
-    load_or_reload('IO::Socket::IP',                0.25, $boot);
-    load_or_reload('API',                           2.23, $boot);
-    load_or_reload('Evented::Object',               3.90, $boot);
-    load_or_reload('Evented::Configuration',        3.30, $boot);
-    load_or_reload('Evented::Database',             0.50, $boot);
+    load_or_reload('IO::Async::Loop',               0.60);
+    load_or_reload('IO::Async::Stream',             0.60);
+    load_or_reload('IO::Async::Listener',           0.60);
+    load_or_reload('IO::Async::Timer::Periodic',    0.60);
+    load_or_reload('IO::Async::Timer::Countdown',   0.60);
+    load_or_reload('IO::Socket::IP',                0.25);
+    load_or_reload('API',                           2.23);
+    load_or_reload('Evented::Object',               3.90);
+    load_or_reload('Evented::Configuration',        3.30);
+    load_or_reload('Evented::Database',             0.50);
     
     # juno components.
     my $v = get_version();
-    load_or_reload($_, $v, $boot, $v, undef) foreach @always_loaded;
-    load_or_reload($_, $v, $boot, $v, 1    ) foreach @maybe_loaded;
+    load_or_reload($_, $v, $v, undef) foreach @always_loaded;
+    load_or_reload($_, $v, $v, 1    ) foreach @maybe_loaded;
     
 }
 
 # load configured optional packages.
 sub load_optionals {
-    my $boot = shift;
     
     # encryption.
-    load_or_reload('Digest::SHA', 0, $boot) if conf qw[enabled sha];
-    load_or_reload('Digest::MD5', 0, $boot) if conf qw[enabled md5];
-    load_or_reload('DBD::SQLite', 0, $boot) if conf('database', 'type') eq 'sqlite';
+    load_or_reload('Digest::SHA', 0) if conf qw[enabled sha];
+    load_or_reload('Digest::MD5', 0) if conf qw[enabled md5];
+    load_or_reload('DBD::SQLite', 0) if conf('database', 'type') eq 'sqlite';
 
 }
 
@@ -353,7 +357,8 @@ sub ping_check {
 }
 
 sub boot {
-
+    $boot = 1;
+    
     # load mandatory boot stuff.
     require POSIX;
     require IO::Async;
@@ -366,6 +371,8 @@ sub boot {
 
     start(1);
     become_daemon();
+    
+    undef $boot;
 }
 
 sub loop {

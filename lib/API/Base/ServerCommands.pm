@@ -7,6 +7,8 @@ use feature 'switch';
 
 use utils qw(log2 col);
 
+our $VERSION = $ircd::VERSION;
+
 sub register_server_command {
     my ($mod, %opts) = @_;
 
