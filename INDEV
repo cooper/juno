@@ -2027,6 +2027,8 @@ CHANGES:
         29. since we now call class_unload() to all packages including ircd.pm, all of these crucial variables were undefined after reload.
 
 
+    3. added additional protection to ->handle() methods to ensure that any connections in question are still active.
+
             
             
             

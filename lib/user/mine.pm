@@ -21,6 +21,8 @@ sub safe {
 sub handle {
     @_ = &safe or return;
     my $user = shift;
+    return if !$user->{conn} || $user->{conn}{goodbye};
+
     foreach my $line (split "\n", shift) {
 
         my @s = split /\s/, $line;

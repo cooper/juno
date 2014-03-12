@@ -10,6 +10,7 @@ use utils qw[log2 col v conf];
 # handle local user data
 sub handle {
     my $server = shift;
+    return if !$server->{conn} || $server->{conn}{goodbye};
     
     foreach my $line (split "\n", shift) {
 
@@ -56,8 +57,10 @@ sub handle {
             next;
         }
 
-        # it exists- parse it.
+        # it exists - parse it.
         foreach my $handler (@handlers) {
+            last if !$server->{conn} || $server->{conn}{goodbye};
+            
             $handler->{code}($server, $line, @s);
 
             # forward to children.
@@ -65,17 +68,14 @@ sub handle {
             send_children($server, $line) if $handler->{forward};
         }
     }
-    return 1
+    
+    return 1;
 }
 
 sub send_burst {
     my $server = shift;
-
-    if ($server->{i_sent_burst}) {
-        log2("trying to send burst to a server we have already sent burst to. (no big deal, probably just lag)");
-        return
-    }
-
+    return if $server->{i_sent_burst};
+    
     $server->sendme('BURST '.time);
 
     # servers and mode names
