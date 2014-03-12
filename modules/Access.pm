@@ -12,7 +12,7 @@ use utils qw(conf v match);
 
 our $mod = API::Module->new(
     name        => 'Access',
-    version     => '1.2',
+    version     => '1.3',
     description => 'implements channel access modes',
     requires    => ['Events', 'ChannelModes'],
     initialize  => \&init
@@ -163,6 +163,16 @@ sub on_user_joined {
     }
     
     return 1 unless scalar @letters;
+    
+    # if they have >0 status, give o as well.
+    my ($op, $give_op) = v('SERVER')->cmode_letter('op');
+    if (not $op ~~ @letters) {
+        foreach my $level (keys %ircd::channel_mode_prefixes) {
+            my ($letter, $symbol, $name) = @{ $ircd::channel_mode_prefixes{$level} };
+            $give_op = 1, last if $letter ~~ @letters && $level > 0;
+        }
+        push @letters, $op if $give_op;
+    }
     
     # create list of letters.
     my $letters = join('', @letters);

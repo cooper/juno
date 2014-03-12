@@ -404,10 +404,7 @@ sub user_is {
 # greater than voice (halfop, op, admin, owner)
 sub user_has_basic_status {
     my ($channel, $user) = @_;
-    foreach my $status (qw|owner admin op halfop|) {
-        return 1 if $channel->user_is($user, $status);
-    }
-    return
+    return $channel->user_get_highest_level($user) >= 0;
 }
 
 # get the highest level of a user
