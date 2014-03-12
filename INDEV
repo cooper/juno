@@ -2029,6 +2029,7 @@ CHANGES:
 
     3. added additional protection to ->handle() methods to ensure that any connections in question are still active.
 
+        31. I have resorted to not allowing the fantasy prefix at the start of the first argument. this will prevent any Fantasy exploits.
             
             
             

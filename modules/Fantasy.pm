@@ -7,7 +7,7 @@ use strict;
 
 our $mod = API::Module->new(
     name        => 'Fantasy',
-    version     => '0.3',
+    version     => '0.4',
     description => 'channel fantasy commands',
     requires    => ['Events'],
     initialize  => \&init
@@ -24,11 +24,9 @@ sub channel_privmsg {
     return unless $message =~ m/^!(\w+)\s*(.*)$/;
     my ($cmd, $args) = (lc $1, $2);
     
-    # ex: !privmsg !privmsg
-    my @a = split /\s/, $message;
-    for (my $i = 1; $i <= $#a; $i++) {
-        return if lc $a[0] eq lc $a[$i];
-    }
+    # prevents e.g. !privmsg !privmsg or !lolcat !kick
+    my $second_p = split /\s/, $message;
+    return if substr($second_p, 0, 1) eq '!';
     
     my @handlers = $main::pool->user_handlers($cmd) or return;
     
