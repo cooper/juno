@@ -112,21 +112,23 @@ sub cmode_type {
 # change 1 server's mode string to another server's
 sub convert_cmode_string {
     my ($server, $server2, $modestr) = @_;
-    my $string = q..;
-    my @m      = split / /, $modestr;
-
-    foreach my $letter (split //, shift @m) {
+    my $string = '';
+    my @m      = split /\s/, $modestr;
+    my $modes;
+    
+    foreach my $letter (split //, $modes = shift @m) {
         my $new = $letter;
 
-        # translate it
+        # translate it.
         my $name = $server->cmode_name($letter);
-        if ($name) { $new = $server2->cmode_letter($name) || $new }
-        $string .= $new
+        $new     = $server2->cmode_letter($name) // $new if $name;
+        $string .= $new;
+        
     }
 
     my $newstring = join ' ', $string, @m;
-    log2("converted \"$modestr\" to \"$newstring\"");
-    return $newstring
+    log2("converted $modes to $string");
+    return $newstring;
 }
 
 sub cmode_takes_parameter {

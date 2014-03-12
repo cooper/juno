@@ -12,7 +12,7 @@ use utils qw(conf v match);
 
 our $mod = API::Module->new(
     name        => 'Access',
-    version     => '1.3',
+    version     => '1.4',
     description => 'implements channel access modes',
     requires    => ['Events', 'ChannelModes'],
     initialize  => \&init
@@ -38,6 +38,15 @@ sub init {
         fantasy     => 1
     ) or return;
 
+    # register DOWN command.
+    $mod->register_user_command(
+        name        => 'down',
+        description => 'remove all channel status modes',
+        parameters  => 'channel(inchan)',
+        code        => \&cmd_down,
+        fantasy     => 1
+    ) or return;
+
     return 1
 }
 
@@ -47,6 +56,30 @@ sub cmd_up {
     # pretend join.
     on_user_joined($channel, undef, $user);
     
+}
+
+sub cmd_down {
+    my ($user, $data, $channel) = @_;
+    
+    # find user's status modes.
+    my @letters;
+    foreach my $level (keys %ircd::channel_mode_prefixes) {
+        my ($letter, $symbol, $name) = @{ $ircd::channel_mode_prefixes{$level} };
+        push @letters, $letter if $channel->list_has($name, $user);
+    }
+    
+    # no modes.
+    return 1 unless scalar @letters;
+    
+    # create mode string.
+    my $letters = join '', @letters;
+    my $uids    = ($user->{uid} .q( )) x length $letters;
+    my $sstr    = "-$letters $uids";
+    
+    # handle it and forward to users and servers as needed.
+    $channel->do_mode_string($user->{server}, $user->{server}, $sstr, 1, 1);
+    
+    return 1;
 }
 
 # access mode handler.
@@ -174,13 +207,10 @@ sub on_user_joined {
         push @letters, $op if $give_op;
     }
     
-    # create list of letters.
-    my $letters = join('', @letters);
-    
     # create mode string.
-    my $uids  = ($user->{uid} .q( )) x length $letters;
-    my $nicks = ($user->{nick}.q( )) x length $letters;
-    my $sstr  = "+$letters $uids";
+    my $letters = join '', @letters;
+    my $uids    = ($user->{uid} .q( )) x length $letters;
+    my $sstr    = "+$letters $uids";
     
     # handle it locally (this sends to other servers too).
     # ($channel, $server, $source, $modestr, $force, $over_protocol)
