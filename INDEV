@@ -2035,6 +2035,7 @@ CHANGES:
             
         32. reverted changes from a while ago when I removed the + from these regexes. the + is mandatory because it will match multiple instances of whitespace rather than a single character, the default behavior.
 
+        33. undefine the periodic ping timer object when removing it from loop to prevent future "notifier not in collection" errors.
             
             
             

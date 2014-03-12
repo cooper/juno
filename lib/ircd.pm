@@ -120,8 +120,14 @@ sub start {
     # listen.
     create_sockets();
 
-    # ping timer.
-    $loop->remove($timer) if $timer;
+    # delete the existing timer if there is one.
+    if ($timer) {
+        $loop->remove($timer);
+        undef $main::timer;
+        undef $timer;
+    }
+    
+    # create a new timer.
     $timer = $main::timer = IO::Async::Timer::Periodic->new(
         interval       => 30,
         on_tick        => \&ping_check
