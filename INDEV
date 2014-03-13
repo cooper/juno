@@ -2054,6 +2054,7 @@ CHANGES:
             
         41. fixed an issue with fantasy commands with no arguments.
 
+        42. minor fixes in channel mode handler.
             
             
             

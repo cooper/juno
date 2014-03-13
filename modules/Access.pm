@@ -212,8 +212,8 @@ sub on_user_joined {
     
     # create mode string.
     my $letters = join '', @letters;
-    my $uids    = ($user->{uid} .q( )) x length $letters;
-    my $sstr    = "+$letters $uids";
+    my $uids    = (q( ).$user->{uid}) x length $letters;
+    my $sstr    = "+$letters$uids";
     
     # handle it locally (this sends to other servers too).
     # ($channel, $server, $source, $modestr, $force, $over_protocol)

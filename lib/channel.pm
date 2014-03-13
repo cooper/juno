@@ -250,7 +250,8 @@ sub handle_mode_string {
                 my $do = $state ? 'set_mode' : 'unset_mode';
                 $channel->$do($name);
             }
-            $str .= $letter
+            $str .= $letter;
+            
         }
     }
 
@@ -268,13 +269,13 @@ sub handle_mode_string {
     foreach my $param (@$parameters) {
         if (ref $param eq 'ARRAY') {
             push @user_params,   $param->[0];
-            push @server_params, $param->[1]
+            push @server_params, $param->[1];
         }
 
         # not an array ref
         else {
-            push @user_params,  $param;
-            push @server_params, $param
+            push @user_params,   $param;
+            push @server_params, $param;
         }
     }
 
@@ -294,7 +295,7 @@ sub handle_mode_string {
 sub mode_string {
     my ($channel, $server) = @_;
     my (@modes, @params);
-    my @set_modes = sort { $a cmp $b } keys %{ $channel->{modes} };
+    my @set_modes = sort keys %{ $channel->{modes} };
     foreach my $name (@set_modes) {
         given ($server->cmode_type($name)) {
             when (0) { }
@@ -317,7 +318,7 @@ sub mode_string {
 sub mode_string_all {
     my ($channel, $server, $no_status) = @_;
     my (@modes, @user_params, @server_params);
-    my @set_modes = sort { $a cmp $b } keys %{ $channel->{modes} };
+    my @set_modes = sort keys %{ $channel->{modes} };
 
     foreach my $name (@set_modes) {
         my $letter = $server->cmode_letter($name);
@@ -371,7 +372,7 @@ sub mode_string_all {
 sub mode_string_status {
     my ($channel, $server) = @_;
     my (@modes, @user_params, @server_params);
-    my @set_modes = sort { $a cmp $b } keys %{ $channel->{modes} };
+    my @set_modes = sort keys %{ $channel->{modes} };
 
     foreach my $name (@set_modes) {
         my $letter = $server->cmode_letter($name);
