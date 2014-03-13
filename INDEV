@@ -2047,7 +2047,8 @@ CHANGES:
 
         38. always send TOPICBURST if a topic is set. It is better to send it to the server we received it from and just have that server ignore it than to not send it at all because if our time is older, the server we got the topic from originally will dispose of the topic.
             only send users the server doesn't already know about in CUM command. It is useless to send information about users who we know through the server we're sending to.
-            
+         
+        39. fixed confusing, ancient ping check code. pings were sent too frequently and in multiples before, but that is all fixed now. pings and ping timeouts are now accurate within 30 seconds of the configured frequencies.
             
             
             

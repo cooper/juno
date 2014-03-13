@@ -22,7 +22,6 @@ sub new {
         host          => $stream->{write_handle}->peerhost,
         source        => v('SERVER', 'sid'),
         time          => time,
-        last_ping     => time,
         last_response => time,
         wait          => 0
     }, $class;

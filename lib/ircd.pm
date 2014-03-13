@@ -330,22 +330,27 @@ sub ping_check {
     foreach my $connection ($main::pool->connections) {
     
         # not yet registered.
+        # if they have been connected for 30 secs without registering, drop.
         if (!$connection->{type}) {
             $connection->done('Registration timeout') if time - $connection->{time} > 30;
             next;
         }
+        
         my $type = $connection->{type}->isa('user') ? 'user' : 'server';
+        my $since_last = time - $connection->{last_response};
+        
+        # no incoming data for configured frequency.
+        next unless $since_last >= lconf('ping', $type, 'frequency');
         
         # send a ping if we haven't already.
-        if (time - $connection->{last_ping} >= lconf('ping', $type, 'frequency')) {
-            $connection->send('PING :'.v('SERVER')->{name}) unless $connection->{ping_in_air};
+        if (!$connection->{ping_in_air}) {
+            $connection->send('PING :'.v('SERVER')->{name});
             $connection->{ping_in_air} = 1;
         }
-        
+    
         # ping timeout.
-        if (time - $connection->{last_response} >= lconf('ping', $type, 'timeout')) {
-            $connection->done('Ping timeout: '.(time - $connection->{last_response}).' seconds');
-        }
+        $connection->done('Ping timeout: '.().' seconds')
+          if $since_last >= lconf('ping', $type, 'timeout');
         
     }
 }
