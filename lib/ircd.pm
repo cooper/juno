@@ -88,7 +88,8 @@ sub start {
     }
 
     # register modes.
-    # TODO: delete then re-add.
+    $server->{umodes} = {};
+    $server->{cmodes} = {};
     add_internal_channel_modes($server);
     add_internal_user_modes($server);
     
@@ -443,7 +444,7 @@ sub get_version {
 ### CHANNEL MODES ###
 #####################
 
-our %channel_mode_prefixes;
+our %channel_mode_prefixes = ();
 
 # this just tells the internal server what
 # mode is associated with what letter and type by configuration
