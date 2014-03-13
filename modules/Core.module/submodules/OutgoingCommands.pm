@@ -206,14 +206,15 @@ sub skill {
 ####################
 
 # channel user membership (channel burst)
+# $server = server to send to
 sub cum {
-    my $channel = shift;
+    my ($channel, $server) = @_;
     # modes are from the perspective of this server, v:SERVER
 
     my (%prefixes, @userstrs);
 
     my (@modes, @user_params, @server_params);
-    my @set_modes = sort { $a cmp $b } keys %{ $channel->{modes} };
+    my @set_modes = sort keys %{ $channel->{modes} };
 
     foreach my $name (@set_modes) {
       my $letter = $me->cmode_letter($name);
@@ -236,20 +237,23 @@ sub cum {
         # lists of users
         when (4) {
             foreach my $user ($channel->list_elements($name)) {
-                if (exists $prefixes{$user}) { $prefixes{$user} .= $letter }
-                                        else { $prefixes{$user}  = $letter }
-            } # ugly br
-        } # ugly bracke
-    } } # ugly brackets 
+                ($prefixes{$user} //= '') .= $letter;
+            }
+        }
+    } }
 
     # make +modes params string without status modes
     my $modestr = '+'.join(' ', join('', @modes), @server_params);
 
     # create an array of uid!status
     foreach my $user (@{ $channel->{users} }) {
+    
+        # this is the server that told us about the user. it already knows.
+        next if $user->{location} == $server;
+        
         my $str = $user->{uid};
         $str .= '!'.$prefixes{$user} if exists $prefixes{$user};
-        push @userstrs, $str
+        push @userstrs, $str;
     }
 
     # note: use "-" if no users present

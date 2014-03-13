@@ -8,7 +8,7 @@ use strict;
 use utils qw[log2 col v conf];
 
 # handle local user data
-sub handle {
+sub handle {print "@_\n";
     my $server = shift;
     return if !$server->{conn} || $server->{conn}{goodbye};
     
@@ -136,10 +136,10 @@ sub send_burst {
 
     # channels, using compact CUM
     foreach my $channel ($main::pool->channels) {
-        fire_command($server, cum => $channel);
+        fire_command($server, cum => $channel, $server);
         
         # there is no topic or this server is how we got the topic.
-        next if !$channel->topic || $channel->topic->{source} == $server->{sid};
+        next if !$channel->topic;
         
         fire_command($server, topicburst => $channel);
     }

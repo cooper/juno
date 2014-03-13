@@ -48,6 +48,7 @@
 		A75C5D1B18B4321A007780A3 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		A75C5D1D18B4321A007780A3 /* rfc-2812 */ = {isa = PBXFileReference; lastKnownFileType = text; name = "rfc-2812"; path = "../rfc-2812"; sourceTree = "<group>"; };
 		A765E0BF18BEE68500B3E448 /* VERSION */ = {isa = PBXFileReference; lastKnownFileType = text; name = VERSION; path = ../VERSION; sourceTree = "<group>"; };
+		A76699AC18D1488700820EEA /* Git.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Git.pm; sourceTree = "<group>"; };
 		A782BD6A18C2907900D137A3 /* Resolve.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Resolve.pm; sourceTree = "<group>"; };
 		A79514CD18C2EECC00838C46 /* Matching.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Matching.pm; sourceTree = "<group>"; };
 		A79514CE18C301D600838C46 /* Matchers.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Matchers.pm; sourceTree = "<group>"; };
@@ -165,6 +166,7 @@
 				A79514D118C431C900838C46 /* Account.pm */,
 				A79514D218C67F7500838C46 /* Fantasy.pm */,
 				A7CD6BF418CEA09300FBEFD6 /* Reload.pm */,
+				A76699AC18D1488700820EEA /* Git.pm */,
 			);
 			name = Modules;
 			path = ../modules;
