@@ -10,8 +10,8 @@ use Module::Loaded qw(is_loaded);
 
 use utils qw(conf lconf log2 fatal v set trim);
 
-our (  $VERSION,   $API,   $conf,   $loop,   $pool,   $timer, %global, $boot) =
-    ($::VERSION, $::API, $::conf, $::loop, $::pool, $::timer);
+our (  $VERSION,   $API,   $api,  $conf,   $loop,   $pool,   $timer, %global, $boot) =
+    ($::VERSION, $::API, $::API, $::conf, $::loop, $::pool, $::timer);
 $VERSION = get_version();
 
 # all non-module packages always loaded in the IRCd.
@@ -24,16 +24,6 @@ our @always_loaded = qw(
     connection  ircd
 
 ); # ircd must be last
-
-# these might be loaded, but don't load them if they're not.
-our @maybe_loaded = qw(
-
-    API::Base::Events               API::Base::ChannelModes
-    API::Base::OutgoingCommands     API::Base::ServerCommands
-    API::Base::UserCommands         API::Base::UserModes
-    API::Base::UserNumerics         API::Base::Database
-
-);
 
 sub start {
     
@@ -103,7 +93,7 @@ sub start {
     add_internal_user_modes($server);
     
     # create API engine manager.
-    $API ||= $main::API ||= API->new(
+    $API = $api = $main::API ||= API->new(
         log_sub  => \&api_log,
         mod_dir  => "$main::run_dir/modules",
         base_dir => "$main::run_dir/lib/API/Base"
@@ -113,7 +103,7 @@ sub start {
     # FIXME: is this safe to call multiple times?
     log2('Loading API configuration modules');
     if (my $mods = conf('api', 'modules')) {
-        $API->load_module($_, "$_.pm") foreach @$mods;
+        $api->load_module($_, "$_.pm") foreach @$mods;
     }
     log2('Done loading modules');
 
@@ -153,11 +143,8 @@ sub start {
 
 # load or reload a package.
 sub load_or_reload {
-    my ($name, $min_v, $set_v, $dont_load) = @_;
+    my ($name, $min_v, $set_v) = @_;
     (my $file = "$name.pm") =~ s/::/\//g;
-    
-    # not loaded; don't load it.
-    return if !is_loaded($name) && $dont_load;
     
     # it might be loaded with an appropriate version already.
     if ((my $v = $name->VERSION // -1) >= $min_v) {
@@ -213,8 +200,8 @@ sub load_dependencies {
     
     # juno components.
     my $v = get_version();
-    load_or_reload($_, $v, $v, undef) foreach @always_loaded;
-    load_or_reload($_, $v, $v, 1    ) foreach @maybe_loaded;
+    load_or_reload($_, $v, $v) foreach @always_loaded;
+    load_or_reload("API::Base::$_", $v, $v) foreach @{ $api->{loaded_bases} || [] };
     
 }
 
