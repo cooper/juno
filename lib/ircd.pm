@@ -112,7 +112,7 @@ sub start {
 
     # delete the existing timer if there is one.
     if ($timer) {
-        $loop->remove($timer);
+        $loop->remove($timer) if $timer->is_running;
         undef $main::timer;
         undef $timer;
     }

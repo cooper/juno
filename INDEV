@@ -2041,7 +2041,8 @@ CHANGES:
         
         35. improved the mechanism by which API bases are reloaded, fixing multiple bugs.
             
-            
+        36. only removed $timer from the loop if it is already running.    
+
             
             
             
