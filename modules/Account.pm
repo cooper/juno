@@ -11,7 +11,7 @@ use utils qw(v log2 conf);
 
 our $mod = API::Module->new(
     name        => 'Account',
-    version     => '0.4',
+    version     => '0.5',
     description => 'Account registration and management',
     requires    => [
                         'Database', 'UserCommands', 'UserNumerics',
@@ -26,7 +26,7 @@ sub init {
     # create or update the table if necessary.
     $mod->create_or_alter_table($db, 'accounts',
         id       => 'INT',          # numerical account ID
-        name     => 'VARCHAR(50)',  # account name
+        name     => 'VARCHAR(50) COLLATE NOCASE',  # account name
         password => 'VARCHAR(512)', # (hopefully encrypted) account password
         encrypt  => 'VARCHAR(20)',  # password encryption type
                                     #     255 is max varchar size on mysql<5.0.3
@@ -90,7 +90,7 @@ sub init {
 # fetch account information
 sub account_info {
     my $account = shift;
-    return $mod->db_hashref($db, 'SELECT * FROM accounts WHERE name=?', $account);
+    return $mod->db_hashref($db, 'SELECT * FROM accounts WHERE name=? COLLATE NOCASE', $account);
 }
 
 # fetch the next available account ID.

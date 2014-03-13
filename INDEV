@@ -2043,6 +2043,7 @@ CHANGES:
             
         36. only removed $timer from the loop if it is already running.    
 
+        37. account names are now case-insensitive in the Account module.
             
             
             
