@@ -64,8 +64,7 @@ sub quit {
     # search for local users that know this client
     # and send the quit to them.
 
-    foreach my $channel ($main::pool->channels) {
-        next unless $channel->has_user($user);
+    foreach my $channel ($user->channels) {
         $channel->remove($user);
         foreach my $usr (@{ $channel->{users} }) {
             next unless $usr->is_local;
@@ -118,7 +117,7 @@ sub handle_mode_string {
             # don't allow this mode to be changed if the test fails
             # *unless* force is provided. generally ou want to use
             # tests only is local, since servers can do whatever.
-            my $win = $main::pool->fire_user_mode($user, $state, $name);
+            my $win = $user->{pool}->fire_user_mode($user, $state, $name);
             if (!$force) {
                 next unless $win
             }
@@ -194,6 +193,16 @@ sub unset_away {
     my $user = shift;
     log2("$$user{nick} has returned from being away: $$user{away}");
     delete $user->{away};
+}
+
+# channels. I need to make this more efficient eventually.
+sub channels {
+    my ($user, @channels) = shift;
+    foreach my $channel ($user->{pool}->channels) {
+        next unless $channel->has_user($user);
+        push @channels, $channel;
+    }
+    return @channels;
 }
 
 sub is_local {

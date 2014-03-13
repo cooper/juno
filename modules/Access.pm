@@ -12,7 +12,7 @@ use utils qw(conf v match);
 
 our $mod = API::Module->new(
     name        => 'Access',
-    version     => '1.4',
+    version     => '1.5',
     description => 'implements channel access modes',
     requires    => ['Events', 'ChannelModes'],
     initialize  => \&init
@@ -28,6 +28,9 @@ sub init {
 
     # register channel:user_joined event.
     $mod->register_ircd_event('channel.user_joined' => \&on_user_joined) or return;
+    
+    # user logged in event.
+    $mod->register_ircd_event('user.logged_in' => \&on_user_logged_in) or return;
 
     # register UP command.
     $mod->register_user_command(
@@ -217,6 +220,16 @@ sub on_user_joined {
     $channel->do_mode_string($user->{server}, $user->{server}, $sstr, 1, 1);
     
     return 1;
+}
+
+# user logged in to an account.
+sub on_user_logged_in {
+    my ($user, $event, $act) = @_;
+    return unless $user->is_local;
+    
+    # pretend join.
+    on_user_joined($_, undef, $user) foreach $user->channels;
+    
 }
 
 $mod

@@ -11,7 +11,7 @@ use utils qw(v log2 conf);
 
 our $mod = API::Module->new(
     name        => 'Account',
-    version     => '0.5',
+    version     => '0.6',
     description => 'Account registration and management',
     requires    => [
                         'Database', 'UserCommands', 'UserNumerics',
@@ -152,8 +152,8 @@ sub login_account {
     }
     
     # log in.
-    $user->{account}{id}   = $act->{id};
-    $user->{account}{name} = $act->{name};
+    delete $act->{password};
+    $user->{account} = $act;
     
     # handle and send mode string if local.
     my $mode = v('SERVER')->umode_letter('registered');
@@ -161,6 +161,9 @@ sub login_account {
     
     # if local, send logged in numeric.
     $user->numeric(RPL_LOGGEDIN => $act->{name}, $act->{name}) if $user->is_local;
+    
+    # logged in event.
+    $user->fire_event(logged_in => $act);
     
     return 1;
 }
