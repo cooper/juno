@@ -70,13 +70,13 @@ sub register_server_command {
 
             # server lookup
             when ('server') {
-                my $server = $main::pool->lookup_server(my $id = col($args[$i]));
-                if (!$server) {
+                my $serv = $main::pool->lookup_server(my $id = col($args[$i]));
+                if (!$serv) {
                     log2("$command could not get server: $id");
-                    $server->{conn}->done('Protocol error.');
+                    $serv->{conn}->done('Protocol error.');
                     return
                 }
-                push @final_parameters, $server
+                push @final_parameters, $serv
             }
 
             # user lookup

@@ -2037,7 +2037,8 @@ CHANGES:
 
         33. undefine the periodic ping timer object when removing it from loop to prevent future "notifier not in collection" errors.
             
-            
+        34. fixed a potentially fatal issue where the UID lookup in the ServerCommands base could lead to the redefinition of $server.
+
             
             
             
