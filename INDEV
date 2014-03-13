@@ -2052,6 +2052,7 @@ CHANGES:
 
     4. automatically apply access list to users upon identification to an account.
             
+        41. fixed an issue with fantasy commands with no arguments.
 
             
             
