@@ -8,7 +8,7 @@ use strict;
 use utils qw[log2 col v conf];
 
 # handle local user data
-sub handle {print "@_\n";
+sub handle {
     my $server = shift;
     return if !$server->{conn} || $server->{conn}{goodbye};
     
@@ -51,7 +51,7 @@ sub handle {print "@_\n";
         # if it doesn't exist, ignore it and move on.
         # it might make sense to assume incompatibility and drop the server,
         # but I don't want to do that because
-        my @handlers = $main::pool->server_handlers($command);
+        my @handlers = $::pool->server_handlers($command);
         if (!@handlers) {
             log2("unknown command $command; ignoring it");
             next;
@@ -111,11 +111,11 @@ sub send_burst {
         fire_command($server, aum => $serv);
         fire_command($server, acm => $serv);
         
-    }; $do->($_) foreach $main::pool->servers;
+    }; $do->($_) foreach $::pool->servers;
     
 
     # users
-    foreach my $user ($main::pool->users) {
+    foreach my $user ($::pool->users) {
     
         # ignore users the server already knows!
         next if $user->{server} == $server || $user->{source} == $server->{sid};
@@ -135,7 +135,7 @@ sub send_burst {
     }
 
     # channels, using compact CUM
-    foreach my $channel ($main::pool->channels) {
+    foreach my $channel ($::pool->channels) {
         fire_command($server, cum => $channel, $server);
         
         # there is no topic or this server is how we got the topic.
@@ -159,7 +159,7 @@ sub send_burst {
 sub send_children {
     my $ignore = shift;
 
-    foreach my $server ($main::pool->servers) {
+    foreach my $server ($::pool->servers) {
 
         # don't send to ignored
         if (defined $ignore && $server == $ignore) {
@@ -210,7 +210,7 @@ sub sendfrom {
 # convenient for $server->fire_command
 sub fire_command {
     my $server = shift;
-    return $server->{pool}->fire_command($server, @_);
+    return $::pool->fire_command($server, @_);
 }
 
 1

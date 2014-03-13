@@ -30,7 +30,7 @@ sub cmd_reload {
     $user->server_notice(reload => 'Reloading IRCd');
     
     # ignore submodules.
-    my @mods_loaded = grep { !$_->{parent} } @{ $main::API->{loaded} };
+    my @mods_loaded = grep { !$_->{parent} } @{ $::API->{loaded} };
     
     # unload them all.
     $user->server_notice('Unloading modules');
@@ -38,7 +38,7 @@ sub cmd_reload {
     foreach my $m (@mods_loaded) {
         my $name = $m->full_name;
         $user->server_notice("    * $name");
-        $main::API->unload_module($name) or
+        $::API->unload_module($name) or
           $user->server_notice("$name refused to unload. See log.") and last;
         $vers{$name} = $m->{version};
     }
@@ -52,8 +52,8 @@ sub cmd_reload {
     $user->server_notice('Loading modules');
     foreach my $m (@mods_loaded) {
         my $name = $m->full_name;
-        my $res  = $main::API->load_module($name, "$name.pm");
-           $m    = $main::API->get_module($name);
+        my $res  = $::API->load_module($name, "$name.pm");
+           $m    = $::API->get_module($name);
         my $old  = $vers{$name} // 0;
         my $v    = $m->{version} > ($old) ? "($old -> $$m{version})" : '';
         $user->server_notice("    * $name $v");

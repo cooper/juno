@@ -28,7 +28,7 @@ our @always_loaded = qw(
 sub start {
     
     log2('Started server at '.scalar(localtime v('START')));
-    $main::v{VERSION} = $VERSION;
+    $::v{VERSION} = $VERSION;
     
     # add these to @INC if they are not there already.
     my @add_inc = (
@@ -43,9 +43,9 @@ sub start {
     
     # set up the configuration/database.
     # TEMPORARILY use no database until we read [database] block.
-    $conf = $main::conf = Evented::Database->new(
+    $conf = $::conf = Evented::Database->new(
         db       => undef,
-        conffile => "$main::run_dir/etc/ircd.conf"
+        conffile => "$::run_dir/etc/ircd.conf"
     );
     
     # parse the configuration.
@@ -56,18 +56,18 @@ sub start {
     
     # create the database object.
     if (conf('database', 'type') eq 'sqlite') {
-        my $dbfile  = "$main::run_dir/db/conf.db";
+        my $dbfile  = "$::run_dir/db/conf.db";
         $conf->{db} = DBI->connect("dbi:SQLite:dbname=$dbfile", '', '');
         $conf->create_tables_maybe;
     }
 
     # create the pool.
-    if (!$main::pool) {
-        $pool = $main::pool = pool->new();
+    if (!$::pool) {
+        $pool = $::pool = pool->new();
     }
 
     # create the main server object.
-    my $server = $main::v{SERVER};
+    my $server = $::v{SERVER};
     if (!$server) {
     
         $server = $pool->new_server(
@@ -83,7 +83,7 @@ sub start {
 
         # how is this possible?!?!
         $server->{parent}  =
-        $main::v{SERVER} = $server;
+        $::v{SERVER} = $server;
         
     }
 
@@ -94,10 +94,10 @@ sub start {
     add_internal_user_modes($server);
     
     # create API engine manager.
-    $API = $api = $main::API ||= API->new(
+    $API = $api = $::API ||= API->new(
         log_sub  => \&api_log,
-        mod_dir  => "$main::run_dir/modules",
-        base_dir => "$main::run_dir/lib/API/Base"
+        mod_dir  => "$::run_dir/modules",
+        base_dir => "$::run_dir/lib/API/Base"
     );
 
     # load API modules.
@@ -114,12 +114,12 @@ sub start {
     # delete the existing timer if there is one.
     if ($timer) {
         $loop->remove($timer) if $timer->is_running;
-        undef $main::timer;
+        undef $::timer;
         undef $timer;
     }
     
     # create a new timer.
-    $timer = $main::timer = IO::Async::Timer::Periodic->new(
+    $timer = $::timer = IO::Async::Timer::Periodic->new(
         interval       => 30,
         on_tick        => \&ping_check
     );
@@ -219,7 +219,7 @@ sub load_optionals {
 sub create_sockets {
 
     # TODO: keep track of these, and allow rehashing to change this.
-    return if $main::sockets_done;
+    return if $::sockets_done;
         # FIXME: do the above and ignore anything that hasn't changed
         # when reloading because this will be called multiple times.
     
@@ -246,7 +246,7 @@ sub create_sockets {
         log2("Listening on [$addr]:$port");
     } }
     
-    $main::sockets_done = 1;
+    $::sockets_done = 1;
     return 1;
 }
 
@@ -256,7 +256,7 @@ sub terminate {
     log2("removing all connections for server shutdown");
 
     # delete all users/servers/other
-    foreach my $connection ($main::pool->connections) {
+    foreach my $connection ($::pool->connections) {
         $connection->done('Shutting down');
     }
 
@@ -290,13 +290,13 @@ sub handle_connect {
 
     # if the connection IP limit has been reached, disconnect
     my $ip = $stream->{write_handle}->peerhost;
-    if (scalar(grep { $_->{ip} eq $ip } $main::pool->connections) >= conf('limit', 'perip')) {
+    if (scalar(grep { $_->{ip} eq $ip } $::pool->connections) >= conf('limit', 'perip')) {
         $stream->close_now;
         return
     }
 
     # if the global user IP limit has been reached, disconnect
-    if (scalar(grep { $_->{ip} eq $ip } $main::pool->users) >= conf('limit', 'globalperip')) {
+    if (scalar(grep { $_->{ip} eq $ip } $::pool->users) >= conf('limit', 'globalperip')) {
         $stream->close_now;
         return
     }
@@ -320,7 +320,7 @@ sub handle_connect {
 # handle incoming data
 sub handle_data {
     my ($stream, $buffer) = @_;
-    my $connection = $main::pool->lookup_connection($stream) or return;
+    my $connection = $::pool->lookup_connection($stream) or return;
     while ($$buffer =~ s/^(.*?)\n//) {
         $connection->handle($1);
     }
@@ -328,7 +328,7 @@ sub handle_data {
 
 # send out PINGs and check for timeouts
 sub ping_check {
-    foreach my $connection ($main::pool->connections) {
+    foreach my $connection ($::pool->connections) {
     
         # not yet registered.
         # if they have been connected for 30 secs without registering, drop.
@@ -365,7 +365,7 @@ sub boot {
     require IO::Async::Loop;
 
     log2("this is $global{NAME} version $global{VERSION}");
-    $main::loop = $loop = IO::Async::Loop->new;
+    $::loop = $loop = IO::Async::Loop->new;
     %main::v = %global;
     undef %global;
 
@@ -391,8 +391,8 @@ sub become_daemon {
         open STDERR, '>', '/dev/null' or fatal("Can't write /dev/null: $!");
 
         # write the PID file that is used by the start/stop/rehash script.
-        open my $pidfh, '>', "$main::run_dir/etc/juno.pid" or fatal("Can't write $main::run_dir/etc/juno.pid");
-        $main::v{PID} = fork;
+        open my $pidfh, '>', "$::run_dir/etc/juno.pid" or fatal("Can't write $::run_dir/etc/juno.pid");
+        $::v{PID} = fork;
         say $pidfh v('PID') if v('PID');
         close $pidfh;
         
@@ -429,7 +429,7 @@ sub api_log {
 }
 
 # get version from VERSION file.
-# $main::VERSION = version of IRCd when it was started; version of static code
+# $::VERSION = version of IRCd when it was started; version of static code
 # $ircd::VERSION = version of ircd.pm and all reloadable packages at last reload
 # $API::Module::Core::VERSION = version of the core module currently
 # v('VERSION') = same as $ircd::VERSION

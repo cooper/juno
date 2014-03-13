@@ -70,7 +70,7 @@ sub register_server_command {
 
             # server lookup
             when ('server') {
-                my $serv = $main::pool->lookup_server(my $id = col($args[$i]));
+                my $serv = $::pool->lookup_server(my $id = col($args[$i]));
                 if (!$serv) {
                     log2("$command could not get server: $id");
                     $serv->{conn}->done('Protocol error.');
@@ -81,7 +81,7 @@ sub register_server_command {
 
             # user lookup
             when ('user') {
-                my $user = $main::pool->lookup_user(my $id = col($args[$i]));
+                my $user = $::pool->lookup_user(my $id = col($args[$i]));
                 if (!$user) {
                     log2("$command could not get user: $id");
                     $server->{conn}->done('Protocol error.');
@@ -92,7 +92,7 @@ sub register_server_command {
 
             # channel lookup
             when ('channel') {
-                my $channel = $main::pool->lookup_channel(my $chname = col($args[$i]));
+                my $channel = $::pool->lookup_channel(my $chname = col($args[$i]));
                 if (!$channel) {
                     log2("$command could not get channel: $chname");
                     $server->{conn}->done('Protocol error.');
@@ -128,7 +128,7 @@ sub register_server_command {
 
     # register to juno: updated 12/11/2012
     # ($source, $command, $callback, $forward)
-    $main::pool->register_server_handler(
+    $::pool->register_server_handler(
         $mod->{name},
         $opts{name},
         $CODE,
@@ -143,7 +143,7 @@ sub register_server_command {
 sub _unload {
     my ($class, $mod) = @_;
     log2("unloading server commands registered by $$mod{name}");
-    $main::pool->delete_server_handler($_) foreach @{ $mod->{server_commands} };
+    $::pool->delete_server_handler($_) foreach @{ $mod->{server_commands} };
     log2("done unloading commands");
     return 1
 }

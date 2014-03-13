@@ -74,12 +74,12 @@ sub quit {
         }
     }
 
-    $user->{pool}->delete_user($user) if $user->{pool};
+    $::pool->delete_user($user) if $user->{pool};
 }
 
 sub change_nick {
     my ($user, $newnick) = @_;
-    $user->{pool}->change_user_nick($user, $newnick) or return;
+    $::pool->change_user_nick($user, $newnick) or return;
     log2("$$user{nick} -> $newnick");
     $user->{nick} = $newnick;
 }
@@ -117,7 +117,7 @@ sub handle_mode_string {
             # don't allow this mode to be changed if the test fails
             # *unless* force is provided. generally ou want to use
             # tests only is local, since servers can do whatever.
-            my $win = $user->{pool}->fire_user_mode($user, $state, $name);
+            my $win = $::pool->fire_user_mode($user, $state, $name);
             if (!$force) {
                 next unless $win
             }
@@ -198,7 +198,7 @@ sub unset_away {
 # channels. I need to make this more efficient eventually.
 sub channels {
     my ($user, @channels) = shift;
-    foreach my $channel ($user->{pool}->channels) {
+    foreach my $channel ($::pool->channels) {
         next unless $channel->has_user($user);
         push @channels, $channel;
     }

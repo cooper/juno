@@ -62,7 +62,7 @@ sub handle {
             my $nick = col(shift @args);
 
             # nick exists
-            if ($main::pool->lookup_user_nick($nick)) {
+            if ($::pool->lookup_user_nick($nick)) {
                 $connection->sendme("433 * $nick :Nickname is already in use.");
                 return
             }
@@ -198,7 +198,8 @@ sub ready {
 
 
         # create a new user.
-        $connection->{type}     = $main::pool->new_user(%$connection);
+        $connection->{type} = $::pool->new_user(%$connection);
+        
     }
 
     # must be a server
@@ -213,8 +214,8 @@ sub ready {
         }
 
         $connection->{parent} = v('SERVER');
-        $connection->{type}   = $main::pool->new_server(%$connection);
-        $main::pool->fire_command_all(sid => $connection->{type});
+        $connection->{type}   = $::pool->new_server(%$connection);
+        $::pool->fire_command_all(sid => $connection->{type});
 
         # send server credentials
         if (!$connection->{sent_creds}) {
@@ -275,7 +276,7 @@ sub done {
 
     if ($connection->{type}) {
         # share this quit with the children
-        $main::pool->fire_command_all(quit => $connection, $reason);
+        $::pool->fire_command_all(quit => $connection, $reason);
 
         # tell user.pm or server.pm that the connection is closed
         $connection->{type}->quit($reason)
@@ -283,7 +284,7 @@ sub done {
     $connection->send("ERROR :Closing Link: $$connection{host} ($reason)") unless $silent;
 
     # remove from connection list
-    $connection->{pool}->delete_connection($connection) if $connection->{pool};
+    $::pool->delete_connection($connection) if $connection->{pool};
     
     $connection->{stream}->close_when_empty; # will close it WHEN the buffer is empty
 

@@ -34,7 +34,7 @@ sub resolve_address {
     $connection->reg_wait;
 
     # asynchronously resolve.
-    $main::loop->resolver->getnameinfo(
+    $::loop->resolver->getnameinfo(
         addr        => $connection->sock->peername,
         on_resolved => sub { on_resolved_ip($connection, @_) },
         on_error    => sub { on_error($connection) }
@@ -50,7 +50,7 @@ sub on_resolved_ip {
     $connection->{temp_host} = $host;
 
     # resolve the host back to an IP address
-    $main::loop->resolver->getaddrinfo(
+    $::loop->resolver->getaddrinfo(
         host        => $host,
         service     => '',
         socktype    => Socket::SOCK_STREAM(),

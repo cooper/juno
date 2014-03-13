@@ -33,9 +33,9 @@ sub handle {
 
         my $command = uc $s[0];
 
-        if ($main::pool->user_handlers($command)) { # an existing handler
+        if ($::pool->user_handlers($command)) { # an existing handler
 
-            foreach my $handler ($main::pool->user_handlers($command)) {
+            foreach my $handler ($::pool->user_handlers($command)) {
                 if ($#s >= $handler->{params}) {
                     $handler->{code}($user, $line, @s)
                 }
@@ -105,12 +105,12 @@ sub numeric {
     my ($user, $const, @response) = (shift, shift);
     
     # does not exist.
-    if (!$main::pool->numeric($const)) {
+    if (!$::pool->numeric($const)) {
         log2("attempted to send nonexistent numeric $const");
         return;
     }
     
-    my ($num, $val) = @{ $main::pool->numeric($const) };
+    my ($num, $val) = @{ $::pool->numeric($const) };
 
     # CODE reference for numeric response.
     if (ref $val eq 'CODE') {
@@ -156,7 +156,7 @@ sub new_connection {
     $user->sendfrom($user->{nick}, "MODE $$user{nick} :".$user->mode_string);
 
     # tell other servers
-    $main::pool->fire_command_all(uid => $user);
+    $::pool->fire_command_all(uid => $user);
 }
 
 # send to all members of channels in common
@@ -171,7 +171,7 @@ sub send_to_channels {
     my %sent = ( $user => 1 );
 
     # check each channel.
-    foreach my $channel ($main::pool->channels) {
+    foreach my $channel ($::pool->channels) {
     
         # source is not in this channel.
         next unless $channel->has_user($user);
@@ -205,7 +205,7 @@ sub do_mode_string {
     
     # tell the user himself and other servers.
     $user->sendfrom($user->{nick}, "MODE $$user{nick} :$result");
-    $main::pool->fire_command_all(umode => $user, $result);
+    $::pool->fire_command_all(umode => $user, $result);
     
 }
 

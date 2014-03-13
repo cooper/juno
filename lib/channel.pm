@@ -163,7 +163,7 @@ sub remove {
     
     # delete the channel if this is the last user
     if (!scalar @{ $channel->{users} }) {
-        $channel->{pool}->delete_channel($channel);
+        $::pool->delete_channel($channel);
     }
     
     log2("removed $$user{nick} from $$channel{name}");
@@ -229,7 +229,7 @@ sub handle_mode_string {
 
             # don't allow this mode to be changed if the test fails
             # *unless* force is provided.
-            my ($win, $moderef) = $main::pool->fire_channel_mode(
+            my ($win, $moderef) = $::pool->fire_channel_mode(
                 $channel, $server, $source, $state, $name, $parameter,
                 $parameters, $force, $over_protocol
             );

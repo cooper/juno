@@ -24,30 +24,30 @@ sub contains (+$) {
 
 sub conf {
     my ($sec, $key) = @_;
-    return $main::conf->get($sec, $key);
+    return $::conf->get($sec, $key);
 }
 
 sub lconf { # for named blocks
     my ($block, $sec, $key) = @_;
-    return $main::conf->get([$block, $sec], $key);
+    return $::conf->get([$block, $sec], $key);
 }
 
 # store something in the database.
 sub db_store {
     my ($block, $key, $value) = @_;
-    return $main::conf->store($block, $key, $value);
+    return $::conf->store($block, $key, $value);
 }
 
 # TODO: pending removal.
 sub conn {
     my ($sec, $key) = @_;
-    return $main::conf->get(['connect', $sec], $key);
+    return $::conf->get(['connect', $sec], $key);
 }
 
 # log errors/warnings
 
 sub log2 {
-    return if !$main::NOFORK  && defined $main::PID;
+    return if !$::NOFORK  && defined $::PID;
     my $line = shift;
     my $sub = (caller 1)[3];
     say(time.q( ).($sub && $sub ne '(eval)' ? "$sub():" : q([).(caller)[0].q(])).q( ).$line)
@@ -73,9 +73,9 @@ sub col {
 # find an object by it's id (server, user) or channel name
 sub global_lookup {
     my $id = shift;
-    my $server = $main::pool->lookup_server($id);
-    my $user   = $main::pool->lookup_user($id);
-    my $chan   = $main::pool->lookup_channel($id);
+    my $server = $::pool->lookup_server($id);
+    my $user   = $::pool->lookup_user($id);
+    my $chan   = $::pool->lookup_channel($id);
     return $server // $user // $chan;
 }
 
@@ -116,7 +116,7 @@ sub validchan {
 # match a list
 sub match {
     my ($what, @list) = @_;
-    return $main::pool->user_match($what, @list) if blessed $what;
+    return $::pool->user_match($what, @list) if blessed $what;
     return _match($what, @list);
 }
 
@@ -184,7 +184,7 @@ sub v : lvalue {
 }
 
 sub set ($$) {
-    $main::v{ +shift } = shift
+    $::v{ +shift } = shift
 }
 
 # for configuration values

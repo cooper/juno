@@ -21,7 +21,7 @@ sub register_ircd_event {
     my $callb_name = "$event_name.API.$$mod{name}";
     
     # register the event.
-    $main::pool->register_event(
+    $::pool->register_event(
         $event_name      => $code,
         name             => $callb_name,
         with_evented_obj => 1,
@@ -39,7 +39,7 @@ sub register_ircd_event {
 sub _unload {
     my ($class, $mod) = @_;
     log2("unloading ircd events registered by $$mod{name}");
-    $main::pool->delete_event(@$_) foreach @{ $mod->{ircd_events} };
+    $::pool->delete_event(@$_) foreach @{ $mod->{ircd_events} };
     log2("done unloading ircd events");
     return 1
 }

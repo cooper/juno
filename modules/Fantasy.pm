@@ -28,7 +28,7 @@ sub channel_privmsg {
     my $second_p = (split /\s+/, $message, 2)[1];
     return if defined $second_p && substr($second_p, 0, 1) eq '!';
     
-    my @handlers = $main::pool->user_handlers($cmd) or return;
+    my @handlers = $::pool->user_handlers($cmd) or return;
     
     my $line = length $args ? "$cmd $$channel{name} $args" : "$cmd $$channel{name}";
     my @s    = split /\s+/, $line;

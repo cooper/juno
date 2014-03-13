@@ -13,7 +13,7 @@ sub register_matcher {
     my ($mod, %opts) = @_;
     
     # register the event.
-    $main::pool->register_event(
+    $::pool->register_event(
         user_match => $opts{code},
         %opts
     ) or return;
@@ -29,7 +29,7 @@ sub register_matcher {
 sub _unload {
     my ($class, $mod) = @_;
     log2("unloading matchers registered by $$mod{name}");
-    $main::pool->delete_event(user_match => $_) foreach @{ $mod->{matchers} };
+    $::pool->delete_event(user_match => $_) foreach @{ $mod->{matchers} };
     log2("done unloading matchers");
     return 1
 }

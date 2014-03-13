@@ -18,7 +18,7 @@ sub connect_server {
     }
     
     # then, ensure that the server is not connected already.
-    if ($main::pool->lookup_server_name($server_name)) {
+    if ($::pool->lookup_server_name($server_name)) {
         log2("attempted to connect an already connected server: $server_name");
         return;
     }
@@ -46,7 +46,7 @@ sub connect_server {
     );
 
     # create connection object 
-    my $conn = $main::pool->new_connection(stream => $stream);
+    my $conn = $::pool->new_connection(stream => $stream);
 
     $stream->configure(
         read_all       => 0,
@@ -58,7 +58,7 @@ sub connect_server {
         on_write_error => sub { _end($conn, $stream, $server_name, 'Write error: '.$_[1]) }
     );
 
-    $main::loop->add($stream);
+    $::loop->add($stream);
 
     # send server credentials.
     $conn->send(sprintf 'SERVER %s %s %s %s :%s',
@@ -94,7 +94,7 @@ sub _end {
             on_expire => sub { connect_server($server_name) }
         );
         
-        $main::loop->add($timer);
+        $::loop->add($timer);
         $timer->start;
         
     }

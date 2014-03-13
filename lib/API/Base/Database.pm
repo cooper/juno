@@ -14,7 +14,7 @@ sub database {
     
     # use sqlite.
     if (conf('database', 'type') eq 'sqlite') {
-        my $dbfile = "$main::run_dir/db/$name.db";
+        my $dbfile = "$::run_dir/db/$name.db";
         return DBI->connect("dbi:SQLite:dbname=$dbfile", '', '');
     }
     

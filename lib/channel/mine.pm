@@ -158,7 +158,7 @@ sub _do_mode_string {
     
     # the source is our user or this server, so tell other servers.
     # ($source, $channel, $time, $perspective, $server_modestr)
-    $main::pool->fire_command_all(cmode =>
+    $::pool->fire_command_all(cmode =>
         $source, $channel, $channel->{time},
         $perspective->{sid}, $server_result
     ) unless $local_only;

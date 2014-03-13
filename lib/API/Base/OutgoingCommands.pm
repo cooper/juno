@@ -22,7 +22,7 @@ sub register_outgoing_command {
     $mod->{user_commands} ||= [];
 
     # register to juno
-    $main::pool->register_outgoing_handler(
+    $::pool->register_outgoing_handler(
         $mod->{name},
         $opts{name},
         $opts{code}
@@ -35,7 +35,7 @@ sub register_outgoing_command {
 sub _unload {
     my ($class, $mod) = @_;
     log2("unloading outgoing commands registered by $$mod{name}");
-    $main::pool->delete_outgoing_handler($_) foreach @{ $mod->{outgoing_commands} };
+    $::pool->delete_outgoing_handler($_) foreach @{ $mod->{outgoing_commands} };
     log2("done unloading commands");
     return 1
 }

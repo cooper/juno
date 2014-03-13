@@ -20,7 +20,7 @@ sub register_channel_mode_block {
     }
 
     # register the mode block
-    $main::pool->register_channel_mode_block(
+    $::pool->register_channel_mode_block(
         $opts{name},
         $mod->{name},
         $opts{code}
@@ -37,7 +37,7 @@ sub _unload {
 
     # delete 1 at a time
     foreach my $name (@{ $mod->{channel_modes} }) {
-        $main::pool->delete_channel_mode_block($name, $mod->{name});
+        $::pool->delete_channel_mode_block($name, $mod->{name});
     }
 
     log2("done unloading modes");
