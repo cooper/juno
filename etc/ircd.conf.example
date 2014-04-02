@@ -112,10 +112,14 @@ channelname = 50        # channel names
 away        = 100       # away messages
 
 # the max number of...
+
 connection  = 100    # connections
 perip       = 3      # connections per IP address (local connections)
 globalperip = 5      # connections per IP address (global users)
 client      = 80     # users
+
+bytes_line  = 2048   # bytes per line
+lines_sec   = 30     # lines per second
 
 [ file ]
 

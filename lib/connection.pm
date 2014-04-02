@@ -40,9 +40,6 @@ sub handle {
     $connection->{ping_in_air}   = 0;
     $connection->{last_response} = time;
 
-    # strip unwanted characters
-    $data =~ s/(\n|\r|\0)//g;
-
     # connection is being closed
     return if $connection->{goodbye};
 

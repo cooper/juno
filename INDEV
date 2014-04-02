@@ -2058,7 +2058,11 @@ CHANGES:
         
         43. delete user and channel mode information before re-adding in ircd::start().
             
-        44. cleanup: I've moved on to text editors that support the $:: syntax.    
+        44. cleanup: I've moved on to text editors that support the $:: syntax.
+        
+        45. added two new flood protection configuration options
+            limit:bytes_line, maximum number of bytes per line;
+            limit:lines_sec, maximum number of lines per client per second.
             
             
             

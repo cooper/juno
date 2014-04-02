@@ -314,16 +314,66 @@ sub handle_connect {
         on_write_error => sub { $conn->done('Write error: '.$_[1]); $stream->close_now }
     );
 
-    $loop->add($stream)
+    $loop->add($stream);
 }
 
 # handle incoming data
 sub handle_data {
     my ($stream, $buffer) = @_;
     my $connection = $::pool->lookup_connection($stream) or return;
-    while ($$buffer =~ s/^(.*?)\n//) {
-        $connection->handle($1);
+    
+    # fetch the values at which the limit was exceeded.
+    my $overflow_1line = (my $max_in_line = conf('limit', 'bytes_line')  // 2048) + 1;
+    my $overflow_lines = (my $max_lines   = conf('limit', 'lines_sec')   // 30  ) + 1;
+    
+    foreach my $char (split '', $$buffer) {
+        my $length = length $connection->{current_line} || 0;
+    
+        # unwanted characters.
+        next if $char eq "\0" || $char eq "\r";
+    
+        # end of line.
+        if ($char eq "\n") {
+            
+            # a line other than the first of this second.
+            my $time = int time;
+            if (exists $connection->{lines_sec}{$time}) {
+                $connection->{lines_sec}{$time}++;
+            }
+            
+            # first line of this second; overwrite entire hash.
+            else {
+                $connection->{lines_sec} = { $time => 1 };
+            }
+            
+            # too many lines!
+            my $num_lines = $connection->{lines_sec}{$time};
+            if ($num_lines == $overflow_lines) {
+                $connection->done("Exceeded $max_lines lines per second");
+                return;
+            }
+            
+            # no error. handle this data.
+            $connection->handle(delete $connection->{current_line});
+            $length = 0;
+            
+            next;
+        }
+        
+        # line too long.
+        if ($length == $overflow_1line) {
+            $connection->done("Exceeded $max_in_line bytes in line");
+            return;
+        }
+        
+        # regular character;
+        ($connection->{current_line} //= '') .= $char;
+        $length++;
+        
     }
+    
+    $$buffer = '';
+    
 }
 
 # send out PINGs and check for timeouts
@@ -350,7 +400,7 @@ sub ping_check {
         }
     
         # ping timeout.
-        $connection->done('Ping timeout: '.().' seconds')
+        $connection->done("Ping timeout: $since_last seconds")
           if $since_last >= lconf('ping', $type, 'timeout');
         
     }
