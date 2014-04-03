@@ -10,7 +10,7 @@ use parent 'Evented::Object';
 use Socket::GetAddrInfo;
 use Scalar::Util 'weaken';
 
-use utils qw[log2 col conn conf match v set];
+use utils qw[log2 col conn conf match v];
 
 sub new {
     my ($class, $stream) = @_;

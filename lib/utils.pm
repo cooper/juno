@@ -189,9 +189,8 @@ sub set_v ($$) {
 }
 
 # send a notice to opers.
-sub oper_notice {
-    my ($key, @args) = @_;
-    
+sub notice {
+    return $::pool->fire_oper_notice(@_);
 }
 
 # for configuration values

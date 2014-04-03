@@ -2068,8 +2068,15 @@ CHANGES:
             
                 461. fixed the above commit.
             
-
-        
+        47. fixed LUSERS always saying "x users and y invisible on 0 servers."
+            fixed LUSERS always saying "0 channels formed."
+            added oper notice format registration methods to the pool object.
+            created OperNotices API base for registering new notice formats in modules.
+            created Core.OperNotices module for oper notice formats used in the core.
+            created oper notice flags: new_connection, new_user, new_server.
+            added notice() utility function for quickly firing oper notices.
+            added 'notices' option to oper and operclass blocks in configuration.
+            the notice flag 'all' instructs the server to send all notices.
             
             
             

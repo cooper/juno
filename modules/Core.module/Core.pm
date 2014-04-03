@@ -20,8 +20,8 @@ sub init {
     
     # load submodules.
     $mod->load_submodule($_) || return foreach qw(
-        ServerCommands OutgoingCommands UserModes
-        ChannelModes UserNumerics UserCommands Matchers
+        ServerCommands OutgoingCommands UserModes ChannelModes
+        UserNumerics UserCommands Matchers OperNotices
     );
 
     return 1;   

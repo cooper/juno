@@ -55,6 +55,8 @@
 		A79514CF18C3ECD900838C46 /* Database.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Database.pm; sourceTree = "<group>"; wrapsLines = 0; };
 		A79514D118C431C900838C46 /* Account.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Account.pm; sourceTree = "<group>"; };
 		A79514D218C67F7500838C46 /* Fantasy.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Fantasy.pm; sourceTree = "<group>"; };
+		A7C5899618EE17710062B441 /* OperNotices.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = OperNotices.pm; sourceTree = "<group>"; };
+		A7C5899718EE17970062B441 /* OperNotices.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = OperNotices.pm; sourceTree = "<group>"; };
 		A7CD6BF418CEA09300FBEFD6 /* Reload.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Reload.pm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -122,6 +124,7 @@
 				A75C5CE618B4321A007780A3 /* UserNumerics.pm */,
 				A79514CD18C2EECC00838C46 /* Matching.pm */,
 				A79514CF18C3ECD900838C46 /* Database.pm */,
+				A7C5899718EE17970062B441 /* OperNotices.pm */,
 			);
 			name = "API bases";
 			path = API/Base;
@@ -192,6 +195,7 @@
 				A75C5D1818B4321A007780A3 /* UserModes.pm */,
 				A75C5D1918B4321A007780A3 /* UserNumerics.pm */,
 				A79514CE18C301D600838C46 /* Matchers.pm */,
+				A7C5899618EE17710062B441 /* OperNotices.pm */,
 			);
 			name = Submodules;
 			path = submodules;

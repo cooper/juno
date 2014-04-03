@@ -579,7 +579,7 @@ sub oper {
     # or keep going!
     # let's find all of their oper flags now
 
-    my @flags;
+    my (@flags, @notices);
 
     # flags in their oper block
     if (defined ( my $flagref = lconf('oper', $args[1], 'flags') )) {
@@ -588,6 +588,14 @@ sub oper {
         }
         else {
             push @flags, @$flagref
+        }
+    }
+    if (defined ( my $flagref = lconf('oper', $args[1], 'notices') )) {
+        if (ref $flagref ne 'ARRAY') {
+            log2("'notices' specified for oper block $args[1], but it is not an array reference.");
+        }
+        else {
+            push @notices, @$flagref
         }
     }
 
@@ -605,6 +613,14 @@ sub oper {
                 push @flags, @$flagref
             }
         }
+        if (defined ( my $flagref = lconf('operclass', $operclass, 'notices') )) {
+            if (ref $flagref ne 'ARRAY') {
+                log2("'notices' specified for oper class block $operclass, but it is not an array reference.");
+            }
+            else {
+                push @notices, @$flagref
+            }
+        }
 
         # add parent too
         if (defined ( my $parent = lconf('operclass', $operclass, 'extends') )) {
@@ -616,14 +632,20 @@ sub oper {
         $add_class->($add_class, $operclass);
     }
 
-    my %h = map { $_ => 1 } @flags;
-    @flags = keys %h; # should remove duplicates
+    # remove duplicate flags
+    my %h    = map { lc $_ => 1 } @flags;
+    @flags   = keys %h;
+    %h       = map { lc $_ => 1 } @notices;
+    @notices = keys %h;
+    
     $user->add_flags(@flags);
+    $user->add_notices(@notices);
     $::pool->fire_command_all(oper => $user, @flags);
 
     # okay, we should have a complete list of flags now.
     log2("$$user{nick}!$$user{ident}\@$$user{host} has opered as $args[1] and was granted flags: @flags");
     $user->server_notice('You now have flags: '.join(' ', @{ $user->{flags} }));
+    $user->server_notice('You now have notices: '.join(' ', @{ $user->{notice_flags} })) if $user->{notice_flags};
 
     # set ircop, send MODE to the user, and tell other servers.
     $user->do_mode_string('+'.$user->{server}->umode_letter('ircop'), 1);
@@ -932,8 +954,8 @@ sub lusers {
     my ($user, $data, @args) = @_;
 
     # get server count
-    my $servers   = scalar keys %server::server;
-    my $l_servers = scalar grep { $_->is_local } $::pool->servers;
+    my $servers   = scalar $::pool->servers;
+    my $l_servers = scalar grep { $_->{conn} } $::pool->servers;
 
     # get x users, x invisible, and total global
     my ($g_not_invisible, $g_invisible) = (0, 0);
@@ -952,7 +974,7 @@ sub lusers {
 
     # get oper count and channel count
     my $opers = scalar grep { $_->is_mode('ircop') } $::pool->users;
-    my $chans = scalar keys %channel::channel;
+    my $chans = scalar $::pool->channels;
 
     # get max global and max local
     my $m_global = v('max_global_user_count');
@@ -1092,7 +1114,7 @@ sub modules {
         $user->server_notice("    $$_mod{description}");
         foreach my $type (qw|
             user_commands server_commands channel_modes user_modes
-            outgoing_commands user_numerics matchers
+            outgoing_commands user_numerics matchers oper_notices
         |) {
         
             # find items in this category.

@@ -209,4 +209,25 @@ sub do_mode_string {
     
 }
 
+# has a notice flag
+sub has_notice {
+    my ($user, $flag) = (shift, lc shift);
+    return unless $user->{notice_flags};
+    foreach my $f (@{ $user->{notice_flags} }) {
+        return 1 if $f eq 'all';
+        return 1 if $f eq $flag;
+    }
+    
+    return;
+}
+
+# add a notice flag
+sub add_notices {
+    my ($user, @flags) = (shift, map { lc } @_);
+    foreach my $flag (@flags) {
+        next if $user->has_notice($flag);
+        push @{ $user->{notice_flags} ||= [] }, $flag;
+    }
+}
+
 1

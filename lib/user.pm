@@ -13,7 +13,7 @@ use overload
     '0+'     => sub { shift     },
     bool     => sub { 1         };
 
-use utils qw[log2 v set];
+use utils qw[log2 v];
 
 # create a new user
 

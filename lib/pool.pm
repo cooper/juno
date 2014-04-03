@@ -8,7 +8,7 @@ use parent 'Evented::Object';
 
 use Scalar::Util qw(weaken blessed);
 
-use utils qw(v set_v log2);
+use utils qw(v set_v log2 notice);
 
 # create a pool.
 sub new {
@@ -40,7 +40,8 @@ sub new_connection {
     $connection->fire_event('new');
 
     # update total connection count
-    set_v(connection_count => v('connection_count') + 1);
+    my $connection_num = v('connection_count') + 1;
+    set_v(connection_count => $connection_num);
 
     # update maximum connection count.
     if (scalar keys %{ $pool->{connections} } > v('max_connection_count')) {
@@ -48,6 +49,8 @@ sub new_connection {
     }
     
     log2("processing connection from $$connection{ip}");
+    notice(new_connection => $connection->{ip}, $connection_num);
+    
     return $connection;
 }
 
@@ -170,6 +173,14 @@ sub new_user {
         "new user from $$user{server}{name}: $$user{uid} " .
         "$$user{nick}!$$user{ident}\@$$user{host} [$$user{real}]"
     );
+    notice(new_user =>
+        $user->{nick},
+        $user->{ident},
+        $user->{host},
+        $user->{real},
+        $user->{server}{name}
+    );
+    
     return $user;
 }
 
@@ -367,6 +378,72 @@ sub delete_numeric {
 sub numeric {
     my ($pool, $numeric) = @_;
     return $pool->{numerics}{$numeric};
+}
+
+
+####################
+### OPER NOTICES ###
+####################
+
+# register notice
+sub register_notice {
+    my ($pool, $source, $notice, $fmt) = @_;
+
+    # does it already exist?
+    if (exists $pool->{oper_notices}{$notice}) {
+        log2("attempted to register $notice which already exists");
+        return;
+    }
+
+    $pool->{oper_notices}{$notice} = $fmt;
+    log2("$source registered oper notice '$notice'");
+    return 1;
+}
+
+# unregister notice
+sub delete_notice {
+    my ($pool, $source, $notice) = @_;
+
+    # does it exist?
+    if (!exists $pool->{oper_notices}{$notice}) {
+        log2("attempted to delete oper notice '$notice' which does not exists");
+        return;
+    }
+
+    delete $pool->{oper_notices}{$notice};
+    log2("$source deleted oper notice '$notice'");
+    
+    return 1;
+}
+
+# send out a notice.
+sub fire_oper_notice {
+    my ($pool, $notice, $amnt) = (shift, lc shift, 0);
+    my $message = $pool->{oper_notices}{$notice} or return;
+    
+    # code reference.
+    if (ref $message eq 'CODE') {
+        $message = $message->(@_);
+    }
+    
+    # formatter.
+    else {
+        $message = sprintf $message, @_;
+    }
+    
+    # send to users with this notice flag.
+    foreach my $user ($pool->users) {
+        next unless $user->is_mode('ircop');
+        next unless $user->has_notice($notice);
+
+        my $pretty = qq(\2).ucfirst($notice).qq(\2);
+        $pretty    =~ s/_/ /g;
+        $user->server_notice($pretty, $message);
+        $amnt++;
+    
+    }
+    
+    return $amnt;
 }
 
 ###############################

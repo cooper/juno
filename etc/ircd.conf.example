@@ -169,7 +169,8 @@ flags   = [qw/gkill globops grehash/] # and adds these flags
 [ operclass: netadmin ]
 
 extends = 'global'                   # gets the flags from both global and local
-flags   = [qw/grant/]                # and adds these flags
+flags   = ['grant']                  # and adds these flags
+notices = ['all']                    # and these notice flags
 
 [ oper: admin ]
 
