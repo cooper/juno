@@ -177,14 +177,20 @@ sub crypt {
 
 # variables
 
-sub v : lvalue {
-    my $h = \%main::v;
+sub v {
+    my $h = \%::v;
     while (scalar @_ != 1) { $h = $h->{ +shift } }
     return $h->{ +shift };
 }
 
-sub set ($$) {
+sub set_v ($$) {
     $::v{ +shift } = shift
+}
+
+# send a notice to opers.
+sub oper_notice {
+    my ($key, @args) = @_;
+    
 }
 
 # for configuration values

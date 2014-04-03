@@ -46,16 +46,16 @@ simultaneous file and socket operations than any previous version.
 Since version 5, juno-ircd has depended on many of the "Evented" packages. These are all
 included as submodules.
 
-* [Evented::Object](https://github.com/cooper/evented-object) - provides methods to fire
+* [__Evented::Object__](https://github.com/cooper/evented-object) - provides methods to fire
   and respond to events on objects.
 
-* [Evented::Configuration](https://github.com/cooper/evented-configuration) - a
+* [__Evented::Configuration__](https://github.com/cooper/evented-configuration) - a
   configuration class which fires events when values are changed.
 
-* [Evented::Database](https://github.com/cooper/evented-database) - a database based upon
+* [__Evented::Database__](https://github.com/cooper/evented-database) - subclass of
   Evented::Configuration with seamless database functionality in a configuration class.
 
-* [API Engine](https://github.com/cooper/api-engine) - an extensible API class based on the
+* [__API Engine__](https://github.com/cooper/api-engine) - an extensible API class based on the
   original APIs of juno, providing a base for juno's module interfaces.
 
 ## Fetching and updating
@@ -129,8 +129,7 @@ Kominek. It has grown to be a bit more *practical*.
   the core of juno, eventually making it possible to implement other linking protocols
   through the use of modules.
 
-* **vulpia-ircd** (juno7): tagged vulpia-ircd, is a continuation of kedler and is
-  currently under active development.
+* **vulpia-ircd** (juno7): a continuation of kedler currently under active development.
 
 ## Naming conventions or lack thereof
 
@@ -144,7 +143,7 @@ confusion by adopting a new versioning system that increments at a faster rate. 
 commit increments the version by a tenth. For example, the last commit of kedler (juno6)
 is 6.99, and the first commit of vulpia (juno7) is simply 7.
 
-## What is juno-ircd?
+# What is juno-ircd?
 
 juno-ircd is a fully-featured, modular, and usable IRC daemon written in Perl. It is aimed
 to be highly extensible and customizable. At the same time it is efficient and usable.  
@@ -227,7 +226,8 @@ I don't think it's appropriate for Perl, but I have not yet found a great OS X e
 
 I live in the middle of nowhere and prefer the dark chicken meat over white meat. I'll
 drink a Coke if there's no better option, but I'd take a Sunkist, Pepsi or Dr. Pepper first.
-I don't watch much television, but when I do, it's usually news networks, C-SPAN, and night shows.
+I don't watch much television, but when I do, it's usually on news networks, C-SPAN, and
+night shows.
   
 I repair computers and visit people's homes to help with their electronic troubles.
 I've designed websites for local entities in the area. I collect computers and have

@@ -416,7 +416,7 @@ sub boot {
 
     log2("this is $global{NAME} version $global{VERSION}");
     $::loop = $loop = IO::Async::Loop->new;
-    %main::v = %global;
+    %::v    = %global;
     undef %global;
 
     start(1);
