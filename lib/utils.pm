@@ -175,7 +175,7 @@ sub crypt {
     return $what;
 }
 
-# variables
+# variables.
 
 sub v {
     my $h = \%::v;
@@ -184,7 +184,8 @@ sub v {
 }
 
 sub set_v ($$) {
-    $::v{ +shift } = shift
+    my ($key, $value) = @_;
+    $::v{$key} = $value;
 }
 
 # send a notice to opers.
