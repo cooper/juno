@@ -13,7 +13,7 @@ use overload
     '0+'     => sub { shift     },
     bool     => sub { 1         };
 
-use utils qw[log2 v];
+use utils qw[log2 v notice];
 
 # create a new user
 
@@ -57,7 +57,8 @@ sub set_mode {
 sub quit {
     my ($user, $reason) = @_;
     log2("user quit from $$user{server}{name} uid:$$user{uid} $$user{nick}!$$user{ident}\@$$user{host} [$$user{real}] ($reason)");
-
+    notice(user_quit => $user->notice_info, $user->{server}{name}, $reason);
+    
     my %sent = ( $user => 1 );
     $user->sendfrom($user->full, "QUIT :$reason") if $user->is_local;
 
@@ -154,8 +155,11 @@ sub mode_string {
 sub add_flags {
     my $user  = shift;
     my @flags = grep { !$user->has_flag($_) } @_;
+    return unless scalar @flags;
     log2("adding flags to $$user{nick}: @flags");
-    push @{ $user->{flags} }, @flags
+    notice(user_opered => $user->notice_info, $user->{server}{name}, "@flags");
+    push @{ $user->{flags} }, @flags;
+    return @flags;
 }
 
 # remove oper flags
@@ -222,6 +226,11 @@ sub fullip {
 sub fullcloak {
     my $user = shift;
     "$$user{nick}!$$user{ident}\@$$user{cloak}"
+}
+
+sub notice_info {
+    my $user = shift;
+    return ($user->{nick}, $user->{ident}, $user->{host}, $user->{real});
 }
 
 sub DESTROY {

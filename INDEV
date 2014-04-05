@@ -2079,7 +2079,18 @@ CHANGES:
             the notice flag 'all' instructs the server to send all notices.
             
         48. fixed an issue where an infinite number of carriage returns could be processed without terminating a connection because they were completely ignored before even reaching flood consideration.
-            
+        
+        49. resolved uninitialized warnings in CUM command handler due to split() returning undef with empty modestrings.
+            added new oper notice flags:
+
+            user_opered, a local or remote user gained privileges;
+            user_quit, a local or remote user disconnected;
+            new_server, a new server was introduced;
+            server_burst, a server began to burst information;
+            server_endburst, a server finished bursting information;
+            server_quit, a local or remote server disconnected;
+            connection_terminated, a local connection was closed.
+
             
             
             

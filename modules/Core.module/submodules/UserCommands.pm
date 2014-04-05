@@ -6,7 +6,7 @@ use strict;
 
 use Scalar::Util qw(blessed);
 
-use utils qw(col log2 lceq lconf match cut_to_limit conf v);
+use utils qw(col log2 lceq lconf match cut_to_limit conf v notice);
 
 our $VERSION = $API::Module::Core::VERSION;
 

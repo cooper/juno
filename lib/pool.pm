@@ -63,6 +63,10 @@ sub lookup_connection {
 # delete a connection.
 sub delete_connection {
     my ($pool, $connection) = @_;
+    notice(connection_terminated =>
+        $connection->{ip},
+        $connection->{type} ? $connection->{type}->full : 'unregistered'
+    );
     
     # forget it.
     delete $pool->{connections}{ $connection->{stream} };
@@ -98,10 +102,19 @@ sub new_server {
         push @{ $opts{parent}{children} }, $server;
     }
     
+    notice(new_server =>
+        $server->{name},
+        $server->{sid},
+        $server->{ircd},
+        $server->{proto},
+        $server->{desc},
+        $server->{parent}{name}
+    );
     log2(
         "new server $$server{sid}:$$server{name} $$server{proto}-$$server{ircd} " .
         "parent:$$server{parent}{name} [$$server{desc}]"
     );
+    
     return $server;
 }
 
@@ -199,7 +212,7 @@ sub lookup_user_nick {
 # delete a user.
 sub delete_user {
     my ($pool, $user) = @_;
-    
+
     # remove from server.
     # this isn't a very efficient way to do this.
     my $users = $user->{server}{users};

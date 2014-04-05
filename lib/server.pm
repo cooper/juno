@@ -7,7 +7,7 @@ use strict;
 use feature 'switch';
 use parent qw(Evented::Object server::mine);
 
-use utils qw[log2 v];
+use utils qw[log2 v notice];
 
 sub new {
     my ($class, %opts) = @_;
@@ -25,7 +25,13 @@ sub quit {
     $why //= $server->{name}.q( ).$server->{parent}{name};
 
     log2("server $$server{name} has quit: $reason");
-
+    notice(server_quit =>
+        $server->{name},
+        $server->{sid},
+        $server->{parent}{name},
+        $why
+    );
+    
     # all children must be disposed of.
     foreach my $serv (@{ $server->{children} }) {
         next if $serv == $server;

@@ -10,7 +10,7 @@ use Module::Loaded qw(is_loaded);
 
 use utils qw(conf lconf log2 fatal v trim);
 
-our (  $VERSION,   $API,   $api,  $conf,   $loop,   $pool,   $timer, %global, $boot) =
+our (  $VERSION,   $API,   $api,   $conf,   $loop,   $pool,   $timer, %global, $boot) =
     ($::VERSION, $::API, $::API, $::conf, $::loop, $::pool, $::timer);
 $VERSION = get_version();
 

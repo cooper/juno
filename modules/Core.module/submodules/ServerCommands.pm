@@ -4,7 +4,7 @@ package API::Module::Core::ServerCommands;
 use warnings;
 use strict;
  
-use utils qw(col log2 lceq lconf match cut_to_limit conf v);
+use utils qw(col log2 lceq lconf match cut_to_limit conf v notice);
 
 our $VERSION = $API::Module::Core::VERSION;
 
@@ -264,17 +264,21 @@ sub burst {
     # server dummy
     # :sid   BURST
     my ($server, $data, $serv) = @_;
-    $serv->{is_burst} = 1;
+    $serv->{is_burst} = time;
     log2("$$serv{name} is bursting information");
+    notice(server_burst => $server->{name}, $server->{sid});
 }
 
 sub endburst {
     # server dummy
     # :sid   ENDBURST
     my ($server, $data, $serv) = @_;
-    delete $serv->{is_burst};
-    $serv->{sent_burst} = 1;
+    my $time    = delete $serv->{is_burst};
+    my $elapsed = time - $time;
+    $serv->{sent_burst} = time;
+    
     log2("end of burst from $$serv{name}");
+    notice(server_endburst => $server->{name}, $server->{sid}, $elapsed);
 }
 
 sub addumode {
@@ -517,8 +521,8 @@ sub cum {
             substr($old_s_modestr, 0, 1) = '-';
             
             # separate each string into modes and params.
-            my ($s_modes, @s_params) = split ' ', $old_s_modestr;
-            my ($d_modes, @d_params) = split ' ', $difference;
+            my ($s_modes, @s_params) = split(' ', $old_s_modestr) // '';
+            my ($d_modes, @d_params) = split(' ', $difference)    // '';
             
             # combine.
             $difference = join(' ', join('', $d_modes, $s_modes), @d_params, @s_params);
