@@ -2078,7 +2078,7 @@ CHANGES:
             added 'notices' option to oper and operclass blocks in configuration.
             the notice flag 'all' instructs the server to send all notices.
             
-            
+        48. fixed an issue where an infinite number of carriage returns could be processed without terminating a connection because they were completely ignored before even reaching flood consideration.
             
             
             

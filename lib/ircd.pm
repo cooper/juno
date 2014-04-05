@@ -329,9 +329,6 @@ sub handle_data {
     foreach my $char (split '', $$buffer) {
         my $length = length $connection->{current_line} || 0;
     
-        # unwanted characters.
-        next if $char eq "\0" || $char eq "\r";
-    
         # end of line.
         if ($char eq "\n") {
             
@@ -360,15 +357,20 @@ sub handle_data {
             next;
         }
         
+        # even if this is an unwanted character, count it toward limit.
+        $length++;
+        
         # line too long.
         if ($length == $overflow_1line) {
             $connection->done("Exceeded $max_in_line bytes in line");
             return;
         }
         
+        # unwanted characters.
+        next if $char eq "\0" || $char eq "\r";
+        
         # regular character;
         ($connection->{current_line} //= '') .= $char;
-        $length++;
         
     }
     
