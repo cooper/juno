@@ -209,25 +209,30 @@ sub channels {
     return @channels;
 }
 
+# user is a member of this server.
 sub is_local {
     return shift->{server} == v('SERVER')
 }
 
+# full visible mask, e.g. w/ cloak.
 sub full {
+    my $user = shift;
+    "$$user{nick}!$$user{ident}\@$$user{cloak}"
+}
+
+# full actual mask.
+sub fullreal {
     my $user = shift;
     "$$user{nick}!$$user{ident}\@$$user{host}"
 }
 
+# full mask w/ IP rather than host.
 sub fullip {
     my $user = shift;
     "$$user{nick}!$$user{ident}\@$$user{ip}"
 }
 
-sub fullcloak {
-    my $user = shift;
-    "$$user{nick}!$$user{ident}\@$$user{cloak}"
-}
-
+# convenience for passing info to notice().
 sub notice_info {
     my $user = shift;
     return ($user->{nick}, $user->{ident}, $user->{host}, $user->{real});

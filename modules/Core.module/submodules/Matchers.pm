@@ -31,7 +31,7 @@ sub init {
 
 sub standard_matcher {
     my ($event, $user, @list) = @_;
-    foreach my $mask ($user->full, $user->fullcloak, $user->fullip) {
+    foreach my $mask ($user->full, $user->fullreal, $user->fullip) {
         return $event->{matched} = 1 if _match($mask, @list);
     }
     return;

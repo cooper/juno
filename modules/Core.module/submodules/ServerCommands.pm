@@ -353,7 +353,7 @@ sub sjoin {
     $channel->cjoin($user, $time) unless $channel->has_user($user);
     
     # for each user in the channel, send a JOIN message.
-    $channel->send_all(q(:).$user->full." JOIN $$channel{name}");
+    $channel->sendfrom_all($user->full, "JOIN $$channel{name}");
    
     # fire after join event.
     $channel->fire_event(user_joined => $user);
@@ -473,13 +473,14 @@ sub cum {
     );
 
     # store mode string before any possible changes.
-    # take the new time if it's older.
     my @after_params;       # params after changes.
     my $after_modestr = ''; # mode string after changes.
     my $old_modestr   = $channel->mode_string_all($serv, 1); # all but status
     my $old_s_modestr = $channel->mode_string_status($serv); # status only
-    my $old_time      = $channel->{time};
-    my $new_time      = $channel->take_lower_time($ts, 1);
+    
+    # take the new time if it's less recent.
+    my $old_time = $channel->{time};
+    my $new_time = $channel->take_lower_time($ts, 1);
 
     # determine the user mode string.
     my ($uids_modes, @uids) = '';
@@ -491,7 +492,7 @@ sub cum {
         # join the new users
         unless ($channel->has_user($user)) {
             $channel->cjoin($user, $channel->{time});
-            $channel->send_all(q(:).$user->full." JOIN $$channel{name}");
+            $channel->sendfrom_all($user->full, " JOIN $$channel{name}");
             $channel->fire_event(user_joined => $user);
         }
 

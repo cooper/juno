@@ -48,9 +48,7 @@ sub new_connection {
         set_v(max_connection_count => scalar keys %{ $pool->{connections} });
     }
     
-    log2("processing connection from $$connection{ip}");
     notice(new_connection => $connection->{ip}, $connection_num);
-    
     return $connection;
 }
 
@@ -72,7 +70,6 @@ sub delete_connection {
     delete $pool->{connections}{ $connection->{stream} };
     delete $connection->{pool};
     
-    log2("deleted connection from $$connection{ip}");
     return 1;
 }
 
@@ -110,11 +107,6 @@ sub new_server {
         $server->{desc},
         $server->{parent}{name}
     );
-    log2(
-        "new server $$server{sid}:$$server{name} $$server{proto}-$$server{ircd} " .
-        "parent:$$server{parent}{name} [$$server{desc}]"
-    );
-    
     return $server;
 }
 
@@ -182,18 +174,7 @@ sub new_user {
     set_v(max_local_user_count  => $c_l) if $c_l > $max_l;
     set_v(max_global_user_count => $c_g) if $c_g > $max_g;
 
-    log2(
-        "new user from $$user{server}{name}: $$user{uid} " .
-        "$$user{nick}!$$user{ident}\@$$user{host} [$$user{real}]"
-    );
-    notice(new_user =>
-        $user->{nick},
-        $user->{ident},
-        $user->{host},
-        $user->{real},
-        $user->{server}{name}
-    );
-    
+    notice(new_user => $user->notice_info, $user->{server}{name});
     return $user;
 }
 
@@ -444,19 +425,19 @@ sub fire_oper_notice {
         $message = sprintf $message, @_;
     }
     
+    my $pretty = qq(\2).ucfirst($notice).qq(\2);
+    $pretty    =~ s/_/ /g;
+    
     # send to users with this notice flag.
     foreach my $user ($pool->users) {
         next unless $user->is_mode('ircop');
         next unless $user->has_notice($notice);
-
-        my $pretty = qq(\2).ucfirst($notice).qq(\2);
-        $pretty    =~ s/_/ /g;
+        
         $user->server_notice($pretty, $message);
         $amnt++;
-    
     }
     
-    return $amnt;
+    return wantarray ? ($amnt, $pretty, $message) : $amnt;
 }
 
 ###############################

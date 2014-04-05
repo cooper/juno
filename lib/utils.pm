@@ -49,7 +49,7 @@ sub conn {
 sub log2 {
     return if !$::NOFORK  && defined $::PID;
     my $line = shift;
-    my $sub = (caller 1)[3];
+    my $sub  = shift // (caller 1)[3];
     say(time.q( ).($sub && $sub ne '(eval)' ? "$sub():" : q([).(caller)[0].q(])).q( ).$line)
 }
 
@@ -190,7 +190,10 @@ sub set_v ($$) {
 
 # send a notice to opers.
 sub notice {
-    return $::pool->fire_oper_notice(@_);
+    my $sub = (caller 1)[3];
+    my ($amnt, $key, $str) = $::pool->fire_oper_notice(@_);
+    log2("$key: $str", $sub) if $str;
+    return $str;
 }
 
 # for configuration values

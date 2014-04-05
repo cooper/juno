@@ -2090,6 +2090,23 @@ CHANGES:
             server_endburst, a server finished bursting information;
             server_quit, a local or remote server disconnected;
             connection_terminated, a local connection was closed.
+            
+    5. user->full replaced ->fullcloak and now returns the full mask with the visible host rather than actual host.
+        user->fullreal replaces the former ->full, returning the full mask with the actual host.
+        notice() now log2()s the "pretty version" of a message. this eliminates a lot of repetitive code between logs and notices.
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+
 
             
             
