@@ -1,4 +1,4 @@
-# Copyright (c) 2012, Mitchell Cooper
+# Copyright (c) 2012-14, Mitchell Cooper
 package API::Base::ServerCommands;
 
 use warnings;

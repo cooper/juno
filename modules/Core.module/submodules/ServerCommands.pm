@@ -1,4 +1,4 @@
-# Copyright (c) 2009-13, Mitchell Cooper
+# Copyright (c) 2009-14, Mitchell Cooper
 package API::Module::Core::ServerCommands;
  
 use warnings;
@@ -424,7 +424,7 @@ sub part {
     # remove the user and tell the local channel users
     $channel->remove($user);
     $reason = defined $reason ? " :$reason" : q();
-    $channel->sendfrom_all($user->full, " PART $$channel{name}$reason");
+    $channel->sendfrom_all($user->full, "PART $$channel{name}$reason");
     return 1
 }
 
@@ -492,7 +492,7 @@ sub cum {
         # join the new users
         unless ($channel->has_user($user)) {
             $channel->cjoin($user, $channel->{time});
-            $channel->sendfrom_all($user->full, " JOIN $$channel{name}");
+            $channel->sendfrom_all($user->full, "JOIN $$channel{name}");
             $channel->fire_event(user_joined => $user);
         }
 
@@ -554,7 +554,7 @@ sub topic {
     }
 
     # tell users.
-    $channel->sendfrom_all($source->full, " TOPIC $$channel{name} :$topic");
+    $channel->sendfrom_all($source->full, "TOPIC $$channel{name} :$topic");
     
     # set it
     if (length $topic) {
@@ -585,7 +585,7 @@ sub topicburst {
     # tell users.
     my $t = $channel->topic;
     if (!$t or $t && $t->{topic} ne $topic) {
-        $channel->sendfrom_all($source->full, " TOPIC $$channel{name} :$topic");
+        $channel->sendfrom_all($source->full, "TOPIC $$channel{name} :$topic");
     }
     
     # set it
@@ -623,7 +623,7 @@ sub kick {
     my $reason_string = defined $reason ? $reason : $source->name;
     
     # tell the local users of the channel.
-    $channel->sendfrom_all($source->full, " KICK $$channel{name} $$t_user{nick} :$reason_string");
+    $channel->sendfrom_all($source->full, "KICK $$channel{name} $$t_user{nick} :$reason_string");
     
     # remove the user from the channel.
     $channel->remove_user($t_user);

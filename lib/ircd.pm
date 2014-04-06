@@ -1,4 +1,4 @@
-# Copyright (c) 2010-12, Mitchell Cooper
+# Copyright (c) 2010-14, Mitchell Cooper
 package ircd;
 
 use warnings;

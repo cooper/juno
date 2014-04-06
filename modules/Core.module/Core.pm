@@ -1,4 +1,4 @@
-# Copyright (c) 2009-13, Mitchell Cooper
+# Copyright (c) 2009-14, Mitchell Cooper
 package API::Module::Core;
 
 use warnings;

@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# Copyright (c) 2010-12, Mitchell Cooper
+# Copyright (c) 2010-14, Mitchell Cooper
 
 # this file contains channely stuff for local users
 # and even some servery channely stuff.
@@ -192,7 +192,7 @@ sub handle_privmsgnotice {
     }
 
     # tell local users.
-    $channel->sendfrom_all($source->full, " $command $$channel{name} :$message", $source);
+    $channel->sendfrom_all($source->full, "$command $$channel{name} :$message", $source);
 
     # then tell local servers.
     my %sent;

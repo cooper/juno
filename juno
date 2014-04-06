@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) 2010-12, Mitchell Cooper
+# Copyright (c) 2010-14, Mitchell Cooper
 
 DIR=`dirname "$(cd "${0%/*}" 2>/dev/null; echo "$PWD"/"${0##*/}")"`
 ARGS=$@

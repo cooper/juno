@@ -1,4 +1,4 @@
-# Copyright (c) 2009-13, Mitchell Cooper
+# Copyright (c) 2009-14, Mitchell Cooper
 package API::Module::Core::UserCommands;
  
 use warnings;
@@ -797,7 +797,7 @@ sub part {
 
         # remove the user and tell the other channel's users and servers
         my $ureason = defined $reason ? " :$reason" : q();
-        $channel->sendfrom_all($user->full, " PART $$channel{name}$ureason");
+        $channel->sendfrom_all($user->full, "PART $$channel{name}$ureason");
         $::pool->fire_command_all(part => $user, $channel, $channel->{time}, $reason);
         $channel->remove($user);
 
@@ -923,7 +923,7 @@ sub topic {
         }
 
         my $topic = cut_to_limit('topic', col((split /\s+/, $data, 3)[2]));
-        $channel->sendfrom_all($user->full, " TOPIC $$channel{name} :$topic");
+        $channel->sendfrom_all($user->full, "TOPIC $$channel{name} :$topic");
         $::pool->fire_command_all(topic => $user, $channel, time, $topic);
 
         # set it
@@ -1202,7 +1202,7 @@ sub kick {
     my $reason_string = defined $reason ? $reason : $user->{nick};
     
     # tell the local users of the channel.
-    $channel->sendfrom_all($user->full, " KICK $$channel{name} $$t_user{nick} :$reason_string");
+    $channel->sendfrom_all($user->full, "KICK $$channel{name} $$t_user{nick} :$reason_string");
     
     # remove the user from the channel.
     $channel->remove_user($t_user);

@@ -2117,7 +2117,7 @@ CHANGES:
         58. solved a desync issue with the handling of lists modes when two channel timestamps are valid.
             the new behavior is that the resulting list will be the combination of all lists with a valid timestamp.
         
-        
+        59. fixed several commands that have an extra space since I switched ->send_all() to ->sendfrom_all().
 
 
             
