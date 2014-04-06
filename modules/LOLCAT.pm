@@ -13,7 +13,7 @@ use warnings;
 use strict;
 
 use Acme::LOLCAT;
-use utils qw[cut_to_limit col];
+use utils qw(cut_to_limit col);
 
 our $mod = API::Module->new(
     name        => 'LOLCAT',

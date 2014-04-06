@@ -2097,8 +2097,10 @@ CHANGES:
         
         51. fixed an bug where every other IRCd RELOAD command broke PREFIX in RPL_ISUPPORT.
             the lconf() utility function has been removed in favor of the [type, name] format.
+            
+        52. fixed the very-long-broken MAP command.
         
-        
+
         
         
         

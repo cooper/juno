@@ -7,7 +7,7 @@ use strict;
 use feature 'switch';
 use parent qw(Evented::Object server::mine);
 
-use utils qw[log2 v notice];
+use utils qw(log2 v notice);
 
 sub new {
     my ($class, %opts) = @_;
@@ -309,10 +309,13 @@ sub DESTROY {
 }
 
 # shortcuts
-sub id       { shift->{sid}      }
-sub full     { shift->{name}     }
-sub name     { shift->{name}     }
-sub children { shift->{children} }
+
+sub id       { shift->{sid}  }
+sub full     { shift->{name} }
+sub name     { shift->{name} }
+
+sub children { @{ shift->{children} } }
+sub users    { @{ shift->{users}    } }
 
 
 1

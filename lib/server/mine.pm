@@ -5,7 +5,7 @@ package server::mine;
 use warnings;
 use strict;
 
-use utils qw[log2 col v conf];
+use utils qw(log2 col v conf);
 
 # handle local user data
 sub handle {

@@ -440,22 +440,29 @@ sub cmap {
     my $users = scalar grep { $_->{server} == $me } $::pool->users;
     my $per   = int $users / $total * 100;
 
-    $user->numeric('RPL_MAP', "- \2$$me{sid}\2 $$me{name} ($$me{ircd}): $users [$per\%]");
-
-    my $avg;
-    foreach my $server ($::pool->servers) {
-        next if $server == $me;
-        $users = scalar grep { $_->{server} == $server } $::pool->users;
+    my ($indent, $do, %done) = 0;
+    $do = sub {
+        my $server = shift;
+        return if $done{$server};
+        
+        my $spaces = ' ' x $indent;
+        $users = scalar $server->users;
         $per   = int $users / $total * 100;
-        $avg  += $users;
-        $user->numeric('RPL_MAP', "    - \2$$server{sid}\2 $$server{name} ($$server{ircd}): $users [$per\%]");
-    }
 
-    my @servers = $::pool->servers;
-    my $average = int($avg / scalar @servers + 0.5);
-    
-    $user->numeric('RPL_MAP', "- Total of $total users, average $average users per server");
+        $user->numeric(RPL_MAP => $spaces, $server->{name}, $users, $per);
+        
+        # increase indent and do children.
+        $indent += 4;
+        $do->($_) foreach $server->children;
+        
+        $done{$server} = 1;
+    };
+    $do->($me);
+
+    my $average = int($total / scalar(keys %done) + 0.5);
+    $user->numeric(RPL_MAP2 => $total, scalar(keys %done), $average);
     $user->numeric('RPL_MAPEND');
+    
 }
 
 sub cjoin {

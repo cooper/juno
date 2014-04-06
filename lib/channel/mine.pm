@@ -8,7 +8,7 @@ package channel::mine;
 use warnings;
 use strict;
 
-use utils qw[log2 conf v];
+use utils qw(log2 conf v);
 
 # omg hax
 # it has the same name as the one in channel.pm.

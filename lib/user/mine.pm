@@ -6,7 +6,7 @@ package user::mine;
 use warnings;
 use strict;
 
-use utils qw[col log2 conf v];
+use utils qw(col log2 conf v);
 
 sub safe {
     my $user = shift;

@@ -188,16 +188,18 @@ sub load_or_reload {
 sub load_dependencies {
     
     # main dependencies.
-    load_or_reload('IO::Async::Loop',               0.60);
-    load_or_reload('IO::Async::Stream',             0.60);
-    load_or_reload('IO::Async::Listener',           0.60);
-    load_or_reload('IO::Async::Timer::Periodic',    0.60);
-    load_or_reload('IO::Async::Timer::Countdown',   0.60);
-    load_or_reload('IO::Socket::IP',                0.25);
-    load_or_reload('API',                           2.23);
-    load_or_reload('Evented::Object',               3.90);
-    load_or_reload('Evented::Configuration',        3.30);
-    load_or_reload('Evented::Database',             0.50);
+    load_or_reload(@$_) foreach (
+        [ 'IO::Async::Loop',               0.60 ],
+        [ 'IO::Async::Stream',             0.60 ],
+        [ 'IO::Async::Listener',           0.60 ],
+        [ 'IO::Async::Timer::Periodic',    0.60 ],
+        [ 'IO::Async::Timer::Countdown',   0.60 ],
+        [ 'IO::Socket::IP',                0.25 ],
+        [ 'API',                           2.23 ],
+        [ 'Evented::Object',               3.90 ],
+        [ 'Evented::Configuration',        3.30 ],
+        [ 'Evented::Database',             0.50 ]
+    );
     
     # juno components.
     my $v = get_version();
