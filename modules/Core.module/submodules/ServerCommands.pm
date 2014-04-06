@@ -515,7 +515,7 @@ sub cum {
         # determine the difference between
         # $old_modestr     (all former modes except status)
         # $command_modestr (all new modes including status)
-        my $difference = $serv->cmode_string_difference($old_modestr, $command_modestr);
+        my $difference = $serv->cmode_string_difference($old_modestr, $command_modestr, 1);
         
         # the command time took over, so we need to remove our current status modes.
         if ($new_time < $old_time) {
@@ -610,7 +610,7 @@ sub skill {
     my ($server, $data, $user, $tuser, $reason) = @_;
 
     # we ignore any non-local users
-    $tuser->{conn}->done("Killed: $reason [$$user{nick}]") if $tuser->is_local;
+    $tuser->{conn}->done("Killed by $$user{nick}: $reason") if $tuser->is_local;
 
 }
 
