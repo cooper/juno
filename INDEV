@@ -2111,7 +2111,8 @@ CHANGES:
             
         56. fixed a bug where users can be kicked from channels of which they are not a member.
         
-        
+        57. fixed broken COMMANDS command.
+            made MODULES command prettier.
         
         
 

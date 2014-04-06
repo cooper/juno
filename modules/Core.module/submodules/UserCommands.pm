@@ -724,23 +724,24 @@ sub commands {
 
     # get the width
     my $i = 0;
-    foreach my $command (keys %user::mine::commands) {
+    my %commands = %{ $::pool->{user_commands} };
+    foreach my $command (keys %commands) {
         $i = length $command if length $command > $i
     }
 
     $i++;
-    $user->server_notice('*** List of available commands');
+    $user->server_notice(commands => 'List of available commands');
 
     # send a notice for each command
-    foreach my $command (keys %user::mine::commands) {
-        foreach my $source (keys %{ $user::mine::commands{$command} }) {
-            $user->server_notice(sprintf "\2%-${i}s\2 %-${i}s", $command,
-                q(:).$user::mine::commands{$command}{$source}{desc}, $source)
-        }
+    foreach my $command (sort keys %commands) {
+        $user->server_notice(
+            sprintf "\2%-${i}s\2 : %-${i}s",
+            $command,
+            $commands{$command}{desc},
+        );
     }
 
-    $user->server_notice('*** End of command list');
-
+    $user->server_notice(commands => 'End of command list');
 }
 
 sub away {
@@ -1121,6 +1122,8 @@ sub modules {
         
         $user->server_notice("\2$name\2 $$_mod{version}");
         $user->server_notice("    $$_mod{description}");
+        $user->server_notice('    ');
+        
         foreach my $type (qw|
             user_commands server_commands channel_modes user_modes
             outgoing_commands user_numerics matchers oper_notices
@@ -1141,12 +1144,13 @@ sub modules {
                 my ($line, @b) = '';
                 while (@a) {
                     push @b, my $c = lc shift @a;
-                    my $line_maybe = '            - '.join(', ', @b);
+                    my $line_maybe = '        - '.join(', ', @b);
                     last if length $line_maybe >= 60;
                     $line = $line_maybe;
                 }
                 $user->server_notice($line);
             }
+            $user->server_notice('    ');
             
         }
         
