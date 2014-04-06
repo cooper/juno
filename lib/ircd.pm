@@ -21,129 +21,14 @@ our @always_loaded = qw(
     user        user::mine
     server      server::mine    server::linkage
     channel     channel::mine
-    connection  ircd
+    connection
 
 ); # ircd must be last
 
-sub start {
-    
-    log2('Started server at '.scalar(localtime v('START')));
-    $::v{VERSION} = $VERSION;
-    
-    # add these to @INC if they are not there already.
-    my @add_inc = (
-        "$::run_dir/lib/api-engine",
-        "$::run_dir/lib/evented-object/lib",
-        "$::run_dir/lib/evented-configuration/lib",
-        "$::run_dir/lib/evented-database"
-    ); foreach (@add_inc) { unshift @INC, $_ unless $_ ~~ @INC }
-    
-    # load or reload all dependency packages.
-    load_dependencies();
-    
-    # set up the configuration/database.
-    # TEMPORARILY use no database until we read [database] block.
-    $conf = $::conf = Evented::Database->new(
-        db       => undef,
-        conffile => "$::run_dir/etc/ircd.conf"
-    );
-    
-    # parse the configuration.
-    $conf->parse_config or die "can't parse configuration.\n";
-
-    # load or reload optional packages.
-    load_optionals();
-    
-    # create the database object.
-    if (conf('database', 'type') eq 'sqlite') {
-        my $dbfile  = "$::run_dir/db/conf.db";
-        $conf->{db} = DBI->connect("dbi:SQLite:dbname=$dbfile", '', '');
-        $conf->create_tables_maybe;
-    }
-
-    # create the pool.
-    if (!$::pool) {
-        $pool = $::pool = pool->new();
-    }
-
-    # create the main server object.
-    my $server = $::v{SERVER};
-    if (!$server) {
-    
-        $server = $pool->new_server(
-            source => conf('server', 'id'),
-            sid    => conf('server', 'id'),
-            name   => conf('server', 'name'),
-            desc   => conf('server', 'description'),
-            proto  => v('PROTO'),
-            ircd   => v('VERSION'),
-            time   => v('START'),
-            parent => { name => 'self' } # temporary for logging
-        );
-
-        # how is this possible?!?!
-        $server->{parent}  =
-        $::v{SERVER} = $server;
-        
-    }
-
-    # register modes.
-    $server->{umodes} = {};
-    $server->{cmodes} = {};
-    add_internal_channel_modes($server);
-    add_internal_user_modes($server);
-    
-    # create API engine manager.
-    $API = $api = $::API ||= API->new(
-        log_sub  => \&api_log,
-        mod_dir  => "$::run_dir/modules",
-        base_dir => "$::run_dir/lib/API/Base"
-    );
-
-    # load API modules.
-    # FIXME: is this safe to call multiple times?
-    log2('Loading API configuration modules');
-    if (my $mods = conf('api', 'modules')) {
-        $api->load_module($_, "$_.pm") foreach @$mods;
-    }
-    log2('Done loading modules');
-
-    # listen.
-    create_sockets();
-
-    # delete the existing timer if there is one.
-    if ($timer) {
-        $loop->remove($timer) if $timer->is_running;
-        undef $::timer;
-        undef $timer;
-    }
-    
-    # create a new timer.
-    $timer = $::timer = IO::Async::Timer::Periodic->new(
-        interval       => 30,
-        on_tick        => \&ping_check
-    );
-    $loop->add($timer);
-    $timer->start;
-
-    log2("server initialization complete");
-
-    # auto server connect.
-    # FIXME: don't try to connect during reload if already connected.
-    # honestly this needs to be moved to an event for after loading the configuration;
-    # even if it's a rehash or something it should check for this.
-    foreach my $name ($conf->names_of_block('connect')) {
-        if (conf(['connect', $name], 'autoconnect')) {
-            log2("autoconnecting to $name...");
-            server::linkage::connect_server($name)
-        }
-    }
-
-    return 1;
-}
+our %channel_mode_prefixes;
 
 # load or reload a package.
-sub load_or_reload {
+our $load_or_reload = sub {
     my ($name, $min_v, $set_v) = @_;
     (my $file = "$name.pm") =~ s/::/\//g;
     
@@ -182,13 +67,129 @@ sub load_or_reload {
     }
     
     return 1;
+};
+
+sub start {
+    
+    log2('Started server at '.scalar(localtime v('START')));
+    $::v{VERSION} = $VERSION;
+    
+    # add these to @INC if they are not there already.
+    my @add_inc = (
+        "$::run_dir/lib/api-engine",
+        "$::run_dir/lib/evented-object/lib",
+        "$::run_dir/lib/evented-configuration/lib",
+        "$::run_dir/lib/evented-database"
+    ); foreach (@add_inc) { unshift @INC, $_ unless $_ ~~ @INC }
+    
+    # load or reload all dependency packages.
+    load_dependencies();
+    
+    # set up the configuration/database.
+    # TEMPORARILY use no database until we read [database] block.
+    $conf = $::conf = Evented::Database->new(
+        db       => undef,
+        conffile => "$::run_dir/etc/ircd.conf"
+    );
+    
+    # parse the configuration.
+    $conf->parse_config or die "can't parse configuration.\n";
+
+    # load or reload optional packages.
+    load_optionals();
+    
+    # create the database object.
+    if (conf('database', 'type') eq 'sqlite') {
+        my $dbfile  = "$::run_dir/db/conf.db";
+        $conf->{db} = DBI->connect("dbi:SQLite:dbname=$dbfile", '', '');
+        $conf->create_tables_maybe;
+    }
+
+    # create the pool.
+    $pool = $::pool = pool->new() if !$::pool;
+
+    # create the main server object.
+    my $server = $::v{SERVER};
+    if (!$server) {
+    
+        $server = $pool->new_server(
+            source => conf('server', 'id'),
+            sid    => conf('server', 'id'),
+            name   => conf('server', 'name'),
+            desc   => conf('server', 'description'),
+            proto  => v('PROTO'),
+            ircd   => v('VERSION'),
+            time   => v('START'),
+            parent => { name => 'self' } # temporary for logging
+        );
+
+        # how is this possible?!?!
+        $server->{parent}  =
+        $::v{SERVER} = $server;
+        
+    }
+
+    # register modes.
+    $server->{umodes} = {};
+    $server->{cmodes} = {};
+    %channel_mode_prefixes = ();
+    add_internal_channel_modes($server);
+    add_internal_user_modes($server);
+    
+    # create API engine manager.
+    $API = $api = $::API ||= API->new(
+        log_sub  => \&api_log,
+        mod_dir  => "$::run_dir/modules",
+        base_dir => "$::run_dir/lib/API/Base"
+    );
+
+    # load API modules.
+    # FIXME: is this safe to call multiple times?
+    log2('Loading API configuration modules');
+    if (my $mods = conf('api', 'modules')) {
+        $api->load_module($_, "$_.pm") foreach @$mods;
+    }
+    log2('Done loading modules');
+
+    # listen.
+    create_sockets();
+
+    # delete the existing timer if there is one.
+    if ($timer) {
+        $loop->remove($timer) if $timer->is_running;
+        undef $::timer;
+        undef $timer;
+    }
+    
+    # create a new timer.
+    $timer = $::timer = IO::Async::Timer::Periodic->new(
+        interval => 30,
+        on_tick  => \&ping_check
+    );
+    $loop->add($timer);
+    $timer->start;
+
+    log2("server initialization complete");
+
+    # auto server connect.
+    # FIXME: don't try to connect during reload if already connected.
+    # honestly this needs to be moved to an event for after loading the configuration;
+    # even if it's a rehash or something it should check for this.
+    foreach my $name ($conf->names_of_block('connect')) {
+        if (conf(['connect', $name], 'autoconnect')) {
+            log2("autoconnecting to $name...");
+            server::linkage::connect_server($name)
+        }
+    }
+
+    return 1;
 }
 
 # load our package dependencies.
 sub load_dependencies {
-    
+
     # main dependencies.
-    load_or_reload(@$_) foreach (
+    $load_or_reload->(@$_) foreach (
         [ 'IO::Async::Loop',               0.60 ],
         [ 'IO::Async::Stream',             0.60 ],
         [ 'IO::Async::Listener',           0.60 ],
@@ -203,8 +204,8 @@ sub load_dependencies {
     
     # juno components.
     my $v = get_version();
-    load_or_reload($_, $v, $v) foreach @always_loaded;
-    load_or_reload("API::Base::$_", $v, $v) foreach @{ $api->{loaded_bases} || [] };
+    $load_or_reload->($_, $v, $v) foreach @always_loaded;
+    $load_or_reload->("API::Base::$_", $v, $v) foreach @{ $api->{loaded_bases} || [] };
     
 }
 
@@ -212,9 +213,9 @@ sub load_dependencies {
 sub load_optionals {
     
     # encryption.
-    load_or_reload('Digest::SHA', 0) if conf qw[enabled sha];
-    load_or_reload('Digest::MD5', 0) if conf qw[enabled md5];
-    load_or_reload('DBD::SQLite', 0) if conf('database', 'type') eq 'sqlite';
+    $load_or_reload->('Digest::SHA', 0) if conf qw[enabled sha];
+    $load_or_reload->('Digest::MD5', 0) if conf qw[enabled md5];
+    $load_or_reload->('DBD::SQLite', 0) if conf('database', 'type') eq 'sqlite';
 
 }
 
@@ -498,8 +499,6 @@ sub get_version {
 ### CHANNEL MODES ###
 #####################
 
-our %channel_mode_prefixes;
-
 # this just tells the internal server what
 # mode is associated with what letter and type by configuration
 sub add_internal_channel_modes {
@@ -507,7 +506,6 @@ sub add_internal_channel_modes {
     log2('registering channel status modes');
 
     # [letter, symbol, name]
-    %channel_mode_prefixes = ();
     foreach my $name ($ircd::conf->keys_of_block('prefixes')) {
         my $p = conf('prefixes', $name);
         $server->add_cmode($name, $p->[0], 4);
@@ -525,7 +523,7 @@ sub add_internal_channel_modes {
 
     }
 
-    log2("end of internal modes");
+    log2("end of channel modes");
 }
 
 # get a +modes string

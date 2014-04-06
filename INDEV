@@ -2105,8 +2105,10 @@ CHANGES:
 
         54. fixed a bug where servers were not remove from their parent's children array, causing /MAP to go crazy.
         
-        
-        
+        55. RELOAD command now completely reloads ircd.pm before calling start().
+            this is better because it will take changes in ircd.pm itself into consideration.
+            this also fixes the issue with PREFIX in RPL_ISUPPORT.
+            
         
         
         
