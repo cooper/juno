@@ -1176,6 +1176,12 @@ sub kick {
     # dummy           channel(inchan) user     :rest(opt)
     my ($user, $data, $channel,       $t_user, $reason) = @_;
     
+    # target user is not in channel.
+    if (!$channel->has_user($t_user)) {
+        $user->numeric(ERR_USERNOTINCHANNEL => $channel->{name}, $t_user->{nick});
+        return;
+    }
+    
     # check if the user has basic status in the channel.
     if (!$channel->user_has_basic_status($user)) {
         $user->numeric(ERR_CHANOPRIVSNEEDED => $channel->{name});

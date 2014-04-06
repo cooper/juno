@@ -27,48 +27,6 @@ our @always_loaded = qw(
 
 our %channel_mode_prefixes;
 
-# load or reload a package.
-our $load_or_reload = sub {
-    my ($name, $min_v, $set_v) = @_;
-    (my $file = "$name.pm") =~ s/::/\//g;
-    
-    # it might be loaded with an appropriate version already.
-    if ((my $v = $name->VERSION // -1) >= $min_v) {
-        log2("$name is loaded and up-to-date ($v)");
-        return;
-    }
-    
-    # at this point, we're going to load it.
-    # if it's loaded already, we should unload it now.
-    API::class_unload($name) if is_loaded($name);
-    
-    # set package version.
-    if ($set_v) {
-        no strict 'refs';
-        ${"${name}::VERSION"} = $set_v;
-    }
-    
-    # it hasn't been loaded yet at all.
-    # use require to load it the first time.
-    if ($boot) {
-        log2("Loading $name");
-        require $file or log2("Very bad error: could not load $name!".($@ || $!));
-        return;
-    }
-    
-    # load it.
-    log2("Reloading package $name");
-    do $file or log2("Very bad error: could not load $name! ".($@ || $!)) and return;
-    
-    # version check.
-    if ((my $v = $name->VERSION // -1) < $min_v) {
-        log2("Very bad error: $name is outdated ($min_v required, $v loaded)");
-        return;
-    }
-    
-    return 1;
-};
-
 sub start {
     
     log2('Started server at '.scalar(localtime v('START')));
@@ -185,11 +143,54 @@ sub start {
     return 1;
 }
 
+
+# load or reload a package.
+sub load_or_reload {
+    my ($name, $min_v, $set_v) = @_;
+    (my $file = "$name.pm") =~ s/::/\//g;
+    
+    # it might be loaded with an appropriate version already.
+    if ((my $v = $name->VERSION // -1) >= $min_v) {
+        log2("$name is loaded and up-to-date ($v)");
+        return;
+    }
+    
+    # at this point, we're going to load it.
+    # if it's loaded already, we should unload it now.
+    API::class_unload($name) if is_loaded($name);
+    
+    # set package version.
+    if ($set_v) {
+        no strict 'refs';
+        ${"${name}::VERSION"} = $set_v;
+    }
+    
+    # it hasn't been loaded yet at all.
+    # use require to load it the first time.
+    if ($boot) {
+        log2("Loading $name");
+        require $file or log2("Very bad error: could not load $name!".($@ || $!));
+        return;
+    }
+    
+    # load it.
+    log2("Reloading package $name");
+    do $file or log2("Very bad error: could not load $name! ".($@ || $!)) and return;
+    
+    # version check.
+    if ((my $v = $name->VERSION // -1) < $min_v) {
+        log2("Very bad error: $name is outdated ($min_v required, $v loaded)");
+        return;
+    }
+    
+    return 1;
+}
+
 # load our package dependencies.
 sub load_dependencies {
 
     # main dependencies.
-    $load_or_reload->(@$_) foreach (
+    load_or_reload(@$_) foreach (
         [ 'IO::Async::Loop',               0.60 ],
         [ 'IO::Async::Stream',             0.60 ],
         [ 'IO::Async::Listener',           0.60 ],
@@ -204,8 +205,8 @@ sub load_dependencies {
     
     # juno components.
     my $v = get_version();
-    $load_or_reload->($_, $v, $v) foreach @always_loaded;
-    $load_or_reload->("API::Base::$_", $v, $v) foreach @{ $api->{loaded_bases} || [] };
+    load_or_reload($_, $v, $v) foreach @always_loaded;
+    load_or_reload("API::Base::$_", $v, $v) foreach @{ $api->{loaded_bases} || [] };
     
 }
 
@@ -213,9 +214,9 @@ sub load_dependencies {
 sub load_optionals {
     
     # encryption.
-    $load_or_reload->('Digest::SHA', 0) if conf qw[enabled sha];
-    $load_or_reload->('Digest::MD5', 0) if conf qw[enabled md5];
-    $load_or_reload->('DBD::SQLite', 0) if conf('database', 'type') eq 'sqlite';
+    load_or_reload('Digest::SHA', 0) if conf qw[enabled sha];
+    load_or_reload('Digest::MD5', 0) if conf qw[enabled md5];
+    load_or_reload('DBD::SQLite', 0) if conf('database', 'type') eq 'sqlite';
 
 }
 

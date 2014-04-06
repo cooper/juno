@@ -2109,6 +2109,7 @@ CHANGES:
             this is better because it will take changes in ircd.pm itself into consideration.
             this also fixes the issue with PREFIX in RPL_ISUPPORT.
             
+        56. fixed a bug where users can be kicked from channels of which they are not a member.
         
         
         
