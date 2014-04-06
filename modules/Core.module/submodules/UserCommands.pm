@@ -1007,6 +1007,7 @@ sub modload {
 
     # attempt.
     my $result = $::API->load_module($mod_name, "$mod_name.pm");
+    my $mod    = $::API->get_module($mod_name);
 
     # failure.
     if (!$result) {
@@ -1017,6 +1018,7 @@ sub modload {
     # success.
     else {
         $user->server_notice('Module loaded successfully.');
+        notice(module_load => $user->notice_info, $mod->full_name, $mod->{version});
         return 1;
     }
     
@@ -1027,6 +1029,7 @@ sub modunload {
     $user->server_notice("Unloading module \2$mod_name\2.");
 
     # attempt.
+    my $mod    = $::API->get_module($mod_name);
     my $result = $::API->unload_module($mod_name, "$mod_name.pm");
     
     # failure.
@@ -1038,6 +1041,7 @@ sub modunload {
     # success.
     else {
         $user->server_notice('Module unloaded successfully.');
+        notice(module_unload => $user->notice_info, $mod->full_name);
         return 1;
     }
     
@@ -1049,7 +1053,7 @@ sub modreload {
     
     # simply handle the other two commands.
     my $modload = \&modload;
-    modunload ($user, undef, $mod_name) or return;
+     modunload($user, undef, $mod_name) or return;
     $modload->($user, undef, $mod_name) or return;
     
     return 1;
@@ -1112,7 +1116,8 @@ sub ukill {
 sub modules {
     my $user = shift;
     $user->server_notice(modules => 'Loaded IRCd modules list');
-    
+    $user->server_notice('    ');
+
     # code for each module.
     my (%done, $code);
     $code = sub {

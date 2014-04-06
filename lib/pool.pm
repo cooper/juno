@@ -427,7 +427,7 @@ sub fire_oper_notice {
         $message = sprintf $message, @_;
     }
     
-    my $pretty = ucfirst $notice;
+    my $pretty = 'Notice: '.ucfirst($notice);
     $pretty    =~ s/_/ /g;
     
     # send to users with this notice flag.

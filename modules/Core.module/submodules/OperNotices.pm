@@ -23,7 +23,10 @@ my %notices = (
     server_quit     => '%s (%d) parent %s (%s)',
     server_burst    => '%s (%s) is bursting information',
     server_endburst => '%s (%s) finished burst, %d seconds elapsed',
-    server_connect  => '%s on port %d'
+    server_connect  => '%s on port %d',
+
+    module_load   => '%s (%s@%s) loaded %s (%s)',
+    module_unload => '%s (%s@%s) unloaded %s'
 
 );
 

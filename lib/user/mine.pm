@@ -81,7 +81,8 @@ sub sendme {
 sub server_notice {
     @_ = &safe or return;
     my ($user, @args) = @_;
-    my $msg = defined $args[1] ? "*** \2$args[0]\2: $args[1]" : $args[0];
+    my $cmd = ucfirst $args[0];
+    my $msg = defined $args[1] ? "*** \2$cmd:\2 $args[1]" : $args[0];
     
     # user is local.
     if ($user->is_local) {

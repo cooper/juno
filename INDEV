@@ -2128,6 +2128,12 @@ CHANGES:
         account_login, a user authenticated to an account;
         account_logout, a user logged out from an account.
 
+        61. reload module now reports how many versions upgraded since start.
+            added new oper notice flags:
+            reload, the IRCd was reloaded;
+            module_load, a module was loaded;
+            module_unload, a module was unloaded.
+            
             
             
             

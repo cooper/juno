@@ -5,9 +5,11 @@ package API::Module::Reload;
 use warnings;
 use strict;
 
+use utils qw(notice);
+
 our $mod = API::Module->new(
     name        => 'Reload',
-    version     => '0.3',
+    version     => '0.4',
     description => 'reload entire IRCd in one command',
     requires    => ['UserCommands'],
     initialize  => \&init
@@ -19,6 +21,11 @@ sub init {
         code        => \&cmd_reload,
         description => 'reload the entire IRCd',
         parameters  => '-oper(reload)'
+    ) or return;
+    
+    $mod->register_oper_notice(
+        name   => 'reload',
+        format => '%s (%s@%s): %s'
     ) or return;
     
     return 1;
@@ -68,11 +75,17 @@ sub cmd_reload {
     }
     
     # difference in version.
-    $user->server_notice(reload =>
-        $v != $ver                          ?
-        "Server upgraded from $ver to $v"   :
-        'Server reload complete'
-    );
+    my $info;
+    if ($v != $ver) {
+        my $amnt = sprintf('%.f', abs($v - $::VERSION) * 100);
+        $info = "Server upgraded from $ver to $v ($amnt versions since start)";
+    }
+    else {
+        $info = 'Server reloaded';
+    }
+    
+    $user->server_notice(reload => $info);
+    notice(reload => $user->notice_info, $info);
     
     return 1;
 }
