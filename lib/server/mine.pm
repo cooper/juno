@@ -8,7 +8,7 @@ use strict;
 use utils qw(log2 col v conf);
 
 # handle local user data
-sub handle {
+sub handle {print "HANDLE: @_\n";
     my $server = shift;
     return if !$server->{conn} || $server->{conn}{goodbye};
     

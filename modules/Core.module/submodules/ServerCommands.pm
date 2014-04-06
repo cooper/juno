@@ -522,10 +522,12 @@ sub cum {
             substr($old_s_modestr, 0, 1) = '-';
             
             # separate each string into modes and params.
-            my ($s_modes, @s_params) = split(' ', $old_s_modestr) // '';
-            my ($d_modes, @d_params) = split(' ', $difference)    // '';
+            my ($s_modes, @s_params) = split ' ', $old_s_modestr;
+            my ($d_modes, @d_params) = split ' ', $difference;
             
             # combine.
+            $s_modes  //= '';
+            $d_modes  //= '';
             $difference = join(' ', join('', $d_modes, $s_modes), @d_params, @s_params);
 
         }

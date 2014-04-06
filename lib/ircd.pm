@@ -323,6 +323,7 @@ sub handle_connect {
 sub handle_data {
     my ($stream, $buffer) = @_;
     my $connection = $::pool->lookup_connection($stream) or return;
+    my $is_server  = $connection->{type} && $connection->{type}->isa('server');
     
     # fetch the values at which the limit was exceeded.
     my $overflow_1line = (my $max_in_line = conf('limit', 'bytes_line')  // 2048) + 1;
@@ -347,7 +348,7 @@ sub handle_data {
             
             # too many lines!
             my $num_lines = $connection->{lines_sec}{$time};
-            if ($num_lines == $overflow_lines) {
+            if ($num_lines == $overflow_lines && !$is_server) {
                 $connection->done("Exceeded $max_lines lines per second");
                 return;
             }
@@ -363,7 +364,7 @@ sub handle_data {
         $length++;
         
         # line too long.
-        if ($length == $overflow_1line) {
+        if ($length == $overflow_1line && !$is_server) {
             $connection->done("Exceeded $max_in_line bytes in line");
             return;
         }
