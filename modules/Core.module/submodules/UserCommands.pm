@@ -6,7 +6,7 @@ use strict;
 
 use Scalar::Util qw(blessed);
 
-use utils qw(col log2 lceq lconf match cut_to_limit conf v notice);
+use utils qw(col log2 lceq match cut_to_limit conf v notice);
 
 our $VERSION = $API::Module::Core::VERSION;
 
@@ -525,9 +525,10 @@ sub names {
     }
 }
 
+# FIXME: this is some of the ugliest code in whole ircd.
 sub oper {
     my ($user, $data, @args) = @_;
-    my $password = lconf('oper', $args[1], 'password');
+    my $password = conf(['oper', $args[1]], 'password');
     my $supplied = $args[2];
 
     # no password?!
@@ -538,7 +539,7 @@ sub oper {
 
     # if they have specific addresses specified, make sure they match
 
-    if (defined( my $addr = lconf('oper', $args[1], 'host') )) {
+    if (defined( my $addr = conf(['oper', $args[1]], 'host') )) {
         my $win = 0;
 
         # a reference of several addresses
@@ -565,7 +566,7 @@ sub oper {
         }
     }
 
-    my $crypt = lconf('oper', $args[1], 'encryption');
+    my $crypt = conf(['oper', $args[1]], 'encryption');
 
     # so now let's check if the password is right
     $supplied = utils::crypt($supplied, $crypt);
@@ -582,7 +583,7 @@ sub oper {
     my (@flags, @notices);
 
     # flags in their oper block
-    if (defined ( my $flagref = lconf('oper', $args[1], 'flags') )) {
+    if (defined ( my $flagref = conf(['oper', $args[1]], 'flags') )) {
         if (ref $flagref ne 'ARRAY') {
             log2("'flags' specified for oper block $args[1], but it is not an array reference.");
         }
@@ -590,7 +591,7 @@ sub oper {
             push @flags, @$flagref
         }
     }
-    if (defined ( my $flagref = lconf('oper', $args[1], 'notices') )) {
+    if (defined ( my $flagref = conf(['oper', $args[1]], 'notices') )) {
         if (ref $flagref ne 'ARRAY') {
             log2("'notices' specified for oper block $args[1], but it is not an array reference.");
         }
@@ -605,7 +606,7 @@ sub oper {
         my $operclass = shift;
 
         # if it has flags, add them
-        if (defined ( my $flagref = lconf('operclass', $operclass, 'flags') )) {
+        if (defined ( my $flagref = conf(['operclass', $operclass], 'flags') )) {
             if (ref $flagref ne 'ARRAY') {
                 log2("'flags' specified for oper class block $operclass, but it is not an array reference.");
             }
@@ -613,7 +614,7 @@ sub oper {
                 push @flags, @$flagref
             }
         }
-        if (defined ( my $flagref = lconf('operclass', $operclass, 'notices') )) {
+        if (defined ( my $flagref = conf(['operclass', $operclass], 'notices') )) {
             if (ref $flagref ne 'ARRAY') {
                 log2("'notices' specified for oper class block $operclass, but it is not an array reference.");
             }
@@ -623,12 +624,12 @@ sub oper {
         }
 
         # add parent too
-        if (defined ( my $parent = lconf('operclass', $operclass, 'extends') )) {
+        if (defined ( my $parent = conf(['operclass', $operclass], 'extends') )) {
             $add_class->($add_class, $parent);
         }
     };
 
-    if (defined ( my $operclass = lconf('oper', $args[1], 'class') )) {
+    if (defined ( my $operclass = conf(['oper', $args[1]], 'class') )) {
         $add_class->($add_class, $operclass);
     }
 

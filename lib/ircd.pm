@@ -8,7 +8,7 @@ use 5.010;
 # core modules that pretty much never change.
 use Module::Loaded qw(is_loaded);
 
-use utils qw(conf lconf log2 fatal v trim);
+use utils qw(conf log2 fatal v trim);
 
 our (  $VERSION,   $API,   $api,   $conf,   $loop,   $pool,   $timer, %global, $boot) =
     ($::VERSION, $::API, $::API, $::conf, $::loop, $::pool, $::timer);
@@ -375,7 +375,6 @@ sub handle_data {
     }
     
     $$buffer = '';
-    
 }
 
 # send out PINGs and check for timeouts
@@ -393,7 +392,7 @@ sub ping_check {
         my $since_last = time - $connection->{last_response};
         
         # no incoming data for configured frequency.
-        next unless $since_last >= lconf('ping', $type, 'frequency');
+        next unless $since_last >= conf(['ping', $type], 'frequency');
         
         # send a ping if we haven't already.
         if (!$connection->{ping_in_air}) {
@@ -403,7 +402,7 @@ sub ping_check {
     
         # ping timeout.
         $connection->done("Ping timeout: $since_last seconds")
-          if $since_last >= lconf('ping', $type, 'timeout');
+          if $since_last >= conf(['ping', $type], 'timeout');
         
     }
 }
@@ -496,7 +495,7 @@ sub get_version {
 ### CHANNEL MODES ###
 #####################
 
-our %channel_mode_prefixes = ();
+our %channel_mode_prefixes;
 
 # this just tells the internal server what
 # mode is associated with what letter and type by configuration
@@ -505,6 +504,7 @@ sub add_internal_channel_modes {
     log2('registering channel status modes');
 
     # [letter, symbol, name]
+    %channel_mode_prefixes = ();
     foreach my $name ($ircd::conf->keys_of_block('prefixes')) {
         my $p = conf('prefixes', $name);
         $server->add_cmode($name, $p->[0], 4);

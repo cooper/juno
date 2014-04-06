@@ -4,7 +4,7 @@ package API::Module::Core::ServerCommands;
 use warnings;
 use strict;
  
-use utils qw(col log2 lceq lconf match cut_to_limit conf v notice);
+use utils qw(col log2 lceq match cut_to_limit conf v notice);
 
 our $VERSION = $API::Module::Core::VERSION;
 

@@ -23,13 +23,7 @@ sub contains (+$) {
 # fetch a configuration file
 
 sub conf {
-    my ($sec, $key) = @_;
-    return $::conf->get($sec, $key);
-}
-
-sub lconf { # for named blocks
-    my ($block, $sec, $key) = @_;
-    return $::conf->get([$block, $sec], $key);
+    return $::conf->get(@_);
 }
 
 # store something in the database.

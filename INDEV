@@ -103,7 +103,6 @@ CHANGES:
     pIRCd2 eventually evolved to be become the first version juno-ircd.
 
 1. May 29, 2010 - July 5, 2010 (first commit) - version 1 of juno-ircd is based on pIRCd, the perl IRCd daemon.
-
     Although juno version 1 was not versioned, this lists some of the main features added.
     
     Reverse DNS is checked for resolving back to the connection IP, unlike in pIRCd.
@@ -2096,7 +2095,8 @@ CHANGES:
         notice() now log2()s the "pretty version" of a message. this eliminates a lot of repetitive code between logs and notices.
         
         
-        
+        51. fixed an bug where every other IRCd RELOAD command broke PREFIX in RPL_ISUPPORT.
+            the lconf() utility function has been removed in favor of the [type, name] format.
         
         
         

@@ -5,7 +5,7 @@ package server::linkage;
 use warnings;
 use strict;
 
-use utils qw[conf log2 v lconf];
+use utils qw(conf log2 v);
 
 # connect to a server in the configuration
 sub connect_server {
@@ -84,7 +84,7 @@ sub _end {
     $stream->close_now;
     
     # if we have an autoconnect_timer for this server, start a connection timer.
-    my $timeout = lconf('connect', $server_name, 'auto_timeout');
+    my $timeout = conf(['connect', $server_name], 'auto_timeout');
     if ($timeout) {
         log2("going to attempt to connect to server $server_name in $timeout seconds.");
         
