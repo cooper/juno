@@ -134,10 +134,8 @@ sub start {
     # honestly this needs to be moved to an event for after loading the configuration;
     # even if it's a rehash or something it should check for this.
     foreach my $name ($conf->names_of_block('connect')) {
-        if (conf(['connect', $name], 'autoconnect')) {
-            log2("autoconnecting to $name...");
-            server::linkage::connect_server($name)
-        }
+        next unless conf(['connect', $name], 'autoconnect');
+        server::linkage::connect_server($name);
     }
 
     return 1;

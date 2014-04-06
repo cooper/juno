@@ -11,14 +11,19 @@ my %notices = (
     new_connection          => '%s (%d)',
     connection_terminated   => '%s (%s)',
 
-    new_user    => '%s (%s@%s) [%s] on %s',
-    user_quit   => '%s (%s@%s) [%s] from %s (%s)',
-    user_opered => '%s (%s@%s) [%s] gained flags on %s: %s',
+    new_user         => '%s (%s@%s) [%s] on %s',
+    user_quit        => '%s (%s@%s) [%s] from %s (%s)',
+    user_opered      => '%s (%s@%s) gained flags on %s: %s',
+    user_killed      => '%s (%s@%s) killed by %s (%s)',
+    user_nick_change => '%s (%s@%s) is now known as %s',
+    user_join        => '%s (%s@%s) joined %s',
+    user_part        => '%s (%s@%s) parted %s (%s)',
 
     new_server      => '%s (%d) ircd %s, proto %s [%s] parent: %s',
     server_quit     => '%s (%d) parent %s (%s)',
     server_burst    => '%s (%s) is bursting information',
-    server_endburst => '%s (%s) finished burst, %d seconds elapsed'
+    server_endburst => '%s (%s) finished burst, %d seconds elapsed',
+    server_connect  => '%s on port %d'
 
 );
 

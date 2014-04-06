@@ -778,7 +778,7 @@ sub quit {
 sub part {
     my ($user, $data, @args) = @_;
     my @m = split /\s+/, $data, 3;
-    my $reason = defined $args[2] ? col($m[2]) : q();
+    my $reason = defined $args[2] ? col($m[2]) : undef;
 
     foreach my $chname (split ',', $args[1]) {
         my $channel = $::pool->lookup_channel($chname);
@@ -796,6 +796,7 @@ sub part {
         }
 
         # remove the user and tell the other channel's users and servers
+        notice(user_part => $user->notice_info, $channel->{name}, $reason // 'no reason');
         my $ureason = defined $reason ? " :$reason" : q();
         $channel->sendfrom_all($user->full, "PART $$channel{name}$ureason");
         $::pool->fire_command_all(part => $user, $channel, $channel->{time}, $reason);
@@ -1082,7 +1083,9 @@ sub ukill {
             return;
         }
 
-        $tuser->{conn}->done("Killed by $$user{nick}: $reason");
+        # rip in peace.
+        $tuser->get_killed_by($user, $reason);
+        
     }
 
     # tell other servers.
@@ -1199,16 +1202,17 @@ sub kick {
     }
     
     # determine the reason.
-    my $reason_string = defined $reason ? $reason : $user->{nick};
+    my $reason //= $user->{nick};
     
     # tell the local users of the channel.
-    $channel->sendfrom_all($user->full, "KICK $$channel{name} $$t_user{nick} :$reason_string");
+    notice(user_part => $user->notice_info, $channel->{name}, "Kicked by $$t_user{nick}: $reason");
+    $channel->sendfrom_all($user->full, "KICK $$channel{name} $$t_user{nick} :$reason");
     
     # remove the user from the channel.
     $channel->remove_user($t_user);
 
     # tell the other servers.
-    $::pool->fire_command_all(kick => $user, $channel, $t_user, $reason_string);
+    $::pool->fire_command_all(kick => $user, $channel, $t_user, $reason);
 
     return 1;
 }

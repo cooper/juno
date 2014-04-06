@@ -7,15 +7,16 @@ use 5.010;
 
 our $db;
 
-use utils qw(v log2 conf);
+use utils qw(v log2 conf notice);
 
 our $mod = API::Module->new(
     name        => 'Account',
-    version     => '0.6',
+    version     => '0.7',
     description => 'Account registration and management',
     requires    => [
                         'Database', 'UserCommands', 'UserNumerics',
-                        'UserModes', 'Matching', 'ServerCommands'
+                        'UserModes', 'Matching', 'OperNotices'
+                        # 'ServerCommands' - not yet
                     ],
     initialize  => \&init
 );
@@ -84,6 +85,16 @@ sub init {
         code => \&account_matcher
     ) or return;
     
+    # oper notices.
+    $mod->register_oper_notice(
+        name   => $_->[0],
+        format => $_->[1]
+    ) foreach (
+        [ account_register => '%s (%s@%s) [%s] registered the account \'%s\' on %s' ],
+        [ account_login    => '%s (%s@%s) [%s] authenticated as \'%s\' on %s'       ],
+        [ account_logout   => '%s (%s@%s) [%s] logged out from \'%s\' on %s'        ]
+    );
+    
     return 1;
 }
 
@@ -100,8 +111,9 @@ sub next_available_id {
 }
 
 # register an account if it does not already exist.
+# $user is optional.
 sub register_account {
-    my ($account, $password, $server) = @_;
+    my ($account, $password, $server, $user) = @_;
     
     # it exists already.
     return if account_info($account);
@@ -129,11 +141,19 @@ sub register_account {
         $server->{name},
         $server->{sid}
     );
+    
+    notice(account_register =>
+        $user->notice_info,
+        $account,
+        $user->{server}{name}
+    ) if $user;
+    
+    return 1;
 }
 
 # log a user into an account.
 sub login_account {
-    my ($account, $user, $password) = @_;
+    my ($account, $user, $password, $just_registered) = @_;
     
     # fetch the account information.
     my $act = account_info($account);
@@ -165,6 +185,12 @@ sub login_account {
     # logged in event.
     $user->fire_event(logged_in => $act);
     
+    notice(account_login =>
+        $user->notice_info,
+        $act->{name},
+        $user->{server}{name}
+    ) unless $just_registered;
+    
     return 1;
 }
 
@@ -179,6 +205,7 @@ sub logout_account {
     }
 
     # success.
+    my $account = $user->{account}{name};
     delete $user->{account};
     
     # handle & send mode string if we're not doing so already.
@@ -190,6 +217,12 @@ sub logout_account {
     
     # send logged out if local.
     $user->numeric('RPL_LOGGEDOUT') if $user->is_local;
+    
+    notice(account_logout =>
+        $user->notice_info,
+        $account,
+        $user->{server}{name}
+    );
 
     return 1;
 }
@@ -223,7 +256,7 @@ sub cmd_register {
     }
     
     # taken.
-    if (!register_account($account, $password, v('SERVER'))) {
+    if (!register_account($account, $password, v('SERVER'), $user)) {
         $user->server_notice('register', 'Account name taken');
         return;
     }

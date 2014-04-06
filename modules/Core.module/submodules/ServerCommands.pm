@@ -422,9 +422,11 @@ sub part {
     }
 
     # remove the user and tell the local channel users
+    notice(user_part => $user->notice_info, $channel->{name}, $reason // 'no reason');
     $channel->remove($user);
-    $reason = defined $reason ? " :$reason" : q();
+    $reason = defined $reason ? " :$reason" : '';
     $channel->sendfrom_all($user->full, "PART $$channel{name}$reason");
+    
     return 1
 }
 
@@ -435,7 +437,7 @@ sub aum {
     my ($server, $data, $serv) = (shift, shift, shift);
     foreach my $str (@_) {
         my ($name, $letter) = split /:/, $str;
-        next if !(defined $name && length $name) || !(defined $letter && length $letter);
+        next if !length $name || !length $letter;
         $serv->add_umode($name, $letter)
     }
     return 1
@@ -451,9 +453,9 @@ sub acm {
         
         # ensure that all values are present.
         next if
-            !(defined $name   && length $name) ||
-            !(defined $letter && length $name) ||
-            !(defined $type   && length $name);
+            !length $name   ||
+            !length $letter ||
+            !length $type;
             
         $serv->add_cmode($name, $letter, $type)
     }
@@ -609,8 +611,8 @@ sub skill {
     # :uid  KILL  uid  :reason
     my ($server, $data, $user, $tuser, $reason) = @_;
 
-    # we ignore any non-local users
-    $tuser->{conn}->done("Killed by $$user{nick}: $reason") if $tuser->is_local;
+    # this ignores non-local users.
+    $tuser->get_killed_by($user, $reason);
 
 }
 
@@ -619,11 +621,16 @@ sub kick {
     # :id    KICK  channel uid  :reason
     my ($server, $data, $source, $channel, $t_user, $reason) = @_;
     
-    # determine the reason.
-    my $reason_string = defined $reason ? $reason : $source->name;
+    # fallback reason to source.
+    $reason //= $source->name;
     
     # tell the local users of the channel.
-    $channel->sendfrom_all($source->full, "KICK $$channel{name} $$t_user{nick} :$reason_string");
+    notice(user_part =>
+        $source->notice_info,
+        $channel->{name},
+        "Kicked by $$t_user{nick}: $reason"
+    ) if $source->isa('user');
+    $channel->sendfrom_all($source->full, "KICK $$channel{name} $$t_user{nick} :$reason");
     
     # remove the user from the channel.
     $channel->remove_user($t_user);

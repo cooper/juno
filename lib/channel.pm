@@ -7,7 +7,7 @@ use strict;
 use feature 'switch';
 use parent qw(Evented::Object channel::mine);
 
-use utils qw(log2 v match);
+use utils qw(log2 v match notice);
 
 sub new {
     my ($class, %opts) = @_;
@@ -127,8 +127,6 @@ sub cjoin {
     # a handler suggested that the join should not occur.
     return if $e->{join_fail};
     
-    log2("adding $$user{nick} to $$channel{name}");
-    
     # the channel TS will change
     # if the join time is older than the channel time
     if ($time < $channel->{time}) {
@@ -142,11 +140,13 @@ sub cjoin {
     # mine.pm:           for locals
     # core_scommands.pm: for nonlocals.
  
-    return $channel->{time}
-
+    notice(user_join => $user->notice_info, $channel->{name});
+    return $channel->{time};
 }
 
 # remove a user
+# note that this is not necessarily a part.
+# it could be that a user quit.
 sub remove {
     my ($channel, $user) = @_;
 
@@ -166,8 +166,6 @@ sub remove {
         $::pool->delete_channel($channel);
     }
     
-    log2("removed $$user{nick} from $$channel{name}");
-
     return 1;
 }
 

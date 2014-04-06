@@ -5,7 +5,7 @@ package server::linkage;
 use warnings;
 use strict;
 
-use utils qw(conf log2 v);
+use utils qw(conf log2 v notice);
 
 # connect to a server in the configuration
 sub connect_server {
@@ -24,6 +24,7 @@ sub connect_server {
     }
 
     my %serv = $ircd::conf->hash_of_block(['connect', $server_name]);
+    notice(server_connect => $server_name, $serv{address}, $serv{port});
 
     # create the socket
     my $socket = IO::Socket::IP->new(
@@ -39,15 +40,17 @@ sub connect_server {
     }
 
     log2("connection established to server $server_name");
-
+    
+    # create a stream.
     my $stream = IO::Async::Stream->new(
         read_handle  => $socket,
         write_handle => $socket
     );
 
-    # create connection object 
+    # create connection object.
     my $conn = $::pool->new_connection(stream => $stream);
 
+    # configure the stream events.
     $stream->configure(
         read_all       => 0,
         read_len       => POSIX::BUFSIZ,
@@ -58,6 +61,7 @@ sub connect_server {
         on_write_error => sub { _end($conn, $stream, $server_name, 'Write error: '.$_[1]) }
     );
 
+    # add to loop.
     $::loop->add($stream);
 
     # send server credentials.
@@ -68,14 +72,12 @@ sub connect_server {
         v('VERSION'),
         v('SERVER', 'desc')
     );
-
     $conn->send("PASS $serv{send_password}");
 
     $conn->{sent_creds} = 1;
     $conn->{want}       = $server_name;
-
+    
     return $conn;
-
 }
 
 sub _end {

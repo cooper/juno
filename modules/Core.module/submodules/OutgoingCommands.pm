@@ -162,7 +162,6 @@ sub return_away {
     ":$$user{uid} RETURN"
 }
 
-
 # leave a channel
 sub part {
     my ($user, $channel, $time, $reason) = @_;

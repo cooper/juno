@@ -2119,6 +2119,14 @@ CHANGES:
         
         59. fixed several commands that have an extra space since I switched ->send_all() to ->sendfrom_all().
 
+    6. added new oper notice flags:
+        server_connect, an autoconnect or CONNECT command was started;
+        user_killed, any user was killed;
+        user_nick_change, any user changed his nick;
+        user_join, any user joined a channel;
+        account_register, an account was registered;
+        account_login, a user authenticated to an account;
+        account_logout, a user logged out from an account.
 
             
             

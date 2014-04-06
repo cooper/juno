@@ -57,7 +57,7 @@ sub set_mode {
 sub quit {
     my ($user, $reason) = @_;
     log2("user quit from $$user{server}{name} uid:$$user{uid} $$user{nick}!$$user{ident}\@$$user{host} [$$user{real}] ($reason)");
-    notice(user_quit => $user->notice_info, $user->{server}{name}, $reason);
+    notice(user_quit => $user->notice_info, $user->{real}, $user->{server}{name}, $reason);
     
     my %sent = ( $user => 1 );
     $user->sendfrom($user->full, "QUIT :$reason") if $user->is_local;
@@ -81,7 +81,7 @@ sub quit {
 sub change_nick {
     my ($user, $newnick) = @_;
     $::pool->change_user_nick($user, $newnick) or return;
-    log2("$$user{nick} -> $newnick");
+    notice(user_nick_change => $user->notice_info, $newnick);
     $user->{nick} = $newnick;
 }
 
@@ -235,7 +235,7 @@ sub fullip {
 # convenience for passing info to notice().
 sub notice_info {
     my $user = shift;
-    return ($user->{nick}, $user->{ident}, $user->{host}, $user->{real});
+    return ($user->{nick}, $user->{ident}, $user->{host});
 }
 
 sub DESTROY {

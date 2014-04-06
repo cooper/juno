@@ -176,7 +176,7 @@ sub new_user {
     set_v(max_local_user_count  => $c_l) if $c_l > $max_l;
     set_v(max_global_user_count => $c_g) if $c_g > $max_g;
 
-    notice(new_user => $user->notice_info, $user->{server}{name});
+    notice(new_user => $user->notice_info, $user->{real}, $user->{server}{name});
     return $user;
 }
 
@@ -427,7 +427,7 @@ sub fire_oper_notice {
         $message = sprintf $message, @_;
     }
     
-    my $pretty = qq(\2).ucfirst($notice).qq(\2);
+    my $pretty = ucfirst $notice;
     $pretty    =~ s/_/ /g;
     
     # send to users with this notice flag.

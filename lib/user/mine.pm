@@ -6,7 +6,7 @@ package user::mine;
 use warnings;
 use strict;
 
-use utils qw(col log2 conf v);
+use utils qw(col log2 conf v notice);
 
 sub safe {
     my $user = shift;
@@ -81,7 +81,7 @@ sub sendme {
 sub server_notice {
     @_ = &safe or return;
     my ($user, @args) = @_;
-    my $msg = defined $args[1] ? "*** $args[0]: $args[1]" : $args[0];
+    my $msg = defined $args[1] ? "*** \2$args[0]\2: $args[1]" : $args[0];
     
     # user is local.
     if ($user->is_local) {
@@ -228,6 +228,15 @@ sub add_notices {
         next if $user->has_notice($flag);
         push @{ $user->{notice_flags} ||= [] }, $flag;
     }
+}
+
+# handle a kill on a local user.
+sub get_killed_by {
+    my ($user, $murderer, $reason) = @_;
+    return unless $user->is_local;
+    my $name = $murderer->name;
+    $user->{conn}->done("Killed by $name: $reason");
+    notice(user_killed => $user->notice_info, $murderer->full, $reason);
 }
 
 1
