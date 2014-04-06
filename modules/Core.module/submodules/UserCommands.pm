@@ -454,6 +454,7 @@ sub cmap {
         # increase indent and do children.
         $indent += 4;
         $do->($_) foreach $server->children;
+        $indent -= 4;
         
         $done{$server} = 1;
     };

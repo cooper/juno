@@ -130,6 +130,8 @@ sub delete_server {
     delete $server->{pool};
     delete $pool->{servers}{ $server->{sid} };
     delete $pool->{server_names}{ lc $server->{name} };
+    my $children = $server->{parent}{children};
+    @$children   = grep { $_ != $server} @$children;
     
     log2("deleted server $$server{name}");
     return 1;
