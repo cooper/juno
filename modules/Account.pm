@@ -90,9 +90,9 @@ sub init {
         name   => $_->[0],
         format => $_->[1]
     ) foreach (
-        [ account_register => '%s (%s@%s) [%s] registered the account \'%s\' on %s' ],
-        [ account_login    => '%s (%s@%s) [%s] authenticated as \'%s\' on %s'       ],
-        [ account_logout   => '%s (%s@%s) [%s] logged out from \'%s\' on %s'        ]
+        [ account_register => '%s (%s@%s) registered the account \'%s\' on %s' ],
+        [ account_login    => '%s (%s@%s) authenticated as \'%s\' on %s'       ],
+        [ account_logout   => '%s (%s@%s) logged out from \'%s\' on %s'        ]
     );
     
     return 1;

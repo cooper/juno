@@ -2133,10 +2133,10 @@ CHANGES:
             reload, the IRCd was reloaded;
             module_load, a module was loaded;
             module_unload, a module was unloaded.
-            
-            
-            
-            
+
+        62. load the API Engine before any other modules in case class_unload() must be called during boot.
+            fixed rounding in percentages in MAP command.
+            fixed "authenticated as <server>" in account server notices.
             
             
             

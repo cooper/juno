@@ -434,7 +434,6 @@ sub privmsgnotice {
 }
 
 sub cmap {
-    # TODO: this will be much prettier later!
     my $user  = shift;
     my $total = scalar $::pool->users;
     my $users = scalar grep { $_->{server} == $me } $::pool->users;
@@ -447,7 +446,7 @@ sub cmap {
         
         my $spaces = ' ' x $indent;
         $users = scalar $server->users;
-        $per   = int $users / $total * 100;
+        $per   = int($users / $total * 100 + 0.5);
 
         $user->numeric(RPL_MAP => $spaces, $server->{name}, $users, $per);
         
@@ -1007,7 +1006,6 @@ sub modload {
 
     # attempt.
     my $result = $::API->load_module($mod_name, "$mod_name.pm");
-    my $mod    = $::API->get_module($mod_name);
 
     # failure.
     if (!$result) {
@@ -1018,7 +1016,7 @@ sub modload {
     # success.
     else {
         $user->server_notice('Module loaded successfully.');
-        notice(module_load => $user->notice_info, $mod->full_name, $mod->{version});
+        notice(module_load => $user->notice_info, $result->full_name, $result->{version});
         return 1;
     }
     
@@ -1029,7 +1027,6 @@ sub modunload {
     $user->server_notice("Unloading module \2$mod_name\2.");
 
     # attempt.
-    my $mod    = $::API->get_module($mod_name);
     my $result = $::API->unload_module($mod_name, "$mod_name.pm");
     
     # failure.
@@ -1041,7 +1038,7 @@ sub modunload {
     # success.
     else {
         $user->server_notice('Module unloaded successfully.');
-        notice(module_unload => $user->notice_info, $mod->full_name);
+        notice(module_unload => $user->notice_info, $result->full_name);
         return 1;
     }
     
