@@ -95,12 +95,6 @@ automodes = "+i"     # modes set to users on connect
 automodes = "+ntqo +user +user" # modes set on channel creation. "+user" will be
                                 # replaced with the user who created the channel.
 
-[ flood ]
-
-lines   = 50                # flooding options:
-bytes   = 1                 #   defaults are usually sufficient.
-message = "excess flood"
-
 [ limit ]
 
 # the maximum number of characters in...

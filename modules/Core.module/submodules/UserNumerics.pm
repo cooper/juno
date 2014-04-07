@@ -191,8 +191,6 @@ sub isp_prefix {
     foreach my $level (sort { $b <=> $a } keys %ircd::channel_mode_prefixes) {
         $modestr  .= $ircd::channel_mode_prefixes{$level}[0];
         $prefixes .= $ircd::channel_mode_prefixes{$level}[1];
-            print "$level modestr($modestr) prefixes($prefixes)\n";
-
     }
     
     return "($modestr)$prefixes";
