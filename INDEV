@@ -2138,10 +2138,8 @@ CHANGES:
             fixed rounding in percentages in MAP command.
             fixed "authenticated as <server>" in account server notices.
             
-            
-            
-            
-
+        63. update API engine. this fixes a crash issue with MOD(UN)LOAD due to case sensitivity of module names.
+            update Evented::Configuration. it no longer die()s when there is an error. can't believe it did in the first place.
 
 
 
