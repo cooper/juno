@@ -436,8 +436,6 @@ sub privmsgnotice {
 sub cmap {
     my $user  = shift;
     my $total = scalar $::pool->users;
-    my $users = scalar grep { $_->{server} == $me } $::pool->users;
-    my $per   = int $users / $total * 100;
 
     my ($indent, $do, %done) = 0;
     $do = sub {
@@ -445,8 +443,8 @@ sub cmap {
         return if $done{$server};
         
         my $spaces = ' ' x $indent;
-        $users = scalar $server->users;
-        $per   = int($users / $total * 100 + 0.5);
+        my $users  = scalar $server->users;
+        my $per    = sprintf '%.f', $users / $total * 100;
 
         $user->numeric(RPL_MAP => $spaces, $server->{name}, $users, $per);
         
@@ -976,7 +974,7 @@ sub lusers {
     my $g_users = $g_not_invisible + $g_invisible;
 
     # get local users
-    my $l_users  = scalar grep { $_->is_local } $::pool->users;
+    my $l_users = scalar grep { $_->is_local } $::pool->users;
 
     # get connection count and max connection count
     my $conn     = v('connection_count');
@@ -1061,7 +1059,7 @@ sub rehash {
 
     # rehash.
     $user->numeric(RPL_REHASHING => $::conf->{conffile});
-    if ($::conf->parse_config) {
+    if (ircd::rehash()) {
         $user->server_notice('rehash', 'Configuration loaded successfully');
         return 1;
     }
@@ -1286,7 +1284,7 @@ sub version {
         v('NAME'),               # all
         $ircd::VERSION,          # of
         $server->{name},         # this
-        $::VERSION,          # is
+        $::VERSION,              # is
         $ircd::VERSION,          # wrong for nonlocal servers.
         $VERSION                 # TODO: send this info over protocol.
     );

@@ -2143,6 +2143,8 @@ CHANGES:
 
             631. require the above versions of API Engine and Evented::Configuration.
 
+        64. improved MAP command yet again.
+            rehashing the server now creates any new listening sockets added to configuration.
 
 
         

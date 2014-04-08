@@ -49,7 +49,7 @@ sub start {
         db       => undef,
         conffile => "$::run_dir/etc/ircd.conf"
     );
-    
+        
     # parse the configuration.
     $conf->parse_config or die "can't parse configuration.\n";
 
@@ -219,12 +219,6 @@ sub load_optionals {
 }
 
 sub create_sockets {
-
-    # TODO: keep track of these, and allow rehashing to change this.
-    return if $::sockets_done;
-        # FIXME: do the above and ignore anything that hasn't changed
-        # when reloading because this will be called multiple times.
-    
     foreach my $addr ($conf->names_of_block('listen')) {
       foreach my $port (@{ $conf->get(['listen', $addr], 'port') }) {
 
@@ -240,7 +234,7 @@ sub create_sockets {
             ReuseAddr => 1,
             Type      => Socket::SOCK_STREAM(),
             Proto     => 'tcp'
-        ) or fatal("Couldn't listen on [$addr]:$port: $!");
+        ) or log2("Couldn't listen on [$addr]:$port: $!") and next;
 
         # add to looped listener
         $listener->listen(handle => $socket);
@@ -248,7 +242,6 @@ sub create_sockets {
         log2("Listening on [$addr]:$port");
     } }
     
-    $::sockets_done = 1;
     return 1;
 }
 
@@ -408,6 +401,12 @@ sub ping_check {
           if $since_last >= conf(['ping', $type], 'timeout');
         
     }
+}
+
+# rehash the server.
+sub rehash {
+    eval { $::conf->parse_config } or log2("Configuration error: ".($@ || $!)) and return;
+    create_sockets();
 }
 
 sub boot {
