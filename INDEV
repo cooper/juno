@@ -2146,6 +2146,21 @@ CHANGES:
         64. improved MAP command yet again.
             rehashing the server now creates any new listening sockets added to configuration.
 
+        65. rewrote the crypt() utility function. it now dynamically loads encryption modules as needed, so the former 'enabled' configuration keys are now obsolete.
+            new simplified configuration example included.
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+
 
         
         

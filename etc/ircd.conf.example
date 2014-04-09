@@ -1,186 +1,143 @@
-# juno-ircd configuration.
-#
-# this configuration is in Evented::Configuration format.
-# https://github.com/cooper/evented-configuration
-#
-# values may be any valid SCALAR Perl value, such as numbers, strings, and array references.
+# juno configuration file
 
-[ enabled ]
-
-sha = on         # SHA-1/224/256/384/512     (core Perl module)
-md5 = off        # arguably less secure      (core Perl module)
 
 [ database ]
 
-type = "sqlite"      # type of database (currently only sqlite is supported)
+    type = 'sqlite'                             # database format
+
 
 [ network ]
 
-name = "NoTrollPlzNet"
+    name = 'JunoDevNet'                         # network name
+
 
 [ server ]
 
-name        = "cooper.on.fgt-transit.com"       # the name of the server
-description = "juno development server"         # the description of the server
-sex         = "male"                            # the server's sex (preferably male or female)
-id          = 0                                 # the SID of the server
+    name        = 'devserver.example.com'       # server name
+    description = 'juno development server'     # server description
+    sex         = 'male'                        # server gender
+    id          = 0                             # server ID (must be completely unique)
 
-# server ID must be unique to the network or things *WILL* screw up
 
 [ api ]
 
-# modules to load automatically.
-# you probably want to load core_*. juno is pretty much useless without core modules.
+    modules = ['Core', 'Resolve']               # load these modules at startup
 
-modules: ['Core', 'Access', 'Resolve', 'Account']
 
 [ modes: user ]
 
-ircop      = 'o'     # user mode letters. If these are provided, the modes will exist.
-invisible  = 'i'     # if they are not provided, the modes will not exist. You can choose
-registered = 'r'     # any letter to correspond with a mode without changing the internal
-                     # working of the IRCd. If you chose to add a rule here for a mode that
-                     # does nothing, the mode will still exist - it will just be useless.
+    ircop         = 'o'                         # IRC operator                      (o)
+    invisible     = 'i'                         # invisible mode                    (i)
+    registered    = 'r'                         # registered - Account module       (r)
+
 
 [ modes: channel ]
 
-# channel mode letters and their types.
-# the type MUST comply with the mode name, but you may switch
-# the letters as you please without changing the internal working.
-# the types are:
-#   normal (0)
-#   parameter (1)
-#   parameter_set (2)
-#   list (3)
-#   status (4)
+    no_ext        = [0, 'n']                    # no external channel messages      (n)
+    protect_topic = [0, 't']                    # only operators can set the topic  (t)
+    moderated     = [0, 'm']                    # only voiced and up may speak      (m)
+    ban           = [3, 'b']                    # channel ban                       (b)
+    except        = [3, 'e']                    # ban exception                     (e)
+    invite_except = [3, 'I']                    # invite-only exception             (I)
+    access        = [3, 'A']                    # Access module list mode           (A)
 
-# status modes should NOT be placed here. please see the prefixes section below.
-
-no_ext        = [0, 'n'] # no external channel messages      (n)
-protect_topic = [0, 't'] # only operators can set the topic  (t)
-moderated     = [0, 'm'] # only voiced and up may speak      (m)
-ban           = [3, 'b'] # channel ban                       (b)
-except        = [3, 'e'] # ban exception                     (e)
-invite_except = [3, 'I'] # invite-only exception             (I)
-
-# these are provided by modules.
-
-access = [3, 'A']   # access list mode (A)
 
 [ prefixes ]
 
-# channel status prefixes.
-# to disable a channel prefix mode provided by core, remove any of these lines.
-# any of this can be modified, but it is typically a good idea to leave op and voice
-# intact. the format is [letter, prefix, level]. any status mode with a higher level
-# has more privs than one with a lower level. for example, admins can't kick owners
-# because two is greater than one. op should be 0. for things that check for basic
-# channel status such as plain old mode setting, a user with any of the following will
-# be allowed to do these things: "owner", "admin", "op", "halfop". however, this
-# does not mean that juno is hard coded to five prefixes. this list might be extended
-# by modules which allow you to add different prefixes at different levels.
+    owner  = ['q', '~',  2]                     # channel owner                     (q)
+    admin  = ['a', '&',  1]                     # channel administrator             (a)
+    op     = ['o', '@',  0]                     # channel operator                  (o)
+    halfop = ['h', '%', -1]                     # channel half-operator             (h)
+    voice  = ['v', '+', -2]                     # voiced channel member             (v)
 
-owner  = ['q', '~',  2]
-admin  = ['a', '&',  1]
-op     = ['o', '@',  0]
-halfop = ['h', '%', -1]
-voice  = ['v', '+', -2]
 
 [ users ]
 
-automodes = "+i"     # modes set to users on connect
+    automodes = '+i'                            # set these modes on users at connect
+
 
 [ channels ]
 
-automodes = "+ntqo +user +user" # modes set on channel creation. "+user" will be
-                                # replaced with the user who created the channel.
+    automodes = '+ntqo +user +user'             # set these modes as users enter channel
+
 
 [ limit ]
 
-# the maximum number of characters in...
+    # the maximum number of:
 
-nick        = 32        # nicknames
-topic       = 1000      # channel topics
-kickmsg     = 300       # kick messages
-channelname = 50        # channel names
-away        = 100       # away messages
+    connection  = 100                           # connections
+    perip       = 3                             # local  connections per IP address
+    globalperip = 5                             # global connections per IP address
+    client      = 80                            # users (currently unused)
+    bytes_line  = 2048                          # bytes per line
+    lines_sec   = 30                            # lines per second
 
-# the max number of...
+    # the maximum number of characters in:
 
-connection  = 100    # connections
-perip       = 3      # connections per IP address (local connections)
-globalperip = 5      # connections per IP address (global users)
-client      = 80     # users
+    nick        = 32                            # nicknames
+    topic       = 1000                          # channel topics
+    kickmsg     = 300                           # kick messages
+    channelname = 50                            # channel names
+    away        = 100                           # away messages
 
-bytes_line  = 2048   # bytes per line
-lines_sec   = 30     # lines per second
 
 [ file ]
 
-motd = "etc/ircd.motd" # the path to the MOTD file
+    motd = 'etc/ircd.motd'                      # message of the day file
+
 
 [ ping: server ]
 
-frequency = 20           # server ping section:
-timeout   = 500          #   defaults are usually sufficient.
+    frequency = 20                              # how often to ping servers
+    timeout   = 500                             # how long until dropping servers
+
 
 [ ping: user ]
 
-message   = "Ping timeout"   # user ping section:
-frequency = 30               # defaults are usually sufficient.
-timeout   = 120
+    message   = 'Ping timeout'                  # message for ping timeouts
+    frequency = 30                              # how often to ping users
+    timeout   = 120                             # how long until dropping users
 
 
 [ listen: 0.0.0.0 ]
 
-# the address to bind to should be the block name.
-# you can have as many listen blocks as you please, one per address.
+    port = [6667..6669, 7000]                   # unsecured listening ports
 
-port = [6667..6669, 7000]        # separated by commas, nested by [].
-                                 #   ranges are supported.
 
-[ connect: server1.netbookwashers.info ]
-                                # <--- the name of the opposite server should be the block name
-address          = "67.202.109.243" # the IP to connect to OR to accept connections from (does not accept wildcards)
-port             = 7000             # the port to connect to
-encryption       = "sha1"           # encryption of the receive password - make sure it is enabled
-send_password    = "k"              # the password to send to the other server
-receive_password = "13fbd79c3d390e5d6585a21e11ff5ec1970cff0c" # the password to receive in return, encryped in the above crypt
-autoconnect      = off              # attempt to connect to the server automatically?
-auto_timer       = 30               # how often (in seconds) to attempt to connection if autoconnect is enabled
+[ connect: server2.example.com ]
 
-# oper classes
+    address          = '192.168.1.5'            # IP address for connections
+    port             = 7000                     # port on which link will take place
+    send_password    = 'k'                      # password to send (plaintext)
+    receive_password = '13fbd79c3d390e5d6585a21e11ff5ec1970cff0c' # password to receive
+    encryption       = 'sha1'                   # encryption of the receive password
+    autoconnect      = off                      # connect automatically
+
 
 [ operclass: local ]
 
-flags = [qw/kill locops see_invisible rehash/] # list of oper flags
+    flags = ['kill', 'see_invisible', 'rehash'] # flags for local opers
+
 
 [ operclass: global ]
 
-extends = 'local'                     # gets the flags from local
-flags   = [qw/gkill globops grehash/] # and adds these flags
+    extends = 'local'                           # global opers inherit all flags in local
+    flags   = ['gkill', 'grehash']              # flags specific to global opers and up
+
 
 [ operclass: netadmin ]
 
-extends = 'global'                   # gets the flags from both global and local
-flags   = ['grant']                  # and adds these flags
-notices = ['all']                    # and these notice flags
+    extends = 'global'                          # netadmins inherit global and local flags
+    flags   = ['grant']                         # flags specific to netadmins only
+    notices = ['all']                           # server notice flags
+
 
 [ oper: admin ]
 
-class      = "netadmin"                 # their oper class
-host       = ['*@*']                    # an array ref of hosts to accept
-password   = "d033e22ae348aeb5660fc2140aec35850c4da997" # the password, encrypted in the below crypt (default admin)
-encryption = "sha1"                     # the encryption to use in the password
-flags      = [qw/all/]                  # list of oper flags
-
-# the above oper example ends up with flags: localkill, locops, globalkill, globops, grant, some_flag, some_other
-# because it has its own flags and is in the netadmins class
-# where netadmins provides grant
-# and extends global which provides globalkill and globops
-# which extends local which provides localkill and locops
-# :).
-
-[ log ]
-
-#server_debug = on      # logs data received from linked servers.
+    class      = 'netadmin'                     # oper class (optional)
+    host       = ['*@*']                        # accept authentication from these
+    password   = '13fbd79c3d390e5d6585a21e11ff5ec1970cff0c' # password
+    encryption = 'sha1'                         # encryption of above password
+    flags      = ['all']                        # flags for this oper (optional)
+    
+    

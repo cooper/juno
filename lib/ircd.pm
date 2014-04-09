@@ -165,7 +165,7 @@ sub load_or_reload {
     
     # it hasn't been loaded yet at all.
     # use require to load it the first time.
-    if ($boot) {
+    if ($boot || !is_loaded($name)) {
         log2("Loading $name");
         require $file or log2("Very bad error: could not load $name!".($@ || $!));
         return;
@@ -211,9 +211,8 @@ sub load_dependencies {
 # load configured optional packages.
 sub load_optionals {
     
-    # encryption.
-    load_or_reload('Digest::SHA', 0) if conf qw[enabled sha];
-    load_or_reload('Digest::MD5', 0) if conf qw[enabled md5];
+    #load_or_reload('Digest::SHA', 0) if conf qw[enabled sha];
+    #load_or_reload('Digest::MD5', 0) if conf qw[enabled md5];
     load_or_reload('DBD::SQLite', 0) if conf('database', 'type') eq 'sqlite';
 
 }

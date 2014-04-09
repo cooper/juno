@@ -139,34 +139,39 @@ sub cut_to_limit {
     return $string
 }
 
+my %crypts = (
+    sha1   => [ 'Digest::SHA', 'sha1_hex'   ],
+    sha224 => [ 'Digest::SHA', 'sha224_hex' ],
+    sha256 => [ 'Digest::SHA', 'sha256_hex' ],
+    sha384 => [ 'Digest::SHA', 'sha384_hex' ],
+    sha512 => [ 'Digest::SHA', 'sha512_hex' ],
+    md5    => [ 'Digest::MD5', 'md5_hex'    ]
+);
+
 # encrypt something
 sub crypt {
-    my ($what, $crypt) = @_;
-
-    # no do { given { 
-    # compatibility XXX
-    my $func = 'die';
-    given ($crypt) {
-        when ('sha1')   { $func = 'Digest::SHA::sha1_hex'   }
-        when ('sha224') { $func = 'Digest::SHA::sha224_hex' }
-        when ('sha256') { $func = 'Digest::SHA::sha256_hex' }
-        when ('sha384') { $func = 'Digest::SHA::sha384_hex' }
-        when ('sha512') { $func = 'Digest::SHA::sha512_hex' }
-        when ('md5')    { $func = 'Digest::MD5::md5_hex'    }
+    my ($what, $crypt, $salt) = @_;
+    $salt //= '';
+    
+    # no such crypt.
+    if (!defined $crypts{$crypt}) {
+        log2("Crypt error: Unknown crypt $crypt!");
+        return;
+    }
+    
+    # load if it isn't loaded.
+    my ($package, $function) = @{ $crypts{$crypt} };
+    ircd::load_or_reload($package, 0);
+    
+    # call the function.
+    if (my $code = $package->can($function)) {
+        return $code->($salt.$what);
     }
 
-    $what    =~ s/'/\\'/g;
-    my $eval =  "$func('$what')";
-
-    # use eval to prevent crash if failed to load the module
-    $what = eval $eval;
-
-    if (not defined $what) {
-        log2("couldn't crypt to $crypt. you probably forgot to load it. $@");
-        return $what;
-    }
-
-    return $what;
+    # couldn't find the function.
+    log2("Crypt error: $package cannot $function!");
+    return;
+    
 }
 
 # variables.
