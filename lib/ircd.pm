@@ -196,7 +196,7 @@ sub load_dependencies {
         [ 'IO::Async::Timer::Periodic',    0.60 ],
         [ 'IO::Async::Timer::Countdown',   0.60 ],
         [ 'IO::Socket::IP',                0.25 ],
-        [ 'Evented::Object',               3.90 ],
+        [ 'Evented::Object',               3.97 ],
         [ 'Evented::Configuration',        3.40 ],
         [ 'Evented::Database',             0.50 ]
     );
