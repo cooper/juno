@@ -1,28 +1,6 @@
 Development log
 ---------------
 
-TODO:
-
-    [H] create command blocks- just like mode blocks but for commands.
-    [H] for list modes, create mode blocks to be fired for viewing lists
-    [H] RPL_ISUPPORT
-    [H] list mode listing
-    [H] no speaking if banned in channel
-    [M] burst topic
-    [L] idle time in WHOIS
-    [L] MOTD server parameter
-    [L] add modes secret and private and then make NAMES accurate to them
-    [L] TARGMAX and target limits
-
-TODO for stability and performance:
-
-    maximum connections in x seconds
-    connection throttle
-
-STARTED BUT NOT FINISHED:
-
-    most channel modes are entirely screwed up. Permissions make little sense. 
-
 OPER FLAGS:
 
     all:            grants all privileges
@@ -42,41 +20,6 @@ OPER FLAGS:
     squit:          use the SQUIT command locally
 #   gsquit:         use the SQUIT command globally
 
-
-PLANS:
-
-    GENERAL:
-
-        none yet
-
-    LINKING:
-
-        rather than remote includes, send certain configuration values over the linking protocol
-        modes to be known by their names, types, or levels rather than letters
-        make the linking protocol more compact by combining commands
-
-    CHANNELS:
-
-        internally support many of the channel modes provided by charybdis
-
-API PLANS:
-
-    GENERAL:
-
-        create a module API similar to juno v2's, except with the ability to "override" commands, modes, etc
-
-        module: fake ban
-        module: abuse
-        module: named mode setting
-
-    LINKING:
-
-        none yet
-
-    CHANNELS:
-
-        support many of the channel modes provided by unrealircd and inspircd modules
-        module: channel mode to show invite notices
 
 CHANGES:
 
@@ -2148,6 +2091,11 @@ CHANGES:
 
         65. rewrote the crypt() utility function. it now dynamically loads encryption modules as needed, so the former 'enabled' configuration keys are now obsolete.
             new simplified configuration example included.
+            
+        66. the network:name configuration key has been renamed to server:network because the [network] section was unnecessary.
+            fixed an issue with kick reasons.
+            updated Evented::Object.
+            
         
         
         

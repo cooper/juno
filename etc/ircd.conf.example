@@ -1,18 +1,9 @@
 # juno configuration file
 
 
-[ database ]
-
-    type = 'sqlite'                             # database format
-
-
-[ network ]
-
-    name = 'JunoDevNet'                         # network name
-
-
 [ server ]
-
+    
+    network     = 'JunoDevNet'                  # network name
     name        = 'devserver.example.com'       # server name
     description = 'juno development server'     # server description
     sex         = 'male'                        # server gender
@@ -22,6 +13,11 @@
 [ api ]
 
     modules = ['Core', 'Resolve']               # load these modules at startup
+
+
+[ database ]
+
+    type = 'sqlite'                             # database format
 
 
 [ modes: user ]

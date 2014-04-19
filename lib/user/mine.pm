@@ -138,7 +138,8 @@ sub new_connection {
     $user->handle_mode_string(conf qw/users automodes/);
 
     # send numerics
-    $user->numeric(RPL_WELCOME  => conf('network', 'name'), $user->{nick}, $user->{ident}, $user->{host});
+    my $network = conf('server', 'network') // conf('network', 'name');
+    $user->numeric(RPL_WELCOME  => $network, $user->{nick}, $user->{ident}, $user->{host});
     $user->numeric(RPL_YOURHOST => v('SERVER', 'name'), v('NAME').q(-).v('VERSION'));
     $user->numeric(RPL_CREATED  => POSIX::strftime('%a %b %d %Y at %H:%M:%S %Z', localtime v('START')));
     $user->numeric(RPL_MYINFO   =>
