@@ -2095,6 +2095,9 @@ CHANGES:
         66. the network:name configuration key has been renamed to server:network because the [network] section was unnecessary.
             fixed an issue with kick reasons.
             updated Evented::Object.
+        
+        67. updated Evented::Object.
+        
             
         
         

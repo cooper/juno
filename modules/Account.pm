@@ -98,6 +98,10 @@ sub init {
     return 1;
 }
 
+##########################
+### ACCOUNT MANAGEMENT ###
+##########################
+
 # fetch account information
 sub account_info {
     my $account = shift;
@@ -227,6 +231,10 @@ sub logout_account {
     return 1;
 }
 
+#############
+### MODES ###
+#############
+
 # logged in mode.
 sub umode_registered {
     my ($user, $state) = @_;
@@ -236,6 +244,10 @@ sub umode_registered {
     logout_account($user, 1);
     return 1;
 }
+
+#####################
+### USER COMMANDS ###
+#####################
 
 # REGISTER command.
 # /REGISTER <password>
@@ -285,6 +297,10 @@ sub cmd_login {
     login_account($account, $user, $password);
     
 }
+
+################
+### MATCHERS ###
+################
 
 # account mask matcher.
 sub account_matcher {
