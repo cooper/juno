@@ -426,16 +426,15 @@ sub fire_oper_notice {
     else {
         $message = sprintf $message, @_;
     }
-    
-    my $pretty = 'Notice: '.ucfirst($notice);
-    $pretty    =~ s/_/ /g;
+
+    (my $pretty = ucfirst $notice) =~ s/_/ /g;
     
     # send to users with this notice flag.
     foreach my $user ($pool->users) {
         next unless $user->is_mode('ircop');
         next unless $user->has_notice($notice);
         
-        $user->server_notice($pretty, $message);
+        $user->server_notice('Notice', ucfirst($pretty).': '.$message);
         $amnt++;
     }
     

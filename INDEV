@@ -2101,6 +2101,11 @@ CHANGES:
         68. eval command now supports sending results to a channel rather than the user.
             server bursts are now an evented mechanism. the JELP burst commands have been moved to Core.OutgoingCommands.            
             fixed some connection error messages.
+            
+        69. fixed incorrect kick server notices.
+            made oper notices prettier.
+            added notices for connection credential errors.
+            fixed a crash when unloading Core.OutgoingCommands in version 7.68.
         
         
         

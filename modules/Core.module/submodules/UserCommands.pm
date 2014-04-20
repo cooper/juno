@@ -171,7 +171,7 @@ my %ucommands = (
     EVAL => {
         code   => \&seval,
         desc   => 'evaluate a line of Perl code',
-        params => '-oper(eval) any :rest',
+        params => '-oper(eval) any(opt) :rest',
         fntsy  => 1
     },
     VERSION => {
@@ -1206,7 +1206,7 @@ sub kick {
     $reason //= $user->{nick};
     
     # tell the local users of the channel.
-    notice(user_part => $user->notice_info, $channel->{name}, "Kicked by $$t_user{nick}: $reason");
+    notice(user_part => $t_user->notice_info, $channel->{name}, "Kicked by $$user{nick}: $reason");
     $channel->sendfrom_all($user->full, "KICK $$channel{name} $$t_user{nick} :$reason");
     
     # remove the user from the channel.
@@ -1268,7 +1268,7 @@ sub modelist {
 sub seval {
     my ($user, $data, $ch_name, $code) = @_;
     my $channel = $::pool->lookup_channel($ch_name);
-    $code = "$ch_name $code" unless $channel;
+    $code = join(' ', $ch_name, $code // '') unless $channel;
     
     # evaluate.
     my $result = eval $code;

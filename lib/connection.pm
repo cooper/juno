@@ -10,7 +10,7 @@ use parent 'Evented::Object';
 use Socket::GetAddrInfo;
 use Scalar::Util 'weaken';
 
-use utils qw(log2 col conn conf match v);
+use utils qw(log2 col conn conf match v notice);
 
 sub new {
     my ($class, $stream) = @_;
@@ -115,6 +115,7 @@ sub handle {
                 # check for matching IPs
                 if ($connection->{ip} ne $addr) {
                     $connection->done('Invalid credentials');
+                    notice(connection_invalid => $connection->{ip}, 'IP does not match block');
                     return;
                 }
 
@@ -123,6 +124,7 @@ sub handle {
             # no such server
             else {
                 $connection->done('Invalid credentials');
+                notice(connection_invalid => $connection->{ip}, 'No block for this server');
                 return;
             }
 
@@ -208,6 +210,7 @@ sub ready {
 
         if ($password ne conn($connection->{name}, 'receive_password')) {
             $connection->done('Invalid credentials');
+            notice(connection_invalid => $connection->{ip}, 'Received invalid password');
             return
         }
 

@@ -37,8 +37,7 @@ our $mod = API::Module->new(
     version     => $API::Module::Core::VERSION,
     description => 'the core set of outgoing commands',
     requires    => ['Events', 'OutgoingCommands'],
-    initialize  => \&init,
-    void        => \&void
+    initialize  => \&init
 );
 
 my $me = v('SERVER');

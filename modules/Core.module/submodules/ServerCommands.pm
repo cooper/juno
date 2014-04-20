@@ -626,9 +626,9 @@ sub kick {
     
     # tell the local users of the channel.
     notice(user_part =>
-        $source->notice_info,
+        $t_user->notice_info,
         $channel->{name},
-        "Kicked by $$t_user{nick}: $reason"
+        "Kicked by $$source{nick}: $reason"
     ) if $source->isa('user');
     $channel->sendfrom_all($source->full, "KICK $$channel{name} $$t_user{nick} :$reason");
     

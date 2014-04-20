@@ -57,7 +57,7 @@ sub connect_server {
         on_read        => \&ircd::handle_data,
         on_read_eof    => sub { _end($conn, $stream, $server_name, 'Connection closed')   },
         on_write_eof   => sub { _end($conn, $stream, $server_name, 'Connection closed')   },
-        on_read_error  => sub { _end($conn, $stream, $server_name, 'Read error :'.$_[1])  },
+        on_read_error  => sub { _end($conn, $stream, $server_name, 'Read error: ' .$_[1]) },
         on_write_error => sub { _end($conn, $stream, $server_name, 'Write error: '.$_[1]) }
     );
 
