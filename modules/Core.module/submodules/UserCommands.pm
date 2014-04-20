@@ -171,7 +171,8 @@ my %ucommands = (
     EVAL => {
         code   => \&seval,
         desc   => 'evaluate a line of Perl code',
-        params => '-oper(eval) :rest'
+        params => '-oper(eval) any :rest',
+        fntsy  => 1
     },
     VERSION => {
         code   => \&version,
@@ -1265,15 +1266,27 @@ sub modelist {
 }
 
 sub seval {
-    my ($user, $data, $code) = @_;
+    my ($user, $data, $ch_name, $code) = @_;
+    my $channel = $::pool->lookup_channel($ch_name);
+    $code = "$ch_name $code" unless $channel;
     
     # evaluate.
     my $result = eval $code;
+    my @result = split "\n", $result // ($@ || "\2undef\2");
 
-    # send the result to the user.
+    # send the result to the channel.
     my $i = 0;
-    $user->server_notice($i++ ? "eval ($i)" : 'eval', $_)
-      foreach split "\n", $result // ($@ || "\2undef\2");
+    if ($channel) {
+        $channel->sendfrom_all($user->full,
+            "PRIVMSG $$channel{name} :".
+            ($i++ ? "eval ($i)" : 'eval', $_)
+        ) foreach @result;
+    }
+    
+    # send the result to the user.
+    else {
+        $user->server_notice($i++ ? "eval ($i)" : 'eval', $_) foreach @result;
+    }
     
     return 1;
 }

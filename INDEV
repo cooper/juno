@@ -2098,8 +2098,9 @@ CHANGES:
         
         67. updated Evented::Object.
         
-            
-        
+        68. eval command now supports sending results to a channel rather than the user.
+            server bursts are now an evented mechanism. the JELP burst commands have been moved to Core.OutgoingCommands.            
+            fixed some connection error messages.
         
         
         

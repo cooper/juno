@@ -82,7 +82,7 @@ sub connect_server {
 
 sub _end {
     my ($conn, $stream, $server_name, $reason) = @_;
-    $conn->done('write error: '.$_[1]);
+    $conn->done($reason);
     $stream->close_now;
     
     # if we have an autoconnect_timer for this server, start a connection timer.

@@ -111,6 +111,7 @@ sub handle {
             # find a matching server
             if (defined ( my $addr = conn($connection->{name}, 'address') )) {
 
+                # FIXME: we need to use IP comparison functions
                 # check for matching IPs
                 if ($connection->{ip} ne $addr) {
                     $connection->done('Invalid credentials');

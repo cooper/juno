@@ -76,81 +76,22 @@ sub send_burst {
     my $server = shift;
     return if $server->{i_sent_burst};
     
-    $server->sendme('BURST '.time);
+    # BURST.
+    my $time = time;
+    $server->sendme("BURST $time");
 
-    # servers and mode names
-    my ($do, %done);
-   
-    # first, send modes of this server.
-    fire_command($server, aum => v('SERVER'));
-    fire_command($server, acm => v('SERVER'));
-    
-    # don't send info for this server or the server we're sending to.
-    $done{$server}       = 1;
-    $done{ v('SERVER') } = 1;
-    
-    $do = sub {
-        my $serv = shift;
-        
-        # already did this one.
-        return if $done{$serv};
-        
-        # we learned about this server from the server we're sending to.
-        return if defined $serv->{source} && $serv->{source} == $server->{sid};
-        
-        # we need to do the parent first.
-        if (!$done{ $serv->{parent} } && $serv->{parent} != $serv) {
-            $do->($serv->{parent});
-        }
-        
-        # fire the command.
-        fire_command($server, sid => $serv);
-        $done{$serv} = 1;
-        
-        # send modes using compact AUM and ACM
-        fire_command($server, aum => $serv);
-        fire_command($server, acm => $serv);
-        
-    }; $do->($_) foreach $::pool->servers;
-    
+    # fire burst event.
+    $server->fire_event(send_burst => $time);
 
-    # users
-    foreach my $user ($::pool->users) {
-    
-        # ignore users the server already knows!
-        next if $user->{server} == $server || $user->{source} == $server->{sid};
-        
-        fire_command($server, uid => $user);
-
-        # oper flags
-        if (scalar @{ $user->{flags} }) {
-            fire_command($server, oper => $user, @{ $user->{flags} })
-        }
-
-        # away reason
-        if (exists $user->{away}) {
-            fire_command($server, away => $user)
-        }
-        
-    }
-
-    # channels, using compact CUM
-    foreach my $channel ($::pool->channels) {
-        fire_command($server, cum => $channel, $server);
-        
-        # there is no topic or this server is how we got the topic.
-        next if !$channel->topic;
-        
-        fire_command($server, topicburst => $channel);
-    }
-
-    $server->sendme('ENDBURST '.time);
-    $server->{i_sent_burst} = 1;
+    # ENDBURST.
+    $time = time;
+    $server->sendme("ENDBURST $time");
+    $server->{i_sent_burst} = $time;
 
     # ask this server to send burst if it hasn't already
     $server->send('READY') unless $server->{sent_burst};
 
-    return 1
+    return 1;
 }
 
 # send data to all of my children.
