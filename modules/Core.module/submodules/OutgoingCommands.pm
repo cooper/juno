@@ -307,7 +307,7 @@ sub kick {
 
 sub send_burst {
     my ($server, $fire, $time) = @_;
-    print "SEND BURST TO $server{name}\n";
+    print "SEND BURST TO $$server{name}\n";
     
     # servers and mode names
     my ($do, %done);
