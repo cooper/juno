@@ -307,7 +307,6 @@ sub kick {
 
 sub send_burst {
     my ($server, $fire, $time) = @_;
-    print "SEND BURST TO $$server{name}\n";
     
     # servers and mode names
     my ($do, %done);
@@ -346,9 +345,7 @@ sub send_burst {
 
     # users
     foreach my $user ($::pool->users) {
-        print "maybe $$user{nick}\n";
-        print "\$user->{server} ($user->{server}{name}) == \$server ($server->{name}) | $$user{nick}\n" if $user->{server} == $server;
-        print "\$user->{source} ($user->{source}) == \$server->{sid} ($server->{sid}) | $$user{nick}\n" if $user->{source} == $server->{sid};
+
         # ignore users the server already knows!
         next if $user->{server} == $server || $user->{source} == $server->{sid};
         
