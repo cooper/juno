@@ -346,7 +346,9 @@ sub send_burst {
 
     # users
     foreach my $user ($::pool->users) {
-        
+        print "maybe $$user{nick}\n";
+        print "\$user->{server} ($user->{server}{name}) == \$server ($server->{name}) | $$user{nick}\n" if $user->{server} == $server;
+        print "\$user->{source} ($user->{source}) == \$server->{sid} ($server->{sid}) | $$user{nick}\n" if $user->{source} == $server->{sid};
         # ignore users the server already knows!
         next if $user->{server} == $server || $user->{source} == $server->{sid};
         
