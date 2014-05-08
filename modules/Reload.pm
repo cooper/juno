@@ -78,7 +78,7 @@ sub cmd_reload {
     my $info;
     if ($v != $ver) {
         my $amnt = sprintf('%.f', abs($v - $::VERSION) * 100);
-        $info = "Server upgraded from $ver to $v ($amnt versions since start)";
+        $info = "Server upgraded from $ver to $v (up $amnt versions since start)";
     }
     else {
         $info = 'Server reloaded';

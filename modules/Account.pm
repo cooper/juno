@@ -15,7 +15,7 @@ our $mod = API::Module->new(
     description => 'Account registration and management',
     requires    => [
                         'Database', 'UserCommands', 'UserNumerics',
-                        'UserModes', 'Matching', 'OperNotices'
+                        'UserModes', 'Matching', 'OperNotices', 'Events',
                         # 'ServerCommands' - not yet
                     ],
     initialize  => \&init
@@ -93,6 +93,12 @@ sub init {
         [ account_register => '%s (%s@%s) registered the account \'%s\' on %s' ],
         [ account_login    => '%s (%s@%s) authenticated as \'%s\' on %s'       ],
         [ account_logout   => '%s (%s@%s) logged out from \'%s\' on %s'        ]
+    );
+    
+    # IRCd event for burst.
+    $mod->register_ircd_event('server.send_burst' => \&send_burst,
+        name  => 'account',
+        after => 'core'
     );
     
     return 1;
@@ -319,6 +325,15 @@ sub account_matcher {
     }
     
     return;
+}
+
+#######################
+### SERVER COMMANDS ###
+#######################
+
+sub send_burst {  
+    my ($server, $fire, $time) = @_;
+    print "SENDING BURST: $server, $fire, $time\n";
 }
 
 $mod

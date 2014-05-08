@@ -306,7 +306,7 @@ sub kick {
 #############
 
 sub send_burst {
-    my ($server, $fire) = @_;
+    my ($server, $fire, $time) = @_;
     
     # servers and mode names
     my ($do, %done);

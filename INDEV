@@ -2106,7 +2106,7 @@ CHANGES:
             made oper notices prettier.
             added notices for connection credential errors.
             fixed a crash when unloading Core.OutgoingCommands in version 7.68.
-        
+            fixed a desync issue caused by the new server burst thingy.        
         
         
         
