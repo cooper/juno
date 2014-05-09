@@ -94,11 +94,6 @@ sub new_server {
     # become an event listener.
     $server->add_listener($pool, 'server');
     
-    # add as child.
-    if ($opts{parent} && blessed $opts{parent}) {
-        push @{ $opts{parent}{children} }, $server;
-    }
-    
     notice(new_server =>
         $server->{name},
         $server->{sid},
@@ -130,8 +125,6 @@ sub delete_server {
     delete $server->{pool};
     delete $pool->{servers}{ $server->{sid} };
     delete $pool->{server_names}{ lc $server->{name} };
-    my $children = $server->{parent}{children};
-    @$children   = grep { $_ != $server} @$children;
     
     log2("deleted server $$server{name}");
     return 1;

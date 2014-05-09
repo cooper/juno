@@ -2110,6 +2110,8 @@ CHANGES:
         
         
         
+    7. fixed a desync issue where multi-hop servers and their users were sometimes not disposed of due to a change made a couple months ago where server children were managed by the IRC pool.
+        fixed a bug where channel list modes of modules that are not loaded (e.g. +A) appeared in mode strings without any parameters present (due to the absence of a module to handle them), causing a shift in parameters within the string.
         
         
         

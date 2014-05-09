@@ -33,7 +33,7 @@ sub quit {
     );
     
     # all children must be disposed of.
-    foreach my $serv (@{ $server->{children} }) {
+    foreach my $serv ($server->children) {
         next if $serv == $server;
         $serv->quit('parent server has disconnected', $why);
     }
@@ -325,13 +325,21 @@ sub DESTROY {
     log2("$server destroyed");
 }
 
+sub children {
+    my $server = shift;
+    my @a;
+    foreach my $serv ($::pool->servers) {
+        next unless $serv->{parent};
+        push @a, $serv if $serv->{parent} == $server;
+    }
+    return @a;
+}
+
 # shortcuts
 
 sub id       { shift->{sid}  }
 sub full     { shift->{name} }
 sub name     { shift->{name} }
-
-sub children { @{ shift->{children} } }
 sub users    { @{ shift->{users}    } }
 
 

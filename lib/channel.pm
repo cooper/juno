@@ -219,14 +219,18 @@ sub handle_mode_string {
                 log2("unknown mode $letter!");
                 next
             }
-            my $parameter = undef;
-            if (my $takes = $server->cmode_takes_parameter($name, $state)) {
+            
+            # 1 == always takes param
+            # 2 == takes param, but valid if there isn't, such as list modes like +b for viewing
+            my ($takes, $parameter);
+            if ($takes = $server->cmode_takes_parameter($name, $state)) {
                 $parameter = shift @m;
-                next letter if !defined $parameter && $takes == 1
+                next letter if !defined $parameter && $takes == 1;
             }
 
             # don't allow this mode to be changed if the test fails
             # *unless* force is provided.
+            my $params_before = scalar @$parameters;
             my ($win, $moderef) = $::pool->fire_channel_mode(
                 $channel, $server, $source, $state, $name, $parameter,
                 $parameters, $force, $over_protocol
@@ -242,6 +246,14 @@ sub handle_mode_string {
 
             # block says not to set.
             next letter if $moderef->{do_not_set};
+            
+            # if it requires a parameter but the param count before handling
+            # the mode is the same as after, something didn't work.
+            # for example, a mode handler might not be present if a module isn't loaded.
+            # just ignore this mode.
+            if (scalar @$parameters <= $params_before && $takes) {
+                next letter;
+            }
 
             # if it is just a normal mode, set it
             if ($server->cmode_type($name) == 0) {
