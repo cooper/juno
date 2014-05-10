@@ -39,19 +39,19 @@ sub register_oper_notice {
     
     # register the notice.
     $::pool->register_notice(
-        $mod->{name},
+        $mod->name,
         $opts{name},
         $opts{format} // $opts{code}
     ) or return;
     
+    $mod->_log("oper notice '$opts{name}' registered by ".$mod->name);
     $mod->list_store_add('oper_notices', $opts{name});
     return 1;
 }
 
 sub unload_module {
     my ($event, $mod) = @_;
-    # TODO: log
-    $::pool->delete_notice($mod->{name}, $_) foreach $mod->list_store_items('oper_notices');
+    $::pool->delete_notice($mod->name, $_) foreach $mod->list_store_items('oper_notices');
     return 1;
 }
 

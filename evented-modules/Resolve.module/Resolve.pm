@@ -1,9 +1,8 @@
 # Copyright (c) 2014 Mitchell Cooper
 #
+# @name:            "Resolve"
 # @version:         0.4
-# @name.short:      "Resolve"
-# @name.full:       "Resolve"
-# @name.package:    "M::Resolve"
+# @package:         "M::Resolve"
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

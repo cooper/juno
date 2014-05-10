@@ -40,18 +40,18 @@ sub register_user_mode_block {
     # register the mode block.
     $::pool->register_user_mode_block(
         $opts{name},
-        $mod->{name},
+        $mod->name,
         $opts{code}
     );
 
+    $mod->_log("user mode block '$opts{name}' registered by ".$mod->name);
     $mod->list_store_add('user_modes', $opts{name});
     return 1;
 }
 
 sub unload_module {
     my ($event, $mod) = @_;
-    # TODO: log
-    $::pool->delete_user_mode_block($_, $mod->{name})
+    $::pool->delete_user_mode_block($_, $mod->name)
       foreach $mod->list_store_items('user_modes');
     
     return 1;

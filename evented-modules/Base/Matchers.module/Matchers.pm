@@ -35,15 +35,13 @@ sub register_matcher {
         %opts
     ) or return;
     
-    # TODO: log.
-    
+    $mod->_log("matcher '$opts{name}' registered by ".$mod->name);
     $mod->list_store_add('matchers', $opts{name});    
     return $opts{name};
 }
 
 sub unload_module {
     my ($event, $mod) = @_;
-    # TODO: log
     $::pool->delete_event(user_match => $_) foreach $mod->list_store_items('matchers');
     return 1;
 }

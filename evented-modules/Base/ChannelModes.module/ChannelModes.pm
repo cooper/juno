@@ -35,26 +35,26 @@ sub register_channel_mode_block {
     foreach my $what (qw|name code|) {
         next if exists $opts{$what};
         $opts{name} ||= 'unknown';
-        # TODO: log.
+        $mod->_log("channel mode block $opts{name} does not have '$what' option");
         return;
     }
     
     # register the mode block.
     $::pool->register_channel_mode_block(
         $opts{name},
-        $mod->{name},
+        $mod->name,
         $opts{code}
     );
     
+    $mod->_log("channel mode block '$opts{name}' registered by ".$mod->name);
     $mod->list_store_add('channel_modes', $opts{name});
 }
 
 sub unload_module {
     my ($event, $mod) = @_;
-    # TODO: log
-    
+    $mod->_log('deleting channel mode blocks for '.$mod->name);
     # delete all mode blocks.
-    $::pool->delete_channel_mode_block($_, $mod->{name})
+    $::pool->delete_channel_mode_block($_, $mod->name)
       foreach $mod->list_store_items('channel_modes');
     
     return 1;

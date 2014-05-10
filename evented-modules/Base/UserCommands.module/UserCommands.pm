@@ -275,7 +275,7 @@ sub register_user_command {
     
     # register the handler.
     $::pool->register_user_handler(
-        $mod->{name},
+        $mod->name,
         $opts{name},
         $parameters,
         $CODE,
@@ -283,13 +283,13 @@ sub register_user_command {
         $opts{fantasy}
     ) or return;
 
+    $mod->_log("user handler $opts{name} registered by ".$mod->name.": $opts{description}");
     $mod->list_store_add('user_commands', $opts{name});
     return 1;
 }
 
 sub unload_module {
     my ($event, $mod) = @_;
-    # TODO: log
     $::pool->delete_user_handler($_) foreach $mod->list_store_items('oper_notices');
     return 1;
 }
