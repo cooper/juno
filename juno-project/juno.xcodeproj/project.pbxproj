@@ -55,6 +55,7 @@
 		A7C5899618EE17710062B441 /* OperNotices.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = OperNotices.pm; sourceTree = "<group>"; };
 		A7C5899718EE17970062B441 /* OperNotices.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = OperNotices.pm; sourceTree = "<group>"; };
 		A7CD6BF418CEA09300FBEFD6 /* Reload.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Reload.pm; sourceTree = "<group>"; };
+		BC27266A191D7503005058C6 /* evented-modules */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "evented-modules"; path = "../evented-modules"; sourceTree = "<group>"; };
 		BC2C928718F5FA81000A8517 /* user.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = user.pm; path = ../user.pm; sourceTree = "<group>"; };
 		BC2C928818F5FAA0000A8517 /* server.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = server.pm; path = ../server.pm; sourceTree = "<group>"; };
 		BC2C928918F5FAAD000A8517 /* channel.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = channel.pm; path = ../channel.pm; sourceTree = "<group>"; };
@@ -161,6 +162,7 @@
 		A75C5D0F18B4321A007780A3 /* Modules */ = {
 			isa = PBXGroup;
 			children = (
+				BC27266A191D7503005058C6 /* evented-modules */,
 				A75C5D1118B4321A007780A3 /* Core module */,
 				A75C5D1018B4321A007780A3 /* Access.pm */,
 				A75C5D1A18B4321A007780A3 /* LOLCAT.pm */,

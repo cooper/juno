@@ -330,6 +330,7 @@ sub children {
     my @a;
     foreach my $serv ($::pool->servers) {
         next unless $serv->{parent};
+        next if $serv == $server;
         push @a, $serv if $serv->{parent} == $server;
     }
     return @a;
