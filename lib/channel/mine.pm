@@ -41,7 +41,7 @@ sub localjoin {
 # send NAMES
 # this is here instead of user::handlers because it is convenient to send on channel join
 sub names {
-    my ($channel, $user) = @_;
+    my ($channel, $user, $no_endof) = @_;
     my @str;
     my $curr = 0;
     foreach my $usr (@{ $channel->{users} }) {
@@ -56,7 +56,7 @@ sub names {
         $curr++ if length $str[$curr] > 500
     }
     $user->numeric('RPL_NAMEREPLY', '=', $channel->{name}, $_) foreach @str;
-    $user->numeric('RPL_ENDOFNAMES', $channel->{name});
+    $user->numeric('RPL_ENDOFNAMES', $channel->{name}) unless $no_endof;
 }
 
 sub modes {

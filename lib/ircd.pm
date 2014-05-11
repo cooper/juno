@@ -10,8 +10,8 @@ use Module::Loaded qw(is_loaded);
 
 use utils qw(conf log2 fatal v trim);
 
-our (  $VERSION,   $API,   $api,   $conf,   $loop,   $pool,   $timer, %global, $boot) =
-    ($::VERSION, $::API, $::API, $::conf, $::loop, $::pool, $::timer);
+our (  $VERSION,   $API,   $api,   $conf,   $loop,   $pool,   $timer, $eapi, %global, $boot) =
+    ($::VERSION, $::API, $::API, $::conf, $::loop, $::pool, $::timer, $::eapi);
 $VERSION = get_version();
 
 # all non-module packages always loaded in the IRCd.
@@ -36,8 +36,9 @@ sub start {
     my @add_inc = (
         "$::run_dir/lib/api-engine",
         "$::run_dir/lib/evented-object/lib",
+        #"$::run_dir/lib/evented-api-engine/lib", FIXME: fix
         "$::run_dir/lib/evented-configuration/lib",
-        "$::run_dir/lib/evented-database"
+        "$::run_dir/lib/evented-database",
     ); foreach (@add_inc) { unshift @INC, $_ unless $_ ~~ @INC }
     
     # load or reload all dependency packages.
@@ -99,6 +100,10 @@ sub start {
         log_sub  => \&api_log,
         mod_dir  => "$::run_dir/modules",
         base_dir => "$::run_dir/lib/API/Base"
+    );
+    
+    $eapi = $::eapi ||= Evented::API::Engine->new(
+        mod_inc => ['evented-modules', '/Users/mitchellcooper/Projects/evented-api-engine/mod']#'lib/evented-api-engine/mod'] #FIXME: fix
     );
 
     # load API modules.
@@ -190,6 +195,7 @@ sub load_dependencies {
     # main dependencies.
     load_or_reload(@$_) foreach (
         [ 'API',                           2.30 ],
+        [ 'Evented::API::Engine',          1.70 ],
         [ 'IO::Async::Loop',               0.60 ],
         [ 'IO::Async::Stream',             0.60 ],
         [ 'IO::Async::Listener',           0.60 ],

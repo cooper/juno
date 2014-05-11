@@ -15,7 +15,7 @@ use 5.010;
 
 use utils qw(conf);
 
-my ($api, $mod);
+our ($api, $mod);
 
 sub init {
     
@@ -33,7 +33,7 @@ sub init {
 
 # create a database object.
 sub database {
-    my ($mod, $name) = @_;
+    my ($mod, $event, $name) = @_;
     
     # use sqlite.
     if (conf('database', 'type') eq 'sqlite') {
@@ -47,7 +47,7 @@ sub database {
 # a table exists.
 # FIXME: currently specific to SQLite.
 sub table_exists {
-    my ($mod, $db, $table) = @_;
+    my ($mod, $event, $db, $table) = @_;
     my $sth = $db->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?");
     $sth->execute($table);
     my @a = $sth->fetchrow_array;
@@ -56,7 +56,7 @@ sub table_exists {
 
 # create table.
 sub create_table {
-    my ($mod, $db, $table_name, @columns) = @_;
+    my ($mod, $event, $db, $table_name, @columns) = @_;
     my @columns_left = @columns;
     my $query = "CREATE TABLE IF NOT EXISTS $table_name (";
     while (@columns_left) {
@@ -70,7 +70,7 @@ sub create_table {
 
 # select a hashref.
 sub db_hashref {
-    my ($mod, $db, $query, @args) = @_;
+    my ($mod, $event, $db, $query, @args) = @_;
     my $sth = $db->prepare($query);
     $sth->execute(@args) or return;
     return $sth->fetchrow_hashref;
@@ -78,7 +78,7 @@ sub db_hashref {
 
 # select an arrayref.
 sub db_arrayref {
-    my ($mod, $db, $query, @args) = @_;
+    my ($mod, $event, $db, $query, @args) = @_;
     my $sth = $db->prepare($query);
     $sth->execute(@args) or return;
     return $sth->fetchrow_arrayref;
@@ -86,7 +86,7 @@ sub db_arrayref {
 
 # select a single value.
 sub db_single {
-    my ($mod, $db, $query, @args) = @_;
+    my ($mod, $event, $db, $query, @args) = @_;
     my $sth = $db->prepare($query);
     $sth->execute(@args) or return;
     return $sth->fetchrow_arrayref->[0];
@@ -95,7 +95,7 @@ sub db_single {
 # create a table if necessary.
 # add new columns if necessary.
 sub create_or_alter_table {
-    my ($mod, $db, $table_name, @columns) = @_;
+    my ($mod, $event, $db, $table_name, @columns) = @_;
     
     # table doesn't exist; create it.
     if (!table_exists($mod, $db, $table_name)) {

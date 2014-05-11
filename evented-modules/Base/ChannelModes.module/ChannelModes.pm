@@ -13,7 +13,7 @@ use warnings;
 use strict;
 use 5.010;
 
-my ($api, $mod);
+our ($api, $mod);
 
 sub init {
     

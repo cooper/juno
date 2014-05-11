@@ -4,6 +4,8 @@
 # @version:         ircd->VERSION
 # @package:         "M::Base::UserCommands"
 #
+# @depends.modules: "API::Methods"
+#
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"
 #
@@ -16,7 +18,7 @@ use 5.010;
 use utils qw(col trim);
 use Scalar::Util qw(looks_like_number);
 
-my ($api, $mod);
+our ($api, $mod);
 
 sub init {
     
@@ -30,14 +32,14 @@ sub init {
 }
 
 sub register_user_command {
-    my ($mod, %opts) = @_;
+    my ($mod, $event, %opts) = @_;
 
     # make sure all required options are present
     foreach my $what (qw|name description code|) {
         next if exists $opts{$what};
         $opts{name} ||= 'unknown';
         $mod->_log("user command $opts{name} does not have '$what' option");
-        return
+        return;
     }
     
     my $CODE       = $opts{code};

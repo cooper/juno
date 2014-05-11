@@ -13,7 +13,7 @@ use warnings;
 use strict;
 use 5.010;
 
-my ($api, $mod);
+our ($api, $mod);
 
 sub init {
     
@@ -27,7 +27,7 @@ sub init {
 }
 
 sub register_user_numeric {
-    my ($mod, %opts) = @_;
+    my ($mod, $event, %opts) = @_;
 
     # make sure all required options are present.
     foreach my $what (qw|name number format|) {
