@@ -4,6 +4,8 @@
 # @version:         ircd->VERSION
 # @package:         "M::Base::UserModes"
 #
+# @depends.modules: "API::Methods"
+#
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"
 #
@@ -33,7 +35,7 @@ sub register_user_mode_block {
     foreach my $what (qw|name code|) {
         next if exists $opts{$what};
         $opts{name} ||= 'unknown';
-        $mod->_log("user mode block $opts{name} does not have '$what' option");
+        $mod->_log("user mode block '$opts{name}' does not have '$what' option");
         return
     }
 
@@ -44,7 +46,7 @@ sub register_user_mode_block {
         $opts{code}
     );
 
-    $mod->_log("user mode block '$opts{name}' registered by ".$mod->name);
+    $mod->_log("user mode block '$opts{name}' registered");
     $mod->list_store_add('user_modes', $opts{name});
     return 1;
 }

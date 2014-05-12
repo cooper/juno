@@ -1,9 +1,10 @@
 # Copyright (c) 2014 Mitchell Cooper
 #
 # @name:            "Resolve"
-# @version:         0.4
+# @version:         0.5
 # @package:         "M::Resolve"
-#
+# @description:     "resolve hostnames"
+# 
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"
 #
@@ -16,7 +17,7 @@ our ($api, $mod, $me);
 
 sub init {
     $mod->manage_object($::pool);
-    $::pool->on('connection.new' => \&connection_new) or return;
+    $::pool->on('connection.new' => \&connection_new, with_evented_obj => 1) or return;
     
     return 1;
 }

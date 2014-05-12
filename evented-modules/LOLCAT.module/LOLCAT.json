@@ -6,8 +6,8 @@
       "name" : "Mitchell Cooper"
    },
    "description" : "SPEEK LIEK A LOLCATZ!",
+   "package" : "M::LOLCAT",
    "depends" : {
       "modules" : "Base::UserCommands"
-   },
-   "package" : "M::LOLCAT"
+   }
 }

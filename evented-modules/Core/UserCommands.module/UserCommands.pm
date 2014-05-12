@@ -19,7 +19,7 @@ use 5.010;
 use Scalar::Util qw(blessed);
 use utils qw(col log2 lceq match cut_to_limit conf v notice);
 
-our ($api, $mod, $VERSION);
+our ($api, $mod, $me, $VERSION);
 
 my %ucommands = (
     PING => {
@@ -197,8 +197,6 @@ my %ucommands = (
     }
 );
 
-my $me = v('SERVER');
-
 sub init {
     $mod->register_user_command(
         name        => $_,
@@ -216,7 +214,7 @@ sub init {
 
 sub ping {
     my ($user, $data, @s) = @_;
-    $user->sendme('PONG '.v('SERVER', 'name').' :'.col($s[1]))
+    $user->sendme("PONG $$me{name} :".col($s[1]));
 }
 
 sub fake_user {
@@ -250,7 +248,7 @@ sub motd {
     }
      
     # yay, we found an MOTD. let's send it.   
-    $user->numeric('RPL_MOTDSTART', v('SERVER', 'name'));
+    $user->numeric('RPL_MOTDSTART', $me->{name});
     $user->numeric('RPL_MOTD', $_) foreach @motd_lines;
     $user->numeric('RPL_ENDOFMOTD');
     

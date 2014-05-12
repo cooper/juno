@@ -22,14 +22,13 @@ use utils qw(col);
 our ($api, $mod);
 
 sub init {
-    print "wow1!\n";
-    print $mod->register_user_command(
+    $mod->register_user_command(
         name        => 'lolcat',
         description => 'SPEEK LIEK A LOLCATZ!',
         parameters  => 2,
         code        => \&lolcat,
         fantasy     => 1
-    ),"\n" or return;
+    ) or return;
     
     return 1;
 }

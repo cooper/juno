@@ -2119,6 +2119,8 @@ CHANGES:
             
         72. more work for the transition to Evented::API::Engine.
         
+        73. implementation of the Evented::API::Engine Core modules.
+        
         
         
         

@@ -1,8 +1,10 @@
-# Copyright (c) 2014, Mitchell Cooper
+# Copyright (c) 2012-14, Mitchell Cooper
 #
 # @name:            "Base::ChannelModes"
 # @version:         ircd->VERSION
 # @package:         "M::Base::ChannelModes"
+#
+# @depends.modules: "API::Methods"
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"
@@ -29,7 +31,7 @@ sub init {
 }
 
 sub register_channel_mode_block {
-    my ($mod, %opts) = @_;
+    my ($mod, $event, %opts) = @_;
     
     # make sure all required options are present.
     foreach my $what (qw|name code|) {

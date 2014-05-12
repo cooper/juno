@@ -1,0 +1,12 @@
+{
+   "version" : "7.72",
+   "name" : "Base::ChannelModes",
+   "author" : {
+      "website" : "https://github.com/cooper",
+      "name" : "Mitchell Cooper"
+   },
+   "package" : "M::Base::ChannelModes",
+   "depends" : {
+      "modules" : "API::Methods"
+   }
+}

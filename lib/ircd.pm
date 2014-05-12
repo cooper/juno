@@ -105,6 +105,10 @@ sub start {
     $eapi = $::eapi ||= Evented::API::Engine->new(
         mod_inc => ['evented-modules', '/Users/mitchellcooper/Projects/evented-api-engine/mod']#'lib/evented-api-engine/mod'] #FIXME: fix
     );
+    $eapi->on('module.set_variables' => sub {
+        my ($event, $pkg) = @_;
+        Evented::API::Hax::set_symbol($pkg, '$me', $server);
+    });
 
     # load API modules.
     # FIXME: is this safe to call multiple times?
