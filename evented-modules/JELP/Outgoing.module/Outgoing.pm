@@ -53,7 +53,7 @@ sub init {
 
     # register server burst event.
     $mod->manage_object($pool);
-    $pool->on('server.send_burst' => \&send_burst, name => 'core');
+    $pool->on('server.send_burst' => \&send_burst, name => 'core', with_evented_obj => 1);
     
     return 1;
 }

@@ -1,0 +1,16 @@
+{
+   "version" : "7.74",
+   "name" : "JELP",
+   "author" : {
+      "website" : "https://github.com/cooper",
+      "name" : "Mitchell Cooper"
+   },
+   "description" : "juno extensible linking protocol",
+   "depends" : {
+      "modules" : [
+         "JELP::Incoming",
+         "JELP::Outgoing"
+      ]
+   },
+   "package" : "M::JELP"
+}

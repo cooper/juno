@@ -3,7 +3,9 @@
 # @name:            "JELP"
 # @version:         ircd->VERSION
 # @package:         "M::JELP"
-# @description:     "interface to the juno extensible linking protocol"
+# @description:     "juno extensible linking protocol"
+#
+# @depends.modules: ['JELP::Incoming', 'JELP::Outgoing']
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"
@@ -15,4 +17,3 @@ use strict;
 use 5.010;
 
 our $mod;
-
