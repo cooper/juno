@@ -16,7 +16,7 @@ use warnings;
 use strict;
 use 5.010;
 
-our ($api, $mod, $me);
+our ($api, $mod, $me, $pool);
 
 my %cmodes = (
     no_ext        => \&cmode_normal,
@@ -56,8 +56,8 @@ sub register_statuses {
         my ($channel, $mode) = @_;
         my $source = $mode->{source};
         my $target = $mode->{proto} ?
-            $::pool->lookup_user($mode->{param}) :
-            $::pool->lookup_user_nick($mode->{param});
+            $pool->lookup_user($mode->{param}) :
+            $pool->lookup_user_nick($mode->{param});
 
         # make sure the target user exists
         if (!$target) {

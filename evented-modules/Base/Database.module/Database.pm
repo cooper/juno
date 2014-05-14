@@ -28,7 +28,7 @@ sub init {
     );
     
     # module unload event.
-    $api->on(unload_module => \&unload_module) or return;
+    $api->on('module.unload' => \&unload_module, with_evented_obj => 1) or return;
     
     return 1;
 }

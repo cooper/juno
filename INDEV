@@ -2122,6 +2122,7 @@ CHANGES:
         73. implementation of the Evented::API::Engine Core modules.
         
         
+        74. implementation of JELP in an evented module.
         
         
 

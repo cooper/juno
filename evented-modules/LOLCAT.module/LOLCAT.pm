@@ -19,7 +19,7 @@ use 5.010;
 use Acme::LOLCAT;
 use utils qw(col);
 
-our ($api, $mod);
+our ($api, $mod, $pool);
 
 sub init {
     $mod->register_user_command(
@@ -36,7 +36,7 @@ sub init {
 sub lolcat {
     my ($user, $data, @args) = @_;
     my $msg = translate(col((split /\s+/, $data, 3)[2]));
-    return unless my $where = $::pool->lookup_channel($args[1]);
+    return unless my $where = $pool->lookup_channel($args[1]);
     my $cmd = ':'.$user->full." PRIVMSG $$where{name} :$msg";
     $user->send($cmd) if $user->handle("PRIVMSG $$where{name} :$msg");
 }

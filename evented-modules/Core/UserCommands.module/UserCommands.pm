@@ -19,7 +19,7 @@ use 5.010;
 use Scalar::Util qw(blessed);
 use utils qw(col log2 lceq match cut_to_limit conf v notice);
 
-our ($api, $mod, $me, $VERSION);
+our ($api, $mod, $me, $pool, $VERSION);
 
 my %ucommands = (
     PING => {
@@ -273,7 +273,7 @@ sub nick {
         }
 
         # check for existing nick
-        my $in_use = $::pool->lookup_user_nick($newnick);
+        my $in_use = $pool->lookup_user_nick($newnick);
         if ($in_use && $in_use != $user) {
             $user->numeric('ERR_NICKNAMEINUSE', $newnick);
             return;
@@ -289,7 +289,7 @@ sub nick {
 
     # change it
     $user->change_nick($newnick);
-    $::pool->fire_command_all(nickchange => $user);
+    $pool->fire_command_all(nickchange => $user);
 }
 
 sub info {
@@ -353,7 +353,7 @@ sub mode {
     }
 
     # is it a channel, then?
-    if (my $channel = $::pool->lookup_channel($args[1])) {
+    if (my $channel = $pool->lookup_channel($args[1])) {
 
         # viewing
         if (!defined $args[2]) {
@@ -369,7 +369,7 @@ sub mode {
     }
 
     # hmm.. maybe it's another user
-    if ($::pool->lookup_user_nick($args[1])) {
+    if ($pool->lookup_user_nick($args[1])) {
         $user->numeric('ERR_USERSDONTMATCH');
         return
     }
@@ -395,7 +395,7 @@ sub privmsgnotice {
     }
 
     # is it a user?
-    my $tuser = $::pool->lookup_user_nick($args[1]);
+    my $tuser = $pool->lookup_user_nick($args[1]);
     if ($tuser) {
 
         # TODO here check for user modes preventing
@@ -419,7 +419,7 @@ sub privmsgnotice {
     }
 
     # must be a channel
-    my $channel = $::pool->lookup_channel($args[1]);
+    my $channel = $pool->lookup_channel($args[1]);
     if ($channel) {
         $channel->handle_privmsgnotice($command, $user, $message);
         return 1;
@@ -433,7 +433,7 @@ sub privmsgnotice {
 
 sub cmap {
     my $user  = shift;
-    my $total = scalar $::pool->users;
+    my $total = scalar $pool->users;
 
     my ($indent, $do, %done) = 0;
     $do = sub {
@@ -473,13 +473,13 @@ sub cjoin {
         }
 
         # if the channel exists, just join
-        my $channel = $::pool->lookup_channel($chname);
+        my $channel = $pool->lookup_channel($chname);
         my $time    = time;
 
         # otherwise create a new one
         if (!$channel) {
             $new     = 1;
-            $channel = $::pool->new_channel(
+            $channel = $pool->new_channel(
                 name   => $chname,
                 'time' => $time
             );
@@ -508,8 +508,8 @@ sub cjoin {
         }
 
         # tell servers that the user joined and the automatic modes were set.
-        $::pool->fire_command_all(sjoin => $user, $channel, $time);
-        $::pool->fire_command_all(cmode => $me, $channel, $time, $me->{sid}, $sstr) if $sstr;
+        $pool->fire_command_all(sjoin => $user, $channel, $time);
+        $pool->fire_command_all(cmode => $me, $channel, $time, $me->{sid}, $sstr) if $sstr;
 
         # do the actual local join.
         $channel->localjoin($user, $time, 1);
@@ -522,7 +522,7 @@ sub names {
     foreach my $chname (split ',', $args[1]) {
         # nonexistent channels return no error,
         # and RPL_ENDOFNAMES is sent no matter what
-        my $channel = $::pool->lookup_channel($chname);
+        my $channel = $pool->lookup_channel($chname);
         $channel->names($user, 1) if $channel;
         $user->numeric('RPL_ENDOFNAMES', $channel ? $channel->{name} : $chname);
     }
@@ -644,7 +644,7 @@ sub oper {
     
     $user->add_flags(@flags);
     $user->add_notices(@notices);
-    $::pool->fire_command_all(oper => $user, @flags);
+    $pool->fire_command_all(oper => $user, @flags);
 
     # okay, we should have a complete list of flags now.
     log2("$$user{nick}!$$user{ident}\@$$user{host} has opered as $args[1] and was granted flags: @flags");
@@ -664,7 +664,7 @@ sub whois {
 
     # this is the way inspircd does it so I can too
     my $query = $args[2] ? $args[2] : $args[1];
-    my $quser = $::pool->lookup_user_nick($query);
+    my $quser = $pool->lookup_user_nick($query);
 
     # exists?
     if (!$quser) {
@@ -676,7 +676,7 @@ sub whois {
     $user->numeric('RPL_WHOISUSER', $quser->{nick}, $quser->{ident}, $quser->{host}, $quser->{real});
 
     # channels
-    my @channels = map { $_->{name} } grep { $_->has_user($quser) } $::pool->channels;
+    my @channels = map { $_->{name} } grep { $_->has_user($quser) } $pool->channels;
     $user->numeric('RPL_WHOISCHANNELS', $quser->{nick}, join(' ', @channels)) if @channels;
 
     # server 
@@ -707,7 +707,7 @@ sub ison {
 
     # for each nick, lookup and add if exists
     foreach my $nick (@args[1..$#args]) {
-        my $user = $::pool->lookup_user_nick(col($nick));
+        my $user = $pool->lookup_user_nick(col($nick));
         push @found, $user->{nick} if $user;
     }
 
@@ -719,7 +719,7 @@ sub commands {
 
     # get the width
     my $i = 0;
-    my %commands = %{ $::pool->{user_commands} };
+    my %commands = %{ $pool->{user_commands} };
     foreach my $command (keys %commands) {
         $i = length $command if length $command > $i
     }
@@ -746,7 +746,7 @@ sub away {
     if (defined $args[1]) {
         my $reason = cut_to_limit('away', col((split /\s+/, $data, 2)[1]));
         $user->set_away($reason);
-        $::pool->fire_command_all(away => $user);
+        $pool->fire_command_all(away => $user);
         $user->numeric('RPL_NOWAWAY');
         return 1
     }
@@ -754,7 +754,7 @@ sub away {
     # unsetting
     return unless exists $user->{away};
     $user->unset_away;
-    $::pool->fire_command_all(return_away => $user);
+    $pool->fire_command_all(return_away => $user);
     $user->numeric('RPL_UNAWAY');
 }
 
@@ -776,7 +776,7 @@ sub part {
     my $reason = defined $args[2] ? col($m[2]) : undef;
 
     foreach my $chname (split ',', $args[1]) {
-        my $channel = $::pool->lookup_channel($chname);
+        my $channel = $pool->lookup_channel($chname);
 
         # channel doesn't exist
         if (!$channel) {
@@ -794,7 +794,7 @@ sub part {
         notice(user_part => $user->notice_info, $channel->{name}, $reason // 'no reason');
         my $ureason = defined $reason ? " :$reason" : q();
         $channel->sendfrom_all($user->full, "PART $$channel{name}$ureason");
-        $::pool->fire_command_all(part => $user, $channel, $channel->{time}, $reason);
+        $pool->fire_command_all(part => $user, $channel, $channel->{time}, $reason);
         $channel->remove($user);
 
     }
@@ -810,7 +810,7 @@ sub sconnect {
     }
 
     # make sure it's not already connected
-    if ($::pool->lookup_server_name($sname)) {
+    if ($pool->lookup_server_name($sname)) {
         $user->server_notice('CONNECT', "$sname is already connected.");
         return;
     }
@@ -846,14 +846,14 @@ sub who {
 
     # match all, like the above note says
     if ($query eq '0') {
-        foreach my $quser ($::pool->users) {
+        foreach my $quser ($pool->users) {
             $matches{ $quser->{uid} } = $quser
         }
         # I used UIDs so there are no duplicates
     }
 
     # match an exact channel name
-    elsif (my $channel = $::pool->lookup_channel($query)) {
+    elsif (my $channel = $pool->lookup_channel($query)) {
         $match_pattern = $channel->{name};
         foreach my $quser (@{ $channel->{users} }) {
             $matches{ $quser->{uid} } = $quser;
@@ -863,7 +863,7 @@ sub who {
 
     # match a pattern
     else {
-        foreach my $quser ($::pool->users) {
+        foreach my $quser ($pool->users) {
             foreach my $pattern ($quser->{nick}, $quser->{ident}, $quser->{host},
               $quser->{real}, $quser->{server}{name}) {
                 $matches{ $quser->{uid} } = $quser if match($pattern, $query);
@@ -880,7 +880,7 @@ sub who {
         # weed out invisibles
         next if
           $quser->is_mode('invisible')                   &&
-          !$::pool->channel_in_common($user, $quser) &&
+          !$pool->channel_in_common($user, $quser) &&
           !$user->has_flag('see_invisible');
 
         # rfc2812:
@@ -900,7 +900,7 @@ sub who {
 sub topic {
     my ($user, $data, @args) = @_;
     $args[1] =~ s/,(.*)//; # XXX: comma separated list won't work here!
-    my $channel = $::pool->lookup_channel($args[1]);
+    my $channel = $pool->lookup_channel($args[1]);
 
     # existent channel?
     if (!$channel) {
@@ -920,7 +920,7 @@ sub topic {
 
         my $topic = cut_to_limit('topic', col((split /\s+/, $data, 3)[2]));
         $channel->sendfrom_all($user->full, "TOPIC $$channel{name} :$topic");
-        $::pool->fire_command_all(topic => $user, $channel, time, $topic);
+        $pool->fire_command_all(topic => $user, $channel, time, $topic);
 
         # set it
         if (length $topic) {
@@ -960,27 +960,27 @@ sub lusers {
     my ($user, $data, @args) = @_;
 
     # get server count
-    my $servers   = scalar $::pool->servers;
-    my $l_servers = scalar grep { $_->{conn} } $::pool->servers;
+    my $servers   = scalar $pool->servers;
+    my $l_servers = scalar grep { $_->{conn} } $pool->servers;
 
     # get x users, x invisible, and total global
     my ($g_not_invisible, $g_invisible) = (0, 0);
-    foreach my $user ($::pool->users) {
+    foreach my $user ($pool->users) {
         $g_invisible++, next if $user->is_mode('invisible');
         $g_not_invisible++
     }
     my $g_users = $g_not_invisible + $g_invisible;
 
     # get local users
-    my $l_users = scalar grep { $_->is_local } $::pool->users;
+    my $l_users = scalar grep { $_->is_local } $pool->users;
 
     # get connection count and max connection count
     my $conn     = v('connection_count');
     my $conn_max = v('max_connection_count');
 
     # get oper count and channel count
-    my $opers = scalar grep { $_->is_mode('ircop') } $::pool->users;
-    my $chans = scalar $::pool->channels;
+    my $opers = scalar grep { $_->is_mode('ircop') } $pool->users;
+    my $chans = scalar $pool->channels;
 
     # get max global and max local
     my $m_global = v('max_global_user_count');
@@ -998,45 +998,45 @@ sub lusers {
 
 sub modload {
     my ($user, $data, $mod_name) = @_;
-    $user->server_notice("Loading module \2$mod_name\2.");
+    $user->server_notice(modload => "Loading module \2$mod_name\2.");
 
     # attempt.
-    my $result = $::API->load_module($mod_name, "$mod_name.pm");
+    $::api->on(log => sub { $user->server_notice("- $_[1]"); }, name => my $n = rand 5);
+    my $result = $::api->load_module($mod_name);
+    $::api->delete_callback('log', $n);
 
     # failure.
     if (!$result) {
-        $user->server_notice('Module failed to load. See server log for information.');
+        $user->server_notice(modload => 'Module failed to load.');
         return;
     }
 
     # success.
-    else {
-        $user->server_notice('Module loaded successfully.');
-        notice(module_load => $user->notice_info, $result->full_name, $result->{version});
-        return 1;
-    }
-    
+    $user->server_notice(modload => 'Module loaded successfully.');
+    notice(module_load => $user->notice_info, $result->name, $result->VERSION);
+    return 1;
+
 }
 
 sub modunload {
     my ($user, $data, $mod_name) = @_;
-    $user->server_notice("Unloading module \2$mod_name\2.");
+    $user->server_notice(modunload => "Unloading module \2$mod_name\2.");
 
     # attempt.
-    my $result = $::API->unload_module($mod_name, "$mod_name.pm");
-    
+    $::api->on(log => sub { $user->server_notice("- $_[1]"); }, name => my $n = rand 5);
+    my $result = $::api->unload_module($mod_name);
+    $::api->delete_callback('log', $n);
+
     # failure.
     if (!$result) {
-        $user->server_notice('Module failed to unload. See server log for information.');
+        $user->server_notice(modunload => 'Module failed to unload.');
         return;
     }
 
     # success.
-    else {
-        $user->server_notice('Module unloaded successfully.');
-        notice(module_unload => $user->notice_info, $result->full_name);
-        return 1;
-    }
+    $user->server_notice(modunload => 'Module unloaded successfully.');
+    notice(module_unload => $user->notice_info, $result);
+    return 1;
     
 }
 
@@ -1107,6 +1107,7 @@ sub ukill {
 }
 
 sub modules {
+    return; # TODO: rework for Evented::API::Engine
     my $user = shift;
     $user->server_notice(modules => 'Loaded IRCd modules list');
     $user->server_notice('    ');
@@ -1210,7 +1211,7 @@ sub kick {
     $channel->remove_user($t_user);
 
     # tell the other servers.
-    $::pool->fire_command_all(kick => $user, $channel, $t_user, $reason);
+    $pool->fire_command_all(kick => $user, $channel, $t_user, $reason);
 
     return 1;
 }
@@ -1222,7 +1223,7 @@ sub list {
     $user->numeric('RPL_LISTSTART');
 
     # send for each channel in no particular order.
-    foreach my $channel ($::pool->channels) {
+    foreach my $channel ($pool->channels) {
        # 322 RPL_LIST "<channel> <# visible> :<topic>"
         my $number_of_users = scalar @{ $channel->{users} };
         my $channel_topic   = $channel->topic ? $channel->topic->{topic} : '';
@@ -1264,7 +1265,7 @@ sub modelist {
 
 sub seval {
     my ($user, $data, $ch_name, $code) = @_;
-    my $channel = $::pool->lookup_channel($ch_name);
+    my $channel = $pool->lookup_channel($ch_name);
     $code = join(' ', $ch_name, $code // '') unless $channel;
     
     # evaluate.
@@ -1275,7 +1276,7 @@ sub seval {
     my $i = 0;
     if ($channel) {
         $channel->sendfrom_all($user->full, "PRIVMSG $$channel{name} :".
-        ($i++ ? "eval ($i)" : 'eval'), $_) foreach @result;
+        ($i++ ? "eval ($i): " : 'eval: ').$_) foreach @result;
     }
     
     # send the result to the user.

@@ -15,17 +15,15 @@ use warnings;
 use strict;
 use 5.010;
 
-our ($api, $mod);
+our ($api, $mod, $pool);
 
 sub init {
     
     # register methods.
-    $mod->register_module_method(
-        register_channel_mode_block => \&register_channel_mode_block
-    ) or return;
+    $mod->register_module_method('register_channel_mode_block') or return;
     
     # module unload event.
-    $api->on(unload_module => \&unload_module) or return;
+    $api->on('module.unload' => \&unload_module, with_evented_obj => 1) or return;
     
     return 1;
 }
@@ -37,26 +35,25 @@ sub register_channel_mode_block {
     foreach my $what (qw|name code|) {
         next if exists $opts{$what};
         $opts{name} ||= 'unknown';
-        $mod->_log("channel mode block $opts{name} does not have '$what' option");
+        $mod->_log("Channel mode block $opts{name} does not have '$what' option");
         return;
     }
     
     # register the mode block.
-    $::pool->register_channel_mode_block(
+    $pool->register_channel_mode_block(
         $opts{name},
         $mod->name,
         $opts{code}
     );
     
-    $mod->_log("channel mode block '$opts{name}' registered by ".$mod->name);
+    $mod->_log("Channel mode block '$opts{name}' registered");
     $mod->list_store_add('channel_modes', $opts{name});
 }
 
 sub unload_module {
-    my ($event, $mod) = @_;
-    $mod->_log('deleting channel mode blocks for '.$mod->name);
+    my ($mod, $event) = @_;
     # delete all mode blocks.
-    $::pool->delete_channel_mode_block($_, $mod->name)
+    $pool->delete_channel_mode_block($_, $mod->name)
       foreach $mod->list_store_items('channel_modes');
     
     return 1;

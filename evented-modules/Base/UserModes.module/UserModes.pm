@@ -15,7 +15,7 @@ use warnings;
 use strict;
 use 5.010;
 
-our ($api, $mod);
+our ($api, $mod, $pool);
 
 sub init {
     
@@ -23,7 +23,7 @@ sub init {
     $mod->register_module_method('register_user_mode_block') or return;
     
     # module unload event.
-    $api->on(unload_module => \&unload_module) or return;
+    $api->on('module.unload' => \&unload_module, with_evented_obj => 1) or return;
     
     return 1;
 }
@@ -40,20 +40,20 @@ sub register_user_mode_block {
     }
 
     # register the mode block.
-    $::pool->register_user_mode_block(
+    $pool->register_user_mode_block(
         $opts{name},
         $mod->name,
         $opts{code}
     );
 
-    $mod->_log("user mode block '$opts{name}' registered");
+    $mod->_log("User mode block '$opts{name}' registered");
     $mod->list_store_add('user_modes', $opts{name});
     return 1;
 }
 
 sub unload_module {
-    my ($event, $mod) = @_;
-    $::pool->delete_user_mode_block($_, $mod->name)
+    my ($mod, $event) = @_;
+    $pool->delete_user_mode_block($_, $mod->name)
       foreach $mod->list_store_items('user_modes');
     
     return 1;

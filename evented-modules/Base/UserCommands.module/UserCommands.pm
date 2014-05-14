@@ -18,7 +18,7 @@ use 5.010;
 use utils qw(col trim);
 use Scalar::Util qw(looks_like_number);
 
-our ($api, $mod);
+our ($api, $mod, $pool);
 
 sub init {
     
@@ -26,7 +26,7 @@ sub init {
     $mod->register_module_method('register_user_command') or return;
     
     # module unload event.
-    $api->on(unload_module => \&unload_module) or return;
+    $api->on('module.unload' => \&unload_module, with_evented_obj => 1) or return;
     
     return 1;
 }
@@ -177,16 +177,16 @@ sub register_user_command {
                 # global lookup
                 when ('source') {
                     my $source =
-                         $::pool->lookup_server_name($param)  ||
-                        $::pool->lookup_channel($param)  ||
-                           $::pool->lookup_user_nick($param);
+                         $pool->lookup_server_name($param)  ||
+                         $pool->lookup_channel($param)      ||
+                         $pool->lookup_user_nick($param);
                     return unless $source;
                     push @final_parameters, $param_id{$id} = $source;
                 }
 
                 # server lookup
                 when ('server') {
-                    my $server = $::pool->lookup_server_name(col($param));
+                    my $server = $pool->lookup_server_name(col($param));
 
                     # not found, send no such server.
                     if (!$server) {
@@ -200,7 +200,7 @@ sub register_user_command {
                 # user lookup
                 when ('user') {
                     my $nickname = (split ',', col($param))[0];
-                    my $usr = $::pool->lookup_user_nick($nickname);
+                    my $usr = $pool->lookup_user_nick($nickname);
 
                     # not found, send no such nick.
                     if (!$usr) {
@@ -214,7 +214,7 @@ sub register_user_command {
                 # channel lookup
                 when ('channel') {
                     my $chaname = (split ',', col($param))[0];
-                    my $channel = $::pool->lookup_channel($chaname);
+                    my $channel = $pool->lookup_channel($chaname);
                     
                     # not found, send no such channel.
                     if (!$channel) {
@@ -276,7 +276,7 @@ sub register_user_command {
     }
     
     # register the handler.
-    $::pool->register_user_handler(
+    $pool->register_user_handler(
         $mod->name,
         $opts{name},
         $parameters,
@@ -285,14 +285,14 @@ sub register_user_command {
         $opts{fantasy}
     ) or return;
 
-    $mod->_log("user handler $opts{name} registered by ".$mod->name.": $opts{description}");
+    $mod->_log("User handler $opts{name} registered: $opts{description}");
     $mod->list_store_add('user_commands', $opts{name});
     return 1;
 }
 
 sub unload_module {
-    my ($event, $mod) = @_;
-    $::pool->delete_user_handler($_) foreach $mod->list_store_items('oper_notices');
+    my ($mod, $event) = @_;
+    $pool->delete_user_handler($_) foreach $mod->list_store_items('user_commands');
     return 1;
 }
 

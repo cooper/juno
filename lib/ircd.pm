@@ -10,8 +10,8 @@ use Module::Loaded qw(is_loaded);
 
 use utils qw(conf log2 fatal v trim);
 
-our (  $VERSION,   $API,   $api,   $conf,   $loop,   $pool,   $timer, $eapi, %global, $boot) =
-    ($::VERSION, $::API, $::API, $::conf, $::loop, $::pool, $::timer, $::eapi);
+our (  $VERSION,   $api,   $conf,   $loop,   $pool,   $timer, %global, $boot) =
+    ($::VERSION, $::api, $::conf, $::loop, $::pool, $::timer);
 $VERSION = get_version();
 
 # all non-module packages always loaded in the IRCd.
@@ -95,27 +95,22 @@ sub start {
     add_internal_channel_modes($server);
     add_internal_user_modes($server);
     
-    # create API engine manager.
-    $API = $api = $::API ||= API->new(
-        log_sub  => \&api_log,
-        mod_dir  => "$::run_dir/modules",
-        base_dir => "$::run_dir/lib/API/Base"
+    $api = $::api ||= Evented::API::Engine->new(
+        mod_inc => ['evented-modules', '/Users/mitchellcooper/Projects/evented-api-engine/mod'],#'lib/evented-api-engine/mod'] #FIXME: fix
+        log_sub => \&api_log
     );
-    
-    $eapi = $::eapi ||= Evented::API::Engine->new(
-        mod_inc => ['evented-modules', '/Users/mitchellcooper/Projects/evented-api-engine/mod']#'lib/evented-api-engine/mod'] #FIXME: fix
-    );
-    $eapi->on('module.set_variables' => sub {
+    $api->on('module.set_variables' => sub {
         my ($event, $pkg) = @_;
-        Evented::API::Hax::set_symbol($pkg, '$me', $server);
+        Evented::API::Hax::set_symbol($pkg, {
+            '$me'   => $server,
+            '$pool' => $pool
+        });
     });
 
     # load API modules.
     # FIXME: is this safe to call multiple times?
     log2('Loading API configuration modules');
-    if (my $mods = conf('api', 'modules')) {
-        $api->load_module($_, "$_.pm") foreach @$mods;
-    }
+    $api->load_modules(@{ conf('api', 'modules') || [] });
     log2('Done loading modules');
 
     # listen.
@@ -294,13 +289,13 @@ sub handle_connect {
 
     # if the connection IP limit has been reached, disconnect
     my $ip = $stream->{write_handle}->peerhost;
-    if (scalar(grep { $_->{ip} eq $ip } $::pool->connections) >= conf('limit', 'perip')) {
+    if (scalar(grep { $_->{ip} eq $ip } $pool->connections) >= conf('limit', 'perip')) {
         $stream->close_now;
         return
     }
 
     # if the global user IP limit has been reached, disconnect
-    if (scalar(grep { $_->{ip} eq $ip } $::pool->users) >= conf('limit', 'globalperip')) {
+    if (scalar(grep { $_->{ip} eq $ip } $pool->users) >= conf('limit', 'globalperip')) {
         $stream->close_now;
         return
     }
@@ -324,7 +319,7 @@ sub handle_connect {
 # handle incoming data
 sub handle_data {
     my ($stream, $buffer) = @_;
-    my $connection = $::pool->lookup_connection($stream) or return;
+    my $connection = $pool->lookup_connection($stream) or return;
     my $is_server  = $connection->{type} && $connection->{type}->isa('server');
     
     # fetch the values at which the limit was exceeded.
@@ -384,7 +379,7 @@ sub handle_data {
 
 # send out PINGs and check for timeouts
 sub ping_check {
-    foreach my $connection ($::pool->connections) {
+    foreach my $connection ($pool->connections) {
     
         # not yet registered.
         # if they have been connected for 30 secs without registering, drop.
@@ -487,7 +482,8 @@ sub begin {
 
 # API engine logging.
 sub api_log {
-    log2('[API] '.shift());
+    my ($event, $msg) = @_;
+    log2($msg);
 }
 
 # get version from VERSION file.

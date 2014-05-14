@@ -1,0 +1,20 @@
+{
+   "version" : "7.73",
+   "name" : "Core",
+   "author" : {
+      "website" : "https://github.com/cooper",
+      "name" : "Mitchell Cooper"
+   },
+   "description" : "the core components of the ircd",
+   "depends" : {
+      "modules" : [
+         "Core::UserModes",
+         "Core::UserCommands",
+         "Core::UserNumerics",
+         "Core::ChannelModes",
+         "Core::OperNotices",
+         "Core::Matchers"
+      ]
+   },
+   "package" : "M::Core"
+}

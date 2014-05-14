@@ -15,7 +15,7 @@ use warnings;
 use strict;
 use 5.010;
 
-our ($api, $mod);
+our ($api, $mod, $pool);
 
 sub init {
     
@@ -23,7 +23,7 @@ sub init {
     $mod->register_module_method('register_matcher') or return;
     
     # module unload event.
-    $api->on(unload_module => \&unload_module) or return;
+    $api->on('module.unload' => \&unload_module, with_evented_obj => 1) or return;
     
     return 1;
 }
@@ -32,19 +32,19 @@ sub register_matcher {
     my ($mod, $event, %opts) = @_;
     
     # register the event.
-    $::pool->register_event(
+    $pool->register_event(
         user_match => $opts{code},
         %opts
     ) or return;
     
-    $mod->_log("matcher '$opts{name}' registered by ".$mod->name);
+    $mod->_log("Matcher '$opts{name}' registered");
     $mod->list_store_add('matchers', $opts{name});    
     return $opts{name};
 }
 
 sub unload_module {
-    my ($event, $mod) = @_;
-    $::pool->delete_event(user_match => $_) foreach $mod->list_store_items('matchers');
+    my ($mod, $event) = @_;
+    $pool->delete_event(user_match => $_) foreach $mod->list_store_items('matchers');
     return 1;
 }
 

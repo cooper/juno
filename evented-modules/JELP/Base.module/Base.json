@@ -1,12 +1,9 @@
 {
    "version" : "7.73",
-   "name" : "Base::UserNumerics",
+   "name" : "JELP::Base",
    "author" : {
       "website" : "https://github.com/cooper",
       "name" : "Mitchell Cooper"
    },
-   "depends" : {
-      "modules" : "API::Methods"
-   },
-   "package" : "M::Base::UserNumerics"
+   "package" : "M::JELP::Base"
 }

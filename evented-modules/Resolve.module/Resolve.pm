@@ -13,11 +13,11 @@ package M::Resolve;
 use warnings;
 use strict;
 
-our ($api, $mod, $me);
+our ($api, $mod, $me, $pool);
 
 sub init {
-    $mod->manage_object($::pool);
-    $::pool->on('connection.new' => \&connection_new, with_evented_obj => 1) or return;
+    $mod->manage_object($pool);
+    $pool->on('connection.new' => \&connection_new, with_evented_obj => 1) or return;
     
     return 1;
 }

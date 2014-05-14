@@ -10,7 +10,7 @@ local ( $0,         $SIG{TERM},        $SIG{KILL},        $SIG{PIPE}         ) =
 local ( $SIG{HUP},                     $SIG{__WARN__}                        ) =
       ( \&ircd::signalhup,             \&ircd::WARNING                       );
 
-our ($run_dir, $loop, $API, $conf, $pool, %v);
+our ($run_dir, $loop, $api, $conf, $pool, %v);
 our $VERSION;
 
 BEGIN {
