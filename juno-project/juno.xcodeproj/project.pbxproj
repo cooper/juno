@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		A71BE82018C191A5003A2C1A /* Ident.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Ident.pm; sourceTree = "<group>"; };
 		A71BE82118C19286003A2C1A /* pool.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = pool.pm; sourceTree = "<group>"; };
 		A75C5CCD18B43219007780A3 /* ircd */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = ircd; sourceTree = "<group>"; };
 		A75C5CCE18B43219007780A3 /* lines */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = lines; sourceTree = "<group>"; };
@@ -18,13 +17,6 @@
 		A75C5CD418B43219007780A3 /* GOALS */ = {isa = PBXFileReference; lastKnownFileType = text; name = GOALS; path = ../GOALS; sourceTree = "<group>"; };
 		A75C5CD618B43219007780A3 /* INDEV */ = {isa = PBXFileReference; lastKnownFileType = text; name = INDEV; path = ../INDEV; sourceTree = "<group>"; };
 		A75C5CD818B4321A007780A3 /* juno */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = juno; path = ../juno; sourceTree = "<group>"; };
-		A75C5CE018B4321A007780A3 /* Events.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Events.pm; sourceTree = "<group>"; };
-		A75C5CE118B4321A007780A3 /* ChannelModes.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = ChannelModes.pm; sourceTree = "<group>"; };
-		A75C5CE218B4321A007780A3 /* OutgoingCommands.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = OutgoingCommands.pm; sourceTree = "<group>"; };
-		A75C5CE318B4321A007780A3 /* ServerCommands.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; lineEnding = 0; path = ServerCommands.pm; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.perl; };
-		A75C5CE418B4321A007780A3 /* UserCommands.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; lineEnding = 0; path = UserCommands.pm; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.perl; };
-		A75C5CE518B4321A007780A3 /* UserModes.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = UserModes.pm; sourceTree = "<group>"; };
-		A75C5CE618B4321A007780A3 /* UserNumerics.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = UserNumerics.pm; sourceTree = "<group>"; };
 		A75C5CEE18B4321A007780A3 /* mine.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = mine.pm; sourceTree = "<group>"; };
 		A75C5CF118B4321A007780A3 /* connection.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; lineEnding = 0; path = connection.pm; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.perl; };
 		A75C5D0218B4321A007780A3 /* ircd.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = ircd.pm; sourceTree = "<group>"; };
@@ -33,29 +25,10 @@
 		A75C5D0918B4321A007780A3 /* mine.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = mine.pm; sourceTree = "<group>"; };
 		A75C5D0D18B4321A007780A3 /* utils.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; lineEnding = 0; path = utils.pm; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.perl; };
 		A75C5D0E18B4321A007780A3 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
-		A75C5D1018B4321A007780A3 /* Access.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Access.pm; sourceTree = "<group>"; };
-		A75C5D1218B4321A007780A3 /* Core.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Core.pm; sourceTree = "<group>"; };
-		A75C5D1418B4321A007780A3 /* ChannelModes.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; lineEnding = 0; path = ChannelModes.pm; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.perl; };
-		A75C5D1518B4321A007780A3 /* OutgoingCommands.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = OutgoingCommands.pm; sourceTree = "<group>"; };
-		A75C5D1618B4321A007780A3 /* ServerCommands.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; lineEnding = 0; path = ServerCommands.pm; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.perl; };
-		A75C5D1718B4321A007780A3 /* UserCommands.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; lineEnding = 0; path = UserCommands.pm; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.perl; };
-		A75C5D1818B4321A007780A3 /* UserModes.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = UserModes.pm; sourceTree = "<group>"; };
-		A75C5D1918B4321A007780A3 /* UserNumerics.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = UserNumerics.pm; sourceTree = "<group>"; };
-		A75C5D1A18B4321A007780A3 /* LOLCAT.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; lineEnding = 0; path = LOLCAT.pm; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.perl; };
 		A75C5D1B18B4321A007780A3 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		A75C5D1D18B4321A007780A3 /* rfc-2812 */ = {isa = PBXFileReference; lastKnownFileType = text; name = "rfc-2812"; path = "../rfc-2812"; sourceTree = "<group>"; };
 		A765E0BF18BEE68500B3E448 /* VERSION */ = {isa = PBXFileReference; lastKnownFileType = text; name = VERSION; path = ../VERSION; sourceTree = "<group>"; };
-		A76699AC18D1488700820EEA /* Git.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Git.pm; sourceTree = "<group>"; };
-		A782BD6A18C2907900D137A3 /* Resolve.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Resolve.pm; sourceTree = "<group>"; };
-		A79514CD18C2EECC00838C46 /* Matching.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Matching.pm; sourceTree = "<group>"; };
-		A79514CE18C301D600838C46 /* Matchers.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Matchers.pm; sourceTree = "<group>"; };
-		A79514CF18C3ECD900838C46 /* Database.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Database.pm; sourceTree = "<group>"; wrapsLines = 0; };
-		A79514D118C431C900838C46 /* Account.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Account.pm; sourceTree = "<group>"; };
-		A79514D218C67F7500838C46 /* Fantasy.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Fantasy.pm; sourceTree = "<group>"; };
-		A7C5899618EE17710062B441 /* OperNotices.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = OperNotices.pm; sourceTree = "<group>"; };
-		A7C5899718EE17970062B441 /* OperNotices.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = OperNotices.pm; sourceTree = "<group>"; };
-		A7CD6BF418CEA09300FBEFD6 /* Reload.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Reload.pm; sourceTree = "<group>"; };
-		BC27266A191D7503005058C6 /* evented-modules */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "evented-modules"; path = "../evented-modules"; sourceTree = "<group>"; };
+		BC27B9D81926CEA4003856F0 /* modules */ = {isa = PBXFileReference; lastKnownFileType = folder; name = modules; path = ../modules; sourceTree = "<group>"; };
 		BC2C928718F5FA81000A8517 /* user.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = user.pm; path = ../user.pm; sourceTree = "<group>"; };
 		BC2C928818F5FAA0000A8517 /* server.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = server.pm; path = ../server.pm; sourceTree = "<group>"; };
 		BC2C928918F5FAAD000A8517 /* channel.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = channel.pm; path = ../channel.pm; sourceTree = "<group>"; };
@@ -66,7 +39,7 @@
 			isa = PBXGroup;
 			children = (
 				A75C5CDD18B4321A007780A3 /* vulpia */,
-				A75C5D0F18B4321A007780A3 /* Modules */,
+				BC27B9D81926CEA4003856F0 /* modules */,
 				A75C5CCC18B43219007780A3 /* Executables */,
 				A75C5CD118B43219007780A3 /* Configuration */,
 				A75C5D1F18B43242007780A3 /* Documentation */,
@@ -107,28 +80,9 @@
 				A75C5D0818B4321A007780A3 /* user */,
 				A75C5D0418B4321A007780A3 /* server */,
 				A75C5CED18B4321A007780A3 /* channel */,
-				A75C5CDF18B4321A007780A3 /* API bases */,
 			);
 			name = vulpia;
 			path = ../lib;
-			sourceTree = "<group>";
-		};
-		A75C5CDF18B4321A007780A3 /* API bases */ = {
-			isa = PBXGroup;
-			children = (
-				A75C5CE018B4321A007780A3 /* Events.pm */,
-				A75C5CE118B4321A007780A3 /* ChannelModes.pm */,
-				A75C5CE218B4321A007780A3 /* OutgoingCommands.pm */,
-				A75C5CE318B4321A007780A3 /* ServerCommands.pm */,
-				A75C5CE418B4321A007780A3 /* UserCommands.pm */,
-				A75C5CE518B4321A007780A3 /* UserModes.pm */,
-				A75C5CE618B4321A007780A3 /* UserNumerics.pm */,
-				A79514CD18C2EECC00838C46 /* Matching.pm */,
-				A79514CF18C3ECD900838C46 /* Database.pm */,
-				A7C5899718EE17970062B441 /* OperNotices.pm */,
-			);
-			name = "API bases";
-			path = API/Base;
 			sourceTree = "<group>";
 		};
 		A75C5CED18B4321A007780A3 /* channel */ = {
@@ -157,50 +111,6 @@
 				A75C5D0918B4321A007780A3 /* mine.pm */,
 			);
 			path = user;
-			sourceTree = "<group>";
-		};
-		A75C5D0F18B4321A007780A3 /* Modules */ = {
-			isa = PBXGroup;
-			children = (
-				BC27266A191D7503005058C6 /* evented-modules */,
-				A75C5D1118B4321A007780A3 /* Core module */,
-				A75C5D1018B4321A007780A3 /* Access.pm */,
-				A75C5D1A18B4321A007780A3 /* LOLCAT.pm */,
-				A71BE82018C191A5003A2C1A /* Ident.pm */,
-				A782BD6A18C2907900D137A3 /* Resolve.pm */,
-				A79514D118C431C900838C46 /* Account.pm */,
-				A79514D218C67F7500838C46 /* Fantasy.pm */,
-				A7CD6BF418CEA09300FBEFD6 /* Reload.pm */,
-				A76699AC18D1488700820EEA /* Git.pm */,
-			);
-			name = Modules;
-			path = ../modules;
-			sourceTree = "<group>";
-		};
-		A75C5D1118B4321A007780A3 /* Core module */ = {
-			isa = PBXGroup;
-			children = (
-				A75C5D1218B4321A007780A3 /* Core.pm */,
-				A75C5D1318B4321A007780A3 /* Submodules */,
-			);
-			name = "Core module";
-			path = Core.module;
-			sourceTree = "<group>";
-		};
-		A75C5D1318B4321A007780A3 /* Submodules */ = {
-			isa = PBXGroup;
-			children = (
-				A75C5D1418B4321A007780A3 /* ChannelModes.pm */,
-				A75C5D1518B4321A007780A3 /* OutgoingCommands.pm */,
-				A75C5D1618B4321A007780A3 /* ServerCommands.pm */,
-				A75C5D1718B4321A007780A3 /* UserCommands.pm */,
-				A75C5D1818B4321A007780A3 /* UserModes.pm */,
-				A75C5D1918B4321A007780A3 /* UserNumerics.pm */,
-				A79514CE18C301D600838C46 /* Matchers.pm */,
-				A7C5899618EE17710062B441 /* OperNotices.pm */,
-			);
-			name = Submodules;
-			path = submodules;
 			sourceTree = "<group>";
 		};
 		A75C5D1F18B43242007780A3 /* Documentation */ = {

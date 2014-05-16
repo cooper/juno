@@ -96,7 +96,7 @@ sub start {
     add_internal_user_modes($server);
     
     $api = $::api ||= Evented::API::Engine->new(
-        mod_inc => ['evented-modules', 'lib/evented-api-engine/mod'],
+        mod_inc => ['modules', 'lib/evented-api-engine/mod'],
         log_sub => \&api_log
     );
     $api->on('module.set_variables' => sub {

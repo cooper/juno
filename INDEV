@@ -2130,6 +2130,7 @@ CHANGES:
         77. implemented evented Account module.
             fixed some issues in Base::Database module.
         
+        78. disposed of old modules and removed API Engine submodule, finalizing the transition to Evented::API::Engine.
         
         
         

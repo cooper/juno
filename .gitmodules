@@ -1,6 +1,3 @@
-[submodule "lib/api-engine"]
-	path = lib/api-engine
-	url = git://github.com/cooper/api-engine.git
 [submodule "lib/evented-configuration"]
 	path = lib/evented-configuration
 	url = git://github.com/cooper/evented-configuration.git
