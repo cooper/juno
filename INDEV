@@ -2127,7 +2127,8 @@ CHANGES:
             implemented evented Fantasy module.
             more improvements to new module management.
         
-        
+        77. implemented evented Account module.
+            fixed some issues in Base::Database module.
         
         
         

@@ -1,0 +1,20 @@
+{
+   "version" : "0.8",
+   "name" : "Account",
+   "author" : {
+      "website" : "https://github.com/cooper",
+      "name" : "Mitchell Cooper"
+   },
+   "description" : "implements user accounts",
+   "package" : "M::Account",
+   "depends" : {
+      "modules" : [
+         "Base::Database",
+         "Base::UserCommands",
+         "Base::UserNumerics",
+         "Base::UserModes",
+         "Base::Matchers",
+         "Base::OperNotices"
+      ]
+   }
+}
