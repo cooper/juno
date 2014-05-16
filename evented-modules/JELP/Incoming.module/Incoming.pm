@@ -1,7 +1,6 @@
 # Copyright (c) 2010-14, Mitchell Cooper
 #
 # @name:            "JELP::Incoming"
-# @version:         ircd->VERSION
 # @package:         "M::JELP::Incoming"
 # @description:     "basic set of JELP command handlers"
 #

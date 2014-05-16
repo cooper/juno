@@ -2123,6 +2123,9 @@ CHANGES:
         
         75. more improvements to JELP module.
         
+        76. implemented evented Access module.
+            implemented evented Fantasy module.
+            more improvements to new module management.
         
         
         

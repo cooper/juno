@@ -1,7 +1,6 @@
 # Copyright (c) 2010-14, Mitchell Cooper
 #
 # @name:            "JELP"
-# @version:         ircd->VERSION
 # @package:         "M::JELP"
 # @description:     "juno extensible linking protocol"
 #

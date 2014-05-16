@@ -6,8 +6,8 @@
       "name" : "Mitchell Cooper"
    },
    "description" : "basic set of JELP command handlers",
-   "package" : "M::JELP::Incoming",
    "depends" : {
       "modules" : "JELP::Base"
-   }
+   },
+   "package" : "M::JELP::Incoming"
 }

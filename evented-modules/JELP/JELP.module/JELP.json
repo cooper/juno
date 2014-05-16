@@ -6,11 +6,11 @@
       "name" : "Mitchell Cooper"
    },
    "description" : "juno extensible linking protocol",
+   "package" : "M::JELP",
    "depends" : {
       "modules" : [
          "JELP::Incoming",
          "JELP::Outgoing"
       ]
-   },
-   "package" : "M::JELP"
+   }
 }

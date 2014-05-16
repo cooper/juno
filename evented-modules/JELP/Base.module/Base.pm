@@ -1,7 +1,6 @@
 # Copyright (c) 2010-14, Mitchell Cooper
 #
 # @name:            "JELP::Base"
-# @version:         ircd->VERSION
 # @package:         "M::JELP::Base"
 #
 # @author.name:     "Mitchell Cooper"

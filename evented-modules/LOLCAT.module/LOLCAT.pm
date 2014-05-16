@@ -1,7 +1,6 @@
 # Copyright (c) 2012-14, Mitchell Cooper
 #
 # @name:            "LOLCAT"
-# @version:         0.2
 # @package:         "M::LOLCAT"
 # @description:     "SPEEK LIEK A LOLCATZ!"
 #

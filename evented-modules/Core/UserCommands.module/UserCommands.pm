@@ -1001,9 +1001,9 @@ sub modload {
     $user->server_notice(modload => "Loading module \2$mod_name\2.");
 
     # attempt.
-    $::api->on(log => sub { $user->server_notice("- $_[1]"); }, name => my $n = rand 5);
+    my $cb     = $::api->on(log => sub { $user->server_notice("- $_[1]") }, name => 'core.uc.modload');
     my $result = $::api->load_module($mod_name);
-    $::api->delete_callback('log', $n);
+    $::api->delete_callback('log', $cb->{name});
 
     # failure.
     if (!$result) {
@@ -1023,9 +1023,9 @@ sub modunload {
     $user->server_notice(modunload => "Unloading module \2$mod_name\2.");
 
     # attempt.
-    $::api->on(log => sub { $user->server_notice("- $_[1]"); }, name => my $n = rand 5);
+    my $cb     = $::api->on(log => sub { $user->server_notice("- $_[1]") }, name => 'core.uc.modunload');
     my $result = $::api->unload_module($mod_name);
-    $::api->delete_callback('log', $n);
+    $::api->delete_callback('log', $cb->{name});
 
     # failure.
     if (!$result) {

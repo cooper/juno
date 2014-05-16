@@ -1,12 +1,12 @@
 {
-   "version" : "7.75",
-   "name" : "Core::ChannelModes",
+   "version" : "1.6",
+   "name" : "Access",
    "author" : {
       "website" : "https://github.com/cooper",
       "name" : "Mitchell Cooper"
    },
-   "description" : "the core set of channel modes",
-   "package" : "M::Core::ChannelModes",
+   "description" : "implements channel access mode",
+   "package" : "M::Access",
    "depends" : {
       "modules" : "Base::ChannelModes"
    }

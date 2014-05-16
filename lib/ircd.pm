@@ -36,7 +36,7 @@ sub start {
     my @add_inc = (
         "$::run_dir/lib/api-engine",
         "$::run_dir/lib/evented-object/lib",
-        #"$::run_dir/lib/evented-api-engine/lib", FIXME: fix
+        "$::run_dir/lib/evented-api-engine/lib",
         "$::run_dir/lib/evented-configuration/lib",
         "$::run_dir/lib/evented-database",
     ); foreach (@add_inc) { unshift @INC, $_ unless $_ ~~ @INC }
@@ -96,7 +96,7 @@ sub start {
     add_internal_user_modes($server);
     
     $api = $::api ||= Evented::API::Engine->new(
-        mod_inc => ['evented-modules', '/Users/mitchellcooper/Projects/evented-api-engine/mod'],#'lib/evented-api-engine/mod'] #FIXME: fix
+        mod_inc => ['evented-modules', 'lib/evented-api-engine/mod'],
         log_sub => \&api_log
     );
     $api->on('module.set_variables' => sub {
@@ -159,7 +159,7 @@ sub load_or_reload {
     
     # at this point, we're going to load it.
     # if it's loaded already, we should unload it now.
-    API::class_unload($name) if is_loaded($name);
+    Evented::API::Hax::package_unload($name) if is_loaded($name);
     
     # set package version.
     if ($set_v) {
@@ -193,7 +193,6 @@ sub load_dependencies {
 
     # main dependencies.
     load_or_reload(@$_) foreach (
-        [ 'API',                           2.30 ],
         [ 'Evented::API::Engine',          1.70 ],
         [ 'IO::Async::Loop',               0.60 ],
         [ 'IO::Async::Stream',             0.60 ],
@@ -201,7 +200,7 @@ sub load_dependencies {
         [ 'IO::Async::Timer::Periodic',    0.60 ],
         [ 'IO::Async::Timer::Countdown',   0.60 ],
         [ 'IO::Socket::IP',                0.25 ],
-        [ 'Evented::Object',               3.97 ],
+        [ 'Evented::Object',               4.11 ],
         [ 'Evented::Configuration',        3.40 ],
         [ 'Evented::Database',             0.50 ]
     );
@@ -209,7 +208,6 @@ sub load_dependencies {
     # juno components.
     my $v = get_version();
     load_or_reload($_, $v, $v) foreach @always_loaded;
-    load_or_reload("API::Base::$_", $v, $v) foreach @{ $api->{loaded_bases} || [] };
     
 }
 
