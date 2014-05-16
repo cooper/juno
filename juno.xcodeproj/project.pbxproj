@@ -14,9 +14,8 @@
 		A75C5CD018B43219007780A3 /* thingstodo */ = {isa = PBXFileReference; lastKnownFileType = text; path = thingstodo; sourceTree = "<group>"; };
 		A75C5CD218B43219007780A3 /* ircd.conf */ = {isa = PBXFileReference; lastKnownFileType = text; path = ircd.conf; sourceTree = "<group>"; };
 		A75C5CD318B43219007780A3 /* ircd.conf.example */ = {isa = PBXFileReference; lastKnownFileType = text; path = ircd.conf.example; sourceTree = "<group>"; };
-		A75C5CD418B43219007780A3 /* GOALS */ = {isa = PBXFileReference; lastKnownFileType = text; name = GOALS; path = ../GOALS; sourceTree = "<group>"; };
-		A75C5CD618B43219007780A3 /* INDEV */ = {isa = PBXFileReference; lastKnownFileType = text; name = INDEV; path = ../INDEV; sourceTree = "<group>"; };
-		A75C5CD818B4321A007780A3 /* juno */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = juno; path = ../juno; sourceTree = "<group>"; };
+		A75C5CD418B43219007780A3 /* GOALS */ = {isa = PBXFileReference; lastKnownFileType = text; path = GOALS; sourceTree = "<group>"; };
+		A75C5CD618B43219007780A3 /* INDEV */ = {isa = PBXFileReference; lastKnownFileType = text; path = INDEV; sourceTree = "<group>"; };
 		A75C5CEE18B4321A007780A3 /* mine.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = mine.pm; sourceTree = "<group>"; };
 		A75C5CF118B4321A007780A3 /* connection.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; lineEnding = 0; path = connection.pm; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.perl; };
 		A75C5D0218B4321A007780A3 /* ircd.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = ircd.pm; sourceTree = "<group>"; };
@@ -24,14 +23,15 @@
 		A75C5D0618B4321A007780A3 /* mine.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = mine.pm; sourceTree = "<group>"; wrapsLines = 0; };
 		A75C5D0918B4321A007780A3 /* mine.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = mine.pm; sourceTree = "<group>"; };
 		A75C5D0D18B4321A007780A3 /* utils.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; lineEnding = 0; path = utils.pm; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.perl; };
-		A75C5D0E18B4321A007780A3 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
-		A75C5D1B18B4321A007780A3 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; name = README.md; path = ../README.md; sourceTree = "<group>"; };
-		A75C5D1D18B4321A007780A3 /* rfc-2812 */ = {isa = PBXFileReference; lastKnownFileType = text; name = "rfc-2812"; path = "../rfc-2812"; sourceTree = "<group>"; };
-		A765E0BF18BEE68500B3E448 /* VERSION */ = {isa = PBXFileReference; lastKnownFileType = text; name = VERSION; path = ../VERSION; sourceTree = "<group>"; };
-		BC27B9D81926CEA4003856F0 /* modules */ = {isa = PBXFileReference; lastKnownFileType = folder; name = modules; path = ../modules; sourceTree = "<group>"; };
-		BC2C928718F5FA81000A8517 /* user.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = user.pm; path = ../user.pm; sourceTree = "<group>"; };
-		BC2C928818F5FAA0000A8517 /* server.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = server.pm; path = ../server.pm; sourceTree = "<group>"; };
-		BC2C928918F5FAAD000A8517 /* channel.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = channel.pm; path = ../channel.pm; sourceTree = "<group>"; };
+		A75C5D0E18B4321A007780A3 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		A75C5D1B18B4321A007780A3 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
+		A765E0BF18BEE68500B3E448 /* VERSION */ = {isa = PBXFileReference; lastKnownFileType = text; path = VERSION; sourceTree = "<group>"; };
+		BC27B9D81926CEA4003856F0 /* modules */ = {isa = PBXFileReference; lastKnownFileType = folder; path = modules; sourceTree = "<group>"; };
+		BC27B9D91926D17C003856F0 /* channel.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = channel.pm; path = lib/channel.pm; sourceTree = SOURCE_ROOT; };
+		BC27B9DA1926D186003856F0 /* user.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = user.pm; path = lib/user.pm; sourceTree = SOURCE_ROOT; };
+		BC27B9DB1926D193003856F0 /* server.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = server.pm; path = lib/server.pm; sourceTree = SOURCE_ROOT; };
+		BC27B9DC1926D19C003856F0 /* juno */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = juno; sourceTree = SOURCE_ROOT; };
+		BC27B9DD1926D1A3003856F0 /* rfc-2812 */ = {isa = PBXFileReference; lastKnownFileType = text; path = "rfc-2812"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -49,14 +49,14 @@
 		A75C5CCC18B43219007780A3 /* Executables */ = {
 			isa = PBXGroup;
 			children = (
-				A75C5CD818B4321A007780A3 /* juno */,
+				BC27B9DC1926D19C003856F0 /* juno */,
 				A75C5CCD18B43219007780A3 /* ircd */,
 				A75C5CCE18B43219007780A3 /* lines */,
 				A75C5CCF18B43219007780A3 /* mkpasswd */,
 				A75C5CD018B43219007780A3 /* thingstodo */,
 			);
 			name = Executables;
-			path = ../bin;
+			path = bin;
 			sourceTree = "<group>";
 		};
 		A75C5CD118B43219007780A3 /* Configuration */ = {
@@ -64,10 +64,10 @@
 			children = (
 				A75C5CD218B43219007780A3 /* ircd.conf */,
 				A75C5CD318B43219007780A3 /* ircd.conf.example */,
-				A75C5D1D18B4321A007780A3 /* rfc-2812 */,
+				BC27B9DD1926D1A3003856F0 /* rfc-2812 */,
 			);
 			name = Configuration;
-			path = ../etc;
+			path = etc;
 			sourceTree = "<group>";
 		};
 		A75C5CDD18B4321A007780A3 /* vulpia */ = {
@@ -82,13 +82,13 @@
 				A75C5CED18B4321A007780A3 /* channel */,
 			);
 			name = vulpia;
-			path = ../lib;
+			path = lib;
 			sourceTree = "<group>";
 		};
 		A75C5CED18B4321A007780A3 /* channel */ = {
 			isa = PBXGroup;
 			children = (
-				BC2C928918F5FAAD000A8517 /* channel.pm */,
+				BC27B9D91926D17C003856F0 /* channel.pm */,
 				A75C5CEE18B4321A007780A3 /* mine.pm */,
 			);
 			path = channel;
@@ -97,7 +97,7 @@
 		A75C5D0418B4321A007780A3 /* server */ = {
 			isa = PBXGroup;
 			children = (
-				BC2C928818F5FAA0000A8517 /* server.pm */,
+				BC27B9DB1926D193003856F0 /* server.pm */,
 				A75C5D0618B4321A007780A3 /* mine.pm */,
 				A75C5D0518B4321A007780A3 /* linkage.pm */,
 			);
@@ -107,7 +107,7 @@
 		A75C5D0818B4321A007780A3 /* user */ = {
 			isa = PBXGroup;
 			children = (
-				BC2C928718F5FA81000A8517 /* user.pm */,
+				BC27B9DA1926D186003856F0 /* user.pm */,
 				A75C5D0918B4321A007780A3 /* mine.pm */,
 			);
 			path = user;
