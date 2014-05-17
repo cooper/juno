@@ -54,7 +54,7 @@ sub register_user_numeric {
 
 sub unload_module {
     my ($mod, $event) = @_;
-    $pool->delete_numeric($_) foreach $mod->list_store_items('user_numerics');
+    $pool->delete_numeric($mod->{name}{full}, $_) foreach $mod->list_store_items('user_numerics');
     return 1;
 }
 

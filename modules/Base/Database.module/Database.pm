@@ -26,16 +26,12 @@ sub init {
         database table_exists create_table db_hashref
         db_arrayref db_single create_or_alter_table
     );
-    
-    # module unload event.
-    $api->on('module.unload' => \&unload_module, with_evented_obj => 1) or return;
-    
+        
     return 1;
 }
 
 # create a database object.
 sub database {
-    print "@_\n";
     my ($mod, $event, $name) = @_;
     
     # use sqlite.
@@ -50,7 +46,6 @@ sub database {
 # a table exists.
 # FIXME: currently specific to SQLite.
 sub table_exists {
-    print "@_\n";
     my ($mod, $event, $db, $table) = @_;
     my $sth = $db->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?");
     $sth->execute($table);

@@ -4,7 +4,7 @@
 # @package:         "M::Access"
 # @description:     "implements channel access mode"
 #
-# @depends.modules: "Base::ChannelModes"
+# @depends.modules: ['Base::ChannelModes', 'Base::UserCommands']
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

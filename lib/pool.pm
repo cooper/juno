@@ -639,7 +639,7 @@ sub delete_channel_mode_block {
     my ($pool, $name, $what) = @_;
     if (exists $pool->{channel_modes}{$name}{$what}) {
         delete $pool->{channel_modes}{$name}{$what};
-        log2("deleting user mode block for $name: $what");
+        log2("deleting channel mode block for $name: $what");
         return 1;
     }
     return;

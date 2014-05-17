@@ -2132,6 +2132,9 @@ CHANGES:
         
         78. disposed of old modules and removed API Engine submodule, finalizing the transition to Evented::API::Engine.
         
+        79. implemented evented Reload module.
+            solved several issues with the transition to the new API.
+        
         
         
         
