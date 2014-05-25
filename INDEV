@@ -2134,9 +2134,9 @@ CHANGES:
         
         79. implemented evented Reload module.
             solved several issues with the transition to the new API.
-        
-        
-        
+            
+            791. colons prefixing channel names in the JOIN command are now ignored.
+            fixed broken eval command.
         
         
         

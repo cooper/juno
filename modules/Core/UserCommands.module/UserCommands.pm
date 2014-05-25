@@ -463,7 +463,7 @@ sub cmap {
 
 sub cjoin {
     my ($user, $data, @args) = @_;
-    foreach my $chname (split ',', $args[1]) {
+    foreach my $chname (split ',', col($args[1])) {
         my $new = 0;
 
         # make sure it's a valid name
@@ -1275,8 +1275,12 @@ sub seval {
     # send the result to the channel.
     my $i = 0;
     if ($channel) {
-        $channel->sendfrom_all($user->full, "PRIVMSG $$channel{name} :".
-        ($i++ ? "eval ($i): " : 'eval: ').$_) foreach @result;
+        foreach (@result) {
+            $i++;
+            my $e = ($#result ? "($i): " : '').$_;
+            $user->sendfrom($user->full, "PRIVMSG $$channel{name} :$e");
+            $user->handle("PRIVMSG $$channel{name} :$e");
+        }
     }
     
     # send the result to the user.

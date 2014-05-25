@@ -20,6 +20,8 @@ sub new {
         stream        => $stream,
         ip            => $stream->{write_handle}->peerhost,
         host          => $stream->{write_handle}->peerhost,
+        localport     => $stream->{write_handle}->sockport,
+        peerport      => $stream->{write_handle}->peerport,
         source        => v('SERVER', 'sid'),
         time          => time,
         last_response => time,
