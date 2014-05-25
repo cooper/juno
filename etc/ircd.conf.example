@@ -99,6 +99,9 @@
 
     port = [6667..6669, 7000]                   # unsecured listening ports
 
+[ listen: ::1 ]
+
+    port = [6667..6669, 7000]                   # unsecured listening ports
 
 [ connect: server2.example.com ]
 

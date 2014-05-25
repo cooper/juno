@@ -2138,6 +2138,7 @@ CHANGES:
             791. colons prefixing channel names in the JOIN command are now ignored.
             fixed broken eval command.
         
+            792. fixed an issue with Base::Database where the ircd would refuse to start with Account module loaded.
         
         
         

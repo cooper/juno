@@ -98,7 +98,7 @@ sub create_or_alter_table {
     
     # table doesn't exist; create it.
     if (!table_exists($mod, $event, $db, $table_name)) {
-        return create_table($mod, $db, $table_name, @columns);
+        return create_table($mod, $event, $db, $table_name, @columns);
     }
     
     # table exists. check if its coulumns are up-to-date.
