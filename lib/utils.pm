@@ -145,8 +145,11 @@ my %crypts = (
     sha256 => [ 'Digest::SHA', 'sha256_hex' ],
     sha384 => [ 'Digest::SHA', 'sha384_hex' ],
     sha512 => [ 'Digest::SHA', 'sha512_hex' ],
-    md5    => [ 'Digest::MD5', 'md5_hex'    ]
+    md5    => [ 'Digest::MD5', 'md5_hex'    ],
+    none   => [ __PACKAGE__,   '_none'      ]
 );
+
+sub _none { shift }
 
 # encrypt something
 sub crypt {
