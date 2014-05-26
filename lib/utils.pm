@@ -41,10 +41,12 @@ sub conn {
 # log errors/warnings
 
 sub log2 {
-    return if !$::NOFORK  && defined $::PID;
     my $line = shift;
     my $sub  = shift // (caller 1)[3];
-    say(time.q( ).($sub && $sub ne '(eval)' ? "$sub():" : q([).(caller)[0].q(])).q( ).$line)
+    my $log  = time.q( ).($sub && $sub ne '(eval)' ? "$sub():" : q([).(caller)[0].q(])).q( ).$line;
+    $::pool->fire(log => $log) if $::pool;
+    return if !$::NOFORK  && defined $::PID;
+    say($log);
 }
 
 # log and exit

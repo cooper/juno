@@ -2143,6 +2143,12 @@ CHANGES:
             793. added none encryption option.
         
         
+    8. don't accept OPER for a user that does not connect via the requesting server.
+        say which modules were loaded for the first time in RELOAD command.
+        local Account commands and modes are now in the Local submodule.
+        remote Account operations are now handled in the Remote submodule.
+        update Evented::Object.
+        update Evented::API::Engine.
         
         
         

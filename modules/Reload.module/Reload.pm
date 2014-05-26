@@ -97,6 +97,16 @@ sub cmd_reload {
         
         $reloaded++;
     }
+    
+    
+    # find new modules.
+    NEW: foreach my $new_m (@{ $api->{loaded} }) {
+        foreach my $old_m (@mods_loaded) {
+            next NEW if $old_m->{name}{full} eq $new_m->{name}{full};
+        }
+        $user->server_notice("    - $$new_m{name}{full} loaded");
+    }
+    
     $user->server_notice("    - $reloaded modules reloaded");
 
     

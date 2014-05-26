@@ -1,12 +1,12 @@
 {
-   "version" : "7.791",
+   "version" : "7.8",
    "name" : "Base::Database",
    "author" : {
       "website" : "https://github.com/cooper",
       "name" : "Mitchell Cooper"
    },
-   "package" : "M::Base::Database",
    "depends" : {
       "modules" : "API::Methods"
-   }
+   },
+   "package" : "M::Base::Database"
 }

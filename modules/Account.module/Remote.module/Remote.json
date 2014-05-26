@@ -1,15 +1,15 @@
 {
-   "version" : "0.9",
-   "name" : "Account",
+   "version" : "0.2",
+   "name" : "Account::Remote",
    "author" : {
       "website" : "https://github.com/cooper",
       "name" : "Mitchell Cooper"
    },
    "description" : "implements user accounts",
+   "package" : "M::Account::Remote",
    "depends" : {
       "modules" : [
-         "Base::Database"
+         "JELP"
       ]
-   },
-   "package" : "M::Account"
+   }
 }
