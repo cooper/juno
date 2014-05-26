@@ -213,7 +213,13 @@ sub ready {
         if ($password ne conn($connection->{name}, 'receive_password')) {
             $connection->done('Invalid credentials');
             notice(connection_invalid => $connection->{ip}, 'Received invalid password');
-            return
+            return;
+        }
+        
+        # check if the server is linked already.
+        if ($::pool->lookup_server($connection->{sid}) || $::pool->lookup_server_name($connection->{name})) {
+            notice(connection_invalid => $connection->{ip}, 'Server exists');
+            return;
         }
 
         $connection->{parent} = v('SERVER');

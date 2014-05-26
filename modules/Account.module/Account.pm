@@ -15,7 +15,7 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils qw(conf notice);
+use utils qw(conf notice import);
 
 our ($api, $mod, $me, $db);
 

@@ -206,9 +206,10 @@ sub on  () { 1 }
 sub off () { 0 }
 
 sub import {
+    my $this_package = shift;
     my $package = caller;
     no strict 'refs';
-    *{$package.'::'.$_} = *{__PACKAGE__.'::'.$_} foreach @_[1..$#_]
+    *{$package.'::'.$_} = *{$this_package.'::'.$_} foreach @_
 }
 
 1

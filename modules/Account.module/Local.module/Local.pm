@@ -15,6 +15,8 @@ use warnings;
 use strict;
 use 5.010;
 
+M::Account->import(qw(login_account logout_account register_account account_info));
+
 our ($api, $mod, $me, $db);
 
 sub init {

@@ -2150,6 +2150,9 @@ CHANGES:
         update Evented::Object.
         update Evented::API::Engine.
         
+        81. utils import() can now be imported.
+            fixed a fatal scenario in the new Account module update.
+            do not allow SERVER registration for a name or SID that already exists.
         
         
         
