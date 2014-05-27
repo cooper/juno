@@ -49,7 +49,13 @@ sub init {
 ### ACCOUNT MANAGEMENT ###
 ##########################
 
-# fetch account information
+# select info for all accounts.
+# returns an arrayref of hashrefs.
+sub all_accounts {
+    return $mod->db_hashrefs($db, 'SELECT * FROM accounts');
+}
+
+# fetch account information.
 sub account_info {
     my $account = shift;
     return $mod->db_hashref($db, 'SELECT * FROM accounts WHERE name=? COLLATE NOCASE', $account);

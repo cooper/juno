@@ -56,6 +56,7 @@ sub cmd_reload {
     $user->server_notice('- Unloading modules');
     foreach my $m (@mods_loaded) {
         next if $m->{UNLOADED};
+        next if $m->{parent};
         my $name = $m->name;
         $api->unload_module($name, 1) or
           $user->server_notice("    - $name refused to unload");
@@ -81,7 +82,7 @@ sub cmd_reload {
     $user->server_notice('- Summary');
     my $reloaded = 0;
     foreach my $old_m (@mods_loaded) {
-        my $new_m = $api->get_module($old_m->{name}{full});
+        my $new_m = $api->get_module($old_m->name);
         
         # not loaded.
         if (!$new_m) {
@@ -102,7 +103,7 @@ sub cmd_reload {
     # find new modules.
     NEW: foreach my $new_m (@{ $api->{loaded} }) {
         foreach my $old_m (@mods_loaded) {
-            next NEW if $old_m->{name}{full} eq $new_m->{name}{full};
+            next NEW if $old_m->name eq $new_m->name;
         }
         $user->server_notice("    - $$new_m{name}{full} loaded");
     }

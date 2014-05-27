@@ -23,8 +23,8 @@ sub init {
     
     # register methods.
     $mod->register_module_method($_) || return foreach qw(
-        database table_exists create_table db_hashref
-        db_arrayref db_single create_or_alter_table
+        database table_exists create_table db_hashref db_hashrefs
+        db_arrayref db_arrayrefs db_single create_or_alter_table
     );
         
     return 1;
@@ -75,12 +75,36 @@ sub db_hashref {
     return $sth->fetchrow_hashref;
 }
 
+# select many hashrefs.
+sub db_hashrefs {
+    my ($mod, $event, $db, $query, @args) = @_;
+    my $sth = $db->prepare($query);
+    $sth->execute(@args) or return;
+    my @a;
+    while (my $next = $sth->fetchrow_hashref) {
+        push @a, $next;
+    }
+    return \@a;
+}
+
 # select an arrayref.
 sub db_arrayref {
     my ($mod, $event, $db, $query, @args) = @_;
     my $sth = $db->prepare($query);
     $sth->execute(@args) or return;
     return $sth->fetchrow_arrayref;
+}
+
+# select many arrayrefs.
+sub db_arrayrefs {
+    my ($mod, $event, $db, $query, @args) = @_;
+    my $sth = $db->prepare($query);
+    $sth->execute(@args) or return;
+    my @a;
+    while (my $next = $sth->fetchrow_arrayref) {
+        push @a, $next;
+    }
+    return @a;
 }
 
 # select a single value.

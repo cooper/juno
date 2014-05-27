@@ -4,7 +4,7 @@
 # @package:         "M::Account::Remote"
 # @description:     "implements user accounts"
 #
-# @depends.modules: ['JELP']
+# @depends.modules: ['JELP::Base']
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"
@@ -15,9 +15,9 @@ use warnings;
 use strict;
 use 5.010;
 
-M::Account->import(qw(login_account logout_account register_account account_info));
+M::Account->import(qw(login_account logout_account register_account account_info all_accounts));
 
-our ($api, $mod, $pool, $db);
+our ($api, $mod, $pool, $db, $me);
 
 sub init {
     $db = $M::Account::db or return;
@@ -32,13 +32,25 @@ sub init {
     return 1;
 }
 
-#######################
-### SERVER COMMANDS ###
-#######################
+#########################
+### OUTGOING COMMANDS ###
+#########################
+
+sub out_acct {
+    my $str = '';
+    foreach my $act (@_) {
+        $str .= $act->{id}.q(,).$act->{updated}.q( );
+    }
+    ":$$me{sid} ACCT $str"
+}
+
+#########################
+### INCOMING COMMANDS ###
+#########################
 
 sub send_burst {  
     my ($server, $fire, $time) = @_;
-    print "SENDING BURST: $server, $fire, $time\n";
+    $server->fire_command(acct => @{ all_accounts() });
 }
 
 $mod

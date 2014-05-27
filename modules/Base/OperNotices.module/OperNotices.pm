@@ -47,6 +47,7 @@ sub register_oper_notice {
     ) or return;
     
     $mod->_log("Oper notice '$opts{name}' registered");
+    
     $mod->list_store_add('oper_notices', $opts{name});
     return 1;
 }

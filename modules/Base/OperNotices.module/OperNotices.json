@@ -1,12 +1,12 @@
 {
-   "version" : "7.73",
+   "version" : "7.81",
    "name" : "Base::OperNotices",
    "author" : {
       "website" : "https://github.com/cooper",
       "name" : "Mitchell Cooper"
    },
-   "package" : "M::Base::OperNotices",
    "depends" : {
       "modules" : "API::Methods"
-   }
+   },
+   "package" : "M::Base::OperNotices"
 }
