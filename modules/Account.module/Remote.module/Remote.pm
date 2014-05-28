@@ -29,7 +29,24 @@ sub init {
         with_evented_obj => 1
     );
     
+    $mod->register_outgoing_command(
+        name => 'acct',
+        code => \&out_acct
+    ) or return;
+    
+    $mod->register_outgoing_command(
+        name => 'acctinfo',
+        code => \&out_acctinfo
+    ) or return;
+    
     return 1;
+}
+
+sub send_burst {  
+    my ($server, $fire, $time) = @_;
+    $server->fire_command(acct => @{ all_accounts() });
+    # XXX:
+    $server->fire_command(acctinfo => all_accounts()->[0]);
 }
 
 #########################
@@ -39,18 +56,26 @@ sub init {
 sub out_acct {
     my $str = '';
     foreach my $act (@_) {
-        $str .= $act->{id}.q(,).$act->{updated}.q( );
+        $str .= $act->{csid}.q(.).$act->{id}.q(,).$act->{updated}.q( );
     }
     ":$$me{sid} ACCT $str"
+}
+
+sub out_acctinfo {
+    my $act = shift;
+    my $str = '';
+    foreach my $key (keys %$act) {
+        my $value = $act->{$key};
+        next unless defined $value;
+        $str .= "$key $value ";
+    }
+    ":$$me{sid} ACCTINFO $str"
 }
 
 #########################
 ### INCOMING COMMANDS ###
 #########################
 
-sub send_burst {  
-    my ($server, $fire, $time) = @_;
-    $server->fire_command(acct => @{ all_accounts() });
-}
+
 
 $mod

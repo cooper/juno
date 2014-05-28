@@ -24,19 +24,19 @@ sub init {
     
     # create or update the table if necessary.
     $mod->create_or_alter_table($db, 'accounts',
-        id       => 'INT',          # numerical account ID
-        name     => 'VARCHAR(50) COLLATE NOCASE',  # account name
-        password => 'VARCHAR(512)', # (hopefully encrypted) account password
-        encrypt  => 'VARCHAR(20)',  # password encryption type
+        id       => 'INTEGER',      # numerical account ID
+        name     => 'TEXT COLLATE NOCASE',  # account name
+        password => 'TEXT',         # (hopefully encrypted) account password
+        encrypt  => 'TEXT',         # password encryption type
                                     #     255 is max varchar size on mysql<5.0.3
-        created  => 'UNSIGNED INT', # UNIX time of account creation
+        created  => 'INTEGER',      # UNIX time of account creation
                                     #     in SQLite, the max size is very large...
                                     #     in mysql and others, not so much.
-        cserver  => 'VARCHAR(512)', # server name on which the account was registered
-        csid     => 'INT(4)',       # SID of the server where registered
-        updated  => 'UNSIGNED INT', # UNIX time of last account update
-        userver  => 'VARCHAR(512)', # server name on which the account was last updated
-        usid     => 'INT(4)'        # SID of the server where last updated
+        cserver  => 'TEXT',         # server name on which the account was registered
+        csid     => 'INTEGER',      # SID of the server where registered
+        updated  => 'INTEGER',      # UNIX time of last account update
+        userver  => 'TEXT',         # server name on which the account was last updated
+        usid     => 'INTEGER'       # SID of the server where last updated
     ) or return;
 
     $mod->load_submodule('Local')  or return;
