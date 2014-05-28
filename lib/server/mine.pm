@@ -61,11 +61,15 @@ sub handle {
         foreach my $handler (@handlers) {
             last if !$server->{conn} || $server->{conn}{goodbye};
             
+            # call the code.
             $handler->{code}($server, $line, @s);
 
             # forward to children.
             # $server is used here so that it will be ignored.
-            send_children($server, $line) if $handler->{forward};
+            if ($handler->{forward} and not $handler->{forward} == 2 && $server->{is_burst}) {
+                send_children($server, $line);
+            }
+            
         }
     }
     

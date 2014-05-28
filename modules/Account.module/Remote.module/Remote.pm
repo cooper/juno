@@ -15,6 +15,7 @@ use warnings;
 use strict;
 use 5.010;
 
+use utils qw(trim);
 M::Account->import(qw(login_account logout_account register_account account_info all_accounts));
 
 our ($api, $mod, $pool, $db, $me);
@@ -29,16 +30,25 @@ sub init {
         with_evented_obj => 1
     );
     
-    $mod->register_outgoing_command(
-        name => 'acct',
-        code => \&out_acct
-    ) or return;
+    # incoming commands.
+    $mod->register_server_command(%$_) || return foreach (
+        {
+            name       => 'acct',
+            parameters => 'server dummy :rest',
+            code       => \&in_acct,
+            forward    => 2
+        },
+    );
     
+    # outgoing commands.
     $mod->register_outgoing_command(
-        name => 'acctinfo',
-        code => \&out_acctinfo
-    ) or return;
-    
+        name => $_->[0],
+        code => $_->[1]
+    ) || return foreach (
+        [ acct     => \&out_acct     ],
+        [ acctinfo => \&out_acctinfo ]
+    );
+
     return 1;
 }
 
@@ -76,6 +86,19 @@ sub out_acctinfo {
 ### INCOMING COMMANDS ###
 #########################
 
-
+sub in_acct {
+    # server dummy  :rest
+    # :sid ACCTINFO info
+    my ($server, $data, $serv, $str) = @_;
+    my @items = split /\W/, trim($str);
+    
+    # must be divisible by three.
+    return if @items % 3;
+    
+    while (@items) {
+        my ($sid, $aid, $ctime) = splice @items, 0, 3;
+        print "items: sid($sid) aid($aid) ctime($ctime)\n";
+    }
+}
 
 $mod

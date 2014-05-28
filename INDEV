@@ -2161,6 +2161,8 @@ CHANGES:
         
         83. continued work on cross-server accounts.
         
+        84. the 'forward' parameter for JELP command handlers now accepts a value of 2 to indicate that the command should be forward if and only if the sending server is not bursting its information.
+            more work on cross-server accounts.
 
 
         
