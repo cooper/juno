@@ -122,6 +122,9 @@ sub cjoin {
     my ($channel, $user, $time) = @_;
 
     # fire before join event.
+    # FIXME: um I think this event should be removed.
+    # any checks should be done in server and user handlers...
+    # and I don't think anything uses this.
     my $e = $channel->fire_event(user_will_join => $user);
     
     # a handler suggested that the join should not occur.
@@ -141,6 +144,7 @@ sub cjoin {
     # core_scommands.pm: for nonlocals.
  
     notice(user_join => $user->notice_info, $channel->{name});
+    delete $user->{invite_pending}{ lc $channel->{name} };
     return $channel->{time};
 }
 

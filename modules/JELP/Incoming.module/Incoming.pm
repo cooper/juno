@@ -141,7 +141,7 @@ my %scommands = (
         forward => 1
     },
     INVITE => {
-        params  => 'user dummy user any ts',
+        params  => 'user dummy user any',
         code    => \&invite,
       # forward => handled manually
     }
@@ -645,8 +645,8 @@ sub kick {
 }
 
 sub invite {
-    # :uid INVITE target ch_name ts
-    my ($user, $t_user, $ch_name, $ts) = @_;
+    # :uid INVITE target ch_name
+    my ($user, $t_user, $ch_name) = @_;
     
     # local user.
     if ($t_user->is_local) {

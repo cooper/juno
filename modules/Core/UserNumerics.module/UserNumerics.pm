@@ -97,6 +97,7 @@ my %numerics = (
     ERR_USERONCHANNEL    => [443, '%s %s :is already on channel'                                          ],
     ERR_NEEDMOREPARAMS   => [461, '%s :Not enough parameters'                                             ],
     ERR_ALREADYREGISTRED => [462, ':You may not reregister'                                               ],
+    ERR_INVITEONLYCHAN   => [472, '%s :You must be invited'                                               ],
     ERR_BANNEDFROMCHAN   => [474, '%s :You\'re banned'                                                    ],
     ERR_NOPRIVILEGES     => [481, ':Permission denied - You can\'t %s'                                    ],
     ERR_CHANOPRIVSNEEDED => [482, '%s :You do not have the required status to perform this action'        ],

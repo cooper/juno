@@ -2165,8 +2165,9 @@ CHANGES:
             more work on cross-server accounts.
         
         85. added INVITE user and server commands.
-
         
+        86. added invite-only channel mode.
+            greatly improved the JOIN user command handler.
         
         
 

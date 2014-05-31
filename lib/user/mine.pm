@@ -256,6 +256,7 @@ sub get_invited_by {
 
     }
     
+    $user->{invite_pending}{ lc $ch_name } = 1;
     $user->sendfrom($i_user->full, "INVITE $$user{nick} $ch_name");
 }
 

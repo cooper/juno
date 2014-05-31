@@ -489,22 +489,47 @@ sub cjoin {
                 'time' => $time
             );
         }
-
-        return if $channel->has_user($user);
-        my $sstr;
-
-        # check for ban.
-        my $banned = $channel->list_matches('ban',    $user);
-        my $exempt = $channel->list_matches('except', $user);
         
-        # yep, banned.
-        if ($banned && !$exempt) {
-            $user->numeric('ERR_BANNEDFROMCHAN', $channel->{name});
-            return
-        }
+        # first, check if user is in channel already.
+        $user->on(can_join => sub {
+            shift->stop if $channel->has_user($user);
+        }, name => 'in.channel', priority => 30);
+
+        # second, check if the channel is invite only.
+        $user->on(can_join => sub {
+            return unless $channel->is_mode('invite_only');
+            return if $user->{invite_pending}{ lc $channel->{name} };
+            
+            # sorry, not invited.
+            $user->numeric(ERR_INVITEONLYCHAN => $channel->{name});
+            shift->stop;
+            
+        }, name => 'has.invite', priority => 20);
+        
+        # third, check for a ban.
+        $user->on(can_join => sub {
+        
+            my $banned = $channel->list_matches('ban',    $user);
+            my $exempt = $channel->list_matches('except', $user);
+            
+            # sorry, banned.
+            if ($banned && !$exempt) {
+                $user->numeric(ERR_BANNEDFROMCHAN => $channel->{name});
+                shift->stop;
+            }
+        
+        }, name => 'is.banned', priority => 10);
+
+        # fire the event and delete the callbacks.
+        my $event = $user->fire(can_join => $channel);
+        $user->delete_event(can_join => $_) foreach qw(in.channel has.invite is.banned);
+        
+        # event was stopped; can't join.
+        return if $event->stopper;
 
         # new channel. join internally (without telling the user) & set auto modes.
         # note: we can't use do_mode_string() here because CMODE must come after SJOIN.
+        my $sstr;
         if ($new) {
             $channel->cjoin($user, $time); # early join
             my $str = conf('channels', 'automodes') || '';
@@ -520,6 +545,7 @@ sub cjoin {
         $channel->localjoin($user, $time, 1);
         
     }
+    return 1;
 }
 
 sub names {
@@ -1378,7 +1404,7 @@ sub invite {
     }
     
     # fire the event and delete the callbacks.
-    my $event = $user->fire('can_invite');
+    my $event = $user->fire(can_invite => $t_user, $ch_name);
     $user->delete_event(can_invite => $_)
         foreach qw(source.in.channel target.in.channel has.basic.status);
       
