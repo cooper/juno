@@ -173,9 +173,10 @@ sub sid {
     # :sid   SID   newsid ts name proto ircd :desc
     my ($server, $data, @args) = @_;
 
-    my $ref        = {};
-    $ref->{$_}     = shift @args foreach qw[parent sid time name proto ircd desc];
-    $ref->{source} = $server->{sid}; # source = sid we learned about the server from
+    my $ref          = {};
+    $ref->{$_}       = shift @args foreach qw[parent sid time name proto ircd desc];
+    $ref->{source}   = $server->{sid}; # source = sid we learned about the server from
+    $ref->{location} = $server;
 
     # do not allow SID or server name collisions
     if ($pool->lookup_server($ref->{sid}) || $pool->lookup_server_name($ref->{name})) {
@@ -680,6 +681,20 @@ sub num {
         $user->{location}->fire_command(num => $source, $user, $num, $message);
     }
     
+    return 1;
+}
+
+sub links {
+    my ($server, $data, $user, $t_server, $serv_mask, $query_mask) = @_;
+
+    # this is the server match.
+    if ($t_server->is_local) {
+        return $user->handle("LINKS $serv_mask $query_mask");
+    }
+    
+    # pass it on.
+    $t_server->{location}->fire_command($user, $t_server, $serv_mask, $query_mask);
+
     return 1;
 }
 

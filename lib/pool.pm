@@ -121,7 +121,7 @@ sub lookup_server_name {
 sub lookup_server_mask {
     my ($pool, $mask) = @_;
     my @matches;
-    foreach my $server ($pool->servers) {
+    foreach my $server (sort { $a->{name} cmp $b->{name} } $pool->servers) {
         push @matches, $server if utils::irc_match($server->{name}, $mask);
     }
     return wantarray ? @matches : $matches[0];

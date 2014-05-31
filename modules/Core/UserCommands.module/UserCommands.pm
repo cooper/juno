@@ -199,6 +199,11 @@ my %ucommands = (
         code   => \&invite,
         desc   => 'invite a user to a channel',
         params => 'user any'
+    },
+    LINKS => {
+        code   => \&links,
+        desc   => 'display server links',
+        params => 'any(opt) any(opt)'
     }
 );
 
@@ -1426,6 +1431,48 @@ sub invite {
         if exists $t_user->{away};    
     $user->numeric(RPL_INVITING => $ch_name, $t_user->{nick});
     
+    return 1;
+}
+
+# note: this handler is used also for remote users.
+sub links {
+    my ($user, $data, $serv_mask, $query_mask) = @_;
+    my $server = $me;
+    
+    # query mask but no server mask.
+    if (defined $serv_mask && !defined $query_mask) {
+        $query_mask = $serv_mask;
+        undef $serv_mask;
+    }
+    
+    # server mask provided.
+    if (defined $serv_mask) {
+        $server = $pool->lookup_server_mask($serv_mask);
+        
+        # no matches
+        if (!$server) {
+            $user->numeric(ERR_NOSUCHSERVER => $serv_mask);
+            return;
+        }
+        
+    }
+    
+    # if it's not the local server, pass this on.
+    if (!$server->is_local) {
+        $server->{location}->fire_command(links => $user, $server, $serv_mask, $query_mask);
+        return 1;
+    }
+    
+    # it's a request for this server.
+    $query_mask //= '*';
+    my @servers = $pool->lookup_server_mask($query_mask);
+    
+    foreach my $serv (@servers) {
+        my $hops = 0; # TODO: make this accurate.
+        $user->numeric(RPL_LINKS => $serv->{name}, $serv->{parent}{name}, $hops, $serv->{desc});
+    }
+    
+    $user->numeric(RPL_ENDOFLINKS => $query_mask);
     return 1;
 }
 

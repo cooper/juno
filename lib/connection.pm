@@ -194,7 +194,7 @@ sub ready {
         #    return;
         #}
         
-        $connection->{server}   = v('SERVER');
+        $connection->{server}   =
         $connection->{location} = v('SERVER');
         $connection->{cloak}  //= $connection->{host};
 
@@ -222,18 +222,24 @@ sub ready {
             return;
         }
 
-        $connection->{parent} = v('SERVER');
-        $connection->{type}   = $::pool->new_server(%$connection);
+        $connection->{parent}   = 
+        $connection->{location} = v('SERVER');
+        $connection->{type}     = $::pool->new_server(%$connection);
         $::pool->fire_command_all(sid => $connection->{type});
 
         # send server credentials
         if (!$connection->{sent_creds}) {
-            $connection->send(sprintf 'SERVER %s %s %s %s :%s', v('SERVER', 'sid'), v('SERVER', 'name'), v('PROTO'), v('VERSION'), v('SERVER', 'desc'));
+            $connection->send(sprintf 'SERVER %s %s %s %s :%s',
+                v('SERVER', 'sid'),
+                v('SERVER', 'name'),
+                v('PROTO'),
+                v('VERSION'),
+                v('SERVER', 'desc')
+            );
             $connection->send('PASS '.conn($connection->{name}, 'send_password'))
         }
 
         $connection->send('READY');
-
     }
 
     

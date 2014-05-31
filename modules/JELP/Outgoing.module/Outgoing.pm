@@ -41,7 +41,8 @@ my %ocommands = (
     connect       => \&sconnect,
     kick          => \&kick,
     invite        => \&invite,
-    num           => \&num
+    num           => \&num,
+    links         => \&links
 );
 
 sub init {
@@ -388,6 +389,11 @@ sub invite {
 sub num {
     my ($server, $t_user, $num, $message) = @_;
     ":$$server{sid} NUM $$t_user{uid} $num :$message"
+}
+
+sub links {
+    my ($user, $target_server, $server_mask, $query_mask) = @_;
+    ":$$user{uid} LINKS $$target_server{sid} $server_mask $query_mask"
 }
 
 $mod
