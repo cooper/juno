@@ -2171,5 +2171,6 @@ CHANGES:
         
         87. fixed.
         
+        88. added $pool->lookup_server_mask() to find server(s) by wildcard.
 
 

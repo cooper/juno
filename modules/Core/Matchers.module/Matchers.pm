@@ -16,7 +16,7 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils qw(_match);
+use utils qw(irc_match);
 
 our ($api, $mod, $me);
 
@@ -37,7 +37,7 @@ sub init {
 sub standard_matcher {
     my ($event, $user, @list) = @_;
     foreach my $mask ($user->full, $user->fullreal, $user->fullip) {
-        return $event->{matched} = 1 if _match($mask, @list);
+        return $event->{matched} = 1 if irc_match($mask, @list);
     }
     return;
 }

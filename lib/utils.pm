@@ -113,14 +113,13 @@ sub validchan {
 sub match {
     my ($what, @list) = @_;
     return $::pool->user_match($what, @list) if blessed $what;
-    return _match($what, @list);
+    return irc_match($what, @list);
 }
 
 # basic matcher.
-sub _match {
-    my ($mask, @list) = (lc shift, @_);
-    return unless $mask =~ m/^(.+)\!(.+)\@(.+)$/;
-    return scalar grep { $mask =~ /^$_$/ } map {
+sub irc_match {
+    my ($what, @list) = (lc shift, @_);
+    return scalar grep { $what =~ /^$_$/ } map {
         $_ = lc quotemeta;
         s/\\\*/[\x01-\xFF]{0,}/g;
         s/\\\?/[\x01-\xFF]{1,1}/g;

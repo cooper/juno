@@ -117,6 +117,16 @@ sub lookup_server_name {
     return $pool->{server_names}{lc $sname};
 }
 
+# find any number of servers by mask.
+sub lookup_server_mask {
+    my ($pool, $mask) = @_;
+    my @matches;
+    foreach my $server ($pool->servers) {
+        push @matches, $server if utils::irc_match($server->{name}, $mask);
+    }
+    return wantarray ? @matches : $matches[0];
+}
+
 # delete a server.
 sub delete_server {
     my ($pool, $server) = @_;
