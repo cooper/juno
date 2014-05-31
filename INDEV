@@ -2174,5 +2174,7 @@ CHANGES:
         88. added $pool->lookup_server_mask() to find server(s) by wildcard.
         
         89. added the ability to send numerics to remote users.
+        
+            891. fixed very dumb crash during server reload.
 
 

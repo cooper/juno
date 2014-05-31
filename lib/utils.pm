@@ -44,7 +44,7 @@ sub log2 {
     my $line = shift;
     my $sub  = shift // (caller 1)[3];
     my $log  = time.q( ).($sub && $sub ne '(eval)' ? "$sub():" : q([).(caller)[0].q(])).q( ).$line;
-    $::pool->fire(log => $log) if $::pool;
+    $::pool->fire(log => $log) if $::pool && pool->can('fire');
     return if !$::NOFORK  && defined $::PID;
     say($log);
 }
