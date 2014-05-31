@@ -193,14 +193,14 @@ sub load_dependencies {
 
     # main dependencies.
     load_or_reload(@$_) foreach (
-        [ 'Evented::API::Engine',          1.70 ],
+        [ 'Evented::API::Engine',          2.80 ],
         [ 'IO::Async::Loop',               0.60 ],
         [ 'IO::Async::Stream',             0.60 ],
         [ 'IO::Async::Listener',           0.60 ],
         [ 'IO::Async::Timer::Periodic',    0.60 ],
         [ 'IO::Async::Timer::Countdown',   0.60 ],
         [ 'IO::Socket::IP',                0.25 ],
-        [ 'Evented::Object',               4.11 ],
+        [ 'Evented::Object',               4.50 ],
         [ 'Evented::Configuration',        3.40 ],
         [ 'Evented::Database',             0.50 ]
     );

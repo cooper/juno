@@ -241,4 +241,22 @@ sub get_killed_by {
     notice(user_killed => $user->notice_info, $murderer->full, $reason);
 }
 
+# handle an invite for a local user.
+# $channel might be an object or a channel name.
+sub get_invited_by {
+    my ($user, $i_user, $ch_name) = @_;
+    return unless $user->is_local;
+    
+    # it's an object.
+    if (ref(my $channel = $ch_name)) {
+        $ch_name = $channel->{name};
+        
+        # user is already in channel.
+        return if $channel->has_user($user);
+
+    }
+    
+    $user->sendfrom($i_user->full, "INVITE $$user{nick} $ch_name");
+}
+
 1

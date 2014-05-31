@@ -39,7 +39,8 @@ my %ocommands = (
     aum           => \&aum,
     kill          => \&skill,
     connect       => \&sconnect,
-    kick          => \&kick
+    kick          => \&kick,
+    invite        => \&invite
 );
 
 sub init {
@@ -54,6 +55,80 @@ sub init {
     $pool->on('server.send_burst' => \&send_burst, name => 'core', with_evented_obj => 1);
     
     return 1;
+}
+
+#############
+### BURST ###
+#############
+
+sub send_burst {
+    my ($server, $fire, $time) = @_;
+    
+    # servers and mode names
+    my ($do, %done);
+
+    # first, send modes of this server.
+    $server->fire_command(aum => $me);
+    $server->fire_command(acm => $me);
+
+    # don't send info for this server or the server we're sending to.
+    $done{$server} = $done{$me} = 1;
+
+    $do = sub {
+        my $serv = shift;
+        
+        # already did this one.
+        return if $done{$serv};
+        
+        # we learned about this server from the server we're sending to.
+        return if defined $serv->{source} && $serv->{source} == $server->{sid};
+        
+        # we need to do the parent first.
+        if (!$done{ $serv->{parent} } && $serv->{parent} != $serv) {
+            $do->($serv->{parent});
+        }
+        
+        # fire the command.
+        $server->fire_command(sid => $serv);
+        $done{$serv} = 1;
+        
+        # send modes using compact AUM and ACM
+        $server->fire_command(aum => $serv);
+        $server->fire_command(acm => $serv);
+        
+    }; $do->($_) foreach $pool->servers;
+
+
+    # users
+    foreach my $user ($pool->users) {
+
+        # ignore users the server already knows!
+        next if $user->{server} == $server || $user->{source} == $server->{sid};
+        
+        $server->fire_command(uid => $user);
+        
+        # oper flags
+        if (scalar @{ $user->{flags} }) {
+            $server->fire_command(oper => $user, @{ $user->{flags} })
+        }
+        
+        # away reason
+        if (exists $user->{away}) {
+            $server->fire_command(away => $user)
+        }
+        
+    }
+
+    # channels, using compact CUM
+    foreach my $channel ($pool->channels) {
+        $server->fire_command(cum => $channel, $server);
+        
+        # there is no topic or this server is how we got the topic.
+        next if !$channel->topic;
+        
+        $server->fire_command(topicburst => $channel);
+    }
+    
 }
 
 ###########
@@ -298,81 +373,14 @@ sub kick {
     my ($source, $channel, $target, $reason) = @_;
     my $sourceid = $source->can('id') ? $source->id : '';
     my $targetid = $target->can('id') ? $target->id : '';
-    return ":$source KICK $$channel{name} $targetid :$reason";
+    return ":$sourceid KICK $$channel{name} $targetid :$reason";
 }
 
-#############
-### BURST ###
-#############
-
-sub send_burst {
-    my ($server, $fire, $time) = @_;
-    
-    # servers and mode names
-    my ($do, %done);
-
-    # first, send modes of this server.
-    $server->fire_command(aum => $me);
-    $server->fire_command(acm => $me);
-
-    # don't send info for this server or the server we're sending to.
-    $done{$server} = $done{$me} = 1;
-
-    $do = sub {
-        my $serv = shift;
-        
-        # already did this one.
-        return if $done{$serv};
-        
-        # we learned about this server from the server we're sending to.
-        return if defined $serv->{source} && $serv->{source} == $server->{sid};
-        
-        # we need to do the parent first.
-        if (!$done{ $serv->{parent} } && $serv->{parent} != $serv) {
-            $do->($serv->{parent});
-        }
-        
-        # fire the command.
-        $server->fire_command(sid => $serv);
-        $done{$serv} = 1;
-        
-        # send modes using compact AUM and ACM
-        $server->fire_command(aum => $serv);
-        $server->fire_command(acm => $serv);
-        
-    }; $do->($_) foreach $pool->servers;
-
-
-    # users
-    foreach my $user ($pool->users) {
-
-        # ignore users the server already knows!
-        next if $user->{server} == $server || $user->{source} == $server->{sid};
-        
-        $server->fire_command(uid => $user);
-        
-        # oper flags
-        if (scalar @{ $user->{flags} }) {
-            $server->fire_command(oper => $user, @{ $user->{flags} })
-        }
-        
-        # away reason
-        if (exists $user->{away}) {
-            $server->fire_command(away => $user)
-        }
-        
-    }
-
-    # channels, using compact CUM
-    foreach my $channel ($pool->channels) {
-        $server->fire_command(cum => $channel, $server);
-        
-        # there is no topic or this server is how we got the topic.
-        next if !$channel->topic;
-        
-        $server->fire_command(topicburst => $channel);
-    }
-    
+# INVITE command.
+# uses channel name because it might not yet exist.
+sub invite {
+    my ($user, $t_user, $ch_name) = @_;
+    ":$$user{uid} INVITE $$t_user{uid} $ch_name"
 }
 
 $mod

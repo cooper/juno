@@ -63,6 +63,7 @@ my %numerics = (
     RPL_NOTOPIC          => [331, '%s :No topic is set'                                                   ],
     RPL_TOPIC            => [332, '%s :%s'                                                                ],
     RPL_TOPICWHOTIME     => [333, '%s %s %d'                                                              ],
+    RPL_INVITING         => [341, '%s %s'                                                                 ],
     RPL_INVITELIST       => [346, '%s %s'                                                                 ],
     RPL_ENDOFINVITELIST  => [347, '%s :End of channel invite list'                                        ],
     RPL_EXCEPTLIST       => [348, '%s %s'                                                                 ],
@@ -93,6 +94,7 @@ my %numerics = (
     ERR_NICKNAMEINUSE    => [433, '%s :Nickname in use'                                                   ],
     ERR_USERNOTINCHANNEL => [441, '%s %s :isn\'t on that channel'                                         ],
     ERR_NOTONCHANNEL     => [442, '%s :You\'re not on that channel'                                       ],
+    ERR_USERONCHANNEL    => [443, '%s %s :is already on channel'                                          ],
     ERR_NEEDMOREPARAMS   => [461, '%s :Not enough parameters'                                             ],
     ERR_ALREADYREGISTRED => [462, ':You may not reregister'                                               ],
     ERR_BANNEDFROMCHAN   => [474, '%s :You\'re banned'                                                    ],
@@ -101,7 +103,7 @@ my %numerics = (
     ERR_NOOPERHOST       => [491, ':No oper blocks for your host'                                         ],
     ERR_USERSDONTMATCH   => [502, ':Can\'t change mode for other users'                                   ]
                             ###############################################################################
-);
+);                  
  
 sub init {
     $mod->register_user_numeric(

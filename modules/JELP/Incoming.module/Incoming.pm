@@ -120,9 +120,6 @@ my %scommands = (
         code    => \&skill,
         forward => 1
     },
-    
-    # compact
-
     AUM => {
         params  => 'server dummy @rest',
         code    => \&aum,
@@ -142,6 +139,11 @@ my %scommands = (
         params  => 'source dummy channel user :rest',
         code    => \&kick,
         forward => 1
+    },
+    INVITE => {
+        params  => 'user dummy user any ts',
+        code    => \&invite,
+      # forward => handled manually
     }
 );
  
@@ -638,6 +640,22 @@ sub kick {
     
     # remove the user from the channel.
     $channel->remove_user($t_user);
+    
+    return 1;
+}
+
+sub invite {
+    # :uid INVITE target ch_name ts
+    my ($user, $t_user, $ch_name, $ts) = @_;
+    
+    # local user.
+    if ($t_user->is_local) {
+        $t_user->get_invited_by($user, $ch_name);
+        return 1;
+    }
+    
+    # forward on to next hop.
+    $t_user->{location}->fire_command(invite => @_[0..2]);
     
     return 1;
 }

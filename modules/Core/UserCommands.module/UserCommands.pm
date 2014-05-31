@@ -17,7 +17,7 @@ use strict;
 use 5.010;
 
 use Scalar::Util qw(blessed);
-use utils qw(col log2 lceq match cut_to_limit conf v notice);
+use utils qw(col log2 lceq match cut_to_limit conf v notice validchan);
 
 our ($api, $mod, $me, $pool, $VERSION);
 
@@ -194,6 +194,11 @@ my %ucommands = (
         code   => \&squit,
         desc   => 'disconnect a server',
         params => '-oper(squit) server'
+    },
+    INVITE => {
+        code   => \&invite,
+        desc   => 'invite a user to a channel',
+        params => 'user any'
     }
 );
 
@@ -467,7 +472,7 @@ sub cjoin {
         my $new = 0;
 
         # make sure it's a valid name
-        if (!utils::validchan($chname)) {
+        if (!validchan($chname)) {
             $user->numeric('ERR_NOSUCHCHANNEL', $chname);
             next
         }
@@ -1316,6 +1321,86 @@ sub squit {
     
     $server->{conn}->done('SQUIT command');
     $user->server_notice('squit', "$$server{name} disconnected");
+}
+
+# possible results:
+#
+# ERR_NEEDMOREPARAMS              ERR_NOSUCHNICK
+# ERR_NOTONCHANNEL                ERR_USERONCHANNEL
+# ERR_CHANOPRIVSNEEDED
+# RPL_INVITING                    RPL_AWAY
+#
+sub invite {
+    my ($user, $data, $t_user, $ch_name) = @_;
+    my $channel = $pool->lookup_channel($ch_name);
+    
+    # channel exists.
+    if ($channel) {
+        $ch_name = $channel->{name};
+    
+        # first, user must be in the channel if it exists.
+        $user->on(can_invite => sub {
+        
+            # user's not there.
+            return 1 if $channel->has_user($user);
+            
+            shift->stop;
+            $user->numeric(ERR_NOTONCHANNEL => $ch_name);
+        }, name => 'source.in.channel', priority => 30);
+        
+        # second, target can't be in the channel already.
+        $user->on(can_invite => sub {
+        
+            # target is in there.
+            return 1 unless $channel->has_user($t_user);
+            
+            shift->stop;
+            $user->numeric(ERR_USERONCHANNEL => $t_user->{nick}, $ch_name);
+        }, name => 'target.in.channel', priority => 20);
+        
+        # finally, user must have basic status if it's invite only.
+        $user->on(can_invite => sub {
+            
+            # channel's not invite only, or the user has basic status.
+            return 1 unless $channel->is_mode('invite_only');
+            return 1 if $channel->user_has_basic_status($user);
+            
+            shift->stop;
+            $user->numeric(ERR_CHANOPRIVSNEEDED => $ch_name);        
+        }, name => 'has.basic.status', priority => 10);
+
+    }
+    
+    # channel does not exist. check if the name is valid.
+    elsif (!validchan($ch_name)) {
+        $user->numeric(ERR_NOSUCHCHANNEL => $ch_name);
+        next;
+    }
+    
+    # fire the event and delete the callbacks.
+    my $event = $user->fire('can_invite');
+    $user->delete_event(can_invite => $_)
+        foreach qw(source.in.channel target.in.channel has.basic.status);
+      
+    # the fire was stopped. user can't invite.
+    return if $event->stopper;
+
+    # local user.
+    if ($t_user->is_local) {
+        $t_user->get_invited_by($user, $channel || $ch_name);
+    }
+    
+    # remote user.
+    else {
+        $t_user->{location}->fire_command(invite => $user, $t_user, $ch_name)
+    }
+    
+    # tell the source the target's being invited.
+    $user->numeric(RPL_AWAY => $t_user->{nick}, $t_user->{away})
+        if exists $t_user->{away};    
+    $user->numeric(RPL_INVITING => $ch_name, $t_user->{nick});
+    
+    return 1;
 }
 
 $mod

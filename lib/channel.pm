@@ -193,6 +193,8 @@ sub set_time {
 
 # returns the mode string,
 # or '+' if no changes were made.
+# NOTE: this is a lower-level function that only sets the modes.
+# you probably want to use ->do_mode_string(), which sends to users and servers.
 sub handle_mode_string {
     my ($channel, $server, $source, $modestr, $force, $over_protocol) = @_;
     log2("set $modestr on $$channel{name} from $$server{name}");
