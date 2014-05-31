@@ -2177,4 +2177,9 @@ CHANGES:
         
             891. fixed very dumb crash during server reload.
 
+    9. added LINKS command that works both locally and remotely.
+    
+    
+    
+    
 
