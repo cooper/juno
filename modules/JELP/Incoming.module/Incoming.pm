@@ -646,8 +646,8 @@ sub kick {
 
 sub invite {
     # :uid INVITE target ch_name
-    my ($user, $t_user, $ch_name) = @_;
-    
+    my ($server, $data, $user, $t_user, $ch_name) = @_;
+
     # local user.
     if ($t_user->is_local) {
         $t_user->get_invited_by($user, $ch_name);
@@ -655,7 +655,7 @@ sub invite {
     }
     
     # forward on to next hop.
-    $t_user->{location}->fire_command(invite => @_[0..2]);
+    $t_user->{location}->fire_command(invite => $user, $t_user, $ch_name);
     
     return 1;
 }
