@@ -79,7 +79,6 @@ sub sendme {
 # a notice from server
 # revision: supports nonlocal users as well now
 sub server_notice {
-    @_ = &safe or return;
     my ($user, @args) = @_;
     my $cmd = ucfirst $args[0];
     my $msg = defined $args[1] ? "*** \2$cmd:\2 $args[1]" : $args[0];
@@ -102,7 +101,6 @@ sub server_notice {
 
 # send a numeric to a local user.
 sub numeric {
-    @_ = &safe or return;
     my ($user, $const, @response) = (shift, shift);
     
     # does not exist.
@@ -123,7 +121,17 @@ sub numeric {
         @response = sprintf $val, @_;
     }
     
-    $user->sendme("$num $$user{nick} $_") foreach @response;
+    # local user.
+    if ($user->is_local) {
+        $user->sendme("$num $$user{nick} $_") foreach @response;
+    }
+    
+    # remote user.
+    else {
+        $user->{location}->fire_command(num => v('SERVER'), $user, $num, $_)
+            foreach @response;
+    }
+    
     return 1;
     
 }

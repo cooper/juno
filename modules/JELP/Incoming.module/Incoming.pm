@@ -144,6 +144,11 @@ my %scommands = (
         params  => 'user dummy user any',
         code    => \&invite,
       # forward => handled manually
+    },
+    NUM => {
+        params  => 'server dummy user any :rest',
+        code    => \&num,
+      # forward => handled manually
     }
 );
  
@@ -656,6 +661,24 @@ sub invite {
     
     # forward on to next hop.
     $t_user->{location}->fire_command(invite => $user, $t_user, $ch_name);
+    
+    return 1;
+}
+
+# remote numeric.
+# server dummy user any :rest
+sub num {
+    my ($server, $data, $source, $user, $num, $message) = @_;
+    
+    # local user.
+    if ($user->is_local) {
+        $user->sendfrom($source->full, "$num $$user{nick} $message");
+    }
+    
+    # forward to next hop.
+    else {
+        $user->{location}->fire_command(num => $source, $user, $num, $message);
+    }
     
     return 1;
 }

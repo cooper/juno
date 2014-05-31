@@ -40,7 +40,8 @@ my %ocommands = (
     kill          => \&skill,
     connect       => \&sconnect,
     kick          => \&kick,
-    invite        => \&invite
+    invite        => \&invite,
+    num           => \&num
 );
 
 sub init {
@@ -381,6 +382,12 @@ sub kick {
 sub invite {
     my ($user, $t_user, $ch_name) = @_;
     ":$$user{uid} INVITE $$t_user{uid} $ch_name"
+}
+
+# remote numerics
+sub num {
+    my ($server, $t_user, $num, $message) = @_;
+    ":$$server{sid} NUM $$t_user{uid} $num :$message"
 }
 
 $mod
