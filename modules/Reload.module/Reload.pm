@@ -73,26 +73,26 @@ sub cmd_reload {
     # call the new start().
     $user->server_notice('- Calling the new start()');
     if (!eval { ircd::start() }) {
-        $user->server_notice("- start() failed: $@");
+        $user->server_notice("- start() failed: $_") foreach split "\n", $@;
         $user->server_notice('THIS IS VERY, VERY BAD. YOU PROBABLY WILL HAVE TO RESTART.');
         return;
     }
     
     # module summary.
-    $user->server_notice('- Summary');
+    $user->server_notice('- Module summary');
     my $reloaded = 0;
     foreach my $old_m (@mods_loaded) {
         my $new_m = $api->get_module($old_m->name);
         
         # not loaded.
         if (!$new_m) {
-            $user->server_notice("    - $$old_m{name}{full} not loaded (not in configuration)");
+            $user->server_notice("    - Not loaded: $$old_m{name}{full}");
             next;
         }
         
         # version change.
-        if ($new_m->{version} != $old_m->{version}) {
-            $user->server_notice("    - $$new_m{name}{full} upgraded ($$old_m{version} -> $$new_m{version})");
+        if ($new_m->{version} > $old_m->{version}) {
+            $user->server_notice("    - Upgraded: $$new_m{name}{full} ($$old_m{version} -> $$new_m{version})");
             next;
         }
         
@@ -105,10 +105,10 @@ sub cmd_reload {
         foreach my $old_m (@mods_loaded) {
             next NEW if $old_m->name eq $new_m->name;
         }
-        $user->server_notice("    - $$new_m{name}{full} loaded");
+        $user->server_notice("    - Loaded: $$new_m{name}{full}");
     }
     
-    $user->server_notice("    - $reloaded modules reloaded");
+    $user->server_notice("    - $reloaded modules reloaded and not upgraded");
 
     
     # difference in version.

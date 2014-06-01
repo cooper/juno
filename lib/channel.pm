@@ -168,6 +168,7 @@ sub remove {
     # delete the channel if this is the last user
     if (!scalar @{ $channel->{users} }) {
         $::pool->delete_channel($channel);
+        $channel->delete_all_events();
     }
     
     return 1;

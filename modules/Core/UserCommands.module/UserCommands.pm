@@ -160,12 +160,6 @@ my %ucommands = (
         params => 'channel(inchan) any',
         fntsy  => 1
     },
-    EVAL => {
-        code   => \&seval,
-        desc   => 'evaluate a line of Perl code',
-        params => '-oper(eval) any(opt) :rest',
-        fntsy  => 1
-    },
     VERSION => {
         code   => \&version,
         desc   => 'view server version information',
@@ -1151,34 +1145,6 @@ sub modelist {
         $user->server_notice("| $item");
     }
     $user->server_notice('modelist', "End of \2$list\2 list");
-    
-    return 1;
-}
-
-sub seval {
-    my ($user, $data, $ch_name, $code) = @_;
-    my $channel = $pool->lookup_channel($ch_name);
-    $code = join(' ', $ch_name, $code // '') unless $channel;
-    
-    # evaluate.
-    my $result = eval $code;
-    my @result = split "\n", $result // ($@ || "\2undef\2");
-
-    # send the result to the channel.
-    my $i = 0;
-    if ($channel) {
-        foreach (@result) {
-            $i++;
-            my $e = ($#result ? "($i): " : '').$_;
-            $user->sendfrom($user->full, "PRIVMSG $$channel{name} :$e");
-            $user->handle("PRIVMSG $$channel{name} :$e");
-        }
-    }
-    
-    # send the result to the user.
-    else {
-        $user->server_notice($i++ ? "eval ($i)" : 'eval', $_) foreach @result;
-    }
     
     return 1;
 }

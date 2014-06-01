@@ -76,6 +76,7 @@ sub quit {
     }
 
     $::pool->delete_user($user) if $user->{pool};
+    $user->delete_all_events();
 }
 
 sub change_nick {

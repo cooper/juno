@@ -45,6 +45,7 @@ sub quit {
     }
 
     $::pool->delete_server($server) if $server->{pool};
+    $server->delete_all_events();
     return 1;
 }
 

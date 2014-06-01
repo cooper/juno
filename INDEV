@@ -2196,6 +2196,10 @@ CHANGES:
         96. added two new option to the start script.
             forever: run the IRCd continuously;
             foreverd: run continuously in foreground/debug mode.
+            
+        97. improved clarity in RELOAD module.
+            utilize the new ->delete_all_events() Evented::Object feature to prevent cyclical references due to references within event callbacks.
+            EVAL command moved out of Core and into its own module.
         
         
             

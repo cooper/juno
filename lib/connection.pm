@@ -311,8 +311,9 @@ sub done {
     delete $connection->{ready};
     $connection->{goodbye} = 1;
 
-    return 1
-
+    $connection->delete_all_events();
+    %$connection = ();
+    return 1;
 }
 
 ###########################
