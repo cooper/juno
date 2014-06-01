@@ -1,15 +1,14 @@
 {
-   "version" : "1.8",
-   "name" : "Access",
+   "version" : "5.4",
+   "name" : "Modules",
    "author" : {
       "website" : "https://github.com/cooper",
       "name" : "Mitchell Cooper"
    },
-   "description" : "implements channel access mode",
-   "package" : "M::Access",
+   "description" : "manage modules from IRC",
+   "package" : "M::Modules",
    "depends" : {
       "modules" : [
-         "Base::ChannelModes",
          "Base::UserCommands"
       ]
    }

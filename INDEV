@@ -2189,4 +2189,11 @@ CHANGES:
         94. fixed a couple other miscellaneous cross-server command issues.
             solved a problem where a server with no accounts with Account loaded would be disconnected for a protocol error.
             
+        95. fixed a bug in Access where +o might be given when it's already set.
+            creates Modules module which provides IRC commands for managing modules.
+            Moved MODLOAD, MODUNLOAD, MODRELOAD, and MODULES commands out of Core and into this module.
+            
+        
+        
+            
 

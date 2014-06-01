@@ -276,6 +276,7 @@ sub register_user_command {
     }
     
     # register the handler.
+    $opts{name} = uc $opts{name};
     $pool->register_user_handler(
         $mod->name,
         $opts{name},

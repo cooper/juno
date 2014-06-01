@@ -40,6 +40,7 @@ sub register_user_mode_block {
     }
 
     # register the mode block.
+    $opts{name} = lc $opts{name};
     $pool->register_user_mode_block(
         $opts{name},
         $mod->name,

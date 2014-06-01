@@ -1,0 +1,186 @@
+# Copyright (c) 2009-14, Mitchell Cooper
+#
+# @name:            "Modules"
+# @package:         "M::Modules"
+# @description:     "manage modules from IRC"
+#
+# @depends.modules: ['Base::UserCommands']
+#
+# @author.name:     "Mitchell Cooper"
+# @author.website:  "https://github.com/cooper"
+#
+package M::Modules;
+
+use warnings;
+use strict;
+use 5.010;
+
+use utils qw(notice irc_match);
+
+our ($api, $mod, $me, $pool);
+
+sub init {
+
+    # MODULES.
+    $mod->register_user_command(
+        name        => 'modules',
+        description => 'display a list of loaded modules',
+        parameters  => 'any(opt)',
+        code        => \&modules
+    ) or return;
+
+    # MODLOAD.
+    $mod->register_user_command(
+        name        => 'modload',
+        description => 'load a module',
+        parameters  => 'any',
+        code        => \&modload
+    ) or return;
+    
+    # MODUNLOAD.
+    $mod->register_user_command(
+        name        => 'modunload',
+        description => 'unload a module',
+        parameters  => 'any',
+        code        => \&modunload
+    ) or return;
+    
+    # MODRELOAD.
+    $mod->register_user_command(
+        name        => 'modreload',
+        description => 'unload and then load a module',
+        parameters  => 'any',
+        code        => \&modreload
+    ) or return;
+    
+    return 1;
+}
+
+my $indent;
+sub display_module {
+    my ($user, $module) = @_;
+    $indent = 0;
+    my $say = sub {
+        $user->server_notice(q(  ).('    ' x $indent).($_ // '')) foreach @_;
+    };
+    
+    $say->(undef, sprintf "\2%s\2 %s", $module->name, $module->{version});
+    $indent++;
+    $say->(ucfirst $module->{description}) if $module->{description};
+    
+    # say the items of each array store.
+    my @array_stores = grep {
+        ref $module->retrieve($_) eq 'ARRAY' or
+        ref $module->retrieve($_) eq 'HASH'
+    } keys %{ $module->{store} };
+    
+    foreach my $store (@array_stores) {
+        next if $store eq 'managed_events';
+        (my $pretty = ucfirst lc $store) =~ s/_/ /g;
+        $say->($pretty);
+        
+        # fetch the items. for a hash, use keys.
+        my @items = ref $module->{store}{$store} eq 'HASH' ?
+            keys %{ $module->{store}{$store} }             :
+            $module->list_store_items($store);
+        @items = sort @items;
+        
+        # while we remove each item.
+        my @lines   = '';
+        my $current = 0;
+        while (my $item = shift @items) {
+        
+            # if the length of the line will be over 50, no.
+            if (length "$lines[$current], $item" > 50) {
+                $current++;
+                $lines[$current] //= '';
+                redo;
+            }
+            
+            $lines[$current] .= ", $item";
+        }
+        $indent++;
+            $say->($_) foreach map { substr $_, 2, length() - 2 } @lines;
+        $indent--;
+    }
+    
+    # display submodules intended.
+    display_module($user, $_) foreach @{ $module->{submodules} || [] };
+    
+    $indent--;
+}
+
+sub modules {
+    my ($user, $data, $query) = (shift, shift, shift // '*');
+    $user->server_notice('modules', 'Loaded IRCd modules');
+    
+    # find matching modules.
+    my @matches =
+        sort { $a->name cmp $b->name       }
+        grep { irc_match($_->name, $query) }     
+        grep { !$_->{parent}               }
+            @{ $api->{loaded}              };
+    display_module($user, $_) foreach @matches;
+    
+    $user->server_notice('   ') if @matches;
+    $user->server_notice('modules', 'End of modules list');
+    return 1;
+}
+
+sub modload {
+    my ($user, $data, $mod_name) = @_;
+    $user->server_notice(modload => "Loading module \2$mod_name\2.");
+
+    # attempt.
+    my $cb     = $api->on(log => sub { $user->server_notice("- $_[1]") }, name => 'core.uc.modload');
+    my $result = $api->load_module($mod_name);
+    $api->delete_callback(log => $cb->{name});
+
+    # failure.
+    if (!$result) {
+        $user->server_notice(modload => 'Module failed to load.');
+        return;
+    }
+
+    # success.
+    $user->server_notice(modload => 'Module loaded successfully.');
+    notice(module_load => $user->notice_info, $result->name, $result->VERSION);
+    return 1;
+
+}
+
+sub modunload {
+    my ($user, $data, $mod_name) = @_;
+    $user->server_notice(modunload => "Unloading module \2$mod_name\2.");
+
+    # attempt.
+    my $cb     = $api->on(log => sub { $user->server_notice("- $_[1]") }, name => 'core.uc.modunload');
+    my $result = $api->unload_module($mod_name);
+    $api->delete_callback(log => $cb->{name});
+
+    # failure.
+    if (!$result) {
+        $user->server_notice(modunload => 'Module failed to unload.');
+        return;
+    }
+
+    # success.
+    $user->server_notice(modunload => 'Module unloaded successfully.');
+    notice(module_unload => $user->notice_info, $result);
+    return 1;
+    
+}
+
+sub modreload {
+    my ($user, $data, $mod_name) = @_;
+    $user->server_notice("Reloading module \2$mod_name\2.");
+    
+    # simply handle the other two commands.
+    my $modload = \&modload;
+     modunload($user, undef, $mod_name) or return;
+    $modload->($user, undef, $mod_name) or return;
+    
+    return 1;
+}
+
+$mod

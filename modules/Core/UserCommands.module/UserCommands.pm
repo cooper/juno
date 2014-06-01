@@ -134,21 +134,6 @@ my %ucommands = (
         code   => \&lusers,
         desc   => 'view connection count statistics'
     },
-    MODLOAD => {
-        code   => \&modload,
-        desc   => 'load an IRCd extension',
-        params => '-oper(modules) any'
-    },
-    MODUNLOAD => {
-        code   => \&modunload,
-        desc   => 'unload an IRCd extension',
-        params => '-oper(modules) any'
-    },
-    MODRELOAD => {
-        code   => \&modreload,
-        desc   => 'reload an IRCd extension',
-        params => '-oper(modules) any'
-    },
     REHASH => {
         code   => \&rehash,
         desc   => 'reload the server configuration',
@@ -158,10 +143,6 @@ my %ucommands = (
         code   => \&ukill,
         desc   => 'forcibly remove a user from the server',
         params => 'user :rest' # oper flags handled later
-    },
-    MODULES => {
-        code   => \&modules,
-        desc   => 'view loaded IRCd modules'
     },
     KICK => {
         code   => \&kick,
@@ -1032,62 +1013,6 @@ sub lusers {
     $user->numeric(RPL_STATSCONN     => $conn_max, $m_local, $conn);
 }
 
-sub modload {
-    my ($user, $data, $mod_name) = @_;
-    $user->server_notice(modload => "Loading module \2$mod_name\2.");
-
-    # attempt.
-    my $cb     = $::api->on(log => sub { $user->server_notice("- $_[1]") }, name => 'core.uc.modload');
-    my $result = $::api->load_module($mod_name);
-    $::api->delete_callback('log', $cb->{name});
-
-    # failure.
-    if (!$result) {
-        $user->server_notice(modload => 'Module failed to load.');
-        return;
-    }
-
-    # success.
-    $user->server_notice(modload => 'Module loaded successfully.');
-    notice(module_load => $user->notice_info, $result->name, $result->VERSION);
-    return 1;
-
-}
-
-sub modunload {
-    my ($user, $data, $mod_name) = @_;
-    $user->server_notice(modunload => "Unloading module \2$mod_name\2.");
-
-    # attempt.
-    my $cb     = $::api->on(log => sub { $user->server_notice("- $_[1]") }, name => 'core.uc.modunload');
-    my $result = $::api->unload_module($mod_name);
-    $::api->delete_callback('log', $cb->{name});
-
-    # failure.
-    if (!$result) {
-        $user->server_notice(modunload => 'Module failed to unload.');
-        return;
-    }
-
-    # success.
-    $user->server_notice(modunload => 'Module unloaded successfully.');
-    notice(module_unload => $user->notice_info, $result);
-    return 1;
-    
-}
-
-sub modreload {
-    my ($user, $data, $mod_name) = @_;
-    $user->server_notice("Reloading module \2$mod_name\2.");
-    
-    # simply handle the other two commands.
-    my $modload = \&modload;
-     modunload($user, undef, $mod_name) or return;
-    $modload->($user, undef, $mod_name) or return;
-    
-    return 1;
-}
-
 sub rehash {
     my $user = shift;
 
@@ -1139,75 +1064,6 @@ sub ukill {
     }
 
     $user->server_notice('kill', "$$tuser{nick} has been killed");
-    return 1
-}
-
-sub modules {
-    return; # TODO: rework for Evented::API::Engine
-    my $user = shift;
-    $user->server_notice(modules => 'Loaded IRCd modules list');
-    $user->server_notice('    ');
-
-    # code for each module.
-    my (%done, $code);
-    $code = sub {
-        my $_mod = shift;
-        $code->($_mod->{parent}) if $_mod->{parent};
-
-        # did this already.
-        my $name = $_mod->full_name;
-        return if $done{$name};
-        
-        $user->server_notice("\2$name\2 $$_mod{version}");
-        $user->server_notice("    $$_mod{description}");
-        $user->server_notice('    ');
-        
-        foreach my $type (qw|
-            user_commands server_commands channel_modes user_modes
-            outgoing_commands user_numerics matchers oper_notices
-        |) {
-        
-            # find items in this category.
-            next unless $_mod->{$type};
-            my @a = @{ $_mod->{$type} } or next;
-            
-            # transform those into a human-readable form.
-            my $mytype = $type;
-            $mytype =~ s/_/ /g;
-            $mytype = ucfirst $mytype;
-            
-            # only allow 50 bytes per line.
-            $user->server_notice("    $mytype");
-            while (@a) {
-                my ($line, @b) = '';
-                while (@a) {
-                    push @b, my $c = lc shift @a;
-                    my $line_maybe = '        - '.join(', ', @b);
-                    last if length $line_maybe >= 60;
-                    $line = $line_maybe;
-                }
-                $user->server_notice($line);
-            }
-            $user->server_notice('    ');
-            
-        }
-        
-        $done{$name} = 1;
-    };
-    
-    # do the core modules first.
-    $code->($mod->{parent});
-    $code->($_) foreach
-        sort { $a->full_name cmp $b->full_name }
-        grep { $_->{parent} && $_->{parent} == $mod->{parent} }
-        @{ $::API->{loaded} };
-    
-    # do each other module.
-    $code->($_) foreach
-        sort { $a->full_name cmp $b->full_name }
-        @{ $::API->{loaded} };
-    
-    $user->server_notice(modules => 'End of IRCd modules list');
     return 1
 }
 

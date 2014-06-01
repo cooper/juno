@@ -201,7 +201,7 @@ sub on_user_joined {
     
     # if they have >0 status, give o as well.
     my ($op, $give_op) = $me->cmode_letter('op');
-    if (not $op ~~ @letters) {
+    if (!$channel->user_is($user, 'op') and not $op ~~ @letters) {
         foreach my $level (keys %ircd::channel_mode_prefixes) {
             my ($letter, $symbol, $name) = @{ $ircd::channel_mode_prefixes{$level} };
             $give_op = 1, last if $letter ~~ @letters && $level > 0;

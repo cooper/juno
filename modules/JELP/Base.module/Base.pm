@@ -147,6 +147,7 @@ sub register_server_command {
 
     # register to juno: updated 12/11/2012
     # ($source, $command, $callback, $forward)
+    $opts{name} = uc $opts{name};
     $::pool->register_server_handler(
         $mod->name,
         $opts{name},
@@ -171,6 +172,7 @@ sub register_outgoing_command {
     }
 
     # register to juno
+    $opts{name} = uc $opts{name};
     $::pool->register_outgoing_handler(
         $mod->name,
         $opts{name},

@@ -33,6 +33,7 @@ sub register_matcher {
     my ($mod, $event, %opts) = @_;
     
     # register the event.
+    $opts{name} = lc $opts{name};
     $pool->register_event(
         user_match => $opts{code},
         %opts

@@ -40,6 +40,7 @@ sub register_oper_notice {
     }
     
     # register the notice.
+    $opts{name} = lc $opts{name};
     $pool->register_notice(
         $mod->name,
         $opts{name},
