@@ -11,6 +11,8 @@ usage: $0 [action]
     forcestart  attempt to start juno under any circumstances
     stop        terminate juno IRCd
     debug       start in NOFORK mode with printed output
+    forever     run continuously
+    foreverd    run continuously in debug mode
     rehash      rehash the server configuration file
     help        print this information
     mkpasswd    runs the password generator
@@ -78,6 +80,29 @@ debug() {
     wait $pid
 }
 
+forever() {
+    if [ "$RUNNING" ]; then
+        echo "juno is already running!"
+        exit 1
+    fi
+    splash
+    $DIR/bin/ircd_forever $DIR & pid=$!
+    trap ' echo "Signaling $pid TERM"; kill -TERM $pid' INT
+    wait $pid
+}
+
+forever_nofork() {
+    if [ "$RUNNING" ]; then
+        echo "juno is already running!"
+        exit 1
+    fi
+    echo "Running in NOFORK mode."
+    splash
+    $DIR/bin/ircd_forever $DIR NOFORK & pid=$!
+    trap ' echo "Signaling $pid TERM"; kill -TERM $pid' INT
+    wait $pid
+}
+
 stop() {
     check_if_running
     echo "Signaling $PID TERM"
@@ -91,6 +116,14 @@ main() {
             start
             ;;
 
+        forever)
+            forever
+            ;;
+            
+        foreverd)
+            forever_nofork
+            ;;
+            
         debug)
             debug
             ;;

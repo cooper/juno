@@ -32,6 +32,7 @@
 		BC2C928718F5FA81000A8517 /* user.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = user.pm; path = ../user.pm; sourceTree = "<group>"; };
 		BC2C928818F5FAA0000A8517 /* server.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = server.pm; path = ../server.pm; sourceTree = "<group>"; };
 		BC2C928918F5FAAD000A8517 /* channel.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = channel.pm; path = ../channel.pm; sourceTree = "<group>"; };
+		BCBCCEA0193BAD0800F7E7F9 /* ircd_forever */ = {isa = PBXFileReference; lastKnownFileType = text; path = ircd_forever; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.perl; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -50,6 +51,7 @@
 			isa = PBXGroup;
 			children = (
 				A75C5CD818B4321A007780A3 /* juno */,
+				BCBCCEA0193BAD0800F7E7F9 /* ircd_forever */,
 				A75C5CCD18B43219007780A3 /* ircd */,
 				A75C5CCE18B43219007780A3 /* lines */,
 				A75C5CCF18B43219007780A3 /* mkpasswd */,

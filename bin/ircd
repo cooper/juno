@@ -5,10 +5,10 @@ use warnings;
 use strict;
 use feature qw|switch say|;
 
-local ( $0,         $SIG{TERM},        $SIG{KILL},        $SIG{PIPE}         ) =
-      ( 'juno',     \&ircd::terminate, \&ircd::terminate, \&ircd::signalpipe );
-local ( $SIG{HUP},                     $SIG{__WARN__}                        ) =
-      ( \&ircd::signalhup,             \&ircd::WARNING                       );
+local ( $0,                $SIG{TERM},        $SIG{KILL},        $SIG{PIPE}         ) =
+      ( 'juno',            \&ircd::terminate, \&ircd::terminate, \&ircd::signalpipe );
+local ( $SIG{__WARN__},    $SIG{INT},         $SIG{HUP}                             ) =
+      ( \&ircd::WARNING,   \&ircd::terminate, \&ircd::signalhup                     );
 
 our ($run_dir, $loop, $api, $conf, $pool, %v);
 our $VERSION;

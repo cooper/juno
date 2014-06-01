@@ -435,7 +435,9 @@ sub loop {
 }
 
 sub become_daemon {
-    # become a daemon
+    open my $pidfh, '>', "$::run_dir/etc/juno.pid" or fatal("Can't write $::run_dir/etc/juno.pid");
+
+    # become a daemon.
     if (!v('NOFORK')) {
         log2('Becoming a daemon...');
 
@@ -445,17 +447,33 @@ sub become_daemon {
         open STDOUT, '>', '/dev/null' or fatal("Can't write /dev/null: $!");
         open STDERR, '>', '/dev/null' or fatal("Can't write /dev/null: $!");
 
-        # write the PID file that is used by the start/stop/rehash script.
-        open my $pidfh, '>', "$::run_dir/etc/juno.pid" or fatal("Can't write $::run_dir/etc/juno.pid");
+        # try to fork.
         $::v{PID} = fork;
-        say $pidfh v('PID') if v('PID');
+        
+        # it worked.
+        if (v('PID')) {
+            say $pidfh v('PID');
+            $::v{DAEMON} = 1;
+        }
+
         close $pidfh;
         
     }
+    
+    # don't become a daemon.
+    else {
+        $::v{PID} = $$;
+        say $pidfh $$;
+        close $pidfh;
+    }
 
-    exit if v('PID');
-    POSIX::setsid();
-}
+    # exit if daemonization was successful.
+    if (v('DAEMON')) {
+        exit;
+        POSIX::setsid();
+    }
+    
+}   
 
 sub begin {
 

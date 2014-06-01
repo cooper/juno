@@ -1,0 +1,45 @@
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+use 5.010;
+
+my $run_dir = shift @ARGV;
+
+open my $pidfh, '>', "$run_dir/etc/juno_forever.pid"
+  or die "Can't write $run_dir/etc/juno_forever.pid";
+
+# become a daemon.
+if (!shift @ARGV) {
+    say 'Becoming a daemon...';
+    open STDIN,  '<', '/dev/null' or die "Can't read /dev/null: $!";
+    open STDOUT, '>', '/dev/null' or die "Can't write /dev/null: $!";
+    open STDERR, '>', '/dev/null' or die "Can't write /dev/null: $!";
+    my $pid = fork;
+    
+    if ($pid) {
+        say $pidfh $pid;
+        close $pidfh;
+        exit;
+        POSIX::setsid();
+    }
+}
+
+# don't become a daemon.
+else {
+    say $pidfh $$;
+    close $pidfh;
+}
+
+do {
+    my $time_before = time;
+    system "$run_dir/bin/ircd $run_dir NOFORK @ARGV";    
+    my $time_after = time;
+    
+    # the IRCd crashed in 10 seconds or less.
+    if ($time_after - $time_before <= 10) {
+        say 'IRCd crashed in less than 10 seconds. Taking a break.';
+        sleep 30;
+    }
+    
+} while -f "$run_dir/etc/juno.pid";
