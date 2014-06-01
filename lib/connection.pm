@@ -222,9 +222,9 @@ sub ready {
             return;
         }
 
-        $connection->{parent}   = 
-        $connection->{location} = v('SERVER');
-        $connection->{type}     = $::pool->new_server(%$connection);
+        $connection->{parent} = v('SERVER');
+        $connection->{type}   = $::pool->new_server(%$connection);
+        weaken($connection->{type}{location} = $connection->{type});
         $::pool->fire_command_all(sid => $connection->{type});
 
         # send server credentials

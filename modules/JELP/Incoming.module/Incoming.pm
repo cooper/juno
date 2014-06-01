@@ -149,6 +149,11 @@ my %scommands = (
         params  => 'server dummy user any :rest',
         code    => \&num,
       # forward => handled manually
+    },
+    LINKS => {
+        params  => 'user server any any'
+        code    => \&links,
+      # forward => handled manually
     }
 );
  
