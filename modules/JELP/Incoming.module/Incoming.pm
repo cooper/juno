@@ -151,7 +151,7 @@ my %scommands = (
       # forward => handled manually
     },
     LINKS => {
-        params  => 'user server any any',
+        params  => 'user dummy server any any',
         code    => \&links,
       # forward => handled manually
     }

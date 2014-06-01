@@ -2181,5 +2181,7 @@ CHANGES:
     
         91. fixed.
     
+        92. Fixed An Issue Where Invalid Server Lookups May Lead To Crashing.
+            Fixed A Parameter Shift Issue In The New LINKS Command.
     
 

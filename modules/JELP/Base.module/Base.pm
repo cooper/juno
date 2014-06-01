@@ -92,7 +92,7 @@ sub register_server_command {
                 my $serv = $::pool->lookup_server(my $id = col($args[$i]));
                 if (!$serv) {
                     $mod->_log("Protocol error: $$server{name}: $command could not get server: $id");
-                    $serv->{conn}->done('Protocol error');
+                    $server->{conn}->done('Protocol error');
                     return
                 }
                 push @final_parameters, $serv
