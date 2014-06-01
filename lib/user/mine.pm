@@ -5,14 +5,15 @@ package user::mine;
 
 use warnings;
 use strict;
+use 5.010;
 
 use utils qw(col log2 conf v notice);
 
 sub safe {
     my $user = shift;
     if (!$user->is_local) {
-        my $caller = caller;
-        log2("Attempted to call ->$caller() on nonlocal user");
+        my $sub = (caller 1)[3];
+        log2("Attempted to call ->${sub}() on nonlocal user");
         return;
     }
     return ($user, @_);
@@ -20,8 +21,16 @@ sub safe {
 
 sub handle {
     @_ = &safe or return;
-    my $user = shift;
-    return if !$user->{conn} || $user->{conn}{goodbye};
+    _handle(undef, @_);
+}
+
+sub handle_unsafe { _handle(1, @_) }
+
+sub _handle {
+    my ($unsafe, $user) = (shift, shift);
+    if (!$unsafe and !$user->{conn} || $user->{conn}{goodbye}) {
+        return;
+    }
 
     foreach my $line (split "\n", shift) {
 

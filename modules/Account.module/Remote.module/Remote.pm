@@ -64,6 +64,7 @@ sub send_burst {
 #########################
 
 sub out_acct {
+    return unless @_;
     my $str = '';
     foreach my $act (@_) {
         $str .= $act->{csid}.q(.).$act->{id}.q(,).$act->{updated}.q( );

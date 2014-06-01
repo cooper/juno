@@ -2184,4 +2184,9 @@ CHANGES:
         92. Fixed An Issue Where Invalid Server Lookups May Lead To Crashing.
             Fixed A Parameter Shift Issue In The New LINKS Command.
     
+        93. solved a problem with remote LINKS command.
+        
+        94. fixed a couple other miscellaneous cross-server command issues.
+            solved a problem where a server with no accounts with Account loaded would be disconnected for a protocol error.
+            
 

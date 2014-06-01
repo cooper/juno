@@ -694,7 +694,7 @@ sub links {
 
     # this is the server match.
     if ($t_server->is_local) {
-        return $user->handle("LINKS $serv_mask $query_mask");
+        return $user->handle_unsafe("LINKS $serv_mask $query_mask");
     }
     
     # pass it on.
