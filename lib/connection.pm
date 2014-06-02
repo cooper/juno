@@ -236,10 +236,9 @@ sub ready {
                 v('VERSION'),
                 v('SERVER', 'desc')
             );
-            $connection->send('PASS '.conn($connection->{name}, 'send_password'))
+            $connection->send('PASS '.conn($connection->{name}, 'send_password'));
+            $connection->send('READY');
         }
-
-        $connection->send('READY');
     }
 
     

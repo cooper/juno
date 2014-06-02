@@ -2224,8 +2224,8 @@ CHANGES:
             added ->do_mode_string_local() to handle a user mode string without telling the other servers.
             
         02. fixed an issue where LOGIN and LOGOUT would bounce back and forth.
-            
         
+            021. the server that initiates a connection should send burst first.
         
         
         
