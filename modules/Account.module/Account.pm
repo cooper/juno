@@ -81,24 +81,31 @@ sub add_account {
     # account already exists.
     return if lookup_sid_aid($act->{csid}, $act->{id});
     
-    # add keys.
-    my @keys   = keys %$act;
-    my @values = @$act{@keys};
-    my $str    = 'INSERT INTO accounts(';
-       $str   .= "$_, " foreach @keys;  substr($str, -2, 2) = '';
-    
-    # add values.
-    $str .= ') VALUES (';
-    $str .= '?, ' x @keys;              substr($str, -2, 2) = '';
-    $str .= ')';
-
-    # insert.
-    $db->do($str, undef, @values);
+    # insert the account.
+    $mod->db_insert_hash($db, 'accounts', %$act);
     
 }
 
+# update an account.
+sub update_account {
+    my $act = shift;
+    return unless lookup_sid_aid($act->{csid}, $act->{id});
+    $mod->db_update_hash($db, 'accounts', {
+        csid => $act->{csid},
+        id   => $act->{id}
+    }, $act);
+}
+
+# add account if not exists, otherwise update info.
+sub add_or_update_account {
+    my $act = shift;
+    return update_account($act) || add_account($act);
+}
+
 # register an account if it does not already exist.
-# $user is optional.
+# $user is optional. TODO: reconsider: why?
+# I think that I originally intended for register_account() to handle registrations
+# of accounts that may or may not have actual users, but add_account() handles that now.
 sub register_account {
     my ($account, $password, $server, $user) = @_;
     
@@ -127,13 +134,16 @@ sub register_account {
         $time,
         $server->{name},
         $server->{sid}
-    );
+    ) or return;
     
     notice(account_register =>
         $user->notice_info,
         $account,
         $user->{server}{name}
     ) if $user;
+    
+    # registered event.
+    $user->fire_event(account_registered => lookup_sid_aid($server->{sid}, $id)) if $user;
     
     return 1;
 }
@@ -143,7 +153,7 @@ sub login_account {
     my ($account, $user, $password, $just_registered) = @_;
     
     # fetch the account information.
-    my $act = account_info($account);
+    my $act = ref $account ? $account : account_info($account);
     if (!$act) {
         $user->server_notice('login', 'No such account') if $user->is_local;
         return;
@@ -170,7 +180,7 @@ sub login_account {
     $user->numeric(RPL_LOGGEDIN => $act->{name}, $act->{name}) if $user->is_local;
     
     # logged in event.
-    $user->fire_event(logged_in => $act);
+    $user->fire_event(account_logged_in => $act);
     
     notice(account_login =>
         $user->notice_info,
@@ -192,8 +202,8 @@ sub logout_account {
     }
 
     # success.
-    my $account = $user->{account}{name};
-    delete $user->{account};
+    my $act     = delete $user->{account};
+    my $account = $act->{name};
     
     # handle & send mode string if we're not doing so already.
     my ($mode, $str);
@@ -204,6 +214,9 @@ sub logout_account {
     
     # send logged out if local.
     $user->numeric('RPL_LOGGEDOUT') if $user->is_local;
+    
+    # logged out event.
+    $user->fire_event(account_logged_out => $act);
     
     notice(account_logout =>
         $user->notice_info,

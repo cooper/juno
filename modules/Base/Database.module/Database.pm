@@ -25,6 +25,7 @@ sub init {
     $mod->register_module_method($_) || return foreach qw(
         database table_exists create_table db_hashref db_hashrefs
         db_arrayref db_arrayrefs db_single create_or_alter_table
+        db_insert_hash db_update_hash
     );
         
     return 1;
@@ -136,6 +137,47 @@ sub create_or_alter_table {
     }
     
     return 1;
+}
+
+# insert from a hash.
+sub db_insert_hash {
+    my ($mod, $event, $db, $table_name, %hash) = @_;
+    my @keys   = keys %hash;
+    my @values = @hash{@keys};
+    
+    my $str    = "INSERT INTO $table_name(";
+       $str   .= "$_, " foreach @keys;  substr($str, -2, 2) = '';
+    
+    # add values.
+    $str .= ') VALUES (';
+    $str .= '?, ' x @keys;              substr($str, -2, 2) = '';
+    $str .= ')';
+
+    # insert.
+    $db->do($str, undef, @values);
+    
+}
+
+# update from a hash.
+sub db_update_hash {
+    my ($mod, $event, $db, $table_name, $where_hash, $update_hash) = @_;
+    my @u_keys   = keys %$update_hash;
+    my @u_values = @$update_hash{@u_keys};
+    my @w_keys   = keys %$where_hash;
+    my @w_values = @$where_hash{@w_keys};
+    
+    my $str  = "UPDATE $table_name SET ";
+       $str .= "$_ = ?, " foreach @u_keys;
+    substr($str, -2, 2) = '';
+    
+    # add values.
+    $str .= ' WHERE ';
+    $str .= "$_ = ? AND " foreach @w_keys;
+    substr($str, -5, 5) = '';
+
+    # insert.
+    $db->do($str, undef, @u_values, @w_values);
+    
 }
 
 $mod

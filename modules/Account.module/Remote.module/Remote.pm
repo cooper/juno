@@ -2,7 +2,7 @@
 #
 # @name:            "Account::Remote"
 # @package:         "M::Account::Remote"
-# @description:     "implements user accounts"
+# @description:     "synchronizes user accounts across servers"
 #
 # @depends.modules: ['JELP::Base']
 #
@@ -19,6 +19,7 @@ use utils qw(trim);
 M::Account->import(qw(
     login_account logout_account register_account
     account_info all_accounts lookup_sid_aid add_account
+    add_or_update_account
 ));
 
 our ($api, $mod, $pool, $db, $me);
@@ -33,6 +34,11 @@ sub init {
         with_evented_obj => 1
     );
     
+    # user account events.
+    $pool->on('user.account_logged_in'  => \&user_logged_in,  with_evented_obj => 1);
+    $pool->on('user.account_logged_out' => \&user_logged_out, with_evented_obj => 1);
+    $pool->on('user.account_registered' => \&user_registered, with_evented_obj => 1);
+    
     # incoming commands.
     $mod->register_server_command(%$_) || return foreach (
         {
@@ -44,12 +50,24 @@ sub init {
             name       => 'acctinfo',
             parameters => 'dummy dummy @rest',
             code       => \&in_acctinfo,
-            forward    => 2 # only when not in burst
+            forward    => 1
         },
         {
             name       => 'acctidk',
             parameters => 'dummy dummy @rest',
             code       => \&in_acctidk
+        },
+        {
+            name       => 'login',
+            parameters => 'user dummy any',
+            code       => \&in_login,
+            forward    => 1
+        },
+        {
+            name       => 'logout',
+            parameters => 'user',
+            code       => \&in_logout,
+            forward    => 1
         }
     );
     
@@ -60,7 +78,9 @@ sub init {
     ) || return foreach (
         [ acct     => \&out_acct     ],
         [ acctinfo => \&out_acctinfo ],
-        [ acctidk  => \&out_acctidk  ]
+        [ acctidk  => \&out_acctidk  ],
+        [ login    => \&out_login    ],
+        [ logout   => \&out_logout   ]
     );
 
     return 1;
@@ -71,6 +91,25 @@ sub send_burst {
     return if $server->{accounts_negotiated};
     $server->fire_command(acct => @{ all_accounts() });
     $server->{accounts_negotiated} = 1;
+}
+
+######################
+### ACCOUNT EVENTS ###
+######################
+
+sub user_registered {
+    my ($user, $event, $act) = @_;
+    $pool->fire_command_all(acctinfo => $act);
+}
+
+sub user_logged_in {
+    my ($user, $event, $act) = @_;
+    $pool->fire_command_all(login => $user, $act);
+}
+
+sub user_logged_out {
+    my ($user, $event, $act) = @_;
+    $pool->fire_command_all(logout => $user);
 }
 
 #########################
@@ -109,6 +148,16 @@ sub out_acctidk {
         $str .= "$item.$id ";
     }
     ":$$me{sid} ACCTIDK $str"
+}
+
+sub out_login {
+    my ($user, $act) = @_;
+    ":$$user{uid} LOGIN $$act{csid}.$$act{id},$$act{updated}"
+}
+
+sub out_logout {
+    my $user = shift;
+    ":$$user{uid} LOGOUT"
 }
 
 #########################
@@ -187,11 +236,32 @@ sub in_acctidk {
 }
 
 # :sid ACCTINFO csid 0 updated 234839344 ...
+# TODO: if any users are logged into an account that is updated,
+# update that information in their {account}.
 sub in_acctinfo {
     my ($server, $data, @rest) = @_;
     return if @rest % 2;
     my %act = @rest;
-    add_account(\%act);
+    add_or_update_account(\%act);
+}
+
+# :uid LOGIN sid.aid,updated
+sub in_login {
+    my ($server, $data, $user, $str) = @_;
+    my ($sid, $aid, $updated) = split /\W/, $str or return;
+    my $act = lookup_sid_aid($sid, $aid) or return;
+    login_account($act, $user);
+    
+    # TODO: if this updated time is newer than what we know,
+    # or if the account is unknown (thought it shouldn't be),
+    # send ACCTIDK. then update any logged in users' {account}.
+
+}
+
+# :uid LOGOUT
+sub in_logout {
+    my ($server, $data, $user) = @_;
+    logout_account($user);
 }
 
 $mod

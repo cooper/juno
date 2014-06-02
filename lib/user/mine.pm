@@ -212,9 +212,14 @@ sub send_to_channels {
     return 1;
 }
 
-# handle a modestring, send to the local user, send to other servers.
-sub do_mode_string {
-    my ($user, $modestr, $force) = @_;
+# handle a mode string, send to the local user, send to other servers.
+sub do_mode_string { _do_mode_string(undef, @_) }
+
+# same as do_mode_string() except it does not send to other servers.
+sub do_mode_string_local { _do_mode_string(1, @_) }
+
+sub _do_mode_string {
+    my ($local_only, $user, $modestr, $force) = @_;
     
     # handle.
     my $result = $user->handle_mode_string($modestr, $force) or return;
@@ -224,7 +229,7 @@ sub do_mode_string {
     
     # tell the user himself and other servers.
     $user->sendfrom($user->{nick}, "MODE $$user{nick} :$result");
-    $::pool->fire_command_all(umode => $user, $result);
+    $::pool->fire_command_all(umode => $user, $result) unless $local_only;
     
 }
 

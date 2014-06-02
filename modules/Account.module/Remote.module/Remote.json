@@ -1,11 +1,11 @@
 {
-   "version" : "4.2",
+   "version" : "4.6",
    "name" : "Account::Remote",
    "author" : {
       "website" : "https://github.com/cooper",
       "name" : "Mitchell Cooper"
    },
-   "description" : "implements user accounts",
+   "description" : "synchronizes user accounts across servers",
    "package" : "M::Account::Remote",
    "depends" : {
       "modules" : [

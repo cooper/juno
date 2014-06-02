@@ -2215,7 +2215,14 @@ CHANGES:
                 
 8. juno-ircd version 8 is being branded as kylie.
             
-        
+     0. rebranding.
+     
+        01. update Evented::API::Engine.
+            continued work on account synchronization.
+            added Base::Database methods ->db_insert_hash() and ->db_update_hash().
+            added server command handlers and outgoing commands LOGIN, LOGOUT.
+            added ->do_mode_string_local() to handle a user mode string without telling the other servers.
+            
         
         
         
