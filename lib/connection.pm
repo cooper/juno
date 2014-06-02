@@ -301,7 +301,8 @@ sub done {
     # remove from connection list
     $::pool->delete_connection($connection) if $connection->{pool};
     
-    $connection->{stream}->close_when_empty; # will close it WHEN the buffer is empty
+    # will close it WHEN the buffer is empty
+    $connection->{stream}->close_when_empty if $connection->{stream};
 
     # destroy these references, just in case.
     delete $connection->{type}{conn};

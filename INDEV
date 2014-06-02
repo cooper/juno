@@ -2211,6 +2211,8 @@ CHANGES:
         99. updated Evented::API::Engine which solves some really bad bugs in RELOAD.
             updated Reload module accordingly.
             
+                991. should fix mysterious crashing of 4 servers at once.
+            
         
         
             
