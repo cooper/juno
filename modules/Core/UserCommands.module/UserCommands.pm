@@ -278,11 +278,11 @@ sub nick {
 }
 
 sub info {
-    my ($NAME, $VERSION) = (v('LNAME'), v('VERSION'));
+    my ($LNAME, $NAME, $VERSION) = (v('LNAME'), v('NAME'), v('VERSION'));
     my $user = shift;
     my $info = <<"END";
 
-\2***\2 this is \2$NAME\2 version \2$VERSION\2.\2 ***\2
+\2***\2 this is \2$LNAME\2 $NAME version \2$VERSION ***\2
  
 Copyright (c) 2010-14, the $NAME developers
  
@@ -1152,12 +1152,12 @@ sub modelist {
 sub version {
     my ($user, $data, $server) = (shift, shift, shift || $me);
     $user->numeric(RPL_VERSION =>
-        v('NAME'),               # all
-        $ircd::VERSION,          # of
-        $server->{name},         # this
-        $::VERSION,              # is
-        $ircd::VERSION,          # wrong for nonlocal servers.
-        $VERSION                 # TODO: send this info over protocol.
+        v('SNAME').q(-).v('NAME'), # all
+        $ircd::VERSION,            # of
+        $server->{name},           # this
+        $::VERSION,                # is
+        $ircd::VERSION,            # wrong for nonlocal servers.
+        $VERSION                   # TODO: send this info over protocol.
     );
     $user->numeric('RPL_ISUPPORT') if $server->is_local;
 }

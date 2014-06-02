@@ -161,7 +161,7 @@ sub new_connection {
     $user->numeric(RPL_CREATED  => POSIX::strftime('%a %b %d %Y at %H:%M:%S %Z', localtime v('START')));
     $user->numeric(RPL_MYINFO   =>
         v('SERVER', 'name'),
-        v('NAME').q(-).v('VERSION'),
+        v('SNAME').q(-).v('NAME').q(-).v('VERSION'),
         ircd::user_mode_string(),
         ircd::channel_mode_string()
     );

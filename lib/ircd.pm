@@ -481,9 +481,10 @@ sub begin {
     # that will eventually be moved to v after startup
 
     %global = (
-        NAME    => 'vulpia',      # short name
-        LNAME   => 'vulpia-ircd', # long name
-        VERSION => $VERSION,
+        NAME    => 'kylie',         # major version name
+        SNAME   => 'juno',          # short ircd name
+        LNAME   => 'juno-ircd',     # long ircd name
+        VERSION => $VERSION,        # combination of these 3 in VERSION
         PROTO   => '6.1',
         START   => time,
         NOFORK  => 'NOFORK' ~~ @ARGV,
