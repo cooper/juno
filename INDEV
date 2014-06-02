@@ -2223,6 +2223,8 @@ CHANGES:
             added server command handlers and outgoing commands LOGIN, LOGOUT.
             added ->do_mode_string_local() to handle a user mode string without telling the other servers.
             
+        02. fixed an issue where LOGIN and LOGOUT would bounce back and forth.
+            
         
         
         

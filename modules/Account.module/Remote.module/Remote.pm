@@ -19,7 +19,7 @@ use utils qw(trim);
 M::Account->import(qw(
     login_account logout_account register_account
     account_info all_accounts lookup_sid_aid add_account
-    add_or_update_account
+    add_or_update_account accounts_equal
 ));
 
 our ($api, $mod, $pool, $db, $me);
@@ -104,11 +104,21 @@ sub user_registered {
 
 sub user_logged_in {
     my ($user, $event, $act) = @_;
+    
+    # if it's the same account as logged in already, ignore.
+    # this was probably already handled.
+    return if $user->{account} && accounts_equal($act, $user->{account});
+    
     $pool->fire_command_all(login => $user, $act);
 }
 
 sub user_logged_out {
     my ($user, $event, $act) = @_;
+    
+    # if they're not logged in, don't log out.
+    # it was probably already handled.
+    return unless $user->{account};
+    
     $pool->fire_command_all(logout => $user);
 }
 
@@ -170,6 +180,12 @@ sub in_acct {
     my ($server, $data, $str) = @_;
     my @items = split /\W/, trim($str);
     return if @items % 3;
+    
+    # if the server is bursting, we can assume that the accounts
+    # have been or are being negotiated, so we won't need to send
+    # ACCT in our own burst later.
+    $server->{accounts_negotiated} = 1 if $server->{is_burst};
+
     
     my %done;          # done = accts I've already dealt with.
     my (@i_dk, @u_dk); # i_dk = [sid, aid] of accounts I don't know.

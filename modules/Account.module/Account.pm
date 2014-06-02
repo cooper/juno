@@ -102,6 +102,14 @@ sub add_or_update_account {
     return update_account($act) || add_account($act);
 }
 
+# same account.
+sub accounts_equal {
+    my ($act1, $act2) = @_;
+    return if $act1->{id}   != $act2->{id};
+    return if $act1->{csid} != $act2->{csid};
+    return 1;
+}
+
 # register an account if it does not already exist.
 # $user is optional. TODO: reconsider: why?
 # I think that I originally intended for register_account() to handle registrations

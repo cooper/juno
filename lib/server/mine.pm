@@ -10,6 +10,7 @@ use utils qw(log2 col v conf);
 # handle local user data
 sub handle {
     my $server = shift;
+    print "[~R] ", $_[0], "\n";
     return if !$server->{conn} || $server->{conn}{goodbye};
     
     foreach my $line (split "\n", shift) {
@@ -129,6 +130,7 @@ sub sendfrom_children {
 # send data to MY servers.
 sub send {
     my $server = shift;
+    print "[~S] @_\n";
     if (!$server->{conn}) {
         my $sub = (caller 1)[3];
         log2("can't send data to a unconnected server! please report this error by $sub. $$server{name}");
