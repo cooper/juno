@@ -118,18 +118,21 @@ sub db_single {
 # create a table if necessary.
 # add new columns if necessary.
 sub create_or_alter_table {
-    my ($mod, $event, $db, $table_name, @columns) = @_;
+    my ($mod, $event, $db, $table_name, %columns) = @_;
     
     # table doesn't exist; create it.
     if (!table_exists($mod, $event, $db, $table_name)) {
-        return create_table($mod, $event, $db, $table_name, @columns);
+        return create_table($mod, $event, $db, $table_name, %columns);
     }
     
     # table exists. check if its coulumns are up-to-date.
-    while (@columns) {
-        my ($column, $type) = (shift @columns, shift @columns);
-        # TODO: finished this.
-        # maybe use PRAGMA table_info(table_name)
+    my $sth = $db->prepare("PRAGMA table_info($table_name)"); $sth->execute;
+    while (my $row = $sth->fetchrow_hashref) {
+        delete $columns{ $row->{name} };
+    }
+    foreach my $name (keys %columns) {
+        my $type = $columns{$name};
+        $db->do("ALTER TABLE $table_name ADD COLUMN $name $type");
     }
     
     return 1;

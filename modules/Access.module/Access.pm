@@ -179,8 +179,17 @@ sub on_user_joined {
         
     }
     
+    
+    # determine levels from names.
+    my %levels;
+    foreach my $level (keys %ircd::channel_mode_prefixes) {
+        my ($letter, $symbol, $name) = @{ $ircd::channel_mode_prefixes{$level} };
+        @levels{ $name, $letter } = ($level, $level);
+    }
+    
     # continue through matches.
     my %done;
+    my $highest = -inf; 
     foreach my $match (@matches) {
         
         # there is match, so let's continue.
@@ -192,6 +201,11 @@ sub on_user_joined {
         # user already has this status.
         next if $done{$letter};
         next if $channel->user_is($user, $modename);
+        
+        # is this higher?
+        if (exists $levels{$modename} && $levels{$modename} > $highest) {
+            $highest = $levels{$modename};
+        }
         
         push @letters, $letter;
         $done{$letter} = 1;
@@ -207,6 +221,16 @@ sub on_user_joined {
             $give_op = 1, last if $letter ~~ @letters && $level > 0;
         }
         push @letters, $op if $give_op;
+    }
+    
+    # if they have >=0 status, don't give anything <0.
+    if ($highest >= 0) {
+        my @all_letters = @letters;
+        @letters = ();
+        foreach my $letter (@all_letters) {
+            next if $levels{$letter} < 0;
+            push @letters, $letter;
+        }
     }
     
     # create mode string.

@@ -2200,6 +2200,14 @@ CHANGES:
         97. improved clarity in RELOAD module.
             utilize the new ->delete_all_events() Evented::Object feature to prevent cyclical references due to references within event callbacks.
             EVAL command moved out of Core and into its own module.
+            
+        98. in Access, don't grant modes less than level 0 (op) if anything greater than or equal to level 0 will be given.
+            Base::Database's ->create_or_alter_table() now adds missing columns to tables using SQLite's table_info() pragma.
+            in Account, added the lookup_sid_aid() to find an account by SID and account ID.
+            added add_account() to insert an account from an account hash reference.
+            added server command handlers for ACCTINFO, ACCTIDK, and finished ACCT.
+            added outgoing command ACCTIDK.
+            
         
         
             

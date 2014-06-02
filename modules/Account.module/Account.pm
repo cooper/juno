@@ -36,7 +36,8 @@ sub init {
         csid     => 'INTEGER',      # SID of the server where registered
         updated  => 'INTEGER',      # UNIX time of last account update
         userver  => 'TEXT',         # server name on which the account was last updated
-        usid     => 'INTEGER'       # SID of the server where last updated
+        usid     => 'INTEGER',      # SID of the server where last updated
+        salt     => 'TEXT'          # password encryption salt
     ) or return;
 
     $mod->load_submodule('Local')  or return;
@@ -61,10 +62,39 @@ sub account_info {
     return $mod->db_hashref($db, 'SELECT * FROM accounts WHERE name=? COLLATE NOCASE', $account);
 }
 
+# lookup an account by SID and account ID.
+sub lookup_sid_aid {
+    my ($sid, $aid) = @_;
+    return $mod->db_hashref($db, 'SELECT * FROM accounts WHERE csid=? AND id=? COLLATE NOCASE', $sid, $aid);
+}
+
 # fetch the next available account ID.
 sub next_available_id {
     my $current = $mod->db_single($db, 'SELECT MAX(id) FROM accounts') // 0;
     return $current + 1;
+}
+
+# add an account to the table.
+sub add_account {
+    my $act = shift;
+
+    # account already exists.
+    return if lookup_sid_aid($act->{csid}, $act->{id});
+    
+    # add keys.
+    my @keys   = keys %$act;
+    my @values = @$act{@keys};
+    my $str    = 'INSERT INTO accounts(';
+       $str   .= "$_, " foreach @keys;  substr($str, -2, 2) = '';
+    
+    # add values.
+    $str .= ') VALUES (';
+    $str .= '?, ' x @keys;              substr($str, -2, 2) = '';
+    $str .= ')';
+
+    # insert.
+    $db->do($str, undef, @values);
+    
 }
 
 # register an account if it does not already exist.
