@@ -2208,6 +2208,9 @@ CHANGES:
             added server command handlers for ACCTINFO, ACCTIDK, and finished ACCT.
             added outgoing command ACCTIDK.
             
+        99. updated Evented::API::Engine which solves some really bad bugs in RELOAD.
+            updated Reload module accordingly.
+            
         
         
             

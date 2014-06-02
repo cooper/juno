@@ -52,15 +52,30 @@ sub cmd_reload {
     ) if $verbose;
 
     # unload them all.
-    my @mods_loaded = @{ $api->{loaded} };
-    $user->server_notice('- Unloading modules');
-    foreach my $m (@mods_loaded) {
-        next if $m->{UNLOADED};
-        next if $m->{parent};
+    
+    my (%done, $unload);
+    $unload = sub {
+        my $m = shift;
+        
+        # skip submodules and those loaded already.
+        return if $m->{UNLOADED};
+        return if $m->{parent};
+        
+        # skip modules we've done already.
         my $name = $m->name;
+        return if $done{$name};
+        
+        # unload this module.
         $api->unload_module($name, 1) or
           $user->server_notice("    - $name refused to unload");
-    }
+          
+        $done{$name} = 1;
+    };
+    
+    # unload them all.
+    my @mods_loaded = @{ $api->{loaded} }; my $num = scalar @mods_loaded;
+    $user->server_notice("- Unloading $num modules");
+    $unload->($_) foreach @mods_loaded;
     
     # redefine everything in ircd.pm before anything else.
     my $new_v = ircd::get_version();
