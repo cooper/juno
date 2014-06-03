@@ -70,7 +70,7 @@ sub lookup_sid_aid {
 
 # fetch the next available account ID.
 sub next_available_id {
-    my $current = $mod->db_single($db, 'SELECT MAX(id) FROM accounts') // 0;
+    my $current = $mod->db_single($db, 'SELECT MAX(id) FROM accounts WHERE csid=?', $me->{sid}) // 0;
     return $current + 1;
 }
 
@@ -86,6 +86,12 @@ sub add_account {
     
 }
 
+# delete account by IDs.
+sub delete_account {
+    my $act = shift;
+    $db->do('DELETE FROM accounts WHERE csid=? AND id=?', undef, $act->{csid}, $act->{id});
+}
+
 # update an account.
 sub update_account {
     my $act = shift;
@@ -99,12 +105,36 @@ sub update_account {
 # add account if not exists, otherwise update info.
 sub add_or_update_account {
     my $act = shift;
-    return update_account($act) || add_account($act);
+    
+    # find the account by name and by IDs.
+    my $my_act_name = account_info($act->{name});
+    my $my_act_ids  = lookup_sid_aid($act->{csid}, $act->{id});
+    my $acts_equal  = accounts_equal($my_act_name, $my_act_ids);
+    
+    # I don't have an account with those IDs OR with that name.
+    # it's safe to assume that this account does not exist.
+    return add_account($act) if !$my_act_name && !$my_act_ids;
+    
+    # we have an account with the same name and same IDs.
+    return update_account($act) if $acts_equal;
+    
+    # we have one with this name, but the IDs are different.
+    # only make the change if $act was created before.
+    if ($my_act_name && $act->{created} < $my_act_name->{created}) {
+        delete_account($my_act_name);
+        return add_account($act);
+    }
+    
+    # we have one with these IDs, but the name is different.
+    return update_account($act) if $my_act_ids;
+    
+    return;
 }
 
-# same account.
+# same account according to IDs.
 sub accounts_equal {
     my ($act1, $act2) = @_;
+    return if !$act1 || !$act2;
     return if $act1->{id}   != $act2->{id};
     return if $act1->{csid} != $act2->{csid};
     return 1;
@@ -129,20 +159,18 @@ sub register_account {
     $password   = utils::crypt($password, $encrypt) || $password;
 
     # insert.
-    $db->do(q{INSERT INTO accounts(
-        id, name, password, encrypt, created, cserver, csid, updated, userver, usid
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) }, undef,
-        $id,
-        $account,
-        $password,
-        $encrypt,
-        $time,
-        $server->{name},
-        $server->{sid},
-        $time,
-        $server->{name},
-        $server->{sid}
-    ) or return;
+    add_account({
+        id          => $id,
+        name        => $account,
+        password    => $password,
+        encrypt     => $encrypt,
+        created     => $time,
+        cserver     => $server->{name},
+        csid        => $server->{sid},
+        updated     => $time,
+        userver     => $server->{name},
+        usid        => $server->{sid}
+    }) or return;
     
     notice(account_register =>
         $user->notice_info,

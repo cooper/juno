@@ -2233,6 +2233,8 @@ CHANGES:
         
         05. improved syncing of accounts.
             fixed warnings due to connection objects being disposed of prematurely.
+            
+        06. Account module now preserves the oldest account when there is a name collision during negotiation.
         
         
         
