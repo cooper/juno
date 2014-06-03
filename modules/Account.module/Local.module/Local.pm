@@ -15,7 +15,7 @@ use warnings;
 use strict;
 use 5.010;
 
-M::Account->import(qw(login_account logout_account register_account account_info));
+M::Account->import(qw(all_accounts login_account logout_account register_account account_info));
 
 our ($api, $mod, $me, $db);
 
@@ -40,6 +40,14 @@ sub init {
         description => 'log in to an account',
         parameters  => 'any any(opt)',
         code        => \&cmd_login
+    );
+    
+    # ACCTDUMP command.
+    $mod->register_user_command(
+        name        => 'ACCTDUMP',
+        description => 'inspect accounts',
+        parameters  => '-oper(acctdump)',
+        code        => \&cmd_acctdump
     );
     
     # RPL_LOGGEDIN and RPL_LOGGEDOUT.
@@ -145,6 +153,40 @@ sub cmd_login {
     # login.
     login_account($account, $user, $password);
     
+}
+
+# inspect accounts.
+sub cmd_acctdump {
+    my $user = shift;
+    my @accounts = @{ all_accounts() };
+    $user->server_notice('account dump' => 'Registered user accounts');
+
+    # add all the rows.
+    my @rows = (
+        [qw(SID AID Name Updated)],
+        [qw(--- --- ---- -------)]
+    );
+    push @rows, map { [ $_->{csid}, $_->{id}, $_->{name}, $_->{updated} ] } @accounts;
+    
+    # determine the width of each column.
+    my @width;
+    for my $col (0..$#{ $rows[0] }) {
+        my $max = 0;
+        foreach my $row (@rows) {
+            my $length = length $row->[$col];
+            $max = $length if $length > $max;
+        }
+        $width[$col] = $max;
+    }
+    
+    # send each row.
+    foreach my $row (@rows) {
+        my $fmt  = '';
+           $fmt .= "  %-${_}s       " foreach @width;
+        $user->server_notice(sprintf $fmt, @$row);
+    }
+
+    $user->server_notice('account dump' => 'End of user account list');
 }
 
 ################

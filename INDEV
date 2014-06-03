@@ -2227,6 +2227,8 @@ CHANGES:
         
             021. the server that initiates a connection should send burst first.
         
+        03. added ACCTDUMP command for operators to inspect accounts.
+        
         
         
         
