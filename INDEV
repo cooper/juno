@@ -2231,7 +2231,8 @@ CHANGES:
         
         04. improved ACCTDUMP btw is not NSA.
         
-        
+        05. improved syncing of accounts.
+            fixed warnings due to connection objects being disposed of prematurely.
         
         
         

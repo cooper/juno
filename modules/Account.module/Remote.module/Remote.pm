@@ -44,7 +44,8 @@ sub init {
         {
             name       => 'acct',
             parameters => 'dummy dummy :rest', # don't even care about source
-            code       => \&in_acct
+            code       => \&in_acct,
+            forward    => 1
         },
         {
             name       => 'acctinfo',
@@ -229,7 +230,10 @@ sub in_acct {
     $server->fire_command(acctidk => @i_dk) if @i_dk;
     
     # send info for the accounts they don't know.
-    $server->fire_command(acctinfo => $_) foreach @u_dk;
+    # (IF the server is in burst)
+    if ($server->{is_burst}) {
+        $server->fire_command(acctinfo => $_) foreach @u_dk;
+    }
     
 }
 

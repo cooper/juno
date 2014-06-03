@@ -312,7 +312,6 @@ sub done {
     $connection->{goodbye} = 1;
 
     $connection->delete_all_events();
-    %$connection = ();
     return 1;
 }
 
