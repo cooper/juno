@@ -2236,6 +2236,7 @@ CHANGES:
             
         06. Account module now preserves the oldest account when there is a name collision during negotiation.
         
+        07. solved an issue that arises in a newer version of Future where hostname lookup was never completed.
         
         
         

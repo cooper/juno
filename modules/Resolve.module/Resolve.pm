@@ -33,7 +33,7 @@ sub resolve_address {
     $connection->reg_wait;
     
     # asynchronously resolve.
-    $::loop->resolver->getnameinfo(
+    $connection->{resolve_future} = $::loop->resolver->getnameinfo(
         addr        => $connection->sock->peername,
         on_resolved => sub { on_resolved_ip($connection, @_) },
         on_error    => sub { on_error($connection) }
@@ -49,7 +49,7 @@ sub on_resolved_ip {
     $connection->{temp_host} = $host;
     
     # resolve the host back to an IP address
-    $::loop->resolver->getaddrinfo(
+    $connection->{resolve_future} = $::loop->resolver->getaddrinfo(
         host        => $host,
         service     => '',
         socktype    => Socket::SOCK_STREAM(),
@@ -61,6 +61,7 @@ sub on_resolved_ip {
 
 sub on_resolved_host {
     my ($connection, @addrs) = @_;
+    delete $connection->{resolve_future};
     return if $connection->{goodbye};
     
     # see if any result matches.
@@ -82,6 +83,7 @@ sub on_resolved_host {
 
 sub on_error {
     my $connection = shift;
+    delete $connection->{resolve_future};
     return if $connection->{goodbye};
     
     $connection->sendfrom($me->{name}, 'NOTICE * :*** Couldn\'t resolve your hostname');
