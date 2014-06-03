@@ -2238,6 +2238,8 @@ CHANGES:
         
         07. solved an issue that arises in a newer version of Future where hostname lookup was never completed.
         
+        08. fixed an issue where only the first argument to ACCTIDK was accounted for.
+        
         
         
         

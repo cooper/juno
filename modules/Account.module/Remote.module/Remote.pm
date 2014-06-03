@@ -239,13 +239,12 @@ sub in_acct {
 
 # :sid ACCTIDK 1.1 1.2
 sub in_acctidk {
-    my ($server, $data, $str) = @_;
-    my @items = split /\W/, trim($str);
-    return if @items % 2;
+    my ($server, $data, @items) = @_;
     
     # find the accounts.
     my @accts;
-    while (my ($sid, $aid) = splice @items, 0, 2) {
+    foreach my $str (@items) {
+        my ($sid, $aid) = split /\W/, $str, 2;
         my $act = lookup_sid_aid($sid, $aid) or next;
         push @accts, $act;
     }
