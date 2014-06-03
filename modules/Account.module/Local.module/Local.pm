@@ -158,35 +158,41 @@ sub cmd_login {
 # inspect accounts.
 sub cmd_acctdump {
     my $user = shift;
-    my @accounts = @{ all_accounts() };
+    my @accounts = sort { $a->{updated} <=> $b->{updated} } @{ all_accounts() };
     $user->server_notice('account dump' => 'Registered user accounts');
 
     # add all the rows.
-    my @rows = (
-        [qw(SID AID Name Updated)],
-        [qw(--- --- ---- -------)]
-    );
-    push @rows, map { [ $_->{csid}, $_->{id}, $_->{name}, $_->{updated} ] } @accounts;
+      my @rows = ([qw(SID AID Name Updated)], []);
+    push @rows, map { [
+        $_->{csid},
+        $_->{id},
+        $_->{name},
+        scalar localtime $_->{updated}
+    ] } @accounts;
     
     # determine the width of each column.
     my @width;
     for my $col (0..$#{ $rows[0] }) {
         my $max = 0;
         foreach my $row (@rows) {
-            my $length = length $row->[$col];
+            my $length = length $row->[$col] or next;
             $max = $length if $length > $max;
         }
         $width[$col] = $max;
     }
     
+    # ---- ---- ---- ----
+    @{ $rows[1] } = map { '-' x $_ } @width;
+    
     # send each row.
     foreach my $row (@rows) {
         my $fmt  = '';
-           $fmt .= "  %-${_}s       " foreach @width;
+           $fmt .= "  %-${_}s   " foreach @width;
         $user->server_notice(sprintf $fmt, @$row);
     }
-
-    $user->server_notice('account dump' => 'End of user account list');
+    
+    my $num = scalar @accounts;
+    $user->server_notice('account dump' => "End of user account list ($num total)");
 }
 
 ################
