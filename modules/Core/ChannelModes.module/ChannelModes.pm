@@ -70,7 +70,7 @@ sub register_statuses {
         # and also make sure he is on the channel
         if (!$channel->has_user($target)) {
             if (!$mode->{force} && $source->isa('user') && $source->is_local) {
-                $source->numeric('ERR_USERNOTINCHANNEL', $target->{nick}, $channel->{name});
+                $source->numeric('ERR_USERNOTINCHANNEL', $target->{nick}, $channel->name);
             }
             return
         }
@@ -138,14 +138,14 @@ sub cmode_banlike {
         # send each list item.
         my $name = uc($list).q(LIST);
         $mode->{source}->numeric("RPL_$name" =>
-            $channel->{name},
+            $channel->name,
             $_->[0],
             $_->[1]{setby},
             $_->[1]{time}
         ) foreach $channel->list_elements($list, 1);
         
         # end of list.
-        $mode->{source}->numeric("RPL_ENDOF$name" => $channel->{name});
+        $mode->{source}->numeric("RPL_ENDOF$name" => $channel->name);
         
         $mode->{do_not_set} = 1;
         return 1;

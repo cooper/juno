@@ -418,7 +418,7 @@ sub privmsgnotice {
 
 sub cmap {
     my $user  = shift;
-    my $total = scalar $pool->users;
+    my $total = scalar $pool->actual_users;
 
     my ($indent, $do, %done) = 0;
     $do = sub {
@@ -426,7 +426,7 @@ sub cmap {
         return if $done{$server};
         
         my $spaces = ' ' x $indent;
-        my $users  = scalar $server->users;
+        my $users  = scalar $server->actual_users;
         my $per    = sprintf '%.f', $users / $total * 100;
 
         $user->numeric(RPL_MAP => $spaces, $server->{name}, $users, $per);
@@ -478,10 +478,10 @@ sub cjoin {
         # second, check if the channel is invite only.
         $user->on(can_join => sub {
             return unless $channel->is_mode('invite_only');
-            return if $user->{invite_pending}{ lc $channel->{name} };
+            return if $user->{invite_pending}{ lc $channel->name };
             
             # sorry, not invited.
-            $user->numeric(ERR_INVITEONLYCHAN => $channel->{name});
+            $user->numeric(ERR_INVITEONLYCHAN => $channel->name);
             shift->stop;
             
         }, name => 'has.invite', priority => 20);
@@ -494,7 +494,7 @@ sub cjoin {
             
             # sorry, banned.
             if ($banned && !$exempt) {
-                $user->numeric(ERR_BANNEDFROMCHAN => $channel->{name});
+                $user->numeric(ERR_BANNEDFROMCHAN => $channel->name);
                 shift->stop;
             }
         
@@ -535,7 +535,7 @@ sub names {
         # and RPL_ENDOFNAMES is sent no matter what
         my $channel = $pool->lookup_channel($chname);
         $channel->names($user, 1) if $channel;
-        $user->numeric('RPL_ENDOFNAMES', $channel ? $channel->{name} : $chname);
+        $user->numeric('RPL_ENDOFNAMES', $channel ? $channel->name : $chname);
     }
 }
 
@@ -797,12 +797,12 @@ sub part {
 
         # user isn't on channel
         if (!$channel->has_user($user)) {
-            $user->numeric('ERR_NOTONCHANNEL', $channel->{name});
+            $user->numeric('ERR_NOTONCHANNEL', $channel->name);
             return
         }
 
         # remove the user and tell the other channel's users and servers
-        notice(user_part => $user->notice_info, $channel->{name}, $reason // 'no reason');
+        notice(user_part => $user->notice_info, $channel->name, $reason // 'no reason');
         my $ureason = defined $reason ? " :$reason" : q();
         $channel->sendfrom_all($user->full, "PART $$channel{name}$ureason");
         $pool->fire_command_all(part => $user, $channel, $channel->{time}, $reason);
@@ -857,7 +857,7 @@ sub who {
 
     # match all, like the above note says
     if ($query eq '0') {
-        foreach my $quser ($pool->users) {
+        foreach my $quser ($pool->all_users) {
             $matches{ $quser->{uid} } = $quser
         }
         # I used UIDs so there are no duplicates
@@ -865,8 +865,8 @@ sub who {
 
     # match an exact channel name
     elsif (my $channel = $pool->lookup_channel($query)) {
-        $match_pattern = $channel->{name};
-        foreach my $quser (@{ $channel->{users} }) {
+        $match_pattern = $channel->name;
+        foreach my $quser ($channel->users) {
             $matches{ $quser->{uid} } = $quser;
             $quser->{who_flags}       = $channel->prefix($quser);
         }
@@ -874,7 +874,7 @@ sub who {
 
     # match a pattern
     else {
-        foreach my $quser ($pool->users) {
+        foreach my $quser ($pool->all_users) {
             foreach my $pattern ($quser->{nick}, $quser->{ident}, $quser->{host},
               $quser->{real}, $quser->{server}{name}) {
                 $matches{ $quser->{uid} } = $quser if match($pattern, $query);
@@ -925,7 +925,7 @@ sub topic {
 
         # not permitted
         if (!$can) {
-            $user->numeric(ERR_CHANOPRIVSNEEDED => $channel->{name});
+            $user->numeric(ERR_CHANOPRIVSNEEDED => $channel->name);
             return
         }
 
@@ -953,13 +953,13 @@ sub topic {
         # topic set
         my $topic = $channel->topic;
         if ($topic) {
-            $user->numeric(RPL_TOPIC        => $channel->{name}, $topic->{topic});
-            $user->numeric(RPL_TOPICWHOTIME => $channel->{name}, $topic->{setby}, $topic->{time});
+            $user->numeric(RPL_TOPIC        => $channel->name, $topic->{topic});
+            $user->numeric(RPL_TOPICWHOTIME => $channel->name, $topic->{setby}, $topic->{time});
         }
 
         # no topic set
         else {
-            $user->numeric(RPL_NOTOPIC => $channel->{name});
+            $user->numeric(RPL_NOTOPIC => $channel->name);
             return
         }
     }
@@ -969,28 +969,29 @@ sub topic {
 
 sub lusers {
     my ($user, $data, @args) = @_;
-
+    my @actual_users = $pool->actual_users;
+    
     # get server count
     my $servers   = scalar $pool->servers;
     my $l_servers = scalar grep { $_->{conn} } $pool->servers;
 
     # get x users, x invisible, and total global
     my ($g_not_invisible, $g_invisible) = (0, 0);
-    foreach my $user ($pool->users) {
+    foreach my $user (@actual_users) {
         $g_invisible++, next if $user->is_mode('invisible');
         $g_not_invisible++
     }
     my $g_users = $g_not_invisible + $g_invisible;
 
     # get local users
-    my $l_users = scalar grep { $_->is_local } $pool->users;
+    my $l_users = scalar grep { $_->is_local } @actual_users;
 
     # get connection count and max connection count
     my $conn     = v('connection_count');
     my $conn_max = v('max_connection_count');
 
     # get oper count and channel count
-    my $opers = scalar grep { $_->is_mode('ircop') } $pool->users;
+    my $opers = scalar grep { $_->is_mode('ircop') } @actual_users;
     my $chans = scalar $pool->channels;
 
     # get max global and max local
@@ -1070,19 +1071,19 @@ sub kick {
     
     # target user is not in channel.
     if (!$channel->has_user($t_user)) {
-        $user->numeric(ERR_USERNOTINCHANNEL => $channel->{name}, $t_user->{nick});
+        $user->numeric(ERR_USERNOTINCHANNEL => $channel->name, $t_user->{nick});
         return;
     }
     
     # check if the user has basic status in the channel.
     if (!$channel->user_has_basic_status($user)) {
-        $user->numeric(ERR_CHANOPRIVSNEEDED => $channel->{name});
+        $user->numeric(ERR_CHANOPRIVSNEEDED => $channel->name);
         return;
     }
     
     # if the user has a lower status level than the target, he can't kick him.
     if ($channel->user_get_highest_level($t_user) > $channel->user_get_highest_level($user)) {
-        $user->numeric(ERR_CHANOPRIVSNEEDED => $channel->{name});
+        $user->numeric(ERR_CHANOPRIVSNEEDED => $channel->name);
         return;
     }
     
@@ -1090,7 +1091,7 @@ sub kick {
     $reason //= $user->{nick};
     
     # tell the local users of the channel.
-    notice(user_part => $t_user->notice_info, $channel->{name}, "Kicked by $$user{nick}: $reason");
+    notice(user_part => $t_user->notice_info, $channel->name, "Kicked by $$user{nick}: $reason");
     $channel->sendfrom_all($user->full, "KICK $$channel{name} $$t_user{nick} :$reason");
     
     # remove the user from the channel.
@@ -1111,9 +1112,9 @@ sub list {
     # send for each channel in no particular order.
     foreach my $channel ($pool->channels) {
        # 322 RPL_LIST "<channel> <# visible> :<topic>"
-        my $number_of_users = scalar @{ $channel->{users} };
+        my $number_of_users = scalar $channel->users;
         my $channel_topic   = $channel->topic ? $channel->topic->{topic} : '';
-        $user->numeric(RPL_LIST => $channel->{name}, $number_of_users, $channel_topic);
+        $user->numeric(RPL_LIST => $channel->name, $number_of_users, $channel_topic);
     }
 
     # TODO: implement list for specific channels.
@@ -1189,7 +1190,7 @@ sub invite {
     
     # channel exists.
     if ($channel) {
-        $ch_name = $channel->{name};
+        $ch_name = $channel->name;
     
         # first, user must be in the channel if it exists.
         $user->on(can_invite => sub {

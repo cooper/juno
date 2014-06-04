@@ -196,7 +196,7 @@ sub send_to_channels {
         next unless $channel->has_user($user);
 
         # send to each member.
-        foreach my $usr (@{ $channel->{users} }) {
+        foreach my $usr ($channel->users) {
         
             # not local.
             next unless $usr->is_local;
@@ -271,7 +271,7 @@ sub get_invited_by {
     
     # it's an object.
     if (ref(my $channel = $ch_name)) {
-        $ch_name = $channel->{name};
+        $ch_name = $channel->name;
         
         # user is already in channel.
         return if $channel->has_user($user);

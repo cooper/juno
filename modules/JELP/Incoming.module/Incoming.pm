@@ -439,7 +439,7 @@ sub part {
     }
 
     # remove the user and tell the local channel users
-    notice(user_part => $user->notice_info, $channel->{name}, $reason // 'no reason');
+    notice(user_part => $user->notice_info, $channel->name, $reason // 'no reason');
     $channel->remove($user);
     $reason = defined $reason ? " :$reason" : '';
     $channel->sendfrom_all($user->full, "PART $$channel{name}$reason");
@@ -644,7 +644,7 @@ sub kick {
     # tell the local users of the channel.
     notice(user_part =>
         $t_user->notice_info,
-        $channel->{name},
+        $channel->name,
         "Kicked by $$source{nick}: $reason"
     ) if $source->isa('user');
     $channel->sendfrom_all($source->full, "KICK $$channel{name} $$t_user{nick} :$reason");

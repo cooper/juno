@@ -140,7 +140,8 @@ sub delete_server {
     return 1;
 }
 
-sub servers { values %{ shift->{servers} } }
+sub     servers { grep { !$_->{fake} } shift->all_servers }
+sub all_servers { values %{ shift->{servers} }            }
 
 #############
 ### USERS ###
@@ -231,7 +232,13 @@ sub change_user_nick {
     return 1;
 }
 
-sub users { values %{ shift->{users} } }
+# actual_users = real users, both local and remote
+# global_users = all users which are propogated, including fake ones
+# all_users    = all user objects, including those which are not propogated
+
+sub actual_users {   grep  { !$_->{fake}       } shift->all_users }
+sub global_users {   grep  { !$_->{fake_local} } shift->all_users }
+sub all_users    { values %{ shift->{users}    }                  }
 
 ################
 ### CHANNELS ###
@@ -284,7 +291,7 @@ sub delete_channel {
     
     # forget it.
     delete $channel->{pool};
-    delete $pool->{channels}{ lc $channel->{name} };
+    delete $pool->{channels}{ lc $channel->name };
     
     log2("deleted channel $$channel{name}");
     return 1;
@@ -433,7 +440,7 @@ sub fire_oper_notice {
     (my $pretty = ucfirst $notice) =~ s/_/ /g;
     
     # send to users with this notice flag.
-    foreach my $user ($pool->users) {
+    foreach my $user ($pool->actual_users) {
         next unless $user->is_mode('ircop');
         next unless $user->has_notice($notice);
         
@@ -531,6 +538,7 @@ sub delete_outgoing_handler {
 # fire an outgoing server command for a single server.
 sub fire_command {
     my ($pool, $server, $command, @args) = (shift, shift, uc shift, @_);
+    return if $server->{fake};
     
     # command does not exist.
     if (!$pool->{outgoing_commands}{$command}) {

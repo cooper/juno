@@ -39,7 +39,7 @@ sub quit {
     }
 
     # delete all of the server's users.
-    my @users = @{ $server->{users} };
+    my @users = $server->all_users;
     foreach my $user (@users) {
         $user->quit($why);
     }
@@ -343,6 +343,14 @@ sub id       { shift->{sid}  }
 sub full     { shift->{name} }
 sub name     { shift->{name} }
 sub users    { @{ shift->{users}    } }
+
+# actual_users = real users
+# global_users = all users which are propogated, including fake ones
+# all_users    = all user objects, including those which are not propogated
+
+sub actual_users {   grep  { !$_->{fake}       } shift->all_users }
+sub global_users {   grep  { !$_->{fake_local} } shift->all_users }
+sub all_users    {        @{ shift->{users}    }                  }
 
 
 1

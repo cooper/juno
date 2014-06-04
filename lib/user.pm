@@ -67,7 +67,7 @@ sub quit {
 
     foreach my $channel ($user->channels) {
         $channel->remove($user);
-        foreach my $usr (@{ $channel->{users} }) {
+        foreach my $usr ($channel->users) {
             next unless $usr->is_local;
             next if $sent{$usr};
             $usr->sendfrom($user->full, "QUIT :$reason");

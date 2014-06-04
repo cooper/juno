@@ -2240,6 +2240,10 @@ CHANGES:
         
         08. fixed an issue where only the first argument to ACCTIDK was accounted for.
         
+        09. added Ident module.
+            prepared user and pool objects for the possibility of pseudousers.
+            cleaned up some other things.
+        
         
         
         

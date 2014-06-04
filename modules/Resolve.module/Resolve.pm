@@ -36,7 +36,7 @@ sub resolve_address {
     $connection->{resolve_future} = $::loop->resolver->getnameinfo(
         addr        => $connection->sock->peername,
         on_resolved => sub { on_resolved_ip($connection, @_) },
-        on_error    => sub { on_error($connection) }
+        on_error    => sub { on_error($connection, shift)    }
     );
     
 }
@@ -54,7 +54,7 @@ sub on_resolved_ip {
         service     => '',
         socktype    => Socket::SOCK_STREAM(),
         on_resolved => sub { on_resolved_host($connection, @_) },
-        on_error    => sub { on_error($connection) }
+        on_error    => sub { on_error($connection, shift)      }
     );
     
 }
@@ -82,11 +82,13 @@ sub on_resolved_host {
 }
 
 sub on_error {
-    my $connection = shift;
+    my ($connection, $err) = (shift, shift // 'unknown error');
     delete $connection->{resolve_future};
     return if $connection->{goodbye};
     
     $connection->sendfrom($me->{name}, 'NOTICE * :*** Couldn\'t resolve your hostname');
+    $mod->_log("Lookup for $$connection{ip} failed: $err");
+    
     delete $connection->{temp_host};
     $connection->reg_continue;
 }

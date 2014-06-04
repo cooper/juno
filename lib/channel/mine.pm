@@ -24,7 +24,7 @@ sub localjoin {
     }
 
     # for each user in the channel
-    foreach my $usr (@{ $channel->{users} }) {
+    foreach my $usr ($channel->users) {
         next unless $usr->is_local;
         $usr->sendfrom($user->full, "JOIN $$channel{name}")
     }
@@ -44,7 +44,7 @@ sub names {
     my ($channel, $user, $no_endof) = @_;
     my @str;
     my $curr = 0;
-    foreach my $usr (@{ $channel->{users} }) {
+    foreach my $usr ($channel->users) {
 
         # if this user is invisible, do not show him unless the querier is in a common
         # channel or has the see_invisible flag.
@@ -55,19 +55,19 @@ sub names {
         $str[$curr] .= prefix($channel, $usr).$usr->{nick}.q( );
         $curr++ if length $str[$curr] > 500
     }
-    $user->numeric('RPL_NAMEREPLY', '=', $channel->{name}, $_) foreach @str;
-    $user->numeric('RPL_ENDOFNAMES', $channel->{name}) unless $no_endof;
+    $user->numeric('RPL_NAMEREPLY', '=', $channel->name, $_) foreach @str;
+    $user->numeric('RPL_ENDOFNAMES', $channel->name) unless $no_endof;
 }
 
 sub modes {
     my ($channel, $user) = @_;
-    $user->numeric('RPL_CHANNELMODEIS', $channel->{name}, $channel->mode_string($user->{server}));
-    $user->numeric('RPL_CREATIONTIME',  $channel->{name}, $channel->{time});
+    $user->numeric('RPL_CHANNELMODEIS', $channel->name, $channel->mode_string($user->{server}));
+    $user->numeric('RPL_CREATIONTIME',  $channel->name, $channel->{time});
 }
 
 sub send_all {
     my ($channel, $what, $ignore) = @_;
-    foreach my $user (@{ $channel->{users} }) {
+    foreach my $user ($channel->users) {
         next unless $user->is_local;
         next if defined $ignore && $ignore == $user;
         $user->send($what);
@@ -83,7 +83,7 @@ sub sendfrom_all {
 # send a notice to every user
 sub notice_all {
     my ($channel, $what, $ignore) = @_;
-    foreach my $user (@{ $channel->{users} }) {
+    foreach my $user ($channel->users) {
         next unless $user->is_local;
         next if defined $ignore && $ignore == $user;
         $user->send(":".v('SERVER', 'name')." NOTICE $$channel{name} :*** $what");
@@ -177,7 +177,7 @@ sub handle_privmsgnotice {
     
         # no external messages?
         if ($channel->is_mode('no_ext') && !$channel->has_user($user)) {
-            $user->numeric(ERR_CANNOTSENDTOCHAN => $channel->{name}, 'No external messages');
+            $user->numeric(ERR_CANNOTSENDTOCHAN => $channel->name, 'No external messages');
             return;
         }
 
@@ -185,7 +185,7 @@ sub handle_privmsgnotice {
         if ($channel->is_mode('moderated')   &&
           !$channel->user_is($user, 'voice') &&
           !$channel->user_has_basic_status($user)) {
-            $user->numeric(ERR_CANNOTSENDTOCHAN => $channel->{name}, 'Channel is moderated');
+            $user->numeric(ERR_CANNOTSENDTOCHAN => $channel->name, 'Channel is moderated');
             return;
         }
 
@@ -196,7 +196,7 @@ sub handle_privmsgnotice {
 
     # then tell local servers.
     my %sent;
-    foreach my $usr (@{ $channel->{users} }) {
+    foreach my $usr ($channel->users) {
     
         # local users already know.
         next if $usr->is_local;

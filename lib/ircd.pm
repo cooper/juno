@@ -293,7 +293,7 @@ sub handle_connect {
     }
 
     # if the global user IP limit has been reached, disconnect
-    if (scalar(grep { $_->{ip} eq $ip } $pool->users) >= conf('limit', 'globalperip')) {
+    if (scalar(grep { $_->{ip} eq $ip } $pool->actual_users) >= conf('limit', 'globalperip')) {
         $stream->close_now;
         return
     }

@@ -143,8 +143,8 @@ sub cjoin {
     # mine.pm:           for locals
     # core_scommands.pm: for nonlocals.
  
-    notice(user_join => $user->notice_info, $channel->{name});
-    delete $user->{invite_pending}{ lc $channel->{name} };
+    notice(user_join => $user->notice_info, $channel->name);
+    delete $user->{invite_pending}{ lc $channel->name };
     return $channel->{time};
 }
 
@@ -162,11 +162,11 @@ sub remove {
     }
 
     # remove the user.
-    my @new = grep { $_ != $user } @{ $channel->{users} };
+    my @new = grep { $_ != $user } $channel->users;
     $channel->{users} = \@new;
     
     # delete the channel if this is the last user
-    if (!scalar @{ $channel->{users} }) {
+    if (!scalar $channel->users) {
         $::pool->delete_channel($channel);
         $channel->delete_all_events();
     }
@@ -245,7 +245,7 @@ sub handle_mode_string {
 
             # block says to send ERR_CHANOPRIVSNEEDED
             if ($moderef->{send_no_privs} && $source->isa('user') && $source->is_local) {
-                $source->numeric(ERR_CHANOPRIVSNEEDED => $channel->{name});
+                $source->numeric(ERR_CHANOPRIVSNEEDED => $channel->name);
             }
 
             # blocks failed.
@@ -313,13 +313,10 @@ sub mode_string {
     my ($channel, $server) = @_;
     my (@modes, @params);
     my @set_modes = sort keys %{ $channel->{modes} };
+    my %normal_types = (0 => 1, 1 => 1, 2 => 1);
     foreach my $name (@set_modes) {
-        given ($server->cmode_type($name)) {
-            when (0) { }
-            when (1) { }
-            when (2) { }
-            default  { next }
-        }
+        next unless $normal_types{ $server->cmode_type($name) };
+
         push @modes, $server->cmode_letter($name);
         if (my $param = $channel->{modes}{$name}{parameter}) {
             push @params, $param
@@ -447,7 +444,8 @@ sub topic {
     return;
 }
 
-sub id   { shift->{name} }
-sub name { shift->{name} }
+sub id    { shift->{name}       }
+sub name  { shift->{name}       }
+sub users { @{ shift->{users} } }
 
 1

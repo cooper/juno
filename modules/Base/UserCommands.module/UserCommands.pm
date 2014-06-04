@@ -224,7 +224,7 @@ sub register_user_command {
                     
                     # if 'inchan' attribute, the requesting user must be in the channel.
                     if ($match_attr[$match_i]{inchan} && !$channel->has_user($user)) {
-                        $user->numeric(ERR_NOTONCHANNEL => $channel->{name});
+                        $user->numeric(ERR_NOTONCHANNEL => $channel->name);
                         return;
                     }
                     

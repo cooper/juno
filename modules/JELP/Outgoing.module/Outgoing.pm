@@ -98,11 +98,11 @@ sub send_burst {
         $server->fire_command(aum => $serv);
         $server->fire_command(acm => $serv);
         
-    }; $do->($_) foreach $pool->servers;
+    }; $do->($_) foreach $pool->all_servers;
 
 
     # users
-    foreach my $user ($pool->users) {
+    foreach my $user ($pool->all_users) {
 
         # ignore users the server already knows!
         next if $user->{server} == $server || $user->{source} == $server->{sid};
@@ -180,7 +180,7 @@ sub topicburst {
     my $channel = shift;
     my $cmd     = sprintf(
         'TOPICBURST %s %d %s %d :%s',
-        $channel->{name},
+        $channel->name,
         $channel->{time},
         $channel->{topic}{setby},
         $channel->{topic}{time},
@@ -325,7 +325,7 @@ sub cum {
     my $modestr = '+'.join(' ', join('', @modes), @server_params);
 
     # create an array of uid!status
-    foreach my $user (@{ $channel->{users} }) {
+    foreach my $user ($channel->users) {
     
         # this is the server that told us about the user. it already knows.
         next if $user->{location} == $server;

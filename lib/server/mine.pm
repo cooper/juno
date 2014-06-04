@@ -136,7 +136,7 @@ sub send {
         log2("can't send data to a unconnected server! please report this error by $sub. $$server{name}");
         return
     }
-    $server->{conn}->send(@_)
+    $server->{conn}->send(@_);
 }
 
 # send data to a server from THIS server.
