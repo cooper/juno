@@ -2245,6 +2245,8 @@ CHANGES:
             cleaned up some other things.
         
     1. rip READY command. new logic for bursting information between servers.
+    
+            101. set ->{conn} before attempting to send burst.
         
         
         

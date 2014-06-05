@@ -224,6 +224,7 @@ sub ready {
 
         $connection->{parent} = v('SERVER');
         $connection->{type}   = my $server = $::pool->new_server(%$connection);
+        $server->{conn}       = $connection;
         weaken($connection->{type}{location} = $connection->{type});
         $::pool->fire_command_all(sid => $connection->{type});
 
