@@ -223,7 +223,7 @@ sub ready {
         }
 
         $connection->{parent} = v('SERVER');
-        $connection->{type}   = $::pool->new_server(%$connection);
+        $connection->{type}   = my $server = $::pool->new_server(%$connection);
         weaken($connection->{type}{location} = $connection->{type});
         $::pool->fire_command_all(sid => $connection->{type});
 
@@ -237,7 +237,7 @@ sub ready {
                 v('SERVER', 'desc')
             );
             $connection->send('PASS '.conn($connection->{name}, 'send_password'));
-            $connection->send('READY');
+            $server->send_burst if !$server->{i_sent_burst};
         }
     }
 

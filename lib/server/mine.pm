@@ -39,13 +39,6 @@ sub handle {
             return;
         }
 
-        # server is ready for BURST
-        if (uc $s[0] eq 'READY') {
-            log2("sending burst to $$server{name}");
-            send_burst($server);
-            next
-        }
-
         next unless defined $s[1];
         my $command = uc $s[1];
 
@@ -89,9 +82,6 @@ sub send_burst {
     $time = time;
     $server->sendme("ENDBURST $time");
     $server->{i_sent_burst} = $time;
-
-    # ask this server to send burst if it hasn't already
-    $server->send('READY') unless $server->{sent_burst};
 
     return 1;
 }

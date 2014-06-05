@@ -292,6 +292,10 @@ sub endburst {
     
     log2("end of burst from $$serv{name}");
     notice(server_endburst => $server->{name}, $server->{sid}, $elapsed);
+    
+    # if we haven't sent our own burst yet, do so.
+    $server->send_burst unless $server->{i_sent_burst};
+    
 }
 
 sub addumode {

@@ -2244,6 +2244,8 @@ CHANGES:
             prepared user and pool objects for the possibility of pseudousers.
             cleaned up some other things.
         
+    1. rip READY command. new logic for bursting information between servers.
+        
         
         
         
