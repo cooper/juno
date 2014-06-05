@@ -355,7 +355,8 @@ sub acm {
         $modes .= " $name:$letter:$type";
 
     }
-
+    
+    return unless length $modes;
     return ":$$serv{sid} ACM$modes";
 }
 
@@ -366,6 +367,9 @@ sub aum {
     my @modes = map {
        "$_:".($serv->umode_letter($_) || '')
     } keys %{ $serv->{umodes} };
+
+    # if there are none, just don't.
+    scalar @modes or return;
 
     ":$$serv{sid} AUM ".join(' ', @modes)
 }

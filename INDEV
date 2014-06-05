@@ -2248,6 +2248,8 @@ CHANGES:
     
             101. set ->{conn} before attempting to send burst.
         
+        11. refined new server burst logic.
+            fixed protocol errors with AUM and ACM when no modes are registered on a server.
         
         
         

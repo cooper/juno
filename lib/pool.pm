@@ -547,7 +547,8 @@ sub fire_command {
     }
 
     # send to one server.
-    $server->send($pool->{outgoing_commands}{$command}{code}(@args));
+    my $data = $pool->{outgoing_commands}{$command}{code}(@args);
+    $server->send($data) if length $data;
 
     return 1;
 }
@@ -563,7 +564,8 @@ sub fire_command_all {
     }
 
     # send to all children.
-    v('SERVER')->send_children(undef, $pool->{outgoing_commands}{$command}{code}(@args));
+    my $data = $pool->{outgoing_commands}{$command}{code}(@args);
+    v('SERVER')->send_children(undef, $data) if length $data;
 
     return 1;
 }

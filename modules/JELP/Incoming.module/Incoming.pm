@@ -459,9 +459,9 @@ sub aum {
     foreach my $str (@_) {
         my ($name, $letter) = split /:/, $str;
         next if !length $name || !length $letter;
-        $serv->add_umode($name, $letter)
+        $serv->add_umode($name, $letter);
     }
-    return 1
+    return 1;
 }
 
 # add channel mode, compact ACM
@@ -480,7 +480,7 @@ sub acm {
             
         $serv->add_cmode($name, $letter, $type)
     }
-    return 1
+    return 1;
 }
 
 # channel user membership, compact CUM

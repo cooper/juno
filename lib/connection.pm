@@ -238,8 +238,14 @@ sub ready {
                 v('SERVER', 'desc')
             );
             $connection->send('PASS '.conn($connection->{name}, 'send_password'));
+        }
+        
+        # I already sent mine, meaning it should have been accepted on both now.
+        # go ahead and send the burst.
+        else {
             $server->send_burst if !$server->{i_sent_burst};
         }
+        
     }
 
     
