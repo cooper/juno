@@ -1,4 +1,13 @@
-# Copyright (c) 2014, Mitchell Cooper
+# Copyright (c) 2009-14, Mitchell Cooper
+#
+# @name:            "ircd::pool"
+# @package:         "pool"
+# @description:     "manage IRC objects"
+# @no_bless:        1
+#
+# @author.name:     "Mitchell Cooper"
+# @author.website:  "https://github.com/cooper"
+#
 package pool;
 
 use warnings;
@@ -7,8 +16,9 @@ use 5.010;
 use parent 'Evented::Object';
 
 use Scalar::Util qw(weaken blessed);
-
 use utils qw(v set_v log2 notice);
+
+our ($api, $mod);
 
 # create a pool.
 sub new {
@@ -705,4 +715,4 @@ sub user_match {
     return $e->{matched};
 }
 
-1
+$mod

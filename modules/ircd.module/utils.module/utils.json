@@ -1,0 +1,11 @@
+{
+   "version" : "0.6",
+   "name" : "ircd::utils",
+   "author" : {
+      "website" : "https://github.com/cooper",
+      "name" : "Mitchell Cooper"
+   },
+   "no_bless" : 1,
+   "description" : "provides convenience and utility functions",
+   "package" : "utils"
+}

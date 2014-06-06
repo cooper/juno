@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		A71BE82118C19286003A2C1A /* pool.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = pool.pm; sourceTree = "<group>"; };
 		A75C5CCD18B43219007780A3 /* ircd */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = ircd; sourceTree = "<group>"; };
 		A75C5CCE18B43219007780A3 /* lines */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = lines; sourceTree = "<group>"; };
 		A75C5CCF18B43219007780A3 /* mkpasswd */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = mkpasswd; sourceTree = "<group>"; };
@@ -17,21 +16,11 @@
 		A75C5CD418B43219007780A3 /* GOALS */ = {isa = PBXFileReference; lastKnownFileType = text; name = GOALS; path = ../GOALS; sourceTree = "<group>"; };
 		A75C5CD618B43219007780A3 /* INDEV */ = {isa = PBXFileReference; lastKnownFileType = text; name = INDEV; path = ../INDEV; sourceTree = "<group>"; };
 		A75C5CD818B4321A007780A3 /* juno */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = juno; path = ../juno; sourceTree = "<group>"; };
-		A75C5CEE18B4321A007780A3 /* mine.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = mine.pm; sourceTree = "<group>"; };
-		A75C5CF118B4321A007780A3 /* connection.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; lineEnding = 0; path = connection.pm; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.perl; };
-		A75C5D0218B4321A007780A3 /* ircd.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = ircd.pm; sourceTree = "<group>"; };
-		A75C5D0518B4321A007780A3 /* linkage.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = linkage.pm; sourceTree = "<group>"; };
-		A75C5D0618B4321A007780A3 /* mine.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = mine.pm; sourceTree = "<group>"; wrapsLines = 0; };
-		A75C5D0918B4321A007780A3 /* mine.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = mine.pm; sourceTree = "<group>"; };
-		A75C5D0D18B4321A007780A3 /* utils.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; lineEnding = 0; path = utils.pm; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.perl; };
 		A75C5D0E18B4321A007780A3 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
 		A75C5D1B18B4321A007780A3 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		A75C5D1D18B4321A007780A3 /* rfc-2812 */ = {isa = PBXFileReference; lastKnownFileType = text; name = "rfc-2812"; path = "../rfc-2812"; sourceTree = "<group>"; };
 		A765E0BF18BEE68500B3E448 /* VERSION */ = {isa = PBXFileReference; lastKnownFileType = text; name = VERSION; path = ../VERSION; sourceTree = "<group>"; };
 		BC27B9D81926CEA4003856F0 /* modules */ = {isa = PBXFileReference; lastKnownFileType = folder; name = modules; path = ../modules; sourceTree = "<group>"; };
-		BC2C928718F5FA81000A8517 /* user.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = user.pm; path = ../user.pm; sourceTree = "<group>"; };
-		BC2C928818F5FAA0000A8517 /* server.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = server.pm; path = ../server.pm; sourceTree = "<group>"; };
-		BC2C928918F5FAAD000A8517 /* channel.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = channel.pm; path = ../channel.pm; sourceTree = "<group>"; };
 		BCBCCEA0193BAD0800F7E7F9 /* ircd_forever */ = {isa = PBXFileReference; lastKnownFileType = text; path = ircd_forever; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.perl; };
 /* End PBXFileReference section */
 
@@ -74,44 +63,9 @@
 		A75C5CDD18B4321A007780A3 /* vulpia */ = {
 			isa = PBXGroup;
 			children = (
-				A75C5D0218B4321A007780A3 /* ircd.pm */,
-				A71BE82118C19286003A2C1A /* pool.pm */,
-				A75C5CF118B4321A007780A3 /* connection.pm */,
-				A75C5D0D18B4321A007780A3 /* utils.pm */,
-				A75C5D0818B4321A007780A3 /* user */,
-				A75C5D0418B4321A007780A3 /* server */,
-				A75C5CED18B4321A007780A3 /* channel */,
 			);
 			name = vulpia;
 			path = ../lib;
-			sourceTree = "<group>";
-		};
-		A75C5CED18B4321A007780A3 /* channel */ = {
-			isa = PBXGroup;
-			children = (
-				BC2C928918F5FAAD000A8517 /* channel.pm */,
-				A75C5CEE18B4321A007780A3 /* mine.pm */,
-			);
-			path = channel;
-			sourceTree = "<group>";
-		};
-		A75C5D0418B4321A007780A3 /* server */ = {
-			isa = PBXGroup;
-			children = (
-				BC2C928818F5FAA0000A8517 /* server.pm */,
-				A75C5D0618B4321A007780A3 /* mine.pm */,
-				A75C5D0518B4321A007780A3 /* linkage.pm */,
-			);
-			path = server;
-			sourceTree = "<group>";
-		};
-		A75C5D0818B4321A007780A3 /* user */ = {
-			isa = PBXGroup;
-			children = (
-				BC2C928718F5FA81000A8517 /* user.pm */,
-				A75C5D0918B4321A007780A3 /* mine.pm */,
-			);
-			path = user;
 			sourceTree = "<group>";
 		};
 		A75C5D1F18B43242007780A3 /* Documentation */ = {

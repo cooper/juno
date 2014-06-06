@@ -1,4 +1,14 @@
-# Copyright (c) 2010-14, Mitchell Cooper
+# Copyright (c) 2009-14, Mitchell Cooper
+#
+# @name:            "ircd"
+# @package:         "ircd"
+# @description:     "main IRCd module"
+# @version:         $ircd::VERSION || $main::VERSION
+# @no_bless:        1
+#
+# @author.name:     "Mitchell Cooper"
+# @author.website:  "https://github.com/cooper"
+#
 package ircd;
 
 use warnings;
@@ -8,38 +18,23 @@ use 5.010;
 # core modules that pretty much never change.
 use Module::Loaded qw(is_loaded);
 
-use utils qw(conf log2 fatal v trim);
-
 our (  $VERSION,   $api,   $conf,   $loop,   $pool,   $timer, %global, $boot) =
     ($::VERSION, $::api, $::conf, $::loop, $::pool, $::timer);
-$VERSION = get_version();
 
-# all non-module packages always loaded in the IRCd.
-our @always_loaded = qw(
+our ($mod, %channel_mode_prefixes);
 
-    utils       pool
-    user        user::mine
-    server      server::mine    server::linkage
-    channel     channel::mine
-    connection
+sub init {
 
-); # ircd must be last
-
-our %channel_mode_prefixes;
-
-sub start {
+    $mod->load_submodule('utils') or return;
+    utils->import(qw|conf log2 fatal v trim|);
+    $VERSION = get_version();
+    
+    boot();
     
     log2('Started server at '.scalar(localtime v('START')));
     $::v{VERSION} = $VERSION;
     
-    # add these to @INC if they are not there already.
-    my @add_inc = (
-        "$::run_dir/lib/api-engine",
-        "$::run_dir/lib/evented-object/lib",
-        "$::run_dir/lib/evented-api-engine/lib",
-        "$::run_dir/lib/evented-configuration/lib",
-        "$::run_dir/lib/evented-database",
-    ); foreach (@add_inc) { unshift @INC, $_ unless $_ ~~ @INC }
+    # TODO: probably check @INC.
     
     # load or reload all dependency packages.
     load_dependencies();
@@ -65,6 +60,8 @@ sub start {
     }
 
     # create the pool.
+    # utils pool user user::mine server server::mine server::linkage channel channel::mine connection
+    $mod->load_submodule($_) or return foreach qw(pool user server channel connection);
     $pool = $::pool = pool->new() if !$::pool;
 
     # create the main server object.
@@ -87,18 +84,11 @@ sub start {
         $::v{SERVER} = $server;
         
     }
-
-    # register modes.
-    $server->{umodes} = {};
-    $server->{cmodes} = {};
-    %channel_mode_prefixes = ();
-    add_internal_channel_modes($server);
-    add_internal_user_modes($server);
     
-    $api = $::api ||= Evented::API::Engine->new(
-        mod_inc => ['modules', 'lib/evented-api-engine/mod'],
-        log_sub => \&api_log
-    );
+    
+    # exported variables in modules.
+    # note that these will not be available for any of the modules
+    # loaded prior to this.
     $api->on('module.set_variables' => sub {
         my ($event, $pkg) = @_;
         Evented::API::Hax::set_symbol($pkg, {
@@ -107,6 +97,10 @@ sub start {
         });
     });
 
+    # register modes.
+    add_internal_channel_modes($server);
+    add_internal_user_modes($server);
+    
     # load API modules.
     # FIXME: is this safe to call multiple times?
     log2('Loading API configuration modules');
@@ -204,10 +198,6 @@ sub load_dependencies {
         [ 'Evented::Configuration',        3.40 ],
         [ 'Evented::Database',             0.50 ]
     );
-    
-    # juno components.
-    my $v = get_version();
-    load_or_reload($_, $v, $v) foreach @always_loaded;
     
 }
 
@@ -412,7 +402,26 @@ sub rehash {
 }
 
 sub boot {
+    return if $main::has_booted;
     $boot = 1;
+    $::VERSION = get_version();
+    
+    # FIXME: I hate this; get rid of %global.
+    %global = (
+        NAME    => 'kylie',         # major version name
+        SNAME   => 'juno',          # short ircd name
+        LNAME   => 'juno-ircd',     # long ircd name
+        VERSION => $VERSION,        # combination of these 3 in VERSION
+        PROTO   => '6.1',
+        START   => time,
+        NOFORK  => 'NOFORK' ~~ @ARGV,
+
+        # vars that need to be set
+        connection_count      => 0,
+        max_connection_count  => 0,
+        max_global_user_count => 0,
+        max_local_user_count  => 0
+    );
     
     # load mandatory boot stuff.
     require POSIX;
@@ -424,14 +433,14 @@ sub boot {
     %::v    = %global;
     undef %global;
 
-    start(1);
     become_daemon();
     
     undef $boot;
+    $main::has_booted = 1;
 }
 
 sub loop {
-    $loop->loop_forever
+    $loop->loop_forever;
 }
 
 sub become_daemon {
@@ -475,34 +484,6 @@ sub become_daemon {
     
 }   
 
-sub begin {
-
-    # set global variables
-    # that will eventually be moved to v after startup
-
-    %global = (
-        NAME    => 'kylie',         # major version name
-        SNAME   => 'juno',          # short ircd name
-        LNAME   => 'juno-ircd',     # long ircd name
-        VERSION => $VERSION,        # combination of these 3 in VERSION
-        PROTO   => '6.1',
-        START   => time,
-        NOFORK  => 'NOFORK' ~~ @ARGV,
-
-        # vars that need to be set
-        connection_count      => 0,
-        max_connection_count  => 0,
-        max_global_user_count => 0,
-        max_local_user_count  => 0
-    )
-}
-
-# API engine logging.
-sub api_log {
-    my ($event, $msg) = @_;
-    log2($msg);
-}
-
 # get version from VERSION file.
 # $::VERSION = version of IRCd when it was started; version of static code
 # $ircd::VERSION = version of ircd.pm and all reloadable packages at last reload
@@ -524,6 +505,8 @@ sub get_version {
 sub add_internal_channel_modes {
     my $server = shift;
     log2('registering channel status modes');
+    $server->{cmodes}      = {};
+    %channel_mode_prefixes = ();
 
     # [letter, symbol, name]
     foreach my $name ($ircd::conf->keys_of_block('prefixes')) {
@@ -549,7 +532,7 @@ sub add_internal_channel_modes {
 # get a +modes string
 sub channel_mode_string {
     my @modes = sort { $a cmp $b } map { $_->[1] } $ircd::conf->values_of_block('modes', 'channel');
-    return join '', @modes
+    return join '', @modes;
 }
 
 ##################
@@ -560,6 +543,7 @@ sub channel_mode_string {
 # mode is associated with what letter as defined by the configuration
 sub add_internal_user_modes {
     my $server = shift;
+    $server->{umodes} = {};
     return unless $ircd::conf->has_block(['modes', 'user']);
     log2("registering user mode letters");
     foreach my $name ($ircd::conf->keys_of_block(['modes', 'user'])) {
@@ -571,7 +555,7 @@ sub add_internal_user_modes {
 # returns a string of every mode
 sub user_mode_string {
     my @modes = sort { $a cmp $b } $ircd::conf->values_of_block(['modes', 'user']);
-    return join '', @modes
+    return join '', @modes;
 }
 
-1
+$mod

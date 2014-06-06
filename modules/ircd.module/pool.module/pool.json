@@ -1,0 +1,11 @@
+{
+   "version" : "0.4",
+   "name" : "ircd::pool",
+   "no_bless" : 1,
+   "author" : {
+      "website" : "https://github.com/cooper",
+      "name" : "Mitchell Cooper"
+   },
+   "description" : "manage IRC objects",
+   "package" : "pool"
+}

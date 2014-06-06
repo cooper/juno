@@ -1,11 +1,21 @@
-#!/usr/bin/perl
-# Copyright (c) 2010-14, Mitchell Cooper
+# Copyright (c) 2009-14, Mitchell Cooper
+#
+# @name:            "ircd::server::linkage"
+# @package:         "server::linkage"
+# @description:     "manages server connections"
+# @no_bless:        1
+#
+# @author.name:     "Mitchell Cooper"
+# @author.website:  "https://github.com/cooper"
+#
 package server::linkage;
 
 use warnings;
 use strict;
 
 use utils qw(conf log2 v notice);
+
+our ($api, $mod);
 
 # connect to a server in the configuration
 sub connect_server {
@@ -105,4 +115,4 @@ sub _end {
     
 }
 
-1
+$mod

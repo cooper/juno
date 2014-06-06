@@ -1,5 +1,13 @@
-#!/usr/bin/perl
-# Copyright (c) 2010-14, Mitchell Cooper
+# Copyright (c) 2009-14, Mitchell Cooper
+#
+# @name:            "ircd::utils"
+# @package:         "utils"
+# @description:     "provides convenience and utility functions"
+# @no_bless:        1
+#
+# @author.name:     "Mitchell Cooper"
+# @author.website:  "https://github.com/cooper"
+#
 package utils;
 
 use warnings;
@@ -8,6 +16,8 @@ use 5.010;
 use utf8;
 
 use Scalar::Util qw(blessed looks_like_number);
+
+our ($api, $mod);
 
 # array contains
 sub contains (+$) {
@@ -41,9 +51,10 @@ sub conn {
 # log errors/warnings
 
 sub log2 {
-    my $line = shift;
-    my $sub  = shift // (caller 1)[3];
-    my $log  = time.q( ).($sub && $sub ne '(eval)' ? "$sub():" : q([).(caller)[0].q(])).q( ).$line;
+    my ($line, @caller) = (shift, caller 1);
+    my $sub  = shift // $caller[3];
+    my $info = $sub && $sub ne '(eval)' ? "$sub():" : "[$caller[0]]";
+    my $log  = time." $info $line";
     $::pool->fire(log => $log) if $::pool && pool->can('fire');
     return if !$::NOFORK  && defined $::PID;
     say($log);
@@ -68,6 +79,7 @@ sub col {
 
 # find an object by it's id (server, user) or channel name
 sub global_lookup {
+    return unless pool->can('lookup_server');
     my $id = shift;
     my $server = $::pool->lookup_server($id);
     my $user   = $::pool->lookup_user($id);
@@ -112,7 +124,7 @@ sub validchan {
 # match a list
 sub match {
     my ($what, @list) = @_;
-    return $::pool->user_match($what, @list) if blessed $what;
+    return $::pool->user_match($what, @list) if $::pool && blessed $what;
     return irc_match($what, @list);
 }
 
@@ -193,6 +205,7 @@ sub set_v ($$) {
 
 # send a notice to opers.
 sub notice {
+    return unless pool->can('fire_oper_notice');
     my $sub = (caller 1)[3];
     my ($amnt, $key, $str) = $::pool->fire_oper_notice(@_);
     log2("$key: $str", $sub) if $str;
@@ -211,4 +224,4 @@ sub import {
     *{$package.'::'.$_} = *{$this_package.'::'.$_} foreach @_
 }
 
-1
+$mod

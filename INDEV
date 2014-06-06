@@ -2251,7 +2251,7 @@ CHANGES:
         11. refined new server burst logic.
             fixed protocol errors with AUM and ACM when no modes are registered on a server.
         
-        
+        12. all IRCd packages are now contained within IRCd modules.
         
         
         

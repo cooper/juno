@@ -1,5 +1,13 @@
-#!/usr/bin/perl
-# Copyright (c) 2010-14, Mitchell Cooper
+# Copyright (c) 2009-14, Mitchell Cooper
+#
+# @name:            "ircd::connection"
+# @package:         "connection"
+# @description:     "represents a connection to the server"
+# @no_bless:        1
+#
+# @author.name:     "Mitchell Cooper"
+# @author.website:  "https://github.com/cooper"
+#
 package connection;
 
 use warnings;
@@ -11,6 +19,8 @@ use Socket::GetAddrInfo;
 use Scalar::Util 'weaken';
 
 use utils qw(log2 col conn conf match v notice);
+
+our ($api, $mod);
 
 sub new {
     my ($class, $stream) = @_;
@@ -366,4 +376,4 @@ sub obj {
     shift->{stream}{write_handle} # XXX select
 }
 
-1
+$mod

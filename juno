@@ -2,7 +2,6 @@
 # Copyright (c) 2010-14, Mitchell Cooper
 
 DIR=`dirname "$(cd "${0%/*}" 2>/dev/null; echo "$PWD"/"${0##*/}")"`
-ARGS=$@
 
 showusage() {
     cat << EOF
@@ -110,7 +109,7 @@ stop() {
 }
 
 main() {
-    case "${ARGS[0]}" in
+    case "$1" in
 
         start)
             start
@@ -160,13 +159,29 @@ main() {
         lines)
             $DIR/bin/lines
             ;;
+            
+        dev)
+            case "$2" in
+            
+                makemodule)
+                    mkdir -p $DIR/modules/${3}.module
+                    touch $DIR/modules/${3}.module/$(basename $3).pm
+                ;;
+                
+                *)
+                    showusage
+                ;;
+                
+            esac
+        ;;
+            
 
         help)
             showusage
             ;;
 
         *)
-            echo "Incorrect parameter: ${ARGS[0]}"
+            echo "Incorrect parameter: $1"
             echo "$0 help for help"
             ;;
 
@@ -179,4 +194,4 @@ if [ ! "$1" ]; then
 fi
 
 runningq
-main
+main $@
