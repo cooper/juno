@@ -4,6 +4,7 @@
 # @package:         "utils"
 # @description:     "provides convenience and utility functions"
 # @no_bless:        1
+# @preserve_sym:    1
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

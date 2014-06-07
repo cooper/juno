@@ -31,18 +31,18 @@ BEGIN {
     
     # add these to @INC if they are not there already.
     foreach (
-        "$::run_dir/lib/api-engine",
-        "$::run_dir/lib/evented-object/lib",
-        "$::run_dir/lib/evented-api-engine/lib",
-        "$::run_dir/lib/evented-configuration/lib",
-        "$::run_dir/lib/evented-database",
+        "$run_dir/lib/api-engine",
+        "$run_dir/lib/evented-object/lib",
+        "$run_dir/lib/evented-api-engine/lib",
+        "$run_dir/lib/evented-configuration/lib",
+        "$run_dir/lib/evented-database",
     ) { unshift @INC, $_ unless $_ ~~ @INC }
     
     require Evented::API::Engine;
 }
 
 sub get_version {
-    open my $fh, '<', "$::run_dir/VERSION" or die "Cannot read VERSION";
+    open my $fh, '<', "$run_dir/VERSION" or die "Cannot read VERSION";
     my $version = <$fh>;
     close $fh;
     $version =~ s/\s+//g;

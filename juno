@@ -13,8 +13,17 @@ usage: $0 [action]
     forever     run continuously
     foreverd    run continuously in debug mode
     rehash      rehash the server configuration file
-    help        print this information
     mkpasswd    runs the password generator
+    dev         various developer actions ($0 dev help)
+    help        print this information
+EOF
+}
+
+showdevusage() {
+    cat << EOF
+usage: $0 dev [action]
+    makemodule  create a .module and .pm
+    pullsubs    run git pull for all submodules
 EOF
 }
 
@@ -168,21 +177,27 @@ main() {
                     touch $DIR/modules/${3}.module/$(basename $3).pm
                 ;;
                 
+                pullsubs)
+                    oldpwd=$(pwd)
+                    for MOD in $(ls $DIR/lib)
+                    do
+                        echo "=> Updating $MOD"
+                        cd $DIR/lib/$MOD
+                        git pull origin master
+                        cd $oldpwd
+                    done
+                ;;
+                
                 *)
-                    showusage
+                    showdevusage
                 ;;
                 
             esac
         ;;
             
 
-        help)
-            showusage
-            ;;
-
         *)
-            echo "Incorrect parameter: $1"
-            echo "$0 help for help"
+            showusage
             ;;
 
     esac

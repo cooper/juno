@@ -132,7 +132,7 @@ sub modload {
     $user->server_notice(modload => "Loading module \2$mod_name\2.");
 
     # attempt.
-    my $cb     = $api->on(log => sub { $user->server_notice("- $_[1]") }, name => 'core.uc.modload');
+    my $cb     = $api->on(log => sub { $user->server_notice("- $_[1]") }, name => 'mm.modload');
     my $result = $api->load_module($mod_name);
     $api->delete_callback(log => $cb->{name});
 
@@ -154,7 +154,7 @@ sub modunload {
     $user->server_notice(modunload => "Unloading module \2$mod_name\2.");
 
     # attempt.
-    my $cb     = $api->on(log => sub { $user->server_notice("- $_[1]") }, name => 'core.uc.modunload');
+    my $cb     = $api->on(log => sub { $user->server_notice("- $_[1]") }, name => 'mm.modunload');
     my $result = $api->unload_module($mod_name);
     $api->delete_callback(log => $cb->{name});
 
@@ -173,14 +173,24 @@ sub modunload {
 
 sub modreload {
     my ($user, $data, $mod_name) = @_;
-    $user->server_notice("Reloading module \2$mod_name\2.");
-    
-    # simply handle the other two commands.
-    my $modload = \&modload;
-     modunload($user, undef, $mod_name) or return;
-    $modload->($user, undef, $mod_name) or return;
-    
+    $user->server_notice(modreload => "Reloading module \2$mod_name\2.");
+
+    # attempt.
+    my $cb     = $api->on(log => sub { $user->server_notice("- $_[1]") }, name => 'mm.modreload');
+    my $result = $api->reload_module($mod_name);
+    $api->delete_callback(log => $cb->{name});
+
+    # failure.
+    if (!$result) {
+        $user->server_notice(modreload => 'Module failed to reload.');
+        return;
+    }
+
+    # success.
+    $user->server_notice(modreload => 'Module reloaded successfully.');
+    notice(module_reload => $user->notice_info, $result);
     return 1;
+
 }
 
 $mod

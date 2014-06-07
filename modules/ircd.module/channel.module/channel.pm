@@ -4,6 +4,7 @@
 # @package:         "channel"
 # @description:     "represents an IRC channel"
 # @no_bless:        1
+# @preserve_sym:    1
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

@@ -2253,6 +2253,11 @@ CHANGES:
         
         12. all IRCd packages are now contained within IRCd modules.
         
+        13. updated Evented::API::Engine.
+            continued the relocation of ircd.pm and friends into the ircd module.
+            updated MODRELOAD command to utilize the new functionality provided by Evented::API::Engine.
+            the ircd module can now be reloaded without error.
+        
         
         
         

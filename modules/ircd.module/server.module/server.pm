@@ -4,6 +4,7 @@
 # @package:         "server"
 # @description:     "represents an IRC server"
 # @no_bless:        1
+# @preserve_sym:    1
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

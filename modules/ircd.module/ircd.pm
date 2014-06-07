@@ -5,6 +5,7 @@
 # @description:     "main IRCd module"
 # @version:         $ircd::VERSION || $main::VERSION
 # @no_bless:        1
+# @preserve_sym:    1
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"
@@ -139,6 +140,10 @@ sub init {
     return 1;
 }
 
+# refuse unload unless reloading.
+sub void {
+    return $mod->{reloading};
+}
 
 # load or reload a package.
 sub load_or_reload {
