@@ -24,6 +24,7 @@ showdevusage() {
 usage: $0 dev [action]
     makemodule  create a .module and .pm
     pullsubs    run git pull for all submodules
+    runlocal    run in debug mode using local submodules
 EOF
 }
 
@@ -188,6 +189,13 @@ main() {
                     done
                 ;;
                 
+                runlocal)
+                    perl -I$DIR/../evented-object/lib -I$DIR/../evented-configuration/lib   \
+                         -I$DIR/../evented-database   -I$DIR/../evented-api-engine/lib      \
+                         -MEvented::Object -MEvented::Configuration -MEvented::Database     \
+                         -MEvented::API::Engine $DIR/bin/ircd . NOFORK
+                ;;
+                    
                 *)
                     showdevusage
                 ;;
