@@ -35,13 +35,13 @@ sub register_server_command {
     foreach my $what (qw|name code|) {
         next if exists $opts{$what};
         $opts{name} ||= 'unknown';
-        $mod->_log("server command $opts{name} does not have '$what' option");
+        L("server command $opts{name} does not have '$what' option");
         return
     }
 
     # make sure CODE is supplied
     if (ref $opts{code} ne 'CODE') {
-        $mod->_log("server command $opts{name} didn't supply CODE");
+        L("server command $opts{name} didn't supply CODE");
         return
     }
 
@@ -69,7 +69,7 @@ sub register_server_command {
 
         # check argument count
         if (scalar @args < scalar @{ $opts{parameters} }) {
-            $mod->_log("Protocol error: $$server{name}: $command not enough arguments for command");
+            L("Protocol error: $$server{name}: $command not enough arguments for command");
             $server->{conn}->done('Protocol error');
             return
         }
@@ -80,7 +80,7 @@ sub register_server_command {
             when ('source') {
                 my $source = utils::global_lookup(my $id = col($args[$i]));
                 if (!$source) {
-                    $mod->_log("Protocol error: $$server{name}: $command could not get source: $id");
+                    L("Protocol error: $$server{name}: $command could not get source: $id");
                     $server->{conn}->done('Protocol error');
                     return;
                 }
@@ -91,7 +91,7 @@ sub register_server_command {
             when ('server') {
                 my $serv = $::pool->lookup_server(my $id = col($args[$i]));
                 if (!$serv) {
-                    $mod->_log("Protocol error: $$server{name}: $command could not get server: $id");
+                    L("Protocol error: $$server{name}: $command could not get server: $id");
                     $server->{conn}->done('Protocol error');
                     return
                 }
@@ -102,7 +102,7 @@ sub register_server_command {
             when ('user') {
                 my $user = $::pool->lookup_user(my $id = col($args[$i]));
                 if (!$user) {
-                    $mod->_log("Protocol error: $$server{name}: $command could not get user: $id");
+                    L("Protocol error: $$server{name}: $command could not get user: $id");
                     $server->{conn}->done('Protocol error');
                     return
                 }
@@ -113,7 +113,7 @@ sub register_server_command {
             when ('channel') {
                 my $channel = $::pool->lookup_channel(my $chname = col($args[$i]));
                 if (!$channel) {
-                    $mod->_log("Protocol error: $$server{name}: $command could not get channel: $chname");
+                    L("Protocol error: $$server{name}: $command could not get channel: $chname");
                     $server->{conn}->done('Protocol error');
                     return
                 }
@@ -155,7 +155,7 @@ sub register_server_command {
         $opts{forward}
     ) or return;
     
-    $mod->_log("JELP command handler $opts{name} registered");
+    L("JELP command handler $opts{name} registered");
     $mod->list_store_add('server_commands', $opts{name});
     return 1;
 }
@@ -167,7 +167,7 @@ sub register_outgoing_command {
     foreach my $what (qw|name code|) {
         next if exists $opts{$what};
         $opts{name} ||= 'unknown';
-        $mod->_log("outgoing command $opts{name} does not have '$what' option");
+        L("outgoing command $opts{name} does not have '$what' option");
         return
     }
 
@@ -179,7 +179,7 @@ sub register_outgoing_command {
         $opts{code}
     ) or return;
 
-    $mod->_log("JELP outgoing command $opts{name} registered");
+    L("JELP outgoing command $opts{name} registered");
     $mod->list_store_add('outgoing_commands', $opts{name});
     return 1;
 }

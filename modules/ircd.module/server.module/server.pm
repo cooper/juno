@@ -3,6 +3,7 @@
 # @name:            "ircd::server"
 # @package:         "server"
 # @description:     "represents an IRC server"
+# @version:         ircd->VERSION
 # @no_bless:        1
 # @preserve_sym:    1
 #
@@ -16,7 +17,7 @@ use strict;
 use feature 'switch';
 use parent 'Evented::Object';
 
-use utils qw(log2 col v conf notice);
+use utils qw(col v conf notice);
 
 our ($api, $mod);
 
@@ -27,11 +28,17 @@ sub init {
 
 sub new {
     my ($class, %opts) = @_;
+    
+    # although currently unimportant, it is noteworthy that
+    # ->new() is never called for the local server. it is
+    # constructed manually before the server module is loaded.
+    
     return bless {
         umodes   => {},
         cmodes   => {},
         users    => [],
         children => [],
+        # if anything is added here, add to ircd.pm also.
         %opts
     }, $class;
 }
@@ -40,7 +47,7 @@ sub quit {
     my ($server, $reason, $why) = @_;
     $why //= $server->{name}.q( ).$server->{parent}{name};
 
-    log2("server $$server{name} has quit: $reason");
+    L("server $$server{name} has quit: $reason");
     notice(server_quit =>
         $server->{name},
         $server->{sid},
@@ -71,7 +78,7 @@ sub add_umode {
     $server->{umodes}{$name} = {
         letter => $mode
     };
-    log2("$$server{name} registered $mode:$name");
+    L("$$server{name} registered $mode:$name");
     return 1
 }
 
@@ -105,7 +112,7 @@ sub add_cmode {
         letter => $mode,
         type   => $type
     };
-    log2("$$server{name} registered $mode:$name");
+    L("$$server{name} registered $mode:$name");
     return 1
 }
 
@@ -150,7 +157,7 @@ sub convert_cmode_string {
     }
 
     my $newstring = join ' ', $string, @m;
-    log2("converted $modes to $string");
+    L("converted $modes to $string");
     return $newstring;
 }
 
@@ -339,7 +346,7 @@ sub is_local {
 
 sub DESTROY {
     my $server = shift;
-    log2("$server destroyed");
+    L("$server destroyed");
 }
 
 sub children {
@@ -382,7 +389,7 @@ sub handle {
 
         # if logging is enabled, log.
         if (conf('log', 'server_debug')) {
-            log2($server->{name}.q(: ).$line);
+            L($server->{name}.q(: ).$line);
         }
 
         my @s = split /\s+/, $line;
@@ -399,7 +406,7 @@ sub handle {
         }
 
         if (uc $s[0] eq 'ERROR') {
-            log2("received ERROR from $$server{name}");
+            L("received ERROR from $$server{name}");
             $server->{conn}->done('Received ERROR') if $server->{conn};
             return;
         }
@@ -412,7 +419,7 @@ sub handle {
         # but I don't want to do that because
         my @handlers = $::pool->server_handlers($command);
         if (!@handlers) {
-            log2("unknown command $command; ignoring it");
+            L("unknown command $command; ignoring it");
             next;
         }
 
@@ -488,7 +495,7 @@ sub send {
     print "[~S] @_\n";
     if (!$server->{conn}) {
         my $sub = (caller 1)[3];
-        log2("can't send data to a unconnected server! please report this error by $sub. $$server{name}");
+        L("can't send data to a unconnected server! please report this error by $sub. $$server{name}");
         return
     }
     $server->{conn}->send(@_);

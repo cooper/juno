@@ -3,6 +3,7 @@
 # @name:            "ircd::server::linkage"
 # @package:         "server::linkage"
 # @description:     "manages server connections"
+# @version:         ircd->VERSION
 # @no_bless:        1
 # @preserve_sym:    1
 #
@@ -14,7 +15,7 @@ package server::linkage;
 use warnings;
 use strict;
 
-use utils qw(conf log2 v notice);
+use utils qw(conf v notice);
 
 our ($api, $mod);
 
@@ -24,13 +25,13 @@ sub connect_server {
 
     # make sure we at least have some configuration information about the server.
     unless ($ircd::conf->has_block(['connect', $server_name])) {
-        log2("attempted to connect to nonexistent server: $server_name");
+        L("attempted to connect to nonexistent server: $server_name");
         return;
     }
     
     # then, ensure that the server is not connected already.
     if ($::pool->lookup_server_name($server_name)) {
-        log2("attempted to connect an already connected server: $server_name");
+        L("attempted to connect an already connected server: $server_name");
         return;
     }
 
@@ -46,11 +47,11 @@ sub connect_server {
     );
 
     if (!$socket) {
-        log2("could not connect to server $server_name: ".($! ? $! : $@));
+        L("could not connect to server $server_name: ".($! ? $! : $@));
         return;
     }
 
-    log2("connection established to server $server_name");
+    L("connection established to server $server_name");
     
     # create a stream.
     my $stream = IO::Async::Stream->new(
@@ -99,7 +100,7 @@ sub _end {
     # if we have an autoconnect_timer for this server, start a connection timer.
     my $timeout = conf(['connect', $server_name], 'auto_timeout');
     if ($timeout) {
-        log2("going to attempt to connect to server $server_name in $timeout seconds.");
+        L("going to attempt to connect to server $server_name in $timeout seconds.");
         
         # start the timer.
         my $timer = IO::Async::Timer::Periodic->new( 

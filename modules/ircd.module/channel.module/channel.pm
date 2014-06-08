@@ -3,6 +3,7 @@
 # @name:            "ircd::channel"
 # @package:         "channel"
 # @description:     "represents an IRC channel"
+# @version:         ircd->VERSION
 # @no_bless:        1
 # @preserve_sym:    1
 #
@@ -16,7 +17,7 @@ use strict;
 use feature 'switch';
 use parent 'Evented::Object';
 
-use utils qw(log2 conf v notice match);
+use utils qw(conf v notice match);
 
 sub new {
     my ($class, %opts) = @_;
@@ -41,12 +42,12 @@ sub unset_mode {
 
     # is the channel set to this mode?
     if (!$channel->is_mode($name)) {
-        log2("attempted to unset mode $name on that is not set on $$channel{name}; ignoring.")
+        L("attempted to unset mode $name on that is not set on $$channel{name}; ignoring.")
     }
 
     # it is, so remove it
     delete $channel->{modes}{$name};
-    log2("$$channel{name} -$name");
+    L("$$channel{name} -$name");
     return 1
 }
 
@@ -60,7 +61,7 @@ sub set_mode {
         time      => time
         # list for list modes and status
     };
-    log2("$$channel{name} +$name");
+    L("$$channel{name} +$name");
     return 1
 }
 
@@ -109,7 +110,7 @@ sub add_to_list {
         return;
     }
 
-    log2("$$channel{name}: adding $parameter to $name list");
+    L("$$channel{name}: adding $parameter to $name list");
     my $array = [$parameter, \%opts];
     push @{ $channel->{modes}{$name}{list} }, $array;
     
@@ -124,7 +125,7 @@ sub remove_from_list {
     my @new = grep { $_->[0] ne $what } @{ $channel->{modes}{$name}{list} };
     $channel->{modes}{$name}{list} = \@new;
     
-    log2("$$channel{name}: removing $what from $name list");
+    L("$$channel{name}: removing $what from $name list");
     return 1;
 }
 
@@ -202,7 +203,7 @@ sub has_user {
 sub set_time {
     my ($channel, $time) = @_;
     if ($time > $channel->{time}) {
-        log2("warning: setting time to a lower time from $$channel{time} to $time");
+        L("warning: setting time to a lower time from $$channel{time} to $time");
     }
     $channel->{time} = $time
 }
@@ -213,7 +214,7 @@ sub set_time {
 # you probably want to use ->do_mode_string(), which sends to users and servers.
 sub handle_mode_string {
     my ($channel, $server, $source, $modestr, $force, $over_protocol) = @_;
-    log2("set $modestr on $$channel{name} from $$server{name}");
+    L("set $modestr on $$channel{name} from $$server{name}");
 
     # array reference passed to mode blocks and used in the return
     my $parameters = [];
@@ -234,7 +235,7 @@ sub handle_mode_string {
         else {
             my $name = $server->cmode_name($letter);
             if (!defined $name) {
-                log2("unknown mode $letter!");
+                L("unknown mode $letter!");
                 next
             }
             
@@ -310,7 +311,7 @@ sub handle_mode_string {
     my $user_string   = join ' ', $str, @user_params;
     my $server_string = join ' ', $str, @server_params;
 
-    log2("end of mode handle");
+    L("end of mode handle");
     return ($user_string, $server_string)
 }
 
@@ -549,7 +550,7 @@ sub take_lower_time {
     my ($channel, $time, $ignore_modes) = @_;
     return $channel->{time} if $time >= $channel->{time}; # never take a time that isn't lower
 
-    log2("locally resetting $$channel{name} time to $time");
+    L("locally resetting $$channel{name} time to $time");
     my $amount = $channel->{time} - $time;
     $channel->set_time($time);
 

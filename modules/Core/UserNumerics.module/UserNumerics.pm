@@ -16,7 +16,7 @@ use warnings;
 use strict;
 use 5.010;
  
-use utils qw(log2 conf v);
+use utils qw(conf v);
 
 our ($api, $mod, $me);
 

@@ -35,7 +35,7 @@ sub register_oper_notice {
     foreach my $what (qw|name format|) {
         next if exists $opts{$what};
         $opts{name} ||= 'unknown';
-        $mod->_log("Oper notice '$opts{name}' does not have '$what' option");
+        L("Oper notice '$opts{name}' does not have '$what' option");
         return;
     }
     
@@ -47,7 +47,7 @@ sub register_oper_notice {
         $opts{format} // $opts{code}
     ) or return;
     
-    $mod->_log("Oper notice '$opts{name}' registered");
+    L("Oper notice '$opts{name}' registered");
     
     $mod->list_store_add('oper_notices', $opts{name});
     return 1;

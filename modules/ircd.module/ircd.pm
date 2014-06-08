@@ -27,12 +27,12 @@ our ($mod, %channel_mode_prefixes);
 sub init {
 
     $mod->load_submodule('utils') or return;
-    utils->import(qw|conf log2 fatal v trim|);
+    utils->import(qw|conf fatal v trim|);
     $VERSION = get_version();
     
     boot();
     
-    log2('Started server at '.scalar(localtime v('START')));
+    L('Started server at '.scalar(localtime v('START')));
     $::v{VERSION} = $VERSION;
     
     # TODO: probably check @INC.
@@ -60,43 +60,48 @@ sub init {
         $conf->create_tables_maybe;
     }
 
-    # create the pool.
-    # utils pool user user::mine server server::mine server::linkage channel channel::mine connection
-    $mod->load_submodule($_) or return foreach qw(pool user server channel connection);
-    $pool = $::pool = pool->new() if !$::pool;
+    # create the server before the server module is loaded.
+    # these default values will be added if not present,
+    # even when reloading the ircd module.
+    my $server = $::v{SERVER} ||= bless {}, 'server';
+    $server->{ $_->[0] } //= $_->[1] foreach (
+        [ umodes   => {} ],
+        [ cmodes   => {} ],
+        [ users    => [] ],
+        [ children => [] ]
+    );
+    $server->{parent} = $server; # looping reference, but it'll never be disposed of.
 
-    # create the main server object.
-    my $server = $::v{SERVER};
-    if (!$server) {
-    
-        $server = $pool->new_server(
-            source => conf('server', 'id'),
-            sid    => conf('server', 'id'),
-            name   => conf('server', 'name'),
-            desc   => conf('server', 'description'),
-            proto  => v('PROTO'),
-            ircd   => v('VERSION'),
-            time   => v('START'),
-            parent => { name => 'self' } # temporary for logging
-        );
-
-        # how is this possible?!?!
-        $server->{parent}  =
-        $::v{SERVER} = $server;
-        
-    }
-    
-    
     # exported variables in modules.
-    # note that these will not be available for any of the modules
-    # loaded prior to this.
+    # note that these will not be available in the utils module.
     $api->on('module.set_variables' => sub {
         my ($event, $pkg) = @_;
+        my $obj = $event->object;
         Evented::API::Hax::set_symbol($pkg, {
             '$me'   => $server,
-            '$pool' => $pool
+            '$pool' => $pool,
+            '*L'    => sub { _L($obj, [caller 1], @_) }
         });
     });
+
+    # load submodules. create the pool.
+    # utils pool user(::mine) server(::mine,::linkage) channel(::mine) connection
+    $mod->load_submodule($_) or return foreach qw(pool user server channel connection);
+    $pool = $::pool = pool->new unless $::pool;
+
+    # TODO: new values are NOT inserted after reloading.
+    # I had an idea once upon a time to make $server->configure(%opts)
+    # which would optionally only set the values if nothing exists there.
+    # but this works for now.
+    $pool->new_server($server,
+        source => conf('server', 'id'),
+        sid    => conf('server', 'id'),
+        name   => conf('server', 'name'),
+        desc   => conf('server', 'description'),
+        proto  => v('PROTO'),
+        ircd   => v('VERSION'),
+        time   => v('START')
+    ) if not exists $server->{source};
 
     # register modes.
     add_internal_channel_modes($server);
@@ -104,29 +109,32 @@ sub init {
     
     # load API modules.
     # FIXME: is this safe to call multiple times?
-    log2('Loading API configuration modules');
+    # it surely isn't pretty in logging.
+    L('Loading API configuration modules');
     $api->load_modules(@{ conf('api', 'modules') || [] });
-    log2('Done loading modules');
+    L('Done loading modules');
 
     # listen.
     create_sockets();
 
-    # delete the existing timer if there is one.
-    if ($timer) {
-        $loop->remove($timer) if $timer->is_running;
-        undef $::timer;
-        undef $timer;
-    }
+    # sub setup_timer {
     
-    # create a new timer.
-    $timer = $::timer = IO::Async::Timer::Periodic->new(
-        interval => 30,
-        on_tick  => \&ping_check
-    );
-    $loop->add($timer);
-    $timer->start;
+        # delete the existing timer if there is one.
+        if ($timer = $::timer) {
+            $loop->remove($timer) if $timer->is_running;
+        }
+        
+        # create a new timer.
+        $timer = $::timer = IO::Async::Timer::Periodic->new(
+            interval => 30,
+            on_tick  => \&ping_check
+        );
+        $loop->add($timer);
+        $timer->start;
+    
+    # }
 
-    log2("server initialization complete");
+    L("server initialization complete");
 
     # auto server connect.
     # FIXME: don't try to connect during reload if already connected.
@@ -152,7 +160,7 @@ sub load_or_reload {
     
     # it might be loaded with an appropriate version already.
     if ((my $v = $name->VERSION // -1) >= $min_v) {
-        log2("$name is loaded and up-to-date ($v)");
+        L("$name is loaded and up-to-date ($v)");
         return;
     }
     
@@ -169,18 +177,18 @@ sub load_or_reload {
     # it hasn't been loaded yet at all.
     # use require to load it the first time.
     if ($boot || !is_loaded($name)) {
-        log2("Loading $name");
-        require $file or log2("Very bad error: could not load $name!".($@ || $!));
+        L("Loading $name");
+        require $file or L("Very bad error: could not load $name!".($@ || $!));
         return;
     }
     
     # load it.
-    log2("Reloading package $name");
-    do $file or log2("Very bad error: could not load $name! ".($@ || $!)) and return;
+    L("Reloading package $name");
+    do $file or L("Very bad error: could not load $name! ".($@ || $!)) and return;
     
     # version check.
     if ((my $v = $name->VERSION // -1) < $min_v) {
-        log2("Very bad error: $name is outdated ($min_v required, $v loaded)");
+        L("Very bad error: $name is outdated ($min_v required, $v loaded)");
         return;
     }
     
@@ -231,12 +239,12 @@ sub create_sockets {
             ReuseAddr => 1,
             Type      => Socket::SOCK_STREAM(),
             Proto     => 'tcp'
-        ) or log2("Couldn't listen on [$addr]:$port: $!") and next;
+        ) or L("Couldn't listen on [$addr]:$port: $!") and next;
 
         # add to looped listener
         $listener->listen(handle => $socket);
 
-        log2("Listening on [$addr]:$port");
+        L("Listening on [$addr]:$port");
     } }
     
     return 1;
@@ -245,19 +253,19 @@ sub create_sockets {
 # stop the ircd
 sub terminate {
 
-    log2("removing all connections for server shutdown");
+    L("removing all connections for server shutdown");
 
     # delete all users/servers/other
     foreach my $connection ($::pool->connections) {
         $connection->done('Shutting down');
     }
 
-    log2("deleting PID file");
+    L("deleting PID file");
 
     # delete the PID file
     unlink 'etc/juno.pid' or fatal("Can't remove PID file");
 
-    log2("shutting down");
+    L("shutting down");
     exit
 }
 
@@ -268,7 +276,7 @@ sub signalpipe {
 }
 
 # handle warning
-sub WARNING { log2(shift) }
+sub WARNING { L(shift) }
 
 # handle connecting user or server
 sub handle_connect {
@@ -402,7 +410,7 @@ sub ping_check {
 
 # rehash the server.
 sub rehash {
-    eval { $::conf->parse_config } or log2("Configuration error: ".($@ || $!)) and return;
+    eval { $::conf->parse_config } or L("Configuration error: ".($@ || $!)) and return;
     create_sockets();
 }
 
@@ -433,7 +441,7 @@ sub boot {
     require IO::Async;
     require IO::Async::Loop;
 
-    log2("this is $global{NAME} version $global{VERSION}");
+    L("this is $global{NAME} version $global{VERSION}");
     $::loop = $loop = IO::Async::Loop->new;
     %::v    = %global;
     undef %global;
@@ -453,7 +461,7 @@ sub become_daemon {
 
     # become a daemon.
     if (!v('NOFORK')) {
-        log2('Becoming a daemon...');
+        L('Becoming a daemon...');
 
         # since there will be no input or output from here on,
         # open the filehandles to /dev/null
@@ -495,7 +503,7 @@ sub become_daemon {
 # $API::Module::Core::VERSION = version of the core module currently
 # v('VERSION') = same as $ircd::VERSION
 sub get_version {
-    open my $fh, '<', "$::run_dir/VERSION" or log2("Cannot open VERSION: $!") and return;
+    open my $fh, '<', "$::run_dir/VERSION" or L("Cannot open VERSION: $!") and return;
     my $version = trim(<$fh>);
     close $fh;
     return $version;
@@ -509,7 +517,7 @@ sub get_version {
 # mode is associated with what letter and type by configuration
 sub add_internal_channel_modes {
     my $server = shift;
-    log2('registering channel status modes');
+    L('registering channel status modes');
     $server->{cmodes}      = {};
     %channel_mode_prefixes = ();
 
@@ -520,7 +528,7 @@ sub add_internal_channel_modes {
         $channel_mode_prefixes{$p->[2]} = [ $p->[0], $p->[1], $name ]
     }
 
-    log2("registering channel mode letters");
+    L("registering channel mode letters");
 
     foreach my $name ($ircd::conf->keys_of_block(['modes', 'channel'])) {
         $server->add_cmode(
@@ -531,7 +539,7 @@ sub add_internal_channel_modes {
 
     }
 
-    log2("end of channel modes");
+    L("end of channel modes");
 }
 
 # get a +modes string
@@ -550,17 +558,29 @@ sub add_internal_user_modes {
     my $server = shift;
     $server->{umodes} = {};
     return unless $ircd::conf->has_block(['modes', 'user']);
-    log2("registering user mode letters");
+    L("registering user mode letters");
     foreach my $name ($ircd::conf->keys_of_block(['modes', 'user'])) {
         $server->add_umode($name, conf(['modes', 'user'], $name));
     }
-    log2("end of user mode letters");
+    L("end of user mode letters");
 }
 
 # returns a string of every mode
 sub user_mode_string {
     my @modes = sort { $a cmp $b } $ircd::conf->values_of_block(['modes', 'user']);
     return join '', @modes;
+}
+
+# L() must be explicitly defined in ircd.pm only.
+sub L { _L($mod, [caller 1], @_) }
+
+# this is called by L() throughout. it can be modified safely
+# past the $caller argument only.
+sub _L {
+    my ($obj, $caller, $line) = (shift, shift, shift);
+   (my $sub  = shift // $caller->[3]) =~ s/(.+)::(.+)/$2/;
+    my $info = $sub && $sub ne '(eval)' ? "$sub()" : $caller->[0];
+    $obj->_log("$info: $line");
 }
 
 $mod

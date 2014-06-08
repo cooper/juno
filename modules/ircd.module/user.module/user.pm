@@ -3,6 +3,7 @@
 # @name:            "ircd::user"
 # @package:         "user"
 # @description:     "represents an IRC user"
+# @version:         ircd->VERSION
 # @no_bless:        1
 # @preserve_sym:    1
 #
@@ -22,7 +23,7 @@ use overload
     '0+'     => sub { shift     },
     bool     => sub { 1         };
 
-use utils qw(log2 v notice col conf);
+use utils qw(v notice col conf);
 
 our ($api, $mod);
 
@@ -49,11 +50,11 @@ sub unset_mode {
 
     # is the user set to this mode?
     if (!$user->is_mode($name)) {
-        log2("attempted to unset mode $name on that is not set on $$user{nick}; ignoring.")
+        L("attempted to unset mode $name on that is not set on $$user{nick}; ignoring.")
     }
 
     # he is, so remove it
-    log2("$$user{nick} -$name");
+    L("$$user{nick} -$name");
     @{ $user->{modes} } = grep { $_ ne $name } @{ $user->{modes} }
 
 }
@@ -61,13 +62,13 @@ sub unset_mode {
 sub set_mode {
     my ($user, $name) = @_;
     return if $user->is_mode($name);
-    log2("$$user{nick} +$name");
+    L("$$user{nick} +$name");
     push @{ $user->{modes} }, $name
 }
 
 sub quit {
     my ($user, $reason) = @_;
-    log2("user quit from $$user{server}{name} uid:$$user{uid} $$user{nick}!$$user{ident}\@$$user{host} [$$user{real}] ($reason)");
+    L("user quit from $$user{server}{name} uid:$$user{uid} $$user{nick}!$$user{ident}\@$$user{host} [$$user{real}] ($reason)");
     notice(user_quit => $user->notice_info, $user->{real}, $user->{server}{name}, $reason);
     
     my %sent = ( $user => 1 );
@@ -102,7 +103,7 @@ sub change_nick {
 # string, or '+' if no changes were made.
 sub handle_mode_string {
     my ($user, $modestr, $force) = @_;
-    log2("set $modestr on $$user{nick}");
+    L("set $modestr on $$user{nick}");
     my $state = 1;
     my $str   = '+';
     letter: foreach my $letter (split //, $modestr) {
@@ -117,7 +118,7 @@ sub handle_mode_string {
         else {
             my $name = $user->{server}->umode_name($letter);
             if (!defined $name) {
-                log2("unknown mode $letter!");
+                L("unknown mode $letter!");
                 next
             }
 
@@ -148,7 +149,7 @@ sub handle_mode_string {
     $str =~ s/\+\-/\-/g;
     $str =~ s/\-\+/\+/g;
 
-    log2("end of mode handle");
+    L("end of mode handle");
     return '' if $str eq '+' || $str eq '-';
     return $str;
 }
@@ -168,7 +169,7 @@ sub add_flags {
     my $user  = shift;
     my @flags = grep { !$user->has_flag($_) } @_;
     return unless scalar @flags;
-    log2("adding flags to $$user{nick}: @flags");
+    L("adding flags to $$user{nick}: @flags");
     notice(user_opered => $user->notice_info, $user->{server}{name}, "@flags");
     push @{ $user->{flags} }, @flags;
     return @flags;
@@ -179,7 +180,7 @@ sub remove_flags {
     my $user   = shift;
     my @remove = @_;
     my %r;
-    log2("removing flags from $$user{nick}: @remove");
+    L("removing flags from $$user{nick}: @remove");
 
     @r{@remove}++;
 
@@ -201,13 +202,13 @@ sub has_flag {
 sub set_away {
     my ($user, $reason) = @_;
     $user->{away} = $reason;
-    log2("$$user{nick} is now away: $reason");
+    L("$$user{nick} is now away: $reason");
 }
 
 # return from away
 sub unset_away {
     my $user = shift;
-    log2("$$user{nick} has returned from being away: $$user{away}");
+    L("$$user{nick} has returned from being away: $$user{away}");
     delete $user->{away};
 }
 
@@ -252,7 +253,7 @@ sub notice_info {
 
 sub DESTROY {
     my $user = shift;
-    log2("$user destroyed");
+    L("$user destroyed");
 }
 
 sub id            { shift->{uid}  }
@@ -266,7 +267,7 @@ sub safe {
     my $user = shift;
     if (!$user->is_local) {
         my $sub = (caller 1)[3];
-        log2("Attempted to call ->${sub}() on nonlocal user");
+        L("Attempted to call ->${sub}() on nonlocal user");
         return;
     }
     return ($user, @_);
@@ -320,7 +321,7 @@ sub send {
     my $user = shift;
     if (!$user->{conn}) {
         my $sub = (caller 1)[3];
-        log2("can't send data to a nonlocal or disconnected user! $$user{nick}");
+        L("can't send data to a nonlocal or disconnected user! $$user{nick}");
         return;
     }
     $user->{conn}->send(@_);
@@ -367,7 +368,7 @@ sub numeric {
     
     # does not exist.
     if (!$::pool->numeric($const)) {
-        log2("attempted to send nonexistent numeric $const");
+        L("attempted to send nonexistent numeric $const");
         return;
     }
     

@@ -3,6 +3,7 @@
 # @name:            "ircd::pool"
 # @package:         "pool"
 # @description:     "manage IRC objects"
+# @version:         ircd->VERSION
 # @no_bless:        1
 # @preserve_sym:    1
 #
@@ -17,7 +18,7 @@ use 5.010;
 use parent 'Evented::Object';
 
 use Scalar::Util qw(weaken blessed);
-use utils qw(v set_v log2 notice);
+use utils qw(v set_v notice);
 
 our ($api, $mod);
 
@@ -92,12 +93,25 @@ sub connections { values %{ shift->{connections} } }
 
 # create a server.
 sub new_server {
-    my ($pool, %opts) = @_;
-    my $server = server->new(%opts) or return;
+    my $pool = shift;
+    
+    # if the first arg is blessed, it's a server.
+    # this is used only for the local server.
+    my $server = shift;
+    if (blessed $server) {
+        my %opts = @_;
+        @$server{keys %opts} = values %opts;
+    }
+    
+    # not blessed, just options.
+    else {
+        unshift @_, $server;
+        $server = server->new(@_) or return;
+    }
     
     # store it by ID and name.
-    $pool->{servers}{ $opts{sid} } =
-    $pool->{server_names}{ lc $opts{name} } = $server;
+    $pool->{servers}{ $server->{sid} } =
+    $pool->{server_names}{ lc $server->{name} } = $server;
     
     # weakly reference to the pool.
     weaken($server->{pool} = $pool);
@@ -147,7 +161,7 @@ sub delete_server {
     delete $pool->{servers}{ $server->{sid} };
     delete $pool->{server_names}{ lc $server->{name} };
     
-    log2("deleted server $$server{name}");
+    L("deleted server $$server{name}");
     return 1;
 }
 
@@ -221,7 +235,7 @@ sub delete_user {
     delete $pool->{users}{ $user->{uid} };
     delete $pool->{nicks}{ lc $user->{nick} };
     
-    log2("deleted user $$user{nick}");
+    L("deleted user $$user{nick}");
     return 1;
 }
 
@@ -232,7 +246,7 @@ sub change_user_nick {
     # make sure it doesn't exist first.
     my $in_use = $pool->lookup_user_nick($newnick);
     if ($in_use && $in_use != $user) {
-        log2("attempted to change nicks to a nickname that already exists! $newnick");
+        L("attempted to change nicks to a nickname that already exists! $newnick");
         return;
     }
     
@@ -261,7 +275,7 @@ sub new_channel {
     
     # make sure it doesn't exist already.
     if ($pool->{channels}{ lc $opts{name} }) {
-        log2("attempted to create channel that already exists: $opts{name}");
+        L("attempted to create channel that already exists: $opts{name}");
         return;
     }
     
@@ -276,7 +290,7 @@ sub new_channel {
     # become an event listener.
     $channel->add_listener($pool, 'channel');
     
-    log2("new channel $opts{name} at $opts{time}");
+    L("new channel $opts{name} at $opts{time}");
     return $channel;
 }
 
@@ -304,7 +318,7 @@ sub delete_channel {
     delete $channel->{pool};
     delete $pool->{channels}{ lc $channel->name };
     
-    log2("deleted channel $$channel{name}");
+    L("deleted channel $$channel{name}");
     return 1;
 }
 
@@ -320,7 +334,7 @@ sub register_user_handler {
 
     # does it already exist?
     if (exists $pool->{user_commands}{$command}) {
-        log2("attempted to register $command which already exists");
+        L("attempted to register $command which already exists");
         return;
     }
 
@@ -328,7 +342,7 @@ sub register_user_handler {
 
     # ensure that it is CODE
     if (ref $ref ne 'CODE') {
-        log2("not a CODE reference for $command");
+        L("not a CODE reference for $command");
         return;
     }
 
@@ -341,14 +355,14 @@ sub register_user_handler {
         fantasy => $fantasy
     };
     
-    log2("$source registered $command: $desc");
+    #L("$source registered $command: $desc");
     return 1;
 }
 
 # unregister handler
 sub delete_user_handler {
     my ($pool, $command) = (shift, uc shift);
-    log2("deleting handler $command");
+    #L("deleting handler $command");
     delete $pool->{user_commands}{$command};
 }
 
@@ -367,12 +381,12 @@ sub register_numeric {
 
     # does it already exist?
     if (exists $pool->{numerics}{$numeric}) {
-        log2("attempted to register $numeric which already exists");
+        L("attempted to register $numeric which already exists");
         return;
     }
 
     $pool->{numerics}{$numeric} = [$num, $fmt];
-    log2("$source registered $numeric $num");
+    #L("$source registered $numeric $num");
     return 1;
 }
 
@@ -382,12 +396,12 @@ sub delete_numeric {
 
     # does it exist?
     if (!exists $pool->{numerics}{$numeric}) {
-        log2("attempted to delete $numeric which does not exists");
+        L("attempted to delete $numeric which does not exists");
         return;
     }
 
     delete $pool->{numerics}{$numeric};
-    log2("$source deleted $numeric");
+    #L("$source deleted $numeric");
     
     return 1;
 }
@@ -408,12 +422,12 @@ sub register_notice {
 
     # does it already exist?
     if (exists $pool->{oper_notices}{$notice}) {
-        log2("attempted to register $notice which already exists");
+        L("attempted to register $notice which already exists");
         return;
     }
 
     $pool->{oper_notices}{$notice} = $fmt;
-    log2("$source registered oper notice '$notice'");
+    #L("$source registered oper notice '$notice'");
     return 1;
 }
 
@@ -423,12 +437,12 @@ sub delete_notice {
 
     # does it exist?
     if (!exists $pool->{oper_notices}{$notice}) {
-        log2("attempted to delete oper notice '$notice' which does not exists");
+        L("attempted to delete oper notice '$notice' which does not exists");
         return;
     }
 
     delete $pool->{oper_notices}{$notice};
-    log2("$source deleted oper notice '$notice'");
+    #L("$source deleted oper notice '$notice'");
     
     return 1;
 }
@@ -474,14 +488,14 @@ sub register_server_handler {
 
     # does it already exist?
     if (exists $pool->{server_commands}{$command}) {
-        log2("attempted to register $command which already exists");
+        L("attempted to register $command which already exists");
         return;
     }
 
     # ensure that it is CODE
     my $ref = shift;
     if (ref $ref ne 'CODE') {
-        log2("not a CODE reference for $command");
+        L("not a CODE reference for $command");
         return;
     }
 
@@ -492,14 +506,14 @@ sub register_server_handler {
         forward => shift
     };
     
-    log2("$source registered $command");
+    #L("$source registered $command");
     return 1;
 }
 
 # unregister
 sub delete_server_handler {
     my ($pool, $command) = (shift, uc shift);
-    log2("deleting handler $command");
+    #L("deleting handler $command");
     delete $pool->{server_commands}{$command};
 }
 
@@ -518,14 +532,14 @@ sub register_outgoing_handler {
 
     # does it already exist?
     if (exists $pool->{outgoing_commands}{$command}) {
-        log2("attempted to register $command which already exists");
+        L("attempted to register $command which already exists");
         return;
     }
 
     # ensure that it is CODE.
     my $ref = shift;
     if (ref $ref ne 'CODE') {
-        log2("not a CODE reference for $command");
+        L("not a CODE reference for $command");
         return;
     }
 
@@ -535,14 +549,14 @@ sub register_outgoing_handler {
         source  => $source
     };
     
-    log2("$source registered $command");
+    #L("$source registered $command");
     return 1;
 }
 
 # delete an outgoing server command.
 sub delete_outgoing_handler {
     my ($pool, $command) = (shift, uc shift);
-    log2("deleting handler $command");
+    #L("deleting handler $command");
     delete $pool->{outgoing_commands}{$command};
 }
 
@@ -553,7 +567,7 @@ sub fire_command {
     
     # command does not exist.
     if (!$pool->{outgoing_commands}{$command}) {
-        log2((caller)[0]." fired $command which does not exist");
+        L((caller)[0]." fired $command which does not exist");
         return;
     }
 
@@ -570,7 +584,7 @@ sub fire_command_all {
     
     # command does not exist.
     if (!$pool->{outgoing_commands}{$command}) {
-        log2((caller)[0]." fired $command which does not exist");
+        L((caller)[0]." fired $command which does not exist");
         return;
     }
 
@@ -591,18 +605,18 @@ sub register_user_mode_block {
 
     # not a code reference.
     if (ref $code ne 'CODE') {
-        log2((caller)[0]." tried to register a block to $name that isn't CODE.");
+        L((caller)[0]." tried to register a block to $name that isn't CODE.");
         return;
     }
 
     # already exists from this source.
     if (exists $pool->{user_modes}{$name}{$what}) {
-        log2((caller)[0]." tried to register $what to $name which is already registered");
+        L((caller)[0]." tried to register $what to $name which is already registered");
         return;
     }
 
     $pool->{user_modes}{$name}{$what} = $code;
-    log2("registered $name from $what");
+    #L("registered $name from $what");
     return 1;
 }
 
@@ -611,7 +625,7 @@ sub delete_user_mode_block {
     my ($pool, $name, $what) = @_;
     if (exists $pool->{user_modes}{$name}{$what}) {
         delete $pool->{user_modes}{$name}{$what};
-        log2("deleting user mode block for $name: $what");
+        #L("deleting user mode block for $name: $what");
         return 1;
     }
     return;
@@ -650,17 +664,17 @@ sub register_channel_mode_block {
     
     # not a code reference.
     if (ref $code ne 'CODE') {
-        log2((caller)[0]." tried to register a block to $name that isn't CODE.");
+        L((caller)[0]." tried to register a block to $name that isn't CODE.");
         return;
     }
     
     # it exists already from this source.
     if (exists $pool->{channel_modes}{$name}{$what}) {
-        log2((caller)[0]." tried to register $name to $what which is already registered");
+        L((caller)[0]." tried to register $name to $what which is already registered");
         return;
     }
     
-    log2("registered $name from $what");
+    #L("registered $name from $what");
     $pool->{channel_modes}{$name}{$what} = $code;
     return 1;
 }
@@ -670,7 +684,7 @@ sub delete_channel_mode_block {
     my ($pool, $name, $what) = @_;
     if (exists $pool->{channel_modes}{$name}{$what}) {
         delete $pool->{channel_modes}{$name}{$what};
-        log2("deleting channel mode block for $name: $what");
+        #L("deleting channel mode block for $name: $what");
         return 1;
     }
     return;

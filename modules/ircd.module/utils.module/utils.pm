@@ -3,6 +3,7 @@
 # @name:            "ircd::utils"
 # @package:         "utils"
 # @description:     "provides convenience and utility functions"
+# @version:         ircd->VERSION
 # @no_bless:        1
 # @preserve_sym:    1
 #
@@ -49,24 +50,12 @@ sub conn {
     return $::conf->get(['connect', $sec], $key);
 }
 
-# log errors/warnings
-
-sub log2 {
-    my ($line, @caller) = (shift, caller 1);
-    my $sub  = shift // $caller[3];
-    my $info = $sub && $sub ne '(eval)' ? "$sub():" : "[$caller[0]]";
-    my $log  = time." $info $line";
-    $::pool->fire(log => $log) if $::pool && pool->can('fire');
-    return if !$::NOFORK  && defined $::PID;
-    say($log);
-}
-
 # log and exit
 
 sub fatal {
     my $line = shift;
     my $sub = (caller 1)[3];
-    log2(($sub ? "$sub(): " : q..).$line);
+    L(($sub ? "$sub(): " : q..).$line);
     exit(shift() ? 0 : 1)
 }
 
@@ -172,7 +161,7 @@ sub crypt {
     
     # no such crypt.
     if (!defined $crypts{$crypt}) {
-        log2("Crypt error: Unknown crypt $crypt!");
+        L("Crypt error: Unknown crypt $crypt!");
         return;
     }
     
@@ -186,7 +175,7 @@ sub crypt {
     }
 
     # couldn't find the function.
-    log2("Crypt error: $package cannot $function!");
+    L("Crypt error: $package cannot $function!");
     return;
     
 }
@@ -209,7 +198,7 @@ sub notice {
     return unless pool->can('fire_oper_notice');
     my $sub = (caller 1)[3];
     my ($amnt, $key, $str) = $::pool->fire_oper_notice(@_);
-    log2("$key: $str", $sub) if $str;
+    L("$key: $str", $sub) if $str;
     return $str;
 }
 
@@ -224,5 +213,8 @@ sub import {
     no strict 'refs';
     *{$package.'::'.$_} = *{$this_package.'::'.$_} foreach @_
 }
+
+# utils must have its own L() because it is loaded before anything else.
+sub L { $mod->_log(@_) }
 
 $mod

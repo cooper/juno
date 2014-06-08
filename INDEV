@@ -2261,8 +2261,11 @@ CHANGES:
         14. update Evented::API::Engine.
             added "juno dev runlocal" command to run the IRCd in debug mode while using local submodule revisions.
         
-        
-        
+        15. improved module loading sequence.
+            improved logging from within modules, finally replacing the years-old log2() function (which was basically a wrapper to print()) with Evented::API::Engine's evented logging interface.
+            the server object is now magically created before the server module is loaded, allowing its availability ($me) in modules that are loaded beforehand.
+            other random cleanup and improvement.
+            
         
         
         

@@ -35,7 +35,7 @@ sub register_user_numeric {
     foreach my $what (qw|name number format|) {
         next if exists $opts{$what};
         $opts{name} ||= 'unknown';
-        $mod->_log("User numeric $opts{name} does not have '$what' option");
+        L("User numeric $opts{name} does not have '$what' option");
         return;
     }
 
@@ -47,7 +47,7 @@ sub register_user_numeric {
         $opts{format} // $opts{code}
     ) or return;
 
-    $mod->_log("User numeric $opts{name} $opts{number} registered");
+    L("User numeric $opts{name} $opts{number} registered");
     $mod->list_store_add('user_numerics', $opts{name});
     return 1;
 }

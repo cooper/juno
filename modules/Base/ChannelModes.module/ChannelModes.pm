@@ -35,7 +35,7 @@ sub register_channel_mode_block {
     foreach my $what (qw|name code|) {
         next if exists $opts{$what};
         $opts{name} ||= 'unknown';
-        $mod->_log("Channel mode block $opts{name} does not have '$what' option");
+        L("Channel mode block $opts{name} does not have '$what' option");
         return;
     }
     
@@ -47,7 +47,7 @@ sub register_channel_mode_block {
         $opts{code}
     );
     
-    $mod->_log("Channel mode block '$opts{name}' registered");
+    L("Channel mode block '$opts{name}' registered");
     $mod->list_store_add('channel_modes', $opts{name});
 }
 

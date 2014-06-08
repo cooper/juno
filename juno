@@ -193,7 +193,7 @@ main() {
                     perl -I$DIR/../evented-object/lib -I$DIR/../evented-configuration/lib   \
                          -I$DIR/../evented-database   -I$DIR/../evented-api-engine/lib      \
                          -MEvented::Object -MEvented::Configuration -MEvented::Database     \
-                         -MEvented::API::Engine $DIR/bin/ircd . NOFORK
+                         -MEvented::API::Engine $DIR/bin/ircd $DIR NOFORK
                 ;;
                     
                 *)

@@ -39,7 +39,7 @@ sub register_matcher {
         %opts
     ) or return;
     
-    $mod->_log("Matcher '$opts{name}' registered");
+    L("Matcher '$opts{name}' registered");
     $mod->list_store_add('matchers', $opts{name});    
     return $opts{name};
 }

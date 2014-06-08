@@ -224,14 +224,7 @@ sub on_user_joined {
     }
     
     # if they have >=0 status, don't give anything <0.
-    if ($highest >= 0) {
-        my @all_letters = @letters;
-        @letters = ();
-        foreach my $letter (@all_letters) {
-            next if $levels{$letter} < 0;
-            push @letters, $letter;
-        }
-    }
+    @letters = grep { $levels{$_} >= 0 } @letters if $highest >= 0;
     
     # create mode string.
     my $letters = join '', @letters;

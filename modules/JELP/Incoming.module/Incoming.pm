@@ -15,7 +15,7 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils qw(col log2 lceq match cut_to_limit conf v notice);
+use utils qw(col lceq match cut_to_limit conf v notice);
 
 our ($api, $mod, $pool);
 
@@ -185,7 +185,7 @@ sub sid {
 
     # do not allow SID or server name collisions
     if ($pool->lookup_server($ref->{sid}) || $pool->lookup_server_name($ref->{name})) {
-        log2("duplicate SID $$ref{sid} or server name $$ref{name}; dropping $$server{name}");
+        L("duplicate SID $$ref{sid} or server name $$ref{name}; dropping $$server{name}");
         $server->{conn}->done('attempted to introduce existing server');
         return
     }
@@ -212,14 +212,14 @@ sub uid {
     if ($pool->lookup_user($ref->{uid})) {
         # can't tolerate this.
         # the server is either not a juno server or is bugged/mentally unstable.
-        log2("duplicate UID $$ref{uid}; dropping $$server{name}");
+        L("duplicate UID $$ref{uid}; dropping $$server{name}");
         $server->{conn}->done('UID collision') if exists $server->{conn};
     }
 
     # nick collision?
     my $used = $pool->lookup_user_nick($ref->{nick});
     if ($used) {
-        log2("nick collision! $$ref{nick}");
+        L("nick collision! $$ref{nick}");
         if ($ref->{time} > $used->{time}) {
             # I lose
             $ref->{nick} = $ref->{uid}
@@ -278,7 +278,7 @@ sub burst {
     # :sid   BURST
     my ($server, $data, $serv) = @_;
     $serv->{is_burst} = time;
-    log2("$$serv{name} is bursting information");
+    L("$$serv{name} is bursting information");
     notice(server_burst => $server->{name}, $server->{sid});
 }
 
@@ -290,7 +290,7 @@ sub endburst {
     my $elapsed = time - $time;
     $serv->{sent_burst} = time;
     
-    log2("end of burst from $$serv{name}");
+    L("end of burst from $$serv{name}");
     notice(server_endburst => $server->{name}, $server->{sid}, $elapsed);
     
     # if we haven't sent our own burst yet, do so.
@@ -438,7 +438,7 @@ sub part {
 
     # ?!?!!?!
     if (!$channel->has_user($user)) {
-        log2("attempting to remove $$user{nick} from $$channel{name} but that user isn't on that channel");
+        L("attempting to remove $$user{nick} from $$channel{name} but that user isn't on that channel");
         return
     }
 

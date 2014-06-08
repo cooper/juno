@@ -136,7 +136,7 @@ sub ident_cancel {
     my ($connection, $stream, $err) = @_;
     ident_done(@_);
     $err //= 'unknown error';
-    $mod->_log("Request for $$connection{ip} terminated: $err");
+    L("Request for $$connection{ip} terminated: $err");
 }
 
 # whether succeeded or failed, we're done.

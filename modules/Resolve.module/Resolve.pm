@@ -87,7 +87,7 @@ sub on_error {
     return if $connection->{goodbye};
     
     $connection->sendfrom($me->{name}, 'NOTICE * :*** Couldn\'t resolve your hostname');
-    $mod->_log("Lookup for $$connection{ip} failed: $err");
+    L("Lookup for $$connection{ip} failed: $err");
     
     delete $connection->{temp_host};
     $connection->reg_continue;

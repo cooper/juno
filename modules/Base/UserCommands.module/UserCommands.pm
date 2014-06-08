@@ -38,7 +38,7 @@ sub register_user_command {
     foreach my $what (qw|name description code|) {
         next if exists $opts{$what};
         $opts{name} ||= 'unknown';
-        $mod->_log("user command $opts{name} does not have '$what' option");
+        L("user command $opts{name} does not have '$what' option");
         return;
     }
     
@@ -286,7 +286,7 @@ sub register_user_command {
         $opts{fantasy}
     ) or return;
 
-    $mod->_log("User handler $opts{name} registered: $opts{description}");
+    L("User handler $opts{name} registered: $opts{description}");
     $mod->list_store_add('user_commands', $opts{name});
     return 1;
 }

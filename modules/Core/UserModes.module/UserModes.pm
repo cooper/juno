@@ -16,8 +16,6 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils qw(log2);
-
 our ($api, $mod, $me);
 
 my %umodes = (
@@ -42,7 +40,7 @@ sub umode_ircop {
     return if $state; # /never/ allow setting ircop
     
     # but always allow them to unset it.
-    log2("removing all flags from $$user{nick}");
+    L("removing all flags from $$user{nick}");
     $user->{flags} = [];
     
     return 1;

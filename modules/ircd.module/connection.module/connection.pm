@@ -3,6 +3,7 @@
 # @name:            "ircd::connection"
 # @package:         "connection"
 # @description:     "represents a connection to the server"
+# @version:         ircd->VERSION
 # @no_bless:        1
 # @preserve_sym:    1
 #
@@ -19,7 +20,7 @@ use parent 'Evented::Object';
 use Socket::GetAddrInfo;
 use Scalar::Util 'weaken';
 
-use utils qw(log2 col conn conf match v notice);
+use utils qw(col conn conf match v notice);
 
 our ($api, $mod);
 
@@ -304,7 +305,7 @@ sub done {
     my ($connection, $reason, $silent) = @_;
     return if $connection->{goodbye};
     
-    log2("Closing connection from $$connection{ip}: $reason");
+    L("Closing connection from $$connection{ip}: $reason");
 
     if ($connection->{type}) {
         # share this quit with the children
@@ -348,7 +349,7 @@ sub has_cap {
 sub add_cap {
     my $connection = shift;
     my @flags = grep { !$connection->has_cap($_) } @_;
-    log2("adding capability flags to $connection: @flags");
+    L("adding capability flags to $connection: @flags");
     push @{ $connection->{cap} }, @flags
 }
 
@@ -357,7 +358,7 @@ sub remove_cap {
     my $connection = shift;
     my @remove     = @_;
     my %r;
-    log2("removing capability flags from $connection: @remove");
+    L("removing capability flags from $connection: @remove");
 
     @r{@remove}++;
 
@@ -369,7 +370,7 @@ sub remove_cap {
 
 sub DESTROY {
     my $connection = shift;
-    log2("$connection destroyed");
+    L("$connection destroyed");
 }
 
 # get the IO object

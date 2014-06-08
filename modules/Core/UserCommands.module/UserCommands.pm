@@ -17,7 +17,7 @@ use strict;
 use 5.010;
 
 use Scalar::Util qw(blessed);
-use utils qw(col log2 lceq match cut_to_limit conf v notice validchan);
+use utils qw(col lceq match cut_to_limit conf v notice validchan);
 
 our ($api, $mod, $me, $pool, $VERSION);
 
@@ -599,7 +599,7 @@ sub oper {
     # flags in their oper block
     if (defined ( my $flagref = conf(['oper', $args[1]], 'flags') )) {
         if (ref $flagref ne 'ARRAY') {
-            log2("'flags' specified for oper block $args[1], but it is not an array reference.");
+            L("'flags' specified for oper block $args[1], but it is not an array reference.");
         }
         else {
             push @flags, @$flagref
@@ -607,7 +607,7 @@ sub oper {
     }
     if (defined ( my $flagref = conf(['oper', $args[1]], 'notices') )) {
         if (ref $flagref ne 'ARRAY') {
-            log2("'notices' specified for oper block $args[1], but it is not an array reference.");
+            L("'notices' specified for oper block $args[1], but it is not an array reference.");
         }
         else {
             push @notices, @$flagref
@@ -622,7 +622,7 @@ sub oper {
         # if it has flags, add them
         if (defined ( my $flagref = conf(['operclass', $operclass], 'flags') )) {
             if (ref $flagref ne 'ARRAY') {
-                log2("'flags' specified for oper class block $operclass, but it is not an array reference.");
+                L("'flags' specified for oper class block $operclass, but it is not an array reference.");
             }
             else {
                 push @flags, @$flagref
@@ -630,7 +630,7 @@ sub oper {
         }
         if (defined ( my $flagref = conf(['operclass', $operclass], 'notices') )) {
             if (ref $flagref ne 'ARRAY') {
-                log2("'notices' specified for oper class block $operclass, but it is not an array reference.");
+                L("'notices' specified for oper class block $operclass, but it is not an array reference.");
             }
             else {
                 push @notices, @$flagref
@@ -658,7 +658,7 @@ sub oper {
     $pool->fire_command_all(oper => $user, @flags);
 
     # okay, we should have a complete list of flags now.
-    log2("$$user{nick}!$$user{ident}\@$$user{host} has opered as $args[1] and was granted flags: @flags");
+    L("$$user{nick}!$$user{ident}\@$$user{host} has opered as $args[1] and was granted flags: @flags");
     $user->server_notice('You now have flags: '.join(' ', @{ $user->{flags} }));
     $user->server_notice('You now have notices: '.join(' ', @{ $user->{notice_flags} })) if $user->{notice_flags};
 
