@@ -2266,6 +2266,10 @@ CHANGES:
             the server object is now magically created before the server module is loaded, allowing its availability ($me) in modules that are loaded beforehand.
             other random cleanup and improvement.
             
+        16. improved reloading of modules.
+            updated the Reload module to utilize the new functionality provided by Evented::API::Engine.
+            updated Evented::API::Engine.
+            
         
         
         

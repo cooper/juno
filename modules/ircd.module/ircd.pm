@@ -107,13 +107,13 @@ sub init {
     add_internal_channel_modes($server);
     add_internal_user_modes($server);
     
-    # load API modules.
-    # FIXME: is this safe to call multiple times?
-    # it surely isn't pretty in logging.
-    L('Loading API configuration modules');
-    $api->load_modules(@{ conf('api', 'modules') || [] });
-    L('Done loading modules');
-
+    # load API modules unless we're reloading.
+    unless ($mod->{reloading}) {
+        L('Loading API configuration modules');
+        $api->load_modules(@{ conf('api', 'modules') || [] });
+        L('Done loading modules');
+    }
+    
     # listen.
     create_sockets();
 

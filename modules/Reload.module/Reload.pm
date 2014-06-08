@@ -37,6 +37,7 @@ sub init {
 sub cmd_reload {
     my ($user, $data, @rest) = @_;
     
+    # command flags.
     my $verbose;
     foreach (@rest) {
         $verbose = 1 if $_ eq '-v';
@@ -45,53 +46,25 @@ sub cmd_reload {
     my $old_v = $ircd::VERSION;
     $user->server_notice(reload => "Reloading IRCd $old_v");
 
+    # log to user if verbose.
     my $cb;
     $cb = $::api->on(log => sub { $user->server_notice("- $_[1]") },
         name      => 'cmd.reload',
         permanent => 1 # we will remove it manually afterward
     ) if $verbose;
+    
+    # determine modules loaded beforehand.
+    my @mods_loaded = @{ $api->{loaded} };
+    my $num = scalar @mods_loaded;
 
-    # unload them all.
-    
-    my (%done, $unload);
-    $unload = sub {
-        my $m = shift;
-        
-        # skip submodules and those loaded already.
-        return if $m->{UNLOADED};
-        return if $m->{parent};
-        
-        # skip modules we've done already.
-        my $name = $m->name;
-        return if $done{$name};
-        
-        # unload this module.
-        $api->unload_module($name, 1) or
-          $user->server_notice("    - $name refused to unload");
-          
-        $done{$name} = 1;
-    };
-    
-    # unload them all.
-    my @mods_loaded = @{ $api->{loaded} }; my $num = scalar @mods_loaded;
-    $user->server_notice("- Unloading $num modules");
-    $unload->($_) foreach @mods_loaded;
-    
-    # redefine everything in ircd.pm before anything else.
-    my $new_v = ircd::get_version();
-    $user->server_notice('- Reloading main ircd package');
-    {
-        no warnings 'redefine';
-        do 'ircd.pm';
-    }
-
-    # call the new start().
-    $user->server_notice('- Calling the new start()');
-    if (!eval { ircd::start() }) {
-        $user->server_notice("- start() failed: $_") foreach split "\n", $@;
-        $user->server_notice('THIS IS VERY, VERY BAD. YOU PROBABLY WILL HAVE TO RESTART.');
-        return;
-    }
+    # reload ircd first and then all other modules.
+    my $ircd = $api->get_module('ircd');
+    $api->reload_module($ircd, grep {
+        $_ != $ircd &&
+        !$_->{UNLOADED} &&
+        !$_->{parent}
+    } @mods_loaded);
+    my $new_v = ircd->VERSION;
     
     # module summary.
     $user->server_notice('- Module summary');
@@ -114,7 +87,6 @@ sub cmd_reload {
         $reloaded++;
     }
     
-    
     # find new modules.
     NEW: foreach my $new_m (@{ $api->{loaded} }) {
         foreach my $old_m (@mods_loaded) {
@@ -124,7 +96,6 @@ sub cmd_reload {
     }
     
     $user->server_notice("    - $reloaded modules reloaded and not upgraded");
-
     
     # difference in version.
     my $info;

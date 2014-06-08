@@ -196,9 +196,16 @@ sub set_v ($$) {
 # send a notice to opers.
 sub notice {
     return unless pool->can('fire_oper_notice');
-    my $sub = (caller 1)[3];
+    my @caller = caller 1;
+
+    # fire it.
     my ($amnt, $key, $str) = $::pool->fire_oper_notice(@_);
-    L("$key: $str", $sub) if $str;
+    
+    # log it.
+    my $obj = $api->package_to_module($caller[0]) or return;
+    return unless ircd->can('_L');
+    ircd::_L($obj, \@caller, "$key: $str");
+    
     return $str;
 }
 
