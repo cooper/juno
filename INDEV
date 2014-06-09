@@ -2281,6 +2281,9 @@ CHANGES:
             fixed server INVITE command which I just broke a minute ago.
             
     2. fixed an issue where servers would not link because I broke it a few commits ago.
+    
+        21. fixed crash: create_sockets() -> setup_sockets().
+            more clear account registration errors.
         
         
         

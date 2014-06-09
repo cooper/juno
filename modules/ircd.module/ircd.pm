@@ -473,7 +473,7 @@ sub terminate {
 # rehash the server.
 sub rehash {
     eval { $conf->parse_config } or L("Configuration error: ".($@ || $!)) and return;
-    create_sockets();
+    setup_sockets();
 }
 
 sub boot {

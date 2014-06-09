@@ -114,7 +114,7 @@ sub cmd_register {
     
     # already registered.
     if (defined $user->{registered}) {
-        $user->server_notice('register', 'You have already registered');
+        $user->server_notice('register', 'You have already registered an account');
         return;
     }
     
