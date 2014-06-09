@@ -47,7 +47,7 @@ sub register_user_numeric {
         $opts{format} // $opts{code}
     ) or return;
 
-    L("User numeric $opts{name} $opts{number} registered");
+    L("$opts{name} $opts{number} registered");
     $mod->list_store_add('user_numerics', $opts{name});
     return 1;
 }

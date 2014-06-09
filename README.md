@@ -46,7 +46,9 @@ you can jump from version 10 to 25, all without your users disconnecting.
 * __Configurability__: Very few values are hard coded. Some have default values, but
 nearly everything is configurable. There's little reason to make limitations on what can
 and cannot be changed, so tons of configurable options make it easy to set the server up
-exactly as you please.
+exactly as you please. Made possible by
+[Evented::Configuration](https://github.com/cooper/evented-configuration) and
+[Evented::Database](https://github.com/cooper/evented-database).
 
 * __Efficiency__: Processing efficiency is valued over memory friendliness. I believe that
 a more responsive server is better than one that runs on very minimal resources. Modern

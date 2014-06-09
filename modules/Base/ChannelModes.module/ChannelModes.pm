@@ -47,7 +47,7 @@ sub register_channel_mode_block {
         $opts{code}
     );
     
-    L("Channel mode block '$opts{name}' registered");
+    L("'$opts{name}' registered");
     $mod->list_store_add('channel_modes', $opts{name});
 }
 

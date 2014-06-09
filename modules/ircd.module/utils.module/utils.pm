@@ -35,19 +35,19 @@ sub contains (+$) {
 # fetch a configuration file
 
 sub conf {
-    return $::conf->get(@_);
+    return $ircd::conf->get(@_);
 }
 
 # store something in the database.
 sub db_store {
     my ($block, $key, $value) = @_;
-    return $::conf->store($block, $key, $value);
+    return $ircd::conf->store($block, $key, $value);
 }
 
 # TODO: pending removal.
 sub conn {
     my ($sec, $key) = @_;
-    return $::conf->get(['connect', $sec], $key);
+    return $ircd::conf->get(['connect', $sec], $key);
 }
 
 # log and exit
@@ -200,6 +200,7 @@ sub notice {
 
     # fire it.
     my ($amnt, $key, $str) = $::pool->fire_oper_notice(@_);
+    return if !$key || !$str;
     
     # log it.
     my $obj = $api->package_to_module($caller[0]) or return;
@@ -222,6 +223,6 @@ sub import {
 }
 
 # utils must have its own L() because it is loaded before anything else.
-sub L { $mod->_log(@_) }
+sub L { ircd::_L($mod, [caller 1], @_) if ircd->can('_L') }
 
 $mod

@@ -286,7 +286,7 @@ sub register_user_command {
         $opts{fantasy}
     ) or return;
 
-    L("User handler $opts{name} registered: $opts{description}");
+    L("$opts{name} registered: $opts{description}");
     $mod->list_store_add('user_commands', $opts{name});
     return 1;
 }

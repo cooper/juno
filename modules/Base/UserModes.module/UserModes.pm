@@ -47,7 +47,7 @@ sub register_user_mode_block {
         $opts{code}
     );
 
-    L("User mode block '$opts{name}' registered");
+    L("'$opts{name}' registered");
     $mod->list_store_add('user_modes', $opts{name});
     return 1;
 }

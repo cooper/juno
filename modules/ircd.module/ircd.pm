@@ -15,62 +15,43 @@ package ircd;
 use warnings;
 use strict;
 use 5.010;
-
-# core modules that pretty much never change.
 use Module::Loaded qw(is_loaded);
 
-our (  $VERSION,   $api,   $conf,   $loop,   $pool,   $timer, %global, $boot) =
-    ($::VERSION, $::api, $::conf, $::loop, $::pool, $::timer);
+our ($api, $mod, $me, $pool, $loop, $conf, $boot, $timer, $VERSION, %channel_mode_prefixes);
 
-our ($mod, %channel_mode_prefixes);
+######################
+### INITIALIZATION ###
+######################
 
 sub init {
 
+    # load utils immediately.
     $mod->load_submodule('utils') or return;
     utils->import(qw|conf fatal v trim|);
     $VERSION = get_version();
     
-    boot();
+    &set_variables;         # set default global variables.
+    &boot;                  # boot if we haven't already.
     
     L('Started server at '.scalar(localtime v('START')));
-    $::v{VERSION} = $VERSION;
     
-    # TODO: probably check @INC.
-    
-    # load or reload all dependency packages.
-    load_dependencies();
-    
-    # set up the configuration/database.
-    # TEMPORARILY use no database until we read [database] block.
-    $conf = $::conf = Evented::Database->new(
-        db       => undef,
-        conffile => "$::run_dir/etc/ircd.conf"
-    );
-        
-    # parse the configuration.
-    $conf->parse_config or die "can't parse configuration.\n";
-
-    # load or reload optional packages.
-    load_optionals();
-    
-    # create the database object.
-    if (conf('database', 'type') eq 'sqlite') {
-        my $dbfile  = "$::run_dir/db/conf.db";
-        $conf->{db} = DBI->connect("dbi:SQLite:dbname=$dbfile", '', '');
-        $conf->create_tables_maybe;
-    }
+    # TODO: check @INC.
+    &load_dependencies;     # load or reload all dependency packages.
+    &setup_config;          # parse the configuration.
+    &load_optionals;        # load or reload optional packages.
+    &setup_database;        # set up SQLite if necessary.
 
     # create the server before the server module is loaded.
     # these default values will be added if not present,
     # even when reloading the ircd module.
-    my $server = $::v{SERVER} ||= bless {}, 'server';
-    $server->{ $_->[0] } //= $_->[1] foreach (
+    $me = $::v{SERVER} ||= bless {}, 'server';
+    $me->{ $_->[0] } //= $_->[1] foreach (
         [ umodes   => {} ],
         [ cmodes   => {} ],
         [ users    => [] ],
         [ children => [] ]
     );
-    $server->{parent} = $server; # looping reference, but it'll never be disposed of.
+    $me->{parent} = $me; # looping reference, but it'll never be disposed of.
 
     # exported variables in modules.
     # note that these will not be available in the utils module.
@@ -78,7 +59,7 @@ sub init {
         my ($event, $pkg) = @_;
         my $obj = $event->object;
         Evented::API::Hax::set_symbol($pkg, {
-            '$me'   => $server,
+            '$me'   => $me,
             '$pool' => $pool,
             '*L'    => sub { _L($obj, [caller 1], @_) }
         });
@@ -93,7 +74,7 @@ sub init {
     # I had an idea once upon a time to make $server->configure(%opts)
     # which would optionally only set the values if nothing exists there.
     # but this works for now.
-    $pool->new_server($server,
+    $pool->new_server($me,
         source => conf('server', 'id'),
         sid    => conf('server', 'id'),
         name   => conf('server', 'name'),
@@ -101,12 +82,21 @@ sub init {
         proto  => v('PROTO'),
         ircd   => v('VERSION'),
         time   => v('START')
-    ) if not exists $server->{source};
+    ) if not exists $me->{source};
 
-    # register modes.
-    add_internal_channel_modes($server);
-    add_internal_user_modes($server);
+
+    &setup_modes;           # set up local server modes.
+    &setup_modules;         # load API modules.
+    &setup_sockets;         # start listening.
+    &setup_timer;           # set up ping timer.
+    &setup_autoconnect;     # connect to servers with autoconnect enabled.
     
+    L("server initialization complete");
+    return 1;
+}
+
+sub setup_modules {
+
     # load API modules unless we're reloading.
     unless ($mod->{reloading}) {
         L('Loading API configuration modules');
@@ -114,27 +104,60 @@ sub init {
         L('Done loading modules');
     }
     
-    # listen.
-    create_sockets();
+}
 
-    # sub setup_timer {
-    
-        # delete the existing timer if there is one.
-        if ($timer = $::timer) {
-            $loop->remove($timer) if $timer->is_running;
-        }
+sub setup_config {
+
+    # set up the configuration/database.
+    # TEMPORARILY use no database until we read [database] block.
+    $conf = Evented::Database->new(
+        db       => undef,
+        conffile => "$::run_dir/etc/ircd.conf"
+    );
         
-        # create a new timer.
-        $timer = $::timer = IO::Async::Timer::Periodic->new(
-            interval => 30,
-            on_tick  => \&ping_check
-        );
-        $loop->add($timer);
-        $timer->start;
+    # parse the configuration.
+    $conf->parse_config or return;
     
-    # }
+    return 1;
+}
 
-    L("server initialization complete");
+sub setup_modes {
+
+    # register modes.
+    &add_internal_channel_modes;
+    &add_internal_user_modes;
+
+}
+
+sub setup_timer {
+
+    # delete the existing timer if there is one.
+    if ($timer = $::timer) {
+        $loop->remove($timer) if $timer->is_running;
+    }
+    
+    # create a new timer.
+    $timer = $::timer = IO::Async::Timer::Periodic->new(
+        interval => 30,
+        on_tick  => \&ping_check
+    );
+    $loop->add($timer);
+    $timer->start;
+        
+}
+
+sub setup_database {
+
+    # create the database object.
+    if (conf('database', 'type') eq 'sqlite') {
+        my $dbfile  = "$::run_dir/db/conf.db";
+        $conf->{db} = DBI->connect("dbi:SQLite:dbname=$dbfile", '', '');
+        $conf->create_tables_maybe;
+    }
+    
+}
+
+sub setup_autoconnect {
 
     # auto server connect.
     # FIXME: don't try to connect during reload if already connected.
@@ -144,7 +167,63 @@ sub init {
         next unless conf(['connect', $name], 'autoconnect');
         server::linkage::connect_server($name);
     }
+    
+}
 
+sub set_variables {
+
+    # defaults; replace current values.
+    my %v_replace = (
+        NAME    => 'kylie',         # major version name
+        SNAME   => 'juno',          # short ircd name
+        LNAME   => 'juno-ircd',     # long ircd name
+        VERSION => $VERSION,        # combination of these 3 in VERSION command
+        PROTO   => '6.1',
+    );
+
+    # defaults; only set if not existing already.
+    my %v_insert = (
+        START   => time,
+        NOFORK  => 'NOFORK' ~~ @ARGV,
+        connection_count      => 0,
+        max_connection_count  => 0,
+        max_global_user_count => 0,
+        max_local_user_count  => 0
+    );
+
+    # replacements.
+    @::v{keys %v_replace} = values %v_replace;
+    
+    # insertions.
+    my @missing_keys    = grep { not exists $::v{$_} } keys %v_insert;
+    @::v{@missing_keys} = @v_insert{@missing_keys};
+    
+}
+
+sub setup_sockets {
+    foreach my $addr ($conf->names_of_block('listen')) {
+      foreach my $port (@{ $conf->get(['listen', $addr], 'port') }) {
+
+        # create the loop listener
+        my $listener = IO::Async::Listener->new(on_stream => \&handle_connect);
+        $loop->add($listener);
+
+        # create the socket
+        my $socket = IO::Socket::IP->new(
+            LocalAddr => $addr,
+            LocalPort => $port,
+            Listen    => 1,
+            ReuseAddr => 1,
+            Type      => Socket::SOCK_STREAM(),
+            Proto     => 'tcp'
+        ) or L("Couldn't listen on [$addr]:$port: $!") and next;
+
+        # add to looped listener
+        $listener->listen(handle => $socket);
+
+        L("Listening on [$addr]:$port");
+    } }
+    
     return 1;
 }
 
@@ -153,9 +232,13 @@ sub void {
     return $mod->{reloading};
 }
 
+##########################
+### PACKAGE MANAGEMENT ###
+##########################
+
 # load or reload a package.
 sub load_or_reload {
-    my ($name, $min_v, $set_v) = @_;
+    my ($name, $min_v) = @_;
     (my $file = "$name.pm") =~ s/::/\//g;
     
     # it might be loaded with an appropriate version already.
@@ -167,12 +250,6 @@ sub load_or_reload {
     # at this point, we're going to load it.
     # if it's loaded already, we should unload it now.
     Evented::API::Hax::package_unload($name) if is_loaded($name);
-    
-    # set package version.
-    if ($set_v) {
-        no strict 'refs';
-        ${"${name}::VERSION"} = $set_v;
-    }
     
     # it hasn't been loaded yet at all.
     # use require to load it the first time.
@@ -223,60 +300,21 @@ sub load_optionals {
 
 }
 
-sub create_sockets {
-    foreach my $addr ($conf->names_of_block('listen')) {
-      foreach my $port (@{ $conf->get(['listen', $addr], 'port') }) {
-
-        # create the loop listener
-        my $listener = IO::Async::Listener->new(on_stream => \&handle_connect);
-        $loop->add($listener);
-
-        # create the socket
-        my $socket = IO::Socket::IP->new(
-            LocalAddr => $addr,
-            LocalPort => $port,
-            Listen    => 1,
-            ReuseAddr => 1,
-            Type      => Socket::SOCK_STREAM(),
-            Proto     => 'tcp'
-        ) or L("Couldn't listen on [$addr]:$port: $!") and next;
-
-        # add to looped listener
-        $listener->listen(handle => $socket);
-
-        L("Listening on [$addr]:$port");
-    } }
-    
-    return 1;
-}
-
-# stop the ircd
-sub terminate {
-
-    L("removing all connections for server shutdown");
-
-    # delete all users/servers/other
-    foreach my $connection ($::pool->connections) {
-        $connection->done('Shutting down');
-    }
-
-    L("deleting PID file");
-
-    # delete the PID file
-    unlink 'etc/juno.pid' or fatal("Can't remove PID file");
-
-    L("shutting down");
-    exit
-}
+###############
+### SIGNALS ###
+###############
 
 # handle a HUP
-sub signalhup { }
-
-sub signalpipe {
-}
+# TODO: do something. LOL
+sub signalhup  { }
+sub signalpipe { }
 
 # handle warning
 sub WARNING { L(shift) }
+
+#####################
+### INCOMING DATA ###
+#####################
 
 # handle connecting user or server
 sub handle_connect {
@@ -408,48 +446,52 @@ sub ping_check {
     }
 }
 
+####################
+### IRCD ACTIONS ###
+####################
+
+# stop the ircd
+sub terminate {
+
+    L("removing all connections for server shutdown");
+
+    # delete all users/servers/other
+    foreach my $connection ($::pool->connections) {
+        $connection->done('Shutting down');
+    }
+
+    L("deleting PID file");
+
+    # delete the PID file
+    unlink 'etc/juno.pid' or fatal("Can't remove PID file");
+
+    L("shutting down");
+    exit;
+}
+
 # rehash the server.
 sub rehash {
-    eval { $::conf->parse_config } or L("Configuration error: ".($@ || $!)) and return;
+    eval { $conf->parse_config } or L("Configuration error: ".($@ || $!)) and return;
     create_sockets();
 }
 
 sub boot {
-    return if $main::has_booted;
+    return if $::has_booted;
     $boot = 1;
-    $::VERSION = get_version();
-    
-    # FIXME: I hate this; get rid of %global.
-    %global = (
-        NAME    => 'kylie',         # major version name
-        SNAME   => 'juno',          # short ircd name
-        LNAME   => 'juno-ircd',     # long ircd name
-        VERSION => $VERSION,        # combination of these 3 in VERSION
-        PROTO   => '6.1',
-        START   => time,
-        NOFORK  => 'NOFORK' ~~ @ARGV,
-
-        # vars that need to be set
-        connection_count      => 0,
-        max_connection_count  => 0,
-        max_global_user_count => 0,
-        max_local_user_count  => 0
-    );
+    $::VERSION = $VERSION;
     
     # load mandatory boot stuff.
     require POSIX;
     require IO::Async;
     require IO::Async::Loop;
 
-    L("this is $global{NAME} version $global{VERSION}");
+    L("this is $::v{NAME} version $VERSION");
     $::loop = $loop = IO::Async::Loop->new;
-    %::v    = %global;
-    undef %global;
 
     become_daemon();
     
     undef $boot;
-    $main::has_booted = 1;
+    $::has_booted = 1;
 }
 
 sub loop {
@@ -516,22 +558,22 @@ sub get_version {
 # this just tells the internal server what
 # mode is associated with what letter and type by configuration
 sub add_internal_channel_modes {
-    my $server = shift;
+    
     L('registering channel status modes');
-    $server->{cmodes}      = {};
+    $me->{cmodes}      = {};
     %channel_mode_prefixes = ();
 
     # [letter, symbol, name]
-    foreach my $name ($ircd::conf->keys_of_block('prefixes')) {
+    foreach my $name ($conf->keys_of_block('prefixes')) {
         my $p = conf('prefixes', $name);
-        $server->add_cmode($name, $p->[0], 4);
+        $me->add_cmode($name, $p->[0], 4);
         $channel_mode_prefixes{$p->[2]} = [ $p->[0], $p->[1], $name ]
     }
 
     L("registering channel mode letters");
 
-    foreach my $name ($ircd::conf->keys_of_block(['modes', 'channel'])) {
-        $server->add_cmode(
+    foreach my $name ($conf->keys_of_block(['modes', 'channel'])) {
+        $me->add_cmode(
             $name,
             (conf(['modes', 'channel'], $name))->[1],
             (conf(['modes', 'channel'], $name))->[0]
@@ -544,7 +586,7 @@ sub add_internal_channel_modes {
 
 # get a +modes string
 sub channel_mode_string {
-    my @modes = sort { $a cmp $b } map { $_->[1] } $ircd::conf->values_of_block('modes', 'channel');
+    my @modes = sort { $a cmp $b } map { $_->[1] } $conf->values_of_block('modes', 'channel');
     return join '', @modes;
 }
 
@@ -554,22 +596,25 @@ sub channel_mode_string {
 
 # this just tells the internal server what
 # mode is associated with what letter as defined by the configuration
-sub add_internal_user_modes {
-    my $server = shift;
-    $server->{umodes} = {};
-    return unless $ircd::conf->has_block(['modes', 'user']);
+sub add_internal_user_modes {    
+    $me->{umodes} = {};
+    return unless $conf->has_block(['modes', 'user']);
     L("registering user mode letters");
-    foreach my $name ($ircd::conf->keys_of_block(['modes', 'user'])) {
-        $server->add_umode($name, conf(['modes', 'user'], $name));
+    foreach my $name ($conf->keys_of_block(['modes', 'user'])) {
+        $me->add_umode($name, conf(['modes', 'user'], $name));
     }
     L("end of user mode letters");
 }
 
 # returns a string of every mode
 sub user_mode_string {
-    my @modes = sort { $a cmp $b } $ircd::conf->values_of_block(['modes', 'user']);
+    my @modes = sort { $a cmp $b } $conf->values_of_block(['modes', 'user']);
     return join '', @modes;
 }
+
+###############
+### LOGGING ###
+###############
 
 # L() must be explicitly defined in ircd.pm only.
 sub L { _L($mod, [caller 1], @_) }
