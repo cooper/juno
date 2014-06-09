@@ -2279,6 +2279,8 @@ CHANGES:
         
         19. move invite numerics to Invite module also.
             fixed server INVITE command which I just broke a minute ago.
+            
+    2. fixed an issue where servers would not link because I broke it a few commits ago.
         
         
         

@@ -41,7 +41,7 @@
 		BC9565311944E032002F52B9 /* Git.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Git.pm; path = Git.module/Git.pm; sourceTree = "<group>"; };
 		BC9565341944E032002F52B9 /* Ident.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Ident.pm; path = Ident.module/Ident.pm; sourceTree = "<group>"; };
 		BC9565381944E032002F52B9 /* channel.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = channel.pm; path = channel.module/channel.pm; sourceTree = "<group>"; };
-		BC95653B1944E032002F52B9 /* connection.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = connection.pm; path = connection.module/connection.pm; sourceTree = "<group>"; };
+		BC95653B1944E032002F52B9 /* connection.pm */ = {isa = PBXFileReference; indentWidth = 5; lastKnownFileType = text.script.perl; name = connection.pm; path = connection.module/connection.pm; sourceTree = "<group>"; };
 		BC95653D1944E032002F52B9 /* ircd.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = ircd.pm; sourceTree = "<group>"; };
 		BC9565401944E032002F52B9 /* pool.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = pool.pm; path = pool.module/pool.pm; sourceTree = "<group>"; };
 		BC9565441944E032002F52B9 /* linkage.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = linkage.pm; path = server.module/linkage.module/linkage.pm; sourceTree = "<group>"; };

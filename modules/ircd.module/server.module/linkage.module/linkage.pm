@@ -79,7 +79,7 @@ sub connect_server {
     # send server credentials.
     $conn->send(sprintf 'SERVER %s %s %s %s :%s',
         $me->{sid},
-        $me->{sid},
+        $me->{name},
         v('PROTO'),
         v('VERSION'),
         $me->{desc}

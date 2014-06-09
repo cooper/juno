@@ -273,6 +273,7 @@ sub ready {
 
 # send data to the socket
 sub send {
+print "[~S] @_\n";
     my ($connection, @msg) = @_;
     return unless $connection->{stream};
     return if $connection->{goodbye};

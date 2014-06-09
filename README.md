@@ -117,7 +117,7 @@ corresponding NA:line, temporary oper-override mode (+O), channel mute mode (+Z,
 by charybdis +q), KLINE command for adding K:lines from IRC, an almost-but-never-fully
 working buggy linking protocol, and a network name (NETWORK in RPL_ISUPPORT) option.
 Unfortunately juno-ircd introduced dozens of new bugs along with its features, and it
-includes some of the ugliest code in all of Perl history.
+included some of the ugliest code in all of Perl history.
 
 ```
 [04:15pm] -Global- [Network Notice] Alice (nenolod) - We will be upgrading to "juno-ircd" in 5 seconds.
@@ -163,11 +163,11 @@ other new features that were introduced in juno-mesh.
 Named after a Haitian computer technician, kedler was a continuation of juno5. Its main goal was
 to implement the missing standard IRC functions that had never been implemented in the
 third juno generation. kedler reintroduced hostname resolving, a long-broken feature that
-has not worked properly since juno2. It also reintroduced channel access, this time in the
+had not worked properly since juno2. It also reintroduced channel access, this time in the
 form of a module. kedler featured new APIs and improvements to the linking protocol.
 
 * [__vulpia__](https://github.com/cooper/kylie/tree/001b766439ed8423e8eda1c41dd578c899cd7946) (juno7):
-Romanian for a female wolf, vulpia is named after the alias of a dear friend,
+Romanian for a female wolf, vulpia was named after the alias of a dear friend,
 [Ruin](https://soundcloud.com/ruuuuuuuuuuuuin). It included several improvements, making
 the IRCd more extensible than ever before. The
 [Evented::API::Engine](https://github.com/cooper/evented-api-engine) replaced the former
