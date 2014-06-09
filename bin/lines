@@ -1,4 +1,0 @@
-#!/bin/sh
-echo "There are `cat lib/*.pm lib/*/*.pm bin/ircd | wc -l` lines of Perl in the core of juno-ircd
-This includes only the hard-coded core of juno.
-This does not include the core module or any extension modules."

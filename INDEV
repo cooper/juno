@@ -2277,7 +2277,8 @@ CHANGES:
             cleaned up ugly v('SERVER') stuff and $::variables.
             updated Evented::Object.
         
-        
+        19. move invite numerics to Invite module also.
+            fixed server INVITE command which I just broke a minute ago.
         
         
         

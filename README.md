@@ -90,6 +90,8 @@ This section isn't done.
 
 * __LOLCAT__:
 
+* __Invite__: 
+
 # History
 
 juno-ircd was born a fork of [pIRCd](http://pircd.sourceforge.net) (the Perl IRC daemon)

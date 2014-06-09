@@ -40,11 +40,17 @@ sub init {
         code => $banlike
     ) if $banlike;
     
-    # delete invitation on user join.
-    $pool->on('channel.user_joined' => sub {
-        my ($channel, $user) = (shift->object, shift);
-        delete $user->{invite_pending}{ lc $channel->name };
-    }, name => 'invite.clear');
+    # invite numerics.
+    $mod->register_user_numeric(
+        name    => shift @$_,
+        number  => shift @$_,
+        format  => shift @$_
+    ) or return foreach (
+        [ RPL_INVITING        => 341, '%s %s'                          ],
+        [ RPL_INVITELIST      => 346, '%s %s'                          ],
+        [ RPL_ENDOFINVITELIST => 347, '%s :End of channel invite list' ],
+        [ ERR_INVITEONLYCHAN  => 472, '%s :You must be invited'        ]
+    );
     
     # event callbacks.
     &add_invite_callbacks;
@@ -52,8 +58,80 @@ sub init {
     return 1;
 }
 
+# user INVITE command.
+#
+# possible results:
+#
+# ERR_NEEDMOREPARAMS              ERR_NOSUCHNICK
+# ERR_NOTONCHANNEL                ERR_USERONCHANNEL
+# ERR_CHANOPRIVSNEEDED
+# RPL_INVITING                    RPL_AWAY
+#
+sub ucmd_invite {
+    my ($user, $data, $t_user, $ch_name) = @_;
+    my $channel = $pool->lookup_channel($ch_name);
+    
+    # channel exists.
+    if ($channel) {
+        $ch_name = $channel->name;
+    }
+    
+    # channel does not exist. check if the name is valid.
+    elsif (!validchan($ch_name)) {
+        $user->numeric(ERR_NOSUCHCHANNEL => $ch_name);
+        next;
+    }
+    
+    # fire the event to check if the user can invite.
+    # note: $channel might be undef.
+    my $event = $user->fire(can_invite => $t_user, $ch_name, $channel);
+      
+    # the fire was stopped. user can't invite.
+    return if $event->stopper;
+
+    # local user.
+    if ($t_user->is_local) {
+        $t_user->get_invited_by($user, $channel || $ch_name);
+    }
+    
+    # remote user.
+    else {
+        $t_user->{location}->fire_command(invite => $user, $t_user, $ch_name)
+    }
+    
+    # tell the source the target's being invited.
+    $user->numeric(RPL_AWAY => $t_user->{nick}, $t_user->{away})
+        if exists $t_user->{away};    
+    $user->numeric(RPL_INVITING => $ch_name, $t_user->{nick});
+    
+    return 1;
+}
+
+# server INVITE command.
+sub scmd_invite {
+    # :uid INVITE target ch_name
+    my ($server, $data, $user, $t_user, $ch_name) = @_;
+
+    # local user.
+    if ($t_user->is_local) {
+        $t_user->get_invited_by($user, $ch_name);
+        return 1;
+    }
+    
+    # forward on to next hop.
+    $t_user->{location}->fire_command(invite => $user, $t_user, $ch_name);
+    
+    return 1;
+}
+
 # checks during INVITE and JOIN commands.
 sub add_invite_callbacks {
+    
+    # delete invitation on user join.
+    $pool->on('channel.user_joined' => sub {
+        my ($channel, $user) = (shift->object, shift);
+        delete $user->{invite_pending}{ lc $channel->name };
+    }, name => 'invite.clear');
     
     # ON INVITE,
     # first, user must be in the channel if it exists.
@@ -112,72 +190,6 @@ sub add_invite_callbacks {
         
     }, name => 'has.invite', priority => 20);
     
-}
-
-# user INVITE command.
-#
-# possible results:
-#
-# ERR_NEEDMOREPARAMS              ERR_NOSUCHNICK
-# ERR_NOTONCHANNEL                ERR_USERONCHANNEL
-# ERR_CHANOPRIVSNEEDED
-# RPL_INVITING                    RPL_AWAY
-#
-sub ucmd_invite {
-    my ($user, $data, $t_user, $ch_name) = @_;
-    my $channel = $pool->lookup_channel($ch_name);
-    
-    # channel exists.
-    if ($channel) {
-        $ch_name = $channel->name;
-    }
-    
-    # channel does not exist. check if the name is valid.
-    elsif (!validchan($ch_name)) {
-        $user->numeric(ERR_NOSUCHCHANNEL => $ch_name);
-        next;
-    }
-    
-    # fire the event to check if the user can invite.
-    # note: $channel might be undef.
-    my $event = $user->fire(can_invite => $t_user, $ch_name, $channel);
-      
-    # the fire was stopped. user can't invite.
-    return if $event->stopper;
-
-    # local user.
-    if ($t_user->is_local) {
-        $t_user->get_invited_by($user, $channel || $ch_name);
-    }
-    
-    # remote user.
-    else {
-        $t_user->{location}->fire_command(invite => $user, $t_user, $ch_name)
-    }
-    
-    # tell the source the target's being invited.
-    $user->numeric(RPL_AWAY => $t_user->{nick}, $t_user->{away})
-        if exists $t_user->{away};    
-    $user->numeric(RPL_INVITING => $ch_name, $t_user->{nick});
-    
-    return 1;
-}
-
-# server INVITE command.
-sub invite {
-    # :uid INVITE target ch_name
-    my ($server, $data, $user, $t_user, $ch_name) = @_;
-
-    # local user.
-    if ($t_user->is_local) {
-        $t_user->get_invited_by($user, $ch_name);
-        return 1;
-    }
-    
-    # forward on to next hop.
-    $t_user->{location}->fire_command(invite => $user, $t_user, $ch_name);
-    
-    return 1;
 }
 
 $mod

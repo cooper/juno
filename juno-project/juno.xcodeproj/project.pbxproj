@@ -8,9 +8,7 @@
 
 /* Begin PBXFileReference section */
 		A75C5CCD18B43219007780A3 /* ircd */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = ircd; sourceTree = "<group>"; };
-		A75C5CCE18B43219007780A3 /* lines */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = lines; sourceTree = "<group>"; };
 		A75C5CCF18B43219007780A3 /* mkpasswd */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = mkpasswd; sourceTree = "<group>"; };
-		A75C5CD018B43219007780A3 /* thingstodo */ = {isa = PBXFileReference; lastKnownFileType = text; path = thingstodo; sourceTree = "<group>"; };
 		A75C5CD218B43219007780A3 /* ircd.conf */ = {isa = PBXFileReference; lastKnownFileType = text; path = ircd.conf; sourceTree = "<group>"; };
 		A75C5CD318B43219007780A3 /* ircd.conf.example */ = {isa = PBXFileReference; lastKnownFileType = text; path = ircd.conf.example; sourceTree = "<group>"; };
 		A75C5CD418B43219007780A3 /* GOALS */ = {isa = PBXFileReference; lastKnownFileType = text; name = GOALS; path = ../GOALS; sourceTree = "<group>"; };
@@ -79,9 +77,7 @@
 				A75C5CD818B4321A007780A3 /* juno */,
 				A75C5CCD18B43219007780A3 /* ircd */,
 				BCBCCEA0193BAD0800F7E7F9 /* ircd_forever */,
-				A75C5CCE18B43219007780A3 /* lines */,
 				A75C5CCF18B43219007780A3 /* mkpasswd */,
-				A75C5CD018B43219007780A3 /* thingstodo */,
 			);
 			name = Executables;
 			path = ../bin;
