@@ -16,16 +16,14 @@ use warnings;
 use strict;
 use 5.010;
 use parent 'Evented::Object';
-
 use overload
     fallback => 1,
     '""'     => sub { shift->id },
     '0+'     => sub { shift     },
     bool     => sub { 1         };
-
 use utils qw(v notice col conf);
 
-our ($api, $mod);
+our ($api, $mod, $pool, $me);
 
 # create a new user
 
@@ -87,13 +85,13 @@ sub quit {
         }
     }
 
-    $::pool->delete_user($user) if $user->{pool};
+    $pool->delete_user($user) if $user->{pool};
     $user->delete_all_events();
 }
 
 sub change_nick {
     my ($user, $newnick) = @_;
-    $::pool->change_user_nick($user, $newnick) or return;
+    $pool->change_user_nick($user, $newnick) or return;
     notice(user_nick_change => $user->notice_info, $newnick);
     $user->{nick} = $newnick;
 }
@@ -131,7 +129,7 @@ sub handle_mode_string {
             # don't allow this mode to be changed if the test fails
             # *unless* force is provided. generally ou want to use
             # tests only is local, since servers can do whatever.
-            my $win = $::pool->fire_user_mode($user, $state, $name);
+            my $win = $pool->fire_user_mode($user, $state, $name);
             if (!$force) {
                 next unless $win
             }
@@ -215,7 +213,7 @@ sub unset_away {
 # channels. I need to make this more efficient eventually.
 sub channels {
     my ($user, @channels) = shift;
-    foreach my $channel ($::pool->channels) {
+    foreach my $channel ($pool->channels) {
         next unless $channel->has_user($user);
         push @channels, $channel;
     }
@@ -223,9 +221,7 @@ sub channels {
 }
 
 # user is a member of this server.
-sub is_local {
-    return shift->{server} == v('SERVER')
-}
+sub is_local { shift->{server} == $me }
 
 # full visible mask, e.g. w/ cloak.
 sub full {
@@ -296,9 +292,9 @@ sub _handle {
 
         my $command = uc $s[0];
 
-        if ($::pool->user_handlers($command)) { # an existing handler
+        if ($pool->user_handlers($command)) { # an existing handler
 
-            foreach my $handler ($::pool->user_handlers($command)) {
+            foreach my $handler ($pool->user_handlers($command)) {
                 if ($#s >= $handler->{params}) {
                     $handler->{code}($user, $line, @s)
                 }
@@ -336,7 +332,7 @@ sub sendfrom {
 # send data with this server as the source
 sub sendme {
     my $user = shift;
-    $user->sendfrom(v('SERVER', 'name'), @_);
+    $user->sendfrom($me->{name}, @_);
 }
 
 # a notice from server
@@ -355,7 +351,7 @@ sub server_notice {
     # not local; pass it on.
     $user->{location}->fire_command(privmsgnotice =>
         'NOTICE',
-        v('SERVER'),
+        $me,
         $user,
         $msg
     );
@@ -367,12 +363,12 @@ sub numeric {
     my ($user, $const, @response) = (shift, shift);
     
     # does not exist.
-    if (!$::pool->numeric($const)) {
+    if (!$pool->numeric($const)) {
         L("attempted to send nonexistent numeric $const");
         return;
     }
     
-    my ($num, $val) = @{ $::pool->numeric($const) };
+    my ($num, $val) = @{ $pool->numeric($const) };
 
     # CODE reference for numeric response.
     if (ref $val eq 'CODE') {
@@ -391,7 +387,7 @@ sub numeric {
     
     # remote user.
     else {
-        $user->{location}->fire_command(num => v('SERVER'), $user, $num, $_)
+        $user->{location}->fire_command(num => $me, $user, $num, $_)
             foreach @response;
     }
     
@@ -411,10 +407,10 @@ sub new_connection {
     # send numerics
     my $network = conf('server', 'network') // conf('network', 'name');
     $user->numeric(RPL_WELCOME  => $network, $user->{nick}, $user->{ident}, $user->{host});
-    $user->numeric(RPL_YOURHOST => v('SERVER', 'name'), v('NAME').q(-).v('VERSION'));
+    $user->numeric(RPL_YOURHOST => $me->{name}, v('NAME').q(-).v('VERSION'));
     $user->numeric(RPL_CREATED  => POSIX::strftime('%a %b %d %Y at %H:%M:%S %Z', localtime v('START')));
     $user->numeric(RPL_MYINFO   =>
-        v('SERVER', 'name'),
+        $me->{name},
         v('SNAME').q(-).v('NAME').q(-).v('VERSION'),
         ircd::user_mode_string(),
         ircd::channel_mode_string()
@@ -429,7 +425,7 @@ sub new_connection {
     $user->sendfrom($user->{nick}, "MODE $$user{nick} :".$user->mode_string);
 
     # tell other servers
-    $::pool->fire_command_all(uid => $user);
+    $pool->fire_command_all(uid => $user);
 }
 
 # send to all members of channels in common
@@ -444,7 +440,7 @@ sub send_to_channels {
     my %sent = ( $user => 1 );
 
     # check each channel.
-    foreach my $channel ($::pool->channels) {
+    foreach my $channel ($pool->channels) {
     
         # source is not in this channel.
         next unless $channel->has_user($user);
@@ -483,7 +479,7 @@ sub _do_mode_string {
     
     # tell the user himself and other servers.
     $user->sendfrom($user->{nick}, "MODE $$user{nick} :$result");
-    $::pool->fire_command_all(umode => $user, $result) unless $local_only;
+    $pool->fire_command_all(umode => $user, $result) unless $local_only;
     
 }
 

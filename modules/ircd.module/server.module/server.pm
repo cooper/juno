@@ -19,7 +19,7 @@ use parent 'Evented::Object';
 
 use utils qw(col v conf notice);
 
-our ($api, $mod);
+our ($api, $mod, $me, $pool);
 
 sub init {
     $mod->load_submodule('linkage') or return;
@@ -67,7 +67,7 @@ sub quit {
         $user->quit($why);
     }
 
-    $::pool->delete_server($server) if $server->{pool};
+    $pool->delete_server($server) if $server->{pool};
     $server->delete_all_events();
     return 1;
 }
@@ -340,9 +340,7 @@ sub cmode_string_difference {
     return join ' ', $final_str, @final_p;
 }
 
-sub is_local {
-    return shift == v('SERVER')
-}
+sub is_local { shift == $me }
 
 sub DESTROY {
     my $server = shift;
@@ -352,7 +350,7 @@ sub DESTROY {
 sub children {
     my $server = shift;
     my @a;
-    foreach my $serv ($::pool->servers) {
+    foreach my $serv ($pool->servers) {
         next unless $serv->{parent};
         next if $serv == $server;
         push @a, $serv if $serv->{parent} == $server;
@@ -382,7 +380,6 @@ sub all_users    {        @{ shift->{users}    }                  }
 # handle local user data
 sub handle {
     my $server = shift;
-    print "[~R] ", $_[0], "\n";
     return if !$server->{conn} || $server->{conn}{goodbye};
     
     foreach my $line (split "\n", shift) {
@@ -417,7 +414,7 @@ sub handle {
         # if it doesn't exist, ignore it and move on.
         # it might make sense to assume incompatibility and drop the server,
         # but I don't want to do that because
-        my @handlers = $::pool->server_handlers($command);
+        my @handlers = $pool->server_handlers($command);
         if (!@handlers) {
             L("unknown command $command; ignoring it");
             next;
@@ -464,7 +461,7 @@ sub send_burst {
 sub send_children {
     my $ignore = shift;
 
-    foreach my $server ($::pool->servers) {
+    foreach my $server ($pool->servers) {
 
         # don't send to ignored
         if (defined $ignore && $server == $ignore) {
@@ -492,7 +489,6 @@ sub sendfrom_children {
 # send data to MY servers.
 sub send {
     my $server = shift;
-    print "[~S] @_\n";
     if (!$server->{conn}) {
         my $sub = (caller 1)[3];
         L("can't send data to a unconnected server! please report this error by $sub. $$server{name}");
@@ -504,7 +500,7 @@ sub send {
 # send data to a server from THIS server.
 sub sendme {
     my $server = shift;
-    $server->sendfrom(v('SERVER', 'sid'), @_)
+    $server->sendfrom($me->{sid}, @_)
 }
 
 # send data from a UID or SID.
@@ -516,7 +512,7 @@ sub sendfrom {
 # convenient for $server->fire_command
 sub fire_command {
     my $server = shift;
-    return $::pool->fire_command($server, @_);
+    return $pool->fire_command($server, @_);
 }
 
 $mod

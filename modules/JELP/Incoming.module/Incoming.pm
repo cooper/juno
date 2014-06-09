@@ -17,7 +17,7 @@ use 5.010;
 
 use utils qw(col lceq match cut_to_limit conf v notice);
 
-our ($api, $mod, $pool);
+our ($api, $mod, $pool, $me);
 
 my %scommands = (
     SID => {
@@ -140,11 +140,6 @@ my %scommands = (
         code    => \&kick,
         forward => 1
     },
-    INVITE => {
-        params  => 'user dummy user any',
-        code    => \&invite,
-      # forward => handled manually
-    },
     NUM => {
         params  => 'server dummy user any :rest',
         code    => \&num,
@@ -250,7 +245,7 @@ sub quit {
     # source  dummy  :rest
     # :source QUIT   :reason
     my ($server, $data, $source, $reason) = @_;
-    return if $source == v('SERVER');
+    return if $source == $me;
     
     # tell other servers.
     # note: must be done manually because it
@@ -655,22 +650,6 @@ sub kick {
     
     # remove the user from the channel.
     $channel->remove_user($t_user);
-    
-    return 1;
-}
-
-sub invite {
-    # :uid INVITE target ch_name
-    my ($server, $data, $user, $t_user, $ch_name) = @_;
-
-    # local user.
-    if ($t_user->is_local) {
-        $t_user->get_invited_by($user, $ch_name);
-        return 1;
-    }
-    
-    # forward on to next hop.
-    $t_user->{location}->fire_command(invite => $user, $t_user, $ch_name);
     
     return 1;
 }

@@ -20,7 +20,7 @@ use parent 'Evented::Object';
 use Scalar::Util qw(weaken blessed);
 use utils qw(v set_v notice);
 
-our ($api, $mod);
+our ($api, $mod, $me);
 
 # create a pool.
 sub new {
@@ -177,10 +177,10 @@ sub new_user {
     my ($pool, %opts) = @_;
     
     # no server provided; default to this server.
-    $opts{server} //= v('SERVER');
+    $opts{server} //= $me;
     
     # no UID provided; generate one.
-    $opts{uid} //= v('SERVER', 'sid').$pool->{user_i}++;
+    $opts{uid} //= $me->{sid}.$pool->{user_i}++;
     
     my $user = user->new(%opts) or return;
     
@@ -590,7 +590,7 @@ sub fire_command_all {
 
     # send to all children.
     my $data = $pool->{outgoing_commands}{$command}{code}(@args);
-    v('SERVER')->send_children(undef, $data) if length $data;
+    $me->send_children(undef, $data) if length $data;
 
     return 1;
 }

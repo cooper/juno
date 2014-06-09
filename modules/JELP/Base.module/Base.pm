@@ -89,7 +89,7 @@ sub register_server_command {
 
             # server lookup
             when ('server') {
-                my $serv = $::pool->lookup_server(my $id = col($args[$i]));
+                my $serv = $pool->lookup_server(my $id = col($args[$i]));
                 if (!$serv) {
                     L("Protocol error: $$server{name}: $command could not get server: $id");
                     $server->{conn}->done('Protocol error');
@@ -100,7 +100,7 @@ sub register_server_command {
 
             # user lookup
             when ('user') {
-                my $user = $::pool->lookup_user(my $id = col($args[$i]));
+                my $user = $pool->lookup_user(my $id = col($args[$i]));
                 if (!$user) {
                     L("Protocol error: $$server{name}: $command could not get user: $id");
                     $server->{conn}->done('Protocol error');
@@ -111,7 +111,7 @@ sub register_server_command {
 
             # channel lookup
             when ('channel') {
-                my $channel = $::pool->lookup_channel(my $chname = col($args[$i]));
+                my $channel = $pool->lookup_channel(my $chname = col($args[$i]));
                 if (!$channel) {
                     L("Protocol error: $$server{name}: $command could not get channel: $chname");
                     $server->{conn}->done('Protocol error');
@@ -148,7 +148,7 @@ sub register_server_command {
     # register to juno: updated 12/11/2012
     # ($source, $command, $callback, $forward)
     $opts{name} = uc $opts{name};
-    $::pool->register_server_handler(
+    $pool->register_server_handler(
         $mod->name,
         $opts{name},
         $CODE,
@@ -173,7 +173,7 @@ sub register_outgoing_command {
 
     # register to juno
     $opts{name} = uc $opts{name};
-    $::pool->register_outgoing_handler(
+    $pool->register_outgoing_handler(
         $mod->name,
         $opts{name},
         $opts{code}

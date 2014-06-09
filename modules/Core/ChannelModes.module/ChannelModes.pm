@@ -24,7 +24,6 @@ my %cmodes = (
     moderated     => \&cmode_normal,
     ban           => sub { cmode_banlike('ban',    @_) },
     except        => sub { cmode_banlike('except', @_) },
-    invite_except => sub { cmode_banlike('invite', @_) }
 );
 
 sub init {

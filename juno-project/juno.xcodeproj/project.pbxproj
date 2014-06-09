@@ -58,6 +58,7 @@
 		BC95655F1944E032002F52B9 /* Modules.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Modules.pm; path = Modules.module/Modules.pm; sourceTree = "<group>"; };
 		BC9565621944E032002F52B9 /* Reload.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Reload.pm; path = Reload.module/Reload.pm; sourceTree = "<group>"; };
 		BC9565651944E032002F52B9 /* Resolve.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Resolve.pm; path = Resolve.module/Resolve.pm; sourceTree = "<group>"; };
+		BC956566194636CF002F52B9 /* Invite.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Invite.pm; path = Invite.module/Invite.pm; sourceTree = "<group>"; };
 		BCBCCEA0193BAD0800F7E7F9 /* ircd_forever */ = {isa = PBXFileReference; lastKnownFileType = text; path = ircd_forever; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.perl; };
 /* End PBXFileReference section */
 
@@ -113,8 +114,8 @@
 			isa = PBXGroup;
 			children = (
 				BC9565351944E032002F52B9 /* ircd */,
-				BC9565141944E032002F52B9 /* Core */,
 				BC9564FE1944E032002F52B9 /* Base */,
+				BC9565141944E032002F52B9 /* Core */,
 				BC95654D1944E032002F52B9 /* JELP */,
 				BC9564F41944E032002F52B9 /* Account */,
 				BC9564F31944E032002F52B9 /* Access.pm */,
@@ -122,6 +123,7 @@
 				BC95652F1944E032002F52B9 /* Fantasy.pm */,
 				BC9565651944E032002F52B9 /* Resolve.pm */,
 				BC9565341944E032002F52B9 /* Ident.pm */,
+				BC956566194636CF002F52B9 /* Invite.pm */,
 				BC95655F1944E032002F52B9 /* Modules.pm */,
 				BC95652C1944E032002F52B9 /* Eval.pm */,
 				BC95655C1944E032002F52B9 /* LOLCAT.pm */,

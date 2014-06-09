@@ -2272,6 +2272,24 @@ CHANGES:
             
         17. lots of cleanup.
         
+        18. channel invite stuff was moved out of Core modules and into a separate Invite module.
+            solved an issue where the pool object was unavailable to other submodules of the ircd module.
+            cleaned up ugly v('SERVER') stuff and $::variables.
+            updated Evented::Object.
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         
         
         

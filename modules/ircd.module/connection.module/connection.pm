@@ -22,7 +22,7 @@ use Scalar::Util 'weaken';
 
 use utils qw(col conn conf match v notice);
 
-our ($api, $mod);
+our ($api, $mod, $me, $pool);
 
 sub new {
     my ($class, $stream) = @_;
@@ -34,7 +34,7 @@ sub new {
         host          => $stream->{write_handle}->peerhost,
         localport     => $stream->{write_handle}->sockport,
         peerport      => $stream->{write_handle}->peerport,
-        source        => v('SERVER', 'sid'),
+        source        => $me->{sid},
         time          => time,
         last_response => time,
         wait          => 0
@@ -73,7 +73,7 @@ sub handle {
             my $nick = col(shift @args);
 
             # nick exists
-            if ($::pool->lookup_user_nick($nick)) {
+            if ($pool->lookup_user_nick($nick)) {
                 $connection->sendme("433 * $nick :Nickname is already in use.");
                 return
             }
@@ -207,12 +207,12 @@ sub ready {
         #}
         
         $connection->{server}   =
-        $connection->{location} = v('SERVER');
+        $connection->{location} = $me;
         $connection->{cloak}  //= $connection->{host};
 
 
         # create a new user.
-        $connection->{type} = $::pool->new_user(%$connection);
+        $connection->{type} = $pool->new_user(%$connection);
         
     }
 
@@ -229,25 +229,25 @@ sub ready {
         }
         
         # check if the server is linked already.
-        if ($::pool->lookup_server($connection->{sid}) || $::pool->lookup_server_name($connection->{name})) {
+        if ($pool->lookup_server($connection->{sid}) || $pool->lookup_server_name($connection->{name})) {
             notice(connection_invalid => $connection->{ip}, 'Server exists');
             return;
         }
 
-        $connection->{parent} = v('SERVER');
-        $connection->{type}   = my $server = $::pool->new_server(%$connection);
+        $connection->{parent} = $me;
+        $connection->{type}   = my $server = $pool->new_server(%$connection);
         $server->{conn}       = $connection;
         weaken($connection->{type}{location} = $connection->{type});
-        $::pool->fire_command_all(sid => $connection->{type});
+        $pool->fire_command_all(sid => $connection->{type});
 
         # send server credentials
         if (!$connection->{sent_creds}) {
             $connection->send(sprintf 'SERVER %s %s %s %s :%s',
-                v('SERVER', 'sid'),
-                v('SERVER', 'name'),
+                $me->{sid},
+                $me->{name},
                 v('PROTO'),
                 v('VERSION'),
-                v('SERVER', 'desc')
+                $me->{desc}
             );
             $connection->send('PASS '.conn($connection->{name}, 'send_password'));
         }
@@ -290,8 +290,7 @@ sub sendme {
     my $connection = shift;
     my $source =
         $connection->{type} && $connection->{type}->isa('server') ?
-        v('SERVER', 'sid')                                        :
-        v('SERVER', 'name');
+        $me->{sid} : $me->{name};
     $connection->sendfrom($source, @_);
 }
 
@@ -309,7 +308,7 @@ sub done {
 
     if ($connection->{type}) {
         # share this quit with the children
-        $::pool->fire_command_all(quit => $connection, $reason);
+        $pool->fire_command_all(quit => $connection, $reason);
 
         # tell user.pm or server.pm that the connection is closed
         $connection->{type}->quit($reason)
@@ -317,7 +316,7 @@ sub done {
     $connection->send("ERROR :Closing Link: $$connection{host} ($reason)") unless $silent;
 
     # remove from connection list
-    $::pool->delete_connection($connection) if $connection->{pool};
+    $pool->delete_connection($connection) if $connection->{pool};
     
     # will close it WHEN the buffer is empty
     $connection->{stream}->close_when_empty if $connection->{stream};

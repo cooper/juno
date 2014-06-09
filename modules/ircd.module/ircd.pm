@@ -67,8 +67,9 @@ sub init {
 
     # load submodules. create the pool.
     # utils pool user(::mine) server(::mine,::linkage) channel(::mine) connection
-    $mod->load_submodule($_) or return foreach qw(pool user server channel connection);
-    $pool = $::pool = pool->new unless $::pool;
+    $mod->load_submodule('pool') or return;
+    $ircd::pool = $::pool ||= pool->new; # must be ircd::pool; don't change.
+    $mod->load_submodule($_) or return foreach qw(user server channel connection);
 
     # TODO: new values are NOT inserted after reloading.
     # I had an idea once upon a time to make $server->configure(%opts)
@@ -435,7 +436,7 @@ sub ping_check {
         
         # send a ping if we haven't already.
         if (!$connection->{ping_in_air}) {
-            $connection->send('PING :'.v('SERVER')->{name});
+            $connection->send("PING :$$me{name}");
             $connection->{ping_in_air} = 1;
         }
     
@@ -456,7 +457,7 @@ sub terminate {
     L("removing all connections for server shutdown");
 
     # delete all users/servers/other
-    foreach my $connection ($::pool->connections) {
+    foreach my $connection ($pool->connections) {
         $connection->done('Shutting down');
     }
 

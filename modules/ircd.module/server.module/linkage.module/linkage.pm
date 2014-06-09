@@ -17,7 +17,7 @@ use strict;
 
 use utils qw(conf v notice);
 
-our ($api, $mod);
+our ($api, $mod, $me, $pool);
 
 # connect to a server in the configuration
 sub connect_server {
@@ -30,7 +30,7 @@ sub connect_server {
     }
     
     # then, ensure that the server is not connected already.
-    if ($::pool->lookup_server_name($server_name)) {
+    if ($pool->lookup_server_name($server_name)) {
         L("attempted to connect an already connected server: $server_name");
         return;
     }
@@ -60,7 +60,7 @@ sub connect_server {
     );
 
     # create connection object.
-    my $conn = $::pool->new_connection(stream => $stream);
+    my $conn = $pool->new_connection(stream => $stream);
 
     # configure the stream events.
     $stream->configure(
@@ -78,11 +78,11 @@ sub connect_server {
 
     # send server credentials.
     $conn->send(sprintf 'SERVER %s %s %s %s :%s',
-        v('SERVER', 'sid'),
-        v('SERVER', 'name'),
+        $me->{sid},
+        $me->{sid},
         v('PROTO'),
         v('VERSION'),
-        v('SERVER', 'desc')
+        $me->{desc}
     );
     $conn->send("PASS $serv{send_password}");
 

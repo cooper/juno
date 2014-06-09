@@ -16,8 +16,9 @@ use warnings;
 use strict;
 use feature 'switch';
 use parent 'Evented::Object';
-
 use utils qw(conf v notice match);
+
+our ($api, $mod, $pool, $me);
 
 sub new {
     my ($class, %opts) = @_;
@@ -27,8 +28,6 @@ sub new {
         %opts
     }, $class;
 }
-
-our ($api, $mod);
 
 # named mode stuff
 
@@ -151,12 +150,11 @@ sub cjoin {
     # add the user to the channel
     push @{ $channel->{users} }, $user;
     
-    # note: as of 5.91, after-join event is fired in
+    # note: as of 5.91, after-join (user_joined) event is fired in
     # mine.pm:           for locals
     # core_scommands.pm: for nonlocals.
  
     notice(user_join => $user->notice_info, $channel->name);
-    delete $user->{invite_pending}{ lc $channel->name };
     return $channel->{time};
 }
 
@@ -168,7 +166,7 @@ sub remove {
 
     # remove the user from status lists
     foreach my $name (keys %{ $channel->{modes} }) {
-        if (v('SERVER')->cmode_type($name) == 4) {
+        if ($me->cmode_type($name) == 4) {
             $channel->remove_from_list($name, $user);
         }
     }
@@ -179,7 +177,7 @@ sub remove {
     
     # delete the channel if this is the last user
     if (!scalar $channel->users) {
-        $::pool->delete_channel($channel);
+        $pool->delete_channel($channel);
         $channel->delete_all_events();
     }
     
@@ -250,7 +248,7 @@ sub handle_mode_string {
             # don't allow this mode to be changed if the test fails
             # *unless* force is provided.
             my $params_before = scalar @$parameters;
-            my ($win, $moderef) = $::pool->fire_channel_mode(
+            my ($win, $moderef) = $pool->fire_channel_mode(
                 $channel, $server, $source, $state, $name, $parameter,
                 $parameters, $force, $over_protocol
             );
@@ -540,7 +538,7 @@ sub notice_all {
     foreach my $user ($channel->users) {
         next unless $user->is_local;
         next if defined $ignore && $ignore == $user;
-        $user->send(":".v('SERVER', 'name')." NOTICE $$channel{name} :*** $what");
+        $user->send(":$$me{name} NOTICE $$channel{name} :*** $what");
     }
     return 1
 }
@@ -556,7 +554,7 @@ sub take_lower_time {
 
     # unset topic.
     if ($channel->topic) {
-        sendfrom_all($channel, v('SERVER', 'name'), "TOPIC $$channel{name} :");
+        sendfrom_all($channel, $me->{name}, "TOPIC $$channel{name} :");
         delete $channel->{topic};
     }
 
@@ -566,10 +564,10 @@ sub take_lower_time {
     # note: we don't do this for CUM cmd ($ignore_modes = 1) because it handles
     #       modes in a prettier manner.
     if (!$ignore_modes) {
-        my ($u_str, $s_str) = $channel->mode_string_all(v('SERVER'));
+        my ($u_str, $s_str) = $channel->mode_string_all($me);
         substr($u_str, 0, 1) = substr($s_str, 0, 1) = '-';
-        sendfrom_all($channel, v('SERVER', 'name'), "MODE $$channel{name} $u_str");
-        $channel->handle_mode_string(v('SERVER'), v('SERVER'), $s_str, 1, 1);
+        sendfrom_all($channel, $me->{name}, "MODE $$channel{name} $u_str");
+        $channel->handle_mode_string($me, $me, $s_str, 1, 1);
     }
     
     notice_all($channel, "New channel time: ".scalar(localtime $time)." (set back \2$amount\2 seconds)");
@@ -603,8 +601,8 @@ sub _do_mode_string {
 
     # tell the channel's users.
     my $local_ustr =
-        $perspective == v('SERVER') ? $user_result :
-        $perspective->convert_cmode_string(v('SERVER'), $user_result);
+        $perspective == $me ? $user_result :
+        $perspective->convert_cmode_string($me, $user_result);
     $channel->sendfrom_all($source->full, "MODE $$channel{name} $local_ustr");
     
     # stop here if it's not a local user or this server.
@@ -612,7 +610,7 @@ sub _do_mode_string {
     
     # the source is our user or this server, so tell other servers.
     # ($source, $channel, $time, $perspective, $server_modestr)
-    $::pool->fire_command_all(cmode =>
+    $pool->fire_command_all(cmode =>
         $source, $channel, $channel->{time},
         $perspective->{sid}, $server_result
     ) unless $local_only;

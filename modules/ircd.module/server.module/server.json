@@ -1,5 +1,5 @@
 {
-   "version" : "8.15",
+   "version" : "8.18",
    "name" : "ircd::server",
    "author" : {
       "website" : "https://github.com/cooper",
