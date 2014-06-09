@@ -189,7 +189,7 @@ sub on_user_joined {
     
     # continue through matches.
     my %done;
-    my $highest = -inf; 
+    my $highest = -inf;
     foreach my $match (@matches) {
         
         # there is match, so let's continue.

@@ -1,4 +1,4 @@
-# vulpia-ircd version 7
+# kylie
 
 Yes.  
 It really is an IRC daemon.  
@@ -6,216 +6,311 @@ It's written in Perl.
   
 ...  
 You can breathe again.  
-There. Very good.
+There. Very good.  
 
-# Introduction to juno-ircd
+# Introduction
 
-This IRC server daemon is written in the Perl programming language. It is based on the
-code of juno-ircd version 3, a from-scratch rewrite of the former juno-ircd version 2.
-Each major version of this IRCd has a specific set of goals that will be introduced.
-This software is functional for the most part, but at this time, it has no 'stable'
-releases. For full history of this IRCd and its predecessors, see the 'History' section
-below.
+This is juno-ircd, an IRC server daemon written in the Perl programming language. Why,
+you ask? No one knows for sure. Perl and IRC are both neat, so why not?  
+
+This software will probably surprise you with its functionality and features. However, it
+should by no means be considered stable. Throughout several years of development, no
+stable versions have been released. Nonetheless, you are encouraged to give it a try.
+
+## Concepts
+
+* __Eventedness__: The core unifying policy of juno-ircd is the excessive use of events.
+It is the fundamental and single most important concept in mind throughout the IRCd.
+Any operation that occurs can be represented as an event, and anything where it may seem
+useful for something to respond, an event exists and is fired. This functionality is
+provided by [Evented::Object](https://github.com/cooper/evented-object), a showcase
+project that is the base of every class within the IRCd.
+
+* __Extensibility__: Through the use of events and other mechanisms, extensibility is
+another important guideline around which juno is designed. It should not be assumed that
+any commands, modes, prefixes, etc. are permanent or definite. They should be changeable
+and replaceable, and it should be possible for more to be added with ease.
+
+* __Modularity__: By responding to events, modules add new features and functionality to
+the IRCd. Without them, juno is made up of a mere sixty lines of Perl code. Everything else
+is within a module. Modules communicate and work together to create a single functioning
+body whose parts can be added, removed, and modified. This functionality is provided by
+the [Evented::API::Engine](https://github.com/cooper/evented-api-engine), a class which
+provides an interface for loading and managing modules.
+
+* __Upgradability__: The beauty of Perl makes it practical for an entire piece of software
+to be upgraded or reloaded without restarting it. With the help of the API engine and
+modularity as a central principle, juno aims to do exactly that. With just one command,
+you can jump from version 10 to 25, all without your users disconnecting.
+
+* __Configurability__: Very few values are hard coded. Some have default values, but
+nearly everything is configurable. There's little reason to make limitations on what can
+and cannot be changed, so tons of configurable options make it easy to set the server up
+exactly as you please.
+
+* __Efficiency__: Processing efficiency is valued over memory friendliness. I believe that
+a more responsive server is better than one that runs on very minimal resources. Modern
+IRC servers typically have a higher per-user load and therefore should be prompt at
+fulfilling request after request. Utilizing the wonderful
+[IO::Async](http://search.cpan.org/perldoc/IO::Async) framework, juno is quite reactive.
+
+## Features
+
+This section isn't done.
+
+# Modules
+
+This section isn't done.
+
+* __ircd__:
+
+* __Core__:
+
+* __Resolve__:
+
+* __Ident__:
+
+* __JELP__:
+
+* __Access__:
+
+* __Account__:
+
+* __Modules__:
+
+* __Reload__:
+
+* __Eval__:
+
+* __Fantasy__:
+
+* __Git__:
+
+* __LOLCAT__:
+
+# History
+
+juno-ircd was born a fork of [pIRCd](http://pircd.sourceforge.net) (the Perl IRC daemon)
+but has since been rewritten (multiple times) from the ground up.
+
+* [__pIRCd__](http://pircd.sourceforge.net):
+Born in the 20th century and written by Jay Kominek, pIRCd is a very buggy,
+poorly-coded, feature-lacking (well, compared to those now) IRC server. During its time,
+it was one of only a number of IRCds featuring SSL support. Having been abandoned in 2002,
+pIRCd is ancient history.
+
+* __pIRCd2__:
+A PHP novice, I was convinced by someone to learn Perl. I discovered pIRCd
+and spent hours trying to change something without breaking it. pIRCd2 allowed you to use
+the dollar sign ($) in nicknames, adding support for users such as
+[Ke$ha](https://twitter.com/KeshaRose). Truly revolutionary to IRC as a whole.
+
+* [__juno-ircd__](https://github.com/cooper/juno1) (juno1):
+A fork of pIRCd2, juno-ircd introduced a handful of new features:
+five prefixes (~&@%+), CAP and multi-prefix support, channel link mode (+L), internal
+logging channel (inspired by InspIRCd), network administrator support and the
+corresponding NA:line, temporary oper-override mode (+O), channel mute mode (+Z, inspired
+by charybdis +q), KLINE command for adding K:lines from IRC, an almost-but-never-fully
+working buggy linking protocol, and a network name (NETWORK in RPL_ISUPPORT) option.
+Unfortunately juno-ircd introduced dozens of new bugs along with its features, and it
+includes some of the ugliest code in all of Perl history.
+
+```
+[04:15pm] -Global- [Network Notice] Alice (nenolod) - We will be upgrading to "juno-ircd" in 5 seconds.
+```
+
+* [__juno__](https://github.com/cooper/juno2) (juno2):
+At some point, some [IRC bullies](http://stop-irc-bullying.eu) made me
+realize how horrific juno-ircd was. I decided to dramatically announce that I would no
+longer be developing the project, but I could not resist. I started from scratch, dropping
+the '-ircd' from the name. juno was actually quite complete and surprisingly reliable.
+Unlike pIRCd and its derivatives, it introduced an interface for modules which later
+became a separate project, [API Engine](https://github.com/cooper/api-engine). It
+brought forth more new features than can be mentioned, namely: host cloaking, server
+notices, channel access mode (+A), GRANT command, D:line, lots more. juno unfortunately
+was completely incapable of server linkage.
+
+* [__juno3__](https://github.com/cooper/juno3):
+It occurred to me one day that an IRC server incapable of linking is somewhat
+impractical (as if one written in Perl were not impractical enough already). I decided to
+put the past behind and say goodbye to juno2. Another complete rewrite, juno3's showcase
+improvement was a dazzling linking protocol. It was even more extensible than ever before
+with greatly improved module interfaces. juno3 was also the first version to make use of
+[IO::Async](http://search.cpan.org/perldoc/IO::Async), exponentially boosting its speed
+efficiency. Although it required more memory resources than juno2, it was prepared to
+take on a massive load, tested with many tens of thousands of users. It was less buggy
+but also less featureful, lacking many standard IRC functions due to my shift of focus to
+a reliable core.
+
+* [__juno-mesh__](https://github.com/cooper/juno-mesh) (juno4): It was recommended to me
+by [Andrew Sorensen](http://andrewsorensen.net) (AndrewX192) that I should implement
+mesh server linking. It seemed that it would be easy to implement, so I forked juno3 to
+create juno-mesh. In addition to mesh linking, it introduced several new commands and a
+new permission system with a method by which additional statuses/prefixes can be added.
+
+* [__juno5__](https://github.com/cooper/kylie/tree/f0d3e8f31062faa894ae1d8db3c0796630b2ee42):
+It turned out that mesh linking required more code and effort than intended and introduced
+countless bugs that I didn't want to bother correcting. I knew that if I started from
+scratch again, it would never reach the completeness of the previous generation. Therefore,
+juno5 was born as yet another fork that removes the mesh capability while preserving the 
+other new features that were introduced in juno-mesh. 
+
+* [__kedler__](https://github.com/cooper/kylie/tree/4fec4b52841eaca3a43003df8f979ac098bb367d) (juno6): 
+Named after a Haitian computer technician, kedler was a continuation of juno5. Its main goal was
+to implement the missing standard IRC functions that had never been implemented in the
+third juno generation. kedler reintroduced hostname resolving, a long-broken feature that
+has not worked properly since juno2. It also reintroduced channel access, this time in the
+form of a module. kedler featured new APIs and improvements to the linking protocol.
+
+* [__vulpia__](https://github.com/cooper/kylie/tree/001b766439ed8423e8eda1c41dd578c899cd7946) (juno7):
+Romanian for a female wolf, vulpia is named after the alias of a dear friend,
+[Ruin](https://soundcloud.com/ruuuuuuuuuuuuin). It included several improvements, making
+the IRCd more extensible than ever before. The
+[Evented::API::Engine](https://github.com/cooper/evented-api-engine) replaced the former
+[API Engine](https://github.com/cooper/api-engine), allowing modules to react to any
+event that occurs within juno. vulpia completed the relocation of JELP
+(the linking protoocol) to a module, opening the doors for additional linking protocols
+in the future. Additionally, it established the Account module, allowing users to better
+manage accounts and channels.
+
+* [__kylie__](https://github.com/cooper/kylie) (juno8):
+Named after the adored [Kyle](http://mac-mini.org) (mac-mini), kylie is a continuation of
+vulpia. It is the current version under active development.
+
+# Installation and operation
+
+Most actions for starting, stopping, and managing the IRC server are committed with the
+`juno` script in the root directory of the repository.
 
 ## Installation
 
-juno is designed to be used out-of-the-box. It comes with a working configuration and, up
-until recently, depended only on modules that ship with Perl. However, it now requires
-much of the IO::Async library and IO::Socket::IP for IPv4 and IPv6 support. After you get
-everything you need installed, feel free to either fire up the IRCd for trying it out or
-editing the example configuration. The configuration should be saved as etc/ircd.conf.
-See the following sections for information on how to install dependencies.
+Before installing juno, a number of Perl packages must be installed to the system. The
+simplest way to install them is with the `cpanm` tool, but you can use any CPAN client
+or package manager of your choice (assuming it has the latest versions).  
 
-### IO::Async and friends
+To install `cpanm`, run the following command:
 
-Since version 3, juno-ircd has depended on many packages from the
-[IO::Async](http://search.cpan.org/~pevans/IO-Async-0.53/lib/IO/Async.pm) library. It uses
-this framework to power its sockets, timers, etc. You should fetch these packages. Some of
-them may be included with the IO::Async pacakge. I'm not quite sure which ones need to be
-fetched manually. Thanks to IO::Async, juno3 and its children are more efficient at
-simultaneous file and socket operations than any previous version.
-
-* IO::Async
-* IO::Async::Loop::Epoll (optimization on Linux)
-* IO::Socket::IP
-* Socket::GetAddrInfo
-* etc...
-
-### Evented::Object and friends
-
-Since version 5, juno-ircd has depended on many of the "Evented" packages. These are all
-included as submodules.
-
-* [__Evented::Object__](https://github.com/cooper/evented-object) - provides methods to fire
-  and respond to events on objects.
-
-* [__Evented::Configuration__](https://github.com/cooper/evented-configuration) - a
-  configuration class which fires events when values are changed.
-
-* [__Evented::Database__](https://github.com/cooper/evented-database) - subclass of
-  Evented::Configuration with seamless database functionality in a configuration class.
-
-* [__API Engine__](https://github.com/cooper/api-engine) - an extensible API class based on the
-  original APIs of juno, providing a base for juno's module interfaces.
-
-## Fetching and updating
-  
-**To fetch juno for the first time**:
-
-The easiest way to fetch juno-ircd is to use recursive options for the clone command.
-
-```
-git clone --recurse-submodules git://github.com/cooper/kedler.git
-# or
-git clone --recursive git://github.com/cooper/kedler.git
-# (I'm not sure which was available first, so just use whichever works.)
+```bash
+curl -L http://cpanmin.us | perl - --sudo App::cpanminus
 ```
 
-If all else fails, you may need to run `git submodule update --init` after cloning.
+Then, install these modules:
 
-**To update an existing copy of juno**
+```bash
+cpanm --sudo IO::Async IO::Socket::IP Socket::GetAddrInfo JSON JSON::XS
+```
 
-To update, you should pull with the `git pull` command. Then, in order to update
-submodules, you may need to run `git submodule update`. If this does not work, run
-`git submodule update --init`. This is usually necessary if a new submodule has been
-included since your last update.
+If you want to use any module which requires database (such as Account), install this:
 
-## Starting, stopping, and rehashing juno
+```bash
+cpanm --sudo DBD::SQLite
+```
 
-You should never use any of juno's executable files in the 'bin' directory directly.
-Instead, juno includes a start script that sets the necessary environment variables needed
-to run the software.  
+After you've installed the appropriate Perl packages, clone the repository:
 
-Start with `./juno start`. Stop with `./juno stop`. Rehash with `./juno rehash`.
+```bash
+git clone --recursive https://github.com/cooper/kylie.git
+# OR (whichever is available on your git)
+git clone --recurse-submodules https://github.com/cooper/kylie.git
+```
 
-# History of this software
+Now you need to configure it.
 
-juno-ircd started as a fork of pIRCd, the Perl IRC daemon written several years ago by Jay
-Kominek. It has grown to be a bit more *practical*.  
-  
-* **pIRCd**: very buggy, lacking features other than traditional IRC features, poorly coded.
-  during its time it was one of few IRCds that featured SSL support.
+## Configuration
 
-* **pIRCd2**: the same as pIRCd, except you can use dollar signs in your nicks, like Ke$ha.
+juno actually comes with a working example configuration. If you want to try it for the
+first time, simply copy `etc/ircd.conf.example` in to `etc/ircd.conf`. The password for
+the default oper account `admin` is `k`.  
 
-* **juno-ircd** (juno1): very poorly written but has more features: five prefixes instead of two,
-  multi-prefix, CAP, channel link mode, internal logging channel, network administrator
-  support, oper-override mode, channel mute mode, kline command, an almost-working buggy
-  linking protocol, and a network name configuration option. and that's when I realized pIRCd blows.
+The configuration is, for the most part, self-explanitory. Anything that might be
+questionable probably has a comment that explains it.
 
-* **juno** (juno2): rewritten from scratch, *far* more usable than any other previous version. This
-  version of juno is what I would consider to be "fully-featured." It has an easy-to-use
-  module API and just about every channel mode you can think of. However, it does not
-  support server linking at all.
+## Starting, stopping, etc.
 
-* **juno3**: rewritten from scratch, *far* more efficient than any previous version of juno.
-  capable of handling over nine thousand connections and 100,000 global users. has an even
-  more capable module API than juno2. has its own custom linking protocol that is also
-  very, very extensible. designed to be so customizable that almost anything can be edited
-  by using a module. requires more resources than before, but is also more prepared for
-  IRC networks with large loads.
+These options are provided by the `juno` script.
 
-* **juno-mesh** (juno4): the first version of juno which is not a from-scratch rewrite.
-  it is forked from juno3 and aims to implement mesh server linking.
+```
+usage: ./juno [action]
+    start       start juno IRCd
+    forcestart  attempt to start juno under any circumstances
+    stop        terminate juno IRCd
+    debug       start in NOFORK mode with printed output
+    forever     run continuously
+    foreverd    run continuously in debug mode
+    rehash      rehash the server configuration file
+    mkpasswd    runs the password generator
+    dev         various developer actions (./juno dev help)
+    help        print this information
+```
 
-* **juno5**: juno5 is a fork of juno4 (itself a fork of juno3). it includes the new
-  features introduced in juno4, but it does not support mesh server linkage.
+* __start__: Runs the server in the background as a daemon.
 
-* **kedler-ircd** (juno6): a continuation of juno5 and major leap
-  from previous versions. it introduces many features no
-  earlier version had. as well as implementing the core set of IRC commands and modes,
-  kedler features an event-driven core, making it even more extensibe than juno3. kedler
-  also implements new APIs for all of its new features. it attempts to move JELP out of
-  the core of juno, eventually making it possible to implement other linking protocols
-  through the use of modules.
+* __forcestart__: Runs the server in the background, ignoring the PID file if it appears
+to already be running.
 
-* **vulpia-ircd** (juno7): a continuation of kedler currently under active development.
+* __stop__: Terminates the IRCd if it is currently running.
 
-## Naming conventions or lack thereof
+* __debug__: Runs the IRCd in the foreground, printing the logging output.
 
-When juno2 was in development, it was named "juno" where juno1 was named "juno-ircd" as it
-always had been. When juno3 was born, juno-ircd and juno were renamed to juno1 and juno2
-to avoid confusion. Versions were written as version.major.minor.commit, such as 3.2.1.1
-(or juno3 2.1 commit 1).
+* __forever__: Runs the IRCd continuously in the background. In other words, if it is
+stopped for any reason (such as a crash or exploit or SHUTDOWN), it will immediately
+start again. Don't worry though, it will not stress out your processor if it fails
+over and over.
 
-However, I decided one day that it would be fun to add even more
-confusion by adopting a new versioning system that increments at a faster rate. Now, each
-commit increments the version by a tenth. For example, the last commit of kedler (juno6)
-is 6.99, and the first commit of vulpia (juno7) is simply 7.
+* __foreverd__: Runs the IRCd continuously in the foreground, printing the logging output.
 
-# What is juno-ircd?
+* __rehash__: Notifies the currently-running server to reload its configuration file.
 
-juno-ircd is a fully-featured, modular, and usable IRC daemon written in Perl. It is aimed
-to be highly extensible and customizable. At the same time it is efficient and usable.  
+* __mkpasswd__: Runs the script for generating encrypted passwords for use in oper and
+connect blocks in the server configuration.
 
-Here is a list of goals that juno-ircd aims to meet:
+* __dev__: Includes a number of subcommand tools for developers; see `./juno dev help`.
 
-* being extensible and flexible.
-* being customizable in every visibly possible way.
-* compatibility with some standards and hopefully most clients.
-* seamless multi-server IRC networks.
-* the ability to update most features without restarting.
-* the ability to
-* being bugless. (it can never be true, but it can be a goal)
-* being written in Perl!
+## Upgrading
 
-Here's a list of concepts around which juno is not designed:
+To upgrade an existing repository, run the following commands:
 
-* compatibility with non-unix-like systems.
-* low memory usage is not valued over operation efficiency.
-* replicating functionality of the original ircd or ircds branched from it.
-* implementing inspircd's "every command is a module" ideology.
-* supporting IRC clients from 1912.
-* non-English-understanding server administrators.
-* linking with other IRC software... (yet?)
-* being a compiled executable.
+```
+git pull origin master
+git submodule update --init
+```
 
-## From juno2 to juno3, what's new?
+Then, assuming the Reload module is loaded on your server, use the `RELOAD` command to
+upgrade the server without restarting. Because there are no stable releases, the
+possibility for this to fail is definitely there. Perhaps one day we will have stable
+releases that are known to upgrade without error.
 
-* a very extensible linking protocol
-* more efficiency in operations
-* the ability to host over 9,000 users
-* an even more extensible API
-* more customization
-* a better configuration format
-* even more modularity
-* more RFC compliancy
-* more IRCv3 implementations
-* less buggy!
-* more features in general
-* the ability to update core features without restarting
+# Information
 
-# More information
-
-Here you will find contact information, licensing, development information, etc. 
+Here you will find contacts, licensing, development information, etc. 
 
 ## Getting help
 
-If you need any help with setting up/configuring juno, visit us on NoTrollPlzNet IRC at
-`irc.notroll.net port 6667 #k`. I love new ideas, so feel free to recommend a feature or
-fix here as well. In fact, I encourage you to visit me on IRC because I understand that
-many parts of this software are poorly documented. Unfortunately, most of the
-"documentation" lives only in my head at the moment, so please feel free to ask me
-anything you may wish to know.
+If you need any help with setting up or configuring juno, visit us on NoTrollPlzNet IRC at
+`irc.notroll.net 6667 #k`. I love new ideas, so feel free to recommend a feature or fix
+here as well. In fact, I encourage you to visit me on IRC because many parts of this
+software are poorly documented or not documented at all. Sadly, most of the "documentation"
+lives only in my head at the moment, but I'll gladly tell you anything you may wish to
+know about the IRCd.
 
 ## Helping me out
 
 If you are interested in assisting with the development of this software, please visit me
 on IRC at `irc.notroll.net port 6667 #k`. I am willing to hear your ideas whether
-or not you are a developer.  
+or not you are a developer, in fact.  
 
-If you are interested in writing modules for juno-ircd, please
-contact me on IRC. Unfortunately, the APIs are not yet fully documented. I will gladly
-give you a tour of juno-ircd's several programming interfaces.
+If you are interested in writing modules for juno-ircd, please contact me on IRC because
+the APIs are not yet fully documented. I will gladly give you a tour of juno-ircd's
+several programming interfaces!
 
-### Versions, changes, and plans
+## Versions, changes, and plans
 
 See INDEV for a changelog and TODO list. It has been extended throughout all versions of
 this software starting with juno-ircd (juno1). The newest changes are at the bottom.
-The current version is in the VERSION file.
-Planned features are in the GOALS file.
+The current version is in the VERSION file. Planned features are in the GOALS file
+(but I forget to update that sometimes).
 
-## About the author
+## Author
 
 Mitchell Cooper, mitchell@notroll.net  
 
@@ -239,15 +334,14 @@ am a lazy procrastinator but work well under the pressure of time limits. During
 "free time," I ride a motorized bike for hours even further into the middle of nowhere
 without reason. I garden during the summer: Asparagus and onions are my favorite.
 
-juno-ircd was my first project in Perl -- ever.
+juno-ircd was my first project in Perl — ever.
 Most of my creations in Perl are related to IRC in some way, but I have other projects as
 well. I always look back at things I worked on a month ago and realize how terrible they
 are. That is why there are several rewrites of the same IRCd. I am, however, quite proud
 of the cleanliness of the current version.
 
-## License information
+## License
 
-juno-ircd version 3 and all of its derivatives are licensed under the three-clause
-"New" BSD license. A copy of this license should be included with all instances of this
-software source, either in the root directory or in the 'doc' directory.
-
+juno-ircd version 3 and all of its derivatives (including this one) are licensed under the
+three-clause "New" BSD license. A copy of this license should be included with all
+instances of this software source, either in the root directory or in the 'doc' directory.
