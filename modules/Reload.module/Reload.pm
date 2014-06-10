@@ -57,13 +57,23 @@ sub cmd_reload {
     my @mods_loaded = @{ $api->{loaded} };
     my $num = scalar @mods_loaded;
 
-    # reload ircd first and then all other modules.
+    # put bases last.
     my $ircd = $api->get_module('ircd');
-    $api->reload_module($ircd, grep {
-        $_ != $ircd &&
-        !$_->{UNLOADED} &&
-        !$_->{parent}
-    } @mods_loaded);
+    my (@not_bases, @bases);
+    foreach my $module (@mods_loaded) { 
+
+        # ignore ircd, unloaded modules, and submodules.
+        next if $module == $ircd;
+        next if $module->{UNLOADED};
+        next if $module->{parent};
+        
+        my $is_base = $module->name =~ m/Base/;
+        push @not_bases, $module if !$is_base;
+        push @bases,     $module if  $is_base;
+    }
+    
+    # reload ircd first, non-bases, then bases.
+    $api->reload_module($ircd, @not_bases, @bases);
     my $new_v = ircd->VERSION;
     
     # module summary.

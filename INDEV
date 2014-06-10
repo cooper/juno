@@ -2289,8 +2289,9 @@ CHANGES:
             fixed misleading server burst notices.
             fixed an issue where old listeners or those which failed were not disposed of.
             
+        23. solved Invite module reloading failure because I forgot to specify its dependencies.
+            in Reload, modules containing 'Base' are now unloaded last, just as an extra safety measure.
             
-        
         
         
         

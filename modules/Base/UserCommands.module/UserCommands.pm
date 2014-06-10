@@ -41,9 +41,8 @@ sub register_user_command {
         L("user command $opts{name} does not have '$what' option");
         return;
     }
-    
-    my $CODE       = $opts{code};
-    my $parameters = 0;
+
+    my ($CODE, $parameters) = ($opts{code}, 0);
     
     # parameters:
     #     channel channel name lookup

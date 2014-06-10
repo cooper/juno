@@ -4,6 +4,8 @@
 # @package:         "M::Invite"
 # @description:     "channel invitations"
 #
+# @depends.modules: [qw(Base::UserCommands JELP::Base Base::ChannelModes Base::UserNumerics)]
+#
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"
 #
