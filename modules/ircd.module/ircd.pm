@@ -202,30 +202,42 @@ sub set_variables {
 }
 
 sub setup_sockets {
+
+    # start listeners.
     foreach my $addr ($conf->names_of_block('listen')) {
-      foreach my $port (@{ $conf->get(['listen', $addr], 'port') }) {
-
-        # create the loop listener
-        my $listener = IO::Async::Listener->new(on_stream => \&handle_connect);
-        $loop->add($listener);
-
-        # create the socket
-        my $socket = IO::Socket::IP->new(
-            LocalAddr => $addr,
-            LocalPort => $port,
-            Listen    => 1,
-            ReuseAddr => 1,
-            Type      => Socket::SOCK_STREAM(),
-            Proto     => 'tcp'
-        ) or L("Couldn't listen on [$addr]:$port: $!") and next;
-
-        # add to looped listener
-        $listener->listen(handle => $socket);
-
-        L("Listening on [$addr]:$port");
-    } }
+        my @ports = @{ $conf->get(['listen', $addr], 'port') || [] };
+        listen_addr_port($addr, $_) foreach @ports;
+    }
     
-    return 1;
+    # remove dead listeners.
+    foreach my $listener (grep { $_->isa('IO::Async::Listener') } $loop->notifiers) {
+        next if $listener->read_handle;
+        $loop->remove($listener);
+    }
+    
+}
+
+sub listen_addr_port {
+    my ($addr, $port) = @_;
+    
+    # create the loop listener.
+    my $listener = IO::Async::Listener->new(on_stream => \&handle_connect);
+    $loop->add($listener);
+
+    # create the socket
+    my $socket = IO::Socket::IP->new(
+        LocalAddr => $addr,
+        LocalPort => $port,
+        Listen    => 1,
+        ReuseAddr => 1,
+        Type      => Socket::SOCK_STREAM(),
+        Proto     => 'tcp'
+    ) or L("Couldn't listen on [$addr]:$port: $!") and return;
+
+    # add to looped listener
+    $listener->listen(handle => $socket);
+
+    L("Listening on [$addr]:$port");
 }
 
 # refuse unload unless reloading.

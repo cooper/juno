@@ -28,8 +28,8 @@ sub init {
     ) or return;
 
     # events.
-    $pool->on('channel.user_joined' => \&on_user_joined,    with_evented_obj => 1);
-    $pool->on('user.logged_in'      => \&on_user_logged_in, with_evented_obj => 1);
+    $pool->on('channel.user_joined'    => \&on_user_joined,    with_evented_obj => 1);
+    $pool->on('user.account_logged_in' => \&on_user_logged_in, with_evented_obj => 1);
 
     # register UP command.
     $mod->register_user_command(

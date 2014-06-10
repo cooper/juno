@@ -274,7 +274,7 @@ sub burst {
     my ($server, $data, $serv) = @_;
     $serv->{is_burst} = time;
     L("$$serv{name} is bursting information");
-    notice(server_burst => $server->{name}, $server->{sid});
+    notice(server_burst => $serv->{name}, $serv->{sid});
 }
 
 sub endburst {
@@ -286,10 +286,10 @@ sub endburst {
     $serv->{sent_burst} = time;
     
     L("end of burst from $$serv{name}");
-    notice(server_endburst => $server->{name}, $server->{sid}, $elapsed);
+    notice(server_endburst => $serv->{name}, $serv->{sid}, $elapsed);
     
     # if we haven't sent our own burst yet, do so.
-    $server->send_burst unless $server->{i_sent_burst};
+    $serv->send_burst if $serv->{conn} && !$serv->{i_sent_burst};
     
 }
 

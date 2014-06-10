@@ -2284,6 +2284,12 @@ CHANGES:
     
         21. fixed crash: create_sockets() -> setup_sockets().
             more clear account registration errors.
+            
+        22. fixed automatic op in Access on account login.
+            fixed misleading server burst notices.
+            fixed an issue where old listeners or those which failed were not disposed of.
+            
+            
         
         
         
