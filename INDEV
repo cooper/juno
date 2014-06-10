@@ -2292,7 +2292,9 @@ CHANGES:
         23. solved Invite module reloading failure because I forgot to specify its dependencies.
             in Reload, modules containing 'Base' are now unloaded last, just as an extra safety measure.
             
-        
+        24. fixed a fatal error in Invite module.
+            improved reloading of Evented::API::Engine.
+            updated Evented::API::Engine.
         
         
         

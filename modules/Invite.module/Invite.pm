@@ -36,7 +36,10 @@ sub init {
     ) or return;
     
     # invite exception channel mode.
-    my $banlike = M::Core::ChannelModes->can('cmode_banlike');
+    my $banlike = sub {
+        my $sub = M::Core::ChannelModes->can('cmode_banlike') or return;
+        $sub->('invite_except', @_);
+    };
     $mod->register_channel_mode_block(
         name => 'invite_except',
         code => $banlike
@@ -182,7 +185,7 @@ sub add_invite_callbacks {
     $pool->on('user.can_join' => sub {
         my ($event, $channel) = @_;
         my $user = $event->object;
-        
+        # TODO: invite exceptions.
         return unless $channel->is_mode('invite_only');
         return if $user->{invite_pending}{ lc $channel->name };
         

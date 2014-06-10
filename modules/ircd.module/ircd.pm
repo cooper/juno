@@ -97,13 +97,12 @@ sub init {
 }
 
 sub setup_modules {
-
+    return if $mod->{loading};
+    
     # load API modules unless we're reloading.
-    unless ($mod->{reloading}) {
-        L('Loading API configuration modules');
-        $api->load_modules(@{ conf('api', 'modules') || [] });
-        L('Done loading modules');
-    }
+    L('Loading API configuration modules');
+    $api->load_modules(@{ conf('api', 'modules') || [] });
+    L('Done loading modules');
     
 }
 
@@ -253,7 +252,7 @@ sub void {
 sub load_or_reload {
     my ($name, $min_v) = @_;
     (my $file = "$name.pm") =~ s/::/\//g;
-    
+
     # it might be loaded with an appropriate version already.
     if ((my $v = $name->VERSION // -1) >= $min_v) {
         L("$name is loaded and up-to-date ($v)");
@@ -266,7 +265,7 @@ sub load_or_reload {
     
     # it hasn't been loaded yet at all.
     # use require to load it the first time.
-    if ($boot || !is_loaded($name)) {
+    if (!is_loaded($name) && !$name->VERSION) {
         L("Loading $name");
         require $file or L("Very bad error: could not load $name!".($@ || $!));
         return;
@@ -290,7 +289,11 @@ sub load_dependencies {
 
     # main dependencies.
     load_or_reload(@$_) foreach (
-        [ 'Evented::API::Engine',          2.90 ],
+    
+        [ 'Evented::API::Engine',          3.40 ],
+        [ 'Evented::API::Module',          3.40 ],
+        [ 'Evented::API::Hax',             3.40 ],
+        
         [ 'IO::Async::Loop',               0.60 ],
         [ 'IO::Async::Stream',             0.60 ],
         [ 'IO::Async::Listener',           0.60 ],
