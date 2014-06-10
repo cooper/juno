@@ -2333,6 +2333,7 @@ CHANGES:
             
         34. fixed some quirks in the new remote RELOAD command and ->fire_command_data().
         
+        35. wow! RELOAD * should work now.
         
         
         

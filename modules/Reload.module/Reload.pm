@@ -69,7 +69,7 @@ sub cmd_reload {
         # wow there are matches.
         my %done;
         foreach my $serv (@servers) {
-        
+
             # already did this one!
             next if $done{$serv};
             $done{$serv} = 1;
@@ -81,7 +81,7 @@ sub cmd_reload {
             next unless $serv->{location};
             
             # pass it on :)
-            $serv->fire_command_data(reload => $user, "RELOAD $$serv{name}");
+            $serv->{location}->fire_command_data(reload => $user, "RELOAD $$serv{name}");
             
         }
         
