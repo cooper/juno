@@ -2330,6 +2330,8 @@ CHANGES:
         33. improved handling when a connection is terminated, doing extra checks and such.
             added ->fire_command_data() to send out a command with predetermined data.
             RELOAD command should work remotely now.
+            
+        34. fixed some quirks in the new remote RELOAD command and ->fire_command_data().
         
         
         

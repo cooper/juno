@@ -381,7 +381,7 @@ sub all_users    {        @{ shift->{users}    }                  }
 sub handle {
     my $server = shift;
     return if !$server->{conn} || $server->{conn}{goodbye};
-    
+    print "handle @_\n";
     foreach my $line (split "\n", shift) {
 
         # if logging is enabled, log.

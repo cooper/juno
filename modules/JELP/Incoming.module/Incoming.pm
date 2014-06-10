@@ -61,12 +61,12 @@ my %scommands = (
         forward => 1
     },
     PRIVMSG => {
-        params  => 'source -command any :rest',
+        params  => 'any -command any :rest',
         code    => \&privmsgnotice,
       # forward => handled manually
     },
     NOTICE => {
-        params  => 'source -command any :rest',
+        params  => 'any -command any :rest',
         code    => \&privmsgnotice,
       # forward => handled manually
     },
@@ -308,7 +308,7 @@ sub umode {
 }
 
 sub privmsgnotice {
-    #                   source      command        any      :rest
+    #                   any         command        any      :rest
     #                   :source     PRIVMSG|NOTICE target   :message
     my ($server, $data, $sourcestr, $command,      $target, $message) = @_;
     

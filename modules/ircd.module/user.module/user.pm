@@ -349,12 +349,7 @@ sub server_notice {
     }
     
     # not local; pass it on.
-    $user->{location}->fire_command(privmsgnotice =>
-        'NOTICE',
-        $me,
-        $user,
-        $msg
-    );
+    $user->{location}->fire_command(privmsgnotice => 'NOTICE', $me, $user, $msg);
     
 }
 

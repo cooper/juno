@@ -54,6 +54,12 @@ sub cmd_reload {
     if (my $server_mask_maybe = shift @rest) {
         my @servers = $pool->lookup_server_mask($server_mask_maybe);
         
+        # no priv.
+        if (!$user->has_flag('greload')) {
+            $user->numeric(ERR_NOPRIVILEGES => 'greload');
+            return;
+        }
+        
         # no matches.
         if (!@servers) {
             $user->numeric(ERR_NOSUCHSERVER => $server_mask_maybe);
