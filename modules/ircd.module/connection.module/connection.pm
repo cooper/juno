@@ -258,6 +258,9 @@ sub ready {
             $server->send_burst if !$server->{i_sent_burst};
         }
         
+        # honestly at this point the connect timer needs to die.
+        delete $ircd::connect_timer{ lc $connection->{name} };
+        
     }
 
     

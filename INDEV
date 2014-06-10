@@ -2300,6 +2300,10 @@ CHANGES:
         
         26. believe it or not, I've decided that load_or_reload() will redefine symbols.
         
+        27. SQUIT command now accepts wildcards.
+            fixed the long-broken connect timer and corresponding auto_timer configuration key.
+            SQUIT command now cancels connection timers.
+            
         
         
         

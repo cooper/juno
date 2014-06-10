@@ -32,6 +32,11 @@ sub connect_server {
     # then, ensure that the server is not connected already.
     if ($pool->lookup_server_name($server_name)) {
         L("attempted to connect an already connected server: $server_name");
+        
+        # perhaps there is a timer for some reason?
+        my $timer = delete $ircd::connect_timer{ lc $server_name };
+        $timer->stop if $timer;
+        
         return;
     }
 
@@ -48,6 +53,7 @@ sub connect_server {
 
     if (!$socket) {
         L("could not connect to server $server_name: ".($! ? $! : $@));
+        _end(undef, undef, $server_name);
         return;
     }
 
@@ -94,18 +100,23 @@ sub connect_server {
 
 sub _end {
     my ($conn, $stream, $server_name, $reason) = @_;
-    $conn->done($reason);
-    $stream->close_now;
+    $conn->done($reason) if $conn;
+    $stream->close_now if $stream;
+    
+    # already have a timer going.
+    return if $ircd::connect_timer{ lc $server_name };
     
     # if we have an autoconnect_timer for this server, start a connection timer.
-    my $timeout = conf(['connect', $server_name], 'auto_timeout');
+    my $timeout = conf(['connect', $server_name], 'auto_timeout') ||
+                  conf(['connect', $server_name], 'auto_timer');
     if ($timeout) {
         L("going to attempt to connect to server $server_name in $timeout seconds.");
         
         # start the timer.
-        my $timer = IO::Async::Timer::Periodic->new( 
-            delay     => $timeout,
-            on_expire => sub { connect_server($server_name) }
+        my $timer = $ircd::connect_timer{lc $server_name} =
+        IO::Async::Timer::Periodic->new( 
+            interval => $timeout,
+            on_tick  => sub { connect_server($server_name) }
         );
         
         $::loop->add($timer);

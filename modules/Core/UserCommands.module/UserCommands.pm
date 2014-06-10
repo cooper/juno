@@ -168,7 +168,7 @@ my %ucommands = (
     SQUIT => {
         code   => \&squit,
         desc   => 'disconnect a server',
-        params => '-oper(squit) server'
+        params => '-oper(squit) any'
     },
     LINKS => {
         code   => \&links,
@@ -1159,17 +1159,32 @@ sub version {
 }
 
 sub squit {
-    my ($user, $data, $server) =  @_;
+    my ($user, $data, $server_name) =  @_;
+    my $server = $pool->lookup_server_mask($server_name);
+    
+    # if there is a pending timer, cancel it.
+    if (my $timer = delete $ircd::connect_timer{ lc $server_name }) {
+        $timer->stop; # discuss: maybe remove from loop?
+        $user->server_notice(squit => 'Canceled connection timer for '.$server_name);
+        return 1;
+    }
+    
+    # no such server.
+    if (!$server) {
+        $user->numeric(ERR_NOSUCHSERVER => $server_name);
+        return;
+    }
     
     # no direct connection. might be local server or a
     # psuedoserver or a server reached through another server.
     if (!$server->{conn}) {
-        $user->server_notice('squit', 'server is not connected');
+        $user->server_notice(squit => 'Server is not directly connected');
         return;
     }
     
     $server->{conn}->done('SQUIT command');
-    $user->server_notice('squit', "$$server{name} disconnected");
+    $user->server_notice(squit => "$$server{name} disconnected");
+    return 1;
 }
 
 # note: this handler is used also for remote users.

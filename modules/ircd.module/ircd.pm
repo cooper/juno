@@ -210,8 +210,17 @@ sub setup_sockets {
     
     # remove dead listeners.
     foreach my $listener (grep { $_->isa('IO::Async::Listener') } $loop->notifiers) {
+        next if $listener->parent;
         next if $listener->read_handle;
         $loop->remove($listener);
+    }
+    
+    # remove dead timers.
+    # these are usually from server::linkage.
+    foreach my $timer (grep { $_->isa('IO::Async::Timer::Periodic') } $loop->notifiers) {
+        next if $timer->parent;
+        next if $timer->is_running;
+        $loop->remove($timer);
     }
     
 }
