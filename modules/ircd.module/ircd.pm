@@ -641,6 +641,7 @@ sub _L {
     my ($obj, $caller, $line) = (shift, shift, shift);
    (my $sub  = shift // $caller->[3]) =~ s/(.+)::(.+)/$2/;
     my $info = $sub && $sub ne '(eval)' ? "$sub()" : $caller->[0];
+    return unless $obj->can('_log');
     $obj->_log("$info: $line");
 }
 
