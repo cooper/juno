@@ -33,7 +33,7 @@ sub init {
     $mod->register_user_command(
         name        => 'modload',
         description => 'load a module',
-        parameters  => 'any',
+        parameters  => '-oper(modules) any',
         code        => \&modload
     ) or return;
     
@@ -41,7 +41,7 @@ sub init {
     $mod->register_user_command(
         name        => 'modunload',
         description => 'unload a module',
-        parameters  => 'any',
+        parameters  => '-oper(modules) any',
         code        => \&modunload
     ) or return;
     
@@ -49,7 +49,7 @@ sub init {
     $mod->register_user_command(
         name        => 'modreload',
         description => 'unload and then load a module',
-        parameters  => 'any',
+        parameters  => '-oper(modules) any',
         code        => \&modreload
     ) or return;
     

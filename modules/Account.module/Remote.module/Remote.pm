@@ -43,19 +43,19 @@ sub init {
     $mod->register_server_command(%$_) || return foreach (
         {
             name       => 'acct',
-            parameters => ':rest', # don't even care about source
+            parameters => 'dummy :rest', # don't even care about source
             code       => \&in_acct,
             forward    => 1
         },
         {
             name       => 'acctinfo',
-            parameters => '@rest',
+            parameters => 'dummy @rest',
             code       => \&in_acctinfo,
             forward    => 1
         },
         {
             name       => 'acctidk',
-            parameters => '@rest',
+            parameters => 'dummy @rest',
             code       => \&in_acctidk
         },
         {
@@ -179,6 +179,7 @@ sub in_acct {
     # server  :rest
     # :sid ACCT info
     my ($server, $data, $str) = @_;
+    print "data($data) str($str)\n";
     my @items = split /\W/, trim($str);
     return if @items % 3;
     

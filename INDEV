@@ -2320,10 +2320,10 @@ CHANGES:
         31. JELP::Base has adopted the same sort of parameter parser as Base::UserCommands.
             server handlers can now specify optional parameters, etc. just as with user handlers.
             all affected modules updated to make use of the new server parameter parser.
-            'source' now only matchers users and servers. it was never supposed to match channels in the first place.
+            'source' now only matches users and servers. it was never supposed to match channels in the first place.
             the former behavior of 'source' can now be achieved with 'object'.
         
-        
+        32. fixed a few things in Account and Modules modules that I broke in the preceding commit.
         
         
         
