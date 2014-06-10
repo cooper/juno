@@ -518,7 +518,6 @@ sub fire_command {
 # fire "global command" or just a command with data string.
 sub fire_command_data {
     my ($server, $command, $source, $data) = @_;
-    $data    = defined $data ? " :$data" : '';
     $command = uc $command;
     
     # remove command from data.
@@ -527,6 +526,7 @@ sub fire_command_data {
         $data = " :$data";
     }
     
+    return unless $source->can('id');
     $server->sendfrom($source->id, "$command$data");
 }
 
