@@ -61,12 +61,12 @@ my %scommands = (
         forward => 1
     },
     PRIVMSG => {
-        params  => 'source command any :rest',
+        params  => 'source -command any :rest',
         code    => \&privmsgnotice,
       # forward => handled manually
     },
     NOTICE => {
-        params  => 'source command any :rest',
+        params  => 'source -command any :rest',
         code    => \&privmsgnotice,
       # forward => handled manually
     },

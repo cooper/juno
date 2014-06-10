@@ -179,7 +179,6 @@ sub in_acct {
     # server  :rest
     # :sid ACCT info
     my ($server, $data, $str) = @_;
-    print "data($data) str($str)\n";
     my @items = split /\W/, trim($str);
     return if @items % 3;
     

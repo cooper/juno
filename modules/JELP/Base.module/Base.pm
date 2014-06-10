@@ -172,6 +172,7 @@ sub register_server_command {
                 given ($type) {
                 
                 # inject command
+                # btw this should probably have a dash on it idk like -command
                 when ('command') {
                     push @final_parameters, $command;
                 }
