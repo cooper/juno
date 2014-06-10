@@ -134,6 +134,12 @@ sub register_user_command {
                 # if it starts with -,
                 # don't increment current parameter.
                 $match_i++;
+
+                # so basically the dash (-) means that this will not be
+                # counted in the required parameters AND that it does
+                # not actually have a real parameter associated with it.
+                # if it does use a real parameter, DO NOT USE THIS!
+                # use (opt) instead if that is the case.
                 
                 # is this a fake (ignored) matcher?
                 my ($t, $fake) = $_t;
@@ -156,12 +162,12 @@ sub register_user_command {
                 
                 given ($type) {
                 
-                # inject command
+                # inject command (should be used with dash)
                 when ('command') {
                     push @final_parameters, $command;
                 }
                 
-                # oper flag check
+                # oper flag check (should be used with dash)
                 when ('oper') {
                     foreach my $flag (keys %{ $match_attr[$match_i] }) {
                         if (!$user->has_flag($flag)) {

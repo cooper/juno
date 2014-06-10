@@ -150,6 +150,12 @@ sub register_server_command {
                 # don't increment current parameter.
                 $match_i++;
                 
+                # so basically the dash (-) means that this will not be
+                # counted in the required parameters AND that it does
+                # not actually have a real parameter associated with it.
+                # if it does use a real parameter, DO NOT USE THIS!
+                # use (opt) instead if that is the case.
+                
                 # is this a fake (ignored) matcher?
                 my ($t, $fake) = $_t;
                 if ($t =~ s/^-//) { $fake = 1 }
@@ -172,7 +178,7 @@ sub register_server_command {
                 given ($type) {
                 
                 # inject command
-                # btw this should probably have a dash on it idk like -command
+                # this should probably have a dash on it like -command
                 when ('command') {
                     push @final_parameters, $command;
                 }

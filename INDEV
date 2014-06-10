@@ -2326,6 +2326,10 @@ CHANGES:
         32. fixed a few things in Account and Modules modules that I broke in the preceding commit.
         
             321. um maybe this needs a dash on it.
+            
+        33. improved handling when a connection is terminated, doing extra checks and such.
+            added ->fire_command_data() to send out a command with predetermined data.
+            RELOAD command should work remotely now.
         
         
         

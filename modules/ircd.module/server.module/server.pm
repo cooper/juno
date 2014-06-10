@@ -515,4 +515,19 @@ sub fire_command {
     return $pool->fire_command($server, @_);
 }
 
+# fire "global command" or just a command with data string.
+sub fire_command_data {
+    my ($server, $command, $source, $data) = @_;
+    $data    = defined $data ? " :$data" : '';
+    $command = uc $command;
+    
+    # remove command from data.
+    if (length $data) {
+        $data =~ s/^\Q$command\E\s+//i;
+        $data = " :$data";
+    }
+    
+    $server->sendfrom($source->id, "$command$data");
+}
+
 $mod

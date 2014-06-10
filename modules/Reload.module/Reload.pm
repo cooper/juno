@@ -16,7 +16,7 @@ use strict;
 
 use utils qw(notice);
 
-our ($api, $mod);
+our ($api, $mod, $me, $pool);
 
 sub init {
 
@@ -42,11 +42,46 @@ sub init {
 
 sub cmd_reload {
     my ($user, $data, @rest) = @_;
-    
-    # command flags.
     my $verbose;
-    foreach (@rest) {
-        $verbose = 1 if $_ eq '-v';
+    
+    # verbose.
+    if (defined $rest[0] && $rest[0] eq '-v') {
+        $verbose = 1;
+        shift @rest;
+    }
+    
+    # server parameter?
+    if (my $server_mask_maybe = shift @rest) {
+        my @servers = $pool->lookup_server_mask($server_mask_maybe);
+        
+        # no matches.
+        if (!@servers) {
+            $user->numeric(ERR_NOSUCHSERVER => $server_mask_maybe);
+            return;
+        }
+        
+        # wow there are matches.
+        my %done;
+        foreach my $serv (@servers) {
+        
+            # already did this one!
+            next if $done{$serv};
+            $done{$serv} = 1;
+            
+            # if it's $me, skip.
+            # if there is no connection (whether direct or not),
+            # uh, I don't know what to do at this point!
+            next if $serv->is_local;
+            next unless $serv->{location};
+            
+            # pass it on :)
+            $serv->fire_command_data(reload => $user, "RELOAD $$serv{name}");
+            
+        }
+        
+        # if $me is done, wow, just keep going.
+        return 1 unless $done{$me};
+        
     }
     
     my $old_v = $ircd::VERSION;

@@ -316,39 +316,47 @@ sub send_server_credentials {
      $connection->send('PASS '.conn($name, 'send_password'));  
 }
 
-# end a connection
-
+# end a connection. this must be foolproof.
 sub done {
-    my ($connection, $reason, $silent) = @_;
-    return if $connection->{goodbye};
-    
-    L("Closing connection from $$connection{ip}: $reason");
+     my ($connection, $reason, $silent) = @_;
+     L("Closing connection from $$connection{ip}: $reason");
 
-    if ($connection->{type}) {
-        # share this quit with the children
-        $pool->fire_command_all(quit => $connection, $reason);
 
-        # tell user.pm or server.pm that the connection is closed
-        $connection->{type}->quit($reason)
-    }
-    $connection->send("ERROR :Closing Link: $$connection{host} ($reason)") unless $silent;
+     # a user or server is associated with the connection.
+     if ($connection->{type}) {
+     
+          # share this quit with the children.
+          $pool->fire_command_all(quit => $connection, $reason);
 
-    # remove from connection list
-    $pool->delete_connection($connection, $reason) if $connection->{pool};
-    
-    # will close it WHEN the buffer is empty
-    $connection->{stream}->close_when_empty if $connection->{stream};
+          # tell user.pm or server.pm that the connection is closed.
+          $connection->{type}->quit($reason);
+          
+     }
+     
+     # I'm not sure where $silent is even used these days.
+     # this is safe because ->send() is safe now.
+     $connection->send("ERROR :Closing Link: $$connection{host} ($reason)") unless $silent;
 
-    # destroy these references, just in case.
-    delete $connection->{type}{conn};
-    delete $connection->{type};
+     # remove from connection the pool if it's still there.
+     $pool->delete_connection($connection, $reason) if $connection->{pool};
 
-    # prevent confusion if more data is received
-    delete $connection->{ready};
-    $connection->{goodbye} = 1;
+     # will close it WHEN the buffer is empty
+     # (if the stream still exists).
+     $connection->{stream}->close_when_empty if $connection->{stream};
 
-    $connection->delete_all_events();
-    return 1;
+     # destroy these references, just in case.
+     delete $connection->{type}{conn};
+     delete $connection->{type};
+
+     # prevent confusion if more data is received.
+     delete $connection->{ready};
+     $connection->{goodbye} = 1;
+
+     # delete all callbacks to dispose of any possible
+     # looping references within them.
+     $connection->delete_all_events;
+     
+     return 1;
 }
 
 ###########################
