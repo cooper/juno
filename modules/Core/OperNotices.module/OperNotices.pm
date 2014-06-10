@@ -21,7 +21,7 @@ our ($api, $mod, $me);
 my %notices = (
 
     new_connection          => '%s (%d)',
-    connection_terminated   => '%s (%s)',
+    connection_terminated   => '%s (%s): %s',
     connection_invalid      => '%s: %s',
 
     new_user                => '%s (%s@%s) [%s] on %s',

@@ -32,11 +32,12 @@ sub connect_server {
     # then, ensure that the server is not connected already.
     if ($pool->lookup_server_name($server_name)) {
         L("Attempted to connect an already connected server: $server_name");
-        
-        # perhaps there is a timer for some reason?
-        my $timer = delete $ircd::connect_timer{ lc $server_name };
-        $timer->stop if $timer;
-        
+        return;
+    }
+    
+    # and that we're not trying to connect already.
+    if ($ircd::connect_conns{ lc $server_name }) {
+        L("Attempted to connect to a server twice in a row: $server_name");
         return;
     }
     
@@ -68,13 +69,14 @@ sub connect_server {
     );
 
     # create connection object.
-    my $conn = $pool->new_connection(stream => $stream);
+    my $conn = $ircd::connect_conns{ lc $server_name } =
+      $pool->new_connection(stream => $stream);
 
     # configure the stream events.
     $stream->configure(
         read_all       => 0,
         read_len       => POSIX::BUFSIZ,
-        on_read        => \&ircd::handle_data,
+        on_read        => sub { &ircd::handle_data },
         on_read_eof    => sub { _end($conn, $stream, $server_name, 'Connection closed')   },
         on_write_eof   => sub { _end($conn, $stream, $server_name, 'Connection closed')   },
         on_read_error  => sub { _end($conn, $stream, $server_name, 'Read error: ' .$_[1]) },
@@ -84,9 +86,9 @@ sub connect_server {
     # add to loop.
     $::loop->add($stream);
 
-    $conn->send_server_credentials;
     $conn->{sent_creds} = 1;
     $conn->{want}       = $server_name; # server name to expect in return.
+    $conn->send_server_credentials;
     
     return $conn;
 }
@@ -122,6 +124,28 @@ sub _end {
     $timer->{_juno_start}   = time;
     $::loop->add($timer);
     $timer->start;
+}
+
+
+# if the server link is actually established, this does not terminate it.
+sub cancel_connection {
+    my $server_name = shift;
+    my $conn  = delete $ircd::connect_conns{ lc $server_name };
+    my $timer = delete $ircd::connect_timer{ lc $server_name };
+    return if !$conn && !$timer;
+    
+    # if there's a timer, cancel it.
+    if ($timer) {
+        $timer->stop;
+        $timer->loop->remove($timer) if $timer->loop;
+    }
+    
+    # if there's a connection, close it.
+    if ($conn) {
+        $conn->done('Connection canceled') unless $conn->{type};
+    }
+    
+    return 1;
 }
 
 $mod

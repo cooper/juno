@@ -2308,6 +2308,12 @@ CHANGES:
             improved oper notices for server connections, adding server_connect_fail, server_connect_success, and server_connect_cancel.
             moved module-related notices to Modules.
             
+        29. added pre-registration ERROR handling for more descriptive notices.
+            handle_connect, handle_data, and similar callbacks can be modified between upgrades now.
+            fixed connection limits: connection, perip, globalperip.
+            moved server authentication login into connection.pm to eliminate code repetition.
+            fixed a rare but fatal bug in the Ident module.
+            improved SQUIT and connection timers.
             
         
         

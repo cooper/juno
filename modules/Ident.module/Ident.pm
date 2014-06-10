@@ -25,6 +25,7 @@ sub init {
 sub connection_new {
     my ($connection, $event) = @_;
     return if $connection->{goodbye};
+    return unless $connection->{stream}->write_handle;
     
     # postpone registration.
     $connection->sendfrom($me->full, 'NOTICE * :*** Checking ident...');
@@ -105,6 +106,7 @@ sub ident_request {
     });
 
     # send the request.
+    return unless $connection->{stream}->write_handle;
     my $server_port = $connection->{stream}->write_handle->peerport;
     my $client_port = $connection->{stream}->write_handle->sockport; # i.e. 6667
     $stream->write("$server_port, $client_port\r\n");

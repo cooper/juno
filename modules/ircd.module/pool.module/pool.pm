@@ -72,10 +72,11 @@ sub lookup_connection {
 
 # delete a connection.
 sub delete_connection {
-    my ($pool, $connection) = @_;
+    my ($pool, $connection, $reason) = @_;
     notice(connection_terminated =>
         $connection->{ip},
-        $connection->{type} ? $connection->{type}->full : 'unregistered'
+        $connection->{type} ? $connection->{type}->full : 'unregistered',
+        $reason // 'Unknown reason'
     );
     
     # forget it.

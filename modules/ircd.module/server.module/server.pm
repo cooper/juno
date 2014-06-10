@@ -394,20 +394,20 @@ sub handle {
         # response to PINGs
         if (uc $s[0] eq 'PING') {
             $server->send('PONG'.(defined $s[1] ? qq( $s[1]) : q..));
-            next
+            next;
         }
 
         if (uc $s[0] eq 'PONG') {
             # don't care
-            next
+            next;
         }
-
+        
         if (uc $s[0] eq 'ERROR') {
             L("received ERROR from $$server{name}");
             $server->{conn}->done('Received ERROR') if $server->{conn};
             return;
         }
-
+        
         next unless defined $s[1];
         my $command = uc $s[1];
 

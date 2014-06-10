@@ -210,9 +210,18 @@ sub setup_sockets {
     
     # remove dead listeners.
     foreach my $listener (grep { $_->isa('IO::Async::Listener') } $loop->notifiers) {
+    
+        # overwrite on_stream for all listeners.
+        $listener->{on_stream} = sub { &handle_connect };
+        
         next if $listener->parent;
         next if $listener->read_handle;
         $loop->remove($listener);
+    }
+    
+    # rewrite on_read for all streams.
+    foreach my $stream (grep { $_->isa('IO::Async::Stream') } $loop->notifiers) {
+        $stream->{on_read} = sub { &handle_data };
     }
     
     # remove dead timers.
@@ -229,7 +238,7 @@ sub listen_addr_port {
     my ($addr, $port) = @_;
     
     # create the loop listener.
-    my $listener = IO::Async::Listener->new(on_stream => \&handle_connect);
+    my $listener = IO::Async::Listener->new(on_stream => sub { &handle_connect });
     $loop->add($listener);
 
     # create the socket
@@ -340,33 +349,16 @@ sub WARNING { L(shift) }
 # handle connecting user or server
 sub handle_connect {
     my ($listener, $stream) = @_;
-
-    # if the connection limit has been reached, disconnect
-    if (scalar keys %connection::connection >= conf('limit', 'connection')) {
-        $stream->close_now;
-        return
-    }
-
-    # if the connection IP limit has been reached, disconnect
-    my $ip = $stream->{write_handle}->peerhost;
-    if (scalar(grep { $_->{ip} eq $ip } $pool->connections) >= conf('limit', 'perip')) {
-        $stream->close_now;
-        return
-    }
-
-    # if the global user IP limit has been reached, disconnect
-    if (scalar(grep { $_->{ip} eq $ip } $pool->actual_users) >= conf('limit', 'globalperip')) {
-        $stream->close_now;
-        return;
-    }
-
-    # create connection object
+    return unless $stream->{write_handle};
+    
+    # create connection object.
     my $conn = $pool->new_connection(stream => $stream);
 
+    # set up stream.
     $stream->configure(
         read_all       => 0,
         read_len       => POSIX::BUFSIZ(),
-        on_read        => \&handle_data,
+        on_read        => sub { &handle_data },
         on_read_eof    => sub { $conn->done('Connection closed');   $stream->close_now },
         on_write_eof   => sub { $conn->done('Connection closed');   $stream->close_now },
         on_read_error  => sub { $conn->done('Read error: ' .$_[1]); $stream->close_now },
@@ -374,6 +366,28 @@ sub handle_connect {
     );
 
     $loop->add($stream);
+
+    # if the connection limit has been reached, disconnect immediately.
+    if (scalar $pool->connections >= conf('limit', 'connection')) {
+        $conn->done('Total connection limit reached');
+        $stream->close_now; # don't even wait.
+        return;
+    }
+
+    # if the connection IP limit has been reached, disconnect.
+    my $ip = $stream->{write_handle}->peerhost;
+    if (scalar(grep { $_->{ip} eq $ip } $pool->connections) >= conf('limit', 'perip')) {
+        $conn->done('Connections per IP limit reached');
+        return;
+    }
+
+    # if the global user IP limit has been reached, disconnect.
+    if (scalar(grep { $_->{ip} eq $ip } $pool->actual_users) >= conf('limit', 'globalperip')) {
+        $conn->done('Global connections per IP limit reached');
+        return;
+    }
+    
+    return 1;
 }
 
 # handle incoming data

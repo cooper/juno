@@ -167,6 +167,11 @@ sub handle {
 
             $connection->done("~ $reason");
         }
+        
+        when ('ERROR') {
+            $connection->done('Received ERROR: '.col(join ' ', @args));
+            return;
+        }
 
     }
 }
@@ -192,7 +197,7 @@ sub reg_continue {
     $connection->ready unless $connection->{wait} -= $inc;
 }
 
-     sub ready {
+sub ready {
      my $connection = shift;
 
      # must be a user
@@ -251,7 +256,7 @@ sub reg_continue {
           }
 
           # honestly at this point the connect timer needs to die.
-          delete $ircd::connect_timer{ lc $connection->{name} };
+          server::linkage::cancel_connection($connection->{name});
 
      }
 
@@ -295,17 +300,20 @@ sub sock {
 
 sub send_server_credentials {
      my $connection = shift;
+     my $name = $connection->{name} // $connection->{want};
+     if (!defined $name) {
+          L('Trying to send credentials to an unknown server?');
+          return;
+     }
      
-    # send server credentials.
-    $connection->send(sprintf 'SERVER %s %s %s %s :%s',
-        $me->{sid},
-        $me->{name},
-        v('PROTO'),
-        v('VERSION'),
-        $me->{desc}
-    );
-     $connection->send('PASS '.conn($connection->{name}, 'send_password'));  
-       
+     $connection->send(sprintf 'SERVER %s %s %s %s :%s',
+          $me->{sid},
+          $me->{name},
+          v('PROTO'),
+          v('VERSION'),
+          $me->{desc}
+     );     
+     $connection->send('PASS '.conn($name, 'send_password'));  
 }
 
 # end a connection
@@ -326,7 +334,7 @@ sub done {
     $connection->send("ERROR :Closing Link: $$connection{host} ($reason)") unless $silent;
 
     # remove from connection list
-    $pool->delete_connection($connection) if $connection->{pool};
+    $pool->delete_connection($connection, $reason) if $connection->{pool};
     
     # will close it WHEN the buffer is empty
     $connection->{stream}->close_when_empty if $connection->{stream};
