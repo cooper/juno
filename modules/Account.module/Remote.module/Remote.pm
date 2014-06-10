@@ -43,24 +43,24 @@ sub init {
     $mod->register_server_command(%$_) || return foreach (
         {
             name       => 'acct',
-            parameters => 'dummy dummy :rest', # don't even care about source
+            parameters => ':rest', # don't even care about source
             code       => \&in_acct,
             forward    => 1
         },
         {
             name       => 'acctinfo',
-            parameters => 'dummy dummy @rest',
+            parameters => '@rest',
             code       => \&in_acctinfo,
             forward    => 1
         },
         {
             name       => 'acctidk',
-            parameters => 'dummy dummy @rest',
+            parameters => '@rest',
             code       => \&in_acctidk
         },
         {
             name       => 'login',
-            parameters => 'user dummy any',
+            parameters => 'user any',
             code       => \&in_login,
             forward    => 1
         },
@@ -176,7 +176,7 @@ sub out_logout {
 #########################
 
 sub in_acct {
-    # server dummy  :rest
+    # server  :rest
     # :sid ACCT info
     my ($server, $data, $str) = @_;
     my @items = split /\W/, trim($str);

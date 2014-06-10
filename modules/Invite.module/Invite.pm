@@ -30,7 +30,7 @@ sub init {
     # INVITE server command.
     $mod->register_server_command(
         name       => 'invite',
-        parameters => 'user dummy user any',
+        parameters => 'user user any',
         code       => \&scmd_invite
       # forward    => handled manually
     ) or return;

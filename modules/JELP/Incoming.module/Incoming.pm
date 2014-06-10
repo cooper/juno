@@ -21,22 +21,22 @@ our ($api, $mod, $pool, $me);
 
 my %scommands = (
     SID => {
-        params  => 'server dummy any ts any any any :rest',
+        params  => 'server any ts any any any :rest',
         code    => \&sid,
         forward => 1
     },
     UID => {
-        params  => 'server dummy any ts any any any any any any :rest',
+        params  => 'server any ts any any any any any any :rest',
         code    => \&uid,
         forward => 1
     },
     QUIT => {
-        params  => 'source dummy :rest',
+        params  => 'source :rest',
         code    => \&quit
       # forward => handled manually
     },
     NICK => {
-        params  => 'user dummy any',
+        params  => 'user any',
         code    => \&nick,
         forward => 1
     },
@@ -51,37 +51,37 @@ my %scommands = (
         forward => 1
     },
     ADDUMODE => {
-        params  => 'server dummy any any',
+        params  => 'server any any',
         code    => \&addumode,
         forward => 1
     },
     UMODE => {
-        params  => 'user dummy any',
+        params  => 'user any',
         code    => \&umode,
         forward => 1
     },
     PRIVMSG => {
-        params  => 'any any any :rest',
+        params  => 'source command any :rest',
         code    => \&privmsgnotice,
       # forward => handled manually
     },
     NOTICE => {
-        params  => 'any any any :rest',
+        params  => 'source command any :rest',
         code    => \&privmsgnotice,
       # forward => handled manually
     },
     JOIN => {
-        params  => 'user dummy any ts',
+        params  => 'user any ts',
         code    => \&sjoin,
         forward => 1
     },
     OPER => {
-        params  => 'user dummy @rest',
+        params  => 'user @rest',
         code    => \&oper,
         forward => 1
     },
     AWAY => {
-        params  => 'user dummy :rest',
+        params  => 'user :rest',
         code    => \&away,
         forward => 1
     },
@@ -91,62 +91,62 @@ my %scommands = (
         forward => 1
     },
     ADDCMODE => {
-        params  => 'server dummy any any any',
+        params  => 'server any any any',
         code    => \&addcmode,
         forward => 1
     },
     CMODE => {
-        params  => 'source dummy channel ts server :rest',
+        params  => 'source channel ts server :rest',
         code    => \&cmode,
         forward => 1
     },
     PART => {
-        params  => 'user dummy channel ts :rest',
+        params  => 'user channel ts :rest',
         code    => \&part,
         forward => 1
     },
     TOPIC => {
-        params  => 'source dummy channel ts ts :rest',
+        params  => 'source channel ts ts :rest',
         code    => \&topic,
         forward => 1
     },
     TOPICBURST => {
-        params  => 'source dummy channel ts any ts :rest',
+        params  => 'source channel ts any ts :rest',
         code    => \&topicburst,
         forward => 1
     },
     KILL => {
-        params  => 'user dummy user :rest',
+        params  => 'user user :rest',
         code    => \&skill,
         forward => 1
     },
     AUM => {
-        params  => 'server dummy @rest',
+        params  => 'server @rest',
         code    => \&aum,
         forward => 1
     },
     ACM => {
-        params  => 'server dummy @rest',
+        params  => 'server @rest',
         code    => \&acm,
         forward => 1
     },
     CUM => {
-        params  => 'server dummy any ts any :rest',
+        params  => 'server any ts any :rest',
         code    => \&cum,
         forward => 1
     },
     KICK => {
-        params  => 'source dummy channel user :rest',
+        params  => 'source channel user :rest',
         code    => \&kick,
         forward => 1
     },
     NUM => {
-        params  => 'server dummy user any :rest',
+        params  => 'server user any :rest',
         code    => \&num,
       # forward => handled manually
     },
     LINKS => {
-        params  => 'user dummy server any any',
+        params  => 'user server any any',
         code    => \&links,
       # forward => handled manually
     }
@@ -169,7 +169,7 @@ sub init {
 ###################
 
 sub sid {
-    # server dummy any    ts any  any   any  :rest
+    # server any    ts any  any   any  :rest
     # :sid   SID   newsid ts name proto ircd :desc
     my ($server, $data, @args) = @_;
 
@@ -191,7 +191,7 @@ sub sid {
 }
 
 sub uid {
-    # server dummy any ts any   any  any   any  any   any :rest
+    # server any ts any   any  any   any  any   any :rest
     # :sid   UID   uid ts modes nick ident host cloak ip  :realname
     my ($server, $data, @args) = @_;
     
@@ -242,7 +242,7 @@ sub uid {
 }
 
 sub quit {
-    # source  dummy  :rest
+    # source   :rest
     # :source QUIT   :reason
     my ($server, $data, $source, $reason) = @_;
     return if $source == $me;
@@ -259,7 +259,7 @@ sub quit {
 
 # handle a nickchange
 sub nick {
-    # user dummy any
+    # user any
     # :uid NICK  newnick
     my ($server, $data, $user, $newnick) = @_;
 
@@ -294,23 +294,23 @@ sub endburst {
 }
 
 sub addumode {
-    # server dummy    any  any
+    # server    any  any
     # :sid   ADDUMODE name letter
     my ($server, $data, $serv) = (shift, shift, shift);
     $serv->add_umode(shift, shift);
 }
 
 sub umode {
-    # user dummy any
+    # user any
     # :uid UMODE modestring
     my ($server, $data, $user, $str) = @_;
     $user->handle_mode_string($str, 1);
 }
 
 sub privmsgnotice {
-    # user any            any    :rest
-    # :uid PRIVMSG|NOTICE target :message
-    my ($server, $data, $sourcestr, $command, $target, $message) = @_;
+    #                   source      command        any      :rest
+    #                   :source     PRIVMSG|NOTICE target   :message
+    my ($server, $data, $sourcestr, $command,      $target, $message) = @_;
     
     # find the source.
     # this must be done manually because the source matcher disconnects
@@ -347,7 +347,7 @@ sub privmsgnotice {
 }
 
 sub sjoin {
-    # user dummy any     ts
+    # user any     ts
     # :uid JOIN  channel time
     my ($server, $data, $user, $chname, $time) = @_;
     my $channel = $pool->lookup_channel($chname);
@@ -375,7 +375,7 @@ sub sjoin {
 
 # add user flags
 sub oper {
-    # user dummy @rest
+    # user @rest
     # :uid OPER  flag flag flag
     my ($server, $data, $user, @flags) = @_;
     
@@ -386,7 +386,7 @@ sub oper {
 }
 
 sub away {
-    # user dummy :rest
+    # user :rest
     # :uid AWAY  :reason
     my ($server, $data, $user, $reason) = @_;
     $user->set_away($reason);
@@ -401,7 +401,7 @@ sub return_away {
 
 # add a channel mode
 sub addcmode {
-    # server dummy    any  any    any
+    # server    any  any    any
     # :sid   ADDCMODE name letter type
     my ($server, $data, $serv, @args) = @_;
     $serv->add_cmode(@args);
@@ -424,7 +424,7 @@ sub cmode {
 }
 
 sub part {
-    # user dummy channel ts   :rest
+    # user channel ts   :rest
     # :uid PART  channel time :reason
     my ($server, $data, $user, $channel, $time, $reason) = @_;
 
@@ -448,7 +448,7 @@ sub part {
 
 # add user mode, compact AUM
 sub aum {
-    # server dummy @rest
+    # server @rest
     # :sid   AUM   name:letter name:letter
     my ($server, $data, $serv) = (shift, shift, shift);
     foreach my $str (@_) {
@@ -461,7 +461,7 @@ sub aum {
 
 # add channel mode, compact ACM
 sub acm {
-    # server dummy @rest
+    # server @rest
     # :sid   ACM   name:letter:type name:letter:type
     my ($server, $data, $serv) = (shift, shift, shift);
     foreach my $str (@_) {
@@ -480,7 +480,7 @@ sub acm {
 
 # channel user membership, compact CUM
 sub cum {
-    # server dummy any     ts   any   :rest
+    # server any     ts   any   :rest
     # :sid   CUM   channel time users :modestr
     my ($server, $data, $serv, $chname, $ts, $userstr, $modestr) = @_;
 
@@ -559,7 +559,7 @@ sub cum {
 }
 
 sub topic {
-    # source  dummy channel ts ts   :rest
+    # source  channel ts ts   :rest
     # :source TOPIC channel ts time :topic
     my ($server, $data, $source, $channel, $ts, $time, $topic) = @_;
 
@@ -591,7 +591,7 @@ sub topic {
 }
 
 sub topicburst {
-    # source dummy      channel ts   any   ts   :rest
+    # source      channel ts   any   ts   :rest
     # :sid   TOPICBURST channel ts   setby time :topic
     my ($server, $data, $source, $channel, $ts, $setby, $time, $topic) = @_;
 
@@ -623,7 +623,7 @@ sub topicburst {
 }
 
 sub skill {
-    # user  dummy user :rest
+    # user  user :rest
     # :uid  KILL  uid  :reason
     my ($server, $data, $user, $tuser, $reason) = @_;
 
@@ -633,7 +633,7 @@ sub skill {
 }
 
 sub kick {
-    # source dummy channel user :rest
+    # source channel user :rest
     # :id    KICK  channel uid  :reason
     my ($server, $data, $source, $channel, $t_user, $reason) = @_;
     
@@ -655,7 +655,7 @@ sub kick {
 }
 
 # remote numeric.
-# server dummy user any :rest
+# server user any :rest
 sub num {
     my ($server, $data, $source, $user, $num, $message) = @_;
     

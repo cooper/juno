@@ -12,7 +12,8 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils qw(col);
+use utils qw(col trim);
+use Scalar::Util qw(looks_like_number);
 
 our ($api, $mod, $pool);
 
@@ -46,105 +47,257 @@ sub register_server_command {
         return
     }
 
-    my $CODE    = $opts{code};
-    my $command = $opts{name};
+    my ($CODE, $parameters) = ($opts{code}, 0); # discuss: $parameters is not used
     
     # parameters:
     #     channel channel name lookup
-    #     source  global ID lookup
+    #     source  global ID (checks for UIDs, channel names, SIDs) lookup
     #     server  SID lookup
     #     user    UID lookup
     #     :rest   the rest of the message with colon removed
     #     @rest   the rest of the message as a space-separated list
     #     any     plain old string
     #     ts      timestamp
+    
+    # attributes:
+    #
+    #   opt
+    #       indicates an optional parameter
+    #       this parameter will not be taken account when counting the number of
+    #       parameters (used to determine whether or not enough parameters are given)
+    #
+    #
+    # BORROWED FROM USER HANDLERS BUT DISABLED:
+    #
+    #   inchan
+    #       for channels, gives up and sends ERR_NOTONCHANNEL if the user sending the
+    #       command is not in the channel. Ex: channel(inchan)     
 
-    $CODE = sub {
-        my ($server, $data, @args) = @_;
-        my ($i, @final_parameters) = -1;
+    # if parameters is present and does not look like a number...
+    if ($opts{parameters} && !looks_like_number($opts{parameters})) {
 
         # if it is not an array reference, it's a whitespace-separated string.
         if (ref $opts{parameters} ne 'ARRAY') {
             $opts{parameters} = [ split /\s+/, $opts{parameters} ];
         }
 
-        # check argument count
-        if (scalar @args < scalar @{ $opts{parameters} }) {
-            L("Protocol error: $$server{name}: $command not enough arguments for command");
-            $server->{conn}->done('Protocol error');
-            return
+        # parse argument type attributes.
+        my $required_parameters = 0; # number of parameters that will be checked
+        my @match_attr;              # matcher attributes (i.e. opt)
+        
+        my $i = -1;
+        foreach (@{ $opts{parameters} }) { $i++;
+        
+            # type(attribute1,att2:val,att3)
+            if (/(.+)\((.+)\)/) {
+                $opts{parameters}[$i] = $1;
+                my $attributes = {};
+                
+                # get the values of each attribute.
+                foreach (split ',', $2) {
+                    my $attr = trim($_);
+                    my ($name, $val) = split ':', $attr, 2;
+                    $attributes->{$name} = defined $val ? $val : 1;
+                }
+                
+                $match_attr[$i] = $attributes;
+            }
+            
+            # no attribute list, no attributes.
+            else {
+                $match_attr[$i] = {};
+            }
+            
+            # unless there is an 'opt' (optional) attribute
+            # or it is one of these fake parameters
+            next if $match_attr[$i]{opt};
+            next if m/^-/; # ex: -command or -id.command
+            
+            # increase required parameter count.
+            $required_parameters++;
+            
         }
 
-        foreach (@{ $opts{parameters} }) { $i++;
+        # create the new handler.
+        $CODE = sub {
+            my ($server, $data, @params) = @_;
+            my (@final_parameters, %param_id);
 
-            # global lookup
-            when ('source') {
-                my $source = utils::global_lookup(my $id = col($args[$i]));
-                if (!$source) {
-                    L("Protocol error: $$server{name}: $command could not get source: $id");
-                    $server->{conn}->done('Protocol error');
+            # param_i = current actual parameter index
+            # match_i = current matcher index
+            # (because a matcher might not really be a parameter matcher at all)
+            my ($param_i, $match_i) = (-1, -1);
+            
+            # remove the command.
+            my $command = splice @params, 1, 1;
+            
+            # error sub.
+            my $err = sub {
+                my $error = shift;
+                return unless $server->{conn};
+                $server->{conn}->done("Protocol error (in $command): $$server{name}: $error");
+                return;
+            };
+            
+            # check argument count.
+            if (scalar @params < $required_parameters) {
+                return $err->('Not enough parameters');
+            }
+
+            foreach my $_t (@{ $opts{parameters} }) {
+
+                # if it starts with -,
+                # don't increment current parameter.
+                $match_i++;
+                
+                # is this a fake (ignored) matcher?
+                my ($t, $fake) = $_t;
+                if ($t =~ s/^-//) { $fake = 1 }
+                else { $param_i ++ }
+
+                # split into a type and possibly an identifier.
+                my ($type, $id);
+                my $param = $params[$param_i];
+                my @s     = split /\./, $t, 2;
+                if (scalar @s == 2) { ($id, $type) = @s }
+                else {
+                    $id   = 1;
+                    $type = $t;
+                }
+                
+                # if this is not a fake matcher, and if there is no parameter,
+                # we should skip this. well, we should be done with the rest, too.
+                last if !$fake && !defined $param;
+                
+                given ($type) {
+                
+                # inject command
+                when ('command') {
+                    push @final_parameters, $command;
+                }
+                
+                # oper flag check
+                # TODO: perhaps make this use the source if it's a user.
+                #when ('oper') {
+                #    foreach my $flag (keys %{ $match_attr[$match_i] }) {
+                #        if (!$user->has_flag($flag)) {
+                #            $user->numeric('ERR_NOPRIVILEGES', $flag);
+                #            return;
+                #        }
+                #        # FIXME: what if you did opt or some other
+                #        # option here. that wouldn't be a flag.
+                #    }
+                #}
+                
+                # global lookup
+                when ('object') {
+                    $param = col($param);
+                    my $obj =
+                         $pool->lookup_server($param)  ||
+                         $pool->lookup_channel($param) ||
+                         $pool->lookup_user($param);
+                    return unless $obj;
+                    push @final_parameters, $param_id{$id} = $obj;
+                }
+                
+                # user or server lookup
+                when ('source') {
+                    $param = col($param);
+                    my $source =
+                         $pool->lookup_server($param)  ||
+                         $pool->lookup_user($param);
+                    return unless $source;
+                    push @final_parameters, $param_id{$id} = $source;
+                }
+
+                # server lookup
+                when ('server') {
+                    my $server = $pool->lookup_server(col($param));
+
+                    # not found, send no such server.
+                    if (!$server) {
+                        return $err->('No such server '.col($param));
+                    }
+
+                    push @final_parameters, $param_id{$id} = $server;
+                }
+
+                # user lookup
+                when ('user') {
+                    my $uid = (split ',', col($param))[0];
+                    my $usr = $pool->lookup_user($uid);
+
+                    # not found, send no such nick.
+                    if (!$usr) {
+                        return $err->("No such user $uid");
+                    }
+
+                    push @final_parameters, $param_id{$id} = $usr;
+                }
+
+                # channel lookup
+                when ('channel') {
+                    my $chaname = (split ',', col($param))[0];
+                    my $channel = $pool->lookup_channel($chaname);
+                    
+                    # not found, send no such channel.
+                    if (!$channel) {
+                        return $err->("No such channel $chaname");
+                    }
+                    
+                    # TODO: maybe make this use the source if it's a user.
+                    # if 'inchan' attribute, the requesting user must be in the channel.
+                    #if ($match_attr[$match_i]{inchan} && !$channel->has_user($user)) {
+                    #    $user->numeric(ERR_NOTONCHANNEL => $channel->name);
+                    #    return;
+                    #}
+                    
+                    push @final_parameters, $param_id{$id} = $channel;
+                }
+
+                # the rest of a message
+                # 0   1    2  3     4
+                #          0  1     2
+                # :hi KICK #k mitch :message
+                when (':rest') {
+                    my $str = (split /\s+/, $data, $param_i + 2)[-1];
+                    push @final_parameters, col($str) if defined $str;
+                }
+
+                # the rest of the message as separate parameters
+                when (['...', '@rest']) {
+                    push @final_parameters, @params[$param_i..$#params];
+                }
+
+                # any string
+                when (['a', 'any', 'ts']) {
+                    push @final_parameters, $param;
+                }
+
+                # ignore a parameter
+                when ('dummy') { }
+                
+                # uknown!
+                default {
+                    $mod->_api("unknown parameter type $type!");
                     return;
                 }
-                push @final_parameters, $source
-            }
-
-            # server lookup
-            when ('server') {
-                my $serv = $pool->lookup_server(my $id = col($args[$i]));
-                if (!$serv) {
-                    L("Protocol error: $$server{name}: $command could not get server: $id");
-                    $server->{conn}->done('Protocol error');
-                    return
+                
                 }
-                push @final_parameters, $serv
+                
             }
 
-            # user lookup
-            when ('user') {
-                my $user = $pool->lookup_user(my $id = col($args[$i]));
-                if (!$user) {
-                    L("Protocol error: $$server{name}: $command could not get user: $id");
-                    $server->{conn}->done('Protocol error');
-                    return
-                }
-                push @final_parameters, $user
-            }
-
-            # channel lookup
-            when ('channel') {
-                my $channel = $pool->lookup_channel(my $chname = col($args[$i]));
-                if (!$channel) {
-                    L("Protocol error: $$server{name}: $command could not get channel: $chname");
-                    $server->{conn}->done('Protocol error');
-                    return
-                }
-                push @final_parameters, $channel
-            }
-
-            # the rest of a message
-            when (':rest') {
-                my $str = (split /\s+/, $data, ($i + 1))[$i];
-                push @final_parameters, col($str)
-            }
-
-            # the rest of the message as separate parameters
-            when (['...', '@rest']) {
-                push @final_parameters, @args[$i..$#args]
-            }
-
-            # any string
-            when (['a', 'any', 'ts']) {
-                push @final_parameters, $args[$i]
-            }
-
-            # ignore a parameter
-            when ('dummy') { }
+            # call the actual handler.
+            $opts{code}($server, $data, @final_parameters);
 
         }
+    }
 
-        $opts{code}($server, $data, @final_parameters);
-
-    } if $opts{parameters};
+    # if parameters is provided and still exists, that means it was not an ARRAY reference.
+    # if it looks like a number, it is a number of parameters to allow.
+    elsif (defined $opts{parameters} && looks_like_number($opts{parameters})) {
+        $parameters = $opts{parameters};
+    }
 
     # register to juno: updated 12/11/2012
     # ($source, $command, $callback, $forward)
@@ -181,7 +334,7 @@ sub register_global_command {
     # pass it on to this base's ->register_server_command().
     return register_server_command($mod, $event,
         %opts,
-        parameters => 'user dummy'# :rest' FIXME: this is bad! needs fixed!
+        parameters => 'user :rest(opt)'
     );
     
 }

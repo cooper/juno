@@ -2317,7 +2317,11 @@ CHANGES:
             
     3. added ->register_global_command() method to JELP::Base, instructing the IRCd to permit the use of a user handler on a nonlocal user.
             
-        
+        31. JELP::Base has adopted the same sort of parameter parser as Base::UserCommands.
+            server handlers can now specify optional parameters, etc. just as with user handlers.
+            all affected modules updated to make use of the new server parameter parser.
+            'source' now only matchers users and servers. it was never supposed to match channels in the first place.
+            the former behavior of 'source' can now be achieved with 'object'.
         
         
         

@@ -174,10 +174,19 @@ sub register_user_command {
                 }
                 
                 # global lookup
+                when ('object') {
+                    my $obj =
+                         $pool->lookup_server_name($param)  ||
+                         $pool->lookup_channel($param)      ||
+                         $pool->lookup_user_nick($param);
+                    return unless $obj;
+                    push @final_parameters, $param_id{$id} = $obj;
+                }
+
+                # user or server.
                 when ('source') {
                     my $source =
                          $pool->lookup_server_name($param)  ||
-                         $pool->lookup_channel($param)      ||
                          $pool->lookup_user_nick($param);
                     return unless $source;
                     push @final_parameters, $param_id{$id} = $source;
