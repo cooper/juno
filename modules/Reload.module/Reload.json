@@ -1,16 +1,17 @@
 {
-   "version" : "2.8",
+   "version" : "2.9",
    "name" : "Reload",
    "author" : {
       "website" : "https://github.com/cooper",
       "name" : "Mitchell Cooper"
    },
    "description" : "reload the entire IRCd in one command",
-   "package" : "M::Reload",
    "depends" : {
       "modules" : [
          "Base::UserCommands",
-         "Base::OperNotices"
+         "Base::OperNotices",
+         "JELP::Base"
       ]
-   }
+   },
+   "package" : "M::Reload"
 }

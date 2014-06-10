@@ -4,7 +4,7 @@
 # @package:         "M::Reload"
 # @description:     "reload the entire IRCd in one command"
 #
-# @depends.modules: ['Base::UserCommands', 'Base::OperNotices']
+# @depends.modules: ['Base::UserCommands', 'Base::OperNotices', 'JELP::Base']
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"
@@ -19,6 +19,8 @@ use utils qw(notice);
 our ($api, $mod);
 
 sub init {
+
+    # RELOAD command.
     $mod->register_user_command(
         name        => 'reload',
         code        => \&cmd_reload,
@@ -26,6 +28,10 @@ sub init {
         parameters  => '-oper(reload) @rest(opt)'
     ) or return;
     
+    # allow RELOAD to work remotely.
+    $mod->register_global_command(name => 'reload');
+    
+    # notices.
     $mod->register_oper_notice(
         name   => 'reload',
         format => '%s (%s@%s): %s'

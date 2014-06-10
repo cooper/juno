@@ -2315,6 +2315,8 @@ CHANGES:
             fixed a rare but fatal bug in the Ident module.
             improved SQUIT and connection timers.
             
+    3. added ->register_global_command() method to JELP::Base, instructing the IRCd to permit the use of a user handler on a nonlocal user.
+            
         
         
         

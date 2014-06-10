@@ -20,6 +20,7 @@ sub init {
     
     # register methods.
     $mod->register_module_method('register_server_command'  ) or return;
+    $mod->register_module_method('register_global_command'  ) or return;
     $mod->register_module_method('register_outgoing_command') or return;
     
     # module unload event.
@@ -159,6 +160,32 @@ sub register_server_command {
     $mod->list_store_add('server_commands', $opts{name});
     return 1;
 }
+
+sub register_global_command {
+    my ($mod, $event, %opts) = @_;
+    
+    # make sure all required options are present
+    foreach my $what (qw|name|) {
+        next if exists $opts{$what};
+        $opts{name} ||= 'unknown';
+        L("global command $opts{name} does not have '$what' option");
+        return;
+    }
+    
+    # create a handler that calls ->handle_unsafe().
+    $opts{code} = sub {
+        my ($server, $data, $user, $rest) = @_;
+        $user->handle_unsafe("$opts{name} $rest");
+    };
+    
+    # pass it on to this base's ->register_server_command().
+    return register_server_command($mod, $event,
+        %opts,
+        parameters => 'user dummy'# :rest' FIXME: this is bad! needs fixed!
+    );
+    
+}
+
 
 sub register_outgoing_command {
     my ($mod, $event, %opts) = @_;
