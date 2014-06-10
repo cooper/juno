@@ -259,10 +259,6 @@ sub load_or_reload {
         return;
     }
     
-    # at this point, we're going to load it.
-    # if it's loaded already, we should unload it now.
-    Evented::API::Hax::package_unload($name) if is_loaded($name);
-    
     # it hasn't been loaded yet at all.
     # use require to load it the first time.
     if (!is_loaded($name) && !$name->VERSION) {

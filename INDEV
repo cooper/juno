@@ -2298,7 +2298,7 @@ CHANGES:
         
         25. this might fix a crash idk.
         
-        
+        26. believe it or not, I've decided that load_or_reload() will redefine symbols.
         
         
         
