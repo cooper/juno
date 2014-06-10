@@ -2304,6 +2304,11 @@ CHANGES:
             fixed the long-broken connect timer and corresponding auto_timer configuration key.
             SQUIT command now cancels connection timers.
             
+        28. improved SQUIT and connection timers.
+            improved oper notices for server connections, adding server_connect_fail, server_connect_success, and server_connect_cancel.
+            moved module-related notices to Modules.
+            
+            
         
         
         

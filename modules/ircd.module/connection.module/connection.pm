@@ -192,86 +192,78 @@ sub reg_continue {
     $connection->ready unless $connection->{wait} -= $inc;
 }
 
-sub ready {
-    my $connection = shift;
+     sub ready {
+     my $connection = shift;
 
-    # must be a user
-    if (exists $connection->{nick}) {
+     # must be a user
+     if (exists $connection->{nick}) {
 
-        # if the client limit has been reached, hang up
-        # FIXME: completely broken since pool creation. not sure what to do with this.
-        #my $count = scalar grep { ($_->{type} || '')->isa('user') } values %connection;
-        #if ($count >= conf('limit', 'client')) {
-        #    $connection->done('Not accepting clients');
-        #    return;
-        #}
-        
-        $connection->{server}   =
-        $connection->{location} = $me;
-        $connection->{cloak}  //= $connection->{host};
+          # if the client limit has been reached, hang up
+          # FIXME: completely broken since pool creation. not sure what to do with this.
+          #my $count = scalar grep { ($_->{type} || '')->isa('user') } values %connection;
+          #if ($count >= conf('limit', 'client')) {
+          #    $connection->done('Not accepting clients');
+          #    return;
+          #}
+
+          $connection->{server}   =
+          $connection->{location} = $me;
+          $connection->{cloak}  //= $connection->{host};
+
+          # create a new user.
+          $connection->{type} = $pool->new_user(%$connection);
+
+     }
+
+     # must be a server
+     elsif (exists $connection->{name}) {
+
+          # check for valid password.
+          my $password = utils::crypt($connection->{pass}, conn($connection->{name}, 'encryption'));
+
+          if ($password ne conn($connection->{name}, 'receive_password')) {
+               $connection->done('Invalid credentials');
+               notice(connection_invalid => $connection->{ip}, 'Received invalid password');
+               return;
+          }
+
+          # check if the server is linked already.
+          if ($pool->lookup_server($connection->{sid}) || $pool->lookup_server_name($connection->{name})) {
+               notice(connection_invalid => $connection->{ip}, 'Server exists');
+               return;
+          }
+
+          $connection->{parent} = $me;
+          $connection->{type}   = my $server = $pool->new_server(%$connection);
+          $server->{conn}       = $connection;
+          weaken($connection->{type}{location} = $connection->{type});
+          $pool->fire_command_all(sid => $connection->{type});
+
+          # send server credentials
+          if (!$connection->{sent_creds}) {
+               $connection->send_server_credentials;
+          }
+
+          # I already sent mine, meaning it should have been accepted on both now.
+          # go ahead and send the burst.
+          else {
+               $server->send_burst if !$server->{i_sent_burst};
+          }
+
+          # honestly at this point the connect timer needs to die.
+          delete $ircd::connect_timer{ lc $connection->{name} };
+
+     }
 
 
-        # create a new user.
-        $connection->{type} = $pool->new_user(%$connection);
-        
-    }
+     else {
+          # must be an intergalactic alien
+          warn 'intergalactic alien has been found';
+     }
 
-    # must be a server
-    elsif (exists $connection->{name}) {
-
-        # check for valid password.
-        my $password = utils::crypt($connection->{pass}, conn($connection->{name}, 'encryption'));
-
-        if ($password ne conn($connection->{name}, 'receive_password')) {
-            $connection->done('Invalid credentials');
-            notice(connection_invalid => $connection->{ip}, 'Received invalid password');
-            return;
-        }
-        
-        # check if the server is linked already.
-        if ($pool->lookup_server($connection->{sid}) || $pool->lookup_server_name($connection->{name})) {
-            notice(connection_invalid => $connection->{ip}, 'Server exists');
-            return;
-        }
-
-        $connection->{parent} = $me;
-        $connection->{type}   = my $server = $pool->new_server(%$connection);
-        $server->{conn}       = $connection;
-        weaken($connection->{type}{location} = $connection->{type});
-        $pool->fire_command_all(sid => $connection->{type});
-
-        # send server credentials
-        if (!$connection->{sent_creds}) {
-            $connection->send(sprintf 'SERVER %s %s %s %s :%s',
-                $me->{sid},
-                $me->{name},
-                v('PROTO'),
-                v('VERSION'),
-                $me->{desc}
-            );
-            $connection->send('PASS '.conn($connection->{name}, 'send_password'));
-        }
-        
-        # I already sent mine, meaning it should have been accepted on both now.
-        # go ahead and send the burst.
-        else {
-            $server->send_burst if !$server->{i_sent_burst};
-        }
-        
-        # honestly at this point the connect timer needs to die.
-        delete $ircd::connect_timer{ lc $connection->{name} };
-        
-    }
-
-    
-    else {
-        # must be an intergalactic alien
-        warn 'intergalactic alien has been found';
-    }
-    
-    weaken($connection->{type}{conn} = $connection);
-    $connection->{type}->new_connection if $connection->{type}->isa('user');
-    return $connection->{ready} = 1;
+     weaken($connection->{type}{conn} = $connection);
+     $connection->{type}->new_connection if $connection->{type}->isa('user');
+     return $connection->{ready} = 1;
 }
 
 # send data to the socket
@@ -299,6 +291,21 @@ sub sendme {
 
 sub sock {
     return shift->{stream}{read_handle};
+}
+
+sub send_server_credentials {
+     my $connection = shift;
+     
+    # send server credentials.
+    $connection->send(sprintf 'SERVER %s %s %s %s :%s',
+        $me->{sid},
+        $me->{name},
+        v('PROTO'),
+        v('VERSION'),
+        $me->{desc}
+    );
+     $connection->send('PASS '.conn($connection->{name}, 'send_password'));  
+       
 }
 
 # end a connection

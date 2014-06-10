@@ -36,10 +36,10 @@ my %notices = (
     server_quit             => '%s (%d) parent %s (%s)',
     server_burst            => '%s (%s) is bursting information',
     server_endburst         => '%s (%s) finished burst, %d seconds elapsed',
-    server_connect          => '%s (%s) on port %d',
-
-    module_load             => '%s (%s@%s) loaded %s (%s)',
-    module_unload           => '%s (%s@%s) unloaded %s'
+    server_connect          => '%s (%s) on port %d (Attempt %d)',
+    server_connect_cancel   => '%s (%s@%s) canceled auto connect for %s',
+    server_connect_fail     => 'Can\'t connect to %s: %s',
+    server_connect_success  => 'Connection established to %s'
 
 );
  

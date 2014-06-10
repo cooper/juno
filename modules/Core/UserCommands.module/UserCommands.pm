@@ -1166,6 +1166,7 @@ sub squit {
     if (my $timer = delete $ircd::connect_timer{ lc $server_name }) {
         $timer->stop; # discuss: maybe remove from loop?
         $user->server_notice(squit => 'Canceled connection timer for '.$server_name);
+        notice(server_connect_cancel => $user->notice_info, $server_name);
         return 1;
     }
     

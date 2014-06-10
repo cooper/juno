@@ -53,6 +53,16 @@ sub init {
         code        => \&modreload
     ) or return;
     
+    # oper notices.
+    $mod->register_oper_notice(
+        name   => shift @$_,
+        format => shift @$_
+    ) or return foreach (
+        [ module_load    => '%s (%s@%s) loaded %s (%s)' ],
+        [ module_unload  => '%s (%s@%s) unloaded %s'    ],
+        [ module_reload  => '%s (%s@%s) reloaded %s'    ]
+    );
+    
     return 1;
 }
 
