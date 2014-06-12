@@ -17,7 +17,8 @@ use strict;
 use 5.010;
 use Module::Loaded qw(is_loaded);
 
-our ($api, $mod, $me, $pool, $loop, $conf, $boot, $timer, $VERSION, %channel_mode_prefixes);
+our ($api, $mod, $me, $pool, $loop, $conf, $boot, $timer, $VERSION);
+our (%channel_mode_prefixes, %listeners);
 
 ######################
 ### INITIALIZATION ###
@@ -204,57 +205,111 @@ sub setup_sockets {
 
     # start listeners.
     foreach my $addr ($conf->names_of_block('listen')) {
-        my @ports = @{ $conf->get(['listen', $addr], 'port') || [] };
-        listen_addr_port($addr, $_) foreach @ports;
+        my @plnports = @{ $conf->get(['listen', $addr], 'port')    || [] };
+        my @sslports = @{ $conf->get(['listen', $addr], 'sslport') || [] };
+        
+        listen_addr_port($addr, $_) foreach @plnports;
+
+        # load IO::Async::SSL if necessary.
+        if (@sslports) {
+            load_or_reload('IO::Async::SSL', 0.14) or next;
+            listen_addr_port($addr, $_, 1) foreach @sslports;
+        }
+        
     }
     
-    # remove dead listeners.
-    foreach my $listener (grep { $_->isa('IO::Async::Listener') } $loop->notifiers) {
-    
-        # overwrite on_stream for all listeners.
-        $listener->{on_stream} = sub { &handle_connect };
+    # reconfigure existing notifiers.
+    foreach ($loop->notifiers) {
+        configure_listener($_) if $_->isa('IO::Async::Listener');
+        configure_stream($_)   if $_->isa('IO::Async::Stream');
         
-        next if $listener->parent;
-        next if $listener->read_handle;
+        # dead timer.
+        if ($_->isa('IO::Async::Timer::Periodic')) {
+            next unless $timer->loop;
+            next if $timer->parent;
+            next if $timer->is_running;
+            $loop->remove($timer);
+        }
+    }
+    
+}
+
+# this is called for both new and
+# existing listeners, even during reload.
+sub configure_listener {
+    my $listener = shift;
+    $listener->{on_accept} = sub { &handle_connect };
+
+    # if there is no read handle, this is dead.
+    if ($listener->loop && !$listener->read_handle && !$listener->parent) {
         $loop->remove($listener);
     }
     
-    # rewrite on_read for all streams.
-    foreach my $stream (grep { $_->isa('IO::Async::Stream') } $loop->notifiers) {
-        $stream->{on_read} = sub { &handle_data };
-    }
+}
+
+# this is called for both new and
+# existing streams,  even during reload.
+sub configure_stream {
+    my $stream = shift;
+    $stream->{on_read} = sub { &handle_data };
     
-    # remove dead timers.
-    # these are usually from server::linkage.
-    foreach my $timer (grep { $_->isa('IO::Async::Timer::Periodic') } $loop->notifiers) {
-        next if $timer->parent;
-        next if $timer->is_running;
-        $loop->remove($timer);
+    # if there is no read handle, this is dead.
+    if ($stream->loop && !$stream->read_handle && !$stream->parent) {
+        $loop->remove($stream);
     }
     
 }
 
 sub listen_addr_port {
-    my ($addr, $port) = @_;
+    my ($addr, $port, $ssl) = @_;
+    my $ipv6 = $addr =~ m/:/;
+    my ($p_addr, $p_port) = ($ipv6 ? "[$addr]" : $addr, $ssl ? "+$port" : $port);
+    my $l_key = lc "$p_addr:$p_port";
     
-    # create the loop listener.
-    my $listener = IO::Async::Listener->new(on_stream => sub { &handle_connect });
-    $loop->add($listener);
+    # use SSL.
+    my ($method, %sslopts) = 'listen';
+    if ($ssl) {
+        $method  = 'SSL_listen';
+        %sslopts = (
+            SSL_cert_file => $::run_dir.q(/).conf('ssl', 'cert'),
+            SSL_key_file  => $::run_dir.q(/).conf('ssl', 'key'),
+            SSL_server    => 1,
+            on_ssl_error  => sub { L("SSL error: @_") }
+        );
+    }
+    
+    # try to listen.
+    my $f = $listeners{$l_key}{future} = $loop->$method(
+        addr => {
+            family   => $ipv6 ? 'inet6' : 'inet',
+            socktype => 'stream',
+            port     => $port,
+            ip       => $addr
+        },
+        handle_class => $ssl ? 'IO::Async::SSLStream' : 'IO::Async::Stream',
+        on_accept    => sub { &handle_connect },
+        %sslopts
+    );
+    
+    # listen result.
+    $f->on_ready(sub {
+        my $f = shift;
+        delete $listeners{$l_key}{future};
 
-    # create the socket
-    my $socket = IO::Socket::IP->new(
-        LocalAddr => $addr,
-        LocalPort => $port,
-        Listen    => 1,
-        ReuseAddr => 1,
-        Type      => Socket::SOCK_STREAM(),
-        Proto     => 'tcp'
-    ) or L("Couldn't listen on [$addr]:$port: $!") and return;
+        # failed.
+        if (my $err = $f->failure) {
+            L("Listen on $l_key failed: $err");
+            return;
+        }
+        
+        # store the listener.
+        my $listener = $listeners{$l_key}{listener} = $f->get;
+        configure_listener($listener);
+        L("Listening on $l_key");
+        
+    });
 
-    # add to looped listener
-    $listener->listen(handle => $socket);
-
-    L("Listening on [$addr]:$port");
+    return 1;
 }
 
 # refuse unload unless reloading.
@@ -274,7 +329,7 @@ sub load_or_reload {
     # it might be loaded with an appropriate version already.
     if ((my $v = $name->VERSION // -1) >= $min_v) {
         L("$name is loaded and up-to-date ($v)");
-        return;
+        return 1;
     }
     
     # it hasn't been loaded yet at all.
@@ -313,10 +368,13 @@ sub load_dependencies {
         [ 'IO::Async::Listener',           0.60 ],
         [ 'IO::Async::Timer::Periodic',    0.60 ],
         [ 'IO::Async::Timer::Countdown',   0.60 ],
+        
         [ 'IO::Socket::IP',                0.25 ],
+        
         [ 'Evented::Object',               4.50 ],
         [ 'Evented::Configuration',        3.40 ],
         [ 'Evented::Database',             0.50 ]
+        
     );
     
 }
@@ -348,6 +406,7 @@ sub WARNING { L(shift) }
 
 # handle connecting user or server
 sub handle_connect {
+print "@_\n";
     my ($listener, $stream) = @_;
     return unless $stream->{write_handle};
     
@@ -365,6 +424,7 @@ sub handle_connect {
         on_write_error => sub { $conn->done('Write error: '.$_[1]); $stream->close_now }
     );
 
+    configure_stream($stream);
     $loop->add($stream);
 
     # if the connection limit has been reached, disconnect immediately.
@@ -508,6 +568,7 @@ sub terminate {
 sub rehash {
     eval { $conf->parse_config } or L("Configuration error: ".($@ || $!)) and return;
     setup_sockets();
+    return 1;
 }
 
 sub boot {

@@ -2335,6 +2335,12 @@ CHANGES:
         
         35. wow! RELOAD * should work now.
         
+        36. fixed an issue where REHASH claimed failure even when it was successful.
+            greatly improved the way listeners are created and managed.
+            './juno dev makemodule' now creates the module metadata with placeholder values.
+            listener improvements should later support SSL, but it still isn't working.
+            
+        
         
         
         

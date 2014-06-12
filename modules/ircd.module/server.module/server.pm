@@ -47,7 +47,6 @@ sub quit {
     my ($server, $reason, $why) = @_;
     $why //= $server->{name}.q( ).$server->{parent}{name};
 
-    L("server $$server{name} has quit: $reason");
     notice(server_quit =>
         $server->{name},
         $server->{sid},
@@ -381,7 +380,6 @@ sub all_users    {        @{ shift->{users}    }                  }
 sub handle {
     my $server = shift;
     return if !$server->{conn} || $server->{conn}{goodbye};
-    print "handle @_\n";
     foreach my $line (split "\n", shift) {
 
         # if logging is enabled, log.

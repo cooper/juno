@@ -166,6 +166,14 @@ main() {
             $DIR/bin/mkpasswd
             ;;
 
+        genssl)
+            SSLDIR=$DIR/etc/ssl
+            mkdir -p $SSLDIR
+            openssl req -x509 -nodes -newkey rsa:2048 -keyout $SSLDIR/key.pem -out $SSLDIR/cert.pem
+            echo "Use the 'sslport' key in listener configuration blocks" 
+            echo "Enjoy using SSL"
+            ;;
+
         lines)
             $DIR/bin/lines
             ;;
@@ -175,7 +183,30 @@ main() {
             
                 makemodule)
                     mkdir -p $DIR/modules/${3}.module
-                    touch $DIR/modules/${3}.module/$(basename $3).pm
+                    file=$DIR/modules/${3}.module/$(basename $3).pm
+                    touch $file
+                    
+                    comments="# Copyright (c) $(date +%Y), ${USER:-$(whoami)}
+#
+# Created on $(hostname)
+# $(date)
+# $(basename $file)
+#
+# @name:            '$3'
+# @package:         'M::$3'
+# @description:     ''
+#
+# @author.name:     'Mitchell Cooper'
+# @author.website:  'https://github.com/cooper'
+#
+package M::$3;
+
+sub init {
+}
+
+\$mod
+"
+                    echo "$comments" > $file
                 ;;
                 
                 pullsubs)
