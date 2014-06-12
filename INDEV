@@ -2340,6 +2340,10 @@ CHANGES:
             './juno dev makemodule' now creates the module metadata with placeholder values.
             listener improvements should later support SSL, but it still isn't working.
             
+        37. simplified the executable.
+            added sendfrom_to_many() procedural user function to send something to several users but only once.
+            started documentation wow.
+            
         
         
         

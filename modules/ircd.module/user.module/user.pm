@@ -428,33 +428,24 @@ sub new_connection {
 # note: the source user does not need to be local.
 # TODO: eventually, I would like to have channels stored in user.
 sub send_to_channels {
-    my ($user, $what) = @_;
-    
-    # this user included.
-    $user->sendfrom($user->full, $what) if $user->is_local;
-    my %sent = ( $user => 1 );
-
-    # check each channel.
-    foreach my $channel ($pool->channels) {
-    
-        # source is not in this channel.
-        next unless $channel->has_user($user);
-
-        # send to each member.
-        foreach my $usr ($channel->users) {
-        
-            # not local.
-            next unless $usr->is_local;
-            
-            # already sent there.
-            next if $sent{$usr};
-            
-            $usr->sendfrom($user->full, $what);
-            $sent{$usr} = 1;
-        }
-    }
-    
+    my ($user, $message) = @_;    
+    sendfrom_to_many($user->full, $message, $user, map { $_->users } $user->channels);
     return 1;
+}
+
+# class function:
+# send to a number of users but only once per user.
+# returns the number of users affected.
+# user::sendfrom_to_many($from, $message, @users)
+sub sendfrom_to_many {
+    my ($from, $message, @users) = @_;
+    my %done;
+    foreach my $user (@users) {
+        next if $done{$user};
+        $user->sendfrom($from, $message);
+        $done{$user} = 1;
+    }
+    return scalar keys %done;
 }
 
 # handle a mode string, send to the local user, send to other servers.

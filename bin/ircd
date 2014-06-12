@@ -1,60 +1,28 @@
 #!/usr/bin/perl
 # Copyright (c) 2010-14, Mitchell Cooper
-
-use warnings;
-use strict;
-use 5.010;
-
-
-# TODO: do something safe for the signals to forward them to ircd.pm if it's loaded.
-local ( $0,                $SIG{TERM},        $SIG{KILL},        $SIG{PIPE}         ) =
-      ( 'juno',            \&ircd::terminate, \&ircd::terminate, \&ircd::signalpipe );
-local ( $SIG{__WARN__},    $SIG{INT},         $SIG{HUP}                             ) =
-      ( \&ircd::WARNING,   \&ircd::terminate, \&ircd::signalhup                     );
-
-our ($run_dir, $loop, $api, $pool, %v);
-our $VERSION = get_version();
+use warnings; use strict; use 5.010;
+foreach my $sig ([qw(__WARN__ WARNING)], [qw(TERM terminate )], [qw(KILL terminate)],
+                 [qw(INT    terminate)], [qw(PIPE signalpipe)], [qw(HUP  signalhup)]) {
+$SIG{shift @$sig} = sub { safe_call(shift @$sig, @_) } }    
+our ($run_dir, $loop, $api, $pool, %v); local $0 = 'juno';
 
 BEGIN {
-    # find the directory to run from
-    if (not defined($run_dir = shift @ARGV)) {
-        die "No directory specified";
-    }
-
-    # make sure the run directory exists.
-    if (!-d $run_dir) {
-        die "Run directory does not exist";
-    }
-
+    defined($run_dir = shift @ARGV) or die "No directory specified";
+    die "Run directory does not exist" unless -d $run_dir;
     chdir $run_dir or die "Can't access run directory";
-    unshift @INC, "$run_dir/lib";
-    
-    # add these to @INC if they are not there already.
-    foreach (
-        "$run_dir/lib/api-engine",
-        "$run_dir/lib/evented-object/lib",
-        "$run_dir/lib/evented-api-engine/lib",
-        "$run_dir/lib/evented-configuration/lib",
-        "$run_dir/lib/evented-database",
-    ) { unshift @INC, $_ unless $_ ~~ @INC }
-    
+    foreach (map { "$run_dir/lib$_" } ('', qw(/api-engine /evented-object/lib
+        /evented-api-engine/lib /evented-configuration/lib /evented-database)))
+    { unshift @INC, $_ unless $_ ~~ @INC }
     require Evented::API::Engine;
 }
+sub get_version { $api->_slurp(undef, undef, "$run_dir/VERSION") }
+sub safe_call   { (ircd->can(shift) or return)->(@_)             }
 
-sub get_version {
-    open my $fh, '<', "$run_dir/VERSION" or die "Cannot read VERSION";
-    my $version = <$fh>;
-    close $fh;
-    $version =~ s/\s+//g;
-    return $version;
-}
-
-# create the API engine.
 $api = Evented::API::Engine->new(
     mod_inc => ['modules', 'lib/evented-api-engine/mod'],
     log_sub => sub { say $_[1] }
 );
+our $VERSION = get_version() or die "Can't read VERSION";
 
 $api->load_module('ircd') or exit 1;
-
 ircd::loop();
