@@ -213,6 +213,15 @@ sub on_user_joined {
     
     return 1 unless scalar @letters;
     
+    # here, perhaps an existing status is higher than one about to be granted.
+    my $maybe_higher = $channel->user_get_highest_level($user);
+    $highest = $maybe_higher if $maybe_higher > $highest;
+    
+    # don't give anything less than their highest status
+    # (other than op which will be granted below.)
+    # this prevents things like +qohv or +hv, etc.
+    @letters = grep { $levels{$_} >= $highest } @letters;
+    
     # if they have >0 status, give o as well.
     my ($op, $give_op) = $me->cmode_letter('op');
     if (!$channel->user_is($user, 'op') and not $op ~~ @letters) {
@@ -222,10 +231,7 @@ sub on_user_joined {
         }
         push @letters, $op if $give_op;
     }
-    
-    # if they have >=0 status, don't give anything <0.
-    @letters = grep { $levels{$_} >= 0 } @letters if $highest >= 0;
-    
+
     # create mode string.
     my $letters = join '', @letters;
     my $uids    = (q( ).$user->{uid}) x length $letters;

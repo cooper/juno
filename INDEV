@@ -2344,6 +2344,10 @@ CHANGES:
             added sendfrom_to_many() procedural user function to send something to several users but only once.
             started documentation wow.
             
+        38. improved the way the Account module decides which modes to ignore.
+            fixed annoying warnings in the new `sendfrom_to_many()` function.
+            more documentation.
+            
         
         
         

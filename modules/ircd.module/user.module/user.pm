@@ -441,6 +441,7 @@ sub sendfrom_to_many {
     my ($from, $message, @users) = @_;
     my %done;
     foreach my $user (@users) {
+        next if !$user->is_local;
         next if $done{$user};
         $user->sendfrom($from, $message);
         $done{$user} = 1;

@@ -151,37 +151,181 @@ notices where these three items are commonly displayed.
 
 ### $user->handle($data)
 
+Handle one or more lines of incoming data from the user. The appropriate user command
+handlers will be called, or if a command does not exist, `ERR_UNKNOWNCOMMAND` will be sent
+to the user.  
+
+This method returns undef and raises a warning if $user does not belong to the local
+server or does not have an associated connection object. Handling data from a remote
+user may be dangerous but can be achieved instead with `->handle_unsafe()`.
+
+* __$data__: one or more _complete_ lines of data, including any possible trailing
+newlines or carriage returns.
+
 ### $user->handle_unsafe($data)
+
+Works exactly like `->handle()` except it will not return fail if the user is not
+connected directly to the local server.
+
+* __$data__: one or more _complete_ lines of data, including any possible trailing
+newlines or carriage returns.
 
 ### $user->send($line)
 
-### $user->sendfrom($from, $message)
+Sends a line of data to the user.  
 
-### $user->sendme($message)
+This method returns undef and raises a warning if $user does not belong to the local
+server or does not have an associated connection object. However, some other sending
+methods work on remote users such as `->numeric()` and `->server_notice()`.
+
+* __$line__: a line of data WITHOUT a suffixing newline and carriage return.
+
+### $user->sendfrom($from, $line)
+
+Sends a line of data from a source. This is just a convenience method to avoid ugly
+concatenation all over the place where it could otherwise be avoided.  
+
+The supplied source should not be an object but instead a string. Typically the `->full`
+method of either a user or server will be used. For users, this is `nick!ident@host` where
+host is either a cloak or the real host. For a server, the server name is used.
+
+```perl
+# where $ouser is some other user.
+$user->sendfrom($ouser->full, 'AWAY :gtg bye');
+
+# the above is equivalent to
+$user->send(':'.$ouser->full.' AWAY :gtg bye');
+```
+
+* __$from__: the source string of the message.
+* __$line__: a line of data WITHOUT a suffixing newline and carriage return.
+
+### $user->sendme($line)
+
+Sends a line of data from the server. This is a convenience method to avoid ugly
+concatentation all over the place where it could otherwise be avoided.
+
+```perl
+$user->sendme("NOTICE $$user{nick} :Hi!");
+
+# the above is equivalent to both of the following:
+$user->sendfrom($me->name, "NOTICE $$user{nick} :Hi!");
+$user->send(':'.$me->name." NOTICE $$user{nick} :Hi!");
+
+# but just for the record, this is only an example.
+# the proper way to achieve the above is:
+$user->server_notice('Hi!');
+```
+
+* __$line__: a line of data WITHOUT a suffixing newline and carriage return.
 
 ### $user->server_notice(optional $info, $message)
 
+Send a notice to the user from the local server.  
+This method works on both local and remote users.
+
+* __$info__: _optional_, a brief description of the notice which will be formatted in an
+appealing way; e.g. 'kill' for a kill command result.
+* __$message__: the notice message to send to the user.
+
 ### $user->numeric($const, @args)
+
+* __$const__: the string name of the numeric reply.
+* __@args__: _optional_ (depending on the numeric), a list of arguments for the user
+numeric handler.
 
 ### $user->new_connection
 
-### $user->send_to_channels($message)
+Sends initial information upon user registration. Not for public use.
+
+### $user->send_to_channels($line)
+
+Sends data with the user as the source to all local users who have one or more channels in
+common with the user, including himself.
+
+```perl
+$user->send_to_channels('NICK steve');
+# sends :nick!user@host NICK steve to all users in a common channel with him
+```
+
+* __$line__: a line of data WITHOUT a suffixing newline and carriage return.
 
 ### $user->do_mode_string($mode_string, $force)
 
+Handles a mode string with `->handle_mode_string()`. If the user is local, a MODE message
+will notify the user with the result of any changes. The mode message will then be
+forwarded and handled on child servers.
+
+* __$mode_string__: the mode string to be handled; e.g. `+iox`.
+* __$force__: if true, failure of user mode blocks will be ignored, forcing the changes.
+
 ### $user->do_mode_string_local($mode_string, $force)
+
+Handles a mode string with `->handle_mode_string()`. If the user is local, a MODE message
+will notify the user with the result of any changes. Contrary to `->do_mode_string()`, the
+mode message will only be handled locally and will not be forwarded to child servers.
+
+* __$mode_string__: the mode string to be handled; e.g. `+iox`.
+* __$force__: if true, failure of user mode blocks will be ignored, forcing the changes.
 
 ### $user->add_notices(@flags)
 
+Adds any of the supplied oper notice flags that the user does not already have. Oper
+notices are not propagated across servers.
+
+* __@flags__: a list of oper notice flags to enable.
+
 ### $user->has_notice($flag)
+
+Returns true if the user has the supplied oper notice flag enabled.
+
+* __$flag__: the oper notice flag being tested.
 
 ### $user->get_killed_by($murderer, $reason)
 
+Handles a kill on a local level. If the user is not local, this method returns `undef` and
+fails. Otherwise, the user will be removed from the server, the message will be forwarded
+to child servers, and those in a common channel with him will be notified.
+
+* __$murderer__: the user committing the action.
+* __$reason__: the comment for why the user was killed.
+
 ### $user->get_invited_by($inviter, $ch_or_name)
+
+Handles an invitation for a local user. If the user is not local or is already in the
+channel, this method returns `undef` and fails. Otherwise, an INVITE message will be sent
+to the user, and the invitation will be recorded.  
+
+This method accepts either a channel name or a channel object. This is due to the fact
+that users may be invited to channels which are not (yet) existent.
+
+* __$inviter__: the user committing the invitation.
+* __$ch_or_name__: a channel object or channel name string to which the user was invited.
 
 ## Procedural functions
 
-### sendfrom_to_many($from, $message, @users)
+Procedural functions typically involve multiple users and are called as follows:
+
+```perl
+user::function(@args)
+```
+
+### sendfrom_to_many($from, $line, @users)
+
+Sends a piece of data to several users at once from the specified source. Even if any user
+occurs multiple times in the list, the message will only be sent once to each user.  
+
+Note: A variant of this function exists for sending to 
+
+```perl
+user::sendfrom_to_many($user->full, 'NICK steve', @users, $user);
+# the above example sends a NICK message as follows: :user!ident@hosty NICK steve
+# to all of the users within the list @users as well as himself.
+```
+
+* __$from__: the source string of the message.
+* __$line__: a line of data WITHOUT a suffixing newline and carriage return.
+* __@users__: a list of users to send the data to.
 
 ## Events
 
