@@ -335,12 +335,60 @@ user object.
 
 ### can_invite
 
-### can_join
+### can_join($channel)
 
-### account_registered
+Fired before a local user joins a channel. Callbacks of this event typically run checks
+to see if the user can join, stopping the event fire if not. For instance, one such
+callback checks if the user is banned.  
 
-### account_logged_in
+This event is never fired for remote users, as it is the responsibility of each server
+to determine whether its own users should be able to join a channel.  
 
-### account_logged_out
+This event is fired by the [Core::UserCommands](mod/Core/UserCommands.md) module.
+
+* __$channel__: the channel the user is attempting to join.
+
+#### (30) in.channel
+
+Checks if the user is in the channel already. If so, the event fire is stopped.
+
+#### (20) has.invite
+
+Checks if the channel is invite only. Then, the event fire is stopped if the user has not
+been invited to the channel.  
+
+This callback belongs to the [Invite](mod/Invite.md) module.
+
+#### (10) is.banned
+
+Checks if the user is banned from the channel. Unless there is an exception that matches
+the user, the event fire is stopped.
+
+### account_registered($act)
+
+Fired after a local user registers an account. Understand that this is not a reliable
+event for tracking all account registrations, as it is not fired when remote users
+register accounts. This is due to the fact that accounts are sometimes registered without
+a user present at all, especially within account negotiation during server burst.  
+
+This event is fired by the [Account](mod/Account.md) module.
+
+* __$act__: a hash reference representing the account information entry.
+
+### account_logged_in($act)
+
+Fired after either a local or remote user logs into an account.  
+
+This event is fired by the [Account](mod/Account.md) module.
+
+* __$act__: a hash reference representing the account information entry.
+
+### account_logged_out($act)
+
+Fired after either a local or remote user logs out of an account.  
+
+This event is fired by the [Account](mod/Account.md) module.
+
+* __$act__: a hash reference representing the account information entry.
 
 ## Keys
