@@ -59,6 +59,8 @@
 		BC9565651944E032002F52B9 /* Resolve.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Resolve.pm; path = Resolve.module/Resolve.pm; sourceTree = "<group>"; };
 		BC956566194636CF002F52B9 /* Invite.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Invite.pm; path = Invite.module/Invite.pm; sourceTree = "<group>"; };
 		BCBCCEA0193BAD0800F7E7F9 /* ircd_forever */ = {isa = PBXFileReference; lastKnownFileType = text; path = ircd_forever; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.perl; };
+		BCD615461953963500E1B0FE /* Capabilities.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Capabilities.pm; path = Capabilities.module/Capabilities.pm; sourceTree = "<group>"; };
+		BCD615471953963D00E1B0FE /* RegistrationCommands.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = RegistrationCommands.pm; path = RegistrationCommands.module/RegistrationCommands.pm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -152,6 +154,8 @@
 				BC95650A1944E032002F52B9 /* OperNotices.pm */,
 				BC95650D1944E032002F52B9 /* UserCommands.pm */,
 				BC9565101944E032002F52B9 /* UserModes.pm */,
+				BCD615471953963D00E1B0FE /* RegistrationCommands.pm */,
+				BCD615461953963500E1B0FE /* Capabilities.pm */,
 			);
 			path = Base;
 			sourceTree = "<group>";

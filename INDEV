@@ -2357,6 +2357,11 @@ CHANGES:
         added validident() utility which uses the same character set as charybdis's match.c.
         ALL ident lookup logic is now in the Ident module, including the tilde insertion.
         if the user requests an ident prefixed with a tilde in the USER command, the ident check is skipped.
+        
+        41. removed old broken CAP code. will be replaced in the future.
+            added RegistrationCommands base for adding new pre-registration commands to connection.pm.
+            fixed an issue in Eval where the message is sent back to the source user even if the PRIVMSG fails.
+            
             
         
         

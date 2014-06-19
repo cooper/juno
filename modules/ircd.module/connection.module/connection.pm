@@ -50,7 +50,6 @@ sub new {
 
 sub handle {
     my ($connection, $data) = @_;
-
     $connection->{ping_in_air}   = 0;
     $connection->{last_response} = time;
 
@@ -63,7 +62,7 @@ sub handle {
     my @args = split /\s+/, $data;
     return unless defined $args[0];
 
-    given (uc shift @args) {
+    given (my $command = uc shift @args) {
 
         when ('NICK') {
 
@@ -174,6 +173,10 @@ sub handle {
             $connection->done('Received ERROR: '.col(join ' ', @args));
             return;
         }
+        
+          default {
+               return $connection->fire_event("command_$command" => @args);
+          }
 
     }
 }
@@ -296,9 +299,7 @@ sub sendme {
     $connection->sendfrom($source, @_);
 }
 
-sub sock {
-    return shift->{stream}{read_handle};
-}
+sub sock { shift->{stream}{write_handle} }
 
 sub send_server_credentials {
      my $connection = shift;
@@ -361,48 +362,9 @@ sub done {
      return 1;
 }
 
-###########################
-### CLIENT CAPABILITIES ###
-###########################
-
-
-# has client capability
-sub has_cap {
-    my ($connection, $flag) = @_;
-    return $flag ~~ @{ $connection->{cap} }
-}
-
-# add client capability
-sub add_cap {
-    my $connection = shift;
-    my @flags = grep { !$connection->has_cap($_) } @_;
-    L("adding capability flags to $connection: @flags");
-    push @{ $connection->{cap} }, @flags
-}
-
-# remove client capability
-sub remove_cap {
-    my $connection = shift;
-    my @remove     = @_;
-    my %r;
-    L("removing capability flags from $connection: @remove");
-
-    @r{@remove}++;
-
-    my @new        = grep { !exists $r{$_} } @{ $connection->{cap} };
-    $connection->{flags} = \@new;
-}
-
-
-
 sub DESTROY {
     my $connection = shift;
     L("$connection destroyed");
-}
-
-# get the IO object
-sub obj {
-    shift->{stream}{write_handle} # XXX select
 }
 
 $mod

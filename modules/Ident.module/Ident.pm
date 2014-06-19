@@ -128,8 +128,8 @@ sub ident_request {
 
     # send the request.
     return unless $connection->{stream}->write_handle;
-    my $server_port = $connection->{stream}->write_handle->peerport;
-    my $client_port = $connection->{stream}->write_handle->sockport; # i.e. 6667
+    my $server_port = $connection->sock->peerport;
+    my $client_port = $connection->sock->sockport; # i.e. 6667
     $stream->write("$server_port, $client_port\r\n");
     
 }

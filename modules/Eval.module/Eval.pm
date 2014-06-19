@@ -42,8 +42,8 @@ sub _eval {
         foreach (@result) {
             $i++;
             my $e = ($#result ? "($i): " : '').$_;
-            $user->sendfrom($user->full, "PRIVMSG $$channel{name} :$e");
-            $user->handle("PRIVMSG $$channel{name} :$e");
+            $user->sendfrom($user->full, "PRIVMSG $$channel{name} :$e")
+            if $user->handle("PRIVMSG $$channel{name} :$e");
         }
     }
     
