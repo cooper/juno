@@ -18,13 +18,14 @@ use utils qw(trim);
 our ($api, $mod, $me, $pool);
 
 sub init {
-    $pool->on('connection.new' => \&connection_new, with_evented_obj => 1) or return;
+    $pool->on('connection.new'      => \&connection_new,  with_evented_obj => 1) or return;
+    $pool->on('connection.reg_user' => \&connection_user, with_evented_obj => 1) or return;
     return 1;
 }
 
 sub connection_new {
     my ($connection, $event) = @_;
-    return if $connection->{goodbye};
+    return if $connection->{goodbye} || $connection->{skip_ident};
     return unless $connection->{stream}->write_handle;
     
     # postpone registration.
@@ -65,6 +66,26 @@ sub connection_new {
         ident_request($connection, $socket);
         
     });
+}
+
+# USER received.
+sub connection_user {
+    my ($connection, $event, $ident, $real) = @_;
+    
+    # already did a lookup.
+    return if $connection->{ident_checked};
+    
+    # if the requested ident has ~, cancel ident check.
+    if (substr($ident, 0, 1) eq '~') {
+        (delete $connection->{ident_future})->cancel    if $connection->{ident_future};
+        (delete $connection->{ident_stream})->close_now if $connection->{ident_stream};
+        $connection->sendfrom($me->full, 'NOTICE * :*** Skipped ident lookup');
+        return $connection->{skip_ident} = 1;
+    }
+    
+    # we determined that a tilde should be added.
+    $connection->{ident} = "~$ident" if delete $connection->{tilde};
+    
 }
 
 # initiate the request.
@@ -127,6 +148,12 @@ sub ident_read {
         return;
     }
     
+    # is the ident valid?
+    if (!utils::validident($items[3])) {
+        ident_cancel($connection, $stream, 'Invalid ident characters');
+        return;
+    }
+    
     # success.
     $connection->{ident_success} = $items[3];
     ident_done($connection, $stream);
@@ -157,10 +184,12 @@ sub ident_done {
     
     # it was successful. set the ident.
     else {
-        $connection->{ident} = $connection->{ident_success};
+        $connection->{ident_verified} = 1;
+        $connection->{ident} = delete $connection->{ident_success};
         $connection->sendfrom($me->full, 'NOTICE * :*** Found your ident');
     }
     
+    $connection->{ident_checked} = 1;
     $connection->reg_continue;
 }
 

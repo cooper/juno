@@ -1,5 +1,5 @@
 {
-   "version" : "8.17",
+   "version" : "8.39",
    "name" : "ircd::utils",
    "no_bless" : 1,
    "author" : {

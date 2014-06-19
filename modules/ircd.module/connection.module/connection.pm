@@ -86,6 +86,7 @@ sub handle {
 
             # set the nick
             $connection->{nick} = $nick;
+            $connection->fire_event(reg_nick => $nick);
             $connection->reg_continue;
 
         }
@@ -94,8 +95,9 @@ sub handle {
 
             # set ident and real name
             if (defined $args[3]) {
-                $connection->{ident} //= ($connection->{tilde} ? '~' : '').$args[0];
-                $connection->{real}    = col((split /\s+/, $data, 5)[4]);
+                $connection->{ident} = $args[0];
+                $connection->{real}  = col((split /\s+/, $data, 5)[4]);
+                $connection->fire_event(reg_user => @$connection{qw(ident real)});
                 $connection->reg_continue;
             }
 

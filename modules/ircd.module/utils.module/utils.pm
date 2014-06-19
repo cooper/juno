@@ -95,12 +95,18 @@ sub validnick {
     return if (
         length $str < 1         or
         length $str > $limit    or
-        $str !~ m/^[A-Za-z_`\-^\|\\\{}\[\]][A-Za-z_0-9`\-^\|\\\{}\[\]]*$/
+        $str !~ m/^[A-Za-z_`\-^\|\\\{}\[\]\~][A-Za-z_0-9`\-^\|\\\{}\[\]]*$/
     );
 
     # success
-    return 1
+    return 1;
 
+}
+
+# check if an ident is valid
+sub validident {
+    # the (?#) is a regex comment that fixes syntax highlighting screwups caused by ` :)
+    return shift() =~ m/^(~?)([A-Za-z0-9]{1})([A-Za-z0-9\-\.\[\\\]\^_(?#)`\{\|\}]*)$/;
 }
 
 # check if a channel name is valid

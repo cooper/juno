@@ -2349,7 +2349,14 @@ CHANGES:
             more documentation.
             
         39. fixed broken listeners, now directly creating IO::Async::Listeners.
-            SSL now seems to be working, but I am unsure whether it uses an outrageous amount of memory as it has known to do in the past.
+            SSL now seems to be working, but I am unsure whether it uses an outrageous amount of memory as it has been known to do in the past.
+            
+    4. added two new connection events:
+        reg_user: fired when the USER command is used successfully;
+        reg_nick: fired when the NICK command is used successfully.
+        added validident() utility which uses the same character set as charybdis's match.c.
+        ALL ident lookup logic is now in the Ident module, including the tilde insertion.
+        if the user requests an ident prefixed with a tilde in the USER command, the ident check is skipped.
             
         
         
