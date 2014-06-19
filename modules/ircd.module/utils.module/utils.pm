@@ -95,7 +95,7 @@ sub validnick {
     return if (
         length $str < 1         or
         length $str > $limit    or
-        $str !~ m/^[A-Za-z_`\-^\|\\\{}\[\]\~][A-Za-z_0-9`\-^\|\\\{}\[\]]*$/
+        $str !~ m/^[A-Za-z_`\-^\|\\\{}\[\]][A-Za-z_0-9`\-^\|\\\{}\[\]]*$/
     );
 
     # success
@@ -105,8 +105,9 @@ sub validnick {
 
 # check if an ident is valid
 sub validident {
+    # see: https://github.com/atheme/charybdis/blob/55abcbb20aeabcf2e878a9c65c9697210dd10079/src/match.c
     # the (?#) is a regex comment that fixes syntax highlighting screwups caused by ` :)
-    return shift() =~ m/^(~?)([A-Za-z0-9]{1})([A-Za-z0-9\-\.\[\\\]\^_(?#)`\{\|\}]*)$/;
+    return shift() =~ m/^(~?)([A-Za-z0-9]{1})([A-Za-z0-9\-\.\[\\\]\^_(?#)`\{\|\}~]*)$/;
 }
 
 # check if a channel name is valid
@@ -148,7 +149,7 @@ sub cut_to_limit {
     return $string
 }
 
-my %crypts = (
+our %crypts = (
     sha1   => [ 'Digest::SHA', 'sha1_hex'   ],
     sha224 => [ 'Digest::SHA', 'sha224_hex' ],
     sha256 => [ 'Digest::SHA', 'sha256_hex' ],

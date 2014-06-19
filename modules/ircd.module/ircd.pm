@@ -426,7 +426,6 @@ sub WARNING { L(shift) }
 
 # handle connecting user or server
 sub handle_connect {
-print "@_\n";
     my ($listener, $stream) = @_;
     return unless $stream->{write_handle};
     
