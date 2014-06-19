@@ -319,6 +319,12 @@ sub send_server_credentials {
      $connection->send('PASS '.conn($name, 'send_password'));  
 }
 
+# send a command or numeric to a possibly unregistered connection.
+sub early_reply {
+    my ($conn, $cmd) = (shift, shift);
+    $conn->sendme("$cmd ".(defined $conn->{nick} ? $conn->{name} : '*')." @_");
+}
+
 # end a connection. this must be foolproof.
 sub done {
      my ($connection, $reason, $silent) = @_;
@@ -360,6 +366,39 @@ sub done {
      $connection->delete_all_events;
      
      return 1;
+}
+
+####################
+### CAPABILITIES ###
+####################
+
+# has a capability
+sub has_cap {
+    my ($connection, $flag) = (shift, lc shift);
+    return unless $connection->{cap_flags};
+    foreach my $f (@{ $connection->{cap_flags} }) {
+        return 1 if $f eq $flag;
+    }
+    return;
+}
+
+# add a capability
+sub add_cap {
+    my ($connection, @flags) = (shift, map { lc } @_);
+    foreach my $flag (@flags) {
+        next if $connection->has_cap($flag);
+        push @{ $connection->{cap_flags} ||= [] }, $flag;
+    }
+    return 1;
+}
+
+# remove a capability 
+sub remove_cap {
+    my ($connection, @flags) = (shift, map { lc } @_);
+    return unless $connection->{cap_flags};
+    my %all_flags = map { $_ => 1 } @{ $connection->{cap_flags} };
+    delete $all_flags{$_} foreach @flags;
+    @{ $connection->{cap_flags} } = keys %all_flags;
 }
 
 sub DESTROY {

@@ -2362,6 +2362,9 @@ CHANGES:
             added RegistrationCommands base for adding new pre-registration commands to connection.pm.
             fixed an issue in Eval where the message is sent back to the source user even if the PRIVMSG fails.
             
+        42. created Core::RegistrationCommands which will eventually have USER, NICK, CAP, etc. handlers.
+            more work for client capabilities and improvements to connection.pm.
+            
             
         
         

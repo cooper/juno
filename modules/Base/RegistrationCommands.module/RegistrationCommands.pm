@@ -21,18 +21,18 @@ use 5.010;
 our ($api, $mod, $pool);
 
 sub init {
-    
-    # register methods.
     $mod->register_module_method('register_registration_command') or return;
-
     return 1;
 }
 
 sub register_registration_command {
     my ($mod, $event, %opts) = @_;
+    
+    # callback to the name of the command for the callback name.
+    $opts{cb_name} //= $opts{name};
 
     # make sure all required options are present.
-    foreach my $what (qw|name code cb_name|) {
+    foreach my $what (qw|name code|) {
         next if exists $opts{$what};
         $opts{name} ||= 'unknown';
         L("registration command '$opts{name}' does not have '$what' option");
@@ -41,11 +41,14 @@ sub register_registration_command {
     
     # attach the callback.
     my $command = uc delete $opts{name};
-    $pool->on("connection.command_$command" => $opts{code},
+    my $result  = $pool->on("connection.command_$command" => $opts{code},
         name => delete $opts{cb_name},
+        with_evented_obj => 1,
         %opts
-    );
-    
+    ) or return;
+
+    L("$opts{name} ($opts{cb_name}) registered");
+    return $result;
 }
 
 $mod

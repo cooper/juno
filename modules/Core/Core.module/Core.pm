@@ -5,7 +5,7 @@
 # @package:         "M::Core"
 # @description:     "the core components of the ircd"
 #
-# @depends.modules: [qw(Core::UserModes Core::UserCommands Core::UserNumerics Core::ChannelModes Core::OperNotices Core::Matchers)]
+# @depends.modules: [qw(Core::UserModes Core::UserCommands Core::UserNumerics Core::ChannelModes Core::OperNotices Core::Matchers Core::RegistrationCommands)]
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

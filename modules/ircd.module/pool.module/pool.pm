@@ -731,4 +731,40 @@ sub user_match {
     return $e->{matched};
 }
 
+
+####################
+### CAPABILITIES ###
+####################
+
+# register capability
+sub register_cap {
+    my ($pool, $source, $cap, %opts) = @_;
+    $cap = lc $cap;
+
+    # does it already exist?
+    if (exists $pool->{capabilities}{$cap}) {
+        L("attempted to register '$cap' which already exists");
+        return;
+    }
+
+    $pool->{capabilities}{$cap} = { name => $cap, %opts };
+    return 1;
+}
+
+# unregister capability
+sub delete_cap {
+    my ($pool, $source, $cap) = @_;
+    $cap = lc $cap;
+
+    # does it exist?
+    if (!exists $pool->{capabilities}{$notice}) {
+        L("attempted to delete '$cap' which does not exists");
+        return;
+    }
+
+    delete $pool->{capabilities}{$notice};
+    return 1;
+}
+
+
 $mod
