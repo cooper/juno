@@ -212,7 +212,8 @@ sub setup_sockets {
 
         # load IO::Async::SSL if necessary.
         if (@sslports) {
-            load_or_reload('IO::Async::SSL', 0.14) or next;
+            load_or_reload('IO::Async::SSL',       0.14) or next;
+            load_or_reload('IO::Async::SSLStream', 0.14) or next;
             listen_addr_port($addr, $_, 1) foreach @sslports;
         }
         
@@ -265,20 +266,40 @@ sub listen_addr_port {
     my $ipv6 = $addr =~ m/:/;
     my ($p_addr, $p_port) = ($ipv6 ? "[$addr]" : $addr, $ssl ? "+$port" : $port);
     my $l_key = lc "$p_addr:$p_port";
-    
+        
     # use SSL.
     my ($method, %sslopts) = 'listen';
     if ($ssl) {
         $method  = 'SSL_listen';
+        
+        # ensure the key and certificate exist.
+        my $ssl_cert = $::run_dir.q(/).conf('ssl', 'cert');
+        my $ssl_key  = $::run_dir.q(/).conf('ssl', 'key');
+        if (!-f $ssl_cert || !-f $ssl_key) {
+            L("SSL key or certificate missing! Cannnot listen on $l_key");
+            return;
+        }
+        
+        # pass SSL options to ->SSL_listen().
         %sslopts = (
-            SSL_cert_file => $::run_dir.q(/).conf('ssl', 'cert'),
-            SSL_key_file  => $::run_dir.q(/).conf('ssl', 'key'),
+            SSL_cert_file => $ssl_cert,
+            SSL_key_file  => $ssl_key,
             SSL_server    => 1,
             on_ssl_error  => sub { L("SSL error: @_") }
         );
+        
     }
+
+    # create a listener object.
+    # as of IO::Async 0.62, ->listen on its own does not work with
+    # handle_class or handle_constructor and on_accept.
+    my $listener = IO::Async::Listener->new(
+        handle_class => $ssl ? 'IO::Async::SSLStream' : 'IO::Async::Stream',
+        on_accept    => sub { &handle_connect },
+    );
+    $loop->add($listener);
     
-    # try to listen.
+    # call ->listen() or ->SSL_listen() on the loop.
     my $f = $listeners{$l_key}{future} = $loop->$method(
         addr => {
             family   => $ipv6 ? 'inet6' : 'inet',
@@ -286,12 +307,11 @@ sub listen_addr_port {
             port     => $port,
             ip       => $addr
         },
-        handle_class => $ssl ? 'IO::Async::SSLStream' : 'IO::Async::Stream',
-        on_accept    => sub { &handle_connect },
+        listener => $listener,
         %sslopts
     );
     
-    # listen result.
+    # when the listener is ready.
     $f->on_ready(sub {
         my $f = shift;
         delete $listeners{$l_key}{future};
@@ -306,7 +326,7 @@ sub listen_addr_port {
         my $listener = $listeners{$l_key}{listener} = $f->get;
         configure_listener($listener);
         L("Listening on $l_key");
-        
+
     });
 
     return 1;
@@ -336,8 +356,8 @@ sub load_or_reload {
     # use require to load it the first time.
     if (!is_loaded($name) && !$name->VERSION) {
         L("Loading $name");
-        require $file or L("Very bad error: could not load $name!".($@ || $!));
-        return;
+        require $file or L("Very bad error: could not load $name!".($@ || $!)) and return;
+        return 1;
     }
     
     # load it.

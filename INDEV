@@ -2348,6 +2348,9 @@ CHANGES:
             fixed annoying warnings in the new `sendfrom_to_many()` function.
             more documentation.
             
+        39. fixed broken listeners, now directly creating IO::Async::Listeners.
+            SSL now seems to be working, but I am unsure whether it uses an outrageous amount of memory as it has known to do in the past.
+            
         
         
         

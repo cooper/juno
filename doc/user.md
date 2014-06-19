@@ -333,8 +333,6 @@ User objects are listened upon by the [pool](pool.md). Most events involving use
 interaction with a channel are fired on the [channel](channel.md) object rather than the
 user object.
 
-### can_invite
-
 ### can_join($channel)
 
 Fired before a local user joins a channel. Callbacks of this event typically run checks
@@ -390,5 +388,23 @@ Fired after either a local or remote user logs out of an account.
 This event is fired by the [Account](mod/Account.md) module.
 
 * __$act__: a hash reference representing the account information entry.
+
+### can_invite
+
+Fired before a local user invites someone to a channel. Callbacks of this event typically
+run checks to see if the user can invite, stopping the event fire if not. For instance,
+one such callback checks if the target user is already in the channel.  
+
+This event is never fired for remote users, as it is the responsibility of each server
+to determine whether its own users should be able to invite.  
+
+This event is fired by the [Invite](mod/Invite.md) module.
+
+#### (30) source.in.channel
+
+If the channel exists, the inviter must be in the channel.
+
+#### (20) target.in.channel
+#### (10) has.basic.status
 
 ## Keys
