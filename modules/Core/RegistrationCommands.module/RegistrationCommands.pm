@@ -18,18 +18,29 @@ package M::Core::RegistrationCommands;
 use warnings;
 use strict;
 use 5.010;
-use utils qw(col);
+use utils qw(col conf notice);
 
 our ($api, $mod, $pool);
 
 sub init {
     $mod->register_registration_command(
-        name       => 'CAP',
-        code       => \&rcmd_cap,
-        parameters => 1
-    ) or return;
+        name       => shift @$_, code      => shift @$_,
+        parameters => shift @$_, with_data => shift @$_
+    ) or return foreach (
+        [ CAP       => \&rcmd_cap,      1    ],
+        [ NICK      => \&rcmd_nick,     1    ],
+        [ USER      => \&rcmd_user,     4, 1 ],
+        [ SERVER    => \&rcmd_server,   5    ],
+        [ PASS      => \&rcmd_pass,     1    ],
+        [ QUIT      => \&rcmd_quit,     1, 1 ],
+        [ ERROR     => \&rcmd_error,    1    ],
+    );
     return 1;
 }
+
+####################
+### CAPABILITIES ###
+####################
 
 # handle a CAP.
 sub rcmd_cap {
@@ -122,6 +133,104 @@ sub cap_end {
     my ($connection, $event) = @_;
     return if $connection->{type};
     $connection->reg_continue if delete $connection->{received_req};
+}
+
+#########################
+### USER REGISTRATION ###
+#########################
+
+sub rcmd_nick {
+    my ($connection, $event, @args) = @_;
+    my $nick = col(shift @args);
+
+    # nick exists.
+    if ($pool->lookup_user_nick($nick)) {
+        $connection->early_reply(433 => "$nick :Nickname is already in use");
+        return;
+    }
+
+    # invalid characters.
+    if (!utils::validnick($nick)) {
+        $connection->early_reply(432 => "$nick :Erroneous nickname");
+        return;
+    }
+
+    # set the nick.
+    $connection->{nick} = $nick;
+    $connection->fire_event(reg_nick => $nick);
+    $connection->reg_continue;
+    
+}
+
+sub rcmd_user {
+    my ($connection, $event, $data, @args) = @_;
+    $connection->{ident} = $args[0];
+    $connection->{real}  = col((split /\s+/, $data, 5)[4]);
+    $connection->fire_event(reg_user => @$connection{ qw(ident real) });
+    $connection->reg_continue;
+}
+
+###########################
+### SERVER REGISTRATION ###
+###########################
+
+sub rcmd_server {
+    my ($connection, $event, @args) = @_;
+    $connection->{$_}   = shift @args foreach qw[sid name proto ircd];
+    $connection->{desc} = col(join ' ', @args);
+
+    # if this was by our request (as in an autoconnect or /connect or something)
+    # don't accept any server except the one we asked for.
+    if (exists $connection->{want} && lc $connection->{want} ne lc $connection->{name}) {
+        $connection->done('Unexpected server');
+        return;
+    }
+
+    # find a matching server
+    if (defined(my $addr = conf(['connect', $connection->{name}], 'address'))) {
+
+        # FIXME: we need to use IP comparison functions
+        # check for matching IPs
+        if ($connection->{ip} ne $addr) {
+            $connection->done('Invalid credentials');
+            notice(connection_invalid => $connection->{ip}, 'IP does not match block');
+            return;
+        }
+
+    }
+
+    # no such server
+    else {
+        $connection->done('Invalid credentials');
+        notice(connection_invalid => $connection->{ip}, 'No block for this server');
+        return;
+    }
+
+    # made it.
+    $connection->reg_continue;
+    return 1;
+    
+}
+
+sub rcmd_pass {
+    my ($connection, $event, @args) = @_;
+    $connection->{pass} = shift @args;
+    $connection->reg_continue;
+}
+
+###########################
+### DISCONNECT MESSAGES ###
+###########################
+
+sub rcmd_quit {
+    my ($connection, $event, $data) = @_;
+    my $reason = col((split /\s+/,  $data, 2)[1]);
+    $connection->done("~ $reason");
+}
+
+sub rcmd_error {
+    my ($connection, $event, @args) = @_;
+    $connection->done("Received ERROR: @_");
 }
 
 $mod

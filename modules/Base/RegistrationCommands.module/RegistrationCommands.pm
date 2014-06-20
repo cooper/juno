@@ -61,8 +61,9 @@ sub register_registration_command {
     ) or return if $params;
     
     # attach the callback.
-    my $result  = $pool->on("connection.command_$command" => $opts{code},
-        name    => $opts{cb_name},
+    my $event  = 'connection.command_'.$command.($opts{with_data} ? '_raw' : '');
+    my $result = $pool->on($event => $opts{code},
+        name => $opts{cb_name},
         with_evented_obj => 1,
         %opts,
         _caller => $mod->package

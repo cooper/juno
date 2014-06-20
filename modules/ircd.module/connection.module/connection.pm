@@ -20,7 +20,7 @@ use parent 'Evented::Object';
 use Socket::GetAddrInfo;
 use Scalar::Util 'weaken';
 
-use utils qw(col conn conf match v notice);
+use utils qw(conn v notice);
 
 our ($api, $mod, $me, $pool);
 
@@ -50,135 +50,26 @@ sub new {
 
 sub handle {
     my ($connection, $data) = @_;
+    
+    # update ping information.
     $connection->{ping_in_air}   = 0;
     $connection->{last_response} = time;
 
-    # connection is being closed
+    # connection is being closed.
     return if $connection->{goodbye};
 
     # if this peer is registered, forward the data to server or user
     return $connection->{type}->handle($data) if $connection->{ready};
 
-    my @args = split /\s+/, $data;
-    return unless defined $args[0];
+    my @args    = split /\s+/, $data;
+    my $command = uc(shift @args or return);
 
-    given (my $command = uc shift @args) {
+    # fire command events.
+    return Evented::Object::fire_events_together(
+        [ $connection, "command_$command"       =>        @args ],
+        [ $connection, "command_${command}_raw" => $data, @args ]
+    );
 
-        when ('NICK') {
-
-            # not enough parameters
-            return $connection->wrong_par('NICK') if not defined $args[0];
-
-            my $nick = col(shift @args);
-
-            # nick exists
-            if ($pool->lookup_user_nick($nick)) {
-                $connection->sendme("433 * $nick :Nickname is already in use.");
-                return
-            }
-
-            # invalid chars
-            if (!utils::validnick($nick)) {
-                $connection->sendme("432 * $nick :Erroneous nickname");
-                return
-            }
-
-            # set the nick
-            $connection->{nick} = $nick;
-            $connection->fire_event(reg_nick => $nick);
-            $connection->reg_continue;
-
-        }
-
-        when ('USER') {
-
-            # set ident and real name
-            if (defined $args[3]) {
-                $connection->{ident} = $args[0];
-                $connection->{real}  = col((split /\s+/, $data, 5)[4]);
-                $connection->fire_event(reg_user => @$connection{qw(ident real)});
-                $connection->reg_continue;
-            }
-
-            # not enough parameters
-            else {
-                return $connection->wrong_par('USER')
-            }
-
-        }
-
-        when ('SERVER') {
-
-            # parameter check
-            return $connection->wrong_par('SERVER') if not defined $args[4];
-
-
-            $connection->{$_}   = shift @args foreach qw[sid name proto ircd];
-            $connection->{desc} = col(join ' ', @args);
-
-            # if this was by our request (as in an autoconnect or /connect or something)
-            # don't accept any server except the one we asked for.
-            if (exists $connection->{want} && lc $connection->{want} ne lc $connection->{name}) {
-                $connection->done('unexpected server');
-                return
-            }
-
-            # find a matching server
-            if (defined ( my $addr = conn($connection->{name}, 'address') )) {
-
-                # FIXME: we need to use IP comparison functions
-                # check for matching IPs
-                if ($connection->{ip} ne $addr) {
-                    $connection->done('Invalid credentials');
-                    notice(connection_invalid => $connection->{ip}, 'IP does not match block');
-                    return;
-                }
-
-            }
-
-            # no such server
-            else {
-                $connection->done('Invalid credentials');
-                notice(connection_invalid => $connection->{ip}, 'No block for this server');
-                return;
-            }
-
-            # made it.
-            $connection->reg_continue;
-
-        }
-
-        when ('PASS') {
-
-            # parameter check
-            return $connection->wrong_par('PASS') if not defined $args[0];
-
-            $connection->{pass} = shift @args;
-            $connection->reg_continue;
-            
-        }
-
-        when ('QUIT') {
-            my $reason = 'leaving';
-
-            # get the reason if they specified one
-            if (defined $args[1]) {
-                $reason = col((split /\s+/,  $data, 2)[1])
-            }
-
-            $connection->done("~ $reason");
-        }
-        
-        when ('ERROR') {
-            $connection->done('Received ERROR: '.col(join ' ', @args));
-            return;
-        }
-        
-          default {
-               return $connection->fire_event("command_$command" => @args);
-          }
-
-    }
 }
 
 # post-registration
