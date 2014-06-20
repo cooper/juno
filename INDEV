@@ -2374,6 +2374,16 @@ CHANGES:
         
         45. all hardcoded commands are gone! hooray!
             NICK, USER, SERVER, and PASS handlers moved to Core::RegistrationCommands.
+            
+        46. improved ugly WHOIS code, but there's probably not a pretty way to do it.
+            added SSL user mode (default +z) and corresponding WHOIS numeric.
+            
+            
+            
+            
+            
+            
+            
         
         
         

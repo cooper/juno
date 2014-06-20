@@ -16,6 +16,7 @@ use warnings;
 use strict;
 use 5.010;
 use Module::Loaded qw(is_loaded);
+use Scalar::Util   qw(weaken);
 
 our ($api, $mod, $me, $pool, $loop, $conf, $boot, $timer, $VERSION);
 our (%channel_mode_prefixes, %listeners);
@@ -239,26 +240,27 @@ sub setup_sockets {
 # existing listeners, even during reload.
 sub configure_listener {
     my $listener = shift;
-    $listener->{on_accept} = sub { &handle_connect };
 
     # if there is no read handle, this is dead.
     if ($listener->loop && !$listener->read_handle && !$listener->parent) {
         $loop->remove($listener);
     }
     
+    $listener->{on_accept} = sub { &handle_connect };
+    $listener->{ssl} = $listener->{handle_class} eq 'IO::Async::SSLStream';
 }
 
 # this is called for both new and
 # existing streams,  even during reload.
 sub configure_stream {
     my $stream = shift;
-    $stream->{on_read} = sub { &handle_data };
     
     # if there is no read handle, this is dead.
     if ($stream->loop && !$stream->read_handle && !$stream->parent) {
         $loop->remove($stream);
     }
     
+    $stream->{on_read} = sub { &handle_data };
 }
 
 sub listen_addr_port {
@@ -431,6 +433,7 @@ sub handle_connect {
     
     # create connection object.
     my $conn = $pool->new_connection(stream => $stream);
+    weaken( $conn->{listener} = $listener );
 
     # set up stream.
     $stream->configure(

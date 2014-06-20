@@ -665,7 +665,6 @@ sub oper {
 }
 
 sub whois {
-
     my ($user, $data, @args) = @_;
 
     # this is the way inspircd does it so I can too
@@ -675,36 +674,28 @@ sub whois {
     # exists?
     if (!$quser) {
         $user->numeric('ERR_NOSUCHNICK', $query);
-        return
+        return;
     }
 
-    # nick, ident, host
-    $user->numeric('RPL_WHOISUSER', $quser->{nick}, $quser->{ident}, $quser->{host}, $quser->{real});
-
-    # channels
     my @channels = map { $_->{name} } grep { $_->has_user($quser) } $pool->channels;
-    $user->numeric('RPL_WHOISCHANNELS', $quser->{nick}, join(' ', @channels)) if @channels;
+    my $s = $quser->{server};
 
-    # server 
-    $user->numeric('RPL_WHOISSERVER', $quser->{nick}, $quser->{server}{name}, $quser->{server}{desc});
+    foreach (
+    [ 1,                          'RPL_WHOISUSER',        @$quser{qw(ident cloak real)} ],
+    [ scalar(@channels),          'RPL_WHOISCHANNELS',    "@channels"                   ],
+    [ 1,                          'RPL_WHOISSERVER',      $s->{name}, $s->{desc}        ],
+    [ $quser->is_mode('ssl'),     'RPL_WHOISSECURE'                                     ],
+    [ $quser->is_mode('ircop'),   'RPL_WHOISOPERATOR'                                   ],
+    [ exists $quser->{away},      'RPL_AWAY',             $quser->{away}                ],
+    [ $quser->mode_string,        'RPL_WHOISMODES',       $quser->mode_string           ],
+    [ 1,                          'RPL_WHOISHOST',        $quser->{host}, $quser->{ip}  ],
+    [ 1,                          'RPL_ENDOFWHOIS'                                      ]) {
+        my ($conditional, $constant, @args) = @$_;
+        $user->numeric($constant => $quser->{nick}, @args) if $conditional;
+    }
 
-    # IRC operator
-    $user->numeric('RPL_WHOISOPERATOR', $quser->{nick}) if $quser->is_mode('ircop');
-
-    # is away
-    $user->numeric('RPL_AWAY', $quser->{nick}, $quser->{away}) if exists $quser->{away};
-
-    # using modes
-    my $modes = $quser->mode_string;
-    $user->numeric('RPL_WHOISMODES', $quser->{nick}, $modes) if $modes && $modes ne '+';
-
-    # connecting from
-    $user->numeric('RPL_WHOISHOST', $quser->{nick}, $quser->{host}, $quser->{ip});
-
-    # TODO 137 idle
-
-    $user->numeric('RPL_ENDOFWHOIS', $quser->{nick});
-    return 1
+    # TODO: 137 idle
+    return 1;
 }
 
 sub ison {

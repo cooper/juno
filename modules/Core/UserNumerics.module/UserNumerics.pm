@@ -101,7 +101,8 @@ my %numerics = (
     ERR_NOPRIVILEGES     => [481, ':Permission denied - You can\'t %s'                                    ],
     ERR_CHANOPRIVSNEEDED => [482, '%s :You do not have the required status to perform this action'        ],
     ERR_NOOPERHOST       => [491, ':No oper blocks for your host'                                         ],
-    ERR_USERSDONTMATCH   => [502, ':Can\'t change mode for other users'                                   ]
+    ERR_USERSDONTMATCH   => [502, ':Can\'t change mode for other users'                                   ],
+    RPL_WHOISSECURE      => [671, '%s :is using a secure connection'                                      ],
                             ###############################################################################
 );                  
  

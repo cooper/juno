@@ -19,7 +19,8 @@ use 5.010;
 our ($api, $mod, $me);
 
 my %umodes = (
-    ircop => \&umode_ircop
+    ircop => \&umode_ircop,
+    ssl   => \&umode_ssl
 );
 
 sub init {
@@ -44,6 +45,11 @@ sub umode_ircop {
     $user->{flags} = [];
     
     return 1;
+}
+
+# SSL can never be set or unset without force.
+sub umode_ssl {
+    return;
 }
 
 $mod
