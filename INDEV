@@ -2365,7 +2365,7 @@ CHANGES:
         42. created Core::RegistrationCommands which will eventually have USER, NICK, CAP, etc. handlers.
             more work for client capabilities and improvements to connection.pm.
             
-            
+        43. fully implemented IRCv3 capability negotation.
         
         
         

@@ -751,6 +751,9 @@ sub register_cap {
     return 1;
 }
 
+# we have a capability available.
+sub has_cap { shift->{capabilities}{ lc shift } }
+
 # unregister capability
 sub delete_cap {
     my ($pool, $source, $cap) = @_;
@@ -766,5 +769,6 @@ sub delete_cap {
     return 1;
 }
 
+sub capabilities { keys %{ shift->{capabilities} || {} } }
 
 $mod

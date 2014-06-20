@@ -28,7 +28,7 @@ sub init {
 sub register_registration_command {
     my ($mod, $event, %opts) = @_;
     
-    # callback to the name of the command for the callback name.
+    # fallback to the name of the command for the callback name.
     $opts{cb_name} //= $opts{name};
 
     # make sure all required options are present.
