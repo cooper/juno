@@ -21,10 +21,24 @@ use 5.010;
 our ($api, $mod, $pool);
 
 sub init {
-
+    $mod->register_module_method('register_capability') or return;
+    $api->on('module.unload' => \&unload_module, with_evented_obj => 1) or return;
+    return 1;
 }
 
 sub register_capability {
+    my ($mod, $event, $cap, %opts) = @_;
+    $cap = lc $cap;
+    $pool->register_cap($mod->name, $cap, %opts) or return;
+    $mod->list_store_add('capabilities', $cap);
+    L("Registered '$cap'");
+    return 1;
+}
+
+sub unload_module {
+    my ($mod, $event) = @_;
+    $pool->delete_cap($mod->name, $_) foreach $mod->list_store_items('capabilities');
+    return 1;
 }
 
 $mod

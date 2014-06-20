@@ -5,7 +5,7 @@
 # @package:         "M::Core::ChannelModes"
 # @description:     "the core set of channel modes"
 #
-# @depends.modules: "Base::ChannelModes"
+# @depends.modules: ['Base::ChannelModes', 'Base::Capabilities']
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"
@@ -36,6 +36,9 @@ sub init {
 
     # register status channel modes
     register_statuses() or return;
+    
+    # add multi-prefix capability.
+    $mod->register_capability('multi-prefix');
 
     undef %cmodes;
     return 1;

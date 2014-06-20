@@ -1,12 +1,12 @@
 {
-   "version" : "8.17",
+   "version" : "8.43",
    "name" : "Base::UserNumerics",
    "author" : {
       "website" : "https://github.com/cooper",
       "name" : "Mitchell Cooper"
    },
-   "package" : "M::Base::UserNumerics",
    "depends" : {
       "modules" : "API::Methods"
-   }
+   },
+   "package" : "M::Base::UserNumerics"
 }

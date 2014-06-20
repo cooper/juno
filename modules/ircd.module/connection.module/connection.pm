@@ -322,7 +322,7 @@ sub send_server_credentials {
 # send a command or numeric to a possibly unregistered connection.
 sub early_reply {
     my ($conn, $cmd) = (shift, shift);
-    $conn->sendme("$cmd ".(defined $conn->{nick} ? $conn->{name} : '*')." @_");
+    $conn->sendme("$cmd ".(defined $conn->{nick} ? $conn->{nick} : '*')." @_");
 }
 
 # end a connection. this must be foolproof.

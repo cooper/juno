@@ -254,6 +254,7 @@ sub DESTROY {
 
 sub id            { shift->{uid}  }
 sub name          { shift->{nick} }
+sub conn          { shift->{conn} }
 
 ############
 ### MINE ###
@@ -518,5 +519,9 @@ sub get_invited_by {
     $user->{invite_pending}{ lc $ch_name } = 1;
     $user->sendfrom($i_user->full, "INVITE $$user{nick} $ch_name");
 }
+
+sub has_cap    { @_ = &safe or return; shift->conn->has_cap(@_)    }
+sub add_cap    { @_ = &safe or return; shift->conn->add_cap(@_)    }
+sub remove_cap { @_ = &safe or return; shift->conn->remove_cap(@_) }
 
 $mod

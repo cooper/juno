@@ -24,8 +24,9 @@ our ($api, $mod, $pool);
 
 sub init {
     $mod->register_registration_command(
-        name => 'CAP',
-        code => \&rcmd_cap
+        name       => 'CAP',
+        code       => \&rcmd_cap,
+        parameters => 1
     ) or return;
     return 1;
 }

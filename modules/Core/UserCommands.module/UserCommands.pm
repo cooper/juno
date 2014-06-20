@@ -863,10 +863,14 @@ sub who {
 
     # match an exact channel name
     elsif (my $channel = $pool->lookup_channel($query)) {
+    
+        # multi-prefix support?
+        my $prefixes = $user->has_cap('multi-prefix') ? 'prefixes' : 'prefix';
+        
         $match_pattern = $channel->name;
         foreach my $quser ($channel->users) {
             $matches{ $quser->{uid} } = $quser;
-            $quser->{who_flags}       = $channel->prefix($quser);
+            $quser->{who_flags}       = $channel->$prefixes($quser);
         }
     }
 

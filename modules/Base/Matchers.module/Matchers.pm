@@ -36,7 +36,8 @@ sub register_matcher {
     $opts{name} = lc $opts{name};
     $pool->register_event(
         user_match => $opts{code},
-        %opts
+        %opts,
+        _caller => $mod->package
     ) or return;
     
     L("'$opts{name}' registered");

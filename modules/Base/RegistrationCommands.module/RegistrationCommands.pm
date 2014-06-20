@@ -39,15 +39,36 @@ sub register_registration_command {
         return;
     }
     
-    # attach the callback.
+    # parameter check callback.
     my $command = uc delete $opts{name};
+    my $params  = $opts{parameters};
+    $pool->on("connection.command_$command" => sub {
+            my ($event, @args) = @_;
+            
+            # there are enough.
+            return if @args >= $params;
+            
+            # not enough.
+            my $conn = $event->object;
+            $conn->can('wrong_par') or return;
+            $conn->wrong_par($command);
+            $event->stop;
+            
+        },
+        name     => 'parameter.check',
+        priority => 1000,
+        _caller  => $mod->package
+    ) or return if $params;
+    
+    # attach the callback.
     my $result  = $pool->on("connection.command_$command" => $opts{code},
-        name => delete $opts{cb_name},
+        name    => $opts{cb_name},
         with_evented_obj => 1,
-        %opts
+        %opts,
+        _caller => $mod->package
     ) or return;
-
-    L("$opts{name} ($opts{cb_name}) registered");
+    
+    L("$command ($opts{cb_name}) registered");
     return $result;
 }
 

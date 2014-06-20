@@ -2367,6 +2367,10 @@ CHANGES:
             
         43. fully implemented IRCv3 capability negotation.
         
+        44. greatly improved the new IRCv3 capability support.
+            fixed some issues with class monitors/event tracking in modules.
+            added support for IRCv3 multi-prefix capability.
+            updated Evented::Object.
         
         
         

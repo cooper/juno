@@ -1,5 +1,5 @@
 {
-   "version" : "8.18",
+   "version" : "8.44",
    "name" : "ircd::channel",
    "author" : {
       "website" : "https://github.com/cooper",

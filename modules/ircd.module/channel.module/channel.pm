@@ -504,7 +504,8 @@ sub names {
             next if !$channel->has_user($user) && !$user->has_flag('see_invisible')
         }
 
-        $str[$curr] .= prefix($channel, $usr).$usr->{nick}.q( );
+        my $prefixes = $user->has_cap('multi-prefix') ? 'prefixes' : 'prefix';
+        $str[$curr] .= $channel->$prefixes($usr).$usr->{nick}.q( );
         $curr++ if length $str[$curr] > 500
     }
     $user->numeric('RPL_NAMEREPLY', '=', $channel->name, $_) foreach @str;
@@ -574,7 +575,6 @@ sub take_lower_time {
     return $channel->{time};
 }
 
-# I hate this subroutine.
 # returns the highest prefix a user has
 sub prefix {
     my ($channel, $user) = @_;
@@ -582,7 +582,18 @@ sub prefix {
     if (defined $level && $ircd::channel_mode_prefixes{$level}) {
         return $ircd::channel_mode_prefixes{$level}[1]
     }
-    return q..
+    return q..;
+}
+
+# returns list of all prefixes a user has, greatest to smallest.
+sub prefixes {
+    my ($channel, $user) = @_;
+    my $prefixes = '';
+    foreach my $level (sort { $b <=> $a } keys %ircd::channel_mode_prefixes) {
+        my ($letter, $symbol, $name) = @{ $ircd::channel_mode_prefixes{$level} };
+        $prefixes .= $symbol if $channel->list_has($name, $user);
+    }
+    return $prefixes;
 }
 
 # same as do_mode_string() except it never sends to other servers.

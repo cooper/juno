@@ -1,5 +1,5 @@
 {
-   "version" : "8.18",
+   "version" : "8.44",
    "name" : "Core::ChannelModes",
    "author" : {
       "website" : "https://github.com/cooper",
@@ -8,6 +8,9 @@
    "description" : "the core set of channel modes",
    "package" : "M::Core::ChannelModes",
    "depends" : {
-      "modules" : "Base::ChannelModes"
+      "modules" : [
+         "Base::ChannelModes",
+         "Base::Capabilities"
+      ]
    }
 }
