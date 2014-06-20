@@ -378,57 +378,49 @@ sub all_users    {        @{ shift->{users}    }                  }
 
 # handle local user data
 sub handle {
-    my $server = shift;
+    # FIXME: MY GOD THIS IS HIDEOUS.
+    my ($server, $data) = @_;
     return if !$server->{conn} || $server->{conn}{goodbye};
-    foreach my $line (split "\n", shift) {
+    my @s = split /\s+/, $data;
+    
+    # if logging is enabled, log.
+    if (conf('log', 'server_debug')) {
+        L($server->{name}.q(: ).$data);
+    }
 
-        # if logging is enabled, log.
-        if (conf('log', 'server_debug')) {
-            L($server->{name}.q(: ).$line);
-        }
+    # response to PINGs
+    if (uc $s[0] eq 'PING') {
+        $server->send('PONG'.(defined $s[1] ? qq( $s[1]) : q..));
+        return;
+    }
 
-        my @s = split /\s+/, $line;
+    if (uc $s[0] eq 'PONG') {
+        # don't care
+        return;
+    }
+    
+    return unless defined $s[1];
+    my $command = uc $s[1];
 
-        # response to PINGs
-        if (uc $s[0] eq 'PING') {
-            $server->send('PONG'.(defined $s[1] ? qq( $s[1]) : q..));
-            next;
-        }
+    # if it doesn't exist, ignore it and move on.
+    # it might make sense to assume incompatibility and drop the server,
+    # but I don't want to do that because
+    my @handlers = $pool->server_handlers($command);
+    if (!@handlers) {
+        L("unknown command $command; ignoring it");
+        return;
+    }
 
-        if (uc $s[0] eq 'PONG') {
-            # don't care
-            next;
-        }
+    # it exists - parse it.
+    foreach my $handler (@handlers) {
+        last if !$server->{conn} || $server->{conn}{goodbye};
         
-        if (uc $s[0] eq 'ERROR') {
-            L("received ERROR from $$server{name}");
-            $server->{conn}->done('Received ERROR') if $server->{conn};
-            return;
-        }
+        $handler->{code}($server, $data, @s);
+
+        # forward to children.
+        # $server is used here so that it will be ignored.
+        send_children($server, $data) if $handler->{forward};
         
-        next unless defined $s[1];
-        my $command = uc $s[1];
-
-        # if it doesn't exist, ignore it and move on.
-        # it might make sense to assume incompatibility and drop the server,
-        # but I don't want to do that because
-        my @handlers = $pool->server_handlers($command);
-        if (!@handlers) {
-            L("unknown command $command; ignoring it");
-            next;
-        }
-
-        # it exists - parse it.
-        foreach my $handler (@handlers) {
-            last if !$server->{conn} || $server->{conn}{goodbye};
-            
-            $handler->{code}($server, $line, @s);
-
-            # forward to children.
-            # $server is used here so that it will be ignored.
-            send_children($server, $line) if $handler->{forward};
-            
-        }
     }
     
     return 1;

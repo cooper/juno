@@ -6,8 +6,8 @@
       "name" : "Mitchell Cooper"
    },
    "description" : "the core set of user modes",
-   "package" : "M::Core::UserModes",
    "depends" : {
       "modules" : "Base::UserModes"
-   }
+   },
+   "package" : "M::Core::UserModes"
 }

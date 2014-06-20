@@ -2378,6 +2378,14 @@ CHANGES:
         46. improved ugly WHOIS code, but there's probably not a pretty way to do it.
             added SSL user mode (default +z) and corresponding WHOIS numeric.
             
+        47. further improved the way incoming commands are handled.
+            registration commands can now specify after_reg option to specify that users should be able to use them even after registration is complete.
+            registration command handlers with after_reg enabled will cancel any further user/server commands unless after_reg is accompanied by continue_handlers.
+            fixed an issue where Ident would say "can't look up your ident" even if the lookup was canceled.
+
+
+
+            
             
             
             

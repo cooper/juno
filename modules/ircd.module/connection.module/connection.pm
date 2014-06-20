@@ -24,6 +24,20 @@ use utils qw(conn v notice);
 
 our ($api, $mod, $me, $pool);
 
+sub init {
+
+    # basically, this forwards to server/user ->handle().
+    # it is the lowest priority of the events fired together in ->handle() below.
+    # by default, registration commands that work post-registration stop the event
+    # before it would reach these handlers.
+    $pool->on('connection.raw' => sub {
+        my ($connection, $event, $data, @args) = @_;
+        return unless $connection->{type};
+        $connection->{type}->handle($data, \@args);
+    }, name => 'high.level.handlers', priority => -100, with_evented_obj => 1);
+    
+}
+
 sub new {
     my ($class, $stream) = @_;
     return unless defined $stream;
@@ -58,18 +72,16 @@ sub handle {
     # connection is being closed.
     return if $connection->{goodbye};
 
-    # if this peer is registered, forward the data to server or user
-    return $connection->{type}->handle($data) if $connection->{ready};
-
     my @args    = split /\s+/, $data;
     my $command = uc(shift @args or return);
 
     # fire command events.
-    return Evented::Object::fire_events_together(
+    my $res = Evented::Object::fire_events_together(
         [ $connection, "command_$command"       =>        @args ],
-        [ $connection, "command_${command}_raw" => $data, @args ]
+        [ $connection, "command_${command}_raw" => $data, @args ],
+        [ $connection, raw                      => $data, @args ]
     );
-
+    
 }
 
 # post-registration

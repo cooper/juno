@@ -1,9 +1,9 @@
 #!/usr/bin/perl
 # Copyright (c) 2010-14, Mitchell Cooper
 use warnings; use strict; use 5.010;
-foreach my $sig ([qw(__WARN__ WARNING)], [qw(TERM terminate )], [qw(KILL terminate)],
-                 [qw(INT    terminate)], [qw(PIPE signalpipe)], [qw(HUP  signalhup)]) {
-$SIG{shift @$sig} = sub { safe_call(shift @$sig, @_) } }    
+foreach ([qw(__WARN__ WARNING)], [qw(TERM terminate )], [qw(KILL terminate)],
+         [qw(INT    terminate)], [qw(PIPE signalpipe)], [qw(HUP  signalhup)]) {
+my  ($sig, $func) = @$_; $SIG{$sig} = sub { safe_call($func, @_) } }    
 our ($run_dir, $loop, $api, $pool, %v); local $0 = 'juno';
 
 BEGIN {
@@ -16,7 +16,7 @@ BEGIN {
     require Evented::API::Engine;
 }
 sub get_version { $api->_slurp(undef, undef, "$run_dir/VERSION") }
-sub safe_call   { (ircd->can(shift) or return)->(@_)             }
+sub safe_call   { my $f = shift; (ircd->can($f) or return)->(@_) } # @_ is needed idk why
 
 $api = Evented::API::Engine->new(
     mod_inc => ['modules', 'lib/evented-api-engine/mod'],

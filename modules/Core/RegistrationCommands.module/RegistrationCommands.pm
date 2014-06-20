@@ -25,15 +25,23 @@ our ($api, $mod, $pool);
 sub init {
     $mod->register_registration_command(
         name       => shift @$_, code      => shift @$_,
-        parameters => shift @$_, with_data => shift @$_
+        parameters => shift @$_, with_data => shift @$_,
+        after_reg  => shift @$_
     ) or return foreach (
-        [ CAP       => \&rcmd_cap,      1    ],
-        [ NICK      => \&rcmd_nick,     1    ],
-        [ USER      => \&rcmd_user,     4, 1 ],
-        [ SERVER    => \&rcmd_server,   5    ],
-        [ PASS      => \&rcmd_pass,     1    ],
-        [ QUIT      => \&rcmd_quit,     1, 1 ],
-        [ ERROR     => \&rcmd_error,    1    ],
+    
+    #
+    # PARAMS = number of parameters
+    # DATA   = true if include $data string
+    # USER   = true if the command should be allowed for users after registration
+    #
+    #   [ NAME      => \&sub            PARAMS  DATA    USER 
+        [ CAP       => \&rcmd_cap,      1,      undef,  1   ],
+        [ NICK      => \&rcmd_nick,     1,      undef,      ],
+        [ USER      => \&rcmd_user,     4,      1,          ],
+        [ SERVER    => \&rcmd_server,   5,      undef,      ],
+        [ PASS      => \&rcmd_pass,     1,      undef,      ],
+        [ QUIT      => \&rcmd_quit,     1,      1,          ],
+        [ ERROR     => \&rcmd_error,    1,      undef,  1   ],
     );
     return 1;
 }
@@ -230,7 +238,7 @@ sub rcmd_quit {
 
 sub rcmd_error {
     my ($connection, $event, @args) = @_;
-    $connection->done("Received ERROR: @_");
+    $connection->done("Received ERROR: @args");
 }
 
 $mod

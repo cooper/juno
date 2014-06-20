@@ -278,39 +278,33 @@ sub handle {
 sub handle_unsafe { _handle(1, @_) }
 
 sub _handle {
-    my ($unsafe, $user) = (shift, shift);
+    # FIXME: MY GOD THIS IS HIDEOUS.
+    my ($unsafe, $user, $data) = @_;
     if (!$unsafe and !$user->{conn} || $user->{conn}{goodbye}) {
         return;
     }
+    my @s = split /\s+/, $data;
+    if ($s[0] =~ m/^:/) { # lazy way of deciding if there is a source provided
+        shift @s;
+    }
+    my $command = uc $s[0];
+    if ($pool->user_handlers($command)) { # an existing handler
 
-    foreach my $line (split "\n", shift) {
-
-        my @s = split /\s+/, $line;
-
-        if ($s[0] =~ m/^:/) { # lazy way of deciding if there is a source provided
-            shift @s
-        }
-
-        my $command = uc $s[0];
-
-        if ($pool->user_handlers($command)) { # an existing handler
-
-            foreach my $handler ($pool->user_handlers($command)) {
-                if ($#s >= $handler->{params}) {
-                    $handler->{code}($user, $line, @s)
-                }
-                else { # not enough parameters
-                    $user->numeric('ERR_NEEDMOREPARAMS', $s[0])
-                }
+        foreach my $handler ($pool->user_handlers($command)) {
+            if ($#s >= $handler->{params}) {
+                $handler->{code}($user, $data, @s)
             }
-
-        }
-        else { # unknown command
-            $user->numeric('ERR_UNKNOWNCOMMAND', $s[0])
+            else { # not enough parameters
+                $user->numeric('ERR_NEEDMOREPARAMS', $s[0])
+            }
         }
 
     }
-    return 1
+    else { # unknown command
+        $user->numeric('ERR_UNKNOWNCOMMAND', $s[0])
+    }
+
+    return 1;
 }
 
 sub send {

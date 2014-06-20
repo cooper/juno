@@ -60,9 +60,17 @@ sub register_registration_command {
         _caller  => $mod->package
     ) or return if $params;
     
+    # wrapper that prevents execution after registration.
+    my $code = sub {
+        my ($conn, $event) = @_;
+        return if $conn->{type} && !$opts{after_reg};
+        $opts{code}(@_);
+        $event->stop unless $opts{continue_handlers}; # prevent later user/server handlers.
+    };
+    
     # attach the callback.
     my $event  = 'connection.command_'.$command.($opts{with_data} ? '_raw' : '');
-    my $result = $pool->on($event => $opts{code},
+    my $result = $pool->on($event => $code,
         name => $opts{cb_name},
         with_evented_obj => 1,
         %opts,

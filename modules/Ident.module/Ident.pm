@@ -179,7 +179,8 @@ sub ident_done {
     if (!defined $connection->{ident_success}) {
         $connection->{tilde} = 1;
         $connection->{ident} = '~'.$connection->{ident} if defined $connection->{ident};
-        $connection->sendfrom($me->full, 'NOTICE * :*** No ident response');
+        $connection->sendfrom($me->full, 'NOTICE * :*** No ident response')
+          unless $connection->{skip_ident};
     }
     
     # it was successful. set the ident.
