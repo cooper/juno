@@ -40,7 +40,6 @@ my %ocommands = (
     kill          => \&skill,
     connect       => \&sconnect,
     kick          => \&kick,
-    invite        => \&invite,
     num           => \&num,
     links         => \&links
 );
@@ -380,13 +379,6 @@ sub kick {
     my $sourceid = $source->can('id') ? $source->id : '';
     my $targetid = $target->can('id') ? $target->id : '';
     return ":$sourceid KICK $$channel{name} $targetid :$reason";
-}
-
-# INVITE command.
-# uses channel name because it might not yet exist.
-sub invite {
-    my ($user, $t_user, $ch_name) = @_;
-    ":$$user{uid} INVITE $$t_user{uid} $ch_name"
 }
 
 # remote numerics

@@ -2382,6 +2382,11 @@ CHANGES:
             registration commands can now specify after_reg option to specify that users should be able to use them even after registration is complete.
             registration command handlers with after_reg enabled will cancel any further user/server commands unless after_reg is accompanied by continue_handlers.
             fixed an issue where Ident would say "can't look up your ident" even if the lookup was canceled.
+            
+        48. fixed a fatal issue with INVITE command to nonexistent channels.
+            moved outgoing INVITE command logic to the Invite module where it belongs.
+            updated Evented::Object.
+            updated Evented::API::Engine.
 
 
 

@@ -57,6 +57,15 @@ sub init {
         [ ERR_INVITEONLYCHAN  => 472, '%s :You must be invited'        ]
     );
     
+    # outgoing INVITE.
+    $mod->register_outgoing_command(
+        name => 'invite',
+        code => sub {
+            my ($user, $t_user, $ch_name) = @_;
+            ":$$user{uid} INVITE $$t_user{uid} $ch_name"
+        }
+    ) or return;
+    
     # event callbacks.
     &add_invite_callbacks;
 
@@ -82,7 +91,7 @@ sub ucmd_invite {
     }
     
     # channel does not exist. check if the name is valid.
-    elsif (!validchan($ch_name)) {
+    elsif (!utils::validchan($ch_name)) {
         $user->numeric(ERR_NOSUCHCHANNEL => $ch_name);
         next;
     }
@@ -101,13 +110,13 @@ sub ucmd_invite {
     
     # remote user.
     else {
-        $t_user->{location}->fire_command(invite => $user, $t_user, $ch_name)
+        $t_user->{location}->fire_command(invite => $user, $t_user, $ch_name);
     }
     
     # tell the source the target's being invited.
     $user->numeric(RPL_AWAY => $t_user->{nick}, $t_user->{away})
         if exists $t_user->{away};    
-    $user->numeric(RPL_INVITING => $ch_name, $t_user->{nick});
+    $user->numeric(RPL_INVITING => $t_user->{nick}, $ch_name);
     
     return 1;
 }
