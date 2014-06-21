@@ -76,11 +76,11 @@ sub handle {
     my $command = uc(shift @args or return);
 
     # fire command events.
-    my $res = Evented::Object::fire_events_together(
-        [ $connection, "command_$command"       =>        @args ],
-        [ $connection, "command_${command}_raw" => $data, @args ],
-        [ $connection, raw                      => $data, @args ]
-    );
+    $connection->prepare(
+        [ raw                      => $data, @args ],
+        [ "command_${command}_raw" => $data, @args ],
+        [ "command_$command"       =>        @args ]
+    )->fire('safe');
     
 }
 

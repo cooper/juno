@@ -2388,6 +2388,8 @@ CHANGES:
             updated Evented::Object.
             updated Evented::API::Engine.
 
+        49. commands are now fired with the 'safe' Evented::Object option.
+            updated Evented::Object.
 
 
             

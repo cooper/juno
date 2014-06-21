@@ -401,7 +401,7 @@ sub load_dependencies {
         [ 'Evented::Database',             0.50 ],
         
         [ 'Scalar::Util',                  1.33 ], 
-        [ 'List::Util',                    1.33 ], # this is when any was added
+        [ 'List::Util',                    1.33 ]
         
     );
     
