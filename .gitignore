@@ -21,6 +21,7 @@ etc/*.conf
 etc/*.db
 etc/*.pid
 etc/HUP
+etc/ssl/
 .gedit
 dev/
 *~

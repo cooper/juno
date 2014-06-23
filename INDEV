@@ -2390,7 +2390,11 @@ CHANGES:
 
         49. commands are now fired with the 'safe' Evented::Object option.
             updated Evented::Object.
-
+            
+    5. added eval BLOCK..END.
+        started work on Git module to manage git repository from IRC.
+        updated Evented::Object.
+        updated Evented::API::Engine.
 
             
             

@@ -32,6 +32,24 @@ sub _eval {
     my $channel = $pool->lookup_channel($ch_name);
     $code = join(' ', $ch_name, $code // '') unless $channel;
     
+    # start eval block.
+    if ($code eq 'BLOCK') {
+        $user->{eval_block} = [];
+        return 1;
+    }
+    
+    # stop eval black.
+    elsif ($code eq 'END') {
+        my $block = delete $user->{eval_block} or return;
+        $code = join "\n", @$block;
+    }
+    
+    # if there is an eval block in the works, use it.
+    elsif ($user->{eval_block}) {
+        push @{ $user->{eval_block} }, $code;
+        return 1;
+    }
+    
     # evaluate.
     my $result = eval $code;
     my @result = split "\n", $result // ($@ || "\2undef\2");
