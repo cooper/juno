@@ -1,26 +1,6 @@
 Development log
 ---------------
 
-OPER FLAGS:
-
-    all:            grants all privileges
-
-    see_invisible:  can see invisible users in NAMES
-
-    modules:        use MODLOAD, MODUNLOAD, and MODRELOAD commands
-
-    rehash:         use REHASH command locally
-
-    kill:           use KILL command locally
-    gkill:          use KILL command globally
-    
-    connect:        use the CONNECT command locally
-#   gconnect:       use the CONNECT command globally
-
-    squit:          use the SQUIT command locally
-#   gsquit:         use the SQUIT command globally
-
-
 CHANGES:
 
 (-1). Late 1990s - June 5, 2002 - pIRCd, the perl IRCd daemon by Jay Koninek
@@ -2396,6 +2376,9 @@ CHANGES:
         updated Evented::Object.
         updated Evented::API::Engine.
 
+        51. included Evented::Properties with the distribution.
+            add missing Perl include directories in ircd initialization.
+            
             
             
             

@@ -37,7 +37,7 @@ sub init {
     
     L('Started server at '.scalar(localtime v('START')));
     
-    # TODO: check @INC.
+    &setup_inc;             # add things to @INC.
     &load_dependencies;     # load or reload all dependency packages.
     &setup_config;          # parse the configuration.
     &load_optionals;        # load or reload optional packages.
@@ -96,6 +96,17 @@ sub init {
     
     L("server initialization complete");
     return 1;
+}
+
+sub setup_inc {
+    my %inc = map { $_ => 1 } @INC;
+    foreach (qw(
+        lib/evented-object/lib
+        lib/evented-properties/lib
+        lib/evented-configuration/lib
+        lib/evented-api-engine/lib
+        lib/evented-database
+    )) { unshift @INC, $_ unless $inc{$_} }
 }
 
 sub setup_modules {
