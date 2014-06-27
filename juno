@@ -254,7 +254,7 @@ sub init {
                     echo $newversion > $DIR/VERSION
                     
                     # add to changelog
-                    echo "$newversion: $message >> INDEV"
+                    echo "$newversion: $message" >> INDEV
                     
                     # commit
                     git add --all .

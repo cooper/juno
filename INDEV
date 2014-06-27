@@ -2395,4 +2395,4 @@ CHANGES:
             
         57. Added ECHO command.            
             
-        58. send out NICK messages for nick collisions just as an extra measure of sync accuracy.
+        58. send out NICK messages for nick collisions just as an extra measure of sync accuracy.8.61: don't echo out loud; echo to INDEV :)
