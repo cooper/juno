@@ -2387,6 +2387,9 @@ CHANGES:
             I CAN'T EVEN BELIEVE THIS HAS BEEN THIS WAY FOR SO LONG WITHOUT NOTICING.
             
         54. Added SASL module.
+        
+        55. numerics can now be sent directly from connection objects.
+            a new ->register_numeric() option 'allow_conn' indicates it's ok to use a numeric code on connections.
             
             
             

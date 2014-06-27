@@ -44,7 +44,8 @@ sub register_user_numeric {
         $mod->name,
         $opts{name},
         $opts{number},
-        $opts{format} // $opts{code}
+        $opts{format} // $opts{code},
+        $opts{allow_conn} || $opts{allow_connection}
     ) or return;
 
     L("$opts{name} $opts{number} registered");

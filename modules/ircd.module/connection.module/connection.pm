@@ -279,6 +279,37 @@ sub done {
      return 1;
 }
 
+# send a numeric.
+sub numeric {
+    my ($connection, $const, @response) = (shift, shift);
+    
+    # does not exist.
+    if (!$pool->numeric($const)) {
+        L("attempted to send nonexistent numeric $const");
+        return;
+    }
+    
+    my ($num, $val, $allowed) = @{ $pool->numeric($const) };
+
+    # CODE reference for numeric response.
+    if (ref $val eq 'CODE') {
+        $allowed or L("$const only allowed for users") and return;
+        @response = $val->($connection, @_);
+    }
+    
+    # formatted string.
+    else {
+        @response = sprintf $val, @_;
+    }
+    
+    # local user.
+    my $nick = $connection->{nick} // '*';
+    $connection->sendme("$num $nick $_") foreach @response;
+    
+    return 1;
+    
+}
+
 ####################
 ### CAPABILITIES ###
 ####################

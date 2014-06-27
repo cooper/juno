@@ -23,6 +23,9 @@ Configuration
 Modules
 ------------------------------------------------------------------------------------------
 
+    [*] SASL                    SASL account authentication
+                                works but currently only has PLAIN authentication
+
 Evented::Socket modules
 
     [ ] SSL                     make SSL modular with a separate daemon

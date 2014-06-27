@@ -379,8 +379,9 @@ sub user_handlers {
 #####################
 
 # register user numeric
+# $allowed = allowed for connections; only checked if $fmt is a coderef.
 sub register_numeric {
-    my ($pool, $source, $numeric, $num, $fmt) = @_;
+    my ($pool, $source, $numeric, $num, $fmt, $allowed) = @_;
 
     # does it already exist?
     if (exists $pool->{numerics}{$numeric}) {
@@ -388,7 +389,7 @@ sub register_numeric {
         return;
     }
 
-    $pool->{numerics}{$numeric} = [$num, $fmt];
+    $pool->{numerics}{$numeric} = [$num, $fmt, $allowed];
     #L("$source registered $numeric $num");
     return 1;
 }
