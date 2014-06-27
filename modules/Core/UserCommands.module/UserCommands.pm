@@ -174,7 +174,12 @@ my %ucommands = (
         code   => \&links,
         desc   => 'display server links',
         params => 'any(opt) any(opt)'
-    }
+    },
+    ECHO => {
+        code   => \&echo,
+        desc   => 'echos a message',
+        params => 2
+    },
 );
 
 sub init {
@@ -1225,6 +1230,15 @@ sub links {
     
     $user->numeric(RPL_ENDOFLINKS => $query_mask);
     return 1;
+}
+
+sub echo {
+    my ($user, $data, undef) = @_;
+    $data       =~ s/^:(.+)\s//;
+    my (undef, $target, $message) = split ' ', $data, 3;
+    $message = col($message);
+    my $continue = $user->handle("PRIVMSG $target :$message");
+    $user->sendfrom($user->full, "PRIVMSG $target :$message") if $continue;
 }
 
 $mod

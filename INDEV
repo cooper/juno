@@ -2393,8 +2393,7 @@ CHANGES:
             
         56. updated modules to use $connection->numeric() instead of ->early_reply().
             
-            
-            
+        57. Added ECHO command.            
             
             
             
