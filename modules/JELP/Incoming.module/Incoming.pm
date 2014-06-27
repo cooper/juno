@@ -212,29 +212,40 @@ sub uid {
     }
 
     # nick collision?
+    my ($i_lost, $u_lost);
     my $used = $pool->lookup_user_nick($ref->{nick});
     if ($used) {
         L("nick collision! $$ref{nick}");
+        
+        # I lose.
         if ($ref->{time} > $used->{time}) {
-            # I lose
-            $ref->{nick} = $ref->{uid}
+            $ref->{nick} = $ref->{uid};
+            $i_lost = 1;
         }
+         
+        # you lose.
         elsif ($ref->{time} < $used->{time}) {
-            # you lose
             $used->send_to_channels("NICK $$used{uid}");
             $used->change_nick($used->{uid});
+            $u_lost = 1;
         }
+        
+        # we both lose.
         else {
-            # we both lose
             $ref->{nick} = $ref->{uid};
             $used->send_to_channels("NICK $$used{uid}");
             $used->change_nick($used->{uid});
+            $i_lost = $u_lost = 1;
         }
     }
 
     # create a new user
     my $user = $pool->new_user(%$ref);
-
+    
+    # fire NICKs in case of time deltas.
+    $pool->fire_command_all(nickchange => $user, $user->{uid});
+    $pool->fire_command_all(nickchange => $used, $used->{uid}) if !$used->is_local;
+    
     # set modes.
     $user->handle_mode_string($modestr, 1);
 
@@ -262,7 +273,8 @@ sub nick {
     # user any
     # :uid NICK  newnick
     my ($server, $data, $user, $newnick) = @_;
-
+    return 1 if $user->{nick} eq $newnick;
+    
     # tell ppl
     $user->send_to_channels("NICK $newnick");
     $user->change_nick($newnick);
