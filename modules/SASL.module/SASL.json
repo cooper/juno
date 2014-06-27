@@ -1,0 +1,10 @@
+{
+   "version" : "0.1",
+   "name" : "SASL",
+   "author" : {
+      "website" : "https://github.com/mattwb65",
+      "name" : "Matthew Barksdale"
+   },
+   "description" : "Provides SASL authentication",
+   "package" : "M::SASL"
+}
