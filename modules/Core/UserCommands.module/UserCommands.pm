@@ -178,7 +178,7 @@ my %ucommands = (
     ECHO => {
         code   => \&echo,
         desc   => 'echos a message',
-        params => 2
+        params => 'channel :rest'
     },
 );
 
@@ -1233,12 +1233,9 @@ sub links {
 }
 
 sub echo {
-    my ($user, $data, undef) = @_;
-    $data       =~ s/^:(.+)\s//;
-    my (undef, $target, $message) = split ' ', $data, 3;
-    $message = col($message);
-    my $continue = $user->handle("PRIVMSG $target :$message");
-    $user->sendfrom($user->full, "PRIVMSG $target :$message") if $continue;
+    my ($user, undef, $channel, $message) = @_;
+    my $continue = $user->handle("PRIVMSG $$channel{name} :$message");
+    $user->sendfrom($user->full, "PRIVMSG $$channel{name} :$message") if $continue;
 }
 
 $mod
