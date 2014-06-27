@@ -12,12 +12,10 @@
 		A75C5CD218B43219007780A3 /* ircd.conf */ = {isa = PBXFileReference; lastKnownFileType = text; path = ircd.conf; sourceTree = "<group>"; };
 		A75C5CD318B43219007780A3 /* ircd.conf.example */ = {isa = PBXFileReference; lastKnownFileType = text; path = ircd.conf.example; sourceTree = "<group>"; };
 		A75C5CD418B43219007780A3 /* GOALS */ = {isa = PBXFileReference; lastKnownFileType = text; name = GOALS; path = ../GOALS; sourceTree = "<group>"; };
-		A75C5CD618B43219007780A3 /* INDEV */ = {isa = PBXFileReference; lastKnownFileType = text; lineEnding = 0; name = INDEV; path = ../INDEV; sourceTree = "<group>"; };
 		A75C5CD818B4321A007780A3 /* juno */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = juno; path = ../juno; sourceTree = "<group>"; };
 		A75C5D0E18B4321A007780A3 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
 		A75C5D1B18B4321A007780A3 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		A75C5D1D18B4321A007780A3 /* rfc-2812 */ = {isa = PBXFileReference; lastKnownFileType = text; name = "rfc-2812"; path = "../rfc-2812"; sourceTree = "<group>"; };
-		A765E0BF18BEE68500B3E448 /* VERSION */ = {isa = PBXFileReference; lastKnownFileType = text; name = VERSION; path = ../VERSION; sourceTree = "<group>"; };
 		BC174752194A36F0005C2D83 /* doc */ = {isa = PBXFileReference; lastKnownFileType = folder; name = doc; path = ../doc; sourceTree = "<group>"; };
 		BC515539195C7E1D00110EBE /* TODO */ = {isa = PBXFileReference; lastKnownFileType = text; name = TODO; path = ../TODO; sourceTree = "<group>"; };
 		BC9564F31944E032002F52B9 /* Access.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Access.pm; path = Access.module/Access.pm; sourceTree = "<group>"; };
@@ -104,8 +102,6 @@
 		A75C5D1F18B43242007780A3 /* Documentation */ = {
 			isa = PBXGroup;
 			children = (
-				A765E0BF18BEE68500B3E448 /* VERSION */,
-				A75C5CD618B43219007780A3 /* INDEV */,
 				BC515539195C7E1D00110EBE /* TODO */,
 				A75C5CD418B43219007780A3 /* GOALS */,
 				A75C5D1D18B4321A007780A3 /* rfc-2812 */,

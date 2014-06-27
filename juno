@@ -237,6 +237,30 @@ sub init {
                          -MEvented::API::Engine -MEvented::Properties                       \
                          $DIR/bin/ircd $DIR NOFORK
                 ;;
+                
+                commit)
+                
+                    # get commit message
+                    file=$DIR/commit.tmp
+                    editor=${EDITOR:-nano}
+                    $editor $file
+                    message=$(cat $file)
+                    rm $file
+                    
+                    # increment version
+                    oldversion=$(cat $DIR/VERSION)
+                    newversion=$(echo print $oldversion + 0.01 | perl)
+                    echo "VERSION: $oldversion -> $newversion"
+                    echo $newversion > $DIR/VERSION
+                    
+                    # add to changelog
+                    echo "$newversion: $message >> INDEV"
+                    
+                    # commit
+                    git add --all .
+                    git commit -m "$newversion: $message"
+                    
+                ;;
                     
                 *)
                     showdevusage
