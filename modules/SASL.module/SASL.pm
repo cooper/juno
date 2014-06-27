@@ -66,10 +66,8 @@ sub rcmd_authenticate {
 
 # user.new event
 sub user_new {
-    my ($event, $user) = @_;
-    say "user_new called";
+    my ($user, $event) = @_;
     if ($user->{sasl_account}) {
-        say "sasl account found";
         login_account(delete $user->{sasl_account}, $user, undef, undef, 1);
     }
 }
