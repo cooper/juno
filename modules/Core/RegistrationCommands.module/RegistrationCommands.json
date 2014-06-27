@@ -1,15 +1,15 @@
 {
-   "version" : "3.3",
+   "version" : "3.4",
    "name" : "Core::RegistrationCommands",
    "author" : {
       "website" : "https://github.com/cooper",
       "name" : "Mitchell Cooper"
    },
    "description" : "the core set of pre-registration commands",
-   "package" : "M::Core::RegistrationCommands",
    "depends" : {
       "modules" : [
          "Base::RegistrationCommands"
       ]
-   }
+   },
+   "package" : "M::Core::RegistrationCommands"
 }

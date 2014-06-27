@@ -762,12 +762,12 @@ sub delete_cap {
     $cap = lc $cap;
 
     # does it exist?
-    if (!exists $pool->{capabilities}{$notice}) {
+    if (!exists $pool->{capabilities}{$cap}) {
         L("attempted to delete '$cap' which does not exists");
         return;
     }
 
-    delete $pool->{capabilities}{$notice};
+    delete $pool->{capabilities}{$cap};
     return 1;
 }
 

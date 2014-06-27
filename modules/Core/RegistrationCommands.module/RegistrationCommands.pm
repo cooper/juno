@@ -66,10 +66,17 @@ sub rcmd_cap {
     
 }
 
-# CAP LIST: display the server's available caps.
+# CAP LS: display the server's available caps.
 sub cap_ls {
     my ($connection, $event, @args) = @_;
     my @flags = $pool->capabilities;
+
+    # first LS - postpone registration.
+    if (!$connection->{received_ls}) {
+        $connection->{received_ls} = 1;
+        $connection->reg_wait;
+    }
+    
     $connection->early_reply(CAP => "LS :@flags");
 }
 
@@ -83,12 +90,6 @@ sub cap_list {
 # CAP REQ: client requests a capability.
 sub cap_req {
     my ($connection, $event, @args) = @_;
-    
-    # first REQ - postpone registration.
-    if (!$connection->{received_req}) {
-        $connection->{received_req} = 1;
-        $connection->reg_wait;
-    }
     
     # handle each capability.
     my (@add, @remove, $nak);
@@ -140,7 +141,7 @@ sub cap_clear {
 sub cap_end {
     my ($connection, $event) = @_;
     return if $connection->{type};
-    $connection->reg_continue if delete $connection->{received_req};
+    $connection->reg_continue if delete $connection->{received_ls};
 }
 
 #########################
