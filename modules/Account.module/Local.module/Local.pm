@@ -54,7 +54,7 @@ sub init {
     $mod->register_user_numeric(
         name   => 'RPL_LOGGEDIN',
         number => 900,
-        format => '%s :You are now logged in as %s'
+        format => '%s!%s@%s %s :You are now logged in as %s'
     );
     $mod->register_user_numeric(
         name   => 'RPL_LOGGEDOUT',

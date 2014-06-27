@@ -228,7 +228,8 @@ sub login_account {
     $user->do_mode_string("+$mode", 1);
     
     # if local, send logged in numeric.
-    $user->numeric(RPL_LOGGEDIN => $act->{name}, $act->{name}) if $verbose;
+    $user->numeric(RPL_LOGGEDIN =>
+        @$user{ qw(nick ident host) }, $act->{name}, $act->{name}) if $verbose;
     
     # logged in event.
     $user->fire_event(account_logged_in => $act);

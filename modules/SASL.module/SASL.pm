@@ -25,25 +25,44 @@ use M::Account qw(verify_account login_account);
 our ($api, $mod, $pool);
 
 sub init {
+    $mod->register_capability('sasl');
+    $pool->on('user.new' => \&user_new, with_eo => 1);
+    
     $mod->register_registration_command(
         name       => 'AUTHENTICATE',
         code       => \&rcmd_authenticate,
         paramaters => 1
     ) or return;
-    $mod->register_capability('sasl');
-    $pool->on('user.new' => \&user_new, with_eo => 1);
+    
+    $mod->register_user_numeric(
+        name    => shift @$_,
+        number  => shift @$_,
+        format  => shift @$_
+    ) or return foreach (
+        # Provided by M::Account RPL_LOGGEDIN (900) RPL_LOGGEDOUT (901)
+        [ ERR_NICKLOCKED  => 902, ':You must use a nick assigned to you'        ],
+        [ RPL_SASLSUCCESS => 903, ':SASL authentication successful'             ],
+        [ ERR_SASLFAIL    => 904, ':SASL authentication failed'                 ],
+        [ ERR_SASLTOOLONG => 905, ':SASL message too long'                      ],
+        [ ERR_SASLABORTED => 906, ':SASL authentication aborted'                ],
+        [ ERR_SASLALREADY => 907, ':You have already authenticated using SASL'  ],
+        [ RPL_SASLMECHS   => 908, '%s :are available SASL mechanisms'           ]
+    );
+    
+    return 1;
 }
 
 # Registration command: AUTHENTICATE
 sub rcmd_authenticate {
     my ($connection, $event, $arg) = @_;
-    $connection->early_reply(906, ':SASL authentication aborted') and return if $arg eq '*';
-    $connection->early_reply(907, ':You have already authenticated using SASL') and return if $connection->{sasl};
-    $connection->early_reply(908, 'PLAIN :are availiable SASL mechanisms') and return if uc $arg eq 'M';
+    $connection->numeric('ERR_SASLABORTED') and return if $arg eq '*';
+    $connection->numeric('ERR_SASLALREADY') and return if $connection->{sasl};
+    $connection->numeric(RPL_SASLMECHS => 'PLAIN') and return 1 if uc $arg eq 'M';
+    
     if (!exists $connection->{sasl_pending})
     {
         if (uc $arg ne 'PLAIN') {
-            $connection->early_reply(904, ':SASL authentication failed');
+            $connection->numeric('ERR_SASLFAIL');
             return;
          } else {
              $connection->send('AUTHENTICATE +');
@@ -54,14 +73,16 @@ sub rcmd_authenticate {
         if (my $act = verify_account($user, $password)) {
             $connection->{sasl_account} = $act;
             $connection->{sasl} = 1;
-            $connection->early_reply(900, "$$connection{nick}!$$connection{ident}\@$$connection{host} $$act{name} :You are now logged in as $$act{name}.");
-            $connection->early_reply(903, ':SASL authentication successful');
+            $connection->numeric(RPL_LOGGEDIN =>
+                @$connection{ qw(nick ident host) }, $act->{name}, $act->{name});
+            $connection->numeric('RPL_SASLSUCCESS');
             delete $connection->{sasl_pending};
         } else {
-          $connection->early_reply(904, ':SASL authentication failed');
+          $connection->numeric('ERR_SASLFAIL');
           return;
         }
     }
+    return 1;
 }
 
 # user.new event

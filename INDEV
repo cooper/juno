@@ -2391,6 +2391,8 @@ CHANGES:
         55. numerics can now be sent directly from connection objects.
             a new ->register_numeric() option 'allow_conn' indicates it's ok to use a numeric code on connections.
             
+        56. updated modules to use $connection->numeric() instead of ->early_reply().
+            
             
             
             

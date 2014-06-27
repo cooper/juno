@@ -8,7 +8,7 @@
 # @package:         'M::Core::RegistrationCommands'
 # @description:     'the core set of pre-registration commands'
 #
-# @depends.modules: ['Base::RegistrationCommands']
+# @depends.modules: ['Base::RegistrationCommands', 'Base::UserNumerics']
 #
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'
@@ -22,13 +22,18 @@ use utils qw(col conf notice);
 
 our ($api, $mod, $pool);
 
-sub init {
+sub init {    
+    $mod->register_user_numeric(
+        name   => 'ERR_INVALIDCAPCMD',
+        number => 410,
+        format => '%s :Invalid CAP subcommand'
+    );
+    
     $mod->register_registration_command(
         name       => shift @$_, code      => shift @$_,
         parameters => shift @$_, with_data => shift @$_,
         after_reg  => shift @$_
     ) or return foreach (
-    
     #
     # PARAMS = number of parameters
     # DATA   = true if include $data string
@@ -43,6 +48,7 @@ sub init {
         [ QUIT      => \&rcmd_quit,     1,      1,          ],
         [ ERROR     => \&rcmd_error,    1,      undef,  1   ],
     );
+    
     return 1;
 }
 
@@ -60,8 +66,7 @@ sub rcmd_cap {
         return $code->($connection, $event, @args);
     }
     
-    # ERR_INVALIDCAPCMD
-    $connection->early_reply(410, "$subcmd :Invalid CAP subcommand");
+    $connection->numeric(ERR_INVALIDCAPCMD => $subcmd);
     return;
     
 }
@@ -154,13 +159,13 @@ sub rcmd_nick {
 
     # nick exists.
     if ($pool->lookup_user_nick($nick)) {
-        $connection->early_reply(433 => "$nick :Nickname is already in use");
+        $connection->numeric(ERR_NICKNAMEINUSE => $nick);
         return;
     }
 
     # invalid characters.
     if (!utils::validnick($nick)) {
-        $connection->early_reply(432 => "$nick :Erroneous nickname");
+        $connection->numeric(ERR_ERRONEUSNICKNAME => $nick);
         return;
     }
 
