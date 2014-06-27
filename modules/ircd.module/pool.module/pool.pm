@@ -119,7 +119,7 @@ sub new_server {
     
     # become an event listener.
     $server->add_listener($pool, 'server');
-    #$server->fire_event('new');
+    $server->fire_event('new');
     
     notice(new_server =>
         $server->{name},

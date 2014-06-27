@@ -2383,6 +2383,9 @@ CHANGES:
             Resolve and Ident improvements.
             Lastfm module in progress.
             
+        53. fixed an embarrassing issue where the entirety of connection events and event-related properties were passed on to their associated user and server objects.
+            I CAN'T EVEN BELIEVE THIS HAS BEEN THIS WAY FOR SO LONG WITHOUT NOTICING.
+            
             
             
             

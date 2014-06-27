@@ -124,49 +124,57 @@ sub ready {
           $connection->{cloak}  //= $connection->{host};
 
           # create a new user.
-          $connection->{type} = $pool->new_user(%$connection);
+          $connection->{type} = $pool->new_user(
+            %$connection,
+            $Evented::Object::props  => {},
+            $Evented::Object::events => {}
+        );
 
      }
 
-     # must be a server
-     elsif (exists $connection->{name}) {
+    # must be a server
+    elsif (exists $connection->{name}) {
 
-          # check for valid password.
-          my $password = utils::crypt($connection->{pass}, conn($connection->{name}, 'encryption'));
+        # check for valid password.
+        my $password = utils::crypt($connection->{pass}, conn($connection->{name}, 'encryption'));
 
-          if ($password ne conn($connection->{name}, 'receive_password')) {
-               $connection->done('Invalid credentials');
-               notice(connection_invalid => $connection->{ip}, 'Received invalid password');
-               return;
-          }
+        if ($password ne conn($connection->{name}, 'receive_password')) {
+            $connection->done('Invalid credentials');
+            notice(connection_invalid => $connection->{ip}, 'Received invalid password');
+            return;
+        }
 
-          # check if the server is linked already.
-          if ($pool->lookup_server($connection->{sid}) || $pool->lookup_server_name($connection->{name})) {
-               notice(connection_invalid => $connection->{ip}, 'Server exists');
-               return;
-          }
+        # check if the server is linked already.
+        if ($pool->lookup_server($connection->{sid}) || $pool->lookup_server_name($connection->{name})) {
+            notice(connection_invalid => $connection->{ip}, 'Server exists');
+            return;
+        }
 
-          $connection->{parent} = $me;
-          $connection->{type}   = my $server = $pool->new_server(%$connection);
-          $server->{conn}       = $connection;
-          weaken($connection->{type}{location} = $connection->{type});
-          $pool->fire_command_all(sid => $connection->{type});
+        $connection->{parent} = $me;
+        $connection->{type}   = my $server = $pool->new_server(
+            %$connection,
+            $Evented::Object::props  => {},
+            $Evented::Object::events => {}
+        );
+        $server->{conn} = $connection;
+        weaken($connection->{type}{location} = $connection->{type});
+        $pool->fire_command_all(sid => $connection->{type});
 
-          # send server credentials
-          if (!$connection->{sent_creds}) {
-               $connection->send_server_credentials;
-          }
+        # send server credentials
+        if (!$connection->{sent_creds}) {
+            $connection->send_server_credentials;
+        }
 
-          # I already sent mine, meaning it should have been accepted on both now.
-          # go ahead and send the burst.
-          else {
-               $server->send_burst if !$server->{i_sent_burst};
-          }
+        # I already sent mine, meaning it should have been accepted on both now.
+        # go ahead and send the burst.
+        else {
+            $server->send_burst if !$server->{i_sent_burst};
+        }
 
-          # honestly at this point the connect timer needs to die.
-          server::linkage::cancel_connection($connection->{name});
+        # honestly at this point the connect timer needs to die.
+        server::linkage::cancel_connection($connection->{name});
 
-     }
+    }
 
 
      else {
