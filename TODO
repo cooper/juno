@@ -9,7 +9,7 @@ Legend
 
 [ ] = planned but unimplemented
 [x] = plan canceled or unlikely to happen
-[~] = work in progress but not yet functional
+[~] = work in progress but far from complete
 [*] = implemented partially and mostly functional
 [√] = completed
 
@@ -129,17 +129,33 @@ Server linkage
     
     [ ] Configuration connect blocks need to accept lists of IPs rather than a fixed one.
     
+Support for multiple linking protocols
+
+    [~] Move JELP out of core. Commands should be fired in response to IRCd events.
+    
+    [ ] Implement the TS6 protocol.
+    
+User commands that are in desperate need of rewriting
+------------------------------------------------------------------------------------------
+
+    [ ] WHO             needs to be evented, extensible, and fully supportive of WHOX
+    
+    [ ] WHOIS           needs to be evented and extensible
         
 Other user commands
 ------------------------------------------------------------------------------------------
 
     [ ] ECHO            send message to a channel and back to the source if successful
+    
+    [ ] WHOWAS          
 
 Efficiency
 ------------------------------------------------------------------------------------------
 
-[ ] Connection objects might be leaking. During the destruction of an IRCd with only a few
-    active connections, a large number of connection::DESTROYs were reported. Perhaps
-    connections esablished by server::linkage are not properly disposed of, or maybe all
-    connection objects have cyclical references. This may have been fixed by the addition
-    of ->delete_all_events() though.
+    [ ] Connection objects might be leaking. During the destruction of an IRCd with only a
+        few active connections, a large number of connection::DESTROYs were reported.
+        Perhaps connections esablished by server::linkage are not properly disposed of, or
+        maybe all connection objects have cyclical references. This may have been fixed by
+        the addition of ->delete_all_events() though.
+    
+    

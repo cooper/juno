@@ -27,3 +27,4 @@ dev/
 *~
 *.old
 db/*.db
+PRIVATE_INFORMATION

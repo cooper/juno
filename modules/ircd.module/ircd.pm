@@ -404,9 +404,9 @@ sub load_dependencies {
         
         [ 'IO::Socket::IP',                0.25 ],
         
-        [ 'Evented::Object',               5.20 ],
-        [ 'Evented::Object::Collection',   5.20 ],
-        [ 'Evented::Object::EventFire',    5.20 ],
+        [ 'Evented::Object',               5.44 ],
+        [ 'Evented::Object::Collection',   5.44 ],
+        [ 'Evented::Object::EventFire',    5.44 ],
 
         [ 'Evented::Configuration',        3.40 ],
         [ 'Evented::Database',             0.50 ],

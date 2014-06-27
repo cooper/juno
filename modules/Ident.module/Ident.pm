@@ -179,7 +179,7 @@ sub ident_done {
     if (!defined $connection->{ident_success}) {
         $connection->{tilde} = 1;
         $connection->{ident} = '~'.$connection->{ident} if defined $connection->{ident};
-        $connection->sendfrom($me->full, 'NOTICE * :*** No ident response')
+        $connection->early_reply(NOTICE => '*** No ident response')
           unless $connection->{skip_ident};
     }
     
@@ -187,7 +187,7 @@ sub ident_done {
     else {
         $connection->{ident_verified} = 1;
         $connection->{ident} = delete $connection->{ident_success};
-        $connection->sendfrom($me->full, 'NOTICE * :*** Found your ident');
+        $connection->early_reply(NOTICE => '*** Found your ident');
     }
     
     $connection->{ident_checked} = 1;

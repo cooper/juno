@@ -184,28 +184,43 @@ sub register_account {
     return 1;
 }
 
+# check account password.
+sub verify_account {
+    my ($account, $password) = @_;
+    
+    # check if exists.
+    my $act = ref $account ? $account : account_info($account) or return;
+    
+    # check password.
+    $password = utils::crypt($password, $act->{encrypt});
+    return if $password ne $act->{password};
+    
+    # success.
+    delete $act->{password};
+    return $act;
+
+}
+
 # log a user into an account.
+# $password = optional - if omitted, password won't be checked.
 sub login_account {
-    my ($account, $user, $password, $just_registered) = @_;
+    my ($account, $user, $password, $just_registered, $silent) = @_;
+    my $verbose = !$silent;
     
     # fetch the account information.
     my $act = ref $account ? $account : account_info($account);
     if (!$act) {
-        $user->server_notice('login', 'No such account') if $user->is_local;
+        $user->server_notice('login', 'No such account') if $verbose;
         return;
     }
     
     # if password is defined, we're checking the password.
-    if (defined $password) {
-        $password = utils::crypt($password, $act->{encrypt});
-        if ($password ne $act->{password}) {
-            $user->server_notice('login', 'Password incorrect') if $user->is_local;
-            return;
-        }
+    if (defined $password && !verify_account($act, $password)) {
+        $user->server_notice('login', 'Password incorrect') if $verbose;
+        return;
     }
     
     # log in.
-    delete $act->{password};
     $user->{account} = $act;
     
     # handle and send mode string if local.
@@ -213,7 +228,7 @@ sub login_account {
     $user->do_mode_string("+$mode", 1);
     
     # if local, send logged in numeric.
-    $user->numeric(RPL_LOGGEDIN => $act->{name}, $act->{name}) if $user->is_local;
+    $user->numeric(RPL_LOGGEDIN => $act->{name}, $act->{name}) if $verbose;
     
     # logged in event.
     $user->fire_event(account_logged_in => $act);

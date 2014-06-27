@@ -1,5 +1,5 @@
 {
-   "version" : "8.43",
+   "version" : "8.52",
    "name" : "ircd::pool",
    "no_bless" : 1,
    "author" : {

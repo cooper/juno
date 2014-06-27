@@ -2379,6 +2379,10 @@ CHANGES:
         51. included Evented::Properties with the distribution.
             add missing Perl include directories in ircd initialization.
             
+        52. Account improvements.
+            Resolve and Ident improvements.
+            Lastfm module in progress.
+            
             
             
             

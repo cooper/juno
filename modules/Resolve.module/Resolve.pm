@@ -21,7 +21,7 @@ sub init {
 
 sub connection_new {
     my ($connection, $event) = @_;
-    $connection->sendfrom($me->full, 'NOTICE * :*** Looking up your hostname...');
+    $connection->early_reply(NOTICE => '*** Looking up your hostname...');
     resolve_address($connection);
 }
 
@@ -69,7 +69,7 @@ sub on_resolved_host {
         my $addr = (Socket::GetAddrInfo::getnameinfo($a->{addr}))[1] or next;
         next unless $addr eq $connection->{temp_host};
         
-        $connection->sendfrom($me->{name}, 'NOTICE * :*** Found your hostname');
+        $connection->early_reply(NOTICE => '*** Found your hostname');
         $connection->{host} = delete $connection->{temp_host};
         $connection->reg_continue;
         return 1;
@@ -86,7 +86,7 @@ sub on_error {
     delete $connection->{resolve_future};
     return if $connection->{goodbye};
     
-    $connection->sendfrom($me->{name}, 'NOTICE * :*** Couldn\'t resolve your hostname');
+    $connection->early_reply(NOTICE => "*** Couldn't resolve your hostname");
     L("Lookup for $$connection{ip} failed: $err");
     
     delete $connection->{temp_host};

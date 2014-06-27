@@ -119,6 +119,7 @@ sub new_server {
     
     # become an event listener.
     $server->add_listener($pool, 'server');
+    #$server->fire_event('new');
     
     notice(new_server =>
         $server->{name},
@@ -194,6 +195,7 @@ sub new_user {
     
     # become an event listener.
     $user->add_listener($pool, 'user');
+    $user->fire_event('new');
 
     # add the user to the server.
     push @{ $opts{server}{users} }, $user;
