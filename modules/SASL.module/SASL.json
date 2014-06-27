@@ -6,5 +6,12 @@
       "name" : "Matthew Barksdale"
    },
    "description" : "Provides SASL authentication",
-   "package" : "M::SASL"
+   "package" : "M::SASL",
+   "depends" : {
+      "modules" : [
+         "Base::Capabilities",
+         "Base::RegistrationCommands",
+         "Account"
+      ]
+   }
 }

@@ -8,7 +8,7 @@
 # @package:         'M::SASL'
 # @description:     'Provides SASL authentication'
 #
-# @depends.modules  ['Base::Capabilities', 'Base::RegistrationCommands', 'M::Account']
+# @depends.modules:  ['Base::Capabilities', 'Base::RegistrationCommands', 'Account']
 #
 # @author.name:     'Matthew Barksdale'
 # @author.website:  'https://github.com/mattwb65'
@@ -25,7 +25,7 @@ use M::Account qw(verify_password login_account);
 our ($api, $mod, $pool);
 
 sub init {
-    $mod->register_registration_cmmand(
+    $mod->register_registration_command(
         name       => 'AUTHENTICATE',
         code       => \&rcmd_authenticate,
         paramaters => 1
