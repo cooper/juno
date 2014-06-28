@@ -260,7 +260,7 @@ sub nick {
         }
 
         # check for existing nick
-        my $in_use = $pool->lookup_user_nick($newnick);
+        my $in_use = $pool->nick_in_use($newnick);
         if ($in_use && $in_use != $user) {
             $user->numeric('ERR_NICKNAMEINUSE', $newnick);
             return;

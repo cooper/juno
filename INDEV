@@ -2397,6 +2397,14 @@ CHANGES:
             
         58. send out NICK messages for nick collisions just as an extra measure of sync accuracy.
 
-8.61: don't echo out loud; echo to INDEV :)
+    6.
+    
+        61. don't echo out loud; echo to INDEV :)
 
-8.62: needs more newlines!
+        62. needs more newlines!
+        
+        63. fixed several bugs with nickname reservation during registration.
+        
+        
+        
+        

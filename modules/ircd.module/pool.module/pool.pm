@@ -182,7 +182,9 @@ sub new_user {
     $opts{server} //= $me;
     
     # no UID provided; generate one.
-    $opts{uid} //= $me->{sid}.$pool->{user_i}++;
+    # no nick specified; use UID.
+    $opts{uid}  //= $me->{sid}.$pool->{user_i}++;
+    $opts{nick} //= $opts{uid};
     
     my $user = user->new(%opts) or return;
     
@@ -221,7 +223,26 @@ sub lookup_user {
 # find a user by his nick.
 sub lookup_user_nick {
     my ($pool, $nick) = @_;
-    return $pool->{nicks}{lc $nick};
+    my $user_maybe = $pool->{nicks}{ lc $nick };
+    blessed $user_maybe && $user_maybe->isa('user') or return;
+    return $user_maybe;
+}
+
+sub reserve_nick {
+    my ($pool, $nick, $obj) = @_;
+    weaken($pool->{nicks}{ lc $nick } = $obj);
+    return 1;
+}
+
+sub release_nick {
+    my ($pool, $nick) = @_;
+    return if $pool->lookup_user_nick($nick);
+    delete $pool->{nicks}{ lc $nick };
+}
+
+sub nick_in_use {
+    my ($pool, $nick) = @_;
+    return $pool->{nicks}{ lc $nick };
 }
 
 # delete a user.
@@ -247,7 +268,7 @@ sub change_user_nick {
     my ($pool, $user, $newnick) = @_;
     
     # make sure it doesn't exist first.
-    my $in_use = $pool->lookup_user_nick($newnick);
+    my $in_use = $pool->nick_in_use($newnick);
     if ($in_use && $in_use != $user) {
         L("attempted to change nicks to a nickname that already exists! $newnick");
         return;

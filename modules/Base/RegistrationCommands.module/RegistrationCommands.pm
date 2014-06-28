@@ -50,8 +50,7 @@ sub register_registration_command {
             
             # not enough.
             my $conn = $event->object;
-            $conn->can('wrong_par') or return;
-            $conn->wrong_par($command);
+            $conn->numeric('ERR_NEEDMOREPARAMS');
             $event->stop;
             
         },

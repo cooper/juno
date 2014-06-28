@@ -178,9 +178,10 @@ sub ident_done {
     # add tilde if not successful.
     if (!defined $connection->{ident_success}) {
         $connection->{tilde} = 1;
-        $connection->{ident} = '~'.$connection->{ident} if defined $connection->{ident};
-        $connection->early_reply(NOTICE => ':*** No ident response')
-          unless $connection->{skip_ident};
+        unless ($connection->{skip_ident}) {
+            $connection->{ident} = '~'.$connection->{ident} if defined $connection->{ident};
+            $connection->early_reply(NOTICE => ':*** No ident response');
+        }
     }
     
     # it was successful. set the ident.

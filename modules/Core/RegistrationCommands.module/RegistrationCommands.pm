@@ -158,7 +158,7 @@ sub rcmd_nick {
     my $nick = col(shift @args);
 
     # nick exists.
-    if ($pool->lookup_user_nick($nick)) {
+    if ($pool->nick_in_use($nick)) {
         $connection->numeric(ERR_NICKNAMEINUSE => $nick);
         return;
     }
@@ -169,7 +169,12 @@ sub rcmd_nick {
         return;
     }
 
+    # if a nick was already reserved, release it.
+    my $old_nick = delete $connection->{nick};
+    $pool->release_nick($old_nick) if defined $old_nick;
+
     # set the nick.
+    $pool->reserve_nick($nick, $connection);
     $connection->{nick} = $nick;
     $connection->fire_event(reg_nick => $nick);
     $connection->reg_continue;

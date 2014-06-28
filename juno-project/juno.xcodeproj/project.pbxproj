@@ -60,6 +60,8 @@
 		BCBADAF2195CD5DE0051282D /* Daemon.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Daemon.pm; path = Daemon.module/Daemon.pm; sourceTree = "<group>"; };
 		BCBADAF3195CD5DE0051282D /* Lastfm.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Lastfm.pm; sourceTree = "<group>"; };
 		BCBADAF4195DDA910051282D /* SASL.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = SASL.pm; path = SASL.module/SASL.pm; sourceTree = "<group>"; };
+		BCBADAF5195E510D0051282D /* INDEV */ = {isa = PBXFileReference; lastKnownFileType = text; name = INDEV; path = ../INDEV; sourceTree = "<group>"; };
+		BCBADAF6195E51140051282D /* VERSION */ = {isa = PBXFileReference; lastKnownFileType = text; name = VERSION; path = ../VERSION; sourceTree = "<group>"; };
 		BCBCCEA0193BAD0800F7E7F9 /* ircd_forever */ = {isa = PBXFileReference; lastKnownFileType = text; path = ircd_forever; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.perl; };
 		BCD615461953963500E1B0FE /* Capabilities.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Capabilities.pm; path = Capabilities.module/Capabilities.pm; sourceTree = "<group>"; };
 		BCD615471953963D00E1B0FE /* RegistrationCommands.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = RegistrationCommands.pm; path = RegistrationCommands.module/RegistrationCommands.pm; sourceTree = "<group>"; };
@@ -102,6 +104,8 @@
 		A75C5D1F18B43242007780A3 /* Documentation */ = {
 			isa = PBXGroup;
 			children = (
+				BCBADAF6195E51140051282D /* VERSION */,
+				BCBADAF5195E510D0051282D /* INDEV */,
 				BC515539195C7E1D00110EBE /* TODO */,
 				A75C5CD418B43219007780A3 /* GOALS */,
 				A75C5D1D18B4321A007780A3 /* rfc-2812 */,

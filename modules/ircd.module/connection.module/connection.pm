@@ -35,7 +35,7 @@ sub init {
         return unless $connection->{type};
         $connection->{type}->handle($data, \@args);
     }, name => 'high.level.handlers', priority => -100, with_evented_obj => 1);
-    
+
 }
 
 sub new {
@@ -64,7 +64,7 @@ sub new {
 
 sub handle {
     my ($connection, $data) = @_;
-    
+
     # update ping information.
     $connection->{ping_in_air}   = 0;
     $connection->{last_response} = time;
@@ -81,16 +81,7 @@ sub handle {
         [ "command_${command}_raw" => $data, @args ],
         [ "command_$command"       =>        @args ]
     )->fire('safe');
-    
-}
 
-# post-registration
-
-sub wrong_par {
-    my ($connection, $cmd) = @_;
-    my $nick = $connection->{nick} // '*';
-    $connection->sendme("461 $nick $cmd :Not enough parameters");
-    return;
 }
 
 # increase the wait count.
@@ -106,33 +97,39 @@ sub reg_continue {
 }
 
 sub ready {
-     my $connection = shift;
+    my $connection = shift;
 
-     # must be a user
-     if (exists $connection->{nick}) {
+    # must be a user.
+    if (exists $connection->{nick} && exists $connection->{ident}) {
 
-          # if the client limit has been reached, hang up
-          # FIXME: completely broken since pool creation. not sure what to do with this.
-          #my $count = scalar grep { ($_->{type} || '')->isa('user') } values %connection;
-          #if ($count >= conf('limit', 'client')) {
-          #    $connection->done('Not accepting clients');
-          #    return;
-          #}
+        # if the client limit has been reached, hang up
+        # FIXME: completely broken since pool creation. not sure what to do with this.
+        #my $count = scalar grep { ($_->{type} || '')->isa('user') } values %connection;
+        #if ($count >= conf('limit', 'client')) {
+        #    $connection->done('Not accepting clients');
+        #    return;
+        #}
 
-          $connection->{server}   =
-          $connection->{location} = $me;
-          $connection->{cloak}  //= $connection->{host};
+        $connection->{server}   =
+        $connection->{location} = $me;
+        $connection->{cloak}  //= $connection->{host};
 
-          # create a new user.
-          $connection->{type} = $pool->new_user(
+        # at this point, if a user by this nick exists...
+        if ($pool->lookup_user_nick($connection->{nick})) {
+            delete $connection->{nick};
+            # fallback to the UID.
+        }
+
+        # create a new user.
+        $connection->{type} = $pool->new_user(
             %$connection,
             $Evented::Object::props  => {},
             $Evented::Object::events => {}
         );
 
-     }
+    }
 
-    # must be a server
+    # must be a server.
     elsif (exists $connection->{name}) {
 
         # check for valid password.
@@ -156,6 +153,7 @@ sub ready {
             $Evented::Object::props  => {},
             $Evented::Object::events => {}
         );
+        
         $server->{conn} = $connection;
         weaken($connection->{type}{location} = $connection->{type});
         $pool->fire_command_all(sid => $connection->{type});
@@ -176,15 +174,16 @@ sub ready {
 
     }
 
+    # must be an intergalactic alien.
+    else {
+        warn 'intergalactic alien has been found';
+        $connection->done('alien');
+        return;
+    }
 
-     else {
-          # must be an intergalactic alien
-          warn 'intergalactic alien has been found';
-     }
-
-     weaken($connection->{type}{conn} = $connection);
-     $connection->{type}->new_connection if $connection->{type}->isa('user');
-     return $connection->{ready} = 1;
+    weaken($connection->{type}{conn} = $connection);
+    $connection->{type}->new_connection if $connection->{type}->isa('user');
+    return $connection->{ready} = 1;
 }
 
 # send data to the socket
@@ -205,29 +204,28 @@ sub sendfrom {
 sub sendme {
     my $connection = shift;
     my $source =
-        $connection->{type} && $connection->{type}->isa('server') ?
-        $me->{sid} : $me->{name};
+    $connection->{type} && $connection->{type}->isa('server') ?
+    $me->{sid} : $me->{name};
     $connection->sendfrom($source, @_);
 }
 
 sub sock { shift->{stream}{write_handle} }
 
 sub send_server_credentials {
-     my $connection = shift;
-     my $name = $connection->{name} // $connection->{want};
-     if (!defined $name) {
-          L('Trying to send credentials to an unknown server?');
-          return;
-     }
-     
-     $connection->send(sprintf 'SERVER %s %s %s %s :%s',
-          $me->{sid},
-          $me->{name},
-          v('PROTO'),
-          v('VERSION'),
-          $me->{desc}
-     );     
-     $connection->send('PASS '.conn($name, 'send_password'));  
+    my $connection = shift;
+    my $name = $connection->{name} // $connection->{want};
+    if (!defined $name) {
+        L('Trying to send credentials to an unknown server?');
+        return;
+    }
+    $connection->send(sprintf 'SERVER %s %s %s %s :%s',
+        $me->{sid},
+        $me->{name},
+        v('PROTO'),
+        v('VERSION'),
+        $me->{desc}
+    );     
+    $connection->send('PASS '.conn($name, 'send_password'));  
 }
 
 # send a command or numeric to a possibly unregistered connection.
@@ -238,57 +236,60 @@ sub early_reply {
 
 # end a connection. this must be foolproof.
 sub done {
-     my ($connection, $reason, $silent) = @_;
-     L("Closing connection from $$connection{ip}: $reason");
+    my ($connection, $reason, $silent) = @_;
+    L("Closing connection from $$connection{ip}: $reason");
 
 
-     # a user or server is associated with the connection.
-     if ($connection->{type}) {
-     
-          # share this quit with the children.
-          $pool->fire_command_all(quit => $connection, $reason);
+    # a user or server is associated with the connection.
+    if ($connection->{type}) {
 
-          # tell user.pm or server.pm that the connection is closed.
-          $connection->{type}->quit($reason);
-          
-     }
-     
-     # I'm not sure where $silent is even used these days.
-     # this is safe because ->send() is safe now.
-     $connection->send("ERROR :Closing Link: $$connection{host} ($reason)") unless $silent;
+        # share this quit with the children.
+        $pool->fire_command_all(quit => $connection, $reason);
 
-     # remove from connection the pool if it's still there.
-     $pool->delete_connection($connection, $reason) if $connection->{pool};
+        # tell user.pm or server.pm that the connection is closed.
+        $connection->{type}->quit($reason);
 
-     # will close it WHEN the buffer is empty
-     # (if the stream still exists).
-     $connection->{stream}->close_when_empty if $connection->{stream};
+    }
 
-     # destroy these references, just in case.
-     delete $connection->{type}{conn};
-     delete $connection->{type};
+    # I'm not sure where $silent is even used these days.
+    # this is safe because ->send() is safe now.
+    $connection->send("ERROR :Closing Link: $$connection{host} ($reason)") unless $silent;
 
-     # prevent confusion if more data is received.
-     delete $connection->{ready};
-     $connection->{goodbye} = 1;
+    # remove from connection the pool if it's still there.
+    # if the connection has reserved a nick, release it.
+    my $r = $pool->nick_in_use($connection->{nick});
+    $pool->delete_connection($connection, $reason) if $connection->{pool};
+    $pool->release_nick($connection->{nick}) if $r && $r == $connection;
 
-     # delete all callbacks to dispose of any possible
-     # looping references within them.
-     $connection->delete_all_events;
-     
-     return 1;
+    # will close it WHEN the buffer is empty
+    # (if the stream still exists).
+    $connection->{stream}->close_when_empty if $connection->{stream};
+
+    # destroy these references, just in case.
+    delete $connection->{type}{conn};
+    delete $connection->{type};
+
+    # prevent confusion if more data is received.
+    delete $connection->{ready};
+    $connection->{goodbye} = 1;
+
+    # delete all callbacks to dispose of any possible
+    # looping references within them.
+    $connection->delete_all_events;
+
+    return 1;
 }
 
 # send a numeric.
 sub numeric {
     my ($connection, $const, @response) = (shift, shift);
-    
+
     # does not exist.
     if (!$pool->numeric($const)) {
         L("attempted to send nonexistent numeric $const");
         return;
     }
-    
+
     my ($num, $val, $allowed) = @{ $pool->numeric($const) };
 
     # CODE reference for numeric response.
@@ -296,18 +297,18 @@ sub numeric {
         $allowed or L("$const only allowed for users") and return;
         @response = $val->($connection, @_);
     }
-    
+
     # formatted string.
     else {
         @response = sprintf $val, @_;
     }
-    
+
     # local user.
     my $nick = $connection->{nick} // '*';
     $connection->sendme("$num $nick $_") foreach @response;
-    
+
     return 1;
-    
+
 }
 
 ####################
