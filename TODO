@@ -148,7 +148,7 @@ User commands that are in desperate need of rewriting
 Other user commands
 ------------------------------------------------------------------------------------------
 
-    [ ] ECHO            send message to a channel and back to the source if successful
+    [√] ECHO            send message to a channel and back to the source if successful
     
     [ ] WHOWAS          
 

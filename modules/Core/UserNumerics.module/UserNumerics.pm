@@ -86,7 +86,6 @@ my %numerics = (
     ERR_NOSUCHSERVER     => [402, '%s :No such server'                                                    ],
     ERR_NOSUCHCHANNEL    => [403, '%s :No such channel'                                                   ],
     ERR_CANNOTSENDTOCHAN => [404, '%s :%s'                                                                ],
-    ERR_INVALIDCAPCMD    => [410, '%s :Invalid CAP command'                                               ],
     ERR_NOTEXTTOSEND     => [412, ':No text to send'                                                      ],
     ERR_UNKNOWNCOMMAND   => [421, '%s :Unknown command'                                                   ],
     ERR_NOMOTD           => [422, ':MOTD file is missing'                                                 ],

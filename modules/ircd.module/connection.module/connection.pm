@@ -72,9 +72,11 @@ sub handle {
     # connection is being closed.
     return if $connection->{goodbye};
 
+    return unless length $data;
     my @args    = split /\s+/, $data;
-    my $command = uc(shift @args or return);
+    my $command = uc shift @args;
 
+print "args: @args ", scalar(@args), "\n";
     # fire command events.
     $connection->prepare(
         [ raw                      => $data, @args ],

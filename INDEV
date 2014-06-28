@@ -2405,6 +2405,10 @@ CHANGES:
         
         63. fixed several bugs with nickname reservation during registration.
         
+        64. fixed a couple numeric errors in registration commands.
+        
+        
+        
         
         
         

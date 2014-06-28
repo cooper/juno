@@ -44,13 +44,14 @@ sub register_registration_command {
     my $params  = $opts{parameters};
     $pool->on("connection.command_$command" => sub {
             my ($event, @args) = @_;
+            say "enough for $command(@args) ", scalar(@args), " needs $params";
             
             # there are enough.
-            return if @args >= $params;
+            return 1 if @args >= $params;
             
             # not enough.
             my $conn = $event->object;
-            $conn->numeric('ERR_NEEDMOREPARAMS');
+            $conn->numeric(ERR_NEEDMOREPARAMS => $command);
             $event->stop;
             
         },
