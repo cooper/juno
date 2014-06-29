@@ -51,13 +51,15 @@ sub new {
         source        => $me->{sid},
         time          => time,
         last_response => time,
-        wait          => 0
+        wait          => {}
     }, $class;
 
     # two initial waits:
-    # in clients - one for NICK, one for USER.
-    # in servers - one for PASS, one for SERVER.
-    $connection->reg_wait(2);
+    # in clients - one for NICK   (id1), one for USER (id2).
+    # in servers - one for SERVER (id1), one for PASS (id2).
+    $connection->reg_wait('id1');
+    $connection->reg_wait('id2');
+    
 
     return $connection;
 }
@@ -88,19 +90,23 @@ print "args: @args ", scalar(@args), "\n";
 
 # increase the wait count.
 sub reg_wait {
-    my ($connection, $inc) = (shift, shift || 1);
-    $connection->{wait} += $inc;
+    my ($connection, $name) = @_;
+    $connection->{wait} or return;
+    $connection->{wait}{$name} = 1;
 }
 
 # decrease the wait count.
 sub reg_continue {
-    my ($connection, $inc) = (shift, shift || 1);
-    $connection->ready unless $connection->{wait} -= $inc;
+    my ($connection, $name) = @_;
+    $connection->{wait} or return;
+    delete $connection->{wait}{$name};
+    $connection->ready unless scalar keys %{ $connection->{wait} };
 }
 
 sub ready {
     my $connection = shift;
-
+    return if $connection->{ready};
+    
     # must be a user.
     if (exists $connection->{nick} && exists $connection->{ident}) {
 
@@ -260,8 +266,8 @@ sub done {
     # remove from connection the pool if it's still there.
     # if the connection has reserved a nick, release it.
     my $r = $pool->nick_in_use($connection->{nick});
-    $pool->delete_connection($connection, $reason) if $connection->{pool};
     $pool->release_nick($connection->{nick}) if $r && $r == $connection;
+    $pool->delete_connection($connection, $reason) if $connection->{pool};
 
     # will close it WHEN the buffer is empty
     # (if the stream still exists).

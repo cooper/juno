@@ -2397,7 +2397,8 @@ CHANGES:
             
         58. send out NICK messages for nick collisions just as an extra measure of sync accuracy.
 
-    6.
+    6. added juno dev commit for easier commit and version increment
+        reverted changes to nick collisions because they didn't work
     
         61. don't echo out loud; echo to INDEV :)
 
@@ -2406,6 +2407,9 @@ CHANGES:
         63. fixed several bugs with nickname reservation during registration.
         
         64. fixed a couple numeric errors in registration commands.
+        
+        65. fixed buggy registration waits.
+            fixed an issue where multiple users could have the same nick if registered at the same time.
         
         
         

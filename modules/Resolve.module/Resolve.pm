@@ -30,7 +30,7 @@ sub resolve_address {
     return if $connection->{goodbye};
     
     # prevent connection registration from completing.
-    $connection->reg_wait;
+    $connection->reg_wait('resolve');
     
     # asynchronously resolve.
     $connection->{resolve_future} = $::loop->resolver->getnameinfo(
@@ -71,7 +71,7 @@ sub on_resolved_host {
         
         $connection->early_reply(NOTICE => ':*** Found your hostname');
         $connection->{host} = delete $connection->{temp_host};
-        $connection->reg_continue;
+        $connection->reg_continue('resolve');
         return 1;
     }
     
@@ -90,7 +90,7 @@ sub on_error {
     L("Lookup for $$connection{ip} failed: $err");
     
     delete $connection->{temp_host};
-    $connection->reg_continue;
+    $connection->reg_continue('resolve');
 }
 
 $mod

@@ -43,6 +43,7 @@ sub register_registration_command {
     my $command = uc delete $opts{name};
     my $params  = $opts{parameters};
     $pool->on("connection.command_$command" => sub {
+            print "\@_: @_\n";
             my ($event, @args) = @_;
             say "enough for $command(@args) ", scalar(@args), " needs $params";
             

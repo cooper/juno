@@ -30,7 +30,7 @@ sub connection_new {
     
     # postpone registration.
     $connection->early_reply(NOTICE => ':*** Checking ident...');
-    $connection->reg_wait;
+    $connection->reg_wait('ident');
     
     # create a future that attempts to connect.
     my $family_int     = $connection->{stream}->write_handle->sockdomain;
@@ -192,7 +192,7 @@ sub ident_done {
     }
     
     $connection->{ident_checked} = 1;
-    $connection->reg_continue;
+    $connection->reg_continue('ident');
 }
 
 $mod

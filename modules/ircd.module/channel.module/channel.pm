@@ -33,7 +33,12 @@ sub new {
 
 sub is_mode {
     my ($channel, $name) = @_;
-    return exists $channel->{modes}{$name}
+    return $channel->{modes}{$name}
+}
+
+sub mode_parameter {
+    my ($channel, $name) = @_;
+    return $channel->{modes}{$name}{parameter};
 }
 
 sub unset_mode {
@@ -67,7 +72,7 @@ sub set_mode {
 # list has something
 sub list_has {
     my ($channel, $name, $what) = @_;
-    return unless exists $channel->{modes}{$name};
+    return unless $channel->{modes}{$name};
     foreach my $thing ($channel->list_elements($name)) {
         return 1 if $thing eq $what
     }
@@ -78,7 +83,7 @@ sub list_has {
 # returns the match if there is one.
 sub list_matches {
     my ($channel, $name, $what) = @_;
-    return unless exists $channel->{modes}{$name};
+    return unless $channel->{modes}{$name};
     foreach my $mask ($channel->list_elements($name)) {
         my $realmask = $mask;
         $realmask = (split ':', $mask, 2)[1] if $mask =~ m/^(.+?):(.+)!(.+)\@(.+)/;
@@ -90,7 +95,7 @@ sub list_matches {
 # returns an array of list elements
 sub list_elements {
     my ($channel, $name, $all) = @_;
-    return unless exists $channel->{modes}{$name};
+    return unless $channel->{modes}{$name};
     my @list = @{ $channel->{modes}{$name}{list} };
     if ($all)  { return @list }
     return map { $_->[0]      } @list;
@@ -102,7 +107,7 @@ sub add_to_list {
     $channel->{modes}{$name} = {
         time => time,
         list => []
-    } unless exists $channel->{modes}{$name};
+    } unless $channel->{modes}{$name};
 
     # no duplicates plz
     if ($channel->list_has($name, $parameter)) {
@@ -436,7 +441,7 @@ sub user_has_basic_status {
 # [letter, symbol, name]
 sub user_get_highest_level {
     my ($channel, $user) = @_;
-    my $biggest = -'inf';
+    my $biggest = -inf;
     foreach my $level (keys %ircd::channel_mode_prefixes) {
         my ($letter, $symbol, $name) = @{ $ircd::channel_mode_prefixes{$level} };
         $biggest = $level if $level > $biggest && $channel->list_has($name, $user);

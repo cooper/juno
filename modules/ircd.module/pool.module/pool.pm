@@ -731,6 +731,7 @@ sub fire_channel_mode {
         server  => $server,
         source  => $source,
         state   => $state,
+        setting => $state,
         param   => $parameter,
         params  => $parameters,
         force   => $force,

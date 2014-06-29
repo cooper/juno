@@ -79,7 +79,7 @@ sub cap_ls {
     # first LS - postpone registration.
     if (!$connection->{received_ls}) {
         $connection->{received_ls} = 1;
-        $connection->reg_wait;
+        $connection->reg_wait('cap');
     }
     
     $connection->early_reply(CAP => "LS :@flags");
@@ -146,7 +146,7 @@ sub cap_clear {
 sub cap_end {
     my ($connection, $event) = @_;
     return if $connection->{type};
-    $connection->reg_continue if delete $connection->{received_ls};
+    $connection->reg_continue('cap') if delete $connection->{received_ls};
 }
 
 #########################
@@ -177,7 +177,7 @@ sub rcmd_nick {
     $pool->reserve_nick($nick, $connection);
     $connection->{nick} = $nick;
     $connection->fire_event(reg_nick => $nick);
-    $connection->reg_continue;
+    $connection->reg_continue('id1');
     
 }
 
@@ -186,7 +186,7 @@ sub rcmd_user {
     $connection->{ident} = $args[0];
     $connection->{real}  = col((split /\s+/, $data, 5)[4]);
     $connection->fire_event(reg_user => @$connection{ qw(ident real) });
-    $connection->reg_continue;
+    $connection->reg_continue('id2');
 }
 
 ###########################
@@ -226,7 +226,7 @@ sub rcmd_server {
     }
 
     # made it.
-    $connection->reg_continue;
+    $connection->reg_continue('id1');
     return 1;
     
 }
@@ -234,7 +234,7 @@ sub rcmd_server {
 sub rcmd_pass {
     my ($connection, $event, @args) = @_;
     $connection->{pass} = shift @args;
-    $connection->reg_continue;
+    $connection->reg_continue('id2');
 }
 
 ###########################
