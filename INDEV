@@ -2418,6 +2418,7 @@ CHANGES:
         68. fixed some bugs in Ident.
             postpone registration when either a CAP LS or CAP REQ is received.
         
+        69. reorganized channel modules
         
         
         
