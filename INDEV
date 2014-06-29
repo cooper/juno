@@ -2413,7 +2413,7 @@ CHANGES:
             
         66. fixed bugs with parameter check in registration commands.
         
-        
+        67. added Limit module (channel mode +l)        
         
         
         

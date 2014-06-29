@@ -37,6 +37,7 @@
     except        = [3, 'e']                    # ban exception                     (e)
     invite_except = [3, 'I']                    # invite-only exception             (I)
     access        = [3, 'A']                    # Access module list mode           (A)
+    limit         = [2, 'l']                    # Channel user limit mode           (l)
 
 
 [ prefixes ]
