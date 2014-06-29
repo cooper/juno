@@ -2413,7 +2413,10 @@ CHANGES:
             
         66. fixed bugs with parameter check in registration commands.
         
-        67. added Limit module (channel mode +l)        
+        67. added Limit module (channel mode +l)
+        
+        68. fixed some bugs in Ident.
+            postpone registration when either a CAP LS or CAP REQ is received.
         
         
         

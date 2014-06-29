@@ -71,8 +71,12 @@ sub connection_new {
 # USER received.
 sub connection_user {
     my ($connection, $event, $ident, $real) = @_;
+    if (delete $connection->{tilde}) {
+        $connection->{ident} = "~$ident" if delete $connection->{tilde};
+        return;
+    }
     
-    # already did a lookup.
+    # already did a lookup or it was skipped alread.
     return if $connection->{ident_checked};
     
     # if the requested ident has ~, cancel ident check.
@@ -82,10 +86,7 @@ sub connection_user {
         $connection->sendfrom($me->full, 'NOTICE * :*** Skipped ident lookup');
         return $connection->{skip_ident} = 1;
     }
-    
-    # we determined that a tilde should be added.
-    $connection->{ident} = "~$ident" if delete $connection->{tilde};
-    
+
 }
 
 # initiate the request.
