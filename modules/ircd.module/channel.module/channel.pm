@@ -33,7 +33,7 @@ sub new {
 
 sub is_mode {
     my ($channel, $name) = @_;
-    return $channel->{modes}{$name}
+    return $channel->{modes}{$name};
 }
 
 sub mode_parameter {

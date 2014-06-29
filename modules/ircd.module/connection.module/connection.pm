@@ -78,7 +78,6 @@ sub handle {
     my @args    = split /\s+/, $data;
     my $command = uc shift @args;
 
-print "args: @args ", scalar(@args), "\n";
     # fire command events.
     $connection->prepare(
         [ raw                      => $data, @args ],

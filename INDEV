@@ -2410,6 +2410,8 @@ CHANGES:
         
         65. fixed buggy registration waits.
             fixed an issue where multiple users could have the same nick if registered at the same time.
+            
+        66. fixed bugs with parameter check in registration commands.
         
         
         

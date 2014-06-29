@@ -372,7 +372,7 @@ sub load_or_reload {
         require $file or L("Very bad error: could not load $name!".($@ || $!)) and return;
         return 1;
     }
-    
+        
     # load it.
     L("Reloading package $name");
     do $file or L("Very bad error: could not load $name! ".($@ || $!)) and return;
@@ -404,9 +404,9 @@ sub load_dependencies {
         
         [ 'IO::Socket::IP',                0.25 ],
         
-        [ 'Evented::Object',               5.44 ],
-        [ 'Evented::Object::Collection',   5.44 ],
-        [ 'Evented::Object::EventFire',    5.44 ],
+        [ 'Evented::Object',               5.45 ],
+        [ 'Evented::Object::Collection',   5.45 ],
+        [ 'Evented::Object::EventFire',    5.45 ],
 
         [ 'Evented::Configuration',        3.40 ],
         [ 'Evented::Database',             0.50 ],
