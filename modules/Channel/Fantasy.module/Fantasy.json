@@ -1,10 +1,10 @@
 {
-   "version" : "0.9",
-   "name" : "Fantasy",
+   "version" : "1.1",
+   "name" : "Channel::Fantasy",
    "author" : {
       "website" : "https://github.com/cooper",
       "name" : "Mitchell Cooper"
    },
    "description" : "channel fantasy commands",
-   "package" : "M::Fantasy"
+   "package" : "M::Channel::Fantasy"
 }

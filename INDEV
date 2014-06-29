@@ -2420,5 +2420,8 @@ CHANGES:
         
         69. reorganized channel modules
         
+    7. time out hostname lookups after 3 seconds.
+        finished renaming channel-related modules.
+
         
         

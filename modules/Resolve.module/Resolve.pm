@@ -36,7 +36,8 @@ sub resolve_address {
     $connection->{resolve_future} = $::loop->resolver->getnameinfo(
         addr        => $connection->sock->peername,
         on_resolved => sub { on_resolved_ip($connection, @_) },
-        on_error    => sub { on_error($connection, shift)    }
+        on_error    => sub { on_error($connection, shift)    },
+        timeout     => 3
     );
     
 }
@@ -54,7 +55,8 @@ sub on_resolved_ip {
         service     => '',
         socktype    => Socket::SOCK_STREAM(),
         on_resolved => sub { on_resolved_host($connection, @_) },
-        on_error    => sub { on_error($connection, shift)      }
+        on_error    => sub { on_error($connection, shift)      },
+        timeout     => 3
     );
     
 }

@@ -1,16 +1,16 @@
 {
-   "version" : "1.0",
-   "name" : "Limit",
+   "version" : "1.1",
+   "name" : "Channel::Limit",
    "author" : {
       "website" : "https://github.com/mattwb65",
       "name" : "Matthew Barksdale"
    },
    "description" : "Adds channel mode +l",
+   "package" : "M::Channel::Limit",
    "depends" : {
       "modules" : [
          "Base::ChannelModes",
          "Base::UserNumerics"
       ]
-   },
-   "package" : "M::Limit"
+   }
 }

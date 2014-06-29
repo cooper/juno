@@ -1,6 +1,6 @@
 {
-   "version" : "1.3",
-   "name" : "Invite",
+   "version" : "1.5",
+   "name" : "Channel::Invite",
    "author" : {
       "website" : "https://github.com/cooper",
       "name" : "Mitchell Cooper"
@@ -14,5 +14,5 @@
          "Base::UserNumerics"
       ]
    },
-   "package" : "M::Invite"
+   "package" : "M::Channel::Invite"
 }

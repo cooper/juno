@@ -74,7 +74,7 @@ This section isn't done.
 
 * __JELP__:
 
-* __Access__:
+* __Channel::Access__:
 
 * __Account__:
 

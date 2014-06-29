@@ -76,7 +76,7 @@ sub connection_user {
         return;
     }
     
-    # already did a lookup or it was skipped alread.
+    # already did a lookup or it was skipped already.
     return if $connection->{ident_checked};
     
     # if the requested ident has ~, cancel ident check.

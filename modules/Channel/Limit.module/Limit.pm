@@ -4,8 +4,8 @@
 # Sun Jun 29 14:49:55 EDT 2014
 # Limit.pm
 #
-# @name:            'Limit'
-# @package:         'M::Limit'
+# @name:            'Channel::Limit'
+# @package:         'M::Channel::Limit'
 # @description:     'Adds channel mode +l'
 #
 # @depends.modules: ['Base::ChannelModes', 'Base::UserNumerics']
@@ -13,7 +13,7 @@
 # @author.name:     'Matthew Barksdale'
 # @author.website:  'https://github.com/mattwb65'
 #
-package M::Limit;
+package M::Channel::Limit;
 
 use warnings;
 use strict;

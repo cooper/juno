@@ -1,7 +1,7 @@
 # Copyright (c) 2014, Mitchell Cooper
 #
-# @name:            "Invite"
-# @package:         "M::Invite"
+# @name:            "Channel::Invite"
+# @package:         "M::Channel::Invite"
 # @description:     "channel invitations"
 #
 # @depends.modules: [qw(Base::UserCommands JELP::Base Base::ChannelModes Base::UserNumerics)]
@@ -9,7 +9,7 @@
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"
 #
-package M::Invite;
+package M::Channel::Invite;
 
 use warnings;
 use strict;

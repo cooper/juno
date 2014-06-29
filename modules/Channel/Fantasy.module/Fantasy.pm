@@ -1,13 +1,13 @@
 # Copyright (c) 2012-14, Mitchell Cooper
 #
-# @name:            "Fantasy"
-# @package:         "M::Fantasy"
+# @name:            "Channel::Fantasy"
+# @package:         "M::Channel::Fantasy"
 # @description:     "channel fantasy commands"
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"
 #
-package M::Fantasy;
+package M::Channel::Fantasy;
 
 use warnings;
 use strict;

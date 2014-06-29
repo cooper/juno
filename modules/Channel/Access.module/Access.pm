@@ -1,7 +1,7 @@
 # Copyright (c) 2009-14, Mitchell Cooper
 #
-# @name:            "Access"
-# @package:         "M::Access"
+# @name:            "Channel::Access"
+# @package:         "M::Channel::Access"
 # @description:     "implements channel access mode"
 #
 # @depends.modules: ['Base::ChannelModes', 'Base::UserCommands']
@@ -9,7 +9,7 @@
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"
 #
-package M::Access;
+package M::Channel::Access;
 
 use warnings;
 use strict;

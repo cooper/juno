@@ -264,7 +264,7 @@ sub done {
 
     # remove from connection the pool if it's still there.
     # if the connection has reserved a nick, release it.
-    my $r = $pool->nick_in_use($connection->{nick});
+    my $r = defined $connection->{nick} ? $pool->nick_in_use($connection->{nick}) : undef;
     $pool->release_nick($connection->{nick}) if $r && $r == $connection;
     $pool->delete_connection($connection, $reason) if $connection->{pool};
 

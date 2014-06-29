@@ -1,6 +1,6 @@
 {
-   "version" : "2.3",
-   "name" : "Access",
+   "version" : "2.5",
+   "name" : "Channel::Access",
    "author" : {
       "website" : "https://github.com/cooper",
       "name" : "Mitchell Cooper"
@@ -12,5 +12,5 @@
          "Base::UserCommands"
       ]
    },
-   "package" : "M::Access"
+   "package" : "M::Channel::Access"
 }
