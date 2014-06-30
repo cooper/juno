@@ -240,7 +240,7 @@ sub send_server_credentials {
     $connection->send('PASS '.conn($name, 'send_password'));  
 }
 
-# send a command or numeric to a possibly unregistered connection.
+# send a command to a possibly unregistered connection.
 sub early_reply {
     my ($conn, $cmd) = (shift, shift);
     $conn->sendme("$cmd ".(defined $conn->{nick} ? $conn->{nick} : '*')." @_");

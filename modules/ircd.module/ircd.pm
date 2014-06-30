@@ -464,22 +464,22 @@ sub handle_connect {
     $loop->add($stream);
 
     # if the connection limit has been reached, disconnect immediately.
-    if (scalar $pool->connections >= conf('limit', 'connection')) {
-        $conn->done('Total connection limit reached');
+    if (scalar $pool->connections > conf('limit', 'connection')) {
+        $conn->done('Total connection limit exceeded');
         $stream->close_now; # don't even wait.
         return;
     }
 
     # if the connection IP limit has been reached, disconnect.
     my $ip = $stream->{write_handle}->peerhost;
-    if (scalar(grep { $_->{ip} eq $ip } $pool->connections) >= conf('limit', 'perip')) {
-        $conn->done('Connections per IP limit reached');
+    if (scalar(grep { $_->{ip} eq $ip } $pool->connections) > conf('limit', 'perip')) {
+        $conn->done('Connections per IP limit exceeded');
         return;
     }
 
     # if the global user IP limit has been reached, disconnect.
-    if (scalar(grep { $_->{ip} eq $ip } $pool->actual_users) >= conf('limit', 'globalperip')) {
-        $conn->done('Global connections per IP limit reached');
+    if (scalar(grep { $_->{ip} eq $ip } $pool->actual_users) > conf('limit', 'globalperip')) {
+        $conn->done('Global connections per IP limit exceeded');
         return;
     }
     

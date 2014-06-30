@@ -116,8 +116,12 @@ logging channel (inspired by InspIRCd), network administrator support and the
 corresponding NA:line, temporary oper-override mode (+O), channel mute mode (+Z, inspired
 by charybdis +q), KLINE command for adding K:lines from IRC, an almost-but-never-fully
 working buggy linking protocol, and a network name (NETWORK in RPL_ISUPPORT) option.
-Unfortunately juno-ircd introduced dozens of new bugs along with its features, and it
+juno-ircd's name was chosen by [Autumn](https://github.com/lacp) after the Roman goddess
+[Juno](http://en.wikipedia.org/wiki/Juno_(mythology)).
+Unfortunately it introduced dozens of new bugs along with its features, and it
 included some of the ugliest code in all of Perl history.
+An example of the attention juno-ircd received from the [Atheme](http://atheme.org)
+(then StaticBox) community:
 
 ```
 [04:15pm] -Global- [Network Notice] Alice (nenolod) - We will be upgrading to "juno-ircd" in 5 seconds.
@@ -173,7 +177,7 @@ the IRCd more extensible than ever before. The
 [Evented::API::Engine](https://github.com/cooper/evented-api-engine) replaced the former
 [API Engine](https://github.com/cooper/api-engine), allowing modules to react to any
 event that occurs within juno. vulpia completed the relocation of JELP
-(the linking protoocol) to a module, opening the doors for additional linking protocols
+(the linking protocol) to a module, opening the doors for additional linking protocols
 in the future. Additionally, it established the Account module, allowing users to better
 manage accounts and channels.
 

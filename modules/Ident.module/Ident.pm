@@ -72,7 +72,7 @@ sub connection_new {
 sub connection_user {
     my ($connection, $event, $ident, $real) = @_;
     if (delete $connection->{tilde}) {
-        $connection->{ident} = "~$ident" if delete $connection->{tilde};
+        $connection->{ident} = "~$ident";
         return;
     }
     
@@ -177,12 +177,13 @@ sub ident_done {
     delete $connection->{ident_stream};
 
     # add tilde if not successful.
-    if (!defined $connection->{ident_success}) {
+    if (!defined $connection->{ident_success} && !$connection->{skip_ident}) {
         $connection->{tilde} = 1;
-        unless ($connection->{skip_ident}) {
-            $connection->{ident} = '~'.$connection->{ident} if defined $connection->{ident};
-            $connection->early_reply(NOTICE => ':*** No ident response');
+        if (defined $connection->{ident}) {
+            delete $connection->{tilde};
+            $connection->{ident} = '~'.$connection->{ident};
         }
+        $connection->early_reply(NOTICE => ':*** No ident response');
     }
     
     # it was successful. set the ident.

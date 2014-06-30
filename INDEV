@@ -2441,6 +2441,10 @@ CHANGES:
         75. 'address' key in connect blocks now accepts a list of addresses to accept.
             addresses in connect blocks can now contain wildcards * and ?.
             
+        76. fixed a bug where the connection limits were off by one.
+            fixed a bug where the ~ was not added sometimes in Ident.
+            
+            
          
          
          
