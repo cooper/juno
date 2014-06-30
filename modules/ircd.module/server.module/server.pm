@@ -96,15 +96,6 @@ sub umode_letter {
     return $server->{umodes}{$name}{letter}
 }
 
-# add a channel mode
-# types:
-#   0: normal
-#   1: parameter
-#   2: parameter only when set
-#   3: list
-#   4: status
-# I was gonna make a separate type for status modes but
-# i don't if that's necessary
 sub add_cmode {
     my ($server, $name, $mode, $type) = @_;
     $server->{cmodes}{$name} = {
@@ -160,36 +151,25 @@ sub convert_cmode_string {
     return $newstring;
 }
 
+# true if the mode takes a parameter in this state.
+#
+# returns:
+#     1 = yes, takes parameter
+#     2 = take parameter if present but still valid if not
+# undef = does not take parameter
+#
 sub cmode_takes_parameter {
     my ($server, $name, $state) = @_;
-    given ($server->{cmodes}{$name}{type}) {
-        # always give a parameter
-        when (1) {
-            return 1
-        }
-
-        # only give a parameter when setting
-        when (2) {
-            return $state
-        }
-
-        # lists like +b always want a parameter
-        # keep in mind that these view lists when there isn't one, though
-        # REVISION: blocks for these modes must check for parameters manually.
-        # if there is a parameter, it will set or unset. it should send a numerical
-        # list otherwise.
-        when (3) {
-            return 2 # 2 means yes if present but still valid if not present
-        }
-
-        # status modes always want a parameter
-        when (4) {
-            return 1
-        }
-    }
-
-    # or give nothing
-    return
+    my $keyshit = $state ? 1 : 2;
+    my %params  = (
+        0 => undef,     # normal        - never
+        1 => 1,         # parameter     - always
+        2 => $state,    # parameter_set - when setting only
+        3 => 2,         # list mode     - consume parameter if present but valid if not
+        4 => 1,         # status mode   - always
+        5 => $keyshit   # key mode (+k) - always when setting, only if present when unsetting
+    );
+    return $params{ $server->{cmodes}{$name}{type} };
 }
 
 #

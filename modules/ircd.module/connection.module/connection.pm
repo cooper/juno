@@ -79,12 +79,18 @@ sub handle {
     my $command = uc shift @args;
 
     # fire command events.
-    $connection->prepare(
+    my $fire = $connection->prepare(
         [ raw                      => $data, @args ],
         [ "command_${command}_raw" => $data, @args ],
         [ "command_$command"       =>        @args ]
     )->fire('safe');
 
+    # 'safe' with exception.
+    if (my $e = $fire->exception) {
+        my $stopper = $fire->stopper;
+        L("Exception in $command from $stopper: $e");
+    }
+    
 }
 
 # increase the wait count.

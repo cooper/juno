@@ -392,9 +392,9 @@ sub load_dependencies {
     # main dependencies.
     load_or_reload(@$_) foreach (
     
-        [ 'Evented::API::Engine',          3.60 ],
-        [ 'Evented::API::Module',          3.60 ],
-        [ 'Evented::API::Hax',             3.60 ],
+        [ 'Evented::API::Engine',          3.62 ],
+        [ 'Evented::API::Module',          3.62 ],
+        [ 'Evented::API::Hax',             3.62 ],
         
         [ 'IO::Async::Loop',               0.60 ],
         [ 'IO::Async::Stream',             0.60 ],
@@ -404,9 +404,9 @@ sub load_dependencies {
         
         [ 'IO::Socket::IP',                0.25 ],
         
-        [ 'Evented::Object',               5.46 ],
-        [ 'Evented::Object::Collection',   5.46 ],
-        [ 'Evented::Object::EventFire',    5.46 ],
+        [ 'Evented::Object',               5.48 ],
+        [ 'Evented::Object::Collection',   5.48 ],
+        [ 'Evented::Object::EventFire',    5.48 ],
 
         [ 'Evented::Configuration',        3.40 ],
         [ 'Evented::Database',             0.50 ],

@@ -2423,5 +2423,8 @@ CHANGES:
     7. time out hostname lookups after 3 seconds.
         finished renaming channel-related modules.
 
-        
+        71. report errors in command exceptions.
+            improved some things with modes and such.
+            updated Evented::API::Engine.
+            updated Evented::Object.
         

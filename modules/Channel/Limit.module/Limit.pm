@@ -6,7 +6,7 @@
 #
 # @name:            'Channel::Limit'
 # @package:         'M::Channel::Limit'
-# @description:     'Adds channel mode +l'
+# @description:     'adds channel user limit mode'
 #
 # @depends.modules: ['Base::ChannelModes', 'Base::UserNumerics']
 #
@@ -18,8 +18,10 @@ package M::Channel::Limit;
 use warnings;
 use strict;
 use 5.010;
+use Scalar::Util 'looks_like_number';
 
 our ($api, $mod, $pool);
+my $MAX = ~0 >> 1;
 
 sub init {
     # register limit mode block.
@@ -43,7 +45,9 @@ sub cmode_limit {
     # always allow unsetting
     return 1 if !$mode->{state};
     # validation check
+    return if !looks_like_number($mode->{param});
     $mode->{param} = int $mode->{param};
+    $mode->{param} = $MAX if $mode->{param} > $MAX;
     if (!$mode->{param} || $mode->{param} <= 0) {
         $mode->{do_not_set} = 1;
         return;

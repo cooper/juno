@@ -198,7 +198,7 @@ sub modreload {
 
     # success.
     $user->server_notice(modreload => 'Module reloaded successfully.');
-    notice(module_reload => $user->notice_info, $result);
+    notice(module_reload => $user->notice_info, $mod_name);
     return 1;
 
 }

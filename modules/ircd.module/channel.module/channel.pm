@@ -242,8 +242,11 @@ sub handle_mode_string {
                 next
             }
             
-            # 1 == always takes param
-            # 2 == takes param, but valid if there isn't, such as list modes like +b for viewing
+            # these are returned by ->cmode_takes_parameter: NOT mode types
+            #     1 = always takes param
+            #     2 = takes param, but valid if there isn't,
+            #         such as list modes like +b for viewing
+            #
             my ($takes, $parameter);
             if ($takes = $server->cmode_takes_parameter($name, $state)) {
                 $parameter = shift @m;
@@ -319,16 +322,39 @@ sub handle_mode_string {
 }
 
 # returns a +modes string
-#   normal (0)
-#   parameter (1)
-#   parameter_set (2)
-#   list (3)
-#   status (4)
-sub mode_string {
-    my ($channel, $server) = @_;
+#
+#   type            n   description                                 e.g.
+#   ----            -   -----------                                 ----
+#
+#   normal          0   never has a parameter                       +m
+#
+#   parameter       1   requires parameter when set and unset       n/a
+#
+#   parameter_set   2   requires parameter only when set            +l
+#
+#   list            3   list-type mode                              +b
+#
+#   status          4   status-type mode                            +o
+#
+#   key             5   like type 1 but visible only to members     +k
+#                       and consumes parameter when unsetting
+#                       only if present (keys are very particular!)
+#
+sub mode_string        { _mode_string(0, @_) }
+sub mode_string_hidden { _mode_string(1, @_) }
+
+sub _mode_string {
+    my ($show_hidden, $channel, $server) = @_;
     my (@modes, @params);
     my @set_modes = sort keys %{ $channel->{modes} };
-    my %normal_types = (0 => 1, 1 => 1, 2 => 1);
+    
+    my %normal_types = (
+        0 => 1,                 # normal modes always incluided
+        1 => 1,                 # parameter always included
+        2 => 1,                 # parameter_set always included
+        5 => $show_hidden       # key only if included showing hidden
+    );
+    
     foreach my $name (@set_modes) {
         next unless $normal_types{ $server->cmode_type($name) };
 
