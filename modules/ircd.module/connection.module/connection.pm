@@ -147,7 +147,6 @@ sub ready {
 
         # check for valid password.
         my $password = utils::crypt($connection->{pass}, conn($connection->{name}, 'encryption'));
-
         if ($password ne conn($connection->{name}, 'receive_password')) {
             $connection->done('Invalid credentials');
             notice(connection_invalid => $connection->{ip}, 'Received invalid password');

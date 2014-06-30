@@ -2438,6 +2438,9 @@ CHANGES:
             ->do_mode_string() now will only send out UMODE after UID has been sent.
             protocol errors for missing users, channels, etc. now do not result in delinkage but instead only warn IRC operators. the connection will stay alive.
             
+        75. 'address' key in connect blocks now accepts a list of addresses to accept.
+            addresses in connect blocks can now contain wildcards * and ?.
+            
          
          
          

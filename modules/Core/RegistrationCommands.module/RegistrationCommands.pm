@@ -18,7 +18,7 @@ package M::Core::RegistrationCommands;
 use warnings;
 use strict;
 use 5.010;
-use utils qw(col conf notice);
+use utils qw(col conf notice irc_match);
 
 our ($api, $mod, $pool);
 
@@ -212,16 +212,13 @@ sub rcmd_server {
     }
 
     # find a matching server
-    if (defined(my $addr = conf(['connect', $connection->{name}], 'address'))) {
-
-        # FIXME: we need to use IP comparison functions
-        # check for matching IPs
-        if ($connection->{ip} ne $addr) {
+    if (defined(my $addrs = conf(['connect', $connection->{name}], 'address'))) {
+        $addrs = [$addrs] if !ref $addrs;
+        if (!irc_match($connection->{ip}, @$addrs)) {
             $connection->done('Invalid credentials');
-            notice(connection_invalid => $connection->{ip}, 'IP does not match block');
+            notice(connection_invalid => $connection->{ip}, 'IP does not match configuration');
             return;
         }
-
     }
 
     # no such server

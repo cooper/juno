@@ -1,5 +1,5 @@
 {
-   "version" : "8.73",
+   "version" : "8.75",
    "name" : "ircd::connection",
    "author" : {
       "website" : "https://github.com/cooper",
