@@ -1109,14 +1109,15 @@ sub list {
 
     # send for each channel in no particular order.
     foreach my $channel ($pool->channels) {
-       # 322 RPL_LIST "<channel> <# visible> :<topic>"
+        next if $channel->fire_event(show_in_list => $user)->stopper;
+        # 322 RPL_LIST "<channel> <# visible> :<topic>"
         my $number_of_users = scalar $channel->users;
         my $channel_topic   = $channel->topic ? $channel->topic->{topic} : '';
         $user->numeric(RPL_LIST => $channel->name, $number_of_users, $channel_topic);
     }
 
     # TODO: implement list for specific channels.
-    # TODO: +s and +p
+    # TODO: +s and +p (partially done, stopper in place but modes need to be added)
     
     $user->numeric('RPL_LISTEND');
     return 1;

@@ -2432,6 +2432,6 @@ CHANGES:
             updated Evented::API::Engine.
             updated Evented::Object.
             
-            
+        73. added ability to stop a channel from being shown in LIST.            
             
             
