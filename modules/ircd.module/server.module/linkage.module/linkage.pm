@@ -37,7 +37,7 @@ sub connect_server {
     
     # and that we're not trying to connect already.
     if ($ircd::connect_conns{ lc $server_name }) {
-        L("Attempted to connect to a server twice in a row: $server_name");
+        L("Already trying to connect to $server_name");
         return;
     }
     
@@ -46,7 +46,7 @@ sub connect_server {
     my %serv    = $ircd::conf->hash_of_block(['connect', $server_name]);
     notice(server_connect => $server_name, $serv{address}, $serv{port}, $attempt);
 
-    # create the socket
+    # create the socket.
     my $socket = IO::Socket::IP->new(
         PeerAddr => $serv{address},
         PeerPort => $serv{port},
@@ -73,19 +73,21 @@ sub connect_server {
       $pool->new_connection(stream => $stream);
 
     # configure the stream events.
+    my @a = ($conn, $stream, $server_name);
     $stream->configure(
         read_all       => 0,
         read_len       => POSIX::BUFSIZ,
         on_read        => sub { &ircd::handle_data },
-        on_read_eof    => sub { _end($conn, $stream, $server_name, 'Connection closed')   },
-        on_write_eof   => sub { _end($conn, $stream, $server_name, 'Connection closed')   },
-        on_read_error  => sub { _end($conn, $stream, $server_name, 'Read error: ' .$_[1]) },
-        on_write_error => sub { _end($conn, $stream, $server_name, 'Write error: '.$_[1]) }
+        on_read_eof    => sub { _end(@a, 'Connection closed')   },
+        on_write_eof   => sub { _end(@a, 'Connection closed')   },
+        on_read_error  => sub { _end(@a, 'Read error: ' .$_[1]) },
+        on_write_error => sub { _end(@a, 'Write error: '.$_[1]) }
     );
 
     # add to loop.
     $::loop->add($stream);
 
+    $conn->{is_linkage} = 1;
     $conn->{sent_creds} = 1;
     $conn->{want}       = $server_name; # server name to expect in return.
     $conn->send_server_credentials;
@@ -121,7 +123,7 @@ sub _end {
         on_tick  => sub { connect_server($server_name) }
     );
     $timer->{_juno_attempt} = 2;
-    $timer->{_juno_start}   = time;
+    $timer->{_juno_start}   = $::loop->time;
     $::loop->add($timer);
     $timer->start;
 }

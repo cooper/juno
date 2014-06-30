@@ -81,9 +81,10 @@ sub global_lookup {
 
 sub trim {
     my $string = shift;
-    $string =~ s/\s+$//;
-    $string =~ s/^\s+//;
-    return $string
+    my $nl = $/;
+    $string =~ s/[\s$nl]+$//;
+    $string =~ s/^[\s$nl]+//;
+    return $string;
 }
 
 # check if a nickname is valid

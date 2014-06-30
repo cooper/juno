@@ -2432,6 +2432,16 @@ CHANGES:
             updated Evented::API::Engine.
             updated Evented::Object.
             
-        73. added ability to stop a channel from being shown in LIST.            
+        73. added ability to stop a channel from being shown in LIST.    
+        
+        74. fixed some issues with connection timers.
+            ->do_mode_string() now will only send out UMODE after UID has been sent.
+            protocol errors for missing users, channels, etc. now do not result in delinkage but instead only warn IRC operators. the connection will stay alive.
             
-            
+         
+         
+         
+         
+         
+         
+         

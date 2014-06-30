@@ -39,7 +39,10 @@ my %notices = (
     server_connect          => '%s (%s) on port %d (Attempt %d)',
     server_connect_cancel   => '%s (%s@%s) canceled auto connect for %s',
     server_connect_fail     => 'Can\'t connect to %s: %s',
-    server_connect_success  => 'Connection established to %s'
+    server_connect_success  => 'Connection established to %s',
+    
+    perl_warning            => '%s',
+    server_warning          => 'Protocol error: %s'
 
 );
  

@@ -29,7 +29,7 @@ sub init {
 
     # load utils immediately.
     $mod->load_submodule('utils') or return;
-    utils->import(qw|conf fatal v trim|);
+    utils->import(qw|conf fatal v trim notice|);
     $VERSION = get_version();
     
     &set_variables;         # set default global variables.
@@ -111,12 +111,9 @@ sub setup_inc {
 
 sub setup_modules {
     return if $mod->{loading};
-    
-    # load API modules unless we're reloading.
     L('Loading API configuration modules');
     $api->load_modules(@{ conf('api', 'modules') || [] });
     L('Done loading modules');
-    
 }
 
 sub setup_config {
@@ -127,7 +124,7 @@ sub setup_config {
         db       => undef,
         conffile => "$::run_dir/etc/ircd.conf"
     );
-        
+    
     # parse the configuration.
     $conf->parse_config or return;
     
@@ -391,10 +388,6 @@ sub load_dependencies {
 
     # main dependencies.
     load_or_reload(@$_) foreach (
-    
-        [ 'Evented::API::Engine',          3.62 ],
-        [ 'Evented::API::Module',          3.62 ],
-        [ 'Evented::API::Hax',             3.62 ],
         
         [ 'IO::Async::Loop',               0.60 ],
         [ 'IO::Async::Stream',             0.60 ],
@@ -404,9 +397,13 @@ sub load_dependencies {
         
         [ 'IO::Socket::IP',                0.25 ],
         
-        [ 'Evented::Object',               5.48 ],
-        [ 'Evented::Object::Collection',   5.48 ],
-        [ 'Evented::Object::EventFire',    5.48 ],
+        [ 'Evented::Object',               5.49 ],
+        [ 'Evented::Object::Collection',   5.49 ],
+        [ 'Evented::Object::EventFire',    5.49 ],
+    
+        [ 'Evented::API::Engine',          3.63 ],
+        [ 'Evented::API::Module',          3.63 ],
+        [ 'Evented::API::Hax',             3.63 ],
 
         [ 'Evented::Configuration',        3.40 ],
         [ 'Evented::Database',             0.50 ],
@@ -437,7 +434,7 @@ sub signalhup  { }
 sub signalpipe { }
 
 # handle warning
-sub WARNING { L(shift) }
+sub WARNING { ircd->can('notice') ? notice(perl_warning => shift) : L(shift) }
 
 #####################
 ### INCOMING DATA ###

@@ -117,10 +117,10 @@ Mode synchronization
             
 Server linkage
 
-    [ ] Connection timers continue even after an ERROR message is received. Sometimes two
+    [*] Connection timers continue even after an ERROR message is received. Sometimes two
         timers may be ticking for the same server.
 
-    [ ] SQUIT and CONNECT still do not work quite right, probably due to the above issues
+    [*] SQUIT and CONNECT still do not work quite right, probably due to the above issues
         with connection timers.
         
     [ ] SQUIT and CONNECT probably do not accept server masks.

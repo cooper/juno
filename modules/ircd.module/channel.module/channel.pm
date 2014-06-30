@@ -703,13 +703,13 @@ sub handle_privmsgnotice {
         # already sent to this server.
         next if $sent{ $usr->{location} };
         
-        $usr->{location}->fire_command(privmsgnotice => $command, $user, $channel, $message);
+        $usr->{location}->fire_command(privmsgnotice => $command, $source, $channel, $message);
         $sent{ $usr->{location} } = 1;
 
     }
     
     # fire event.
-    $channel->fire_event(lc $command => $user, $message);
+    $channel->fire_event(lc $command => $source, $message);
 
     return 1;
     

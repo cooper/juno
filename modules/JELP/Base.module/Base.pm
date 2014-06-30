@@ -12,7 +12,7 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils qw(col trim);
+use utils qw(col trim notice);
 use Scalar::Util qw(looks_like_number);
 
 our ($api, $mod, $pool);
@@ -134,8 +134,7 @@ sub register_server_command {
             # error sub.
             my $err = sub {
                 my $error = shift;
-                return unless $server->{conn};
-                $server->{conn}->done("Protocol error (in $command): $$server{name}: $error");
+                notice(server_warning => "Received invalid $command from $$server{name}: $error");
                 return;
             };
             

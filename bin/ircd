@@ -15,7 +15,7 @@ BEGIN {
         /evented-database /evented-properties/lib))){ unshift @INC, $_ }
     require Evented::API::Engine;
 }
-sub get_version { $api->_slurp(undef, undef, "$run_dir/VERSION") }
+sub get_version { $_ = $api->_slurp(undef, undef, "$run_dir/VERSION"); chomp; $_ }
 sub safe_call   { my $f = shift; (ircd->can($f) or return)->(@_) } # @_ is needed idk why
 
 $api = Evented::API::Engine->new(

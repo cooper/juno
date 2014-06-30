@@ -417,6 +417,8 @@ sub new_connection {
 
     # tell other servers
     $pool->fire_command_all(uid => $user);
+    
+    return $user->{init_complete} = 1;
 }
 
 # send to all members of channels in common
@@ -457,8 +459,8 @@ sub _do_mode_string {
     # handle.
     my $result = $user->handle_mode_string($modestr, $force) or return;
     
-    # not local; don't do more.
-    return unless $user->is_local;
+    # not local or not done registering; stop.
+    return if !$user->is_local || !$user->{ready};
     
     # tell the user himself and other servers.
     $user->sendfrom($user->{nick}, "MODE $$user{nick} :$result");
