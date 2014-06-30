@@ -31,13 +31,13 @@ sub init {
     $pool->on('server.send_burst' => \&send_burst,
         name  => 'account',
         after => 'core',
-        with_evented_obj => 1
+        with_eo => 1
     );
     
     # user account events.
-    $pool->on('user.account_logged_in'  => \&user_logged_in,  with_evented_obj => 1);
-    $pool->on('user.account_logged_out' => \&user_logged_out, with_evented_obj => 1);
-    $pool->on('user.account_registered' => \&user_registered, with_evented_obj => 1);
+    $pool->on('user.account_logged_in'  => \&user_logged_in,  with_eo => 1);
+    $pool->on('user.account_logged_out' => \&user_logged_out, with_eo => 1);
+    $pool->on('user.account_registered' => \&user_registered, with_eo => 1);
     
     # incoming commands.
     $mod->register_server_command(%$_) || return foreach (

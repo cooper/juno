@@ -53,7 +53,7 @@ sub init {
     ) || return foreach keys %ocommands;
 
     # register server burst event.
-    $pool->on('server.send_burst' => \&send_burst, name => 'core', with_evented_obj => 1);
+    $pool->on('server.send_burst' => \&send_burst, name => 'core', with_eo => 1);
     
     return 1;
 }

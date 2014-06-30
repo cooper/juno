@@ -71,7 +71,7 @@ sub register_registration_command {
     my $event_name = 'connection.command_'.$command.($opts{with_data} ? '_raw' : '');
     my $result = $pool->on($event_name => $code,
         name => $opts{cb_name},
-        with_evented_obj => 1,
+        with_eo => 1,
         %opts,
         _caller => $mod->package
     ) or return;

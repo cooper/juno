@@ -357,7 +357,7 @@ sub register_user_handler {
     my ($pool, $source, $command) = (shift, shift, uc shift);
 
     # does it already exist?
-    if (exists $pool->{user_commands}{$command}) {
+    if ($pool->{user_commands}{$command}) {
         L("attempted to register $command which already exists");
         return;
     }

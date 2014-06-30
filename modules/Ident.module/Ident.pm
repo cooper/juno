@@ -18,8 +18,8 @@ use utils qw(trim);
 our ($api, $mod, $me, $pool);
 
 sub init {
-    $pool->on('connection.new'      => \&connection_new,  with_evented_obj => 1) or return;
-    $pool->on('connection.reg_user' => \&connection_user, with_evented_obj => 1) or return;
+    $pool->on('connection.new'      => \&connection_new,  with_eo => 1) or return;
+    $pool->on('connection.reg_user' => \&connection_user, with_eo => 1) or return;
     return 1;
 }
 

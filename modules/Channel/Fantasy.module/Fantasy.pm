@@ -16,7 +16,7 @@ use 5.010;
 our ($api, $mod, $pool);
 
 sub init {
-    $pool->on('channel.privmsg' => \&channel_privmsg, with_evented_obj => 1);
+    $pool->on('channel.privmsg' => \&channel_privmsg, with_eo => 1);
     return 1;
 }
 

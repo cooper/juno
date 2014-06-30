@@ -34,7 +34,7 @@ sub init {
         my ($connection, $event, $data, @args) = @_;
         return unless $connection->{type};
         $connection->{type}->handle($data, \@args);
-    }, name => 'high.level.handlers', priority => -100, with_evented_obj => 1);
+    }, name => 'high.level.handlers', priority => -100, with_eo => 1);
 
 }
 

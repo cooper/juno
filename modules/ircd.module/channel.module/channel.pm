@@ -96,7 +96,7 @@ sub list_matches {
 sub list_elements {
     my ($channel, $name, $all) = @_;
     return unless $channel->{modes}{$name};
-    my @list = @{ $channel->{modes}{$name}{list} };
+    my @list = @{ $channel->{modes}{$name}{list} || [] };
     if ($all)  { return @list }
     return map { $_->[0]      } @list;
 }

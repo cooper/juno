@@ -23,7 +23,7 @@ sub init {
     $mod->register_module_method('register_channel_mode_block') or return;
     
     # module unload event.
-    $api->on('module.unload' => \&unload_module, with_evented_obj => 1) or return;
+    $api->on('module.unload' => \&unload_module, with_eo => 1) or return;
     
     return 1;
 }
