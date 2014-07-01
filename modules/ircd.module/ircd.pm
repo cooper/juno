@@ -120,12 +120,17 @@ sub setup_config {
 
     # set up the configuration/database.
     # TEMPORARILY use no database until we read [database] block.
-    $conf = Evented::Database->new(
+    $conf ||= Evented::Database->new(
         db       => undef,
-        conffile => "$::run_dir/etc/ircd.conf"
+        conffile => "$::run_dir/etc/default.conf"
     );
     
-    # parse the configuration.
+    # parse the default configuration.
+    $conf->{conffile} = "$::run_dir/etc/default.conf";
+    $conf->parse_config or return;
+    
+    # parse the actual configuration.
+    $conf->{conffile} = "$::run_dir/etc/ircd.conf";
     $conf->parse_config or return;
     
     return 1;
@@ -602,7 +607,7 @@ sub terminate {
 
 # rehash the server.
 sub rehash {
-    eval { $conf->parse_config } or L("Configuration error: ".($@ || $!)) and return;
+    eval { &setup_config } or L("Configuration error: ".($@ || $!)) and return;
     setup_sockets();
     add_internal_user_modes();
     add_internal_channel_modes();

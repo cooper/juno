@@ -15,50 +15,6 @@
     modules = ['Core', 'Resolve']               # load these modules at startup
 
 
-[ database ]
-
-    type = 'sqlite'                             # database format
-
-
-[ modes: user ]
-
-    ircop         = 'o'                         # IRC operator                      (o)
-    invisible     = 'i'                         # invisible mode                    (i)
-    registered    = 'r'                         # registered - Account module       (r)
-
-
-[ modes: channel ]
-
-    no_ext        = [0, 'n']                    # no external channel messages      (n)
-    protect_topic = [0, 't']                    # only operators can set the topic  (t)
-    invite_only   = [0, 'i']                    # you must be invited to join       (i)
-    moderated     = [0, 'm']                    # only voiced and up may speak      (m)
-    ban           = [3, 'b']                    # channel ban                       (b)
-    except        = [3, 'e']                    # ban exception                     (e)
-    invite_except = [3, 'I']                    # invite-only exception             (I)
-    access        = [3, 'A']                    # Channel::Access module list mode  (A)
-    limit         = [2, 'l']                    # Channel user limit mode           (l)
-
-
-[ prefixes ]
-
-    owner  = ['q', '~',  2]                     # channel owner                     (q)
-    admin  = ['a', '&',  1]                     # channel administrator             (a)
-    op     = ['o', '@',  0]                     # channel operator                  (o)
-    halfop = ['h', '%', -1]                     # channel half-operator             (h)
-    voice  = ['v', '+', -2]                     # voiced channel member             (v)
-
-
-[ users ]
-
-    automodes = '+i'                            # set these modes on users at connect
-
-
-[ channels ]
-
-    automodes = '+ntqo +user +user'             # set these modes as users enter channel
-
-
 [ limit ]
 
     # the maximum number of:
@@ -79,66 +35,94 @@
     away        = 100                           # away messages
 
 
-[ file ]
+[ users ]
 
-    motd = 'etc/ircd.motd'                      # message of the day file
-
-
-[ ping: server ]
-
-    frequency = 20                              # how often to ping servers
-    timeout   = 500                             # how long until dropping servers
+    automodes = '+i'                            # set these modes on users at connect
 
 
-[ ping: user ]
+[ channels ]
 
-    message   = 'Ping timeout'                  # message for ping timeouts
-    frequency = 30                              # how often to ping users
-    timeout   = 120                             # how long until dropping users
+    automodes = '+ntqo +user +user'             # set these modes as users enter channel
 
+
+# IPv4 listen
 
 [ listen: 0.0.0.0 ]
 
-    port = [6667..6669, 7000]                   # unsecured listening ports
+    port    = [6667..6669, 7000]                # unsecured listening ports
+    sslport = [6697]                            # secure ports
 
-[ listen: ::1 ]
 
-    port = [6667..6669, 7000]                   # unsecured listening ports
+# IPv6 listen
+
+[ listen: :: ]
+
+    port    = [6667..6669, 7000]                # unsecured listening ports
+    sslport = [6697]                            # secure ports
+
 
 [ connect: server2.example.com ]
 
-    address          = '192.168.1.5'            # IP address for connections
-    port             = 7000                     # port on which link will take place
-    send_password    = 'k'                      # password to send (plaintext)
-    receive_password = '13fbd79c3d390e5d6585a21e11ff5ec1970cff0c' # password to receive
-    encryption       = 'sha1'                   # encryption of the receive password
-    autoconnect      = off                      # connect automatically
-
-
-[ operclass: local ]
-
-    flags = ['kill', 'see_invisible', 'rehash'] # flags for local opers
-
-
-[ operclass: global ]
-
-    extends = 'local'                           # global opers inherit all flags in local
-    flags   = ['gkill', 'grehash']              # flags specific to global opers and up
-
-
-[ operclass: netadmin ]
-
-    extends = 'global'                          # netadmins inherit global and local flags
-    flags   = ['grant']                         # flags specific to netadmins only
-    notices = ['all']                           # server notice flags
+    # Address(es) to accept connection from.
+    # MUST be IP addresses, not hostnames.
+    # Wildcards are accepted. Any number of address allowed.
+    
+        address = ['192.168.1.*', '127.0.0.1'] 
+    
+    # Outgoing port. If initiating a connection, the server will try this port.
+    # Currently, the port does not affect incoming connections.
+    
+        port = 7000
+    
+    # Plain text outgoing password
+    
+        send_password = 'k'
+    
+    # Incoming password and the encryption for it
+    
+        receive_password = '13fbd79c3d390e5d6585a21e11ff5ec1970cff0c'
+        encryption       = 'sha1'
+    
+    # Auto connect on startup.
+    
+        autoconnect = off
+    
+    # Reconnect timer. If connection drops, try again every x seconds.
+    # Uncomment below if you wish to enable this feature.
+    
+        #auto_timer = 30
 
 
 [ oper: admin ]
 
-    class      = 'netadmin'                     # oper class (optional)
-    host       = ['*@*']                        # accept authentication from these
-    password   = '13fbd79c3d390e5d6585a21e11ff5ec1970cff0c' # password
-    encryption = 'sha1'                         # encryption of above password
-    flags      = ['all']                        # flags for this oper (optional)
+    # Operator class (optional)
+    # If present, the oper will receive flags and notices defined in this class
+    # and all other classes from which it may inherit.
     
+        class      = 'netadmin'
+        
+    # Hostmask(s) to accept for opering.
+    # These can include either hostnames or IP addresses.
+    # Multiple values accepted. Wildcards accepted.
+    
+        host = ['*@*']
+        
+    # The password and encyption for it
+    
+        password   = '13fbd79c3d390e5d6585a21e11ff5ec1970cff0c'
+        encryption = 'sha1'
+        
+    # Flags (optional)
+    # Oper flags which are specific to this oper. These will be granted in
+    # conjunction with any others that might exist from oper classes.
+    # Multiple flags accepted. Wildcards not accepted. 'all' matches all flags.
+    
+        flags = ['all']
+    
+    # Oper notice flags (optional)
+    # Notice flags which are specific to this oper. These will be granted in
+    # conjunction with any others that might exist from oper classes.
+    # Multiple flags accepted. Wildcards not accepted. 'all' matches all flags.
+    
+        notices = ['all']
     

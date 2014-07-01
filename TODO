@@ -16,18 +16,28 @@ Legend
 Configuration
 ------------------------------------------------------------------------------------------
 
-[ ] default.conf fallback configuration
+[√] default.conf fallback configuration
 
-[ ] multiple IPs in connect blocks
+[√] multiple IPs in connect blocks
+
+[ ] some way to fetch configuration over other protocols
+
+[ ] some way to share configurations across servers
 
 Modules
 ------------------------------------------------------------------------------------------
 
     [*] SASL                    SASL account authentication
                                 works but currently only has PLAIN authentication
+                                
+    [ ] Channel::Modesync       see "Mode synchronization" below
+    
+    [ ] Configuration::Fetch    fetch configuration values from HTTP or other sources
+    
+    [ ] Configuration::Sync     share configurations between servers (how to do securely?)
 
 Evented::Socket modules
-
+    
     [ ] SSL                     make SSL modular with a separate daemon
     
     [ ] WolframAlpha            interface to Wolfram|Alpha
@@ -39,6 +49,13 @@ Evented::Socket modules
     [ ] Omegle                  interface to Omegle.com with Net::Async::Omegle
     
     [ ] Relay                   IRC relay
+
+    [ ] HTTP                    perhaps could be used for HTTP requests so that other
+                                modules like Lastfm, UrbanDictionary, WolframAlpha
+                                can run in the IRCd but make requests externally
+
+    [ ] HTTPd                   HTTP server for other modules to extend
+
 
 Server linkage and management
 ------------------------------------------------------------------------------------------
@@ -128,9 +145,9 @@ Server linkage
     [ ] CONNECT probably does not work remotely.
         e.g. CONNECT server1.example.com server2.example.com
         
-    [ ] The SERVER command during registration does not interpret IP address wildcards.
+    [√] The SERVER command during registration does not interpret IP address wildcards.
     
-    [ ] Configuration connect blocks need to accept lists of IPs rather than a fixed one.
+    [√] Configuration connect blocks need to accept lists of IPs rather than a fixed one.
     
 Support for multiple linking protocols
 
