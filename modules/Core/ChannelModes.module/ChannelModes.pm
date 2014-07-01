@@ -22,8 +22,8 @@ my %cmodes = (
     no_ext        => \&cmode_normal,
     protect_topic => \&cmode_normal,
     moderated     => \&cmode_normal,
-    ban           => sub { cmode_banlike('ban',    @_) },
-    except        => sub { cmode_banlike('except', @_) },
+    ban           => sub { cmode_banlike('ban',    'ban',    @_) },
+    except        => sub { cmode_banlike('except', 'except', @_) },
 );
 
 sub init {
@@ -100,17 +100,17 @@ sub register_statuses {
             };
 
             # the above test(s) failed
-            if (!$check1->() || !$check2->()) {
+            if (!&$check1 || !&$check2) {
                 $mode->{send_no_privs} = 1;
                 return
             }
         }
 
-        # [USER RESPONSE, SERVER RESPONSE]
-        push @{ $mode->{params} }, [$target->{nick}, $target->{uid}];
+        # add or remove from the list.
         my $do = $mode->{state} ? 'add_to_list' : 'remove_from_list';
         $channel->$do($modename, $target);
-        return 1
+        return 1;
+        
     }) or return;
  }
 
@@ -123,16 +123,11 @@ sub register_statuses {
 
 sub cmode_normal {
     my ($channel, $mode) = @_;
-    if (!$mode->{force} && $mode->{source}->is_local &&
-     !$channel->user_has_basic_status($mode->{source})) {
-        $mode->{send_no_privs} = 1;
-        return;
-    }
-    return 1;
+    return $mode->{has_basic_status};
 }
 
 sub cmode_banlike {
-    my ($list, $channel, $mode) = @_;
+    my ($list, $reply, $channel, $mode) = @_;
 
     # view list.
     if (!defined $mode->{param} && $mode->{source}->isa('user')) {
@@ -149,13 +144,11 @@ sub cmode_banlike {
         # end of list.
         $mode->{source}->numeric("RPL_ENDOF$name" => $channel->name);
         
-        $mode->{do_not_set} = 1;
-        return 1;
+        return;
     }
 
     # needs privs.
-    if (!$mode->{force} && $mode->{source}->isa('user')
-     && !$channel->user_has_basic_status($mode->{source})) {
+    if (!$mode->{has_basic_status}) {
         $mode->{send_no_privs} = 1;
         return;
     }
@@ -172,9 +165,6 @@ sub cmode_banlike {
     else {
         $channel->remove_from_list($list, $mode->{param});
     }
-
-    # add the parameter.
-    push @{ $mode->{params} }, $mode->{param};
     
     return 1;
 }

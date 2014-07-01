@@ -1,18 +1,18 @@
 {
-   "version" : "1.5",
+   "version" : "1.8",
    "name" : "Channel::Invite",
    "author" : {
       "website" : "https://github.com/cooper",
       "name" : "Mitchell Cooper"
    },
    "description" : "channel invitations",
+   "package" : "M::Channel::Invite",
    "depends" : {
       "modules" : [
          "Base::UserCommands",
          "JELP::Base",
-         "Base::ChannelModes",
+         "Core::ChannelModes",
          "Base::UserNumerics"
       ]
-   },
-   "package" : "M::Channel::Invite"
+   }
 }

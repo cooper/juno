@@ -211,91 +211,126 @@ sub set_time {
     $channel->{time} = $time
 }
 
-# returns the mode string,
-# or '+' if no changes were made.
+# ->handle_mode_string()
+#
+# handles a mode string at a low level.
+# returns the mode string or '+' if no changes were made.
+#
 # NOTE: this is a lower-level function that only sets the modes.
 # you probably want to use ->do_mode_string(), which sends to users and servers.
+#
+#
+#   type            n   description                                 e.g.
+#   ----            -   -----------                                 ----
+#
+#   normal          0   never has a parameter                       +m
+#
+#   parameter       1   requires parameter when set and unset       n/a
+#
+#   parameter_set   2   requires parameter only when set            +l
+#
+#   list            3   list-type mode                              +b
+#
+#   status          4   status-type mode                            +o
+#
+#   key             5   like type 1 but visible only to members     +k
+#                       and consumes parameter when unsetting
+#                       only if present (keys are very particular!)
+#
+#
 sub handle_mode_string {
     my ($channel, $server, $source, $modestr, $force, $over_protocol) = @_;
     L("set $modestr on $$channel{name} from $$server{name}");
 
-    # array reference passed to mode blocks and used in the return
-    my $parameters = [];
+    # split into +modes, arguments.
+    my ($plus, $minus);
+    my ($parameters, $state, $str, @m) = ([], 1, '', split /\s+/, $modestr);
+    foreach my $letter (split //, shift @m) {
 
-    my $state = 1;
-    my $str   = '+';
-    my @m     = split /\s+/, $modestr;
-
-    letter: foreach my $letter (split //, shift @m) {
-        if ($letter eq '+') {
-            $str  .= '+' unless $state;
-            $state = 1
+        # state change.
+        if ($letter eq '+' || $letter eq '-') {
+            $state = $letter eq '+';
+            next;
         }
-        elsif ($letter eq '-') {
-            $str  .= '-' if $state;
-            $state = 0
+        
+        # unknown mode?
+        my $name = $server->cmode_name($letter);
+        my $type = $server->cmode_type($name);
+        if (!defined $name) {
+            L("unknown mode $letter!");
+            next;
         }
-        else {
-            my $name = $server->cmode_name($letter);
-            if (!defined $name) {
-                L("unknown mode $letter!");
-                next
-            }
-            
-            # these are returned by ->cmode_takes_parameter: NOT mode types
-            #     1 = always takes param
-            #     2 = takes param, but valid if there isn't,
-            #         such as list modes like +b for viewing
-            #
-            my ($takes, $parameter);
-            if ($takes = $server->cmode_takes_parameter($name, $state)) {
-                $parameter = shift @m;
-                next letter if !defined $parameter && $takes == 1;
-            }
-
-            # don't allow this mode to be changed if the test fails
-            # *unless* force is provided.
-            my $params_before = scalar @$parameters;
-            my ($win, $moderef) = $pool->fire_channel_mode(
-                $channel, $server, $source, $state, $name, $parameter,
-                $parameters, $force, $over_protocol
-            );
-
-            # block says to send ERR_CHANOPRIVSNEEDED
-            if ($moderef->{send_no_privs} && $source->isa('user') && $source->is_local) {
-                $source->numeric(ERR_CHANOPRIVSNEEDED => $channel->name);
-            }
-
-            # blocks failed.
-            if (!$force) { next letter unless $win }
-
-            # block says not to set.
-            next letter if $moderef->{do_not_set};
-            
-            # if it requires a parameter but the param count before handling
-            # the mode is the same as after, something didn't work.
-            # for example, a mode handler might not be present if a module isn't loaded.
-            # just ignore this mode.
-            if (scalar @$parameters <= $params_before && $takes) {
-                next letter;
-            }
-
-            # if it is just a normal mode, set it
-            if ($server->cmode_type($name) == 0) {
-                my $do = $state ? 'set_mode' : 'unset_mode';
-                $channel->$do($name);
-            }
-            $str .= $letter;
-            
+        
+        # these are returned by ->cmode_takes_parameter: NOT mode types
+        #     1 = always takes param
+        #     2 = takes param, but valid if there isn't,
+        #         such as list modes like +b for viewing
+        #
+        my ($takes, $parameter);
+        if ($takes = $server->cmode_takes_parameter($name, $state)) {
+            $parameter = shift @m;
+            next if !defined $parameter && $takes == 1;
         }
+
+        # don't allow this mode to be changed if the test fails
+        # *unless* force is provided.
+        my $params_before = scalar @$parameters;
+        my ($win, $moderef) = $pool->fire_channel_mode($channel, $name, {
+            channel => $channel,        # the channel
+            server  => $server,         # the server perspective
+            source  => $source,         # the source of the mode change (user or server)
+            state   => $state,          # setting or unsetting
+            setting => $state,          # to satisfy matthew
+            param   => $parameter,      # the parameter for this particular mode
+            params  => $parameters,     # the parameters for the resulting mode string
+            force   => $force,          # true if permissions should be ignored
+            proto   => $over_protocol,  # true if IDs used rather than nicks/names
+            has_basic_status => $force || $source->isa('server') ? 1
+                                : $channel->user_has_basic_status($source)
+        });
+
+        # block says to send ERR_CHANOPRIVSNEEDED.
+        if ($moderef->{send_no_privs} && $source->isa('user') && $source->is_local) {
+            $source->numeric(ERR_CHANOPRIVSNEEDED => $channel->name);
+        }
+
+        # block returned false; cancel.
+        next if !$win;
+        
+        # if it requires a parameter but the param count before handling
+        # the mode is the same as after, something didn't work.
+        # for example, a mode handler might not be present if a module isn't loaded.
+        # just ignore this mode.
+        push @$parameters, $moderef->{param} if defined $moderef->{param};
+        next if scalar @$parameters <= $params_before && $takes;
+
+        # Safe point: from here we can assume that the mode will be set or unset.
+
+        # it is a normal mode. set it.
+        if ($type == 0) {
+            my $do = $state ? 'set_mode' : 'unset_mode';
+            $channel->$do($name);
+        }
+        
+        # it is a mode with a parameter. set it.
+        # does not include lists, status modes, key mode.
+        elsif ($type == 1 || $type == 2) {
+            $channel->set_mode($name, $parameter) if  $state;
+            $channel->unset_mode($name)           if !$state;
+        }
+        
+        # sign change.
+        if ($state && !$plus) {
+            ($plus, $minus) = (1, 0);
+            $str .= '+';
+        }
+        elsif (!$state && !$minus) {
+            ($plus, $minus) = (0, 1);
+            $str .= '-';
+        }
+        
+        $str .= $letter;
     }
-
-    # it's easier to do this than it is to keep track of them
-    $str =~ s/\+\+/\+/g;
-    $str =~ s/\-\+/\+/g;
-    $str =~ s/\-\-/\-/g; 
-    $str =~ s/\+\-/\-/g;
-    $str =~ s/(\-|\+)$//;
 
     # make it change array refs to separate params for servers
     # [USER RESPONSE, SERVER RESPONSE]
@@ -322,32 +357,15 @@ sub handle_mode_string {
 }
 
 # returns a +modes string
-#
-#   type            n   description                                 e.g.
-#   ----            -   -----------                                 ----
-#
-#   normal          0   never has a parameter                       +m
-#
-#   parameter       1   requires parameter when set and unset       n/a
-#
-#   parameter_set   2   requires parameter only when set            +l
-#
-#   list            3   list-type mode                              +b
-#
-#   status          4   status-type mode                            +o
-#
-#   key             5   like type 1 but visible only to members     +k
-#                       and consumes parameter when unsetting
-#                       only if present (keys are very particular!)
-#
 sub mode_string        { _mode_string(0, @_) }
 sub mode_string_hidden { _mode_string(1, @_) }
-
-sub _mode_string {
+sub _mode_string       {
     my ($show_hidden, $channel, $server) = @_;
     my (@modes, @params);
     my @set_modes = sort keys %{ $channel->{modes} };
     
+    # "normal types" generally means the ones that show in MODES.
+    # does not include lists, status, etc.
     my %normal_types = (
         0 => 1,                 # normal modes always incluided
         1 => 1,                 # parameter always included
@@ -355,16 +373,16 @@ sub _mode_string {
         5 => $show_hidden       # key only if included showing hidden
     );
     
+    # add all the modes for each of these types.
     foreach my $name (@set_modes) {
         next unless $normal_types{ $server->cmode_type($name) };
 
         push @modes, $server->cmode_letter($name);
-        if (my $param = $channel->{modes}{$name}{parameter}) {
-            push @params, $param
-        }
+        my $param = $channel->mode_parameter($name);;
+        push @params, $param if defined $param;
     }
 
-    return '+'.join(' ', join('', @modes), @params)
+    return '+'.join(' ', join('', @modes), @params);
 }
 
 # includes ALL modes
@@ -386,7 +404,7 @@ sub mode_string_all {
             }
 
             # modes with ONE parameter
-            when ([1, 2]) {
+            when ([1, 2, 5]) {
                 push @user_params,   $channel->{modes}{$name}{parameter};
                 push @server_params, $channel->{modes}{$name}{parameter}
             }

@@ -717,33 +717,19 @@ sub delete_channel_mode_block {
 
 # fire a channel mode.
 sub fire_channel_mode {
-    my (
-        $pool, $channel, $server, $source, $state, $name,
-        $parameter, $parameters, $force, $over_protocol
-    ) = @_;
-
+    my ($pool, $channel, $name, $this) = @_;
+    my $amount = 0;
+    
     # nothing to do.
-    return 1 unless exists $pool->{channel_modes}{$name};
-
-    # create a hashref with info.
-    my $this = {
-        channel => $channel,
-        server  => $server,
-        source  => $source,
-        state   => $state,
-        setting => $state,
-        param   => $parameter,
-        params  => $parameters,
-        force   => $force,
-        proto   => $over_protocol
-    };
+    return $amount unless $pool->{channel_modes}{$name};
 
     # fire each block.
     foreach my $block (values %{ $pool->{channel_modes}{$name} }) {
         return (undef, $this) unless $block->($channel, $this);
+        $amount++;
     }
     
-    return (1, $this);
+    return ($amount, $this);
 }
 
 #####################

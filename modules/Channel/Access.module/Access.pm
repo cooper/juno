@@ -91,19 +91,16 @@ sub cmode_access {
     # view access list.
     if (!defined $mode->{param} && $mode->{source}->isa('user') && $mode->{state}) {
         # TODO
-        $mode->{do_not_set} = 1;
-        return 1;
+        return;
     }
 
     # for setting and unsetting -
     # split status:mask. status can be either a status name or a letter.
+    return unless defined $mode->{param};
     my ($status, $mask) = split ':', $mode->{param}, 2;
     
     # if either is not present, this is invalid.
-    if (!defined $status || !defined $mask) {
-        $mode->{do_not_set} = 1;
-        return;
-    }
+    return if !defined $status || !defined $mask;
 
     # ensure that the status is valid.
     my $final_status;
@@ -119,12 +116,9 @@ sub cmode_access {
     }
     
     # neither worked. give up.
-    if (!defined $final_status) {
-        $mode->{do_not_set} = 1;
-        return;
-    }
+    return if !defined $final_status;
     
-    # ensure that this user is at least the $final_status unless force or server.
+    # ensure that this user is at least the $final_status unless forced.
     # TODO: should we always allow over-protocol?
     if (!$mode->{force} && $mode->{source}->isa('user')) {
         my $level1 = $channel->user_get_highest_level($mode->{source});
@@ -134,7 +128,6 @@ sub cmode_access {
         # the level being set is higher than the level of the setter.
         if ($level2 > $level1) {
             $mode->{send_no_privs} = 1;
-            $mode->{do_not_set}    = 1;
             return;
         }
         
@@ -159,8 +152,7 @@ sub cmode_access {
         $channel->remove_from_list('access', $mode->{param});
     }
 
-    push @{ $mode->{params} }, $mode->{param};
-    return 1
+    return 1;
 }
 
 # user joined channel event handler.

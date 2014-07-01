@@ -120,12 +120,14 @@ sub cmode_name {
 # cmode name to letter
 sub cmode_letter {
     my ($server, $name) = @_;
+    return unless defined $name;
     return $server->{cmodes}{$name}{letter}
 }
 
 # type
 sub cmode_type {
     my ($server, $name) = @_;
+    return unless defined $name;
     return $server->{cmodes}{$name}{type}
 }
 

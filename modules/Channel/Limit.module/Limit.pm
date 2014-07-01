@@ -42,23 +42,22 @@ sub init {
 
 sub cmode_limit {
     my ($channel, $mode) = @_;
-    # always allow unsetting
+    $mode->{has_basic_status} or return;
+    
+    # always allow unsetting.
     return 1 if !$mode->{state};
-    # validation check
+    
+    # not a number.
     return if !looks_like_number($mode->{param});
+    
+    # determine the value.
     $mode->{param} = int $mode->{param};
     $mode->{param} = $MAX if $mode->{param} > $MAX;
-    if (!$mode->{param} || $mode->{param} <= 0) {
-        $mode->{do_not_set} = 1;
-        return;
-    }
-    # it's good, send it off
-    if ($mode->{state}) {
-        push @{ $mode->{params} }, $mode->{param};
-        $channel->set_mode('limit', $mode->{param});
-    } else {
-        $channel->unset_mode('limit');
-    }
+    
+    # it's negative or nan.
+    return if $mode->{param} <= 0;
+    return if $mode->{param} == 'nan';
+    
     return 1;
 }
 

@@ -4,7 +4,7 @@
 # @package:         "M::Channel::Invite"
 # @description:     "channel invitations"
 #
-# @depends.modules: [qw(Base::UserCommands JELP::Base Base::ChannelModes Base::UserNumerics)]
+# @depends.modules: [qw(Base::UserCommands JELP::Base Core::ChannelModes Base::UserNumerics)]
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"
@@ -35,15 +35,16 @@ sub init {
       # forward    => handled manually
     ) or return;
     
-    # invite exception channel mode.
-    my $banlike = sub {
-        my $sub = M::Core::ChannelModes->can('cmode_banlike') or return;
-        $sub->('invite_except', @_);
-    };
+    # modes.
+    my $ccm = $api->get_module('Core::ChannelModes') or return;
+    $mod->register_channel_mode_block(
+        name => 'invite_only',
+        code => $ccm->can('cmode_normal')
+    );
     $mod->register_channel_mode_block(
         name => 'invite_except',
-        code => $banlike
-    ) if $banlike;
+        code => sub { $ccm->can('cmode_banlike')->('invite_except', 'invite', @_) }
+    );
     
     # invite numerics.
     $mod->register_user_numeric(
@@ -60,10 +61,7 @@ sub init {
     # outgoing INVITE.
     $mod->register_outgoing_command(
         name => 'invite',
-        code => sub {
-            my ($user, $t_user, $ch_name) = @_;
-            ":$$user{uid} INVITE $$t_user{uid} $ch_name"
-        }
+        code => \&ocmd_invite
     ) or return;
     
     # event callbacks.
@@ -136,6 +134,12 @@ sub scmd_invite {
     $t_user->{location}->fire_command(invite => $user, $t_user, $ch_name);
     
     return 1;
+}
+
+# outgoing INVITE command.
+sub ocmd_invite {
+    my ($user, $t_user, $ch_name) = @_;
+    ":$$user{uid} INVITE $$t_user{uid} $ch_name"
 }
 
 # checks during INVITE and JOIN commands.

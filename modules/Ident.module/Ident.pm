@@ -71,7 +71,7 @@ sub connection_new {
 # USER received.
 sub connection_user {
     my ($connection, $event, $ident, $real) = @_;
-    if (delete $connection->{tilde}) {
+    if (delete $connection->{tilde} && substr($connection->{ident}, 0, 1) ne '~') {
         $connection->{ident} = "~$ident";
         return;
     }

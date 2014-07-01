@@ -2444,6 +2444,10 @@ CHANGES:
         76. fixed a bug where the connection limits were off by one.
             fixed a bug where the ~ was not added sometimes in Ident.
             
+        77. greatly improved channel's ->handle_mode_string(). goodbye +- regex!
+            greatly improved mode blocks. modes without blocks can no longer be set/unset.
+            updated modules that provide channel modes accordingly.
+            fixed another bug in Ident.
             
          
          
