@@ -1,15 +1,16 @@
 {
-   "version" : "5.8",
+   "version" : "5.9",
    "name" : "Modules",
    "author" : {
       "website" : "https://github.com/cooper",
       "name" : "Mitchell Cooper"
    },
    "description" : "manage modules from IRC",
-   "package" : "M::Modules",
    "depends" : {
       "modules" : [
-         "Base::UserCommands"
+         "Base::UserCommands",
+         "Base::OperNotices"
       ]
-   }
+   },
+   "package" : "M::Modules"
 }

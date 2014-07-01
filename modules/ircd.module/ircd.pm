@@ -111,8 +111,19 @@ sub setup_inc {
 
 sub setup_modules {
     return if $mod->{loading};
+    
+    # the old way: modules key.
+    my @modules = @{ conf('api', 'modules') || [] };
+    
+    # the new way: other keys.
+    foreach my $mod_name ($conf->keys_of_block('api')) {
+        next if $mod_name eq 'modules';
+        next unless conf('api', $mod_name);
+        push @modules, $mod_name;
+    }
+    
     L('Loading API configuration modules');
-    $api->load_modules(@{ conf('api', 'modules') || [] });
+    $api->load_modules(@modules);
     L('Done loading modules');
 }
 

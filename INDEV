@@ -2397,8 +2397,8 @@ CHANGES:
             
         58. send out NICK messages for nick collisions just as an extra measure of sync accuracy.
 
-    6. added juno dev commit for easier commit and version increment
-        reverted changes to nick collisions because they didn't work
+    6. added juno dev commit for easier commit and version increment.
+        reverted changes to nick collisions because they didn't work.
     
         61. don't echo out loud; echo to INDEV :)
 
@@ -2413,12 +2413,12 @@ CHANGES:
             
         66. fixed bugs with parameter check in registration commands.
         
-        67. added Limit module (channel mode +l)
+        67. added Limit module (channel mode +l).
         
         68. fixed some bugs in Ident.
             postpone registration when either a CAP LS or CAP REQ is received.
         
-        69. reorganized channel modules
+        69. reorganized channel modules.
         
     7. time out hostname lookups after 3 seconds.
         finished renaming channel-related modules.
@@ -2456,7 +2456,8 @@ CHANGES:
         
     8. added default.conf for fallback configuration values.
         
-         
+         81. because the api:modules configuration value is getting out of hand, modules can now be loaded with Some::Module = on instead.
+             improved the default.conf warning visibility. thank you @Hakkin for helping with this. :)
          
          
          
