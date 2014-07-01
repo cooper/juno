@@ -18,7 +18,7 @@ use 5.010;
 use parent 'Evented::Object';
 
 use Scalar::Util qw(weaken blessed);
-use utils qw(v set_v notice);
+use utils qw(v set_v notice conf);
 
 our ($api, $mod, $me);
 
@@ -648,8 +648,9 @@ sub register_user_mode_block {
 # delete a user mode block.
 sub delete_user_mode_block {
     my ($pool, $name, $what) = @_;
-    if (exists $pool->{user_modes}{$name}{$what}) {
-        delete $pool->{user_modes}{$name}{$what};
+    if (my $hash = $pool->{user_modes}{$name}) {
+        delete $hash->{$what};
+        delete $pool->{user_modes}{$name} unless scalar keys %$hash;
         #L("deleting user mode block for $name: $what");
         return 1;
     }
@@ -659,17 +660,29 @@ sub delete_user_mode_block {
 # fire a user mode.
 sub fire_user_mode {
     my ($pool, $user, $state, $name) = @_;
-
+    my $amount = 0;
+    
     # nothing to do.
-    return 1 unless exists $pool->{user_modes}{$name};
+    return $amount unless exists $pool->{user_modes}{$name};
 
     # call each block.
     foreach my $block (values %{ $pool->{user_modes}{$name} }) {
         return unless $block->($user, $state);
+        $amount++;
     }
 
     # all returned true
-    return 1;
+    return $amount;
+}
+
+sub user_mode_string {
+    my @names = keys %{ shift->{user_modes} || {} };
+    my @letters;
+    foreach my $name (@names) {
+        my $letter = $me->umode_letter($name) or next;
+        push @letters, $letter;
+    }
+    return join '', sort @letters;
 }
 
 ###########################
@@ -707,9 +720,9 @@ sub register_channel_mode_block {
 # delete a channel mode block.
 sub delete_channel_mode_block {
     my ($pool, $name, $what) = @_;
-    if (exists $pool->{channel_modes}{$name}{$what}) {
-        delete $pool->{channel_modes}{$name}{$what};
-        #L("deleting channel mode block for $name: $what");
+    if (my $hash = $pool->{channel_modes}{$name}) {
+        delete $hash->{$what};
+        delete $pool->{channel_modes}{$name} unless scalar keys %$hash;
         return 1;
     }
     return;
@@ -730,6 +743,16 @@ sub fire_channel_mode {
     }
     
     return ($amount, $this);
+}
+
+sub channel_mode_string {
+    my @names = keys %{ shift->{channel_modes} || {} };
+    my @letters;
+    foreach my $name (@names) {
+        my $letter = $me->cmode_letter($name) or next;
+        push @letters, $letter;
+    }
+    return join '', sort @letters;
 }
 
 #####################

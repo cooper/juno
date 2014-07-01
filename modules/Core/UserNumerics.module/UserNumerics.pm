@@ -18,7 +18,7 @@ use 5.010;
  
 use utils qw(conf v);
 
-our ($api, $mod, $me);
+our ($api, $mod, $me, $pool);
 
 my %numerics = (
                             ###############################################################################
@@ -168,17 +168,24 @@ sub isp_chanmodes {
     #   parameter_set   (2)
     #   list            (3)
     #   status          (4)
+    #   key             (5)
     my %m;
-    my @a = ('', '', '', '');
+    my @a = ('', '', '', '', '');
     
     # find each mode letter.
     foreach my $name ($ircd::conf->keys_of_block(['modes', 'channel'])) {
+    
+        # fetch the type.
         my ($type, $letter) = @{ conf(['modes', 'channel'], $name) };
-        $m{$type} = [] unless $m{$type};
-        push @{ $m{$type} }, $letter;
+        $type = 1 if $type == 5; # channel key (+k) is an exception...
+        
+        # ignore modes without blocks.
+        next unless keys %{ $pool->{channel_modes}{$name} || {} };
+        
+        push @{ $m{$type} ||= [] }, $letter;
     }
 
-    # alphabetize.
+    # alphabetize each group.
     foreach my $type (keys %m) {
         my @alphabetized = sort { $a cmp $b } @{ $m{$type} };
         $a[$type] = join '', @alphabetized

@@ -604,6 +604,8 @@ sub terminate {
 sub rehash {
     eval { $conf->parse_config } or L("Configuration error: ".($@ || $!)) and return;
     setup_sockets();
+    add_internal_user_modes();
+    add_internal_channel_modes();
     return 1;
 }
 
@@ -716,12 +718,6 @@ sub add_internal_channel_modes {
     L("end of channel modes");
 }
 
-# get a +modes string
-sub channel_mode_string {
-    my @modes = sort { $a cmp $b } map { $_->[1] } $conf->values_of_block('modes', 'channel');
-    return join '', @modes;
-}
-
 ##################
 ### USER MODES ###
 ##################
@@ -736,12 +732,6 @@ sub add_internal_user_modes {
         $me->add_umode($name, conf(['modes', 'user'], $name));
     }
     L("end of user mode letters");
-}
-
-# returns a string of every mode
-sub user_mode_string {
-    my @modes = sort { $a cmp $b } $conf->values_of_block(['modes', 'user']);
-    return join '', @modes;
 }
 
 ###############

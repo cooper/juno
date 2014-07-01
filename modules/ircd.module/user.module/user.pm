@@ -403,8 +403,8 @@ sub new_connection {
     $user->numeric(RPL_MYINFO   =>
         $me->{name},
         v('SNAME').q(-).v('NAME').q(-).v('VERSION'),
-        ircd::user_mode_string(),
-        ircd::channel_mode_string()
+        $pool->user_mode_string,
+        $pool->channel_mode_string
     );
     $user->numeric('RPL_ISUPPORT');
 

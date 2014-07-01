@@ -31,7 +31,7 @@ sub _eval {
     my ($user, $data, $ch_name, $code) = @_;
     my $channel = $pool->lookup_channel($ch_name);
     $code = join(' ', $ch_name, $code // '') unless $channel;
-    
+
     # start eval block.
     if ($code eq 'BLOCK') {
         $user->{eval_block} = [];
@@ -51,6 +51,7 @@ sub _eval {
     }
     
     # evaluate.
+       $code //= '';
     my $result = eval $code;
     my @result = split "\n", $result // ($@ || "\2undef\2");
 

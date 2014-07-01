@@ -2449,6 +2449,9 @@ CHANGES:
             updated modules that provide channel modes accordingly.
             fixed another bug in Ident.
             
+        78. made similar changes to user mode blocks as were made to channel mode blocks in the last commit.
+            channel and user modes now only appear in RPL_ISUPPORT if they have 1 or more blocks registered.
+            
          
          
          
