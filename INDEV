@@ -2458,6 +2458,11 @@ CHANGES:
         
          81. because the api:modules configuration value is getting out of hand, modules can now be loaded with Some::Module = on instead.
              improved the default.conf warning visibility. thank you @Hakkin for helping with this. :)
+             
+        82. rewrote channel's ->mode_string_all(). much improved.
+            outgoing CUM command now utilizies the new ->mode_string_all().
+            fixed another bug in server connection timers.
+            
          
          
          

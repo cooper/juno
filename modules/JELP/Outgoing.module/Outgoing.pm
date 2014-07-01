@@ -287,41 +287,18 @@ sub skill {
 # $server = server to send to
 sub cum {
     my ($channel, $server) = @_;
-    # modes are from the perspective of this server, v:SERVER
-
+    
+    # make +modes params string without status modes.
+    # modes are from the perspective of this server, $me.
+    my $modestr = $channel->mode_string_all($me, 1);
+    
+    # fetch the prefixes for each user.
     my (%prefixes, @userstrs);
-
-    my (@modes, @user_params, @server_params);
-    my @set_modes = sort keys %{ $channel->{modes} };
-
-    foreach my $name (@set_modes) {
-      my $letter = $me->cmode_letter($name);
-      given ($me->cmode_type($name)) {
-
-        # modes with 0 or 1 parameters
-        when ([0, 1, 2]) { push @modes, $letter; continue }
-
-        # modes with EXACTLY ONE parameter
-        when ([1, 2]) { push @server_params, $channel->{modes}{$name}{parameter} }
-
-        # lists
-        when (3) {
-            foreach my $thing ($channel->list_elements($name)) {
-                push @modes,         $letter;
-                push @server_params, $thing
-            }
-        }
-
-        # lists of users
-        when (4) {
-            foreach my $user ($channel->list_elements($name)) {
-                ($prefixes{$user} //= '') .= $letter;
-            }
-        }
-    } }
-
-    # make +modes params string without status modes
-    my $modestr = '+'.join(' ', join('', @modes), @server_params);
+    foreach my $name (keys %{ $channel->{modes} }) {
+        next if $me->cmode_type($name) != 4;
+        my $letter = $me->cmode_letter($name);
+        ($prefixes{$_} //= '') .= $letter foreach $channel->list_elements($name);
+    }
 
     # create an array of uid!status
     foreach my $user ($channel->users) {

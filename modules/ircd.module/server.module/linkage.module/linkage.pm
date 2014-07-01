@@ -100,6 +100,7 @@ sub _end {
     $conn->done($reason) if $conn;
     $stream->close_now if $stream;
     notice(server_connect_fail => $server_name, $reason);
+    delete $ircd::connect_conns{ lc $server_name };
     
     # already have a timer going.
     if (my $t = $ircd::connect_timer{ lc $server_name }) {

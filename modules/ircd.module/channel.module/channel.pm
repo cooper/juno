@@ -385,60 +385,60 @@ sub _mode_string       {
     return '+'.join(' ', join('', @modes), @params);
 }
 
+
+my %zero_or_one = map { $_ => 1 } (0, 1, 2);    # zero or one parameters
+my %exactly_one = map { $_ => 1 } (1, 2, 5);    # exactly one parameter
+
 # includes ALL modes
+#
 # returns a string for users and a string for servers
 # $no_status = all but status modes
+#
 sub mode_string_all {
     my ($channel, $server, $no_status) = @_;
     my (@modes, @user_params, @server_params);
     my @set_modes = sort keys %{ $channel->{modes} };
 
+
     foreach my $name (@set_modes) {
         my $letter = $server->cmode_letter($name);
-        given ($server->cmode_type($name)) {
-
-            # modes with 0 or 1 parameters
-            when ([0, 1, 2]) {
-                push @modes, $letter;
-                continue
-            }
-
-            # modes with ONE parameter
-            when ([1, 2, 5]) {
-                push @user_params,   $channel->{modes}{$name}{parameter};
-                push @server_params, $channel->{modes}{$name}{parameter}
-            }
-
-            # lists
-            when (3) {
-                foreach my $thing ($channel->list_elements($name)) {
-                    push @modes,         $letter;
-                    push @user_params,   $thing;
-                    push @server_params, $thing
-                }
-            }
-
-            # lists of users
-            when (4) {
-                next if $no_status;
-                foreach my $user ($channel->list_elements($name)) {
-                    push @modes,         $letter;
-                    push @user_params,   $user->{nick};
-                    push @server_params, $user->{uid}
-                }
-            }
-
-            # idk
-            default  { next }
+        my $type   = $server->cmode_type($name);
+        
+        # if it takes 0 or 1 parameters, add 1 mode letter.
+        push @modes, $letter if $zero_or_one{$type};
+        
+        # exactly one parameter; add it.
+        if ($exactly_one{$type}) {
+            push @user_params,   $channel->{modes}{$name}{parameter};
+            push @server_params, $channel->{modes}{$name}{parameter};
         }
+        
+        # list modes. add each item.
+        elsif ($type == 3) {
+            foreach my $thing ($channel->list_elements($name)) {
+                push @modes,         $letter;
+                push @user_params,   $thing;
+                push @server_params, $thing;
+            }
+        }
+        
+        # status modes. add each nick/uid.
+        elsif ($type == 4 && !$no_status) {
+            foreach my $user ($channel->list_elements($name)) {
+                push @modes,         $letter;
+                push @user_params,   $user->{nick};
+                push @server_params, $user->{uid}
+            }
+        }
+        
     }
-
+    
     # make +modes params strings
     my $user_string   = '+'.join(' ', join('', @modes), @user_params);
     my $server_string = '+'.join(' ', join('', @modes), @server_params);
 
     # returns both a user string and a server string
-    return ($user_string, $server_string)
+    return ($user_string, $server_string);
 }
 
 # same mode_string except for status modes only.
