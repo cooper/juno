@@ -2452,7 +2452,8 @@ CHANGES:
         78. made similar changes to user mode blocks as were made to channel mode blocks in the last commit.
             channel and user modes now only appear in RPL_ISUPPORT if they have 1 or more blocks registered.
             
-         
+        79. fixed a bug with status modes set by servers that arose in 8.77.
+        
          
          
          

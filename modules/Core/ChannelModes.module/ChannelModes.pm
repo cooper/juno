@@ -35,7 +35,8 @@ sub init {
     ) || return foreach keys %cmodes;
 
     # register status channel modes
-    register_statuses() or return;
+    register_statuses($_) or return foreach
+        sort { $b <=> $a } keys %ircd::channel_mode_prefixes;
     
     # add multi-prefix capability.
     $mod->register_capability('multi-prefix');
@@ -50,31 +51,29 @@ sub init {
 
 # status modes
 sub register_statuses {
- foreach my $level (sort { $b <=> $a } keys %ircd::channel_mode_prefixes) {
-
-    my $modename = $ircd::channel_mode_prefixes{$level}[2];
-    $mod->register_channel_mode_block( name => $modename, code => sub {
-
+    my $level = shift;
+    my $name  = $ircd::channel_mode_prefixes{$level}[2];
+    $mod->register_channel_mode_block( name => $name, code => sub {
         my ($channel, $mode) = @_;
         my $source = $mode->{source};
-        my $target = $mode->{proto} ?
+        
+        # find the target.
+        my $t_user = $mode->{proto} ?
             $pool->lookup_user($mode->{param}) :
             $pool->lookup_user_nick($mode->{param});
 
-        # make sure the target user exists
-        if (!$target) {
-            if (!$mode->{force} && $source->isa('user') && $source->is_local) {
-                $source->numeric('ERR_NOSUCHNICK', $mode->{param});
-            }
-            return
+        # make sure the target user exists.
+        if (!$t_user) {
+            $source->numeric(ERR_NOSUCHNICK => $mode->{param})
+                if $source->isa('user') && $source->is_local;
+            return;
         }
 
         # and also make sure he is on the channel
-        if (!$channel->has_user($target)) {
-            if (!$mode->{force} && $source->isa('user') && $source->is_local) {
-                $source->numeric('ERR_USERNOTINCHANNEL', $target->{nick}, $channel->name);
-            }
-            return
+        if (!$channel->has_user($t_user)) {
+            $source->numeric(ERR_USERNOTINCHANNEL => $t_user->{nick}, $channel->name)
+                if $source->isa('user') && $source->is_local;
+            return;
         }
 
         if (!$mode->{force} && $source->is_local) {
@@ -86,7 +85,7 @@ sub register_statuses {
                 # he has a higher status..
                 return 1 if $mode->{state};
                 return if $channel->user_get_highest_level($source) <
-                          $channel->user_get_highest_level($target);
+                          $channel->user_get_highest_level($t_user);
 
                 return 1;
             };
@@ -102,17 +101,21 @@ sub register_statuses {
             # the above test(s) failed
             if (!&$check1 || !&$check2) {
                 $mode->{send_no_privs} = 1;
-                return
+                return;
             }
+            
         }
+
+        # [USER RESPONSE, SERVER RESPONSE]
+        $mode->{param} = [ $t_user->{nick}, $t_user->{uid} ];
 
         # add or remove from the list.
         my $do = $mode->{state} ? 'add_to_list' : 'remove_from_list';
-        $channel->$do($modename, $target);
+        $channel->$do($name, $t_user);
+        
         return 1;
         
     }) or return;
- }
 
     return 1
 }
