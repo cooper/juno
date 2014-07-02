@@ -94,7 +94,11 @@ sub init {
         my ($user, $event, $quser) = @_;
         return unless $quser->{account};
         $user->numeric(RPL_WHOISACCOUNT => $quser->{nick}, $quser->{account}{name});
-    }, before => 'RPL_ENDOFWHOIS', name => 'RPL_WHOISACCOUNT', with_eo => 1);
+    }, name     => 'RPL_WHOISACCOUNT',
+        after   => ['RPL_WHOISMODES', 'RPL_WHOISHOST'],
+        before  => 'RPL_ENDOFWHOIS',
+        with_eo => 1
+    );
 
     return 1;
 }

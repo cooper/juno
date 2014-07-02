@@ -203,7 +203,7 @@ sub set_v ($$) {
 
 # send a notice to opers.
 sub notice {
-    return unless pool->can('fire_oper_notice');
+    return unless pool->can('fire_oper_notice') && $::pool;
     my @caller = caller 1;
 
     # fire it.

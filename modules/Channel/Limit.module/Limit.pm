@@ -56,7 +56,7 @@ sub cmode_limit {
     
     # it's negative or nan.
     return if $mode->{param} <= 0;
-    return if $mode->{param} == 'nan';
+    return if $mode->{param} eq 'nan';
     
     return 1;
 }

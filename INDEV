@@ -2471,5 +2471,15 @@ CHANGES:
         85. Added Channel Key module
             The can_join hook now sends the channel key if used         
          
-        86. Added Channel Secret module (+l)
+        86. Added Channel Secret module (+s)
             Fixed an issue with the channel key module
+            
+        87. updated Evented::Object.
+            added room for more WHOIS lines in the future.
+            fixed an issue where the IRCd sometimes would not start due to notice() in pool.pm before $pool exists.
+            fixed an issue where you could set the channel user limit to nan (not a number).
+            
+            
+        
+        
+        
