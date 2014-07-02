@@ -25,6 +25,7 @@
     Channel::Invite     =   on      # Channel invitation support (INVITE, +i, +I, etc.)
     Channel::Key        =   on      # Channel key support (+k)
     Channel::Limit      =   on      # Channel user limit support (+l)
+    Channel::Secret     =   on      # Secret channel support (+s)
 
 [ limit ]
 
