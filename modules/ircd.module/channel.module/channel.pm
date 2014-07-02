@@ -427,7 +427,7 @@ sub mode_string_all {
             foreach my $user ($channel->list_elements($name)) {
                 push @modes,         $letter;
                 push @user_params,   $user->{nick};
-                push @server_params, $user->{uid}
+                push @server_params, $user->{uid};
             }
         }
         

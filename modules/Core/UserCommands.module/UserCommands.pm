@@ -193,6 +193,7 @@ sub init {
     undef %ucommands;
     
     &add_join_callbacks;
+    &add_whois_callbacks;
     
     return 1;
 }
@@ -669,6 +670,60 @@ sub oper {
     return 1;
 }
 
+sub add_whois_callbacks {
+    
+    # DISCUSS: could we use state for these, or will that break reloading?
+    
+    # whether to show RPL_WHOISCHANNELS.
+    my %channels;
+    my $show_channels = sub {
+        my $quser = shift;
+        my @channels = map { $_->{name} } grep { $_->has_user($quser) } $pool->channels;
+        $channels{$quser} = \@channels;
+        return scalar @channels;
+    };
+    
+    # list of channels.
+    my $channels_list = sub {
+        my $quser     = shift;
+        my @channels  = @{ delete $channels{$quser} || [] };
+        return "@channels";
+    };
+    
+    # server information.
+    my $server_info = sub {
+        my $server  = shift->{server};
+        return @$server{ qw(name desc ) };
+    };
+
+    # too bad this is >90 width.
+    my $p = 1000;
+    foreach (
+    [ undef,                           'RPL_WHOISUSER',     sub { @{+shift}{ qw(ident cloak real) } } ],
+    [ $show_channels,                  'RPL_WHOISCHANNELS', $channels_list                            ],
+    [ undef,                           'RPL_WHOISSERVER',   $server_info                              ],
+    [ sub { shift->is_mode('ssl')   }, 'RPL_WHOISSECURE'                                              ],
+    [ sub { shift->is_mode('ircop') }, 'RPL_WHOISOPERATOR'                                            ],
+    [ sub { defined shift->{away}   }, 'RPL_AWAY',          sub { shift->{away}                     } ],
+    [ sub { shift->mode_string      }, 'RPL_WHOISMODES',    sub { shift->mode_string                } ],
+    [ undef,                           'RPL_WHOISHOST',     sub { @{+shift}{ qw(host ip) }          } ],
+    [ undef,                           'RPL_ENDOFWHOIS'                                               ]) {
+        my ($conditional_sub, $constant, $argument_sub) = @$_; $p -= 5;
+        $pool->on('user.whois_query' => sub {
+            my ($ruser, $event, $quser) = @_;
+        
+            # conditional sub.
+            $conditional_sub->($quser) or return if $conditional_sub;
+            
+            # argument sub.
+            my @args = $argument_sub->($quser) if $argument_sub;
+            
+            $ruser->numeric($constant => $quser->{nick}, @args);
+        }, name => $constant, priority => $p, with_eo => 1);
+    }
+    
+}
+
 sub whois {
     my ($user, $data, @args) = @_;
 
@@ -678,26 +733,11 @@ sub whois {
 
     # exists?
     if (!$quser) {
-        $user->numeric('ERR_NOSUCHNICK', $query);
+        $user->numeric(ERR_NOSUCHNICK => $query);
         return;
     }
 
-    my @channels = map { $_->{name} } grep { $_->has_user($quser) } $pool->channels;
-    my $s = $quser->{server};
-
-    foreach (
-    [ 1,                          'RPL_WHOISUSER',        @$quser{qw(ident cloak real)} ],
-    [ scalar(@channels),          'RPL_WHOISCHANNELS',    "@channels"                   ],
-    [ 1,                          'RPL_WHOISSERVER',      $s->{name}, $s->{desc}        ],
-    [ $quser->is_mode('ssl'),     'RPL_WHOISSECURE'                                     ],
-    [ $quser->is_mode('ircop'),   'RPL_WHOISOPERATOR'                                   ],
-    [ exists $quser->{away},      'RPL_AWAY',             $quser->{away}                ],
-    [ $quser->mode_string,        'RPL_WHOISMODES',       $quser->mode_string           ],
-    [ 1,                          'RPL_WHOISHOST',        $quser->{host}, $quser->{ip}  ],
-    [ 1,                          'RPL_ENDOFWHOIS'                                      ]) {
-        my ($conditional, $constant, @args) = @$_;
-        $user->numeric($constant => $quser->{nick}, @args) if $conditional;
-    }
+    $user->fire(whois_query => $quser);
 
     # TODO: 137 idle
     return 1;

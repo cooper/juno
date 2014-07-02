@@ -17,7 +17,7 @@ use 5.010;
 
 M::Account->import(qw(all_accounts login_account logout_account register_account account_info));
 
-our ($api, $mod, $me, $db);
+our ($api, $mod, $me, $db, $pool);
 
 sub init {
     $db = $M::Account::db or return;
@@ -61,6 +61,11 @@ sub init {
         number => 901,
         format => ':You have logged out'
     );
+    $mod->register_user_numeric(
+        name   => 'RPL_WHOISACCOUNT',
+        number => 330,
+        format => '%s %s :is logged in as'
+    );
     
     # registered user mode.
     $mod->register_user_mode_block(
@@ -83,6 +88,13 @@ sub init {
         [ account_login    => '%s (%s@%s) authenticated as \'%s\' on %s'       ],
         [ account_logout   => '%s (%s@%s) logged out from \'%s\' on %s'        ]
     );
+    
+    # WHOIS account line.
+    $pool->on('user.whois_query' => sub {
+        my ($user, $event, $quser) = @_;
+        return unless $quser->{account};
+        $user->numeric(RPL_WHOISACCOUNT => $quser->{nick}, $quser->{account}{name});
+    }, before => 'RPL_ENDOFWHOIS', name => 'RPL_WHOISACCOUNT', with_eo => 1);
 
     return 1;
 }

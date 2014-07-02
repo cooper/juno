@@ -2463,6 +2463,9 @@ CHANGES:
             outgoing CUM command now utilizies the new ->mode_string_all().
             fixed another bug in server connection timers.
             
+        83. WHOIS command can now be extended by modules with the whois_query event.
+            added RPL_WHOISACCOUNT to Account.
+            
          
          
          
