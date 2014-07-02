@@ -89,9 +89,18 @@ sub init {
 
 sub send_burst {  
     my ($server, $fire, $time) = @_;
-    return if $server->{accounts_negotiated};
-    $server->fire_command(acct => @{ all_accounts() });
-    $server->{accounts_negotiated} = 1;
+    
+    # send account infos.
+    if (!$server->{accounts_negotiated}) {
+        $server->fire_command(acct => @{ all_accounts() });
+        $server->{accounts_negotiated} = 1;
+    }
+    
+    # send logins.
+    $server->fire_command(login => $_, $_->{account}) foreach
+        grep { $_->{account} } $pool->all_users;
+        
+    return 1;
 }
 
 ######################
@@ -104,22 +113,14 @@ sub user_registered {
 }
 
 sub user_logged_in {
-    my ($user, $event, $act) = @_;
-    
-    # if it's the same account as logged in already, ignore.
-    # this was probably already handled.
-    return if $user->{account} && accounts_equal($act, $user->{account});
-    
+    my ($user, $event, $act, $oldact) = @_;
+    return if !$user->is_local || accounts_equal($act, $oldact);
     $pool->fire_command_all(login => $user, $act);
 }
 
 sub user_logged_out {
     my ($user, $event, $act) = @_;
-    
-    # if they're not logged in, don't log out.
-    # it was probably already handled.
-    return unless $user->{account};
-    
+    return if !$user->is_local || !$act;
     $pool->fire_command_all(logout => $user);
 }
 

@@ -2466,6 +2466,8 @@ CHANGES:
         83. WHOIS command can now be extended by modules with the whois_query event.
             added RPL_WHOISACCOUNT to Account.
             
+        84. fixed account propagation issues.
+            
          
          
          

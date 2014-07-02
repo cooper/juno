@@ -221,6 +221,7 @@ sub login_account {
     }
     
     # log in.
+    my $oldact = delete $user->{account};
     $user->{account} = $act;
     
     # handle and send mode string if local.
@@ -232,7 +233,7 @@ sub login_account {
         @$user{ qw(nick ident host) }, $act->{name}, $act->{name}) if $verbose;
     
     # logged in event.
-    $user->fire_event(account_logged_in => $act);
+    $user->fire_event(account_logged_in => $act, $oldact);
     
     notice(account_login =>
         $user->notice_info,
