@@ -24,7 +24,7 @@ use utils qw(cut_to_limit);
 our ($api, $mod, $pool);
 
 sub init {
-    # register limit mode block.
+    # register key mode block.
     $mod->register_channel_mode_block(
         name => 'key',
         code => \&cmode_key
@@ -62,7 +62,7 @@ sub cmode_key {
 sub on_user_can_join {
     my ($user, $event, $channel, $key) = @_;
     return unless $channel->is_mode('key');
-    return unless $channel->mode_parameter('key') ne $key;
+    return if defined $key && $channel->mode_parameter('key') eq $key;
     $user->numeric(ERR_BADCHANNELKEY => $channel->name);
     $event->stop;
 }

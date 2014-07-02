@@ -2469,8 +2469,7 @@ CHANGES:
         84. fixed account propagation issues.
             
         85. Added Channel Key module
-            the can_join hook now sends the channel key if used         
+            The can_join hook now sends the channel key if used         
          
-         
-         
-         
+        86. Added Channel Secret module (+l)
+            Fixed an issue with the channel key module
