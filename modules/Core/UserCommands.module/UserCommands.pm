@@ -503,7 +503,7 @@ sub cjoin {
         }
 
         # fire the event and delete the callbacks.
-        my $event = $user->fire(can_join => $channel);
+        my $event = $user->fire(can_join => $channel, $args[2]);
         
         # event was stopped; can't join.
         return if $event->stopper;

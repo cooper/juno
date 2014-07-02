@@ -23,7 +23,8 @@
     LOLCAT              =   on      # SPEEK LIEK A LOLCATZ!
     Eval                =   on      # Evaluate Perl code from IRC
     Channel::Invite     =   on      # Channel invitation support (INVITE, +i, +I, etc.)
-
+    Channel::Key        =   on      # Channel key support (+k)
+    Channel::Limit      =   on      # Channel user limit support (+l)
 
 [ limit ]
 
@@ -43,7 +44,7 @@
     kickmsg     = 300                           # kick messages
     channelname = 50                            # channel names
     away        = 100                           # away messages
-
+    key         = 50                            # channel keys
 
 [ users ]
 
