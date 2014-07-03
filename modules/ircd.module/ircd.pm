@@ -186,7 +186,6 @@ sub setup_database {
 sub setup_autoconnect {
 
     # auto server connect.
-    # FIXME: don't try to connect during reload if already connected.
     # honestly this needs to be moved to an event for after loading the configuration;
     # even if it's a rehash or something it should check for this.
     foreach my $name ($conf->names_of_block('connect')) {

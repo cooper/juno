@@ -1,12 +1,12 @@
 {
-   "version" : "8.77",
+   "version" : "8.88",
    "name" : "ircd::server",
+   "no_bless" : 1,
    "author" : {
       "website" : "https://github.com/cooper",
       "name" : "Mitchell Cooper"
    },
-   "no_bless" : 1,
-   "preserve_sym" : 1,
    "description" : "represents an IRC server",
+   "preserve_sym" : 1,
    "package" : "server"
 }

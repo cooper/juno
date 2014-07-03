@@ -2479,6 +2479,17 @@ CHANGES:
             fixed an issue where the IRCd sometimes would not start due to notice() in pool.pm before $pool exists.
             fixed an issue where you could set the channel user limit to nan (not a number).
             
+        88. fixed a bug where QUIT before registration would send "not enough parameters."
+            removed ancient functions.
+            improved the efficiency of lots of other functions by removing regex and utilizing List::Util.
+            cleaned up a lot of other things.
+        
+        
+        
+        
+        
+        
+            
             
         
         

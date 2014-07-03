@@ -20,7 +20,7 @@ use strict;
 use 5.010;
 use utils qw(col conf notice irc_match);
 
-our ($api, $mod, $pool);
+our ($api, $mod, $pool, $me);
 
 sub init {    
     $mod->register_user_numeric(
@@ -37,19 +37,30 @@ sub init {
     #
     # PARAMS = number of parameters
     # DATA   = true if include $data string
-    # USER   = true if the command should be allowed for users after registration
+    # LATER  = true if the command should be handled even after registration
     #
-    #   [ NAME      => \&sub            PARAMS  DATA    USER 
-        [ CAP       => \&rcmd_cap,      1,      undef,  1   ],
-        [ NICK      => \&rcmd_nick,     1,      undef,      ],
-        [ USER      => \&rcmd_user,     4,      1,          ],
-        [ SERVER    => \&rcmd_server,   5,      undef,      ],
-        [ PASS      => \&rcmd_pass,     1,      undef,      ],
-        [ QUIT      => \&rcmd_quit,     1,      1,          ],
-        [ ERROR     => \&rcmd_error,    1,      undef,  1   ],
+    #   [ NAME      => \&sub            PARAMS  DATA    LATER
+        [ PING      => \&rcmd_ping,     1,      undef,  1       ],
+        [ PONG      => sub { },         undef,  undef,  1       ],
+        [ CAP       => \&rcmd_cap,      1,      undef,  1       ],
+        [ NICK      => \&rcmd_nick,     1,      undef,          ],
+        [ USER      => \&rcmd_user,     4,      1,      1       ],
+        [ SERVER    => \&rcmd_server,   5,      undef,          ],
+        [ PASS      => \&rcmd_pass,     1,      undef,          ],
+        [ QUIT      => \&rcmd_quit,     undef,  1,              ],
+        [ ERROR     => \&rcmd_error,    1,      undef,  1       ],
     );
     
     return 1;
+}
+
+#################
+### PING PONG ###
+#################
+
+sub rcmd_ping {
+    my ($connection, $event, $given) = @_;
+    $connection->sendme("PONG $$me{name} :$given");
 }
 
 ####################
@@ -189,6 +200,13 @@ sub rcmd_nick {
 
 sub rcmd_user {
     my ($connection, $event, $data, @args) = @_;
+    
+    # already registered.
+    if ($connection->{type}) {
+        $connection->numeric('ERR_ALREADYREGISTRED');
+        return;
+    }
+    
     $connection->{ident} = $args[0];
     $connection->{real}  = col((split /\s+/, $data, 5)[4]);
     $connection->fire_event(reg_user => @$connection{ qw(ident real) });
@@ -244,9 +262,10 @@ sub rcmd_pass {
 ### DISCONNECT MESSAGES ###
 ###########################
 
+# not used for registered users.
 sub rcmd_quit {
-    my ($connection, $event, $data) = @_;
-    my $reason = col((split /\s+/,  $data, 2)[1]);
+    my ($connection, $event, $data, $arg) = @_;
+    my $reason = defined $arg ? col((split /\s+/,  $data, 2)[1]) : 'leaving';
     $connection->done("~ $reason");
 }
 

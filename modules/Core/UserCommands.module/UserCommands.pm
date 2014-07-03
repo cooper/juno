@@ -17,20 +17,11 @@ use strict;
 use 5.010;
 
 use Scalar::Util qw(blessed);
-use utils qw(col lceq match cut_to_limit conf v notice validchan);
+use utils qw(col match cut_to_limit conf v notice validchan);
 
 our ($api, $mod, $me, $pool, $VERSION);
 
 my %ucommands = (
-    PING => {
-        params => 1,
-        code   => \&ping,
-        desc   => 'ping the server'
-    },
-    USER => {
-        code   => \&fake_user,
-        desc   => 'fake user command'
-    },
     MOTD => {
         code   => \&motd,
         desc   => 'display the message of the day'
@@ -39,10 +30,6 @@ my %ucommands = (
         params => 1,
         code   => \&nick,
         desc   => 'change your nickname'
-    },
-    PONG => {
-        code   => sub { },
-        desc   => 'reply to a ping'
     },
     INFO => {
         code   => \&info,
@@ -198,18 +185,6 @@ sub init {
     return 1;
 }
 
-# handlers
-
-sub ping {
-    my ($user, $data, @s) = @_;
-    $user->sendme("PONG $$me{name} :".col($s[1]));
-}
-
-sub fake_user {
-    my $user = shift;
-    $user->numeric('ERR_ALREADYREGISTRED');
-}
-
 sub motd {
     # TODO: <server> parameter
     my $user = shift;
@@ -325,7 +300,7 @@ sub mode {
     my ($user, $data, @args) = @_;
 
     # is it the user himself?
-    if (lceq $user->{nick} => $args[1]) {
+    if (lc $user->{nick} eq lc $args[1]) {
 
         # mode change
         if (defined $args[2]) {

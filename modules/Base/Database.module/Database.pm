@@ -45,7 +45,6 @@ sub database {
 }
 
 # a table exists.
-# FIXME: currently specific to SQLite.
 sub table_exists {
     my ($mod, $event, $db, $table) = @_;
     my $sth = $db->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?");

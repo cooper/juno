@@ -15,7 +15,7 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils qw(col lceq match cut_to_limit conf v notice);
+use utils qw(col match cut_to_limit conf v notice);
 
 our ($api, $mod, $pool, $me);
 

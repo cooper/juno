@@ -43,6 +43,8 @@ sub new {
     }, $class;
 }
 
+# handle a server quit.
+# does not close a connection; use $server->conn->done() for that.
 sub quit {
     my ($server, $reason, $why) = @_;
     $why //= $server->{name}.q( ).$server->{parent}{name};
@@ -71,31 +73,30 @@ sub quit {
     return 1;
 }
 
-# add a user mode
+# associate a letter with a umode name.
 sub add_umode {
     my ($server, $name, $mode) = @_;
-    $server->{umodes}{$name} = {
-        letter => $mode
-    };
+    $server->{umodes}{$name} = { letter => $mode };
     L("$$server{name} registered $mode:$name");
-    return 1
+    return 1;
 }
 
-# umode letter to name
+# umode letter to name.
 sub umode_name {
     my ($server, $mode) = @_;
     foreach my $name (keys %{ $server->{umodes} }) {
-        return $name if $mode eq $server->{umodes}{$name}{letter}
+        return $name if $mode eq $server->{umodes}{$name}{letter};
     }
-    return
+    return;
 }
 
-# umode name to letter
+# umode name to letter.
 sub umode_letter {
     my ($server, $name) = @_;
-    return $server->{umodes}{$name}{letter}
+    return $server->{umodes}{$name}{letter};
 }
 
+# associate a letter with a cmode name.
 sub add_cmode {
     my ($server, $name, $mode, $type) = @_;
     $server->{cmodes}{$name} = {
@@ -103,35 +104,35 @@ sub add_cmode {
         type   => $type
     };
     L("$$server{name} registered $mode:$name");
-    return 1
+    return 1;
 }
 
-# cmode letter to name
+# cmode letter to name.
 sub cmode_name {
     my ($server, $mode) = @_;
     return unless defined $mode;
     foreach my $name (keys %{ $server->{cmodes} }) {
         next unless defined $server->{cmodes}{$name}{letter};
-        return $name if $mode eq $server->{cmodes}{$name}{letter}
+        return $name if $mode eq $server->{cmodes}{$name}{letter};
     }
-    return
+    return;
 }
 
-# cmode name to letter
+# cmode name to letter.
 sub cmode_letter {
     my ($server, $name) = @_;
     return unless defined $name;
-    return $server->{cmodes}{$name}{letter}
+    return $server->{cmodes}{$name}{letter};
 }
 
-# type
+# get cmode type.
 sub cmode_type {
     my ($server, $name) = @_;
     return unless defined $name;
-    return $server->{cmodes}{$name}{type}
+    return $server->{cmodes}{$name}{type};
 }
 
-# change 1 server's mode string to another server's
+# change 1 server's mode string to another server's.
 sub convert_cmode_string {
     my ($server, $server2, $modestr) = @_;
     my $string = '';
@@ -217,7 +218,7 @@ sub cmode_string_difference {
     # split into modes, @params
     my ($o_modes, @o_params) = split ' ', $o_modestr;
     my ($n_modes, @n_params) = split ' ', $n_modestr;
-    substr($o_modes, 0, 1) = substr($n_modes, 0, 1) = '';
+    substr($o_modes, 0, 1)   = substr($n_modes, 0, 1) = '';
 
     # determine the original values. ex. $o_modes_p{b}{'hi!*@*'} = 1
     my (@o_modes, %o_modes_p);
@@ -341,10 +342,11 @@ sub children {
 
 # shortcuts
 
-sub id       { shift->{sid}  }
-sub full     { shift->{name} }
-sub name     { shift->{name} }
-sub users    { @{ shift->{users}    } }
+sub id       { shift->{sid}         }
+sub full     { shift->{name}        }
+sub name     { shift->{name}        }
+sub conn     { shift->{conn}        }
+sub users    { @{ shift->{users} }  }
 
 # actual_users = real users
 # global_users = all users which are propogated, including fake ones
@@ -358,30 +360,16 @@ sub all_users    {        @{ shift->{users}    }                  }
 ### MINE ###
 ############
 
-# handle local user data
+# handle local user data.
 sub handle {
-    # FIXME: MY GOD THIS IS HIDEOUS.
     my ($server, $data) = @_;
     return if !$server->{conn} || $server->{conn}{goodbye};
+    
+    # if debug logging is enabled, log.
+    L($server->{name}.q(: ).$data) if conf('log', 'server_debug');
+
     my @s = split /\s+/, $data;
-    
-    # if logging is enabled, log.
-    if (conf('log', 'server_debug')) {
-        L($server->{name}.q(: ).$data);
-    }
-
-    # response to PINGs
-    if (uc $s[0] eq 'PING') {
-        $server->send('PONG'.(defined $s[1] ? qq( $s[1]) : q..));
-        return;
-    }
-
-    if (uc $s[0] eq 'PONG') {
-        # don't care
-        return;
-    }
-    
-    return unless defined $s[1];
+    return unless length $s[1];
     my $command = uc $s[1];
 
     # if it doesn't exist, ignore it and move on.
@@ -389,11 +377,11 @@ sub handle {
     # but I don't want to do that because
     my @handlers = $pool->server_handlers($command);
     if (!@handlers) {
-        L("unknown command $command; ignoring it");
+        notice(server_warning => "unknown command $command from $$server{name}!");
         return;
     }
 
-    # it exists - parse it.
+    # it exists - handle it.
     foreach my $handler (@handlers) {
         last if !$server->{conn} || $server->{conn}{goodbye};
         
@@ -408,6 +396,7 @@ sub handle {
     return 1;
 }
 
+# send burst to a connected server.
 sub send_burst {
     my $server = shift;
     return if $server->{i_sent_burst};
@@ -455,7 +444,7 @@ sub send_children {
 sub sendfrom_children {
     my ($ignore, $from) = (shift, shift);
     send_children($ignore, map { ":$from $_" } @_);
-    return 1
+    return 1;
 }
 
 # send data to MY servers.
@@ -463,8 +452,8 @@ sub send {
     my $server = shift;
     if (!$server->{conn}) {
         my $sub = (caller 1)[3];
-        L("can't send data to a unconnected server! please report this error by $sub. $$server{name}");
-        return
+        L("can't send data to unconnected server $$server{name}!");
+        return;
     }
     $server->{conn}->send(@_);
 }
@@ -472,13 +461,13 @@ sub send {
 # send data to a server from THIS server.
 sub sendme {
     my $server = shift;
-    $server->sendfrom($me->{sid}, @_)
+    $server->sendfrom($me->{sid}, @_);
 }
 
 # send data from a UID or SID.
 sub sendfrom {
     my ($server, $from) = (shift, shift);
-    $server->send(map { ":$from $_" } @_)
+    $server->send(map { ":$from $_" } @_);
 }
 
 # convenient for $server->fire_command

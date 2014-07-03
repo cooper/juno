@@ -16,10 +16,13 @@ use warnings;
 use strict;
 use feature 'switch';
 use parent 'Evented::Object';
+
 use utils qw(conf v notice match);
+use List::Util 'first';
 
 our ($api, $mod, $pool, $me);
 
+# create a channel.
 sub new {
     my ($class, %opts) = @_;
     return bless {
@@ -29,34 +32,20 @@ sub new {
     }, $class;
 }
 
-# named mode stuff
-
+# channel mode is set.
 sub is_mode {
     my ($channel, $name) = @_;
     return $channel->{modes}{$name};
 }
 
+# current parameter for a set mode, if any.
 sub mode_parameter {
     my ($channel, $name) = @_;
     return $channel->{modes}{$name}{parameter};
 }
 
-sub unset_mode {
-    my ($channel, $name) = @_;
-
-    # is the channel set to this mode?
-    if (!$channel->is_mode($name)) {
-        L("attempted to unset mode $name on that is not set on $$channel{name}; ignoring.")
-    }
-
-    # it is, so remove it
-    delete $channel->{modes}{$name};
-    L("$$channel{name} -$name");
-    return 1
-}
-
-# set channel modes
-# takes an optional parameter
+# low-level mode set.
+# takes an optional parameter.
 # $channel->set_mode('moderated');
 sub set_mode {
     my ($channel, $name, $parameter) = @_;
@@ -69,30 +58,35 @@ sub set_mode {
     return 1
 }
 
-# list has something
+# low-level mode unset.
+sub unset_mode {
+    my ($channel, $name) = @_;
+    return unless $channel->is_mode($name);
+    delete $channel->{modes}{$name};
+    L("$$channel{name} -$name");    
+    return 1;
+}
+
+# list has something.
 sub list_has {
     my ($channel, $name, $what) = @_;
     return unless $channel->{modes}{$name};
-    foreach my $thing ($channel->list_elements($name)) {
-        return 1 if $thing eq $what
-    }
-    return
+    return 1 if defined first { $_ eq $what } $channel->list_elements($name);
 }
 
-# something matches in an expression list
+# something matches in an expression list.
 # returns the match if there is one.
 sub list_matches {
     my ($channel, $name, $what) = @_;
     return unless $channel->{modes}{$name};
-    foreach my $mask ($channel->list_elements($name)) {
-        my $realmask = $mask;
-        $realmask = (split ':', $mask, 2)[1] if $mask =~ m/^(.+?):(.+)!(.+)\@(.+)/;
-        return $mask if match($what, $realmask);
-    }
-    return;
+    return first {
+        my $realmask = $_;
+        $realmask = (split ':', $_, 2)[1] if $_ =~ m/^(.+?):(.+)!(.+)\@(.+)/;
+        match($what, $realmask);
+    } $channel->list_elements($name);
 }
 
-# returns an array of list elements
+# returns an array of list elements.
 sub list_elements {
     my ($channel, $name, $all) = @_;
     return unless $channel->{modes}{$name};
@@ -101,19 +95,20 @@ sub list_elements {
     return map { $_->[0]      } @list;
 }
 
-# adds something to a list mode (such as ban)
+# adds something to a list mode.
 sub add_to_list {
     my ($channel, $name, $parameter, %opts) = @_;
+    
+    # first item. wow.
     $channel->{modes}{$name} = {
         time => time,
         list => []
     } unless $channel->{modes}{$name};
 
-    # no duplicates plz
-    if ($channel->list_has($name, $parameter)) {
-        return;
-    }
+    # no duplicates plz.
+    return if $channel->list_has($name, $parameter);
 
+    # add it.
     L("$$channel{name}: adding $parameter to $name list");
     my $array = [$parameter, \%opts];
     push @{ $channel->{modes}{$name}{list} }, $array;
@@ -121,7 +116,7 @@ sub add_to_list {
     return 1;
 }
 
-# removes something from a list
+# removes something from a list.
 sub remove_from_list {
     my ($channel, $name, $what) = @_;
     return unless $channel->list_has($name, $what);
@@ -163,17 +158,14 @@ sub cjoin {
     return $channel->{time};
 }
 
-# remove a user
-# note that this is not necessarily a part.
-# it could be that a user quit.
+# remove a user.
+# this could be due to any of part, quit, kick, server quit, etc.
 sub remove {
     my ($channel, $user) = @_;
 
     # remove the user from status lists
     foreach my $name (keys %{ $channel->{modes} }) {
-        if ($me->cmode_type($name) == 4) {
-            $channel->remove_from_list($name, $user);
-        }
+        $channel->remove_from_list($name, $user) if $me->cmode_type($name) == 4;
     }
 
     # remove the user.
@@ -193,22 +185,19 @@ sub remove {
 sub remove_user;
 *remove_user = *remove;
 
-# user is on channel
+# user is on channel.
 sub has_user {
     my ($channel, $user) = @_;
-    foreach my $usr (@{ $channel->{users} }) {
-        return 1 if $usr == $user
-    }
-    return
+    return first { $_ == $user } $channel->users;
 }
 
-# set the channel time
+# low-level channel time set.
 sub set_time {
     my ($channel, $time) = @_;
     if ($time > $channel->{time}) {
         L("warning: setting time to a lower time from $$channel{time} to $time");
     }
-    $channel->{time} = $time
+    $channel->{time} = $time;
 }
 
 # ->handle_mode_string()
@@ -332,7 +321,7 @@ sub handle_mode_string {
         $str .= $letter;
     }
 
-    # make it change array refs to separate params for servers
+    # make it change array refs to separate params for servers.
     # [USER RESPONSE, SERVER RESPONSE]
     my @user_params;
     my @server_params;
@@ -342,21 +331,22 @@ sub handle_mode_string {
             push @server_params, $param->[1];
         }
 
-        # not an array ref
+        # not an array ref.
         else {
             push @user_params,   $param;
             push @server_params, $param;
         }
+        
     }
 
     my $user_string   = join ' ', $str, @user_params;
     my $server_string = join ' ', $str, @server_params;
 
     L("end of mode handle");
-    return ($user_string, $server_string)
+    return ($user_string, $server_string);
 }
 
-# returns a +modes string
+# returns a +modes string.
 sub mode_string        { _mode_string(0, @_) }
 sub mode_string_hidden { _mode_string(1, @_) }
 sub _mode_string       {
@@ -378,7 +368,7 @@ sub _mode_string       {
         next unless $normal_types{ $server->cmode_type($name) };
 
         push @modes, $server->cmode_letter($name);
-        my $param = $channel->mode_parameter($name);;
+        my $param = $channel->mode_parameter($name);
         push @params, $param if defined $param;
     }
 
@@ -433,11 +423,11 @@ sub mode_string_all {
         
     }
     
-    # make +modes params strings
+    # make +modes params strings.
     my $user_string   = '+'.join(' ', join('', @modes), @user_params);
     my $server_string = '+'.join(' ', join('', @modes), @server_params);
 
-    # returns both a user string and a server string
+    # returns both a user string and a server string.
     return ($user_string, $server_string);
 }
 
@@ -458,12 +448,12 @@ sub mode_string_status {
         }
     }
 
-    # make +modes params strings
+    # make +modes params strings.
     my $user_string   = '+'.join(' ', join('', @modes), @user_params);
     my $server_string = '+'.join(' ', join('', @modes), @server_params);
 
-    # returns both a user string and a server string
-    return ($user_string, $server_string)
+    # returns both a user string and a server string.
+    return ($user_string, $server_string);
 }
 
 # returns true only if the passed user is in
@@ -511,36 +501,24 @@ sub users { @{ shift->{users} } }
 ### MINE ###
 ############
 
-# omg hax
-# it has the same name as the one in channel.pm.
-# the only difference is that this one sends
-# the mode changes around
+# handle a join for a local user.
 sub localjoin {
     my ($channel, $user, $time, $force) = @_;
-    if ($channel->has_user($user)) {
-        return unless $force;
-    }
-    else {
-        $channel->cjoin($user, $time);
-    }
+    return if !$force && $channel->has_user($user);
+    
+    # do actual join, then tell the members.
+    $channel->cjoin($user, $time);
+    $channel->sendfrom_all($user->full, "JOIN $$channel{name}");
 
-    # for each user in the channel
-    foreach my $usr ($channel->users) {
-        next unless $usr->is_local;
-        $usr->sendfrom($user->full, "JOIN $$channel{name}")
-    }
-
+    # send topic and names.
     $user->handle("TOPIC $$channel{name}") if $channel->topic;
     names($channel, $user);
     
-    # fire after join event.
-    $channel->fire_event(user_joined => $user);
-    
+    $channel->fire_event(user_joined => $user);    
     return $channel->{time};
 }
 
-# send NAMES
-# this is here instead of user::handlers because it is convenient to send on channel join
+# send NAMES. FIXME: why is this here?
 sub names {
     my ($channel, $user, $no_endof) = @_;
     my @str;
@@ -550,23 +528,28 @@ sub names {
         # if this user is invisible, do not show him unless the querier is in a common
         # channel or has the see_invisible flag.
         if ($usr->is_mode('invisible')) {
-            next if !$channel->has_user($user) && !$user->has_flag('see_invisible')
+            next if !$channel->has_user($user) && !$user->has_flag('see_invisible');
         }
 
+        # add him.
         my $prefixes = $user->has_cap('multi-prefix') ? 'prefixes' : 'prefix';
         $str[$curr] .= $channel->$prefixes($usr).$usr->{nick}.q( );
-        $curr++ if length $str[$curr] > 500
+        $curr++ if length $str[$curr] > 500;
+        
     }
-    $user->numeric('RPL_NAMEREPLY', '=', $channel->name, $_) foreach @str;
-    $user->numeric('RPL_ENDOFNAMES', $channel->name) unless $no_endof;
+    $user->numeric(RPL_NAMEREPLY  => '=', $channel->name, $_) foreach @str;
+    $user->numeric(RPL_ENDOFNAMES =>      $channel->name    ) unless $no_endof;
 }
 
+# send mode information.
 sub modes {
     my ($channel, $user) = @_;
-    $user->numeric('RPL_CHANNELMODEIS', $channel->name, $channel->mode_string($user->{server}));
-    $user->numeric('RPL_CREATIONTIME',  $channel->name, $channel->{time});
+    my $modestr = $channel->mode_string($user->{server});
+    $user->numeric(RPL_CHANNELMODEIS =>  $channel->name, $modestr);
+    $user->numeric(RPL_CREATIONTIME  =>  $channel->name, $channel->{time});
 }
 
+# send a message to all the local members.
 sub send_all {
     my ($channel, $what, $ignore) = @_;
     foreach my $user ($channel->users) {
@@ -574,29 +557,30 @@ sub send_all {
         next if defined $ignore && $ignore == $user;
         $user->send($what);
     }
-    return 1
+    return 1;
 }
 
+# send to members with a source.
 sub sendfrom_all {
     my ($channel, $who, $what, $ignore) = @_;
     return send_all($channel, ":$who $what", $ignore);
 }
 
-# send a notice to every user
+# send a notice to all the local members.
 sub notice_all {
     my ($channel, $what, $ignore) = @_;
     foreach my $user ($channel->users) {
         next unless $user->is_local;
         next if defined $ignore && $ignore == $user;
-        $user->send(":$$me{name} NOTICE $$channel{name} :*** $what");
+        $user->sendfrom($me->name, "NOTICE $$channel{name} :*** $what");
     }
-    return 1
+    return 1;
 }
 
-# take the lower time of a channel and unset higher time stuff
+# take the lower time of a channel and unset higher time stuff.
 sub take_lower_time {
     my ($channel, $time, $ignore_modes) = @_;
-    return $channel->{time} if $time >= $channel->{time}; # never take a time that isn't lower
+    return $channel->{time} if $time >= $channel->{time};
 
     L("locally resetting $$channel{name} time to $time");
     my $amount = $channel->{time} - $time;
@@ -604,7 +588,7 @@ sub take_lower_time {
 
     # unset topic.
     if ($channel->topic) {
-        sendfrom_all($channel, $me->{name}, "TOPIC $$channel{name} :");
+        $channel->sendfrom_all($me->{name}, "TOPIC $$channel{name} :");
         delete $channel->{topic};
     }
 
@@ -616,20 +600,20 @@ sub take_lower_time {
     if (!$ignore_modes) {
         my ($u_str, $s_str) = $channel->mode_string_all($me);
         substr($u_str, 0, 1) = substr($s_str, 0, 1) = '-';
-        sendfrom_all($channel, $me->{name}, "MODE $$channel{name} $u_str");
+        $channel->sendfrom_all($me->{name}, "MODE $$channel{name} $u_str");
         $channel->handle_mode_string($me, $me, $s_str, 1, 1);
     }
     
-    notice_all($channel, "New channel time: ".scalar(localtime $time)." (set back \2$amount\2 seconds)");
+    notice_all($channel, "New channel time: ".scalar(localtime $time)." (set back $amount seconds)");
     return $channel->{time};
 }
 
-# returns the highest prefix a user has
+# returns the highest prefix a user has.
 sub prefix {
     my ($channel, $user) = @_;
     my $level = $channel->user_get_highest_level($user);
     if (defined $level && $ircd::channel_mode_prefixes{$level}) {
-        return $ircd::channel_mode_prefixes{$level}[1]
+        return $ircd::channel_mode_prefixes{$level}[1];
     }
     return q..;
 }
@@ -678,6 +662,7 @@ sub _do_mode_string {
 }
 
 # handle a privmsg. send it to our local users and other servers.
+# FIXME: this is just really bad.
 sub handle_privmsgnotice {
     my ($channel, $command, $source, $message) = @_;
     my $user   = $source->isa('user')   ? $source : undef;
@@ -730,7 +715,6 @@ sub handle_privmsgnotice {
     $channel->fire_event(lc $command => $source, $message);
 
     return 1;
-    
 }
 
 $mod

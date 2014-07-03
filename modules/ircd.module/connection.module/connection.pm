@@ -19,7 +19,6 @@ use parent 'Evented::Object';
 
 use Socket::GetAddrInfo;
 use Scalar::Util 'weaken';
-
 use utils qw(conn v notice);
 
 our ($api, $mod, $me, $pool);
@@ -216,8 +215,8 @@ sub sendfrom {
 sub sendme {
     my $connection = shift;
     my $source =
-    $connection->{type} && $connection->{type}->isa('server') ?
-    $me->{sid} : $me->{name};
+        $connection->{type} && $connection->{type}->isa('server') ?
+        $me->{sid} : $me->{name};
     $connection->sendfrom($source, @_);
 }
 
