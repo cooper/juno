@@ -71,7 +71,7 @@ sub init {
     # utils pool user(::mine) server(::mine,::linkage) channel(::mine) connection
     $mod->load_submodule('pool') or return;
     $ircd::pool = $::pool ||= pool->new; # must be ircd::pool; don't change.
-    $mod->load_submodule($_) or return foreach qw(user server channel connection);
+    $mod->load_submodule($_) or return foreach qw(message user server channel connection);
 
     # TODO: new values are NOT inserted after reloading.
     # I had an idea once upon a time to make $server->configure(%opts)

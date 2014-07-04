@@ -74,20 +74,34 @@ sub handle {
     return if $connection->{goodbye};
 
     return unless length $data;
-    my @args    = split /\s+/, $data;
-    my $command = uc shift @args;
+    my $msg  = message->new(data => $data);
+    my $cmd  = $msg->command;
+    my @args = $msg->params;
 
     # fire command events.
     my $fire = $connection->prepare(
-        [ raw                      => $data, @args ],
-        [ "command_${command}_raw" => $data, @args ],
-        [ "command_$command"       =>        @args ]
+    
+    #   .---------------.
+    #   | legacy events |
+    #   '---------------'
+ 
+        [ raw                   => $data, @args ],  
+        [ "command_${cmd}_raw"  => $data, @args ],  
+        [ "command_$cmd"        =>        @args ],
+        
+    #   .------------.
+    #   | new events |
+    #   '------------'
+
+        [ message               => $msg ],
+        [ "message_${cmd}"      => $msg ]
+ 
     )->fire('safe');
 
     # 'safe' with exception.
     if (my $e = $fire->exception) {
         my $stopper = $fire->stopper;
-        L("Exception in $command from $stopper: $e");
+        L("Exception in $cmd from $stopper: $e");
     }
     
 }

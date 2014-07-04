@@ -44,7 +44,7 @@ sub register_registration_command {
     my $params  = $opts{parameters};
     $pool->on("connection.command_$command" => sub {
             my ($event, @args) = @_;
-            
+
             # there are enough.
             return 1 if @args >= $params;
             

@@ -18,6 +18,7 @@
 		A75C5D1D18B4321A007780A3 /* rfc-2812 */ = {isa = PBXFileReference; lastKnownFileType = text; name = "rfc-2812"; path = "../rfc-2812"; sourceTree = "<group>"; };
 		BC174752194A36F0005C2D83 /* doc */ = {isa = PBXFileReference; lastKnownFileType = folder; name = doc; path = ../doc; sourceTree = "<group>"; };
 		BC515539195C7E1D00110EBE /* TODO */ = {isa = PBXFileReference; lastKnownFileType = text; name = TODO; path = ../TODO; sourceTree = "<group>"; };
+		BC7068FE196642E600A2915D /* message.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = message.pm; path = message.module/message.pm; sourceTree = "<group>"; };
 		BC9564F61944E032002F52B9 /* Account.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Account.pm; sourceTree = "<group>"; };
 		BC9564F91944E032002F52B9 /* Local.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Local.pm; path = Local.module/Local.pm; sourceTree = "<group>"; };
 		BC9564FC1944E032002F52B9 /* Remote.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Remote.pm; path = Remote.module/Remote.pm; sourceTree = "<group>"; };
@@ -197,6 +198,7 @@
 				BC9565461944E032002F52B9 /* server.pm */,
 				BC9565441944E032002F52B9 /* linkage.pm */,
 				BC95654C1944E032002F52B9 /* utils.pm */,
+				BC7068FE196642E600A2915D /* message.pm */,
 			);
 			name = ircd;
 			path = ircd.module;

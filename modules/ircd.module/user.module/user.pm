@@ -41,7 +41,7 @@ sub new {
 # user has a mode enabled.
 sub is_mode {
     my ($user, $mode) = @_;
-    return 1 if first { $_ eq $mode } @{ $user->{modes} };
+    return 1 if defined first { $_ eq $mode } @{ $user->{modes} };
     return;
 }
 

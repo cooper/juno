@@ -2483,6 +2483,8 @@ CHANGES:
             removed ancient functions.
             improved the efficiency of lots of other functions by removing regex and utilizing List::Util.
             cleaned up a lot of other things.
+            
+        89. added message class for parsing IRC messages; its objects represent a single message.
         
         
         

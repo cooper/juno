@@ -100,6 +100,9 @@ sub cmd_reload {
         permanent => 1 # we will remove it manually afterward
     ) if $verbose;
     
+    # redefine Evented::Object before anything else.
+    do $_ foreach grep { /^Evented\/Object/ } keys %INC;
+    
     # determine modules loaded beforehand.
     my @mods_loaded = @{ $api->{loaded} };
     my $num = scalar @mods_loaded;
