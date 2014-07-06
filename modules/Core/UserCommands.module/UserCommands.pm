@@ -472,8 +472,8 @@ sub cjoin {
         if (!$channel) {
             $new     = 1;
             $channel = $pool->new_channel(
-                name   => $chname,
-                'time' => $time
+                name => $chname,
+                time => $time
             );
         }
 
@@ -498,7 +498,7 @@ sub cjoin {
         $pool->fire_command_all(cmode => $me, $channel, $time, $me->{sid}, $sstr) if $sstr;
 
         # do the actual local join.
-        $channel->localjoin($user, $time, 1);
+        $channel->localjoin($user, $time);
         
     }
     return 1;
@@ -511,7 +511,7 @@ sub names {
         # and RPL_ENDOFNAMES is sent no matter what
         my $channel = $pool->lookup_channel($chname);
         $channel->names($user, 1) if $channel;
-        $user->numeric('RPL_ENDOFNAMES', $channel ? $channel->name : $chname);
+        $user->numeric(RPL_ENDOFNAMES => $channel ? $channel->name : $chname);
     }
 }
 
@@ -728,7 +728,7 @@ sub ison {
         push @found, $user->{nick} if $user;
     }
 
-    $user->numeric('RPL_ISON', join(' ', @found));
+    $user->numeric(RPL_ISON => "@found");
 }
 
 sub commands {
@@ -797,13 +797,13 @@ sub part {
 
         # channel doesn't exist
         if (!$channel) {
-            $user->numeric('ERR_NOSUCHCHANNEL', $chname);
+            $user->numeric(ERR_NOSUCHCHANNEL => $chname);
             return
         }
 
         # user isn't on channel
         if (!$channel->has_user($user)) {
-            $user->numeric('ERR_NOTONCHANNEL', $channel->name);
+            $user->numeric(ERR_NOTONCHANNEL => $channel->name);
             return
         }
 
@@ -910,15 +910,19 @@ sub who {
         # rfc2812:
         # If the "o" parameter is passed only operators are returned according
         # to the <mask> supplied.
-        next if (defined $args[2] && $args[2] =~ m/o/ && !$quser->is_mode('ircop'));
+        next if ($args[2] && index($args[2], 'o') != -1 && !$quser->is_mode('ircop'));
 
         # found a match
-        $who_flags = (defined $quser->{away} ? 'G' : 'H') . $who_flags . ($quser->is_mode('ircop') ? '*' : q||);
-        $user->numeric('RPL_WHOREPLY', $match_pattern, $quser->{ident}, $quser->{host}, $quser->{server}{name}, $quser->{nick}, $who_flags, $quser->{real});
+        $who_flags = (defined $quser->{away} ? 'G' : 'H') .
+                     $who_flags . ($quser->is_mode('ircop') ? '*' : q||);
+        $user->numeric(RPL_WHOREPLY =>
+            $match_pattern, $quser->{ident}, $quser->{host}, $quser->{server}{name},
+            $quser->{nick}, $who_flags, $quser->{real}
+        );
     }
 
-    $user->numeric('RPL_ENDOFWHO', $query);
-    return 1
+    $user->numeric(RPL_ENDOFWHO => $query);
+    return 1;
 }
 
 sub topic {

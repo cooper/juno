@@ -171,7 +171,7 @@ sub register_user_command {
                 when ('oper') {
                     foreach my $flag (keys %{ $match_attr[$match_i] }) {
                         if (!$user->has_flag($flag)) {
-                            $user->numeric('ERR_NOPRIVILEGES', $flag);
+                            $user->numeric(ERR_NOPRIVILEGES => $flag);
                             return;
                         }
                         # FIXME: what if you did opt or some other

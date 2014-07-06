@@ -30,12 +30,6 @@ sub db_store {
     return $ircd::conf->store($block, $key, $value);
 }
 
-# TODO: pending removal.
-sub conn {
-    my ($sec, $key) = @_;
-    return $ircd::conf->get(['connect', $sec], $key);
-}
-
 # log and exit.
 sub fatal {
     my $line = shift;

@@ -131,23 +131,15 @@ sub remove_from_list {
 # user joins channel
 sub cjoin {
     my ($channel, $user, $time) = @_;
-
-    # fire before join event.
-    # FIXME: um I think this event should be removed.
-    # any checks should be done in server and user handlers...
-    # and I don't think anything uses this.
-    my $e = $channel->fire_event(user_will_join => $user);
-    
-    # a handler suggested that the join should not occur.
-    return if $e->{join_fail};
+    return if $channel->has_user($user);
     
     # the channel TS will change
-    # if the join time is older than the channel time
+    # if the join time is older than the channel time.
     if ($time < $channel->{time}) {
         $channel->set_time($time);
     }
     
-    # add the user to the channel
+    # add the user to the channel.
     push @{ $channel->{users} }, $user;
     
     # note: as of 5.91, after-join (user_joined) event is fired in
@@ -503,8 +495,7 @@ sub users { @{ shift->{users} } }
 
 # handle a join for a local user.
 sub localjoin {
-    my ($channel, $user, $time, $force) = @_;
-    return if !$force && $channel->has_user($user);
+    my ($channel, $user, $time) = @_;
     
     # do actual join, then tell the members.
     $channel->cjoin($user, $time);

@@ -16,7 +16,10 @@ use warnings;
 use strict;
 use utf8;
 
-our ($api, $mod);
+use Scalar::Util 'blessed';
+
+our ($api, $mod, $pool, $me);
+our $TRUE = '__TAG_TRUE__';
 
 sub new {
     my ($class, %opts) = @_;
@@ -24,7 +27,8 @@ sub new {
         tags => {},
         %opts
     }, $class;
-    $msg->parse if $msg->data;
+
+    $msg->parse if length $opts{data};
     return $msg;
 }
 
@@ -34,8 +38,8 @@ sub parse {
     my @words = split /\s+/, $msg->data;
     
     my ($got_tags, $got_source, $got_command, $got_sentinel);
-    my ($word_i, $last_word, @params) = 0;
-    WORD: while (defined(my $word = shift @words)) {
+    my ($word_i, $word, $last_word, @params) = 0;
+    WORD: while (defined($word = shift @words)) {
         my $f_char_ref = \substr($word, 0, 1);
         
         # first word could be message tags.
@@ -54,7 +58,7 @@ sub parse {
                 }
                 
                 # no value; it's a boolean.
-                $tags{$tag} = 1;
+                $tags{$tag} = $TRUE;
                 
             }
             
@@ -103,7 +107,48 @@ sub parse {
     return $msg;
 }
 
-sub data    { shift->{data}             }
+sub data {
+    my $msg = shift;
+    return $msg->{data} if length $msg->{data};
+    my @parts;
+    
+    # message tags.
+    my ($t, $tagstr, @tags) = (0, '@', keys %{ $msg->tags });
+    foreach my $tag (@tags) {
+        my $value = $msg->tag($tag);
+        $tagstr .= $value eq $TRUE ? $tag : "$tag=$value";
+        $tagstr .= ';' unless $t == $#tags;
+        $t++;
+    }
+    push @parts, $tagstr if @tags;
+    
+    # source.
+    if (defined(my $source = $msg->source)) {
+        $source = $source->full if blessed $source;
+        push @parts, ":$source" if length $source;
+    }
+    
+    # command.
+    push @parts, $msg->command if length $msg->command;
+
+    # arguments.
+    my ($p, @params) = (0, $msg->params);
+    foreach my $param (@params) {
+    
+        # handle objects.
+        $param = $param->name if blessed $param && $param->can('name');
+        
+        # handle sentinel-prefixed final parameter.
+        $param = ":$param" if $p == $#params && $param =~ m/\s+/;
+        
+        push @parts, $param;
+        $p++;
+    }
+    
+    return "@parts";
+}
+
+
 sub command { shift->{command}          }
 sub source  { shift->{source}           }
 sub tags    { shift->{tags}             }

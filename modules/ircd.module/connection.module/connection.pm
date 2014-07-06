@@ -19,7 +19,7 @@ use parent 'Evented::Object';
 
 use Socket::GetAddrInfo;
 use Scalar::Util 'weaken';
-use utils qw(conn v notice);
+use utils qw(conf v notice);
 
 our ($api, $mod, $me, $pool);
 
@@ -157,10 +157,14 @@ sub ready {
 
     # must be a server.
     elsif (exists $connection->{name}) {
-
+        my $name = $connection->{name};
+        
         # check for valid password.
-        my $password = utils::crypt($connection->{pass}, conn($connection->{name}, 'encryption'));
-        if ($password ne conn($connection->{name}, 'receive_password')) {
+        my $password = utils::crypt(
+            $connection->{pass},
+            conf(['connection', $name], 'encryption')
+        );
+        if ($password ne conf(['connection', $name], 'receive_password')) {
             $connection->done('Invalid credentials');
             notice(connection_invalid => $connection->{ip}, 'Received invalid password');
             return;
@@ -250,7 +254,7 @@ sub send_server_credentials {
         v('VERSION'),
         $me->{desc}
     );     
-    $connection->send('PASS '.conn($name, 'send_password'));  
+    $connection->send('PASS '.conf(['connection', $name], 'send_password'));  
 }
 
 # send a command to a possibly unregistered connection.

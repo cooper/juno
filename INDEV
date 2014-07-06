@@ -2486,6 +2486,13 @@ CHANGES:
             
         89. added message class for parsing IRC messages; its objects represent a single message.
         
+    9. improvements to message object.
+        fixed an issue where a user could be in a channel twice under certain conditions.
+        removed more ancient utilities.
+        miscellaneous cleanup.
+        
+        
+        
         
         
         
