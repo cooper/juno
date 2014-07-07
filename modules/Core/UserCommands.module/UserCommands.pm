@@ -463,8 +463,8 @@ sub cjoin {
 
         # make sure it's a valid name
         if (!validchan($chname)) {
-            $user->numeric('ERR_NOSUCHCHANNEL', $chname);
-            next
+            $user->numeric(ERR_NOSUCHCHANNEL => $chname);
+            next;
         }
 
         # if the channel exists, just join
@@ -821,7 +821,7 @@ sub part {
 }
 
 sub sconnect {
-    my ($user, $data, $sname) = @_;
+    my ($user, $event, $sname) = @_;
 
     # make sure the server exists
     if (!$ircd::conf->has_block(['connect', $sname])) {
@@ -1045,7 +1045,7 @@ sub rehash {
 }
 
 sub ukill {
-    my ($user, $data, $tuser, $reason) = @_;
+    my ($user, $event, $tuser, $reason) = @_;
 
     # local user.
     if ($tuser->is_local) {
@@ -1085,9 +1085,9 @@ sub ukill {
 # forcibly remove a user from a channel.
 # KICK #channel1,#channel2 user1,user2 :reason
 sub kick {
-    # KICK            #channel        nickname :reason
-    # dummy           channel(inchan) user     :rest(opt)
-    my ($user, $data, $channel,       $t_user, $reason) = @_;
+    # KICK             #channel        nickname :reason
+    # dummy            channel(inchan) user     :rest(opt)
+    my ($user, $event, $channel,       $t_user, $reason) = @_;
     
     # target user is not in channel.
     if (!$channel->has_user($t_user)) {
@@ -1146,7 +1146,7 @@ sub list {
 }
 
 sub modelist {
-    my ($user, $data, $channel, $list) = @_;
+    my ($user, $event, $channel, $list) = @_;
     
     # one-character list name indicates a channel mode.
     if (length $list == 1) {
@@ -1172,7 +1172,7 @@ sub modelist {
 }
 
 sub version {
-    my ($user, $data, $server) = (shift, shift, shift || $me);
+    my ($user, $event, $server) = (shift, shift, shift || $me);
     $user->numeric(RPL_VERSION =>
         v('SNAME').q(-).v('NAME'), # all
         $ircd::VERSION,            # of
@@ -1185,7 +1185,7 @@ sub version {
 }
 
 sub squit {
-    my ($user, $data, $server_name) =  @_;
+    my ($user, $event, $server_name) =  @_;
     my $server = $pool->lookup_server_mask($server_name);
     
     # if there is a pending timer, cancel it.
@@ -1215,7 +1215,7 @@ sub squit {
 
 # note: this handler is used also for remote users.
 sub links {
-    my ($user, $data, $serv_mask, $query_mask) = @_;
+    my ($user, $event, $serv_mask, $query_mask) = @_;
     my $server = $me;
     
     # query mask but no server mask.
@@ -1228,7 +1228,7 @@ sub links {
     if (defined $serv_mask) {
         $server = $pool->lookup_server_mask($serv_mask);
         
-        # no matches
+        # no matches.
         if (!$server) {
             $user->numeric(ERR_NOSUCHSERVER => $serv_mask);
             return;

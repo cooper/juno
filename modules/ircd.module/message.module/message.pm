@@ -212,7 +212,7 @@ sub parse_params {
     my @params = $msg->params;
     if (scalar @params < $required_parameters) {
         $msg->source->numeric(ERR_NEEDMOREPARAMS => $msg->command);
-        return;
+        return $PARAM_BAD;
     }
 
     foreach my $_t (@parameters) {
@@ -252,13 +252,13 @@ sub parse_params {
         # code-implemented type.
         elsif (my $param_code = __PACKAGE__->can("_param_$type")) {
             my $res = $param_code->($msg, $param, \@final, $match_attr[$match_i]);
-            return if $res && $res eq $PARAM_BAD;
+            return $PARAM_BAD if $res && $res eq $PARAM_BAD;
         }
         
         # unknown type.
         else {
             $mod->_log("unknown parameter type $type!");
-            return;
+            return $PARAM_BAD;
         }
 
     }

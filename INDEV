@@ -2498,6 +2498,9 @@ CHANGES:
             added new evented method for adding user commands which will eventually replace ->register_user_command().
             the magical %user_commands now eliminates the need for ->register_user_command() over a foreach.
             updated Evented::API::Engine and Evented::Object.
+            
+        92. fixed an issue that arose in 8.88 where channel's ->list_matches() was not behaving appropriately.
+            fixed an issue where (opt) parameters at the end of a parameter list were ignored due to ->parse_params() returning an empty list.
         
         
         

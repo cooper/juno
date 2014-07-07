@@ -79,11 +79,7 @@ sub list_has {
 sub list_matches {
     my ($channel, $name, $what) = @_;
     return unless $channel->{modes}{$name};
-    return first {
-        my $realmask = $_;
-        $realmask = (split ':', $_, 2)[1] if $_ =~ m/^(.+?):(.+)!(.+)\@(.+)/;
-        match($what, $realmask);
-    } $channel->list_elements($name);
+    return first { match($what, $_) } $channel->list_elements($name);
 }
 
 # returns an array of list elements.
