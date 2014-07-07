@@ -249,6 +249,11 @@ sub parse_params {
             push @final, $param;
         }
         
+        # rest of the arguments.
+        elsif ($type eq '@rest' || $type eq '...') {
+            push @final, @params[$param_i..$#params];
+        }
+        
         # code-implemented type.
         elsif (my $param_code = __PACKAGE__->can("_param_$type")) {
             my $res = $param_code->($msg, $param, \@final, $match_attr[$match_i]);

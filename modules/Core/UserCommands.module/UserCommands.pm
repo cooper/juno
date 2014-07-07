@@ -21,104 +21,11 @@ use utils qw(col match cut_to_limit conf v notice validchan);
 
 our ($api, $mod, $me, $pool, $VERSION);
 
-my %ucommands = (
-    MOTD => {
-        code   => \&motd,
-        desc   => 'display the message of the day'
-    },
-    NICK => {
-        params => 1,
-        code   => \&nick,
-        desc   => 'change your nickname'
-    },
-    INFO => {
-        code   => \&info,
-        desc   => 'display ircd license and credits'
-    },
-    MODE => {
-        params => 1,
-        code   => \&mode,
-        desc   => 'view or change user and channel modes',
-        fntsy  => 1
-    },
-    PRIVMSG => {
-        params => 2,
-        code   => \&privmsgnotice,
-        desc   => 'send a message to a user or channel'
-    },
-    NOTICE => {
-        params => 2,
-        code   => \&privmsgnotice,
-        desc   => 'send a notice to a user or channel'
-    },
-    MAP => {
-        code   => \&cmap,
-        desc   => 'view a list of servers connected to the network'
-    },
-    JOIN => {
-        params => 1,
-        code   => \&cjoin,
-        desc   => 'join a channel'
-    },
-    NAMES => {
-        params => 1,
-        code   => \&names,
-        desc   => 'view the user list of a channel',
-        fntsy  => 1
-    },
-    OPER => {
-        params => 2,
-        code   => \&oper,
-        desc   => 'gain privileges of an IRC operator'
-
-    },
-    WHOIS => {
-        params => 1,
-        code   => \&whois,
-        desc   => 'display information on a user'
-    },
-    ISON => {
-        params => 1,
-        code   => \&ison,
-        desc   => 'check if users are online'
-    },
-    COMMANDS => {
-        code   => \&commands,
-        desc   => 'view a list of available commands'
-    },
-    AWAY => {
-        code   => \&away,
-        desc   => 'mark yourself as away or return from being away'
-    },
-    QUIT => {
-        code   => \&quit,
-        desc   => 'disconnect from the server'
-    },
-    PART => {
-        params => 1,
-        code   => \&part,
-        desc   => 'leave a channel',
-        fntsy  => 1
-    },
-    WHO => {
-        params => 1,
-        code   => \&who,
-        desc   => 'familiarize your client with users matching a pattern',
-        fntsy  => 1
-    },
-    TOPIC => {
-        params => 1,
-        code   => \&topic,
-        desc   => 'view or set the topic of a channel',
-        fntsy  => 1
-    }
-);
-
 our %user_commands = (
     CONNECT => {
-        params => '-oper(connect) *',
         code   => \&sconnect,
-        desc   => 'connect to a server'
+        desc   => 'connect to a server',
+        params => '-oper(connect) *'
     },
     LUSERS => {
         code   => \&lusers,
@@ -169,18 +76,97 @@ our %user_commands = (
         code   => \&echo,
         desc   => 'echos a message',
         params => 'channel *'
+    },
+    TOPIC => {
+        code   => \&topic,
+        desc   => 'view or set the topic of a channel',
+        params => 'channel *(opt)',
+        fntsy  => 1
+    },
+    WHO => {
+        code   => \&who,
+        desc   => 'familiarize your client with users matching a pattern',
+        params => '*(opt) *(opt)',
+        fntsy  => 1
+    },
+    PART => {
+        code   => \&part,
+        desc   => 'leave a channel',
+        params => 'channel(inchan) *(opt)',
+        fntsy  => 1
+    },
+    QUIT => {
+        code   => \&quit,
+        desc   => 'disconnect from the server',
+        params => '*(opt)'
+    },
+    AWAY => {
+        code   => \&away,
+        desc   => 'mark yourself as away or return from being away',
+        params => '*(opt)',
+    },
+    ISON => {
+        code   => \&ison,
+        desc   => 'check if users are online',
+        params => '...'
+    },
+    WHOIS => {
+        code   => \&whois,
+        desc   => 'display information on a user',
+        params => '* *(opt)'
+    },
+    NAMES => {
+        code   => \&names,
+        desc   => 'view the user list of a channel',
+        fntsy  => 1,
+        params => '*'
+    },
+    OPER => {
+        code   => \&oper,
+        desc   => 'gain privileges of an IRC operator',
+        params => '* *'
+    },
+    MAP => {
+        code   => \&smap,
+        desc   => 'view a list of servers connected to the network'
+    },
+    JOIN => {
+        code   => \&cjoin,
+        desc   => 'join a channel',
+        params => '* *(opt)'
+    },
+    PRIVMSG => {
+        code   => \&privmsgnotice,
+        desc   => 'send a message to a user or channel',
+        params => '-command * *'
+    },
+    NOTICE => {
+        code   => \&privmsgnotice,
+        desc   => 'send a notice to a user or channel',
+        params => '-command * *'
+    },
+    MODE => {
+        code   => \&mode,
+        desc   => 'view or change user and channel modes',
+        fntsy  => 1,
+        params => '* ...(opt)'
+    },
+    INFO => {
+        code   => \&info,
+        desc   => 'display ircd license and credits'
+    },
+    MOTD => {
+        code   => \&motd,
+        desc   => 'display the message of the day'
+    },
+    NICK => {
+        code   => \&nick,
+        desc   => 'change your nickname',
+        params => '*'
     }
 );
 
 sub init {
-    $mod->register_user_command(
-        name        => $_,
-        description => $ucommands{$_}{desc},
-        parameters  => $ucommands{$_}{params},
-        code        => $ucommands{$_}{code},
-        fantasy     => $ucommands{$_}{fntsy}
-    ) || return foreach keys %ucommands;
-    undef %ucommands;
     
     &add_join_callbacks;
     &add_whois_callbacks;
@@ -218,44 +204,44 @@ sub motd {
     $user->numeric('RPL_MOTD', $_) foreach @motd_lines;
     $user->numeric('RPL_ENDOFMOTD');
     
-    return 1
+    return 1;
 }
 
 # change nickname
 sub nick {
-    my ($user, $data, @args) = @_;
-    my $newnick = col($args[1]);
-    my $me      = lc $user->{nick} eq lc $newnick;
+    my ($user, $event, $newnick) = @_;
+    my $me = lc $user->{nick} eq lc $newnick;
 
     if ($newnick eq '0') {
         $newnick = $user->{uid};
     }
     else {
     
-        # check for valid nick
+        # check for valid nick.
         if (!utils::validnick($newnick)) {
-            $user->numeric('ERR_ERRONEUSNICKNAME', $newnick);
+            $user->numeric(ERR_ERRONEUSNICKNAME => $newnick);
             return;
         }
 
-        # check for existing nick
+        # check for existing nick.
         my $in_use = $pool->nick_in_use($newnick);
         if ($in_use && $in_use != $user) {
-            $user->numeric('ERR_NICKNAMEINUSE', $newnick);
+            $user->numeric(ERR_NICKNAMEINUSE => $newnick);
             return;
         }
         
     }
 
-    # ignore stupid nick changes
+    # ignore stupid nick changes.
     return if $user->{nick} eq $newnick;
 
-    # tell ppl
+    # tell ppl.
     $user->send_to_channels("NICK $newnick");
 
-    # change it
+    # change it.
     $user->change_nick($newnick);
     $pool->fire_command_all(nickchange => $user);
+    
 }
 
 sub info {
@@ -300,18 +286,19 @@ END
 }
 
 sub mode {
-    my ($user, $data, @args) = @_;
-
+    my ($user, $event, $t_name, @rest) = @_;
+    my $modestr = join ' ', @rest;
+    
     # is it the user himself?
-    if (lc $user->{nick} eq lc $args[1]) {
+    if (lc $user->{nick} eq lc $t_name) {
 
-        # mode change
-        if (defined $args[2]) {
-            $user->do_mode_string($args[2]);
+        # mode change.
+        if (length $modestr) {
+            $user->do_mode_string($modestr);
             return 1;
         }
 
-        # mode view
+        # mode view.
         else {
             $user->numeric('RPL_UMODEIS', $user->mode_string);
             return 1;
@@ -319,85 +306,78 @@ sub mode {
     }
 
     # is it a channel, then?
-    if (my $channel = $pool->lookup_channel($args[1])) {
+    if (my $channel = $pool->lookup_channel($t_name)) {
 
-        # viewing
-        if (!defined $args[2]) {
+        # viewing.
+        if (!length $modestr) {
             $channel->modes($user);
             return 1;
         }
 
-        # setting
-        my $modestr = join ' ', @args[2..$#args];
+        # setting.
         $channel->do_mode_string($user->{server}, $user, $modestr);
         return 1;
         
     }
 
     # hmm.. maybe it's another user
-    if ($pool->lookup_user_nick($args[1])) {
+    if ($pool->lookup_user_nick($t_name)) {
         $user->numeric('ERR_USERSDONTMATCH');
-        return
+        return;
     }
 
     # no such nick/channel
-    $user->numeric('ERR_NOSUCHNICK', $args[1]);
-    return
+    $user->numeric(ERR_NOSUCHNICK => $t_name);
+    return;
 }
 
 sub privmsgnotice {
-    my ($user, $data, @args) = @_;
+    my ($user, $event, $command, $t_name, $message) = @_;
 
-    # we can't  use @args because it splits by whitespace
-    $data       =~ s/^:(.+)\s//;
-    my @m       = split ' ', $data, 3;
-    my $message = col($m[2]);
-    my $command = uc $m[0];
-
-    # no text to send
-    if ($message eq '') {
+    # no text to send.
+    if (!length $message) {
         $user->numeric('ERR_NOTEXTTOSEND');
-        return
+        return;
     }
 
     # is it a user?
-    my $tuser = $pool->lookup_user_nick($args[1]);
+    my $tuser = $pool->lookup_user_nick($t_name);
     if ($tuser) {
 
-        # TODO here check for user modes preventing
-        # the user from sending the message
+        # TODO: here check for user modes preventing
+        # the user from sending the message.
 
         # tell them of away if set
         if ($command eq 'PRIVMSG' && exists $user->{away}) {
             $user->numeric('RPL_AWAY', $tuser->{nick}, $tuser->{away});
         }
 
-        # if it's a local user, send it to them
+        # if it's a local user, send it to them.
         if ($tuser->is_local) {
             $tuser->sendfrom($user->full, "$command $$tuser{nick} :$message");
         }
 
-        # send it to the server holding this user
+        # send it to the server holding this user.
         else {
             $tuser->{location}->fire_command(privmsgnotice => $command, $user, $tuser, $message);
         }
         return 1;
     }
 
-    # must be a channel
-    my $channel = $pool->lookup_channel($args[1]);
+    # must be a channel.
+    my $channel = $pool->lookup_channel($t_name);
     if ($channel) {
         $channel->handle_privmsgnotice($command, $user, $message);
         return 1;
     }
 
-    # no such nick/channel
-    $user->numeric('ERR_NOSUCHNICK', $args[1]);
+    # no such nick/channel.
+    $user->numeric(ERR_NOSUCHNICK => $t_name);
     return;
     
 }
 
-sub cmap {
+sub smap {
     my $user  = shift;
     my $total = scalar $pool->actual_users;
 
@@ -457,21 +437,21 @@ sub add_join_callbacks {
 }
 
 sub cjoin {
-    my ($user, $data, @args) = @_;
-    foreach my $chname (split ',', col($args[1])) {
+    my ($user, $event, $given, $channel_key) = @_;
+    foreach my $chname (split ',', $given) {
         my $new = 0;
 
-        # make sure it's a valid name
+        # make sure it's a valid name.
         if (!validchan($chname)) {
             $user->numeric(ERR_NOSUCHCHANNEL => $chname);
             next;
         }
 
-        # if the channel exists, just join
+        # if the channel exists, just join.
         my $channel = $pool->lookup_channel($chname);
         my $time    = time;
 
-        # otherwise create a new one
+        # otherwise create a new one.
         if (!$channel) {
             $new     = 1;
             $channel = $pool->new_channel(
@@ -481,7 +461,7 @@ sub cjoin {
         }
 
         # fire the event and delete the callbacks.
-        my $event = $user->fire(can_join => $channel, $args[2]);
+        my $event = $user->fire(can_join => $channel, $channel_key);
         
         # event was stopped; can't join.
         return if $event->stopper;
@@ -508,21 +488,22 @@ sub cjoin {
 }
 
 sub names {
-    my ($user, $data, @args) = @_;
-    foreach my $chname (split ',', $args[1]) {
+    my ($user, $event, $given) = @_;
+    foreach my $chname (split ',', $given) {
         # nonexistent channels return no error,
         # and RPL_ENDOFNAMES is sent no matter what
         my $channel = $pool->lookup_channel($chname);
         $channel->names($user, 1) if $channel;
         $user->numeric(RPL_ENDOFNAMES => $channel ? $channel->name : $chname);
     }
+    return 1;
 }
 
-# FIXME: this is some of the ugliest code in whole ircd.
+# FIXME: PLEASE! this is some of the ugliest code in whole ircd.
 sub oper {
-    my ($user, $data, @args) = @_;
-    my $password = conf(['oper', $args[1]], 'password');
-    my $supplied = $args[2];
+    my ($user, $event, @args) = @_;
+    my $password = conf(['oper', $args[0]], 'password');
+    my $supplied = $args[1];
 
     # no password?!
     if (not defined $password) {
@@ -532,7 +513,7 @@ sub oper {
 
     # if they have specific addresses specified, make sure they match
 
-    if (defined( my $addr = conf(['oper', $args[1]], 'host') )) {
+    if (defined( my $addr = conf(['oper', $args[0]], 'host') )) {
         my $win = 0;
 
         # a reference of several addresses
@@ -559,7 +540,7 @@ sub oper {
         }
     }
 
-    my $crypt = conf(['oper', $args[1]], 'encryption');
+    my $crypt = conf(['oper', $args[0]], 'encryption');
 
     # so now let's check if the password is right
     $supplied = utils::crypt($supplied, $crypt);
@@ -576,17 +557,17 @@ sub oper {
     my (@flags, @notices);
 
     # flags in their oper block
-    if (defined ( my $flagref = conf(['oper', $args[1]], 'flags') )) {
+    if (defined ( my $flagref = conf(['oper', $args[0]], 'flags') )) {
         if (ref $flagref ne 'ARRAY') {
-            L("'flags' specified for oper block $args[1], but it is not an array reference.");
+            L("'flags' specified for oper block $args[0], but it is not an array reference.");
         }
         else {
             push @flags, @$flagref
         }
     }
-    if (defined ( my $flagref = conf(['oper', $args[1]], 'notices') )) {
+    if (defined ( my $flagref = conf(['oper', $args[0]], 'notices') )) {
         if (ref $flagref ne 'ARRAY') {
-            L("'notices' specified for oper block $args[1], but it is not an array reference.");
+            L("'notices' specified for oper block $args[0], but it is not an array reference.");
         }
         else {
             push @notices, @$flagref
@@ -622,7 +603,7 @@ sub oper {
         }
     };
 
-    if (defined ( my $operclass = conf(['oper', $args[1]], 'class') )) {
+    if (defined ( my $operclass = conf(['oper', $args[0]], 'class') )) {
         $add_class->($add_class, $operclass);
     }
 
@@ -637,7 +618,7 @@ sub oper {
     $pool->fire_command_all(oper => $user, @flags);
 
     # okay, we should have a complete list of flags now.
-    L("$$user{nick}!$$user{ident}\@$$user{host} has opered as $args[1] and was granted flags: @flags");
+    L("$$user{nick}!$$user{ident}\@$$user{host} has opered as $args[0] and was granted flags: @flags");
     $user->server_notice('You now have flags: '.join(' ', @{ $user->{flags} }));
     $user->server_notice('You now have notices: '.join(' ', @{ $user->{notice_flags} })) if $user->{notice_flags};
 
@@ -703,10 +684,10 @@ sub add_whois_callbacks {
 }
 
 sub whois {
-    my ($user, $data, @args) = @_;
+    my ($user, $event, @args) = @_;
 
-    # this is the way inspircd does it so I can too
-    my $query = $args[2] ? $args[2] : $args[1];
+    # this is the way inspircd does it so I can too.
+    my $query = $args[1] // $args[0];
     my $quser = $pool->lookup_user_nick($query);
 
     # exists?
@@ -722,11 +703,11 @@ sub whois {
 }
 
 sub ison {
-    my ($user, $data, @args) = @_;
+    my ($user, $event, @args) = @_;
     my @found;
 
-    # for each nick, lookup and add if exists
-    foreach my $nick (@args[1..$#args]) {
+    # for each nick, lookup and add if exists.
+    foreach my $nick (@args) {
         my $user = $pool->lookup_user_nick(col($nick));
         push @found, $user->{nick} if $user;
     }
@@ -734,90 +715,69 @@ sub ison {
     $user->numeric(RPL_ISON => "@found");
 }
 
-sub commands {
-    my $user = shift;
-
-    # get the width
-    my $i = 0;
-    my %commands = %{ $pool->{user_commands} };
-    foreach my $command (keys %commands) {
-        $i = length $command if length $command > $i
-    }
-
-    $i++;
-    $user->server_notice(commands => 'List of available commands');
-
-    # send a notice for each command
-    foreach my $command (sort keys %commands) {
-        $user->server_notice(
-            sprintf "\2%-${i}s\2 : %-${i}s",
-            $command,
-            $commands{$command}{desc},
-        );
-    }
-
-    $user->server_notice(commands => 'End of command list');
-}
+#sub commands {
+#    my $user = shift;
+#
+#    # get the width
+#    my $i = 0;
+#    my %commands = %{ $pool->{user_commands} };
+#    foreach my $command (keys %commands) {
+#        $i = length $command if length $command > $i
+#    }
+#
+#    $i++;
+#    $user->server_notice(commands => 'List of available commands');
+#
+#    # send a notice for each command
+#    foreach my $command (sort keys %commands) {
+#        $user->server_notice(
+#            sprintf "\2%-${i}s\2 : %-${i}s",
+#            $command,
+#            $commands{$command}{desc},
+#        );
+#    }
+#
+#    $user->server_notice(commands => 'End of command list');
+#}
 
 sub away {
-    my ($user, $data, @args) = @_;
+    my ($user, $event, $reason) = @_;
 
-    # setting away
-    if (defined $args[1]) {
-        my $reason = cut_to_limit('away', col((split /\s+/, $data, 2)[1]));
+    # setting away.
+    if (defined $reason) {
+        my $reason = cut_to_limit('away', $reason);
         $user->set_away($reason);
         $pool->fire_command_all(away => $user);
         $user->numeric('RPL_NOWAWAY');
-        return 1
+        return 1;
     }
 
-    # unsetting
+    # unsetting.
     return unless exists $user->{away};
     $user->unset_away;
     $pool->fire_command_all(return_away => $user);
     $user->numeric('RPL_UNAWAY');
+    
+    return 1;
 }
 
 sub quit {
-    my ($user, $data, @args) = @_;
-    my $reason = 'leaving';
-
-    # get the reason if they specified one
-    if (defined $args[1]) {
-        $reason = col((split /\s+/,  $data, 2)[1])
-    }
-
+    my ($user, $event, $reason) = @_;
+    $reason //= 'leaving';
     $user->{conn}->done("~ $reason");
 }
 
 sub part {
-    my ($user, $data, @args) = @_;
-    my @m = split /\s+/, $data, 3;
-    my $reason = defined $args[2] ? col($m[2]) : undef;
+    my ($user, $event, $channel, $reason) = @_;
 
-    foreach my $chname (split ',', $args[1]) {
-        my $channel = $pool->lookup_channel($chname);
-
-        # channel doesn't exist
-        if (!$channel) {
-            $user->numeric(ERR_NOSUCHCHANNEL => $chname);
-            return
-        }
-
-        # user isn't on channel
-        if (!$channel->has_user($user)) {
-            $user->numeric(ERR_NOTONCHANNEL => $channel->name);
-            return
-        }
-
-        # remove the user and tell the other channel's users and servers
-        notice(user_part => $user->notice_info, $channel->name, $reason // 'no reason');
-        my $ureason = defined $reason ? " :$reason" : q();
-        $channel->sendfrom_all($user->full, "PART $$channel{name}$ureason");
-        $pool->fire_command_all(part => $user, $channel, $channel->{time}, $reason);
-        $channel->remove($user);
-
-    }
+    # tell channel's users and servers.
+    notice(user_part => $user->notice_info, $channel->name, $reason // 'no reason');
+    my $ureason = defined $reason ? " :$reason" : q();
+    $channel->sendfrom_all($user->full, "PART $$channel{name}$ureason");
+    $pool->fire_command_all(part => $user, $channel, $channel->{time}, $reason);
+    
+    $channel->remove($user);
+    return 1;
 }
 
 sub sconnect {
@@ -861,9 +821,10 @@ sub sconnect {
 # host, or server name.                                                 #
 #########################################################################
 
+# FIXME: PLEASE! WHO is really bad.
 sub who {
-    my ($user, $data, @args) = @_;
-    my $query                = $args[1];
+    my ($user, $event, @args) = @_;
+    my $query                = $args[0];
     my $match_pattern        = '*';
     my %matches;
 
@@ -929,40 +890,34 @@ sub who {
 }
 
 sub topic {
-    my ($user, $data, @args) = @_;
-    $args[1] =~ s/,(.*)//; # XXX: comma separated list won't work here!
-    my $channel = $pool->lookup_channel($args[1]);
+    my ($user, $event, $channel, $new_topic) = @_;
 
-    # existent channel?
-    if (!$channel) {
-        $user->numeric(ERR_NOSUCHCHANNEL => $args[1]);
-        return
-    }
-
-    # setting topic
-    if (defined $args[2]) {
-        my $can = (!$channel->is_mode('protect_topic')) ? 1 : $channel->user_has_basic_status($user) ? 1 : 0;
-
-        # not permitted
+    # setting topic.
+    if (defined $new_topic) {
+        my $can = (!$channel->is_mode('protect_topic')) ?
+            1 : $channel->user_has_basic_status($user);
+            
+        # not permitted.
         if (!$can) {
             $user->numeric(ERR_CHANOPRIVSNEEDED => $channel->name);
-            return
+            return;
         }
 
-        my $topic = cut_to_limit('topic', col((split /\s+/, $data, 3)[2]));
-        $channel->sendfrom_all($user->full, "TOPIC $$channel{name} :$topic");
-        $pool->fire_command_all(topic => $user, $channel, time, $topic);
+        $channel->sendfrom_all($user->full, "TOPIC $$channel{name} :$new_topic");
+        $pool->fire_command_all(topic => $user, $channel, time, $new_topic);
 
-        # set it
-        if (length $topic) {
+        # set it.
+        if (length $new_topic) {
             $channel->{topic} = {
                 setby => $user->full,
                 time  => time,
-                topic => $topic
+                topic => $new_topic
             };
         }
+        
+        # delete it.
         else {
-            delete $channel->{topic}
+            delete $channel->{topic};
         }
 
     }
@@ -970,25 +925,25 @@ sub topic {
     # viewing topic
     else {
 
-        # topic set
-        my $topic = $channel->topic;
-        if ($topic) {
+        # topic set.
+        if (my $topic = $channel->topic) {
             $user->numeric(RPL_TOPIC        => $channel->name, $topic->{topic});
             $user->numeric(RPL_TOPICWHOTIME => $channel->name, $topic->{setby}, $topic->{time});
         }
 
-        # no topic set
+        # no topic set.
         else {
             $user->numeric(RPL_NOTOPIC => $channel->name);
-            return
+            return;
         }
+        
     }
 
-    return 1
+    return 1;
 }
 
 sub lusers {
-    my ($user, $data, @args) = @_;
+    my $user = shift;
     my @actual_users = $pool->actual_users;
     
     # get server count
@@ -999,7 +954,7 @@ sub lusers {
     my ($g_not_invisible, $g_invisible) = (0, 0);
     foreach my $user (@actual_users) {
         $g_invisible++, next if $user->is_mode('invisible');
-        $g_not_invisible++
+        $g_not_invisible++;
     }
     my $g_users = $g_not_invisible + $g_invisible;
 

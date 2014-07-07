@@ -340,6 +340,8 @@ sub register_user_command_new {
     $pool->on("user.message_$command" => \&_handle_command,
         priority => 0, # registration commands are 500 priority
         with_eo  => 1,
+        name     => $command,
+        %opts,
         _caller  => $mod->{package},
     data => {
         parameters => $opts{parameters},
