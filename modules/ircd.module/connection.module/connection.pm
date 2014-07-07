@@ -78,8 +78,8 @@ sub handle {
     my $cmd  = $msg->command;
     my @args = $msg->params;
 
-    # fire command events.
-    my $fire = $connection->prepare(
+    # connection events.
+    my @events = (
     
     #   .---------------.
     #   | legacy events |
@@ -95,15 +95,32 @@ sub handle {
 
         [ message               => $msg ],
         [ "message_${cmd}"      => $msg ]
- 
-    )->fire('safe');
+        
+    );
+    
+    # user events.
+    push @events,
+        [ $connection->{type}, message          => $msg ],
+        [ $connection->{type}, "message_${cmd}" => $msg ]
+    if $connection->{type} && $connection->{type}->isa('user');
+    
+    # fire with safe option.
+    my $fire = $connection->prepare(@events)->fire('safe');
+
+    # nothing called.
+    if (!$fire->called) {
+        $connection->numeric(ERR_UNKNOWNCOMMAND => $msg->command);
+        return;
+    }
 
     # 'safe' with exception.
     if (my $e = $fire->exception) {
         my $stopper = $fire->stopper;
         L("Exception in $cmd from $stopper: $e");
+        return;
     }
-    
+
+    return 1;
 }
 
 # increase the wait count.
@@ -126,15 +143,13 @@ sub ready {
     return if $connection->{ready};
     
     # must be a user.
-    if (exists $connection->{nick} && exists $connection->{ident}) {
+    if (length $connection->{nick} && length $connection->{ident}) {
 
-        # if the client limit has been reached, hang up
-        # FIXME: completely broken since pool creation. not sure what to do with this.
-        #my $count = scalar grep { ($_->{type} || '')->isa('user') } values %connection;
-        #if ($count >= conf('limit', 'client')) {
-        #    $connection->done('Not accepting clients');
-        #    return;
-        #}
+        # if the client limit has been reached, hang up.
+        if (scalar $pool->local_users >= conf('limit', 'client')) {
+            $connection->done('Not accepting clients');
+            return;
+        }
 
         $connection->{server}   =
         $connection->{location} = $me;
@@ -156,15 +171,15 @@ sub ready {
     }
 
     # must be a server.
-    elsif (exists $connection->{name}) {
+    elsif (length $connection->{name}) {
         my $name = $connection->{name};
         
         # check for valid password.
         my $password = utils::crypt(
             $connection->{pass},
-            conf(['connection', $name], 'encryption')
+            conf(['connect', $name], 'encryption')
         );
-        if ($password ne conf(['connection', $name], 'receive_password')) {
+        if ($password ne conf(['connect', $name], 'receive_password')) {
             $connection->done('Invalid credentials');
             notice(connection_invalid => $connection->{ip}, 'Received invalid password');
             return;
@@ -254,7 +269,7 @@ sub send_server_credentials {
         v('VERSION'),
         $me->{desc}
     );     
-    $connection->send('PASS '.conf(['connection', $name], 'send_password'));  
+    $connection->send('PASS '.conf(['connect', $name], 'send_password'));  
 }
 
 # send a command to a possibly unregistered connection.

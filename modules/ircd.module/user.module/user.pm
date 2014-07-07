@@ -140,6 +140,7 @@ sub handle_mode_string {
 
     # it's easier to do this than it is to
     # keep track of them
+    # FIXME: PLEASE!
     $str =~ s/\+\+/\+/g;
     $str =~ s/\-\-/\-/g; 
     $str =~ s/\+\-/\-/g;
@@ -298,7 +299,6 @@ sub _handle       {
     }
 
     # unknown command.
-    $user->numeric(ERR_UNKNOWNCOMMAND => $s[0]);
     return;
     
 }

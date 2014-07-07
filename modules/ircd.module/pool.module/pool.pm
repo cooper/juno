@@ -141,7 +141,7 @@ sub lookup_server {
 # find a server by its name.
 sub lookup_server_name {
     my ($pool, $sname) = @_;
-    return $pool->{server_names}{lc $sname};
+    return $pool->{server_names}{ lc $sname };
 }
 
 # find any number of servers by mask.
@@ -276,7 +276,7 @@ sub change_user_nick {
     
     # it does not exist.
     delete $pool->{nicks}{ lc $user->{nick} };
-    $pool->{nicks}{lc $newnick} = $user;
+    $pool->{nicks}{ lc $newnick } = $user;
     
     return 1;
 }
@@ -284,10 +284,12 @@ sub change_user_nick {
 # actual_users = real users, both local and remote
 # global_users = all users which are propogated, including fake ones
 # all_users    = all user objects, including those which are not propogated
+# local_users  = real local users
 
-sub actual_users {   grep  { !$_->{fake}       } shift->all_users }
-sub global_users {   grep  { !$_->{fake_local} } shift->all_users }
-sub all_users    { values %{ shift->{users}    }                  }
+sub local_users  {   grep  { $_->is_local && !$_->{fake}    } shift->all_users  }
+sub actual_users {   grep  { !$_->{fake}                    } shift->all_users  }
+sub global_users {   grep  { !$_->{fake_local}              } shift->all_users  }
+sub all_users    { values %{ shift->{users}                 }                   }
 
 ################
 ### CHANNELS ###
@@ -321,7 +323,7 @@ sub new_channel {
 # find a channel by its name.
 sub lookup_channel {
     my ($pool, $name) = @_;
-    return $pool->{channels}{lc $name};
+    return $pool->{channels}{ lc $name };
 }
 
 # returns true if the two passed users have a channel in common.

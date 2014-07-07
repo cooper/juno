@@ -37,7 +37,7 @@ sub connect_server {
     
     # and that we're not trying to connect already.
     if ($ircd::connect_conns{ lc $server_name }) {
-        L("Already trying to connect to $server_name");
+        L("Already connected or trying to connect to $server_name");
         return;
     }
     
@@ -98,7 +98,7 @@ sub connect_server {
 sub _end {
     my ($conn, $stream, $server_name, $reason) = @_;
     $conn->done($reason) if $conn;
-    $stream->close_now if $stream;
+    $stream->close_now   if $stream;
     notice(server_connect_fail => $server_name, $reason);
     delete $ircd::connect_conns{ lc $server_name };
     

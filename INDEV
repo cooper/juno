@@ -799,7 +799,7 @@ CHANGES:
                  - you can, of course, call them on an object such as $server->server::mine::send()
                Added register_handler() to server::mine - registers a CODE reference to a command handler.
                Server now handles and sends the UID command.
-               Added $main::pool->lookup_server() to find a server by its SID.
+               Added server::lookup_by_id() to find a server by its SID.
 
             June 14, 2011
 
@@ -2491,7 +2491,13 @@ CHANGES:
         removed more ancient utilities.
         miscellaneous cleanup.
         
-        
+        91. added ->local_users to the pool object.
+            fixed total client (local user limit) limit:client; broken since version 6.5.
+            fire command events on user objects in conjunction with those on connection objects.
+            implemented (most of) the parameter parser for new message objects.
+            added new evented method for adding user commands which will eventually replace ->register_user_command().
+            the magical %user_commands now eliminates the need for ->register_user_command() over a foreach.
+            updated Evented::API::Engine and Evented::Object.
         
         
         

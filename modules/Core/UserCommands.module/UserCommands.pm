@@ -100,11 +100,6 @@ my %ucommands = (
         desc   => 'leave a channel',
         fntsy  => 1
     },
-    CONNECT => {
-        params => '-oper(connect) any',
-        code   => \&sconnect,
-        desc   => 'connect to a server'
-    },
     WHO => {
         params => 1,
         code   => \&who,
@@ -116,6 +111,14 @@ my %ucommands = (
         code   => \&topic,
         desc   => 'view or set the topic of a channel',
         fntsy  => 1
+    }
+);
+
+our %user_commands = (
+    CONNECT => {
+        params => '-oper(connect) *',
+        code   => \&sconnect,
+        desc   => 'connect to a server'
     },
     LUSERS => {
         code   => \&lusers,
@@ -144,7 +147,7 @@ my %ucommands = (
     MODELIST => {
         code   => \&modelist,
         desc   => 'view entries of a channel mode list',
-        params => 'channel(inchan) any',
+        params => 'channel(inchan) *',
         fntsy  => 1
     },
     VERSION => {
@@ -152,21 +155,21 @@ my %ucommands = (
         desc   => 'view server version information',
         params => 'server(opt)'
     },
-    SQUIT => {
-        code   => \&squit,
-        desc   => 'disconnect a server',
-        params => '-oper(squit) any'
-    },
     LINKS => {
         code   => \&links,
         desc   => 'display server links',
-        params => 'any(opt) any(opt)'
+        params => '*(opt) *(opt)'
+    },
+    SQUIT => {
+        code   => \&squit,
+        desc   => 'disconnect a server',
+        params => '-oper(squit) *'
     },
     ECHO => {
         code   => \&echo,
         desc   => 'echos a message',
-        params => 'channel :rest'
-    },
+        params => 'channel *'
+    }
 );
 
 sub init {

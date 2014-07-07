@@ -272,7 +272,7 @@ sub register_server_command {
                 
                 # uknown!
                 default {
-                    $mod->_api("unknown parameter type $type!");
+                    $mod->_log("unknown parameter type $type!");
                     return;
                 }
                 

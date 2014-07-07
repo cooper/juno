@@ -70,10 +70,11 @@ sub register_registration_command {
     # attach the callback.
     my $event_name = 'connection.command_'.$command.($opts{with_data} ? '_raw' : '');
     my $result = $pool->on($event_name => $code,
-        name => $opts{cb_name},
-        with_eo => 1,
+        name     => $opts{cb_name},
+        with_eo  => 1,
+        priority => 500,
         %opts,
-        _caller => $mod->package
+        _caller  => $mod->package
     ) or return;
     
     L("$command ($opts{cb_name}) registered");

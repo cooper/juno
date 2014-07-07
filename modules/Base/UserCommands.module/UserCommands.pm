@@ -23,20 +23,27 @@ our ($api, $mod, $pool);
 sub init {
     
     # register methods.
-    $mod->register_module_method('register_user_command') or return;
+    $mod->register_module_method('register_user_command')     or return;
+    $mod->register_module_method('register_user_command_new') or return;
     
-    # module unload event.
+    # module events.
+    $api->on('module.init' => \&module_init, with_eo => 1) or return;
+    
+    # pending removal.
     $api->on('module.unload' => \&unload_module, with_eo => 1) or return;
     
     return 1;
 }
 
+# pending removal.
 sub register_user_command {
     my ($mod, $event, %opts) = @_;
+    $opts{description} //= $opts{desc};
+    $opts{parameters}  //= $opts{params};
 
     # make sure all required options are present
     foreach my $what (qw|name description code|) {
-        next if exists $opts{$what};
+        next if defined $opts{$what};
         $opts{name} ||= 'unknown';
         L("user command $opts{name} does not have '$what' option");
         return;
@@ -269,7 +276,7 @@ sub register_user_command {
                 
                 # uknown!
                 default {
-                    $mod->_api("unknown parameter type $type!");
+                    $mod->_log("unknown parameter type $type!");
                     return;
                 }
                 
@@ -308,6 +315,61 @@ sub register_user_command {
 sub unload_module {
     my ($mod, $event) = @_;
     $pool->delete_user_handler($_) foreach $mod->list_store_items('user_commands');
+    return 1;
+}
+
+###########
+### NEW ###
+###########
+
+sub register_user_command_new {
+    my ($mod, $event, %opts) = @_;
+    $opts{description} //= $opts{desc};
+    $opts{parameters}  //= $opts{params};
+
+    # make sure all required options are present.
+    foreach my $what (qw|name description code|) {
+        next if defined $opts{$what};
+        $opts{name} ||= 'unknown';
+        L("user command $opts{name} does not have '$what' option");
+        return;
+    }
+    
+    # attach the event.
+    my $command = uc $opts{name};
+    $pool->on("user.message_$command" => \&_handle_command,
+        priority => 0, # registration commands are 500 priority
+        with_eo  => 1,
+        _caller  => $mod->{package},
+    data => {
+        parameters => $opts{parameters},
+        cb_code    => $opts{code}
+    });
+}
+
+sub _handle_command {
+    my ($user, $event, $msg) = @_;
+    $msg->{source} = $user;
+    
+    # figure parameters.
+    my @params;
+    if (my $params = $event->callback_data('parameters')) {
+        $msg->{_event} = $event;
+        @params = $msg->parse_params($params) or return;
+    }
+    
+    # call actual callback.
+    $event->callback_data('cb_code')->($user, $event, @params);
+    
+}
+
+sub module_init {
+    my $mod = shift;
+    my %commands = $mod->get_symbol('%user_commands');
+    $mod->register_user_command_new(
+        name => $_,
+        %{ $commands{$_} }
+    ) or return foreach keys %commands;
     return 1;
 }
 
