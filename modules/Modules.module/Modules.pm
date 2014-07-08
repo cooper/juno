@@ -19,39 +19,30 @@ use utils qw(notice irc_match);
 
 our ($api, $mod, $me, $pool);
 
+our %user_commands = (
+    MODULES => {
+        desc   => 'display a list of loaded modules',
+        params => 'any(opt)',
+        code   => \&modules
+    },
+    MODLOAD => {
+        desc   => 'load a module',
+        params => '-oper(modules) any',
+        code   => \&modload
+    },
+    MODUNLOAD => {
+        desc   => 'unload a module',
+        params => '-oper(modules) any',
+        code   => \&modunload
+    },
+    MODRELOAD => {
+        desc   => 'unload and then load a module',
+        params => '-oper(modules) any',
+        code   => \&modreload
+    }
+);
+
 sub init {
-
-    # MODULES.
-    $mod->register_user_command(
-        name        => 'modules',
-        description => 'display a list of loaded modules',
-        parameters  => 'any(opt)',
-        code        => \&modules
-    ) or return;
-
-    # MODLOAD.
-    $mod->register_user_command(
-        name        => 'modload',
-        description => 'load a module',
-        parameters  => '-oper(modules) any',
-        code        => \&modload
-    ) or return;
-    
-    # MODUNLOAD.
-    $mod->register_user_command(
-        name        => 'modunload',
-        description => 'unload a module',
-        parameters  => '-oper(modules) any',
-        code        => \&modunload
-    ) or return;
-    
-    # MODRELOAD.
-    $mod->register_user_command(
-        name        => 'modreload',
-        description => 'unload and then load a module',
-        parameters  => '-oper(modules) any',
-        code        => \&modreload
-    ) or return;
     
     # oper notices.
     $mod->register_oper_notice(
@@ -121,7 +112,7 @@ sub display_module {
 }
 
 sub modules {
-    my ($user, $data, $query) = (shift, shift, shift // '*');
+    my ($user, $event, $query) = (shift, shift, shift // '*');
     $user->server_notice('modules', 'Loaded IRCd modules');
     
     # find matching modules.
@@ -138,7 +129,7 @@ sub modules {
 }
 
 sub modload {
-    my ($user, $data, $mod_name) = @_;
+    my ($user, $event, $mod_name) = @_;
     $user->server_notice(modload => "Loading module \2$mod_name\2.");
 
     # attempt.
@@ -160,7 +151,7 @@ sub modload {
 }
 
 sub modunload {
-    my ($user, $data, $mod_name) = @_;
+    my ($user, $event, $mod_name) = @_;
     $user->server_notice(modunload => "Unloading module \2$mod_name\2.");
 
     # attempt.
@@ -182,7 +173,7 @@ sub modunload {
 }
 
 sub modreload {
-    my ($user, $data, $mod_name) = @_;
+    my ($user, $event, $mod_name) = @_;
     $user->server_notice(modreload => "Reloading module \2$mod_name\2.");
 
     # attempt.

@@ -19,20 +19,15 @@ use utils qw(col);
 
 our ($api, $mod, $pool);
 
-sub init {
-    $mod->register_user_command(
-        name        => 'git',
-        description => 'update the IRCd git repository',
-        parameters  => '-oper(git) any(opt)',
-        code        => \&ucmd_git,
-        fantasy     => 1
-    ) or return;
-    
-    return 1;
-}
+our %user_commands = (GIT => {
+    desc   => 'update the IRCd git repository',
+    params => '-oper(git) any(opt)',
+    code   => \&ucmd_git,
+    fntsy  => 1
+});
 
 sub ucmd_git {
-    #my ($user, $data
+    #my ($user, $event
 }
 
 $mod

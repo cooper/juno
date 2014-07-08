@@ -64,6 +64,7 @@ sub register_registration_command {
         my ($conn, $event) = @_;
         return if $conn->{type} && !$opts{after_reg};
         $opts{code}(@_);
+        $event->cancel('ERR_UNKNOWNCOMMAND');
         $event->stop unless $opts{continue_handlers}; # prevent later user/server handlers.
     };
     

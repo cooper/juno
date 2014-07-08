@@ -84,13 +84,13 @@ sub parse {
         if (!$got_command) {
         
             # got the command.
-            ($got_command, $msg->{command}) = (1, uc $word);
+            ($got_command, $msg->{command}) = (1, $word);
             next WORD;
             
         }
         
         # sentinel-prefixed final parameter.
-        # I would like to do this without splitting again...
+        # TODO: I would like to do this without splitting again...
         if ($$f_char_ref eq ':') {
             push @params, substr((split /\s+/, $msg->data, $word_i + 1)[$word_i], 1);
             last WORD;
@@ -150,8 +150,8 @@ sub data {
     return "@parts";
 }
 
-
-sub command { shift->{command}          }
+sub raw_cmd {    shift->{command}       }
+sub command { uc shift->{command}       }
 sub source  { shift->{source}           } # TODO: needs to always return object
 sub tags    { shift->{tags}             }
 sub tag     { shift->{tags}{+shift}     }
@@ -245,7 +245,7 @@ sub parse_params {
         last if !$fake && !defined $param;
         
         # any string.
-        if ($type eq '*' || $type eq 'any') {
+        if ($type eq '*' || $type eq 'any' || $type eq ':rest') {
             push @final, $param;
         }
         

@@ -1,13 +1,13 @@
 {
-   "version" : "0.4",
+   "version" : "0.5",
    "name" : "LOLCAT",
    "author" : {
       "website" : "https://github.com/cooper",
       "name" : "Mitchell Cooper"
    },
    "description" : "SPEEK LIEK A LOLCATZ!",
-   "package" : "M::LOLCAT",
    "depends" : {
       "modules" : "Base::UserCommands"
-   }
+   },
+   "package" : "M::LOLCAT"
 }

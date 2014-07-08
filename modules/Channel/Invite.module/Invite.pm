@@ -17,15 +17,14 @@ use 5.010;
 
 our ($api, $mod, $me, $pool);
 
-sub init {
+# INVITE user command.
+our %user_commands = (INVITE => {
+    code   => \&ucmd_invite,
+    desc   => 'invite a user to a channel',
+    params => 'user any'
+});
 
-    # INVITE user command.
-    $mod->register_user_command(
-        name        => 'invite',
-        code        => \&ucmd_invite,
-        description => 'invite a user to a channel',
-        parameters  => 'user any'
-    ) or return;
+sub init {
     
     # INVITE server command.
     $mod->register_server_command(
@@ -80,7 +79,7 @@ sub init {
 # RPL_INVITING                    RPL_AWAY
 #
 sub ucmd_invite {
-    my ($user, $data, $t_user, $ch_name) = @_;
+    my ($user, $event, $t_user, $ch_name) = @_;
     my $channel = $pool->lookup_channel($ch_name);
     
     # channel exists.
@@ -122,7 +121,7 @@ sub ucmd_invite {
 # server INVITE command.
 sub scmd_invite {
     # :uid INVITE target ch_name
-    my ($server, $data, $user, $t_user, $ch_name) = @_;
+    my ($server, $event, $user, $t_user, $ch_name) = @_;
 
     # local user.
     if ($t_user->is_local) {

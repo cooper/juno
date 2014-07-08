@@ -18,15 +18,14 @@ use utils qw(notice);
 
 our ($api, $mod, $me, $pool);
 
-sub init {
+# RELOAD command.
+our %user_commands = (RELOAD => {
+    code   => \&cmd_reload,
+    desc   => 'reload the entire IRCd',
+    params => '-oper(reload) @rest(opt)'
+});
 
-    # RELOAD command.
-    $mod->register_user_command(
-        name        => 'reload',
-        code        => \&cmd_reload,
-        description => 'reload the entire IRCd',
-        parameters  => '-oper(reload) @rest(opt)'
-    ) or return;
+sub init {
     
     # allow RELOAD to work remotely.
     $mod->register_global_command(name => 'reload');
@@ -41,7 +40,7 @@ sub init {
 }
 
 sub cmd_reload {
-    my ($user, $data, @rest) = @_;
+    my ($user, $event, @rest) = @_;
     my $verbose;
     
     # verbose.

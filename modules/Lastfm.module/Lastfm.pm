@@ -23,7 +23,7 @@ sub init {
 }
 
 sub ucmd_lastfm {
-    my ($user, $event, $data, $username) = @_;
+    my ($user, $event, $username) = @_;
     
     $es->prepare(fetch_np => $username)->fire_then(sub {
         # fire_then will be defined in Evented::Socket

@@ -2504,6 +2504,12 @@ CHANGES:
         
         93. moved all of the old core command handlers over to the new API.
         
+        94. moved the remainder of the command handlers to the new API.
+            removed the hideous old parameter parser.
+            RPL_UNKNOWNCOMMAND is now an event callback that is canceled by handler wrappers.
+            
+            
+        
         
         
         

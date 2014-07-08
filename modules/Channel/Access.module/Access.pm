@@ -19,6 +19,21 @@ use utils qw(conf match);
 
 our ($api, $mod, $me, $pool);
 
+our %user_commands = (
+    UP => {
+        desc   => 'grant yourself with your access privileges',
+        params => 'channel(inchan)',
+        code   => \&cmd_up
+        fntsy  => 1
+    },
+    DOWN => {
+        desc   => 'remove all channel status modes',
+        params => 'channel(inchan)',
+        code   => \&cmd_down,
+        fntsy  => 1
+    }
+);
+
 sub init {
 
     # register access mode block.
@@ -31,29 +46,11 @@ sub init {
     $pool->on('channel.user_joined'    => \&on_user_joined,    with_eo => 1);
     $pool->on('user.account_logged_in' => \&on_user_logged_in, with_eo => 1);
 
-    # register UP command.
-    $mod->register_user_command(
-        name        => 'up',
-        description => 'grant yourself with your access privileges',
-        parameters  => 'channel(inchan)',
-        code        => \&cmd_up,
-        fantasy     => 1
-    ) or return;
-
-    # register DOWN command.
-    $mod->register_user_command(
-        name        => 'down',
-        description => 'remove all channel status modes',
-        parameters  => 'channel(inchan)',
-        code        => \&cmd_down,
-        fantasy     => 1
-    ) or return;
-
     return 1;
 }
 
 sub cmd_up {
-    my ($user, $data, $channel) = @_;
+    my ($user, $event, $channel) = @_;
     
     # pretend join.
     on_user_joined($channel, undef, $user);
@@ -61,7 +58,7 @@ sub cmd_up {
 }
 
 sub cmd_down {
-    my ($user, $data, $channel) = @_;
+    my ($user, $event, $channel) = @_;
     
     # find user's status modes.
     my @letters;

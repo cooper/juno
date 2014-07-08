@@ -35,6 +35,13 @@ sub init {
         $connection->{type}->handle($data, \@args);
     }, name => 'high.level.handlers', priority => -100, with_eo => 1);
 
+    # send unknown command. this is canceled by handlers.
+    $pool->on('connection.message' => sub {
+        my ($connection, $event, $msg) = @_;
+        $connection->numeric(ERR_UNKNOWNCOMMAND => $msg->raw_cmd);
+        return;
+    }, name => 'ERR_UNKNOWNCOMMAND', priority => -200, with_eo => 1);
+    
 }
 
 sub new {
@@ -106,12 +113,6 @@ sub handle {
     
     # fire with safe option.
     my $fire = $connection->prepare(@events)->fire('safe');
-
-    # nothing called.
-    if (!$fire->called) {
-        $connection->numeric(ERR_UNKNOWNCOMMAND => $msg->command);
-        return;
-    }
 
     # 'safe' with exception.
     if (my $e = $fire->exception) {

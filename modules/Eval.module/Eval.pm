@@ -17,18 +17,15 @@ use 5.010;
 
 our ($api, $mod, $me, $pool);
 
-sub init {
-    $mod->register_user_command(
-        name        => 'eval',
-        code        => \&_eval,
-        description => 'evaluate a line of Perl code',
-        parameters  => '-oper(eval) any(opt) :rest',
-        fantasy     => 1
-    ) or return;
-}
+our %user_commands = (EVAL => {
+    code    => \&_eval,
+    desc    => 'evaluate a line of Perl code',
+    params  => '-oper(eval) any(opt) :rest',
+    fntsy   => 1
+});
 
 sub _eval {
-    my ($user, $data, $ch_name, $code) = @_;
+    my ($user, $event, $ch_name, $code) = @_;
     my $channel = $pool->lookup_channel($ch_name);
     $code = join(' ', $ch_name, $code // '') unless $channel;
 

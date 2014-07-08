@@ -19,36 +19,27 @@ M::Account->import(qw(all_accounts login_account logout_account register_account
 
 our ($api, $mod, $me, $db, $pool);
 
+# user commands.
+our %user_commands = (
+    REGISTER => {
+        desc   => 'register an account',
+        params => 'any any(opt)',
+        code   => \&cmd_register
+    },
+    LOGIN => {
+        desc   => 'log in to an account',
+        params => 'any any(opt)',
+        code   => \&cmd_login
+    },
+    ACCTDUMP => {
+        desc   => 'inspect accounts',
+        params => '-oper(acctdump)',
+        code   => \&cmd_acctdump
+    }
+);
+
 sub init {
     $db = $M::Account::db or return;
-
-    # REGISTER command.
-    # /REGISTER <password>
-    # /REGISTER <accountname> <password>
-    $mod->register_user_command(
-        name        => 'REGISTER',
-        description => 'register an account',
-        parameters  => 'any any(opt)',
-        code        => \&cmd_register
-    );
-    
-    # LOGIN command.
-    # /LOGIN <password>
-    # /LOGIN <accountname> <password>
-    $mod->register_user_command(
-        name        => 'LOGIN',
-        description => 'log in to an account',
-        parameters  => 'any any(opt)',
-        code        => \&cmd_login
-    );
-    
-    # ACCTDUMP command.
-    $mod->register_user_command(
-        name        => 'ACCTDUMP',
-        description => 'inspect accounts',
-        parameters  => '-oper(acctdump)',
-        code        => \&cmd_acctdump
-    );
     
     # RPL_LOGGEDIN and RPL_LOGGEDOUT.
     $mod->register_user_numeric(
@@ -126,7 +117,7 @@ sub umode_registered {
 # /REGISTER <password>
 # /REGISTER <accountname> <password>
 sub cmd_register {
-    my ($user, $data, $account, $password) = @_;
+    my ($user, $event, $account, $password) = @_;
     
     # already registered.
     if (defined $user->{registered}) {
@@ -158,7 +149,7 @@ sub cmd_register {
 # /LOGIN <password>
 # /LOGIN <accountname> <password>
 sub cmd_login {
-    my ($user, $data, $account, $password) = @_;
+    my ($user, $event, $account, $password) = @_;
     
     # no account name.
     if (!defined $password) {
