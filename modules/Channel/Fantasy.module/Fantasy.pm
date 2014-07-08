@@ -16,31 +16,57 @@ use 5.010;
 our ($api, $mod, $pool);
 
 sub init {
-    $pool->on('channel.privmsg' => \&channel_privmsg, with_eo => 1);
+
+    # all local commands. cancel if using fantasy and fantasy isn't allowed.
+    $pool->on('connection.message' => \&local_message,
+        name     => 'fantasy.stopper',
+        priority =>
+    );
+
+    # catch local PRIVMSGs after the main handler.
+    $pool->on('user.message_PRIVMSG' => \&local_privmsg,
+        with_eo => 1,
+        after   => 'PRIVMSG',
+        name    => 'fantasy.privsg'
+    );
+    
     return 1;
 }
 
-sub channel_privmsg {
-    my ($channel, $event, $source, $message) = @_;
-    return unless $source->isa('user') && $source->is_local;
-    return unless $message =~ m/^!(\w+)\s*(.*)$/;
+sub local_message {
+    my ($event, $msg) = @_;
+    
+    # fantasy is allowed, or this wasn't a fantasy command. allow it.
+    return 1 if !$event->data('is_fantasy') || $event->data('fantasy_allowed');
+    
+    # otherwise, stop the execution of the command.
+    $event->stop('Fantasy not permitted for this command');
+    return;
+    
+}
+
+sub local_privmsg {
+    my ($user, $event, $msg) = @_;
+
+    # the PRIVMSG must have been successful.
+    return unless $event->return_of('PRIVMSG');
+    
+    # only care about channels.
+    my ($channel, $message) = @$msg{'target', 'message'};
+    return if !$channel || !$channel->isa('channel');
+    
+    # only care about messages starting with !.
+    $message =~ m/^!(\w+)\s*(.*)$/ or return;
     my ($cmd, $args) = (lc $1, $2);
     
-    # prevents e.g. !privmsg !privmsg or !lolcat !kick
+    # prevents e.g. !privmsg !privmsg or !lolcat !kick.
+    # I doubt this is needed anymore since we use message_PRIVMSG now.
     my $second_p = (split /\s+/, $message, 2)[1];
     return if defined $second_p && substr($second_p, 0, 1) eq '!';
     
-    my @handlers = $pool->user_handlers($cmd) or return;
+    # handle the command.
+    return $user->handle_with_opts("$cmd $$channel{name} $args", is_fantasy => 1);
     
-    my $line = length $args ? "$cmd $$channel{name} $args" : "$cmd $$channel{name}";
-    my @s    = split /\s+/, $line;
-    foreach my $handler (@handlers) {
-        next unless $handler->{fantasy};
-        next unless $#s >= $handler->{params};
-        $handler->{code}($source, $line, @s);
-    }
-    
-    return 1;
 }
 
 $mod

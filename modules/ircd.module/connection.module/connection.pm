@@ -29,9 +29,11 @@ sub init {
     # it is the lowest priority of the events fired together in ->handle() below.
     # by default, registration commands that work post-registration stop the event
     # before it would reach these handlers.
+    # THIS IS ONLY USED FOR SERVERS AS OF 8 July 2014.
     $pool->on('connection.raw' => sub {
         my ($connection, $event, $data, @args) = @_;
         return unless $connection->{type};
+        return unless $connection->{type}->isa('server');
         $connection->{type}->handle($data, \@args);
     }, name => 'high.level.handlers', priority => -100, with_eo => 1);
 
@@ -81,7 +83,7 @@ sub handle {
     return if $connection->{goodbye};
 
     return unless length $data;
-    my $msg  = message->new(data => $data);
+    my $msg  = message->new(data => $data, real_message => 1);
     my $cmd  = $msg->command;
     my @args = $msg->params;
 

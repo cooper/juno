@@ -2508,6 +2508,10 @@ CHANGES:
             removed the hideous old parameter parser.
             RPL_UNKNOWNCOMMAND is now an event callback that is canceled by handler wrappers.
             
+        95. updated Fantasy for the new evented command handler.
+            fixed an issue where parameter parser errors would lead to RPL_UNKNOWNCOMMAND.
+            fixed a vulnerability where commands using echo or PRIVMSG could trigger additional fantasy commands.
+            
             
         
         

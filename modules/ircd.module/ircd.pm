@@ -16,7 +16,7 @@ use warnings;
 use strict;
 use 5.010;
 use Module::Loaded qw(is_loaded);
-use Scalar::Util   qw(weaken);
+use Scalar::Util   qw(weaken blessed);
 
 our ($api, $mod, $me, $pool, $loop, $conf, $boot, $timer, $VERSION);
 our (%channel_mode_prefixes, %listeners);
@@ -760,6 +760,13 @@ sub L { _L($mod, [caller 1], @_) }
 # past the $caller argument only.
 sub _L {
     my ($obj, $caller, $line) = (shift, shift, shift);
+    
+    # use a different object.
+    if (blessed $line && $line->isa('Evented::API::Module')) {
+        $obj  = $line;
+        $line = shift;
+    }
+    
    (my $sub  = shift // $caller->[3]) =~ s/(.+)::(.+)/$2/;
     my $info = $sub && $sub ne '(eval)' ? "$sub()" : $caller->[0];
     return unless $obj->can('_log');

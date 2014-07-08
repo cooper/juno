@@ -19,6 +19,7 @@ use utils qw(col trim);
 use Scalar::Util qw(looks_like_number);
 
 our ($api, $mod, $pool);
+my $props = $Evented::Object::props;
 
 sub init {
     
@@ -33,6 +34,7 @@ sub init {
         
     return 1;
 }
+
 ###########
 ### NEW ###
 ###########
@@ -60,15 +62,17 @@ sub register_user_command_new {
         _caller  => $mod->{package},
     data => {
         parameters => $opts{parameters},
-        cb_code    => $opts{code}
+        cb_code    => $opts{code},
+        fantasy    => $opts{fantasy} // $opts{fntsy}
     });
     
 }
 
 sub _handle_command {
     my ($user, $event, $msg) = @_;
-    $msg->{source} = $user;
-    
+    $event->cancel('ERR_UNKNOWNCOMMAND');
+    $msg->{source} = $user;    
+
     # figure parameters.
     my @params;
     if (my $params = $event->callback_data('parameters')) {
@@ -78,7 +82,7 @@ sub _handle_command {
     }
     
     # call actual callback.
-    $event->cancel('ERR_UNKNOWNCOMMAND');
+    $event->{$props}{data}{allow_fantasy} = $event->callback_data('fantasy');
     $event->callback_data('cb_code')->($user, $event, @params);
     
 }

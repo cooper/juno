@@ -245,13 +245,18 @@ sub parse_params {
         last if !$fake && !defined $param;
         
         # any string.
-        if ($type eq '*' || $type eq 'any' || $type eq ':rest') {
+        if ($type eq '*' || $type eq 'any') {
             push @final, $param;
         }
         
-        # rest of the arguments.
+        # rest of the arguments as a list.
         elsif ($type eq '@rest' || $type eq '...') {
             push @final, @params[$param_i..$#params];
+        }
+        
+        # rest of arguments, space-separated.
+        elsif ($type eq ':rest') {
+            push @final, join ' ', @params[$param_i..$#params];
         }
         
         # code-implemented type.

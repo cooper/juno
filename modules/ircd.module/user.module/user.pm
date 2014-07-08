@@ -270,36 +270,20 @@ sub safe {
 }
 
 # handle incoming data.
-sub handle        { @_ = &safe or return; _handle(undef, @_) }
-sub handle_unsafe { _handle(1, @_) }
-sub _handle       {
-    my ($unsafe, $user, $data) = @_;
-    return if !$unsafe && !$user->{conn};
-    return if $user->{conn} && $user->{conn}{goodbye};
-    
-    # this is a lazy way of eliminating a source.
-    my @s = split /\s+/, $data;
-    shift @s if substr($s[0], 0, 1) eq ':';
-    
-    # ignore empty lines.
-    return if not length $s[0];
-    my $command = uc $s[0];
-    
-    foreach my $handler ($pool->user_handlers($command)) {
-    
-        # not enough parameters.
-        if ($handler->{params} && $#s < $handler->{params}) {
-            $user->numeric(ERR_NEEDMOREPARAMS => $s[0]);
-            return;
-        }
+sub handle { handle_with_opts(@_[0,1]) }
+sub handle_unsafe { } # FIXME: !
 
-        # everything's good; call the handler.
-        return $handler->{code}($user, $data, @s);
-        
-    }
-
-    # unknown command.
-    return;
+# handle data (new method) with options.
+sub handle_with_opts {
+    my ($user, $line, %opts) = @_;
+    my $msg = message->new(data => $line);
+    my $cmd = $msg->command;
+    
+    # fire commands with options.
+    $user->prepare(
+        [ message          => $msg ],
+        [ "message_${cmd}" => $msg ]
+    )->fire('safe', data => \%opts);
     
 }
 

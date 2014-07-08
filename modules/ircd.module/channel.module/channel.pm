@@ -650,6 +650,8 @@ sub _do_mode_string {
 
 # handle a privmsg. send it to our local users and other servers.
 # FIXME: this is just really bad.
+# it is necessary though to distinguish real PRIVMSGs from ones initiated by other
+# commands and whatnot; for example ECHO uses this directly.
 sub handle_privmsgnotice {
     my ($channel, $command, $source, $message) = @_;
     my $user   = $source->isa('user')   ? $source : undef;

@@ -138,12 +138,12 @@ our %user_commands = (
     PRIVMSG => {
         code   => \&privmsgnotice,
         desc   => 'send a message to a user or channel',
-        params => '-command * *'
+        params => '-message -command * *'
     },
     NOTICE => {
         code   => \&privmsgnotice,
         desc   => 'send a notice to a user or channel',
-        params => '-command * *'
+        params => '-message -command * *'
     },
     MODE => {
         code   => \&mode,
@@ -332,8 +332,9 @@ sub mode {
 }
 
 sub privmsgnotice {
-    my ($user, $event, $command, $t_name, $message) = @_;
-
+    my ($user, $event, $msg, $command, $t_name, $message) = @_;
+    $msg->{message} = $message;
+    
     # no text to send.
     if (!length $message) {
         $user->numeric('ERR_NOTEXTTOSEND');
@@ -361,6 +362,8 @@ sub privmsgnotice {
         else {
             $tuser->{location}->fire_command(privmsgnotice => $command, $user, $tuser, $message);
         }
+        
+        $msg->{target} = $tuser;
         return 1;
     }
 
@@ -368,6 +371,7 @@ sub privmsgnotice {
     my $channel = $pool->lookup_channel($t_name);
     if ($channel) {
         $channel->handle_privmsgnotice($command, $user, $message);
+        $msg->{target} = $channel;
         return 1;
     }
 
@@ -1212,7 +1216,7 @@ sub links {
 
 sub echo {
     my ($user, undef, $channel, $message) = @_;
-    my $continue = $user->handle("PRIVMSG $$channel{name} :$message");
+    my $continue = $channel->handle_privmsgnotice(PRIVMSG => $user, $message);;
     $user->sendfrom($user->full, "PRIVMSG $$channel{name} :$message") if $continue;
 }
 
