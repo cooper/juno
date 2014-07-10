@@ -23,7 +23,7 @@ our %user_commands = (
     UP => {
         desc   => 'grant yourself with your access privileges',
         params => 'channel(inchan)',
-        code   => \&cmd_up
+        code   => \&cmd_up,
         fntsy  => 1
     },
     DOWN => {
