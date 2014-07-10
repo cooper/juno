@@ -259,20 +259,13 @@ sub parse_params {
         # use (opt) instead if that is the case.
         
         # is this a fake (ignored) matcher?
-        my ($t, $fake) = $_t;
-        if ($t =~ s/^-//) { $fake = 1  }
-        else              { $param_i++ }
+        my ($type, $fake) = $_t;
+        if ($type =~ s/^-//) { $fake = 1  }
+        else                 { $param_i++ }
 
         # split into a type and possibly an identifier.
-        # FIXME: this is not even used; maybe remove it?
         my ($type, $id);
         my $param = $params[$param_i];
-        my @s     = split /\./, $t, 2;
-        if (scalar @s == 2) { ($id, $type) = @s }
-        else {
-            $id   = 1;
-            $type = $t;
-        }
         
         # if this is not a fake matcher, and if there is no parameter,
         # we should skip this. well, we should be done with the rest, too.

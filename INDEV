@@ -2516,6 +2516,10 @@ CHANGES:
             fixed a bug where ->numeric() on a connection object will always use the nickname from registration.
             added 'exception' oper notice flag for Perl exceptions in command handlers.
             
+        97. silently ignore unhandled numerics from servers.
+            removed the matcher identifier code as it was unused and causing problems for the '...' (synonymous with @rest) modifier.
+            
+            
         
         
         

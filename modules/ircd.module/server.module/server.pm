@@ -18,6 +18,7 @@ use feature 'switch';
 use parent 'Evented::Object';
 
 use utils qw(col v conf notice);
+use Scalar::Util 'looks_like_number';
 
 our ($api, $mod, $me, $pool);
 
@@ -360,7 +361,7 @@ sub all_users    {        @{ shift->{users}    }                  }
 ### MINE ###
 ############
 
-# handle local user data.
+# handle incoming server data.
 sub handle {
     my ($server, $data) = @_;
     return if !$server->{conn} || $server->{conn}{goodbye};
@@ -377,6 +378,10 @@ sub handle {
     # but I don't want to do that because
     my @handlers = $pool->server_handlers($command);
     if (!@handlers) {
+    
+        # numerics that are not handled should be silently ignored.
+        return if looks_like_number($command);
+        
         notice(server_warning => "unknown command $command from $$server{name}!");
         return;
     }
