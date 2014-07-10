@@ -264,7 +264,6 @@ sub parse_params {
         else                 { $param_i++ }
 
         # split into a type and possibly an identifier.
-        my ($type, $id);
         my $param = $params[$param_i];
         
         # if this is not a fake matcher, and if there is no parameter,
