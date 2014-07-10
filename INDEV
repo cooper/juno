@@ -2512,8 +2512,10 @@ CHANGES:
             fixed an issue where parameter parser errors would lead to RPL_UNKNOWNCOMMAND.
             fixed a vulnerability where commands using echo or PRIVMSG could trigger additional fantasy commands.
             
+        96. message object ->source now automatically determines source object.
+            fixed a bug where ->numeric() on a connection object will always use the nickname from registration.
+            added 'exception' oper notice flag for Perl exceptions in command handlers.
             
-        
         
         
         

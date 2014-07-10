@@ -83,7 +83,7 @@ sub handle {
     return if $connection->{goodbye};
 
     return unless length $data;
-    my $msg  = message->new(data => $data, real_message => 1);
+    my $msg  = message->new(data => $data, real_message => 1, source => $connection);
     my $cmd  = $msg->command;
     my @args = $msg->params;
 
@@ -119,7 +119,7 @@ sub handle {
     # 'safe' with exception.
     if (my $e = $fire->exception) {
         my $stopper = $fire->stopper;
-        L("Exception in $cmd from $stopper: $e");
+        notice(exception => "Error in $cmd from $stopper: $e");
         return;
     }
 
@@ -351,7 +351,7 @@ sub numeric {
     }
 
     # local user.
-    my $nick = $connection->{nick} // '*';
+    my $nick = ($connection->{type} || $connection)->{nick} // '*';
     $connection->sendme("$num $nick $_") foreach @response;
 
     return 1;

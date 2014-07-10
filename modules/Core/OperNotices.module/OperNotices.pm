@@ -42,7 +42,8 @@ my %notices = (
     server_connect_success  => 'Connection established to %s',
     
     perl_warning            => '%s',
-    server_warning          => 'Protocol error: %s'
+    exception               => '%s',
+    server_warning          => 'Protocol error: %s',
 
 );
  

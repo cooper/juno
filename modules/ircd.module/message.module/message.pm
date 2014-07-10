@@ -162,6 +162,40 @@ sub source_nick  { ... }
 sub source_ident { ... }
 sub source_host  { ... }
 
+# source always returns an object.
+# if an object cannot be found, it returns undef.
+sub source {
+    my $msg = shift;
+    my $source = $msg->{source} or return;
+    
+    # it's a string. do a lookup.
+    if (!blessed $source) {
+        
+        # nickname lookup.
+        $source = $pool->lookup_user_nick($1) if $source =~ m/^(.+)!.*@.*/;
+        
+        # server lookup. fall back to nickname again
+        # (e.g. :nick COMMAND w/o ident or host)
+        $source ||=
+            $pool->lookup_server_name($source) ||
+            $pool->lookup_user_nick($source);
+        
+        $msg->{source} = $source if $source;
+        return $source;
+    }
+    
+    # it's a connection object.
+    #    if registered, use the user or server object.
+    #    if not registered, use the connection object.
+    if ($source->isa('connection')) {
+        return $source->{type} || $source;
+    }
+    
+    # it's some other object.
+    return $msg->{source};
+    
+}
+
 sub parse_params {
     my ($msg, $param_string) = @_;
     my @parameters = split /\s+/, $param_string;

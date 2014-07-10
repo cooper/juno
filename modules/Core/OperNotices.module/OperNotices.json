@@ -1,13 +1,13 @@
 {
-   "version" : "8.74",
+   "version" : "8.96",
    "name" : "Core::OperNotices",
    "author" : {
       "website" : "https://github.com/cooper",
       "name" : "Mitchell Cooper"
    },
    "description" : "the core set of oper notices",
-   "package" : "M::Core::OperNotices",
    "depends" : {
       "modules" : "Base::OperNotices"
-   }
+   },
+   "package" : "M::Core::OperNotices"
 }
