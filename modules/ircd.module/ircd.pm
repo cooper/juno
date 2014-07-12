@@ -505,7 +505,7 @@ sub handle_connect {
 sub handle_data {
     my ($stream, $buffer) = @_;
     my $connection = $pool->lookup_connection($stream) or return;
-    my $is_server  = $connection->{type} && $connection->{type}->isa('server');
+    my $is_server  = $connection->server;
     
     # fetch the values at which the limit was exceeded.
     my $overflow_1line = (my $max_in_line = conf('limit', 'bytes_line')  // 2048) + 1;
@@ -573,7 +573,7 @@ sub ping_check {
             next;
         }
         
-        my $type = $connection->{type}->isa('user') ? 'user' : 'server';
+        my $type = $connection->user ? 'user' : 'server';
         my $since_last = time - $connection->{last_response};
         
         # no incoming data for configured frequency.

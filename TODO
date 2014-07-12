@@ -137,7 +137,7 @@ Server linkage
     [*] Connection timers continue even after an ERROR message is received. Sometimes two
         timers may be ticking for the same server.
 
-    [*] SQUIT and CONNECT still do not work quite right, probably due to the above issues
+    [ ] SQUIT and CONNECT still do not work quite right, probably due to the above issues
         with connection timers.
         
     [ ] SQUIT and CONNECT probably do not accept server masks.
@@ -160,7 +160,7 @@ User commands that are in desperate need of rewriting
 
     [ ] WHO             needs to be evented, extensible, and fully supportive of WHOX
     
-    [ ] WHOIS           needs to be evented and extensible
+    [√] WHOIS           needs to be evented and extensible
         
 Other user commands
 ------------------------------------------------------------------------------------------

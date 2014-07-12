@@ -18,7 +18,7 @@ use 5.010;
 use parent 'Evented::Object';
 
 use Socket::GetAddrInfo;
-use Scalar::Util 'weaken';
+use Scalar::Util qw(weaken blessed);
 use utils qw(conf v notice);
 
 our ($api, $mod, $me, $pool);
@@ -32,14 +32,14 @@ sub init {
     # THIS IS ONLY USED FOR SERVERS AS OF 8 July 2014.
     $pool->on('connection.raw' => sub {
         my ($connection, $event, $data, @args) = @_;
-        return unless $connection->{type};
-        return unless $connection->{type}->isa('server');
+        return unless $connection->server;
         $connection->{type}->handle($data, \@args);
     }, name => 'high.level.handlers', priority => -100, with_eo => 1);
 
     # send unknown command. this is canceled by handlers.
     $pool->on('connection.message' => sub {
         my ($connection, $event, $msg) = @_;
+        return if $connection->server;
         $connection->numeric(ERR_UNKNOWNCOMMAND => $msg->raw_cmd);
         return;
     }, name => 'ERR_UNKNOWNCOMMAND', priority => -200, with_eo => 1);
@@ -108,10 +108,11 @@ sub handle {
     );
     
     # user events.
+    my $user = $connection->user;
     push @events,
-        [ $connection->{type}, message          => $msg ],
-        [ $connection->{type}, "message_${cmd}" => $msg ]
-    if $connection->{type} && $connection->{type}->isa('user');
+        [ $user, message          => $msg ],
+        [ $user, "message_${cmd}" => $msg ]
+    if $user;
     
     # fire with safe option.
     my $fire = $connection->prepare(@events)->fire('safe');
@@ -229,7 +230,7 @@ sub ready {
     }
 
     weaken($connection->{type}{conn} = $connection);
-    $connection->{type}->new_connection if $connection->{type}->isa('user');
+    $connection->{type}->new_connection if $connection->user;
     return $connection->{ready} = 1;
 }
 
@@ -251,8 +252,7 @@ sub sendfrom {
 sub sendme {
     my $connection = shift;
     my $source =
-        $connection->{type} && $connection->{type}->isa('server') ?
-        $me->{sid} : $me->{name};
+        $connection->server ? $me->{sid} : $me->{name};
     $connection->sendfrom($source, @_);
 }
 
@@ -283,7 +283,7 @@ sub early_reply {
 
 # end a connection. this must be foolproof.
 sub done {
-    my ($connection, $reason, $silent) = @_;
+    my ($connection, $reason) = @_;
     L("Closing connection from $$connection{ip}: $reason");
 
 
@@ -298,9 +298,8 @@ sub done {
 
     }
 
-    # I'm not sure where $silent is even used these days.
     # this is safe because ->send() is safe now.
-    $connection->send("ERROR :Closing Link: $$connection{host} ($reason)") unless $silent;
+    $connection->send("ERROR :Closing Link: $$connection{host} ($reason)");
 
     # remove from connection the pool if it's still there.
     # if the connection has reserved a nick, release it.
@@ -350,8 +349,11 @@ sub numeric {
         @response = sprintf $val, @_;
     }
 
-    # local user.
-    my $nick = ($connection->{type} || $connection)->{nick} // '*';
+    # ignore registered servers.
+    return if $connection->server;
+
+    # send.
+    my $nick = ($connection->user || $connection)->{nick} // '*';
     $connection->sendme("$num $nick $_") foreach @response;
 
     return 1;
@@ -362,7 +364,7 @@ sub numeric {
 ### CAPABILITIES ###
 ####################
 
-# has a capability
+# has a capability.
 sub has_cap {
     my ($connection, $flag) = (shift, lc shift);
     return unless $connection->{cap_flags};
@@ -372,7 +374,7 @@ sub has_cap {
     return;
 }
 
-# add a capability
+# add a capability.
 sub add_cap {
     my ($connection, @flags) = (shift, map { lc } @_);
     foreach my $flag (@flags) {
@@ -382,7 +384,7 @@ sub add_cap {
     return 1;
 }
 
-# remove a capability 
+# remove a capability.
 sub remove_cap {
     my ($connection, @flags) = (shift, map { lc } @_);
     return unless $connection->{cap_flags};
@@ -394,6 +396,24 @@ sub remove_cap {
 sub DESTROY {
     my $connection = shift;
     L("$connection destroyed");
+}
+
+#############
+### TYPES ###
+#############
+
+sub type { shift->{type} }
+
+sub user {
+    my $type = shift->{type};
+    blessed $type && $type->isa('user') or return;
+    return $type;
+}
+    
+sub server {
+    my $type = shift->{type};
+    blessed $type && $type->isa('server') or return;
+    return $type;
 }
 
 $mod

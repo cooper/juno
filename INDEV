@@ -2506,10 +2506,10 @@ CHANGES:
         
         94. moved the remainder of the command handlers to the new API.
             removed the hideous old parameter parser.
-            RPL_UNKNOWNCOMMAND is now an event callback that is canceled by handler wrappers.
+            ERR_UNKNOWNCOMMAND is now an event callback that is canceled by handler wrappers.
             
         95. updated Fantasy for the new evented command handler.
-            fixed an issue where parameter parser errors would lead to RPL_UNKNOWNCOMMAND.
+            fixed an issue where parameter parser errors would lead to ERR_UNKNOWNCOMMAND.
             fixed a vulnerability where commands using echo or PRIVMSG could trigger additional fantasy commands.
             
         96. message object ->source now automatically determines source object.
@@ -2518,6 +2518,10 @@ CHANGES:
             
         97. silently ignore unhandled numerics from servers.
             removed the matcher identifier code as it was unused and causing problems for the '...' (synonymous with @rest) modifier.
+            
+        98. fixed a bug where servers would send ERR_UNKNOWNCOMMAND after incoming numerics which were being sent due to the recent changes that allow numerics to be fired on connection objects.
+            numerics are no longer sent to servers (not with the server as the target anyway).
+            servers now do not send ERR_UNKNOWNCOMMAND to other registered servers, and all incoming numerics are ignored.
             
             
         
