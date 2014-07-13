@@ -1,4 +1,4 @@
-# kylie
+# agnie
 
 Yes.  
 It really is an IRC daemon.  
