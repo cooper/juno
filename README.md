@@ -181,9 +181,22 @@ event that occurs within juno. vulpia completed the relocation of JELP
 in the future. Additionally, it established the Account module, allowing users to better
 manage accounts and channels.
 
-* [__kylie__](https://github.com/cooper/kylie) (juno8):
-Named after the adored [Kyle](http://mac-mini.org) (mac-mini), kylie is a continuation of
-vulpia. It is the current version under active development.
+* [__kylie__](https://github.com/cooper/kylie/tree/4512ebcd3b526781662ca9f3588df285ed1290da) (juno8):
+Named after the adored [Kyle](http://mac-mini.org) (mac-mini), kylie introduced several
+previously-missing core components including
+[ident](http://en.wikipedia.org/wiki/Ident_protocol) support and channel modes: limit,
+secret, and key. APIs for [IRCv3](http://ircv3.org) extensions were added, allowing
+[SASL](http://ircv3.org/extensions/sasl-3.1),
+[multi-prefix](http://ircv3.org/extensions/multi-prefix-3.1), and
+[message tag](http://ircv3.org/specification/message-tags-3.2) support. An improved IRC
+parameter parser allowed drastic code cleanup and improved efficiency. A new event-driven
+command API made user commands more extensible than ever before. The migration of all
+non-modular packages into modules significantly improved the stability and reloadability
+of the IRCd.
+
+* [__agnie__](https://github.com/cooper/agnie) (juno9):
+Named after the beautiful and talented [Agnes](http://agnes.mac-mini.org), agnie is a
+continuation of kylie. It is the current version under active development.
 
 # Installation and operation
 
