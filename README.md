@@ -56,42 +56,6 @@ IRC servers typically have a higher per-user load and therefore should be prompt
 fulfilling request after request. Utilizing the wonderful
 [IO::Async](http://search.cpan.org/perldoc/IO::Async) framework, juno is quite reactive.
 
-## Features
-
-This section isn't done.
-
-# Modules
-
-This section isn't done.
-
-* __ircd__:
-
-* __Core__:
-
-* __Resolve__:
-
-* __Ident__:
-
-* __JELP__:
-
-* __Channel::Access__:
-
-* __Account__:
-
-* __Modules__:
-
-* __Reload__:
-
-* __Eval__:
-
-* __Fantasy__:
-
-* __Git__:
-
-* __LOLCAT__:
-
-* __Invite__: 
-
 # History
 
 juno-ircd was born a fork of [pIRCd](http://pircd.sourceforge.net) (the Perl IRC daemon)
