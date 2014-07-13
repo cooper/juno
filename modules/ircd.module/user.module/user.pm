@@ -23,7 +23,8 @@ use overload
     bool     => sub { 1         };
     
 use utils qw(v notice col conf irc_time);
-use List::Util 'first';
+use List::Util   'first';
+use Scalar::Util 'blessed';
 
 our ($api, $mod, $pool, $me);
 
@@ -270,20 +271,33 @@ sub safe {
 }
 
 # handle incoming data.
-sub handle { handle_with_opts(@_[0,1]) }
-sub handle_unsafe { } # FIXME: !
+sub handle        { _handle_with_opts(undef, @_[0,1]) }
+sub handle_unsafe { _handle_with_opts(1,     @_[0,1]) }
+
+# returns the events for an incoming message.
+sub events_for_message {
+    my ($user, $msg) = @_;
+    my $cmd = $msg->command;
+    return (
+        [ $user,  message       => $msg ],
+        [ $user, "message_$cmd" => $msg ]
+    );
+}
 
 # handle data (new method) with options.
-sub handle_with_opts {
-    my ($user, $line, %opts) = @_;
-    my $msg = message->new(data => $line);
-    my $cmd = $msg->command;
+sub  handle_with_opts        { _handle_with_opts(undef, @_) }
+sub _handle_with_opts_unsafe { _handle_with_opts(1,     @_) }
+sub _handle_with_opts        {
+    my ($allow_nonlocal, $user, $line, %opts) = @_;
+    
+    # nonlocal user on ->handle() or some other safe method.
+    return if !$allow_nonlocal && !$user->is_local;
+    
+    my $msg = blessed $line ? $line : message->new(data => $line);
     
     # fire commands with options.
-    $user->prepare(
-        [ message          => $msg ],
-        [ "message_${cmd}" => $msg ]
-    )->fire('safe', data => \%opts);
+    my @events = $user->events_for_message($msg);
+    $user->prepare(@events)->fire('safe', data => \%opts);
     
 }
 

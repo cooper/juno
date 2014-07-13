@@ -30,25 +30,23 @@ sub init {
     );
     
     $mod->register_registration_command(
-        name       => shift @$_, code      => shift @$_,
-        parameters => shift @$_, with_data => shift @$_,
-        after_reg  => shift @$_
+        name       => shift @$_, code       => shift @$_,
+        parameters => shift @$_, after_reg  => shift @$_
     ) or return foreach (
     #
     # PARAMS = number of parameters
-    # DATA   = true if include $data string
     # LATER  = true if the command should be handled even after registration
     #
-    #   [ NAME      => \&sub            PARAMS  DATA    LATER
-        [ PING      => \&rcmd_ping,     1,      undef,  1       ],
-        [ PONG      => sub { 1 },       undef,  undef,  1       ],
-        [ CAP       => \&rcmd_cap,      1,      undef,  1       ],
-        [ NICK      => \&rcmd_nick,     1,      undef,          ],
-        [ USER      => \&rcmd_user,     4,      1,      1       ],
-        [ SERVER    => \&rcmd_server,   5,      undef,          ],
-        [ PASS      => \&rcmd_pass,     1,      undef,          ],
-        [ QUIT      => \&rcmd_quit,     undef,  1,              ],
-        [ ERROR     => \&rcmd_error,    1,      undef,  1       ],
+    #   [ NAME      => \&sub            PARAMS  LATER
+        [ PING      => \&rcmd_ping,     1,      1       ],
+        [ PONG      => sub { 1 },       undef,  1       ],
+        [ CAP       => \&rcmd_cap,      1,      1       ],
+        [ NICK      => \&rcmd_nick,     1,              ],
+        [ USER      => \&rcmd_user,     4,      1       ],
+        [ SERVER    => \&rcmd_server,   5,              ],
+        [ PASS      => \&rcmd_pass,     1,              ],
+        [ QUIT      => \&rcmd_quit,     undef,          ],
+        [ ERROR     => \&rcmd_error,    1,      1       ],
     );
     
     return 1;
@@ -199,7 +197,7 @@ sub rcmd_nick {
 }
 
 sub rcmd_user {
-    my ($connection, $event, $data, @args) = @_;
+    my ($connection, $event, @args) = @_;
     
     # already registered.
     if ($connection->{type}) {
@@ -208,8 +206,8 @@ sub rcmd_user {
     }
     
     $connection->{ident} = $args[0];
-    $connection->{real}  = col((split /\s+/, $data, 5)[4]);
-    $connection->fire_event(reg_user => @$connection{ qw(ident real) });
+    $connection->{real}  = $args[3];
+    $connection->fire_event(reg_user => @args[0,3]);
     $connection->reg_continue('id2');
 }
 
@@ -264,8 +262,8 @@ sub rcmd_pass {
 
 # not used for registered users.
 sub rcmd_quit {
-    my ($connection, $event, $data, $arg) = @_;
-    my $reason = defined $arg ? col((split /\s+/,  $data, 2)[1]) : 'leaving';
+    my ($connection, $event, $arg) = @_;
+    my $reason = $arg // 'leaving';
     $connection->done("~ $reason");
 }
 

@@ -158,7 +158,7 @@ sub rpl_isupport {
         $lines[$curr] .= $val eq 'YES' ? "$param " : "$param=$val ";
     }
 
-    return map { "$_:are supported by this server" } @lines
+    return map { "$_:are supported by this server" } @lines;
 }
 
 # CHANMODES in RPL_ISUPPORT.
@@ -170,7 +170,7 @@ sub isp_chanmodes {
     #   status          (4)
     #   key             (5)
     my %m;
-    my @a = ('', '', '', '', '');
+    my @a = ('') x 5;
     
     # find each mode letter.
     foreach my $name ($ircd::conf->keys_of_block(['modes', 'channel'])) {
@@ -188,7 +188,7 @@ sub isp_chanmodes {
     # alphabetize each group.
     foreach my $type (keys %m) {
         my @alphabetized = sort { $a cmp $b } @{ $m{$type} };
-        $a[$type] = join '', @alphabetized
+        $a[$type] = join '', @alphabetized;
     }
 
     return "$a[3],$a[1],$a[2],$a[0]";

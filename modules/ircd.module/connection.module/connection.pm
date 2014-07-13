@@ -109,10 +109,7 @@ sub handle {
     
     # user events.
     my $user = $connection->user;
-    push @events,
-        [ $user, message          => $msg ],
-        [ $user, "message_${cmd}" => $msg ]
-    if $user;
+    push @events, $user->events_for_message($msg) if $user;
     
     # fire with safe option.
     my $fire = $connection->prepare(@events)->fire('safe');

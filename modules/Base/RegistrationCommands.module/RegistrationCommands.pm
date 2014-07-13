@@ -40,13 +40,14 @@ sub register_registration_command {
     }
     
     # parameter check callback.
-    my $command = uc delete $opts{name};
-    my $params  = $opts{parameters};
-    $pool->on("connection.command_$command" => sub {
-            my ($event, @args) = @_;
+    my $command    = uc delete $opts{name};
+    my $event_name = "connection.message_$command";
+    my $params     = $opts{parameters};
+    $pool->on($event_name => sub {
+            my ($event, $msg) = @_;
 
             # there are enough.
-            return 1 if @args >= $params;
+            return 1 if $msg->params >= $params;
             
             # not enough.
             my $conn = $event->object;
@@ -59,17 +60,24 @@ sub register_registration_command {
         _caller  => $mod->package
     ) or return if $params;
     
-    # wrapper that prevents execution after registration.
+    # wrapper.
     my $code = sub {
-        my ($conn, $event) = @_;
+        my ($conn, $event, $msg) = @_;
+        
+        # prevent execution after registration.
         return if $conn->{type} && !$opts{after_reg};
-        $opts{code}(@_);
+        
+        # arguments.
+        my @args = $msg->params;
+        unshift @args, $msg       if $opts{with_msg};
+        unshift @args, $msg->data if $opts{with_data};
+        
+        $opts{code}($conn, $event, @args);
         $event->cancel('ERR_UNKNOWNCOMMAND');
         $event->stop unless $opts{continue_handlers}; # prevent later user/server handlers.
     };
     
     # attach the callback.
-    my $event_name = 'connection.command_'.$command.($opts{with_data} ? '_raw' : '');
     my $result = $pool->on($event_name => $code,
         name     => $opts{cb_name},
         with_eo  => 1,

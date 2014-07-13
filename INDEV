@@ -2523,6 +2523,11 @@ CHANGES:
             numerics are no longer sent to servers (not with the server as the target anyway).
             servers now do not send ERR_UNKNOWNCOMMAND to other registered servers, and all incoming numerics are ignored.
             
+        99. $user->events_for_message($msg) returns events for user handlers.
+            fixed $user->handle() and $user->handle_unsafe() for use with the new system.
+            registration commands now utilize the new parameter parser.
+            other cleanup.
+            
             
         
         
