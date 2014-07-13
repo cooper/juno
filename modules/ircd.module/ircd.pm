@@ -199,7 +199,7 @@ sub set_variables {
 
     # defaults; replace current values.
     my %v_replace = (
-        NAME    => 'kylie',         # major version name
+        NAME    => 'agnie',         # major version name
         SNAME   => 'juno',          # short ircd name
         LNAME   => 'juno-ircd',     # long ircd name
         VERSION => $VERSION,        # combination of these 3 in VERSION command
