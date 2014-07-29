@@ -2535,6 +2535,9 @@ CHANGES:
         01. properly handle "JOIN 0" - thanks @blasphemy for pointing this out.
             fixed an error due to logging during global destruction.
             
+        02. added ->hops_to() method to users and servers.
+            WHO and LINKS commands now show the actual hop count rather than always 0.
+            
         
             
         

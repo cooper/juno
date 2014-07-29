@@ -245,6 +245,13 @@ sub notice_info {
     return ($user->{nick}, $user->{ident}, $user->{host});
 }
 
+# hops to another user.
+sub hops_to {
+    my ($server1, $target) = (shift->{server}, shift);
+    my $server2 = $target->{server} || $target;
+    return $server1->hops_to($server2);
+}
+
 sub DESTROY {
     my $user = shift;
     L("$user destroyed");

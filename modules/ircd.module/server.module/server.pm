@@ -341,6 +341,18 @@ sub children {
     return @a;
 }
 
+# hops to server.
+sub hops_to {
+    my ($server1, $server2) = @_;
+    my $hops = 0;
+    return $hops if $server1 == $server2;
+    until (!$server2 || $server2 == $server1) {
+        $hops++;
+        $server2 = $server2->{parent};
+    }
+    return $hops;
+}
+
 # shortcuts
 
 sub id       { shift->{sid}         }

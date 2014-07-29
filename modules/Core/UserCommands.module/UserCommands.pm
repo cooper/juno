@@ -892,7 +892,7 @@ sub who {
                      $who_flags . ($quser->is_mode('ircop') ? '*' : q||);
         $user->numeric(RPL_WHOREPLY =>
             $match_pattern, $quser->{ident}, $quser->{host}, $quser->{server}{name},
-            $quser->{nick}, $who_flags, $quser->{real}
+            $quser->{nick}, $who_flags, $user->hops_to($quser), $quser->{real}
         );
     }
 
@@ -1210,12 +1210,13 @@ sub links {
     
     # it's a request for this server.
     $query_mask //= '*';
-    my @servers = $pool->lookup_server_mask($query_mask);
     
-    foreach my $serv (@servers) {
-        my $hops = 0; # TODO: make this accurate.
-        $user->numeric(RPL_LINKS => $serv->{name}, $serv->{parent}{name}, $hops, $serv->{desc});
-    }
+    $user->numeric(RPL_LINKS =>
+        $_->{name},
+        $_->{parent}{name},
+        $_->hops_to($_),
+        $_->{desc}
+    ) foreach $pool->lookup_server_mask($query_mask);
     
     $user->numeric(RPL_ENDOFLINKS => $query_mask);
     return 1;
