@@ -1,12 +1,12 @@
 {
-   "version" : "8.97",
+   "package" : "message",
+   "version" : "9",
    "name" : "ircd::message",
+   "description" : "represents an IRC message",
    "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
    },
    "no_bless" : 1,
-   "preserve_sym" : 1,
-   "description" : "represents an IRC message",
-   "package" : "message"
+   "preserve_sym" : 1
 }

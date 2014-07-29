@@ -24,13 +24,14 @@ our $TRUE      = '__TAG_TRUE__';
 our $PARAM_BAD = '__PARAM_BAD__';
 
 sub new {
-    my ($class, %opts) = @_;
+    my ($class, @opts) = @_;
+    @opts = (data => shift @opts) if scalar @opts == 1;
     my $msg = bless {
         tags => {},
-        %opts
+        @opts
     }, $class;
 
-    $msg->parse if length $opts{data};
+    $msg->parse if length $msg->{data};
     return $msg;
 }
 
@@ -39,7 +40,7 @@ sub parse {
     return unless length $msg->data;
     my @words = split /\s+/, $msg->data;
     
-    my ($got_tags, $got_source, $got_command, $got_sentinel);
+    my ($got_tags, $got_source, $got_command);
     my ($word_i, $word, $last_word, @params) = 0;
     WORD: while (defined($word = shift @words)) {
         my $f_char_ref = \substr($word, 0, 1);

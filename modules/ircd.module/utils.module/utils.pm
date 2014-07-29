@@ -188,8 +188,8 @@ sub notice {
     return if !$key || !$str;
     
     # log it.
+    return if !$api || !ircd->can('_L');
     my $obj = $api->package_to_module($caller[0]) or return;
-    return unless ircd->can('_L');
     ircd::_L($obj, \@caller, "$key: $str");
     
     return $str;

@@ -442,6 +442,13 @@ sub add_join_callbacks {
 
 sub cjoin {
     my ($user, $event, $given, $channel_key) = @_;
+    
+    # part all channels.
+    if ($given eq '0') {
+        $user->handle_unsafe("PART $_") foreach map { $_->name } $user->channels;
+        return 1;
+    }
+    
     foreach my $chname (split ',', $given) {
         my $new = 0;
 

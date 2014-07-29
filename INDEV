@@ -2529,7 +2529,13 @@ CHANGES:
             other cleanup.
             
 9. juno-ircd version 9 is being branded as agnie.
+
+    0. rebranding.
+
+        01. properly handle "JOIN 0" - thanks @blasphemy for pointing this out.
+            fixed an error due to logging during global destruction.
             
+        
             
         
         
