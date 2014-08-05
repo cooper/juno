@@ -37,7 +37,7 @@ sub init {
             name       => 'acct',
             parameters => 'dummy :rest', # don't even care about source
             code       => \&in_acct,
-            forward    => 1
+            forward    => 2 # never forward during burst
         },
         {
             name       => 'acctinfo',
