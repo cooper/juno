@@ -96,12 +96,14 @@ sub lookup_account_hash {
 # $source_user  = (optional) user registering the account
 #
 sub register_account {
-    my ($act_name, $pwd, $source_serv, $source_user) = @_;
+    my ($act_name, $pwd, $source_serv, $source_user, $id) = @_;
     return if lookup_account_name($act_name);
     
     # determine the account ID.
-    my $id = $table->meta('last_id');
-    $table->set_meta(last_id => ++$id);
+    if (!defined $id) {
+        $id = $table->meta('last_id');
+        $table->set_meta(last_id => ++$id);
+    }
     
     my ($password, $salt, $crypt) = handle_password($pwd);
     my ($sid, $s_name) = ref $source_serv eq 'ARRAY' ?
@@ -150,8 +152,12 @@ sub add_or_update_account {
     
     # register it.
     # note that if there is a user logged in, it should be 
-    $act = register_account($act{name}, $act{password}, [ $act{csid}, $act{cserver} ])
-    or return;
+    $act = register_account(
+        $act{name}, $act{password},
+        [ $act{csid}, $act{cserver} ],
+        undef,
+        $act{id}
+    ) or return;
     
     # if any users were waiting for this account info, log them in.
     while (my $user = shift @{ $users_waiting{ $act->id } || [] }) {

@@ -2559,6 +2559,8 @@ CHANGES:
     1. fixed some more issues with new Account module.
     
         11. don't forward ACCT during burst; it is a one-to-one negotiation.
+        
+        12. respect account ID parameter.
             
             
         
