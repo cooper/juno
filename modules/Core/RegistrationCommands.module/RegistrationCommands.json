@@ -1,16 +1,16 @@
 {
-   "version" : "6.3",
-   "name" : "Core::RegistrationCommands",
-   "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
-   },
-   "description" : "the core set of pre-registration commands",
-   "package" : "M::Core::RegistrationCommands",
    "depends" : {
       "modules" : [
          "Base::RegistrationCommands",
          "Base::UserNumerics"
       ]
-   }
+   },
+   "package" : "M::Core::RegistrationCommands",
+   "version" : "6.4",
+   "name" : "Core::RegistrationCommands",
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
+   "description" : "the core set of pre-registration commands"
 }

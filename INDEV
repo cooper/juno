@@ -2548,6 +2548,7 @@ CHANGES:
         05. more work on the newly-rewritten Account module.
             fixed an issue in user ->do_mode_string_local() where it was never sent back to the user.
             
+        06. updated SASL module to work with the new Account module.
         
         
         

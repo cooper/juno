@@ -20,7 +20,7 @@ use strict;
 use 5.010;
 
 use MIME::Base64;
-use M::Account qw(verify_account login_account);
+use M::Account qw(lookup_account_name);
 
 our ($api, $mod, $pool);
 
@@ -70,11 +70,16 @@ sub rcmd_authenticate {
          }
     } else {
         my (undef, $user, $password) = split('\0', decode_base64($arg));
-        if (my $act = verify_account($user, $password)) {
+        my $act = lookup_account_name($user);
+        if ($act->verify_password($password)) {
             $connection->{sasl_account} = $act;
             $connection->{sasl} = 1;
-            $connection->numeric(RPL_LOGGEDIN =>
-                @$connection{ qw(nick ident host) }, $act->{name}, $act->{name});
+            
+            # do this the ugly way because user object does not yet exist.
+            my $c    = $connection;
+            my $full = "$$c{nick}!$$c{ident}\@$$c{host}";
+            $connection->numeric(RPL_LOGGEDIN => $full, $act->{name}, $act->{name});
+            
             $connection->numeric('RPL_SASLSUCCESS');
             delete $connection->{sasl_pending};
         } else {
@@ -88,9 +93,8 @@ sub rcmd_authenticate {
 # user.new event
 sub user_new {
     my ($user, $event) = @_;
-    if ($user->{sasl_account}) {
-        login_account(delete $user->{sasl_account}, $user, undef, undef, 1);
-    }
+    my $act = delete $user->{sasl_account} or return;
+    $act->login_user($user);
 }
 
 $mod

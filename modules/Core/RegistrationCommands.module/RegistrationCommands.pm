@@ -116,7 +116,8 @@ sub cap_req {
     foreach my $item (@args) {
         $item = col($item);
         my ($m, $flag) = ($item =~ m/^([-]?)(.+)$/);
-                
+        next unless length $flag;
+        
         # requesting to remove it.
         if ($m eq '-') {
             push @remove, $flag;
