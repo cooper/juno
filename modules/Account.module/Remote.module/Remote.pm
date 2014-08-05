@@ -132,7 +132,7 @@ sub out_acctidk {
             $str .= "$$item[0].$$item[1]";
             next;
         }
-        $item->can('id') or next
+        $item->can('id') or next;
         $str .= $item->id;
     }
     ":$$me{sid} ACCTIDK $str"
