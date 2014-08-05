@@ -102,9 +102,9 @@ sub init {
 sub umode_registered {
     my ($user, $state) = @_;
     return if $state; # never allow setting.
-print "is this even getting called?\n";
+
     # but always allow them to unset it.
-    $user->{account}->logout_user($user) if $user->{account};
+    $user->{account}->logout_user($user, 1) if $user->{account};
     
     return 1;
 }

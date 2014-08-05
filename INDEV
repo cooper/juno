@@ -2550,7 +2550,7 @@ CHANGES:
             
         06. updated SASL module to work with the new Account module.
         
-        
+        07. fixed bug causing endless loop of mode unsets in Account module.
         
             
             

@@ -218,8 +218,9 @@ sub login_user {
 }
 
 # logout with numerics and modes.
+# $unsetting = true if called from inside mode unset.
 sub logout_user {
-    my ($act, $user) = @_;
+    my ($act, $user, $unsetting) = @_;
     return unless $user->{account} && $user->{account} == $act;
     $act->logout_user_silently($act);
     
@@ -232,9 +233,12 @@ sub logout_user {
     # set -registered.
     # this is only done locally; the mode change is not propagated.
     # all other servers will do this same thing upon receiving LOGOUT.
-    my $mode = $me->umode_letter('registered');
-    $user->do_mode_string_local("-$mode", 1);
+    if (!$unsetting) {
+        my $mode = $me->umode_letter('registered');
+        $user->do_mode_string_local("-$mode", 1);
+    }
     
+    return 1;
 }
 
 # this does the actual logout.
