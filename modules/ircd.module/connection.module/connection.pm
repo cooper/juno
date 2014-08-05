@@ -18,7 +18,7 @@ use 5.010;
 use parent 'Evented::Object';
 
 use Socket::GetAddrInfo;
-use Scalar::Util qw(weaken blessed);
+use Scalar::Util qw(weaken blessed looks_like_number);
 use utils qw(conf v notice);
 
 our ($api, $mod, $me, $pool);
@@ -40,6 +40,8 @@ sub init {
     $pool->on('connection.message' => sub {
         my ($connection, $event, $msg) = @_;
         return if $connection->server;
+        return if $msg->param(0) eq '*';            # NOTICE *
+        return if looks_like_number($msg->command); # numeric
         $connection->numeric(ERR_UNKNOWNCOMMAND => $msg->raw_cmd);
         return;
     }, name => 'ERR_UNKNOWNCOMMAND', priority => -200, with_eo => 1);

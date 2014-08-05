@@ -9,6 +9,8 @@
 # @description:     'provides an interface for client capabilities'
 # @version:         ircd->VERSION
 #
+# @depends.modules: 'API::Methods'
+#
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'
 #

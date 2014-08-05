@@ -2554,6 +2554,7 @@ CHANGES:
         
         08. fixed REGISTER command.
         
+        09. fixed server flooding issues caused by NOTICEs sent before registration.
             
             
         
