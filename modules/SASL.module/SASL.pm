@@ -71,7 +71,7 @@ sub rcmd_authenticate {
     } else {
         my (undef, $user, $password) = split('\0', decode_base64($arg));
         my $act = lookup_account_name($user);
-        if ($act->verify_password($password)) {
+        if ($act && $act->verify_password($password)) {
             $connection->{sasl_account} = $act;
             $connection->{sasl} = 1;
             

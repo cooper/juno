@@ -2561,6 +2561,9 @@ CHANGES:
         11. don't forward ACCT during burst; it is a one-to-one negotiation.
         
         12. respect account ID parameter.
+        
+        13. fixed an exception in SASL when account does not exist.
+            
             
             
         

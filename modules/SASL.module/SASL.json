@@ -1,12 +1,12 @@
 {
-   "description" : "Provides SASL authentication",
-   "package" : "M::SASL",
-   "version" : "1.4",
-   "author" : {
-      "website" : "https://github.com/mattwb65",
-      "name" : "Matthew Barksdale"
-   },
    "name" : "SASL",
+   "author" : {
+      "name" : "Matthew Barksdale",
+      "website" : "https://github.com/mattwb65"
+   },
+   "description" : "Provides SASL authentication",
+   "version" : "1.5",
+   "package" : "M::SASL",
    "depends" : {
       "modules" : [
          "Base::Capabilities",
