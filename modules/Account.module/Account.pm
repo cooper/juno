@@ -127,8 +127,8 @@ sub register_account {
     # if a user registered this just now, log him in.
     if ($source_user) {
         $pool->fire_command_all(acctinfo => $act);
-        $source_user->fire_event(account_registered => $act);
         $act->login_user($source_user);
+        $source_user->fire_event(account_registered => $act);
     }
     
     return $act;
@@ -136,7 +136,7 @@ sub register_account {
 
 # update an account if it exists, otherwise create it.
 sub add_or_update_account {
-    my %act = shift;
+    my %act = @_;
     my $act = lookup_account_hash(%act);
     
     # it exists. update it.
@@ -229,7 +229,7 @@ sub login_user {
 sub logout_user {
     my ($act, $user, $unsetting) = @_;
     return unless $user->{account} && $user->{account} == $act;
-    $act->logout_user_silently($act);
+    $act->logout_user_silently($user);
     
     # if the user is local, send RPL_LOGGEDOUT and tell other servers.
     if ($user->is_local) {

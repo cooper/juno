@@ -117,6 +117,7 @@ sub out_acctinfo {
     foreach my $key (keys %$act) {
         my $value = $act->{$key};
         next unless defined $value;
+        next if ref $value;
         $str .= "$key $value ";
     }
     ":$$me{sid} ACCTINFO $str"
