@@ -15,7 +15,7 @@ use warnings;
 use strict;
 use 5.010;
 
-M::Account->import(qw(all_accounts login_account logout_account register_account account_info));
+use M::Account qw(register_account lookup_account_name);
 
 our ($api, $mod, $me, $db, $pool);
 
@@ -45,7 +45,7 @@ sub init {
     $mod->register_user_numeric(
         name   => 'RPL_LOGGEDIN',
         number => 900,
-        format => '%s!%s@%s %s :You are now logged in as %s'
+        format => '%s %s :You are now logged in as %s'
     );
     $mod->register_user_numeric(
         name   => 'RPL_LOGGEDOUT',
@@ -102,11 +102,7 @@ sub init {
 # logged in mode.
 sub umode_registered {
     my ($user, $state) = @_;
-    return if $state; # never allow setting.
 
-    # but always allow them to unset it.
-    logout_account($user, 1);
-    return 1;
 }
 
 #####################
@@ -117,9 +113,10 @@ sub umode_registered {
 # /REGISTER <password>
 # /REGISTER <accountname> <password>
 sub cmd_register {
-    my ($user, $event, $account, $password) = @_;
+    my ($user, $event, $act_name, $password) = @_;
     
     # already registered.
+    # this is to prevent several registrations in one connection.
     if (defined $user->{registered}) {
         $user->server_notice('register', 'You have already registered an account');
         return;
@@ -127,21 +124,21 @@ sub cmd_register {
     
     # no account name.
     if (!defined $password) {
-        $password = $account;
-        $account  = $user->{nick};
+        $password = $act_name;
+        $act_name = $user->{nick};
     }
     
     # taken.
-    if (!register_account($account, $password, $me, $user)) {
+    if (lookup_account_name($act_name)) {
         $user->server_notice('register', 'Account name taken');
         return;
     }
     
     # success.
+    register_account($account, $password, $me, $user);
     $user->server_notice('register', 'Registration successful');
-    login_account($account, $user, undef, 1);
-    $user->{registered} = 1;
     
+    $user->{registered} = 1;
     return 1;
 }
 
@@ -149,16 +146,7 @@ sub cmd_register {
 # /LOGIN <password>
 # /LOGIN <accountname> <password>
 sub cmd_login {
-    my ($user, $event, $account, $password) = @_;
-    
-    # no account name.
-    if (!defined $password) {
-        $password = $account;
-        $account  = $user->{nick};
-    }
-    
-    # login.
-    login_account($account, $user, $password);
+    my ($user, $event, $act_name, $password) = @_;
     
 }
 

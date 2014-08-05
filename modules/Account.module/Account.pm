@@ -4,8 +4,6 @@
 # @package:         "M::Account"
 # @description:     "implements user accounts"
 #
-# @depends.modules: ['Base::Database']
-#
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"
 #
@@ -16,29 +14,28 @@ use strict;
 use 5.010;
 
 use utils qw(conf notice import);
+use Scalar::Util 'weaken';
 
-our ($api, $mod, $me, $db);
+our ($api, $mod, $me, $conf, $table);
+our (%account_ids, %account_names);
 
 sub init {
-    $db = $mod->database('account') or return;
+    $table = $conf->table('accounts');
     
-    # create or update the table if necessary.
-    $mod->create_or_alter_table($db, 'accounts',
+    # create or update the table.
+    $table->create_or_alter(
         id       => 'INTEGER',      # numerical account ID
         name     => 'TEXT COLLATE NOCASE',  # account name
         password => 'TEXT',         # (hopefully encrypted) account password
         encrypt  => 'TEXT',         # password encryption type
-                                    #     255 is max varchar size on mysql<5.0.3
+        salt     => 'TEXT'          # password encryption salt
         created  => 'INTEGER',      # UNIX time of account creation
-                                    #     in SQLite, the max size is very large...
-                                    #     in mysql and others, not so much.
         cserver  => 'TEXT',         # server name on which the account was registered
         csid     => 'INTEGER',      # SID of the server where registered
         updated  => 'INTEGER',      # UNIX time of last account update
         userver  => 'TEXT',         # server name on which the account was last updated
-        usid     => 'INTEGER',      # SID of the server where last updated
-        salt     => 'TEXT'          # password encryption salt
-    ) or return;
+        usid     => 'INTEGER'       # SID of the server where last updated
+    );
 
     $mod->load_submodule('Local')  or return;
     $mod->load_submodule('Remote') or return;
@@ -46,238 +43,168 @@ sub init {
     return 1;
 }
 
-##########################
-### ACCOUNT MANAGEMENT ###
-##########################
-
-# select info for all accounts.
-# returns an arrayref of hashrefs.
-sub all_accounts {
-    return $mod->db_hashrefs($db, 'SELECT * FROM accounts');
+# find an account by name.
+#
+# if it's cached, return the exact object.
+# otherwise, look up in database.
+#
+sub lookup_account_name {
+    my $act_name = shift;
+    return $account_names{ lc $act_name } if $account_names{ lc $act_name };
+    my %act = $table->row(name => $act_name)->select_hash or return;
+    return __PACKAGE__->new(%act);
 }
 
-# fetch account information.
-sub account_info {
-    my $account = shift;
-    return $mod->db_hashref($db, 'SELECT * FROM accounts WHERE name=? COLLATE NOCASE', $account);
-}
-
-# lookup an account by SID and account ID.
-sub lookup_sid_aid {
-    my ($sid, $aid) = @_;
-    return $mod->db_hashref($db, 'SELECT * FROM accounts WHERE csid=? AND id=? COLLATE NOCASE', $sid, $aid);
-}
-
-# fetch the next available account ID.
-sub next_available_id {
-    my $current = $mod->db_single($db, 'SELECT MAX(id) FROM accounts WHERE csid=?', $me->{sid}) // 0;
-    return $current + 1;
-}
-
-# add an account to the table.
-sub add_account {
-    my $act = shift;
-
-    # account already exists.
-    return if lookup_sid_aid($act->{csid}, $act->{id});
-    
-    # insert the account.
-    $mod->db_insert_hash($db, 'accounts', %$act);
-    
-}
-
-# delete account by IDs.
-sub delete_account {
-    my $act = shift;
-    $db->do('DELETE FROM accounts WHERE csid=? AND id=?', undef, $act->{csid}, $act->{id});
-}
-
-# update an account.
-sub update_account {
-    my $act = shift;
-    return unless lookup_sid_aid($act->{csid}, $act->{id});
-    $mod->db_update_hash($db, 'accounts', {
-        csid => $act->{csid},
-        id   => $act->{id}
-    }, $act);
-}
-
-# add account if not exists, otherwise update info.
-sub add_or_update_account {
-    my $act = shift;
-    
-    # find the account by name and by IDs.
-    my $my_act_name = account_info($act->{name});
-    my $my_act_ids  = lookup_sid_aid($act->{csid}, $act->{id});
-    my $acts_equal  = accounts_equal($my_act_name, $my_act_ids);
-    
-    # I don't have an account with those IDs OR with that name.
-    # it's safe to assume that this account does not exist.
-    return add_account($act) if !$my_act_name && !$my_act_ids;
-    
-    # we have an account with the same name and same IDs.
-    return update_account($act) if $acts_equal;
-    
-    # we have one with this name, but the IDs are different.
-    # only make the change if $act was created before.
-    if ($my_act_name && $act->{created} < $my_act_name->{created}) {
-        delete_account($my_act_name);
-        return add_account($act);
-    }
-    
-    # we have one with these IDs, but the name is different.
-    return update_account($act) if $my_act_ids;
-    
-    return;
-}
-
-# same account according to IDs.
-sub accounts_equal {
-    my ($act1, $act2) = @_;
-    return if !$act1 || !$act2;
-    return if $act1->{id}   != $act2->{id};
-    return if $act1->{csid} != $act2->{csid};
-    return 1;
-}
-
-# register an account if it does not already exist.
-# $user is optional. TODO: reconsider: why?
-# I think that I originally intended for register_account() to handle registrations
-# of accounts that may or may not have actual users, but add_account() handles that now.
+# register an account.
+#
+# this is used for actual REGISTER command as well as any other
+# instance where an account should be inserted into the database.
+#
+# it is used for both local and remote users, and it is also used
+# even when a user is absent (such as account burst).
+#
+# $act_name     = account name being registered
+# $password     = plaintext password OR [password, salt, crypt]
+# $source_serv  = server on which the account originated
+# $source_user  = (optional) user registering the account
+#
 sub register_account {
-    my ($account, $password, $server, $user) = @_;
+    my ($act_name, $password, $source_serv, $source_user) = @_;
+    return if lookup_account_name($act_name);
     
-    # it exists already.
-    return if account_info($account);
+    # determine the account ID.
+    my $id = $table->meta('last_id') || -1;
+    $table->set_meta(last_id => ++$id);
     
-    # determine ID.
+    my ($password, $salt, $crypt) = handle_password($password);
+    my ($sid, $s_name) = ($source_serv->id, $source_serv->name);
     my $time = time;
-    my $id   = next_available_id();
 
-    # encrypt password.
-    my $encrypt = conf('account', 'encryption')     || 'sha1';
-    $password   = utils::crypt($password, $encrypt) || $password;
+    # create the account.
+    $table->insert(
+        id       => $id,
+        name     => $act_name,
+        password => $password,
+        encrypt  => $crypt,
+        salt     => $salt,
+        created  => $time,
+        cserver  => $s_name,
+        csid     => $sid,
+        updated  => $time,
+        userver  => $s_name,
+        usid     => $sid
+    );
+    my $act = lookup_account_sid_aid($sid, $id) or return;
+    
+    # if a user registered this just now, log him in.
+    $act->login_user($user) if $user;
 
-    # insert.
-    add_account({
-        id          => $id,
-        name        => $account,
-        password    => $password,
-        encrypt     => $encrypt,
-        created     => $time,
-        cserver     => $server->{name},
-        csid        => $server->{sid},
-        updated     => $time,
-        userver     => $server->{name},
-        usid        => $server->{sid}
-    }) or return;
-    
-    notice(account_register =>
-        $user->notice_info,
-        $account,
-        $user->{server}{name}
-    ) if $user;
-    
-    # registered event.
-    $user->fire_event(account_registered => lookup_sid_aid($server->{sid}, $id)) if $user;
-    
-    return 1;
-}
-
-# check account password.
-sub verify_account {
-    my ($account, $password) = @_;
-    
-    # check if exists.
-    my $act = ref $account ? $account : account_info($account) or return;
-    
-    # check password.
-    $password = utils::crypt($password, $act->{encrypt});
-    return if $password ne $act->{password};
-    
-    # success.
-    delete $act->{password};
     return $act;
-
 }
 
+# conveniently deal with passwords.
+sub handle_password {
+    my $pwd = shift;
+    return @$pwd if ref $pwd && ref $pwd eq 'ARRAY';
+    # TODO: otherwise, determine salt and crypt and do it.
+    # configuration? not sure.
+}
+
+######################
+### Account object ###
+######################
+
+sub new {
+    my ($class, %opts) = @_;
+    $opts{users} ||= [];
+    return bless \%opts, $class;
+}
+
+#
 # log a user into an account.
-# $password = optional - if omitted, password won't be checked.
-sub login_account {
-    my ($account, $user, $password, $just_registered, $silent) = @_;
-    my $verbose = !$silent;
+#
+# this is used for both local and remote users.
+# modes are set locally but never propagated.
+#
+sub login_user {
+    my ($act, $user) = @_;
     
-    # fetch the account information.
-    my $act = ref $account ? $account : account_info($account);
-    if (!$act) {
-        $user->server_notice('login', 'No such account') if $verbose;
-        return;
+    # user was previously logged in.
+    my $oldact = $user->{account};
+    if ($oldact) {
+        return if $act == $oldact;
+        delete $user->{account};
+        $oldact->logout_user_silently($user);
     }
     
-    # if password is defined, we're checking the password.
-    if (defined $password && !verify_account($act, $password)) {
-        $user->server_notice('login', 'Password incorrect') if $verbose;
-        return;
-    }
+    # if the user is local, send RPL_LOGGEDIN.
+    $user->numeric(RPL_LOGGEDIN => $user->full, $act->{name}, $act->{name})
+        if $user->is_local;
     
-    # log in.
-    my $oldact = delete $user->{account};
-    $user->{account} = $act;
-    
-    # handle and send mode string if local.
+    # set +registered.
+    # this is only done locally; the mode change is not propagated.
+    # all other servers will do this same thing upon receiving LOGIN.
     my $mode = $me->umode_letter('registered');
-    $user->do_mode_string("+$mode", 1);
+    $user->do_mode_string_local("+$mode", 1);
     
-    # if local, send logged in numeric.
-    $user->numeric(RPL_LOGGEDIN =>
-        @$user{ qw(nick ident host) }, $act->{name}, $act->{name}) if $verbose;
+    # lots of weak references.
+    # the only strong reference is that on the user object.
+    $user->{account} = $act;
+    weaken( $account_ids  {    $act->id     } = $act );
+    weaken( $account_names{ lc $act->{name} } = $act );
+    push @{ my $users = $act->{users} }, $user;
+    weaken($users->[$#$users]);
     
-    # logged in event.
     $user->fire_event(account_logged_in => $act, $oldact);
-    
-    notice(account_login =>
-        $user->notice_info,
-        $act->{name},
-        $user->{server}{name}
-    ) unless $just_registered;
-    
-    return 1;
+    return $act;
 }
 
-# log a user out.
-sub logout_account {
-    my ($user, $in_mode_unset) = @_;
+# logout with numerics and modes.
+sub logout_user {
+    my ($act, $user) = @_;
+    return unless $user->{account} && $user->{account} == $act;
+    $act->logout_user_silently($act);
     
-    # not logged in.
-    if (!$user->{account}) {
-        # TODO: this.
-        return;
-    }
-
-    # success.
-    my $act     = delete $user->{account};
-    my $account = $act->{name};
-    
-    # handle & send mode string if we're not doing so already.
-    my ($mode, $str);
-    if (!$in_mode_unset) {
-        $mode = $me->umode_letter('registered');
-        $user->do_mode_string("-$mode", 1);
-    }
-    
-    # send logged out if local.
+    # if the user is local, send RPL_LOGGEDOUT.
     $user->numeric('RPL_LOGGEDOUT') if $user->is_local;
     
-    # logged out event.
-    $user->fire_event(account_logged_out => $act);
+    # set -registered.
+    # this is only done locally; the mode change is not propagated.
+    # all other servers will do this same thing upon receiving LOGOUT.
+    my $mode = $me->umode_letter('registered');
+    $user->do_mode_string_local("-$mode", 1);
     
-    notice(account_logout =>
-        $user->notice_info,
-        $account,
-        $user->{server}{name}
-    );
+}
 
-    return 1;
+# this does the actual logout.
+# it does not, however, unset modes or send numerics.
+# this is ONLY for logging out before logging into another account.
+sub logout_user_silently {
+    my ($act, $user) = @_;
+    return unless $user->{account} && $user->{account} == $act;
+    $act->{users} = [ grep { $_ != $user } @{ $act->{users} } ];
+    delete $user->{account};
+    
+    # keep in mind that the logout event is fired here,
+    # meaning that other servers will see:
+    # :uid LOGOUT
+    # :uid LOGIN
+    # if the user logs into another account while logged in already.
+    $user->fire_event(account_logged_out, $act);
+    
+}
+
+# unique identifier.
+# id = sid.aid
+sub id {
+    my $act = shift;
+    return $act->{csid}.q(.).$act->{id};
+}
+
+# users logged into this account currently.
+sub users {
+    my $act = shift;
+    return $act->{users} = [ grep { $_ } @{ $act->{users} } ];
 }
 
 $mod

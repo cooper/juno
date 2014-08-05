@@ -11,7 +11,6 @@
 		A75C5CCF18B43219007780A3 /* mkpasswd */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = mkpasswd; sourceTree = "<group>"; };
 		A75C5CD218B43219007780A3 /* ircd.conf */ = {isa = PBXFileReference; lastKnownFileType = text; path = ircd.conf; sourceTree = "<group>"; };
 		A75C5CD318B43219007780A3 /* ircd.conf.example */ = {isa = PBXFileReference; lastKnownFileType = text; path = ircd.conf.example; sourceTree = "<group>"; };
-		A75C5CD418B43219007780A3 /* GOALS */ = {isa = PBXFileReference; lastKnownFileType = text; name = GOALS; path = ../GOALS; sourceTree = "<group>"; };
 		A75C5CD818B4321A007780A3 /* juno */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = juno; path = ../juno; sourceTree = "<group>"; };
 		A75C5D0E18B4321A007780A3 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
 		A75C5D1B18B4321A007780A3 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; name = README.md; path = ../README.md; sourceTree = "<group>"; };
@@ -113,7 +112,6 @@
 				BCBADAF6195E51140051282D /* VERSION */,
 				BCBADAF5195E510D0051282D /* INDEV */,
 				BC515539195C7E1D00110EBE /* TODO */,
-				A75C5CD418B43219007780A3 /* GOALS */,
 				A75C5D1D18B4321A007780A3 /* rfc-2812 */,
 				A75C5D1B18B4321A007780A3 /* README.md */,
 				A75C5D0E18B4321A007780A3 /* LICENSE */,

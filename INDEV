@@ -2542,6 +2542,8 @@ CHANGES:
             updated Evented::Database to the 1.* series built upon SQLite.
             updated Evented::Object.
         
+        04. gradually rewriting hideous Account module to be objective and use the new Evented::Database API.
+            updated Evented::Database.
             
         
         

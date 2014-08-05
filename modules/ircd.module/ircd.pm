@@ -62,6 +62,7 @@ sub init {
         Evented::API::Hax::set_symbol($pkg, {
             '$me'   => $me,
             '$pool' => $pool,
+            '$conf' => $conf,
             '*L'    => sub { _L($obj, [caller 1], @_) }
         });
     });
@@ -424,9 +425,9 @@ sub load_dependencies {
 
         [ 'Evented::Configuration',        3.40 ],
         
-        [ 'Evented::Database',             1.04 ],
-        [ 'Evented::Database::Rows',       1.04 ],
-        [ 'Evented::Database::Table',      1.04 ],
+        [ 'Evented::Database',             1.06 ],
+        [ 'Evented::Database::Rows',       1.06 ],
+        [ 'Evented::Database::Table',      1.06 ],
         
         [ 'Scalar::Util',                  1.00 ], 
         [ 'List::Util',                    1.00 ]
