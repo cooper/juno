@@ -14,21 +14,21 @@ use strict;
 use 5.010;
 
 use utils qw(conf notice import);
-use Scalar::Util 'weaken';
+use Scalar::Util qw(weaken blessed);
 
-our ($api, $mod, $me, $conf, $table);
-our (%account_ids, %account_names);
+our ($api, $mod, $pool, $me, $conf, $table, %users_waiting);
+my %table_format;
 
 sub init {
     $table = $conf->table('accounts');
     
     # create or update the table.
-    $table->create_or_alter(
+    %table_format = my @format = (
         id       => 'INTEGER',      # numerical account ID
         name     => 'TEXT COLLATE NOCASE',  # account name
         password => 'TEXT',         # (hopefully encrypted) account password
         encrypt  => 'TEXT',         # password encryption type
-        salt     => 'TEXT'          # password encryption salt
+        salt     => 'TEXT',         # password encryption salt
         created  => 'INTEGER',      # UNIX time of account creation
         cserver  => 'TEXT',         # server name on which the account was registered
         csid     => 'INTEGER',      # SID of the server where registered
@@ -36,6 +36,10 @@ sub init {
         userver  => 'TEXT',         # server name on which the account was last updated
         usid     => 'INTEGER'       # SID of the server where last updated
     );
+    $table->create_or_alter(@format);
+    
+    # upgrade from older versions.
+    upgrade();
 
     $mod->load_submodule('Local')  or return;
     $mod->load_submodule('Remote') or return;
@@ -50,9 +54,32 @@ sub init {
 #
 sub lookup_account_name {
     my $act_name = shift;
-    return $account_names{ lc $act_name } if $account_names{ lc $act_name };
+    return $ircd::account_names{ lc $act_name } if $ircd::account_names{ lc $act_name };
     my %act = $table->row(name => $act_name)->select_hash or return;
     return __PACKAGE__->new(%act);
+}
+
+# find an account by SID and account ID.
+#
+# if it's cached, return the exact object.
+# otherwise, look up in database.
+#
+sub lookup_account_sid_aid {
+    my ($sid, $aid) = @_;
+    ($sid, $aid) = split /\./, $sid, 2 if @_ == 1;
+    return $ircd::account_ids{"$sid.$aid"} if $ircd::account_ids{"$sid.$aid"};
+    my %act = $table->row(csid => $sid, id => $aid)->select_hash or return;
+    return __PACKAGE__->new(%act);
+}
+
+# find an account by hash.
+#
+# this is used just to prevent multiple account objects for the same account.
+# note it can only be promised that 'csid' and 'id' keys exist.
+#
+sub lookup_account_hash {
+    my %act = @_;
+    return $ircd::account_ids{ $act{csid}.q(.).$act{id} } || __PACKAGE__->new(%act);
 }
 
 # register an account.
@@ -65,19 +92,20 @@ sub lookup_account_name {
 #
 # $act_name     = account name being registered
 # $password     = plaintext password OR [password, salt, crypt]
-# $source_serv  = server on which the account originated
+# $source_serv  = server on which the account originated or [sid, name]
 # $source_user  = (optional) user registering the account
 #
 sub register_account {
-    my ($act_name, $password, $source_serv, $source_user) = @_;
+    my ($act_name, $pwd, $source_serv, $source_user) = @_;
     return if lookup_account_name($act_name);
     
     # determine the account ID.
     my $id = $table->meta('last_id') || -1;
     $table->set_meta(last_id => ++$id);
     
-    my ($password, $salt, $crypt) = handle_password($password);
-    my ($sid, $s_name) = ($source_serv->id, $source_serv->name);
+    my ($password, $salt, $crypt) = handle_password($pwd);
+    my ($sid, $s_name) = ref $source_serv eq 'ARRAY' ?
+        @$source_serv : ($source_serv->id, $source_serv->name);
     my $time = time;
 
     # create the account.
@@ -97,8 +125,36 @@ sub register_account {
     my $act = lookup_account_sid_aid($sid, $id) or return;
     
     # if a user registered this just now, log him in.
-    $act->login_user($user) if $user;
+    $act->login_user($source_user) if $source_user;
 
+    return $act;
+}
+
+# update an account if it exists, otherwise create it.
+sub add_or_update_account {
+    my %act = shift;
+    my $act = lookup_account_hash(%act);
+    
+    # it exists. update it.
+    if ($act) {
+        $act->update_info(%act);
+        return $act;
+    }
+    
+    # it doesn't exist. make sure everything is present.
+    defined $act{$_} || return foreach qw(name password csid cserver);
+    
+    # register it.
+    # note that if there is a user logged in, it should be 
+    $act = register_account($act{name}, $act{password}, [ $act{csid}, $act{cserver} ])
+    or return;
+    
+    # if any users were waiting for this account info, log them in.
+    while (my $user = shift @{ $users_waiting{ $act->id } || [] }) {
+        ref $user or next;
+        $act->login_user($user);
+    }
+    
     return $act;
 }
 
@@ -120,7 +176,6 @@ sub new {
     return bless \%opts, $class;
 }
 
-#
 # log a user into an account.
 #
 # this is used for both local and remote users.
@@ -137,9 +192,11 @@ sub login_user {
         $oldact->logout_user_silently($user);
     }
     
-    # if the user is local, send RPL_LOGGEDIN.
-    $user->numeric(RPL_LOGGEDIN => $user->full, $act->{name}, $act->{name})
-        if $user->is_local;
+    # if the user is local, send RPL_LOGGEDIN and tell other servers.
+    if ($user->is_local) {
+        $user->numeric(RPL_LOGGEDIN => $user->full, $act->{name}, $act->{name});
+        $pool->fire_command_all(login => $user, $act);
+    }
     
     # set +registered.
     # this is only done locally; the mode change is not propagated.
@@ -150,11 +207,12 @@ sub login_user {
     # lots of weak references.
     # the only strong reference is that on the user object.
     $user->{account} = $act;
-    weaken( $account_ids  {    $act->id     } = $act );
-    weaken( $account_names{ lc $act->{name} } = $act );
-    push @{ my $users = $act->{users} }, $user;
+    weaken( $ircd::account_ids  {    $act->id     } = $act );
+    weaken( $ircd::account_names{ lc $act->{name} } = $act );
+    my $users = $act->{users};
+    push @$users, $user;
     weaken($users->[$#$users]);
-    
+        
     $user->fire_event(account_logged_in => $act, $oldact);
     return $act;
 }
@@ -165,8 +223,11 @@ sub logout_user {
     return unless $user->{account} && $user->{account} == $act;
     $act->logout_user_silently($act);
     
-    # if the user is local, send RPL_LOGGEDOUT.
-    $user->numeric('RPL_LOGGEDOUT') if $user->is_local;
+    # if the user is local, send RPL_LOGGEDOUT and tell other servers.
+    if ($user->is_local) {
+        $user->numeric('RPL_LOGGEDOUT');
+        $pool->fire_command_all(logout => $user);
+    }
     
     # set -registered.
     # this is only done locally; the mode change is not propagated.
@@ -190,8 +251,20 @@ sub logout_user_silently {
     # :uid LOGOUT
     # :uid LOGIN
     # if the user logs into another account while logged in already.
-    $user->fire_event(account_logged_out, $act);
+    $user->fire_event(account_logged_out => $act);
     
+}
+
+# update account information.
+sub update_info {
+    
+}
+
+# verify account password.
+sub verify_password {
+    my ($act, $password) = @_;
+    $password = utils::crypt($password, $act->{encrypt}, $act->{salt});
+    return $password eq $act->{password};
 }
 
 # unique identifier.
@@ -204,7 +277,51 @@ sub id {
 # users logged into this account currently.
 sub users {
     my $act = shift;
-    return $act->{users} = [ grep { $_ } @{ $act->{users} } ];
+    $act->{users} = [ grep { $_ } @{ $act->{users} } ];
+    return @{ $act->{users} };
 }
 
+#####################
+### Compatibility ###
+#####################
+
+sub upgrade {
+
+    # upgrade the old format to new database.
+    my $old_db_file = "$::run_dir/db/account.db";
+    if (-f $old_db_file) {
+        L("Upgrading $old_db_file to new database");
+        my $i = join ', ', map { "`$_`" } keys %table_format;
+        $conf->{db}->do("ATTACH DATABASE '$::run_dir/db/account.db' AS old_accounts") and
+        $conf->{db}->do("INSERT INTO accounts ($i) SELECT $i FROM old_accounts.accounts")
+        and rename $old_db_file, "$old_db_file.old";
+    }
+
+    # if users are logged in with old format, log them in with the new format.
+    my $mode = $me->umode_letter('registered');
+    foreach my $user ($pool->all_users) {
+    
+        # these guys aren't logged in or already upgraded.
+        next unless $user->{account};
+        last if blessed $user->{account};
+        
+        # find the new account data.
+        my $act = lookup_account_hash(%{ $user->{account} });
+        
+        # just an extra check in case something went wrong.
+        if (!$act) {
+            delete $user->{account};
+            $user->do_mode_string_local("-$mode", 1);
+            next;
+        }
+        
+        # everything looks ok.
+        $act->login_user($user);
+        $user->server_notice(
+            'Your account was upgraded, and you were logged back in automatically.');
+        L("Upgraded user $$user{nick} to new account format");
+        
+    }
+    
+}
 $mod

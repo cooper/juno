@@ -2545,6 +2545,9 @@ CHANGES:
         04. gradually rewriting hideous Account module to be objective and use the new Evented::Database API.
             updated Evented::Database.
             
+        05. more work on the newly-rewritten Account module.
+            fixed an issue in user ->do_mode_string_local() where it was never sent back to the user.
+            
         
         
         

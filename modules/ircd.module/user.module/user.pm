@@ -461,7 +461,7 @@ sub _do_mode_string {
     my $result = $user->handle_mode_string($modestr, $force) or return;
     
     # not local or not done registering; stop.
-    return if !$user->is_local || !$user->{ready};
+    return if !$user->is_local || !$user->{init_complete};
     
     # tell the user himself and other servers.
     $user->sendfrom($user->{nick}, "MODE $$user{nick} :$result");

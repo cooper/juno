@@ -16,16 +16,13 @@ use strict;
 use 5.010;
 
 use utils qw(trim);
-M::Account->import(qw(
-    login_account logout_account register_account
-    account_info all_accounts lookup_sid_aid add_account
-    add_or_update_account accounts_equal
-));
+use Scalar::Util 'weaken';
+M::Account->import(qw/lookup_account_hash lookup_account_sid_aid add_or_update_account/);
 
-our ($api, $mod, $pool, $db, $me);
+our ($api, $mod, $pool, $me, $table);
 
 sub init {
-    $db = $M::Account::db or return;
+    $table = $M::Account::table or return;
 
     # IRCd event for burst.
     $pool->on('server.send_burst' => \&send_burst,
@@ -33,11 +30,6 @@ sub init {
         after => 'core',
         with_eo => 1
     );
-    
-    # user account events.
-    $pool->on('user.account_logged_in'  => \&user_logged_in,  with_eo => 1);
-    $pool->on('user.account_logged_out' => \&user_logged_out, with_eo => 1);
-    $pool->on('user.account_registered' => \&user_registered, with_eo => 1);
     
     # incoming commands.
     $mod->register_server_command(%$_) || return foreach (
@@ -90,38 +82,19 @@ sub init {
 sub send_burst {  
     my ($server, $fire, $time) = @_;
     
-    # send account infos.
+    # send accounts.
     if (!$server->{accounts_negotiated}) {
-        $server->fire_command(acct => @{ all_accounts() });
+        my @act_refs = $table->rows->select_hash;
+        $server->fire_command(acct => map { lookup_account_hash(%$_) } @act_refs);
         $server->{accounts_negotiated} = 1;
     }
     
     # send logins.
+    # because this is sent during burst, it should not be propagated.
     $server->fire_command(login => $_, $_->{account}) foreach
         grep { $_->{account} } $pool->all_users;
         
     return 1;
-}
-
-######################
-### ACCOUNT EVENTS ###
-######################
-
-sub user_registered {
-    my ($user, $event, $act) = @_;
-    $pool->fire_command_all(acctinfo => $act);
-}
-
-sub user_logged_in {
-    my ($user, $event, $act, $oldact) = @_;
-    return if !$user->is_local || accounts_equal($act, $oldact);
-    $pool->fire_command_all(login => $user, $act);
-}
-
-sub user_logged_out {
-    my ($user, $event, $act) = @_;
-    return if !$user->is_local || !$act;
-    $pool->fire_command_all(logout => $user);
 }
 
 #########################
@@ -132,7 +105,8 @@ sub out_acct {
     return unless @_;
     my $str = '';
     foreach my $act (@_) {
-        $str .= $act->{csid}.q(.).$act->{id}.q(,).$act->{updated}.q( );
+        $str .= ' ' if $str;
+        $str .= $act->id.q(,).$act->{updated};
     }
     ":$$me{sid} ACCT $str"
 }
@@ -152,19 +126,21 @@ sub out_acctidk {
     my $str = '';
     while (@_) {
         my $item = shift;
-        if (ref $item eq 'HASH') {
-            $str .= "$$item{csid}.$$item{id} ";
+        $str .= ' ' if $str;
+        if (ref $item eq 'ARRAY') {
+            $str .= "$$item[0].$$item[1]";
             next;
         }
-        my $id = shift;
-        $str .= "$item.$id ";
+        $item->can('id') or next
+        $str .= $item->id;
     }
     ":$$me{sid} ACCTIDK $str"
 }
 
 sub out_login {
     my ($user, $act) = @_;
-    ":$$user{uid} LOGIN $$act{csid}.$$act{id},$$act{updated}"
+    my $id = $act->id;
+    ":$$user{uid} LOGIN $id,$$act{updated}"
 }
 
 sub out_logout {
@@ -197,7 +173,7 @@ sub in_acct {
         $done{"$sid.$aid"} = 1;
 
         # if this account exists, check the times.
-        if (my $act = lookup_sid_aid($sid, $aid)) {
+        if (my $act = lookup_account_sid_aid($sid, $aid)) {
         
             # my info is newer.
             if ($act->{updated} > $utime) {
@@ -217,13 +193,14 @@ sub in_acct {
         }
         
         # if the account does not exist, we need it.
-        push @i_dk, $sid, $aid;
+        push @i_dk, [$sid, $aid];
         
     }
     
     # add the rest of the accounts.
-    foreach my $act (@{ all_accounts() }) {
-        next if $done{"$$act{csid}.$$act{id}"};
+    foreach my $act_ref ($table->rows->select_hash('csid', 'id')) {
+        my $act = lookup_account_hash(%$act_ref) or next;
+        next if $done{ $act->id };
         push @u_dk, $act;
     }
         
@@ -246,7 +223,7 @@ sub in_acctidk {
     my @accts;
     foreach my $str (@items) {
         my ($sid, $aid) = split /\W/, $str, 2;
-        my $act = lookup_sid_aid($sid, $aid) or next;
+        my $act = lookup_account_sid_aid($sid, $aid) or next;
         push @accts, $act;
     }
     
@@ -262,15 +239,26 @@ sub in_acctinfo {
     my ($server, $data, @rest) = @_;
     return if @rest % 2;
     my %act = @rest;
-    add_or_update_account(\%act);
+    return unless defined $act{csid} && defined $act{id};
+    add_or_update_account(%act);
 }
 
 # :uid LOGIN sid.aid,updated
 sub in_login {
     my ($server, $data, $user, $str) = @_;
     my ($sid, $aid, $updated) = split /\W/, $str or return;
-    my $act = lookup_sid_aid($sid, $aid) or return;
-    login_account($act, $user);
+    my $act = lookup_account_sid_aid($sid, $aid) or return;
+    
+    # we know about this account. log in
+    if ($act) {
+        return $act->login_user($user);
+    }
+    
+    # not familiar with this account.
+    # this will be set aside until ACCTINFO received.
+    my $users = $M::Account::users_waiting{"$sid.$aid"} ||= [];
+    push @$users, $user;
+    weaken($users->[$#$users]);
     
     # TODO: if this updated time is newer than what we know,
     # or if the account is unknown (thought it shouldn't be),
@@ -281,7 +269,7 @@ sub in_login {
 # :uid LOGOUT
 sub in_logout {
     my ($server, $data, $user) = @_;
-    logout_account($user);
+    $user->{account}->logout_user($user) if $user->{account};
 }
 
 $mod
