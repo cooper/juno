@@ -2552,6 +2552,8 @@ CHANGES:
         
         07. fixed bug causing endless loop of mode unsets in Account module.
         
+        08. fixed REGISTER command.
+        
             
             
         

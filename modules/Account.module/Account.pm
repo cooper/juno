@@ -123,10 +123,14 @@ sub register_account {
         usid     => $sid
     );
     my $act = lookup_account_sid_aid($sid, $id) or return;
-    
+        
     # if a user registered this just now, log him in.
-    $act->login_user($source_user) if $source_user;
-
+    if ($source_user) {
+        $pool->fire_command_all(acctinfo => $act);
+        $source_user->fire_event(account_registered => $act);
+        $act->login_user($source_user);
+    }
+    
     return $act;
 }
 
@@ -162,8 +166,11 @@ sub add_or_update_account {
 sub handle_password {
     my $pwd = shift;
     return @$pwd if ref $pwd && ref $pwd eq 'ARRAY';
-    # TODO: otherwise, determine salt and crypt and do it.
-    # configuration? not sure.
+
+    # create new crypt.
+    my $salt = $me->{name};
+    return (utils::crypt($pwd, 'sha1', $salt), $salt, 'sha1');
+    
 }
 
 ######################
@@ -267,7 +274,7 @@ sub update_info {
 # verify account password.
 sub verify_password {
     my ($act, $password) = @_;
-    $password = utils::crypt($password, $act->{encrypt}, $act->{salt});
+    $password = utils::crypt($password, $act->{encrypt}, $act->{salt}) or return;
     return $password eq $act->{password};
 }
 
