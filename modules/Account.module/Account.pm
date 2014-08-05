@@ -160,7 +160,8 @@ sub add_or_update_account {
     ) or return;
     
     # if any users were waiting for this account info, log them in.
-    while (my $user = shift @{ $users_waiting{ $act->id } || [] }) {
+    my $waiting = delete $users_waiting{ $act->{id} } || [];
+    while (my $user = shift @$waiting) {
         ref $user or next;
         $act->login_user($user);
     }
@@ -339,6 +340,12 @@ sub upgrade {
         L("Upgraded user $$user{nick} to new account format");
         
     }
+    
+    # clean out hashes.
+    delete $ircd::account_names{$_}
+        foreach grep { !defined $ircd::account_names{$_} } keys %ircd::account_names;
+    delete $ircd::account_ids{$_}
+        foreach grep { !defined $ircd::account_ids{$_}   } keys %ircd::account_ids;
     
 }
 $mod

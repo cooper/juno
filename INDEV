@@ -2566,6 +2566,8 @@ CHANGES:
         
         14. properly handle LOGIN command for unknown account.
             
+        15. improved delayed LOGIN handling.
+            occasionally clear account keys whose values were deleted by garbage disposal.
             
             
         
