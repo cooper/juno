@@ -260,6 +260,7 @@ sub DESTROY {
 sub id            { shift->{uid}  }
 sub name          { shift->{nick} }
 sub conn          { shift->{conn} }
+sub account       { my $act = shift->{account}; blessed $act ? $act : undef }
 
 ############
 ### MINE ###

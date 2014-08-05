@@ -406,7 +406,10 @@ sub handle {
 
         # forward to children.
         # $server is used here so that it will be ignored.
-        # forward = 2 means don't do it if during burst.
+        #
+        # by default, things are forwarded if I have sent MY burst.
+        # forward = 2 means don't do it even if THAT server is bursting.
+        #
         next if ($handler->{forward} || -1) == 2 && $server->{is_burst};
         send_children($server, $data) if $handler->{forward};
         

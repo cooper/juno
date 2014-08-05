@@ -1,12 +1,12 @@
 {
+   "description" : "represents an IRC server",
+   "preserve_sym" : 1,
+   "name" : "ircd::server",
+   "version" : "9.16",
+   "package" : "server",
+   "no_bless" : 1,
    "author" : {
       "name" : "Mitchell Cooper",
       "website" : "https://github.com/cooper"
-   },
-   "package" : "server",
-   "name" : "ircd::server",
-   "preserve_sym" : 1,
-   "no_bless" : 1,
-   "description" : "represents an IRC server",
-   "version" : "9.11"
+   }
 }

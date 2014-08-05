@@ -1,12 +1,8 @@
 {
-   "name" : "Account::Local",
    "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
    },
-   "description" : "implements account modes and commands",
-   "version" : "5.8",
-   "package" : "M::Account::Local",
    "depends" : {
       "modules" : [
          "Base::UserCommands",
@@ -15,5 +11,9 @@
          "Base::Matchers",
          "Base::OperNotices"
       ]
-   }
+   },
+   "description" : "implements account modes and commands",
+   "name" : "Account::Local",
+   "version" : "5.9",
+   "package" : "M::Account::Local"
 }

@@ -2569,6 +2569,9 @@ CHANGES:
         15. improved delayed LOGIN handling.
             occasionally clear account keys whose values were deleted by garbage disposal.
             
+        16. use ->account fetcher which double-checks that an {account} key is an object.
+            sometimes an empty hash ref can be created automatically.
+            
             
         
         

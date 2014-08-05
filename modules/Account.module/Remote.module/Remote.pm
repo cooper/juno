@@ -90,9 +90,8 @@ sub send_burst {
     }
     
     # send logins.
-    # because this is sent during burst, it should not be propagated.
-    $server->fire_command(login => $_, $_->{account}) foreach
-        grep { $_->{account} } $pool->all_users;
+    $server->fire_command(login => $_, $_->account) foreach
+        grep { $_->account } $pool->all_users;
         
     return 1;
 }
@@ -270,7 +269,7 @@ sub in_login {
 # :uid LOGOUT
 sub in_logout {
     my ($server, $data, $user) = @_;
-    $user->{account}->logout_user($user) if $user->{account};
+    $user->account->logout_user($user) if $user->account;
 }
 
 $mod

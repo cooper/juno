@@ -235,7 +235,7 @@ sub login_user {
 # $unsetting = true if called from inside mode unset.
 sub logout_user {
     my ($act, $user, $unsetting) = @_;
-    return unless $user->{account} && $user->{account} == $act;
+    return unless $user->account && $user->account == $act;
     $act->logout_user_silently($user);
     
     # if the user is local, send RPL_LOGGEDOUT and tell other servers.
@@ -260,7 +260,7 @@ sub logout_user {
 # this is ONLY for logging out before logging into another account.
 sub logout_user_silently {
     my ($act, $user) = @_;
-    return unless $user->{account} && $user->{account} == $act;
+    return unless $user->account && $user->account == $act;
     $act->{users} = [ grep { $_ != $user } @{ $act->{users} } ];
     delete $user->{account};
     

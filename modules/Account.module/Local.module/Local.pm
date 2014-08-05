@@ -82,8 +82,8 @@ sub init {
     # WHOIS account line.
     $pool->on('user.whois_query' => sub {
         my ($user, $event, $quser) = @_;
-        return unless $quser->{account};
-        $user->numeric(RPL_WHOISACCOUNT => $quser->{nick}, $quser->{account}{name});
+        return unless $quser->account;
+        $user->numeric(RPL_WHOISACCOUNT => $quser->{nick}, $quser->account->{name});
     }, name     => 'RPL_WHOISACCOUNT',
         after   => ['RPL_WHOISMODES', 'RPL_WHOISHOST'],
         before  => 'RPL_ENDOFWHOIS',
@@ -104,7 +104,7 @@ sub umode_registered {
     return if $state; # never allow setting.
 
     # but always allow them to unset it.
-    $user->{account}->logout_user($user, 1) if $user->{account};
+    $user->account->logout_user($user, 1) if $user->account;
     
     return 1;
 }
@@ -203,7 +203,7 @@ sub account_matcher {
         
         # match a specific account.
         next unless $item =~ m/^\$r:(.+)$/;
-        return $event->{matched} = 1 if lc $user->{account}{name} eq lc $1;
+        return $event->{matched} = 1 if lc $user->account->{name} eq lc $1;
         
     }
     return;
