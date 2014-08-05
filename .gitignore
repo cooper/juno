@@ -1,4 +1,5 @@
 # Xcode
+xcuserdata
 .DS_Store
 */build/*
 *.pbxuser
@@ -9,7 +10,6 @@
 !default.mode2v3
 *.perspectivev3
 !default.perspectivev3
-xcuserdata
 profile
 *.moved-aside
 DerivedData

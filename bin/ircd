@@ -12,7 +12,7 @@ BEGIN {
     chdir $run_dir or die "Can't access run directory";
     foreach (map { "$run_dir/lib$_" } ('', qw(/api-engine /evented-object/lib
         /evented-api-engine/lib /evented-configuration/lib
-        /evented-database /evented-properties/lib))){ unshift @INC, $_ }
+        /evented-database/lib /evented-properties/lib))){ unshift @INC, $_ }
     require Evented::API::Engine;
 }
 sub get_version { $_ = $api->_slurp(undef, undef, "$run_dir/VERSION"); chomp; $_ }

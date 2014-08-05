@@ -231,7 +231,7 @@ sub init {
                 
                 runlocal)
                     perl -I$DIR/../evented-object/lib -I$DIR/../evented-configuration/lib   \
-                         -I$DIR/../evented-database   -I$DIR/../evented-api-engine/lib      \
+                         -I$DIR/../evented-database/lib  -I$DIR/../evented-api-engine/lib   \
                          -I$DIR/../evented-properties/lib                                   \
                          -MEvented::Object -MEvented::Configuration -MEvented::Database     \
                          -MEvented::API::Engine -MEvented::Properties                       \

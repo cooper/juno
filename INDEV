@@ -2538,6 +2538,9 @@ CHANGES:
         02. added ->hops_to() method to users and servers.
             WHO and LINKS commands now show the actual hop count rather than always 0.
             
+        03. improved ident validation checks.
+            updated Evented::Database to the 1.* series built upon SQLite.
+            updated Evented::Object.
         
             
         

@@ -152,6 +152,13 @@ sub ready {
             return;
         }
 
+        # check if the ident is valid.
+        if (!utils::validident($connection->{ident})) {
+            $connection->early_reply(NOTICE => ':*** Your username is invalid.');
+            $connection->done("Invalid username [$$connection{ident}]");
+            return;
+        }
+
         $connection->{server}   =
         $connection->{location} = $me;
         $connection->{cloak}  //= $connection->{host};

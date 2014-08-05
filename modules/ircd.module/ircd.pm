@@ -41,7 +41,6 @@ sub init {
     &load_dependencies;     # load or reload all dependency packages.
     &setup_config;          # parse the configuration.
     &load_optionals;        # load or reload optional packages.
-    &setup_database;        # set up SQLite if necessary.
 
     # create the server before the server module is loaded.
     # these default values will be added if not present,
@@ -105,7 +104,7 @@ sub setup_inc {
         lib/evented-properties/lib
         lib/evented-configuration/lib
         lib/evented-api-engine/lib
-        lib/evented-database
+        lib/evented-database/lib
     )) { unshift @INC, $_ unless $inc{$_} }
 }
 
@@ -128,22 +127,36 @@ sub setup_modules {
 }
 
 sub setup_config {
+    require DBI;
+    my $dbfile = "$::run_dir/db/conf.db";
+    my $dbh    = DBI->connect("dbi:SQLite:dbname=$dbfile", '', '');
 
     # set up the configuration/database.
-    # TEMPORARILY use no database until we read [database] block.
     $conf ||= Evented::Database->new(
-        db       => undef,
+        db       => $dbh,
         conffile => "$::run_dir/etc/default.conf"
     );
     
+    my $new = !$conf->table('configuration')->exists;
+    $conf->create_tables_maybe;
+    
     # parse the default configuration.
-    $conf->{conffile} = "$::run_dir/etc/default.conf";
-    $conf->parse_config or return;
+    unless ($new) {
+        $conf->{conffile} = "$::run_dir/etc/default.conf";
+        $conf->parse_config or return;
+    }
     
     # parse the actual configuration.
     $conf->{conffile} = "$::run_dir/etc/ircd.conf";
     $conf->parse_config or return;
     
+    # if upgrading, parse default configuration after.
+    if ($new) {
+        $conf->{conffile} = "$::run_dir/etc/default.conf";
+        $conf->parse_config or return;
+        $conf->{conffile} = "$::run_dir/etc/ircd.conf";
+    }
+        
     return 1;
 }
 
@@ -170,17 +183,6 @@ sub setup_timer {
     $loop->add($timer);
     $timer->start;
         
-}
-
-sub setup_database {
-
-    # create the database object.
-    if (conf('database', 'type') eq 'sqlite') {
-        my $dbfile  = "$::run_dir/db/conf.db";
-        $conf->{db} = DBI->connect("dbi:SQLite:dbname=$dbfile", '', '');
-        $conf->create_tables_maybe;
-    }
-    
 }
 
 sub setup_autoconnect {
@@ -421,7 +423,10 @@ sub load_dependencies {
         [ 'Evented::API::Hax',             3.64 ],
 
         [ 'Evented::Configuration',        3.40 ],
-        [ 'Evented::Database',             0.50 ],
+        
+        [ 'Evented::Database',             1.04 ],
+        [ 'Evented::Database::Rows',       1.04 ],
+        [ 'Evented::Database::Table',      1.04 ],
         
         [ 'Scalar::Util',                  1.00 ], 
         [ 'List::Util',                    1.00 ]
@@ -727,7 +732,6 @@ sub add_internal_channel_modes {
             (conf(['modes', 'channel'], $name))->[1],
             (conf(['modes', 'channel'], $name))->[0]
         );
-
     }
 
     L("end of channel modes");
