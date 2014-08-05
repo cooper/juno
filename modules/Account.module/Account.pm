@@ -195,8 +195,8 @@ sub login_user {
     my $oldact = $user->{account};
     if ($oldact) {
         return if $act == $oldact;
-        delete $user->{account};
         $oldact->logout_user_silently($user) if blessed $oldact; # compat
+        delete $user->{account};
     }
     
     # if the user is local, send RPL_LOGGEDIN and tell other servers.
