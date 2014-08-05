@@ -1,15 +1,15 @@
 {
-   "package" : "M::Account::Remote",
+   "description" : "synchronizes user accounts across servers",
+   "version" : "6.8",
    "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
    },
    "name" : "Account::Remote",
-   "description" : "synchronizes user accounts across servers",
    "depends" : {
       "modules" : [
          "JELP::Base"
       ]
    },
-   "version" : "6.7"
+   "package" : "M::Account::Remote"
 }

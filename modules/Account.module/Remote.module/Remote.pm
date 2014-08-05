@@ -248,7 +248,7 @@ sub in_acctinfo {
 sub in_login {
     my ($server, $data, $user, $str) = @_;
     my ($sid, $aid, $updated) = split /\W/, $str or return;
-    my $act = lookup_account_sid_aid($sid, $aid) or return;
+    my $act = lookup_account_sid_aid($sid, $aid);
     
     # we know about this account. log in
     if ($act) {

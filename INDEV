@@ -2563,6 +2563,8 @@ CHANGES:
         12. respect account ID parameter.
         
         13. fixed an exception in SASL when account does not exist.
+        
+        14. properly handle LOGIN command for unknown account.
             
             
             
