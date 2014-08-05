@@ -79,7 +79,7 @@ sub lookup_account_sid_aid {
 #
 sub lookup_account_hash {
     my %act = @_;
-    return $ircd::account_ids{ $act{csid}.q(.).$act{id} } || __PACKAGE__->new(%act);
+    return lookup_account_sid_aid($act{csid}, $act{id});
 }
 
 # register an account.
