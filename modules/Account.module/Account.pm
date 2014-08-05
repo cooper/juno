@@ -100,7 +100,7 @@ sub register_account {
     return if lookup_account_name($act_name);
     
     # determine the account ID.
-    my $id = $table->meta('last_id') || -1;
+    my $id = $table->meta('last_id');
     $table->set_meta(last_id => ++$id);
     
     my ($password, $salt, $crypt) = handle_password($pwd);
