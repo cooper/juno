@@ -163,7 +163,8 @@ sub mode_string {
 # add oper flags.
 sub add_flags {
     my $user  = shift;
-    my @flags = grep { !$user->has_flag($_) } @_;
+    my %has   = map  { $_ => 1   } @{ $user->{flags} };
+    my @flags = grep { !$has{$_} } @_;
     return unless scalar @flags;
     L("adding flags to $$user{nick}: @flags");
     notice(user_opered => $user->notice_info, $user->{server}{name}, "@flags");

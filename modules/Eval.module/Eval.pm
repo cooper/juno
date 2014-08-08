@@ -19,7 +19,7 @@ use warnings;
 use strict;
 use 5.010;
 
-our ($api, $mod, $me, $pool);
+our ($api, $mod, $me, $pool, $conf);
 my %allowed;
 
 our %user_commands = (EVAL => {

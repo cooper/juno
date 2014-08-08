@@ -17,6 +17,7 @@
 		A75C5D1D18B4321A007780A3 /* rfc-2812 */ = {isa = PBXFileReference; lastKnownFileType = text; name = "rfc-2812"; path = "../rfc-2812"; sourceTree = "<group>"; };
 		BC131F361994444500B8071A /* UnsafeEval.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = UnsafeEval.pm; path = UnsafeEval.module/UnsafeEval.pm; sourceTree = "<group>"; };
 		BC131F371994445500B8071A /* Eval.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Eval.pm; path = Eval.module/Eval.pm; sourceTree = "<group>"; };
+		BC131F38199560D300B8071A /* Grant.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Grant.pm; path = Grant.module/Grant.pm; sourceTree = "<group>"; };
 		BC174752194A36F0005C2D83 /* doc */ = {isa = PBXFileReference; lastKnownFileType = folder; name = doc; path = ../doc; sourceTree = "<group>"; };
 		BC515539195C7E1D00110EBE /* TODO */ = {isa = PBXFileReference; lastKnownFileType = text; name = TODO; path = ../TODO; sourceTree = "<group>"; };
 		BC7068FE196642E600A2915D /* message.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = message.pm; path = message.module/message.pm; sourceTree = "<group>"; };
@@ -140,6 +141,7 @@
 				BC95655C1944E032002F52B9 /* LOLCAT.pm */,
 				BC9565311944E032002F52B9 /* Git.pm */,
 				BCBADAF4195DDA910051282D /* SASL.pm */,
+				BC131F38199560D300B8071A /* Grant.pm */,
 			);
 			name = modules;
 			path = ../modules;

@@ -307,7 +307,7 @@ sub umode {
     # user any
     # :uid UMODE modestring
     my ($server, $data, $user, $str) = @_;
-    $user->handle_mode_string($str, 1);
+    $user->do_mode_string_local($str, 1);
 }
 
 sub privmsgnotice {

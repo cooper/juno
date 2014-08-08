@@ -53,6 +53,16 @@ sub register_oper_notice {
     return 1;
 }
 
+sub module_init {
+    my $mod = shift;
+    my %notices = $mod->get_symbol('%oper_notices');
+    $mod->register_oper_notice(
+        name   => $_,
+        format => $notices{$_}
+    ) or return foreach keys %notices;
+    return 1;
+}
+
 sub unload_module {
     my ($mod, $event) = @_;
     $pool->delete_notice($mod->name, $_) foreach $mod->list_store_items('oper_notices');

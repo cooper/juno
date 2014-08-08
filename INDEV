@@ -2583,6 +2583,7 @@ CHANGES:
             
         19. improve new server registration process.
             
+    2. added Grant module which has been missing since juno 2.
             
         
         

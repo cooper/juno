@@ -1,0 +1,16 @@
+{
+   "package" : "M::Grant",
+   "version" : "1.2",
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
+   "description" : "grant privileges to a user",
+   "depends" : {
+      "modules" : [
+         "Base::UserCommands",
+         "Base::OperNotices"
+      ]
+   },
+   "name" : "Grant"
+}
