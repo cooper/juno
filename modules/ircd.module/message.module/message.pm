@@ -323,8 +323,11 @@ sub _param_command {
 # -oper: checks if oper flags are present.
 sub _param_oper {
     my ($msg, $param, $params, $opts) = @_;
-    foreach my $flag (keys %$opts) {
-        next if $msg->source->has_flag($msg);
+    my $is_irc_cop = $msg->source->is_mode('ircop');
+    my @flags = keys %$opts;
+       @flags = 'do that' if !@flags;
+    foreach my $flag (@flags) {
+        next if $is_irc_cop && $msg->source->has_flag($msg);
         $msg->source->numeric(ERR_NOPRIVILEGES => $flag);
         return $PARAM_BAD;
     }

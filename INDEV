@@ -2572,6 +2572,12 @@ CHANGES:
         16. use ->account fetcher which double-checks that an {account} key is an object.
             sometimes an empty hash ref can be created automatically.
             
+        17. created a more secure replacement for the Eval module.
+            the old module has been renamed to UnsafeEval.
+            rewrote the oper command handler which I previously considered some of the ugliest code in the project.
+            added utilities ref_to_list() and simplify().
+            -oper modifier can now be specified without any oper flags.
+            
             
         
         

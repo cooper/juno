@@ -1,15 +1,15 @@
 {
-   "version" : "1.4",
-   "name" : "Eval",
-   "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
-   },
-   "description" : "evaluate a line of Perl code",
+   "version" : "0.4",
+   "description" : "evaluate Perl code",
    "package" : "M::Eval",
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
    "depends" : {
       "modules" : [
          "Base::UserCommands"
       ]
-   }
+   },
+   "name" : "Eval"
 }

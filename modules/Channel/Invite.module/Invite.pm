@@ -95,10 +95,10 @@ sub ucmd_invite {
     
     # fire the event to check if the user can invite.
     # note: $channel might be undef.
-    my $event = $user->fire(can_invite => $t_user, $ch_name, $channel);
+    my $fire = $user->fire(can_invite => $t_user, $ch_name, $channel);
       
     # the fire was stopped. user can't invite.
-    return if $event->stopper;
+    return if $fire->stopper;
 
     # local user.
     if ($t_user->is_local) {

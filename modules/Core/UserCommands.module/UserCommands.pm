@@ -17,9 +17,9 @@ use strict;
 use 5.010;
 
 use Scalar::Util qw(blessed);
-use utils qw(col match cut_to_limit conf v notice validchan);
+use utils qw(col match cut_to_limit conf v notice simplify ref_to_list);
 
-our ($api, $mod, $me, $pool, $VERSION);
+our ($api, $mod, $me, $pool, $conf, $VERSION);
 
 our %user_commands = (
     CONNECT => {
@@ -453,7 +453,7 @@ sub cjoin {
         my $new = 0;
 
         # make sure it's a valid name.
-        if (!validchan($chname)) {
+        if (!utils::validchan($chname)) {
             $user->numeric(ERR_NOSUCHCHANNEL => $chname);
             next;
         }
@@ -510,133 +510,87 @@ sub names {
     return 1;
 }
 
-# FIXME: PLEASE! this is some of the ugliest code in whole ircd.
 sub oper {
-    my ($user, $event, @args) = @_;
-    my $password = conf(['oper', $args[0]], 'password');
-    my $supplied = $args[1];
-
-    # no password?!
-    if (not defined $password) {
+    my ($user, $event, $oper_name, $oper_password) = @_;
+    
+    # find the account.
+    my %oper = $conf->hash_of_block(['oper', $oper_name]);
+    
+    # make sure required options are present.
+    my @required = qw(password encryption);
+    foreach (@required) {
+        next if defined $oper{$_};
         $user->numeric('ERR_NOOPERHOST');
-        return
+        return;
     }
 
-    # if they have specific addresses specified, make sure they match
-
-    if (defined( my $addr = conf(['oper', $args[0]], 'host') )) {
-        my $win = 0;
-
-        # a reference of several addresses
-        if (ref $addr eq 'ARRAY') {
-            match: foreach my $host (@$addr) {
-                if (match($user, $host)) {
-                    $win = 1;
-                    last match
-                }
-            }
+    # oper is limited to specific host(s).
+    if (defined $oper{host}) {
+        my $win;
+        my @hosts = ref $oper{host} eq 'ARRAY' ? @{ $oper{host} } : $oper{host};
+        foreach my $host (@hosts) {
+            $win = 1, last if match($user, $host);
         }
-
-        # must just be a string of 1 address
-        else {
-            if (match($user, $addr)) {
-                $win = 1
-            }
-        }
-
-        # nothing matched :(
+        
+        # sorry, no host matched.
         if (!$win) {
             $user->numeric('ERR_NOOPERHOST');
-            return
+            return;
         }
+        
     }
 
-    my $crypt = conf(['oper', $args[0]], 'encryption');
-
-    # so now let's check if the password is right
-    $supplied = utils::crypt($supplied, $crypt);
-
-    # incorrect
-    if ($supplied ne $password) {
+    # so now let's check if the password is right.
+    $oper_password = utils::crypt($oper_password, $oper{encryption});
+    if ($oper_password ne $oper{password}) {
         $user->numeric('ERR_NOOPERHOST');
-        return
+        return;
     }
 
-    # or keep going!
-    # let's find all of their oper flags now
-
-    my (@flags, @notices);
-
-    # flags in their oper block
-    if (defined ( my $flagref = conf(['oper', $args[0]], 'flags') )) {
-        if (ref $flagref ne 'ARRAY') {
-            L("'flags' specified for oper block $args[0], but it is not an array reference.");
-        }
-        else {
-            push @flags, @$flagref
-        }
-    }
-    if (defined ( my $flagref = conf(['oper', $args[0]], 'notices') )) {
-        if (ref $flagref ne 'ARRAY') {
-            L("'notices' specified for oper block $args[0], but it is not an array reference.");
-        }
-        else {
-            push @notices, @$flagref
-        }
-    }
-
-    # flags in their oper class block
-    my $add_class = sub {
-        my $add_class = shift;
-        my $operclass = shift;
-
-        # if it has flags, add them
-        if (defined ( my $flagref = conf(['operclass', $operclass], 'flags') )) {
-            if (ref $flagref ne 'ARRAY') {
-                L("'flags' specified for oper class block $operclass, but it is not an array reference.");
-            }
-            else {
-                push @flags, @$flagref
-            }
-        }
-        if (defined ( my $flagref = conf(['operclass', $operclass], 'notices') )) {
-            if (ref $flagref ne 'ARRAY') {
-                L("'notices' specified for oper class block $operclass, but it is not an array reference.");
-            }
-            else {
-                push @notices, @$flagref
-            }
-        }
-
-        # add parent too
-        if (defined ( my $parent = conf(['operclass', $operclass], 'extends') )) {
-            $add_class->($add_class, $parent);
-        }
-    };
-
-    if (defined ( my $operclass = conf(['oper', $args[0]], 'class') )) {
-        $add_class->($add_class, $operclass);
-    }
-
-    # remove duplicate flags
-    my %h    = map { lc $_ => 1 } @flags;
-    @flags   = keys %h;
-    %h       = map { lc $_ => 1 } @notices;
-    @notices = keys %h;
+    # flags in their own oper block.
+    my @flags   = ref_to_list($oper{flags});
+    my @notices = ref_to_list($oper{notices});
     
+    # flags in their oper class block.
+    my $add_class;
+    $add_class = sub {
+        my $oper_class = shift;
+        my %class = $conf->hash_of_block(['operclass', $oper_class]);
+        
+        # add flags in this block.
+        push @flags,   ref_to_list($class{flags});
+        push @notices, ref_to_list($class{notices});
+
+        # add parent's flags too.
+        $add_class->($class{extends}) if defined $class{extends};
+
+    };
+    $add_class->($oper{class}) if defined $oper{class};
+
+    # remove duplicate flags.
+    @flags   = simplify(@flags);
+    @notices = simplify(@notices);
+    
+    # add the flags.
     $user->add_flags(@flags);
     $user->add_notices(@notices);
+    $user->{oper} = $oper_name;
     $pool->fire_command_all(oper => $user, @flags);
 
     # okay, we should have a complete list of flags now.
-    L("$$user{nick}!$$user{ident}\@$$user{host} has opered as $args[0] and was granted flags: @flags");
-    $user->server_notice('You now have flags: '.join(' ', @{ $user->{flags} }));
-    $user->server_notice('You now have notices: '.join(' ', @{ $user->{notice_flags} })) if $user->{notice_flags};
+    $user->server_notice("You now have flags: @{ $user->{flags} }")
+        if $user->{flags};
+    $user->server_notice("You now have notices: @{ $user->{notice_flags} }")
+        if $user->{notice_flags};
+    L(
+        "$$user{nick}!$$user{ident}\@$$user{host} has opered as " .
+        "$oper_name and was granted flags: @flags"
+    );
 
-    # set ircop, send MODE to the user, and tell other servers.
+    # set ircop.
     $user->do_mode_string('+'.$user->{server}->umode_letter('ircop'), 1);
-    
     $user->numeric('RPL_YOUREOPER');
+    
     return 1;
 }
 

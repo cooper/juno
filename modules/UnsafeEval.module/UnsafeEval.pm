@@ -1,61 +1,31 @@
-# Copyright (c) 2014, mitchell cooper
+# Copyright (c) 2009-14, Mitchell Cooper
 #
-# Created on Mitchells-Mac-mini.local
-# Thu Aug  7 19:33:03 EDT 2014
-# Eval.pm
-#
-# @name:            'Eval'
-# @package:         'M::Eval'
-# @description:     'evaluate Perl code'
+# @name:            "UnsafeEval"
+# @package:         "M::UnsafeEval"
+# @description:     "dangerously evaluate a line of Perl code"
 #
 # @depends.modules: ['Base::UserCommands']
 #
-# @author.name:     'Mitchell Cooper'
-# @author.website:  'https://github.com/cooper'
+# @author.name:     "Mitchell Cooper"
+# @author.website:  "https://github.com/cooper"
 #
-package M::Eval;
+package M::UnsafeEval;
 
 use warnings;
 use strict;
 use 5.010;
 
 our ($api, $mod, $me, $pool);
-my %allowed;
 
 our %user_commands = (EVAL => {
     code    => \&_eval,
-    desc    => 'evaluate Perl code',
-    params  => 'any(opt) :rest',
+    desc    => 'dangerously evaluate a line of Perl code',
+    params  => '-oper(eval) any(opt) :rest',
     fntsy   => 1
 });
 
-# TODO: perhaps we should use IO::Async::File to automatically
-# reload the evalers file every now and then.
-sub init {
-    load();
-    return 1;
-}
-
-# load the eval configuration.
-sub load {
-    %allowed = ();
-    open my $fh, '<', "$::run_dir/etc/evalers.conf" or return;
-    while (my $oper_name = <$fh>) {
-        chomp $oper_name;
-        $allowed{$oper_name} = 1;
-    }
-    close $fh;
-}
-
 sub _eval {
     my ($user, $event, $ch_name, $code) = @_;
-    
-    # unauthorized attempt.
-    if (!user_authorized($user)) {
-        $user->get_killed_by($me, 'Unauthorized attempt to evaluate code');
-        return;
-    }
-    
     my $channel = $pool->lookup_channel($ch_name);
     $code = join(' ', $ch_name, $code // '') unless $channel;
 
@@ -98,13 +68,6 @@ sub _eval {
     }
     
     return 1;
-}
-
-# is a user authorized to eval?
-sub user_authorized {
-    my $user = shift;
-    return unless $user->is_local && $user->is_mode('ircop') && defined $user->{oper};
-    return $allowed{ lc $user->{oper} };
 }
 
 $mod

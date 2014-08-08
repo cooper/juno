@@ -64,6 +64,21 @@ sub trim {
     return $string;
 }
 
+# return list without string duplicates.
+sub simplify {
+    my %h = map { $_ => 1 } @_;
+    keys %h;
+}
+
+# convert array or hash ref to list or empty list if not ref.
+sub ref_to_list {
+    my $ref = shift;
+    return () if !ref $ref;
+    if (ref $ref eq 'ARRAY') { return @$ref }
+    if (ref $ref eq 'HASH')  { return %$ref }
+    return ();
+}
+
 # check if a nickname is valid.
 sub validnick {
     my $str   = shift;

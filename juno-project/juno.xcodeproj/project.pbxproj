@@ -15,6 +15,8 @@
 		A75C5D0E18B4321A007780A3 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
 		A75C5D1B18B4321A007780A3 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		A75C5D1D18B4321A007780A3 /* rfc-2812 */ = {isa = PBXFileReference; lastKnownFileType = text; name = "rfc-2812"; path = "../rfc-2812"; sourceTree = "<group>"; };
+		BC131F361994444500B8071A /* UnsafeEval.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = UnsafeEval.pm; path = UnsafeEval.module/UnsafeEval.pm; sourceTree = "<group>"; };
+		BC131F371994445500B8071A /* Eval.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Eval.pm; path = Eval.module/Eval.pm; sourceTree = "<group>"; };
 		BC174752194A36F0005C2D83 /* doc */ = {isa = PBXFileReference; lastKnownFileType = folder; name = doc; path = ../doc; sourceTree = "<group>"; };
 		BC515539195C7E1D00110EBE /* TODO */ = {isa = PBXFileReference; lastKnownFileType = text; name = TODO; path = ../TODO; sourceTree = "<group>"; };
 		BC7068FE196642E600A2915D /* message.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = message.pm; path = message.module/message.pm; sourceTree = "<group>"; };
@@ -35,7 +37,6 @@
 		BC9565231944E032002F52B9 /* UserCommands.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = UserCommands.pm; path = UserCommands.module/UserCommands.pm; sourceTree = "<group>"; };
 		BC9565261944E032002F52B9 /* UserModes.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = UserModes.pm; path = UserModes.module/UserModes.pm; sourceTree = "<group>"; };
 		BC9565291944E032002F52B9 /* UserNumerics.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = UserNumerics.pm; path = UserNumerics.module/UserNumerics.pm; sourceTree = "<group>"; };
-		BC95652C1944E032002F52B9 /* Eval.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Eval.pm; path = Eval.module/Eval.pm; sourceTree = "<group>"; };
 		BC9565311944E032002F52B9 /* Git.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Git.pm; path = Git.module/Git.pm; sourceTree = "<group>"; };
 		BC9565341944E032002F52B9 /* Ident.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Ident.pm; path = Ident.module/Ident.pm; sourceTree = "<group>"; };
 		BC9565381944E032002F52B9 /* channel.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = channel.pm; path = channel.module/channel.pm; sourceTree = "<group>"; };
@@ -130,11 +131,12 @@
 				BC9564F41944E032002F52B9 /* Account */,
 				BCB6C80B1960C47E009F093A /* Channel */,
 				BCBADAF0195CD5DE0051282D /* Last.fm */,
+				BC131F371994445500B8071A /* Eval.pm */,
+				BC131F361994444500B8071A /* UnsafeEval.pm */,
 				BC9565621944E032002F52B9 /* Reload.pm */,
 				BC9565651944E032002F52B9 /* Resolve.pm */,
 				BC9565341944E032002F52B9 /* Ident.pm */,
 				BC95655F1944E032002F52B9 /* Modules.pm */,
-				BC95652C1944E032002F52B9 /* Eval.pm */,
 				BC95655C1944E032002F52B9 /* LOLCAT.pm */,
 				BC9565311944E032002F52B9 /* Git.pm */,
 				BCBADAF4195DDA910051282D /* SASL.pm */,

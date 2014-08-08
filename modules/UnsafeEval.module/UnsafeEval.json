@@ -1,0 +1,15 @@
+{
+   "version" : "0.1",
+   "description" : "dangerously evaluate a line of Perl code",
+   "package" : "M::UnsafeEval",
+   "author" : {
+      "website" : "https://github.com/cooper",
+      "name" : "Mitchell Cooper"
+   },
+   "depends" : {
+      "modules" : [
+         "Base::UserCommands"
+      ]
+   },
+   "name" : "UnsafeEval"
+}
