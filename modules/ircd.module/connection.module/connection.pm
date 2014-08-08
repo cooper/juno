@@ -202,7 +202,7 @@ sub ready {
         $pool->fire_command_all(sid => $connection->{type});
 
         # if I initiated the connection, now send my burst.
-        if (defined $server->{want} && !$server->{i_sent_burst}) {
+        if (length $connection->{want} && !$server->{i_sent_burst}) {
             $server->send_burst;
         }
 

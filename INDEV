@@ -2581,6 +2581,8 @@ CHANGES:
         18. improved security in server registration by negotiating SERVER and PASS separately.
             ident checks are now canceled immediately upon receiving SERVER command, speeding up the server connect process.
             
+        19. improve new server registration process.
+            
             
         
         

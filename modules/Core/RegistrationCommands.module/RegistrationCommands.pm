@@ -223,12 +223,12 @@ sub rcmd_server {
 
     # if this was by our request (as in an autoconnect or /connect or something)
     # don't accept any server except the one we asked for.
-    if (exists $connection->{want} && lc $connection->{want} ne lc $connection->{name}) {
+    if (length $connection->{want} && lc $connection->{want} ne lc $connection->{name}) {
         $connection->done('Unexpected server');
         return;
     }
 
-    # find a matching server
+    # find a matching server.
     if (defined(my $addrs = conf(['connect', $connection->{name}], 'address'))) {
         $addrs = [$addrs] if !ref $addrs;
         if (!irc_match($connection->{ip}, @$addrs)) {
@@ -238,7 +238,7 @@ sub rcmd_server {
         }
     }
 
-    # no such server
+    # no such server.
     else {
         $connection->done('Invalid credentials');
         notice(connection_invalid => $connection->{ip}, 'No block for this server');
@@ -257,6 +257,7 @@ sub rcmd_server {
     }
 
     # made it.
+    $connection->fire_event(reg_server => @args);
     $connection->reg_continue('id1');
     return 1;
     
