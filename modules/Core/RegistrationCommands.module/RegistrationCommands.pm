@@ -260,8 +260,9 @@ sub rcmd_pass {
 
     # moron hasn't sent SERVER yet.
     my $name = $connection->{name};
-    if (not defined $name) {
+    if (!length $name) {
         $connection->done('Invalid credentials');
+        notice(connection_invalid => $connection->{ip}, 'Password received before server name');
         return;
     }
     
