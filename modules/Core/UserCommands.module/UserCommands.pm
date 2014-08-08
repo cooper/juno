@@ -578,10 +578,10 @@ sub oper {
     $pool->fire_command_all(oper => $user, @flags);
 
     # okay, we should have a complete list of flags now.
-    $user->server_notice("You now have flags: @{ $user->{flags} }")
-        if $user->{flags};
-    $user->server_notice("You now have notices: @{ $user->{notice_flags} }")
-        if $user->{notice_flags};
+    my @all_flags   = ref_to_list($user->{flags});
+    my @all_notices = ref_to_list($user->{notices});
+    $user->server_notice("You now have flags: @all_flags")     if @all_flags;
+    $user->server_notice("You now have notices: @all_notices") if @all_notices;
     L(
         "$$user{nick}!$$user{ident}\@$$user{host} has opered as " .
         "$oper_name and was granted flags: @flags"

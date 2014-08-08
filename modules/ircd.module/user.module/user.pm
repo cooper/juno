@@ -175,14 +175,18 @@ sub add_flags {
 # remove oper flags.
 sub remove_flags {
     my $user   = shift;
-    my @remove = @_;
-    my %r;
-    L("removing flags from $$user{nick}: @remove");
-
-    @r{@remove}++;
-
-    my @new = grep { !exists $r{$_} } @{ $user->{flags} };
+    my %remove = map { $_ => 1 } @_;
+    L("removing flags from $$user{nick}: @{[ keys %remove ]}");
+    my (@new, @removed);
+    foreach my $flag (@{ $user->{flags} }) {
+        if ($remove{$flag}) {
+            push @removed, $flag;
+            next;
+        }
+        push @new, $flag;
+    }
     $user->{flags} = \@new;
+    return @removed;
 }
 
 # has oper flag.

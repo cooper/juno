@@ -381,7 +381,18 @@ sub oper {
     # user @rest
     # :uid OPER  flag flag flag
     my ($server, $data, $user, @flags) = @_;
-    $user->add_flags(@flags);
+    my (@add, @remove);
+    foreach my $flag (@flags) {
+        my $first = \substr($flag, 0, 1);
+        if ($$first eq '-') {
+            $$first = '';
+            push @remove, $flag;
+            next;
+        }
+        push @add, $flag;
+    }
+    $user->add_flags(@add);
+    $user->remove_flags(@remove);
 }
 
 sub away {
