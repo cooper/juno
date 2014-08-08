@@ -1,5 +1,5 @@
 {
-   "name" : "JELP::Incoming",
+   "package" : "M::JELP::Incoming",
    "depends" : {
       "modules" : "JELP::Base"
    },
@@ -8,6 +8,6 @@
       "website" : "https://github.com/cooper",
       "name" : "Mitchell Cooper"
    },
-   "version" : "11.93",
-   "package" : "M::JELP::Incoming"
+   "version" : "12.03",
+   "name" : "JELP::Incoming"
 }
