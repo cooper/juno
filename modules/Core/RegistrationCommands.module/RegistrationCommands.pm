@@ -257,11 +257,18 @@ sub rcmd_server {
 sub rcmd_pass {
     my ($connection, $event, @args) = @_;
     $connection->{pass} = shift @args;
+
+    # moron hasn't sent SERVER yet.
+    my $name = $connection->{name};
+    if (not defined $name) {
+        $connection->done('Invalid credentials');
+        return;
+    }
     
     # check for valid password.
     my $password = utils::crypt(
         $connection->{pass},
-        conf(['connect', $name], 'encryption')
+        conf(['connect', $name ], 'encryption')
     );
     if ($password ne conf(['connect', $name], 'receive_password')) {
         $connection->done('Invalid credentials');
