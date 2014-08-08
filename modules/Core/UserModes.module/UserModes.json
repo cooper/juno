@@ -1,13 +1,13 @@
 {
-   "version" : "8.78",
-   "name" : "Core::UserModes",
-   "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
-   },
-   "description" : "the core set of user modes",
    "depends" : {
       "modules" : "Base::UserModes"
    },
-   "package" : "M::Core::UserModes"
+   "description" : "the core set of user modes",
+   "package" : "M::Core::UserModes",
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
+   "version" : "9.18",
+   "name" : "Core::UserModes"
 }

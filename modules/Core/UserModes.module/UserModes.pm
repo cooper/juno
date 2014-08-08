@@ -44,6 +44,7 @@ sub umode_ircop {
     # but always allow them to unset it.
     L("removing all flags from $$user{nick}");
     $user->{flags} = [];
+    delete $user->{oper};
     
     return 1;
 }

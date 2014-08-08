@@ -40,7 +40,7 @@ sub init {
     $pool->on('connection.message' => sub {
         my ($connection, $event, $msg) = @_;
         return if $connection->server;
-        return if $msg->param(0) eq '*';            # NOTICE *
+        return if $msg->command eq 'NOTICE' && ($msg->param(0) || '') eq '*';
         return if looks_like_number($msg->command); # numeric
         $connection->numeric(ERR_UNKNOWNCOMMAND => $msg->raw_cmd);
         return;
@@ -183,17 +183,6 @@ sub ready {
     # must be a server.
     elsif (length $connection->{name}) {
         my $name = $connection->{name};
-        
-        # check for valid password.
-        my $password = utils::crypt(
-            $connection->{pass},
-            conf(['connect', $name], 'encryption')
-        );
-        if ($password ne conf(['connect', $name], 'receive_password')) {
-            $connection->done('Invalid credentials');
-            notice(connection_invalid => $connection->{ip}, 'Received invalid password');
-            return;
-        }
 
         # check if the server is linked already.
         if ($pool->lookup_server($connection->{sid}) || $pool->lookup_server_name($connection->{name})) {
@@ -264,23 +253,6 @@ sub sendme {
 
 sub sock { shift->{stream}{write_handle} }
 
-sub send_server_credentials {
-    my $connection = shift;
-    my $name = $connection->{name} // $connection->{want};
-    if (!defined $name) {
-        L('Trying to send credentials to an unknown server?');
-        return;
-    }
-    $connection->send(sprintf 'SERVER %s %s %s %s :%s',
-        $me->{sid},
-        $me->{name},
-        v('PROTO'),
-        v('VERSION'),
-        $me->{desc}
-    );     
-    $connection->send('PASS '.conf(['connect', $name], 'send_password'));  
-}
-
 # send a command to a possibly unregistered connection.
 sub early_reply {
     my ($conn, $cmd) = (shift, shift);
@@ -330,6 +302,38 @@ sub done {
     $connection->delete_all_events;
 
     return 1;
+}
+
+##########################
+### Server credentials ###
+##########################
+
+sub send_server_server {
+    my $connection = shift;
+    my $name = $connection->{name} // $connection->{want};
+    if (!defined $name) {
+        L('Trying to send credentials to an unknown server?');
+        return;
+    }
+    $connection->send(sprintf 'SERVER %s %s %s %s :%s',
+        $me->{sid},
+        $me->{name},
+        v('PROTO'),
+        v('VERSION'),
+        $me->{desc}
+    );  
+    $connection->{i_sent_server} = 1;  
+}
+
+sub send_server_pass {
+    my $connection = shift;
+    my $name = $connection->{name} // $connection->{want};
+    if (!defined $name) {
+        L('Trying to send credentials to an unknown server?');
+        return;
+    }
+    $connection->send('PASS '.conf(['connect', $name], 'send_password'));
+    $connection->{i_sent_pass} = 1;
 }
 
 # send a numeric.
@@ -399,11 +403,6 @@ sub remove_cap {
     @{ $connection->{cap_flags} } = keys %all_flags;
 }
 
-sub DESTROY {
-    my $connection = shift;
-    L("$connection destroyed");
-}
-
 #############
 ### TYPES ###
 #############
@@ -420,6 +419,11 @@ sub server {
     my $type = shift->{type};
     blessed $type && $type->isa('server') or return;
     return $type;
+}
+
+sub DESTROY {
+    my $connection = shift;
+    L("$connection destroyed");
 }
 
 $mod

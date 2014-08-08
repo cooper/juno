@@ -1,10 +1,10 @@
 {
-   "version" : "10.5",
-   "name" : "Ident",
-   "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
-   },
    "description" : "resolve idents",
-   "package" : "M::Ident"
+   "package" : "M::Ident",
+   "name" : "Ident",
+   "version" : "10.7",
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   }
 }

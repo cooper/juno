@@ -245,6 +245,9 @@ sub rcmd_server {
         return;
     }
 
+    # send my own SERVER if I haven't already.
+    $connection->send_server_server if !$connection->{i_sent_server};
+
     # made it.
     $connection->reg_continue('id1');
     return 1;
@@ -254,7 +257,23 @@ sub rcmd_server {
 sub rcmd_pass {
     my ($connection, $event, @args) = @_;
     $connection->{pass} = shift @args;
+    
+    # check for valid password.
+    my $password = utils::crypt(
+        $connection->{pass},
+        conf(['connect', $name], 'encryption')
+    );
+    if ($password ne conf(['connect', $name], 'receive_password')) {
+        $connection->done('Invalid credentials');
+        notice(connection_invalid => $connection->{ip}, 'Received invalid password');
+        return;
+    }
+    
+    # send my own PASS if I haven't already.
+    $connection->send_server_pass if !$connection->{i_sent_pass};
+    
     $connection->reg_continue('id2');
+    return 1;
 }
 
 ###########################

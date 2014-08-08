@@ -18,8 +18,9 @@ use utils qw(trim);
 our ($api, $mod, $me, $pool);
 
 sub init {
-    $pool->on('connection.new'      => \&connection_new,  with_eo => 1) or return;
-    $pool->on('connection.reg_user' => \&connection_user, with_eo => 1) or return;
+    $pool->on('connection.new'        => \&connection_new,    with_eo => 1) or return;
+    $pool->on('connection.reg_user'   => \&connection_user,   with_eo => 1) or return;
+    $pool->on('connection.reg_server' => \&connection_server, with_eo => 1) or return;
     return 1;
 }
 
@@ -87,6 +88,12 @@ sub connection_user {
         return $connection->{skip_ident} = 1;
     }
 
+}
+
+# SERVER received.
+sub connection_server {
+    my $connection = shift;
+    ident_cancel($connection, undef, 'SERVER command received');
 }
 
 # initiate the request.
@@ -164,6 +171,7 @@ sub ident_read {
 # ident lookup failed.
 sub ident_cancel {
     my ($connection, $stream, $err) = @_;
+    return if $connection->{ident_checked};
     ident_done(@_);
     $err //= 'unknown error';
     L("Request for $$connection{ip} terminated: $err");
@@ -172,6 +180,7 @@ sub ident_cancel {
 # whether succeeded or failed, we're done.
 sub ident_done {
     my ($connection, $stream) = @_;
+    return if $connection->{ident_checked};
     $stream->close_when_empty if $stream;
     delete $connection->{ident_future};
     delete $connection->{ident_stream};

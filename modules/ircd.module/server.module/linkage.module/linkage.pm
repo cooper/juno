@@ -90,7 +90,7 @@ sub connect_server {
     $conn->{is_linkage} = 1;
     $conn->{sent_creds} = 1;
     $conn->{want}       = $server_name; # server name to expect in return.
-    $conn->send_server_credentials;
+    $conn->send_server_server;
     
     return $conn;
 }
