@@ -1,5 +1,5 @@
 {
-   "version" : "0.4",
+   "version" : "2.0",
    "description" : "evaluate Perl code",
    "package" : "M::Eval",
    "author" : {
