@@ -381,10 +381,6 @@ sub oper {
     # user @rest
     # :uid OPER  flag flag flag
     my ($server, $data, $user, @flags) = @_;
-    
-    # don't accept OPER unless this user is connected via this server.
-    return unless $user->{source} == $server->{sid};
-    
     $user->add_flags(@flags);
 }
 
