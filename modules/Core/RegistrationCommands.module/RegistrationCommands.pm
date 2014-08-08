@@ -246,7 +246,15 @@ sub rcmd_server {
     }
 
     # send my own SERVER if I haven't already.
-    $connection->send_server_server if !$connection->{i_sent_server};
+    if (!$connection->{i_sent_server}) {
+        $connection->send_server_server;
+    }
+    
+    # otherwise, I am going to expose my password.
+    # this means that I was the one that issued the connect.
+    else {
+        $connection->send_server_pass;
+    }
 
     # made it.
     $connection->reg_continue('id1');
