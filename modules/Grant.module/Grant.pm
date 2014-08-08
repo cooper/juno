@@ -47,7 +47,7 @@ sub grant {
     # user isn't an IRC cop yet.
     if (!$t_user->is_mode('ircop')) {
         my $mode   = $t_user->{server}->umode_letter('ircop');
-        my $result = $t_user->handle_mode_string("+$mode", 1) or return;
+        my $result = $t_user->do_mode_string_local("+$mode", 1) or return;
         $pool->fire_command_all(umode => $t_user, $result);
     }
 
