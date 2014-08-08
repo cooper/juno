@@ -201,15 +201,9 @@ sub ready {
         weaken($connection->{type}{location} = $connection->{type});
         $pool->fire_command_all(sid => $connection->{type});
 
-        # send server credentials
-        if (!$connection->{sent_creds}) {
-            $connection->send_server_credentials;
-        }
-
-        # I already sent mine, meaning it should have been accepted on both now.
-        # go ahead and send the burst.
-        else {
-            $server->send_burst if !$server->{i_sent_burst};
+        # if I initiated the connection, now send my burst.
+        if (defined $server->{want} && !$server->{i_sent_burst}) {
+            $server->send_burst;
         }
 
         # honestly at this point the connect timer needs to die.
