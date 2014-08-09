@@ -2591,6 +2591,8 @@ CHANGES:
             started working on Channel::ModeSync module.
             user ->mode_string() can now take a server perspective.
             
+        23. added TS6 outgoing commands NICK and TMODE.
+            
         
         
         

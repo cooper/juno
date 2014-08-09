@@ -8,6 +8,8 @@
 # @package:         'M::TS6::Outgoing'
 # @description:     'basic set of TS6 outgoing commands'
 #
+# @depends.modules: ['TS6::Utils']
+#
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'
 #
@@ -17,7 +19,7 @@ use warnings;
 use strict;
 use 5.010;
 
-M::TS6->import(qw|convert_sid convert_uid convert_prefix|);
+use M::TS6::Utils qw(ts6_id ts6_prefix);
 
 our ($api, $mod, $pool);
 
@@ -28,7 +30,7 @@ our %ts6_outgoing = (
    # addcmode       => \&addcmode,
    # topicburst     => \&topicburst,
      uid            => \&euid,
-   # nickchange     => \&nickchange,
+     nickchange     => \&nick,
    # umode          => \&umode,
    # privmsgnotice  => \&privmsgnotice,
      sjoin          => \&_join,
@@ -37,7 +39,7 @@ our %ts6_outgoing = (
    # return_away    => \&return_away,
    # part           => \&part,
    # topic          => \&topic,
-   # cmode          => \&cmode,
+     cmode          => \&tmode,
      cum            => \&sjoin,
    # acm            => \&acm,
    # aum            => \&aum,
@@ -71,8 +73,8 @@ sub send_burst {
 #
 sub euid {
     my ($server, $user) = @_; # no $server
-    sprintf ":%d EUID %s %d %d %s %s %s %s %s %s %s",
-    convert_sid($user->{server}{sid}),              # source SID
+    sprintf ":%s EUID %s %d %d %s %s %s %s %s %s %s",
+    ts6_id($user->{server}),                        # source SID
     $user->{nick},                                  # nickname
     $me->hops_to($user->{server}),                  # number of hops
     $user->{nick_time} // $user->{time},            # last nick-change time
@@ -80,7 +82,7 @@ sub euid {
     $user->{ident},                                 # username (w/ ~ if needed)
     $user->{cloak},                                 # visible hostname
     $user->{ip},                                    # IP address
-    convert_uid($user->{uid}),                      # UID
+    ts6_id($user),                                  # UID
     $user->{host},                                  # real hostname
     $user->account ? $user->account->name : '*'     # account name
 }
@@ -98,14 +100,14 @@ sub sjoin {
     
     my @members;
     foreach my $user ($channel->users) {
-        my $pfx = convert_prefix($channel->user_get_highest_level($user));
-        my $uid = convert_uid($user->{uid});
+        my $pfx = ts6_prefix($channel->user_get_highest_level($user));
+        my $uid = ts6_id($user);
         push @members, "$pfx$uid";
     }
     
     # TODO: probably should split this into several SJOINs?
-    sprintf ":%d SJOIN %d %s %s :%s",
-    convert_sid($me->{sid}),                        # SID of this server
+    sprintf ":%s SJOIN %d %s %s :%s",
+    ts6_id($me),                                    # SID of this server
     $channel->{time},                               # channel time
     $channel->{name},                               # channel name
     $channel->mode_string_hidden($server),          # includes +ntk, excludes +ovbI, etc.
@@ -135,10 +137,48 @@ sub _join {
     return sjoin($server, $channel) if scalar $channel->users == 1;
     
     sprintf ':%s JOIN %d %s +',
-    convert_uid($user->{uid}),
+    ts6_id($user),
     $channel->{time},
     $channel->{name}
 }
+
+# NICK
+#
+# 1.
+# source:       user
+# parameters:   new nickname, new nickTS
+# propagation:  broadcast
+#
+# 2. (not used in TS 6)
+# source:       server
+# parameters:   nickname, hopcount, nickTS, umodes, username, hostname, server, gecos
+#
+# ts6-protocol.txt:562
+#
+sub nick {
+    my $user = shift;
+    sprintf ':%s NICK %s :%d',
+    ts6_id($user),
+    $user->{nick},
+    $user->{nick_time} // $user->{time}
+}
+
+# TMODE
+#
+# source:       any
+# parameters:   channelTS, channel, cmode changes, opt. cmode parameters...
+#
+# ts6-protocol.txt:937
+#
+sub tmode {
+    my ($server, $source, $channel, $time, $perspective, $modestr) = @_; # no $server, why $time?
+    sprintf ":%s TMODE %d %s %s",
+    ts6_id($source),
+    $time,
+    $channel->{name},
+    $perspective->convert_cmode_string($server)
+}
+
 
 $mod
 

@@ -157,7 +157,7 @@ sub mode_string {
     my $user   = shift;
     my $server = shift || $user->{server};
     return '+'.join('', sort map {
-        $server->umode_letter($_)
+        $server->umode_letter($_) // ''
     } @{ $user->{modes} });
 }
 
