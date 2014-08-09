@@ -154,9 +154,10 @@ sub handle_mode_string {
 
 # returns a +modes string.
 sub mode_string {
-    my $user = shift;
+    my $user   = shift;
+    my $server = shift || $user->{server};
     return '+'.join('', sort map {
-        $user->{server}->umode_letter($_)
+        $server->umode_letter($_)
     } @{ $user->{modes} });
 }
 

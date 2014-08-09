@@ -20,12 +20,13 @@ use 5.010;
 our ($api, $mod, $pool, $es);
 
 sub init {
+    $es = $mod->spawn_submodule('Daemon') or return;
 }
 
 sub ucmd_lastfm {
     my ($user, $event, $username) = @_;
     
-    $es->prepare(fetch_np => $username)->fire_then(sub {
+    $es->do(fetch_np => $username, sub {
         # fire_then will be defined in Evented::Socket
         # sub Evented::Object::Collection::fire_then maybe
     });

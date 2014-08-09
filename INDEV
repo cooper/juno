@@ -2587,6 +2587,10 @@ CHANGES:
     
         21. added UNGRANT command.
             
+        22. started working on implementing the TS6 protocol.
+            started working on Channel::ModeSync module.
+            user ->mode_string() can now take a server perspective.
+            
         
         
         

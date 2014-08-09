@@ -18,6 +18,11 @@
 		BC131F361994444500B8071A /* UnsafeEval.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = UnsafeEval.pm; path = UnsafeEval.module/UnsafeEval.pm; sourceTree = "<group>"; };
 		BC131F371994445500B8071A /* Eval.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Eval.pm; path = Eval.module/Eval.pm; sourceTree = "<group>"; };
 		BC131F38199560D300B8071A /* Grant.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Grant.pm; path = Grant.module/Grant.pm; sourceTree = "<group>"; };
+		BC131F391995C25200B8071A /* ModeSync.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = ModeSync.pm; path = ModeSync.module/ModeSync.pm; sourceTree = "<group>"; };
+		BC131F3A1995C2BD00B8071A /* TS6.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = TS6.pm; path = TS6/TS6.module/TS6.pm; sourceTree = "<group>"; };
+		BC131F3C1995C34A00B8071A /* Base.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Base.pm; path = TS6/Base.module/Base.pm; sourceTree = "<group>"; };
+		BC131F3D1995C35300B8071A /* Incoming.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Incoming.pm; path = TS6/Incoming.module/Incoming.pm; sourceTree = "<group>"; };
+		BC131F3E1995C35B00B8071A /* Outgoing.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Outgoing.pm; path = TS6/Outgoing.module/Outgoing.pm; sourceTree = "<group>"; };
 		BC174752194A36F0005C2D83 /* doc */ = {isa = PBXFileReference; lastKnownFileType = folder; name = doc; path = ../doc; sourceTree = "<group>"; };
 		BC515539195C7E1D00110EBE /* TODO */ = {isa = PBXFileReference; lastKnownFileType = text; name = TODO; path = ../TODO; sourceTree = "<group>"; };
 		BC7068FE196642E600A2915D /* message.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = message.pm; path = message.module/message.pm; sourceTree = "<group>"; };
@@ -122,6 +127,17 @@
 			name = Documentation;
 			sourceTree = "<group>";
 		};
+		BC131F3B1995C2C500B8071A /* TS6 */ = {
+			isa = PBXGroup;
+			children = (
+				BC131F3A1995C2BD00B8071A /* TS6.pm */,
+				BC131F3C1995C34A00B8071A /* Base.pm */,
+				BC131F3D1995C35300B8071A /* Incoming.pm */,
+				BC131F3E1995C35B00B8071A /* Outgoing.pm */,
+			);
+			name = TS6;
+			sourceTree = "<group>";
+		};
 		BC9564F01944E032002F52B9 /* modules */ = {
 			isa = PBXGroup;
 			children = (
@@ -129,6 +145,7 @@
 				BC9564FE1944E032002F52B9 /* Base */,
 				BC9565141944E032002F52B9 /* Core */,
 				BC95654D1944E032002F52B9 /* JELP */,
+				BC131F3B1995C2C500B8071A /* TS6 */,
 				BC9564F41944E032002F52B9 /* Account */,
 				BCB6C80B1960C47E009F093A /* Channel */,
 				BCBADAF0195CD5DE0051282D /* Last.fm */,
@@ -226,6 +243,7 @@
 				BCB6C8171960C47E009F093A /* Limit.pm */,
 				BCB6C8191963DDE5009F093A /* Key.pm */,
 				BCB6C81A196495D6009F093A /* Secret.pm */,
+				BC131F391995C25200B8071A /* ModeSync.pm */,
 			);
 			path = Channel;
 			sourceTree = "<group>";

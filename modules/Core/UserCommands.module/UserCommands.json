@@ -1,5 +1,4 @@
 {
-   "name" : "Core::UserCommands",
    "depends" : {
       "modules" : "Base::UserCommands"
    },
@@ -7,7 +6,8 @@
       "name" : "Mitchell Cooper",
       "website" : "https://github.com/cooper"
    },
+   "version" : "9.22",
    "package" : "M::Core::UserCommands",
    "description" : "the core set of user commands",
-   "version" : "9.21"
+   "name" : "Core::UserCommands"
 }

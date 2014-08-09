@@ -87,14 +87,14 @@ Mode synchronization
         
         The servers sends to all other servers:
         
-            :0 MODESYNC REQ * access
-            :<sid> MODESYNC REQ <channel_mask> <mode_name>|* [<other_mode>, ...]
+            :0 MODESYNC REQ * A
+            :<sid> MODESYNC REQ <channel_mask> <mode_string>|*
         
         If any server is unfamiliar with any mode, that mode should be ignored.
         Otherwise, it will reply for each matching channel affected by the mode(s).
         
-            :1 MODESYNC REP 0 #k :+AAA admin:$r:vulpia op:$r:alyx owner:$r:mitch
-            :<sid> MODESYNC REP <requesting sid>|* <channel> :<relevant mode string>
+            :1 MODESYNC REP #k 0 :+AAA admin:$r:vulpia op:$r:alyx owner:$r:mitch
+            :<sid> MODESYNC REP <channel> <requesting sid>|* :<relevant mode string>
 
         In scenarios where all modes are unknown or no channels are affected by the
         mode(s), no replies should be sent.
@@ -153,7 +153,7 @@ Support for multiple linking protocols
 
     [~] Move JELP out of core. Commands should be fired in response to IRCd events.
     
-    [ ] Implement the TS6 protocol.
+    [~] Implement the TS6 protocol.
     
 User commands that are in desperate need of rewriting
 ------------------------------------------------------------------------------------------
