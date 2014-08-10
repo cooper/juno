@@ -1,0 +1,10 @@
+{
+   "description" : "",
+   "package" : "M::JELP::Registration",
+   "name" : "JELP::Registration",
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
+   "version" : "0.1"
+}

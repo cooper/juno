@@ -215,7 +215,7 @@ sub init {
 
 \$mod
 "
-                    echo "$comments" > $file
+                    echo "$comments" >> $file
                 ;;
                 
                 pullsubs)

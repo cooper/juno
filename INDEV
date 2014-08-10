@@ -2605,5 +2605,13 @@ CHANGES:
             ts6_uid_u:      convert the "ID" portion of UID to TS6 ID;
             ts6_prefix:     convert juno status level to TS6 prefix;
             ts6_prefixes:   convert juno status levels to TS6 prefixes without duplicates.
+            
+        25. protocols can now be tied to ports; i.e. jelpport = or ts6port = in configuration.
+            added connection methods ->possible_protocols() and ->possibly_protocol().
+            ->register_registration_command() now takes an optional 'proto' option.
+            registration commands can now be registered automatically from %registration_commands.
+            JELP registration commands moved from Core::RegistrationCommands to new module JELP::Registration.
+            listen on *port.
+            
         
         

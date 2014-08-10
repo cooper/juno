@@ -19,7 +19,7 @@ use Module::Loaded qw(is_loaded);
 use Scalar::Util   qw(weaken blessed);
 
 our ($api, $mod, $me, $pool, $loop, $conf, $boot, $timer, $VERSION);
-our (%channel_mode_prefixes, %listeners);
+our (%channel_mode_prefixes, %listeners, %listen_protocol);
 
 ######################
 ### INITIALIZATION ###
@@ -29,7 +29,7 @@ sub init {
 
     # load utils immediately.
     $mod->load_submodule('utils') or return;
-    utils->import(qw|conf fatal v trim notice|);
+    utils->import(qw|conf fatal v trim notice ref_to_list|);
     $VERSION = get_version();
     
     &set_variables;         # set default global variables.
@@ -231,19 +231,43 @@ sub set_variables {
 sub setup_sockets {
 
     # start listeners.
-    foreach my $addr ($conf->names_of_block('listen')) {
-        my @plnports = @{ $conf->get(['listen', $addr], 'port')    || [] };
-        my @sslports = @{ $conf->get(['listen', $addr], 'sslport') || [] };
+    # ex:
+    #
+    # [ listen: 0.0.0.0 ]
+    #
+    # port     = [6667..6669]
+    # sslport  = [6697, 7000]
+    # jelpport = [7001]
+    #
+    ADDR: foreach my $addr ($conf->names_of_block('listen')) {
+        my %listen = $conf->hash_of_block(['listen', $addr]);
         
-        listen_addr_port($addr, $_) foreach @plnports;
+        KEY: foreach my $key (keys %listen) {
+            $key =~ m/^(.*)port$/ or next;
+            my $prefix = $1;
+            my @ports  = ref_to_list($listen{$key});
+            
+            # plain ports.
+            if (!$prefix) {
+                listen_addr_port($addr, $_) foreach @ports;
+                next KEY;
+            }
 
-        # load IO::Async::SSL if necessary.
-        if (@sslports) {
-            load_or_reload('IO::Async::SSL',       0.14) or next;
-            load_or_reload('IO::Async::SSLStream', 0.14) or next;
-            listen_addr_port($addr, $_, 1) foreach @sslports;
-        }
+            # SSL ports.
+            if ($prefix eq 'ssl') {
+                load_or_reload('IO::Async::SSL',       0.14) or next;
+                load_or_reload('IO::Async::SSLStream', 0.14) or next;
+                listen_addr_port($addr, $_, 1) foreach @ports;
+                next KEY;
+            }
+            
+            # protocol-specific ports.
+            foreach (@ports) {
+                listen_addr_port($addr, $_);
+                $listen_protocol{$_} = $prefix;
+            }
         
+        }
     }
     
     # reconfigure existing notifiers.

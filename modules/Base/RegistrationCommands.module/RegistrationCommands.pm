@@ -21,7 +21,16 @@ use 5.010;
 our ($api, $mod, $pool);
 
 sub init {
+
+    # register method.
     $mod->register_module_method('register_registration_command') or return;
+
+    # module events.
+    $api->on('module.init' => \&module_init,
+        name    => '%registration_commands',
+        with_eo => 1
+    ) or return;
+    
     return 1;
 }
 
@@ -67,6 +76,9 @@ sub register_registration_command {
         # prevent execution after registration.
         return if $conn->{type} && !$opts{after_reg};
         
+        # only allow a specific protocol.
+        return if $opts{proto} && !$conn->possibly_protocol($opts{proto});
+        
         # arguments.
         my @args = $msg->params;
         unshift @args, $msg       if $opts{with_msg};
@@ -88,6 +100,17 @@ sub register_registration_command {
     
     L("$command ($opts{cb_name}) registered");
     return $result;
+}
+
+# a module is being initialized.
+sub module_init {
+    my $mod = shift;
+    my %commands = $mod->get_symbol('%registration_commands');
+    $mod->register_registration_command(
+        name => $_,
+        %{ $commands{$_} }
+    ) or return foreach keys %commands;
+    return 1;
 }
 
 $mod

@@ -8,7 +8,7 @@
 # @package:         'M::TS6'
 # @description:     'TS version 6 linking protocol'
 #
-# @depends.modules: [qw(TS6::Utils TS6::Base TS6::Incoming TS6::Outgoing)]
+# @depends.modules: [qw(TS6::Utils TS6::Base TS6::Incoming TS6::Outgoing TS6::Registration)]
 #
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'

@@ -24,6 +24,8 @@
 		BC131F3D1995C35300B8071A /* Incoming.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Incoming.pm; path = TS6/Incoming.module/Incoming.pm; sourceTree = "<group>"; };
 		BC131F3E1995C35B00B8071A /* Outgoing.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Outgoing.pm; path = TS6/Outgoing.module/Outgoing.pm; sourceTree = "<group>"; };
 		BC131F3F1996B21300B8071A /* Utils.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Utils.pm; path = TS6/Utils.module/Utils.pm; sourceTree = "<group>"; };
+		BC131F4019971A7500B8071A /* Registration.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Registration.pm; path = Registration.module/Registration.pm; sourceTree = "<group>"; };
+		BC131F4119971A8B00B8071A /* Registration.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Registration.pm; path = TS6/Registration.module/Registration.pm; sourceTree = "<group>"; };
 		BC174752194A36F0005C2D83 /* doc */ = {isa = PBXFileReference; lastKnownFileType = folder; name = doc; path = ../doc; sourceTree = "<group>"; };
 		BC515539195C7E1D00110EBE /* TODO */ = {isa = PBXFileReference; lastKnownFileType = text; name = TODO; path = ../TODO; sourceTree = "<group>"; };
 		BC7068FE196642E600A2915D /* message.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = message.pm; path = message.module/message.pm; sourceTree = "<group>"; };
@@ -134,6 +136,7 @@
 				BC131F3A1995C2BD00B8071A /* TS6.pm */,
 				BC131F3F1996B21300B8071A /* Utils.pm */,
 				BC131F3C1995C34A00B8071A /* Base.pm */,
+				BC131F4119971A8B00B8071A /* Registration.pm */,
 				BC131F3D1995C35300B8071A /* Incoming.pm */,
 				BC131F3E1995C35B00B8071A /* Outgoing.pm */,
 			);
@@ -230,6 +233,7 @@
 			children = (
 				BC9565561944E032002F52B9 /* JELP.pm */,
 				BC9565501944E032002F52B9 /* Base.pm */,
+				BC131F4019971A7500B8071A /* Registration.pm */,
 				BC9565531944E032002F52B9 /* Incoming.pm */,
 				BC9565591944E032002F52B9 /* Outgoing.pm */,
 			);

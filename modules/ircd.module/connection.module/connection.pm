@@ -298,38 +298,6 @@ sub done {
     return 1;
 }
 
-##########################
-### Server credentials ###
-##########################
-
-sub send_server_server {
-    my $connection = shift;
-    my $name = $connection->{name} // $connection->{want};
-    if (!defined $name) {
-        L('Trying to send credentials to an unknown server?');
-        return;
-    }
-    $connection->send(sprintf 'SERVER %s %s %s %s :%s',
-        $me->{sid},
-        $me->{name},
-        v('PROTO'),
-        v('VERSION'),
-        $me->{desc}
-    );  
-    $connection->{i_sent_server} = 1;  
-}
-
-sub send_server_pass {
-    my $connection = shift;
-    my $name = $connection->{name} // $connection->{want};
-    if (!defined $name) {
-        L('Trying to send credentials to an unknown server?');
-        return;
-    }
-    $connection->send('PASS '.conf(['connect', $name], 'send_password'));
-    $connection->{i_sent_pass} = 1;
-}
-
 # send a numeric.
 sub numeric {
     my ($connection, $const, @response) = (shift, shift);
@@ -362,6 +330,59 @@ sub numeric {
 
     return 1;
 
+}
+
+# what protocols might this be, according to the port?
+sub possible_protocols {
+    my ($connection, @protos) = shift;
+    my $port = $connection->{localport};
+    #
+    # maybe a protocol has been specified.
+    # this means that JELP will not be permitted,
+    # unless of course $proto eq 'jelp'
+    #
+    # if no protocol is specified, fall back
+    # to JELP always for compatibility.
+    #
+    return ('client', $ircd::listen_protocol{$port} || 'jelp');
+}
+
+# could this connection be protocol?
+sub possibly_protocol {
+    my ($connection, $proto) = @_;
+    return grep { $_ eq $proto } $connection->possible_protocols;
+}
+
+##########################
+### Server credentials ###
+##########################
+
+sub send_server_server {
+    my $connection = shift;
+    my $name = $connection->{name} // $connection->{want};
+    if (!defined $name) {
+        L('Trying to send credentials to an unknown server?');
+        return;
+    }
+    $connection->send(sprintf 'SERVER %s %s %s %s :%s',
+        $me->{sid},
+        $me->{name},
+        v('PROTO'),
+        v('VERSION'),
+        $me->{desc}
+    );  
+    $connection->{i_sent_server} = 1;  
+}
+
+sub send_server_pass {
+    my $connection = shift;
+    my $name = $connection->{name} // $connection->{want};
+    if (!defined $name) {
+        L('Trying to send credentials to an unknown server?');
+        return;
+    }
+    $connection->send('PASS '.conf(['connect', $name], 'send_password'));
+    $connection->{i_sent_pass} = 1;
 }
 
 ####################
