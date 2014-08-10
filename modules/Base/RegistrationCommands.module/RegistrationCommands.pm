@@ -38,7 +38,7 @@ sub register_registration_command {
     my ($mod, $event, %opts) = @_;
     
     # fallback to the name of the command for the callback name.
-    $opts{cb_name} //= $opts{name};
+    $opts{cb_name} //= ($opts{proto} ? $opts{proto}.q(.) : '').$opts{name};
 
     # make sure all required options are present.
     foreach my $what (qw|name code|) {
@@ -99,6 +99,7 @@ sub register_registration_command {
     ) or return;
     
     L("$command ($opts{cb_name}) registered");
+    $mod->list_store_add('registration_commands', $command);
     return $result;
 }
 

@@ -334,7 +334,6 @@ sub register_global_command {
     
 }
 
-
 sub register_outgoing_command {
     my ($mod, $event, %opts) = @_;
 
@@ -351,7 +350,8 @@ sub register_outgoing_command {
     $pool->register_outgoing_handler(
         $mod->name,
         $opts{name},
-        $opts{code}
+        $opts{code},
+        'jelp'
     ) or return;
 
     L("JELP outgoing command $opts{name} registered");
@@ -361,8 +361,9 @@ sub register_outgoing_command {
 
 sub unload_module {
     my ($mod, $event) = @_;
-    $pool->delete_server_handler($_)   foreach $mod->list_store_items('server_commands');
-    $pool->delete_outgoing_handler($_) foreach $mod->list_store_items('outgoing_commands');
+    $pool->delete_server_handler($_) foreach $mod->list_store_items('server_commands');
+    $pool->delete_outgoing_handler($_, 'jelp')
+        foreach $mod->list_store_items('outgoing_commands');
     return 1;
 }
 

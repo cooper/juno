@@ -556,23 +556,23 @@ sub server_handlers {
 
 # register an outgoing server command.
 sub register_outgoing_handler {
-    my ($pool, $source, $command) = (shift, shift, uc shift);
+    my ($pool, $source, $command, $ref, $proto) = @_;
+    $command = uc $command;
 
     # does it already exist?
-    if (exists $pool->{outgoing_commands}{$command}) {
+    if (exists $pool->{outgoing_commands}{$proto}{$command}) {
         L("attempted to register $command which already exists");
         return;
     }
 
     # ensure that it is CODE.
-    my $ref = shift;
     if (ref $ref ne 'CODE') {
         L("not a CODE reference for $command");
         return;
     }
 
     # success.
-    $pool->{outgoing_commands}{$command} = {
+    $pool->{outgoing_commands}{$proto}{$command} = {
         code    => $ref,
         source  => $source
     };
@@ -583,9 +583,9 @@ sub register_outgoing_handler {
 
 # delete an outgoing server command.
 sub delete_outgoing_handler {
-    my ($pool, $command) = (shift, uc shift);
+    my ($pool, $command, $proto) = (shift, uc shift, shift);
     #L("deleting handler $command");
-    delete $pool->{outgoing_commands}{$command};
+    delete $pool->{outgoing_commands}{proto}{$command};
 }
 
 # fire an outgoing server command for a single server.
@@ -594,13 +594,12 @@ sub fire_command {
     return if $server->{fake};
     
     # command does not exist.
-    if (!$pool->{outgoing_commands}{$command}) {
-        L((caller)[0]." fired $command which does not exist");
-        return;
-    }
+    my $proto = $server->{link_type};
+    my $cmd   = $pool->{outgoing_commands}{$proto}{$command};
+    return unless $cmd;
 
     # send to one server.
-    my $lines = $pool->{outgoing_commands}{$command}{code}($server, @args);
+    my $lines = $cmd->{code}($server, @args);
     foreach my $line (ref $lines ? @$lines : $lines) {
         next unless length $line;
         $server->send($line);
@@ -612,12 +611,6 @@ sub fire_command {
 # fire an outgoing server command for all servers.
 sub fire_command_all {
     my ($pool, $command, @args) = (shift, uc shift, @_);
-    
-    # command does not exist.
-    if (!$pool->{outgoing_commands}{$command}) {
-        L((caller)[0]." fired $command which does not exist");
-        return;
-    }
 
     # send to all children.
     foreach ($me->children) {

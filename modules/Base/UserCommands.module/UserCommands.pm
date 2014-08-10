@@ -66,6 +66,8 @@ sub register_user_command_new {
         fantasy    => $opts{fantasy} // $opts{fntsy}
     });
     
+    $mod->list_store_add('user_commands', $command);
+    return 1;
 }
 
 sub _handle_command {

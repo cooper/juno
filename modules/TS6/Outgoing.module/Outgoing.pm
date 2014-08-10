@@ -8,7 +8,7 @@
 # @package:         'M::TS6::Outgoing'
 # @description:     'basic set of TS6 outgoing commands'
 #
-# @depends.modules: ['TS6::Utils']
+# @depends.modules: ['TS6::Utils', 'TS6::Base']
 #
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'
@@ -23,7 +23,7 @@ use M::TS6::Utils qw(ts6_id ts6_prefixes);
 
 our ($api, $mod, $pool, $me);
 
-our %ts6_outgoing = (
+our %ts6_outgoing_commands = (
    # quit           => \&quit,
      sid            => \&sid,
    # addumode       => \&addumode,
@@ -59,6 +59,7 @@ sub send_burst {
     
     # servers.
     my ($do, %done);
+    $done{$server} = $done{$me} = 1;
     $do = sub {
         my $serv = shift;
         
@@ -133,7 +134,7 @@ sub sid {
 #
 sub euid {
     my ($server, $user) = @_; # no $server
-    sprintf ":%s EUID %s %d %d %s %s %s %s %s %s %s",
+    sprintf ":%s EUID %s %d %d %s %s %s %s %s %s %s :%s",
     ts6_id($user->{server}),                        # source SID
     $user->{nick},                                  # nickname
     $me->hops_to($user->{server}),                  # number of hops
@@ -143,8 +144,10 @@ sub euid {
     $user->{cloak},                                 # visible hostname
     $user->{ip},                                    # IP address
     ts6_id($user),                                  # UID
-    $user->{host},                                  # real hostname
-    $user->account ? $user->account->name : '*'     # account name
+    $user->{cloak} eq $user->{host} ?               # real hostname
+        '*' : $user->{host},                        #   (* if equal to visible)             
+    $user->account ? $user->account->name : '*',    # account name
+    $user->{real}
 }
 
 # SJOIN

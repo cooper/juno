@@ -6,7 +6,9 @@
 #
 # @name:            'JELP::Registration'
 # @package:         'M::JELP::Registration'
-# @description:     ''
+# @description:     'JELP registration commands'
+#
+# @depends.modules: 'Base::RegistrationCommands'
 #
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'

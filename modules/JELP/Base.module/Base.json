@@ -1,14 +1,14 @@
 {
-   "package" : "M::JELP::Base",
+   "author" : {
+      "website" : "https://github.com/cooper",
+      "name" : "Mitchell Cooper"
+   },
    "depends" : {
       "modules" : [
          "API::Methods"
       ]
    },
-   "version" : "10.83",
-   "author" : {
-      "name" : "Mitchell Cooper",
-      "website" : "https://github.com/cooper"
-   },
-   "name" : "JELP::Base"
+   "name" : "JELP::Base",
+   "version" : "10.93",
+   "package" : "M::JELP::Base"
 }
