@@ -18,7 +18,7 @@ use feature 'switch';
 use parent 'Evented::Object';
 
 use utils qw(conf v notice match);
-use List::Util 'first';
+use List::Util qw(first max);
 
 our ($api, $mod, $pool, $me);
 
@@ -463,12 +463,18 @@ sub user_has_basic_status {
 # [letter, symbol, name]
 sub user_get_highest_level {
     my ($channel, $user) = @_;
-    my $biggest = -inf;
-    foreach my $level (keys %ircd::channel_mode_prefixes) {
+    return ($channel->user_get_levels($user))[0] // -inf;
+}
+
+# get all the levels of a user
+sub user_get_levels {
+    my ($channel, $user) = @_;
+    my @levels;
+    foreach my $level (sort { $b <=> $a } keys %ircd::channel_mode_prefixes) {
         my ($letter, $symbol, $name) = @{ $ircd::channel_mode_prefixes{$level} };
-        $biggest = $level if $level > $biggest && $channel->list_has($name, $user);
+        push @levels, $level if $channel->list_has($name, $user);
     }
-    return $biggest;
+    return @levels;
 }
 
 # fetch the topic or return undef if none.

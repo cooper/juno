@@ -101,7 +101,7 @@ sub send_burst {
 
 
     # users
-    foreach my $user ($pool->all_users) {
+    foreach my $user ($pool->global_users) {
 
         # ignore users the server already knows!
         next if $user->{server} == $server || $user->{source} == $server->{sid};

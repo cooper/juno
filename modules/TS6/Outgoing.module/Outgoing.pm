@@ -19,13 +19,13 @@ use warnings;
 use strict;
 use 5.010;
 
-use M::TS6::Utils qw(ts6_id ts6_prefix);
+use M::TS6::Utils qw(ts6_id ts6_prefixes);
 
-our ($api, $mod, $pool);
+our ($api, $mod, $pool, $me);
 
 our %ts6_outgoing = (
    # quit           => \&quit,
-   # sid            => \&sid,
+     sid            => \&sid,
    # addumode       => \&addumode,
    # addcmode       => \&addcmode,
    # topicburst     => \&topicburst,
@@ -57,6 +57,67 @@ sub init {
 sub send_burst {
     my ($server, $event) = @_;
     $server->{link_type} eq 'ts6' or return;
+    
+    # servers.
+    my ($do, %done);
+    $do = sub {
+        my $serv = shift;
+        
+        # already did this one.
+        return if $done{$serv};
+        
+        # we learned about this server from the server we're sending to.
+        return if defined $serv->{source} && $serv->{source} == $server->{sid};
+        
+        # we need to do the parent first.
+        if (!$done{ $serv->{parent} } && $serv->{parent} != $serv) {
+            $do->($serv->{parent});
+        }
+        
+        # fire the command.
+        $server->fire_command(sid => $serv);
+        $done{$serv} = 1;
+        
+    }; $do->($_) foreach $pool->all_servers;
+    
+    # users.
+    foreach my $user ($pool->global_users) {
+
+        # ignore users the server already knows!
+        next if $user->{server} == $server || $user->{source} == $server->{sid};
+        $server->fire_command(uid => $user);
+        
+        # TODO: oper flags
+        # TODO: away reason
+    }
+    
+    # channels.
+    foreach my $channel ($pool->channels) {
+        $server->fire_command(cum => $channel, $server);
+        
+        # there is no topic or this server is how we got the topic.
+        next if !$channel->topic;
+        
+        # TODO: topic burst
+    }
+    
+}
+
+# SID
+#
+# source:       server
+# propagation:  broadcast
+# parameters:   server name, hopcount, sid, server description
+#
+# ts6-protocol.txt:805
+sub sid {
+    my ($server, $serv) = @_;
+    sprintf ':%s SID %s %d %s :%s',
+    ts6_id($serv->{parent}),
+    $serv->{name},
+    $me->hops_to($serv),
+    ts6_id($serv),
+    $serv->{desc}
 }
 
 # EUID
@@ -100,7 +161,7 @@ sub sjoin {
     
     my @members;
     foreach my $user ($channel->users) {
-        my $pfx = ts6_prefix($channel->user_get_highest_level($user));
+        my $pfx = ts6_prefixes($server, $channel->user_get_levels($user));
         my $uid = ts6_id($user);
         push @members, "$pfx$uid";
     }

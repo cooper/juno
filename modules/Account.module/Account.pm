@@ -299,6 +299,13 @@ sub users {
     return @{ $act->{users} };
 }
 
+# account name or module name.
+sub name {
+    my $act = shift;
+    return $act->SUPER::name if $act == $mod;
+    return $act->{name};
+}
+
 #####################
 ### Compatibility ###
 #####################
@@ -348,4 +355,5 @@ sub upgrade {
         foreach grep { !defined $ircd::account_ids{$_}   } keys %ircd::account_ids;
     
 }
+
 $mod

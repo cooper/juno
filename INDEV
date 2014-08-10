@@ -2592,7 +2592,18 @@ CHANGES:
             user ->mode_string() can now take a server perspective.
             
         23. added TS6 outgoing commands NICK and TMODE.
-            
         
+        24. added TS6 outgoing command SID.
+            began implementing network burst for TS6.
+            TS6 prefixes are mapped to definitions in default.conf.
+            show multiple prefixes in EUID, not just the highest.
+            added channel method ->get_user_levels().
+            added TS6 utilities:
+            ts6_id:         convert an object to its TS6 ID;
+            ts6_sid:        convert a juno SID to a TS6 SID;
+            ts6_uid:        convert a juno UID to a TS6 UID;
+            ts6_uid_u:      convert the "ID" portion of UID to TS6 ID;
+            ts6_prefix:     convert juno status level to TS6 prefix;
+            ts6_prefixes:   convert juno status levels to TS6 prefixes without duplicates.
         
         
