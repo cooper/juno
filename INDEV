@@ -2622,7 +2622,7 @@ CHANGES:
             
         27. lots more work for TS6 support.
             outgoing commands are now registered with a protocol option.
-            created TS6::Base with method ->register_outgoing_ts6_method() and %ts6_outgoing_commands.
+            created TS6::Base with method ->register_outgoing_ts6_command() and %ts6_outgoing_commands.
             juno can now establish a link with charybdis and send its burst.
             
         
