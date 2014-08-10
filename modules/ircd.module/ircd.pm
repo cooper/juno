@@ -93,6 +93,7 @@ sub init {
     &setup_sockets;         # start listening.
     &setup_timer;           # set up ping timer.
     &setup_autoconnect;     # connect to servers with autoconnect enabled.
+    &misc_upgrades;         # miscellaneous upgrade fixes
     
     L("server initialization complete");
     return 1;
@@ -387,6 +388,19 @@ sub listen_addr_port {
 # refuse unload unless reloading.
 sub void {
     return $mod->{reloading};
+}
+
+# miscellaneous upgrade fixes.
+# TODO: I want each instance to be able to track which upgrades have been done
+# already to improve the efficiency of this.
+sub misc_upgrades {
+
+    # all connected servers without link_type are JELP.
+    foreach my $server ($pool->servers) {
+        next unless $server->{conn};
+        $server->{link_type} //= 'jelp';
+    }
+    
 }
 
 ##########################

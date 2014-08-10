@@ -2625,4 +2625,14 @@ CHANGES:
             created TS6::Base with method ->register_outgoing_ts6_command() and %ts6_outgoing_commands.
             juno can now establish a link with charybdis and send its burst.
             
+        28. message object can now be used for other IRC-like protocols such as JELP and TS6.
+            each implementation will provide its own parameter modifier subroutines and a function to look up message sources.
+            finally removed the hideous parameter parser from JELP::Base.
+            it has been replaced by the functionality provided by the message object.
+            all JELP command handlers have been updated accordingly.
+            as a result, the 'high.level.handlers' callback was finally removed also.
+            server method ->handle() is no longer used as of right now.
+            server command forwarding is now executed by a separate, lower-priority event callback.
+            registered servers now have events message_$CMD and $PROTO_message_$CMD.
+            
         

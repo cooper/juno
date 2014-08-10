@@ -27,9 +27,9 @@ our %user_commands = (INVITE => {
 sub init {
     
     # INVITE server command.
-    $mod->register_server_command(
+    $mod->register_jelp_command(
         name       => 'invite',
-        parameters => 'user user any',
+        parameters => '-source(user) user any',
         code       => \&scmd_invite
       # forward    => handled manually
     ) or return;

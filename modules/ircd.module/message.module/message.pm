@@ -153,7 +153,6 @@ sub data {
 
 sub raw_cmd {    shift->{command}       }
 sub command { uc shift->{command}       }
-sub source  { shift->{source}           } # TODO: needs to always return object
 sub tags    { shift->{tags}             }
 sub tag     { shift->{tags}{+shift}     }
 sub params  { @{ shift->{params} }      }
@@ -172,6 +171,16 @@ sub source {
     # it's a string. do a lookup.
     if (!blessed $source) {
         
+        # is there code for looking up sources?
+        if (my $code = $msg->{source_lookup_method}) {
+            return unless ref $code eq 'CODE';
+            $source = $code->($msg);
+            $msg->{source} = $source if $source;
+            return $source;
+        }
+        
+        # no, use the client protocol.
+        
         # nickname lookup.
         $source = $pool->lookup_user_nick($1) if $source =~ m/^(.+)!.*@.*/;
         
@@ -182,7 +191,7 @@ sub source {
             $pool->lookup_user_nick($source);
         
         $msg->{source} = $source if $source;
-        return $source;
+        return $source;        
     }
     
     # it's a connection object.
@@ -200,6 +209,7 @@ sub source {
 sub parse_params {
     my ($msg, $param_string) = @_;
     my @parameters = split /\s+/, $param_string;
+    my $package    = $msg->{param_package} || __PACKAGE__;
 
     # parse argument type attributes and required parameters.
     my $required_parameters = 0; # number of parameters that will be checked
@@ -263,10 +273,8 @@ sub parse_params {
         my ($type, $fake) = $_t;
         if ($type =~ s/^-//) { $fake = 1  }
         else                 { $param_i++ }
-
-        # split into a type and possibly an identifier.
         my $param = $params[$param_i];
-        
+                
         # if this is not a fake matcher, and if there is no parameter,
         # we should skip this. well, we should be done with the rest, too.
         last if !$fake && !defined $param;
@@ -287,7 +295,7 @@ sub parse_params {
         }
         
         # code-implemented type.
-        elsif (my $param_code = __PACKAGE__->can("_param_$type")) {
+        elsif (my $param_code = $package->can("_param_$type")) {
             my $res = $param_code->($msg, $param, \@final, $match_attr[$match_i]);
             return $PARAM_BAD if $res && $res eq $PARAM_BAD;
         }
@@ -301,6 +309,10 @@ sub parse_params {
     }
     return @final;
 }
+
+#######################################
+### Client protocol parameter types ###
+#######################################
 
 # -message: inserts the message object.
 sub _param_message {
@@ -382,7 +394,6 @@ sub _param_channel {
     
     push @$params, $channel;
 }
-
 
 
 $mod

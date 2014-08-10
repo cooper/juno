@@ -25,23 +25,21 @@ our ($api, $mod, $me, $pool);
 
 sub init {
 
-    # basically, this forwards to server/user ->handle().
-    # it is the lowest priority of the events fired together in ->handle() below.
-    # by default, registration commands that work post-registration stop the event
-    # before it would reach these handlers.
-    # THIS IS ONLY USED FOR SERVERS AS OF 8 July 2014.
-    $pool->on('connection.raw' => sub {
-        my ($connection, $event, $data, @args) = @_;
-        return unless $connection->server;
-        $connection->{type}->handle($data, \@args);
-    }, name => 'high.level.handlers', priority => -100, with_eo => 1);
-
     # send unknown command. this is canceled by handlers.
     $pool->on('connection.message' => sub {
         my ($connection, $event, $msg) = @_;
-        return if $connection->server;
+        
+        # ignore things that aren't a big deal.
         return if $msg->command eq 'NOTICE' && ($msg->param(0) || '') eq '*';
         return if looks_like_number($msg->command); # numeric
+        
+        # server command unknown.
+        if ($connection->server) {
+            my ($command, $name) = ($msg->command, $connection->server->name);
+            notice(server_warning => "unknown command $command from $name!");
+            return;
+        }
+        
         $connection->numeric(ERR_UNKNOWNCOMMAND => $msg->raw_cmd);
         return;
     }, name => 'ERR_UNKNOWNCOMMAND', priority => -200, with_eo => 1);
@@ -110,8 +108,16 @@ print "GET: $data\n";
     );
     
     # user events.
-    my $user = $connection->user;
-    push @events, $user->events_for_message($msg) if $user;
+    if (my $user = $connection->user) {
+        push @events, $user->events_for_message($msg);
+    }
+    
+    # if it's a server, add the $PROTO_message events.
+    elsif (my $server = $connection->server) {
+        my $proto = $server->{link_type};
+        push @events, [ $server, "${proto}_message"        => $msg ],
+                      [ $server, "${proto}_message_${cmd}" => $msg ];
+    }
     
     # fire with safe option.
     my $fire = $connection->prepare(@events)->fire('safe');

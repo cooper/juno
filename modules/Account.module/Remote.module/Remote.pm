@@ -32,33 +32,33 @@ sub init {
     );
     
     # incoming commands.
-    $mod->register_server_command(%$_) || return foreach (
+    $mod->register_jelp_command(%$_) || return foreach (
         {
             name       => 'acct',
-            parameters => 'dummy :rest', # don't even care about source
+            parameters => ':rest', # don't even care about source
             code       => \&in_acct,
             forward    => 2 # never forward during burst
         },
         {
             name       => 'acctinfo',
-            parameters => 'dummy @rest',
+            parameters => '@rest',
             code       => \&in_acctinfo,
             forward    => 1
         },
         {
             name       => 'acctidk',
-            parameters => 'dummy @rest',
+            parameters => '@rest',
             code       => \&in_acctidk
         },
         {
             name       => 'login',
-            parameters => 'user any',
+            parameters => '-source(user) any',
             code       => \&in_login,
             forward    => 1
         },
         {
             name       => 'logout',
-            parameters => 'user',
+            parameters => '-source(user)',
             code       => \&in_logout,
             forward    => 1
         }
@@ -157,7 +157,7 @@ sub out_logout {
 sub in_acct {
     # server  :rest
     # :sid ACCT info
-    my ($server, $data, $str) = @_;
+    my ($server, $event, $str) = @_;
     my @items = split /\W/, trim($str);
     return if @items % 3;
     
@@ -219,7 +219,7 @@ sub in_acct {
 
 # :sid ACCTIDK 1.1 1.2
 sub in_acctidk {
-    my ($server, $data, @items) = @_;
+    my ($server, $event, @items) = @_;
     
     # find the accounts.
     my @accts;
@@ -238,7 +238,7 @@ sub in_acctidk {
 # TODO: if any users are logged into an account that is updated,
 # update that information in their {account}.
 sub in_acctinfo {
-    my ($server, $data, @rest) = @_;
+    my ($server, $event, @rest) = @_;
     return if @rest % 2;
     my %act = @rest;
     return unless defined $act{csid} && defined $act{id};
@@ -247,7 +247,7 @@ sub in_acctinfo {
 
 # :uid LOGIN sid.aid,updated
 sub in_login {
-    my ($server, $data, $user, $str) = @_;
+    my ($server, $event, $user, $str) = @_;
     my ($sid, $aid, $updated) = split /\W/, $str or return;
     my $act = lookup_account_sid_aid($sid, $aid);
     
@@ -270,7 +270,7 @@ sub in_login {
 
 # :uid LOGOUT
 sub in_logout {
-    my ($server, $data, $user) = @_;
+    my ($server, $event, $user) = @_;
     $user->account->logout_user($user) if $user->account;
 }
 

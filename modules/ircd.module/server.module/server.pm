@@ -374,53 +374,7 @@ sub all_users    {        @{ shift->{users}    }                  }
 ############
 
 # handle incoming server data.
-sub handle {
-    my ($server, $data) = @_;
-    return if !$server->{conn} || $server->{conn}{goodbye};
-    
-    # FIXME: temporary.
-    my $type = $server->{link_type};
-    return if defined $type && $type ne 'jelp';
-    
-    # if debug logging is enabled, log.
-    L($server->{name}.q(: ).$data) if conf('log', 'server_debug');
-
-    my @s = split /\s+/, $data;
-    return unless length $s[1];
-    my $command = uc $s[1];
-
-    # if it doesn't exist, ignore it and move on.
-    # it might make sense to assume incompatibility and drop the server,
-    # but I don't want to do that because
-    my @handlers = $pool->server_handlers($command);
-    if (!@handlers) {
-    
-        # numerics that are not handled should be silently ignored.
-        return if looks_like_number($command);
-        
-        notice(server_warning => "unknown command $command from $$server{name}!");
-        return;
-    }
-
-    # it exists - handle it.
-    foreach my $handler (@handlers) {
-        last if !$server->{conn} || $server->{conn}{goodbye};
-        
-        $handler->{code}($server, $data, @s);
-
-        # forward to children.
-        # $server is used here so that it will be ignored.
-        #
-        # by default, things are forwarded if I have sent MY burst.
-        # forward = 2 means don't do it even if THAT server is bursting.
-        #
-        next if ($handler->{forward} || -1) == 2 && $server->{is_burst};
-        send_children($server, $data) if $handler->{forward};
-        
-    }
-    
-    return 1;
-}
+sub handle {}
 
 # send burst to a connected server.
 sub send_burst {

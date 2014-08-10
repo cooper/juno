@@ -21,139 +21,166 @@ our ($api, $mod, $pool, $me);
 
 my %scommands = (
     SID => {
-        params  => 'server any ts any any any :rest',
+                   # :sid   SID      sid  time  name  proto_v  ircd_v  desc
+        params  => '-source(server)  any  ts    any   any      any     :rest',
         code    => \&sid,
         forward => 1
     },
     UID => {
-        params  => 'server any ts any any any any any any :rest',
+                   # :sid UID       uid  time modes nick ident host cloak ip    realname
+        params  => '-source(server) any  ts   any   any  any   any  any   any   :rest',
         code    => \&uid,
         forward => 1
     },
     QUIT => {
-        params  => 'source :rest',
+                   # needs data for manual forwarding
+                   #      :src QUIT :reason
+        params  => '-data -source   :rest',
         code    => \&quit
       # forward => handled manually
     },
     NICK => {
-        params  => 'user any',
+                   # :uid NICK    newnick
+        params  => '-source(user) any',
         code    => \&nick,
         forward => 1
     },
     BURST => {
-        params  => 'server',
+                   # :sid BURST     time
+        params  => '-source(server) ts',
         code    => \&burst,
         forward => 1
     },
     ENDBURST => {
-        params  => 'server',
+                   # :sid ENDBURST  time
+        params  => '-source(server) ts',
         code    => \&endburst,
         forward => 1
     },
     ADDUMODE => {
-        params  => 'server any any',
+                   # :sid ADDUMODE  name letter
+        params  => '-source(server) any  any',
         code    => \&addumode,
         forward => 1
     },
     UMODE => {
-        params  => 'user any',
+                   # :uid UMODE   +modes
+        params  => '-source(user) any',
         code    => \&umode,
         forward => 1
     },
     PRIVMSG => {
-        params  => 'any -command any :rest',
+                   # :src   PRIVMSG  target :message
+        params  => '-source -command any    :rest',
         code    => \&privmsgnotice,
       # forward => handled manually
     },
     NOTICE => {
-        params  => 'any -command any :rest',
+                   # :src   NOTICE   target :message
+        params  => '-source -command any    :rest',
         code    => \&privmsgnotice,
       # forward => handled manually
     },
     JOIN => {
-        params  => 'user any ts',
+                   # :uid JOIN    ch_name time
+        params  => '-source(user) any     ts',
         code    => \&sjoin,
         forward => 1
     },
     OPER => {
-        params  => 'user @rest',
+                   # :uid OPER    flag1 flag2 ...
+        params  => '-source(user) @rest',
         code    => \&oper,
         forward => 1
     },
     AWAY => {
-        params  => 'user :rest',
+                   # :uid AWAY    :reason
+        params  => '-source(user) :rest',
         code    => \&away,
         forward => 1
     },
     RETURN => {
-        params  => 'user',
+                   # :uid RETURN
+        params  => '-source(user)',
         code    => \&return_away,
         forward => 1
     },
     ADDCMODE => {
-        params  => 'server any any any',
+                   # :sid ADDCMODE  name letter type
+        params  => '-source(server) any  any    any',
         code    => \&addcmode,
         forward => 1
     },
     CMODE => {
-        params  => 'source channel ts server :rest',
+                   # :src   channel   time   perspective   :modestr
+        params  => '-source channel   ts     server        :rest',
         code    => \&cmode,
         forward => 1
     },
     PART => {
-        params  => 'user channel ts :rest',
+                   # :uid PART    channel time :reason
+        params  => '-source(user) channel ts   :rest',
         code    => \&part,
         forward => 1
     },
     TOPIC => {
-        params  => 'source channel ts ts :rest',
+                   # :src TOPIC     ch_time topic_time :topic 
+        params  => '-source channel ts      ts         :rest',
         code    => \&topic,
         forward => 1
     },
     TOPICBURST => {
-        params  => 'source channel ts any ts :rest',
+                   # :sid TOPICBURST channel ch_time setby topic_time :topic
+        params  => '-source(server)  channel ts      any   ts         :rest',
         code    => \&topicburst,
         forward => 1
     },
     KILL => {
-        params  => 'user user :rest',
+                   # :src KILL uid  :reason
+        params  => '-source    user :rest',
         code    => \&skill,
         forward => 1
     },
     AUM => {
-        params  => 'server @rest',
+                   # :sid AUM       name1:letter1 name2:letter2 ...
+        params  => '-source(server) @rest',
         code    => \&aum,
         forward => 1
     },
     ACM => {
-        params  => 'server @rest',
+                   # :sid ACM       name1:letter1:type1 name2:letter2:type2 ...
+        params  => '-source(server) @rest',
         code    => \&acm,
         forward => 1
     },
     CUM => {
-        params  => 'server any ts any :rest',
+                   # :sid CUM       ch_name time user_list :mode_string
+        params  => '-source(server) any     ts   any       :rest',
         code    => \&cum,
         forward => 1
     },
     KICK => {
-        params  => 'source channel user :rest',
+                   # :src KICK channel uid  :reason
+        params  => '-source    channel user :rest',
         code    => \&kick,
         forward => 1
     },
     NUM => {
-        params  => 'server user any :rest',
+                   # :sid NUM       uid  integer :message
+        params  => '-source(server) user any     :rest',
         code    => \&num,
       # forward => handled manually
     },
     LINKS => {
-        params  => 'user server any any',
+                   # :uid LINKS    target_serv serv_mask query_mask
+        params  => '-source(user)  server      any       any',
         code    => \&links,
       # forward => handled manually
     }
 );
  
 sub init {
-    $mod->register_server_command(
+    $mod->register_jelp_command(
         name       => $_,
         parameters => $scommands{$_}{params},
         code       => $scommands{$_}{code},
@@ -171,7 +198,7 @@ sub init {
 sub sid {
     # server any    ts any  any   any  :rest
     # :sid   SID   newsid ts name proto ircd :desc
-    my ($server, $data, @args) = @_;
+    my ($server, $event, @args) = @_;
 
     my $ref          = {};
     $ref->{$_}       = shift @args foreach qw[parent sid time name proto ircd desc];
@@ -193,7 +220,7 @@ sub sid {
 sub uid {
     # server any ts any   any  any   any  any   any :rest
     # :sid   UID   uid ts modes nick ident host cloak ip  :realname
-    my ($server, $data, @args) = @_;
+    my ($server, $event, @args) = @_;
     
     my $ref          = {};
     $ref->{$_}       = shift @args foreach qw[server uid time modes nick ident host cloak ip real];
@@ -247,7 +274,7 @@ sub uid {
 sub quit {
     # source   :rest
     # :source QUIT   :reason
-    my ($server, $data, $source, $reason) = @_;
+    my ($server, $event, $data, $source, $reason) = @_;
     return if $source == $me;
     
     # tell other servers.
@@ -264,7 +291,7 @@ sub quit {
 sub nick {
     # user any
     # :uid NICK  newnick
-    my ($server, $data, $user, $newnick) = @_;
+    my ($server, $event, $user, $newnick) = @_;
 
     # tell ppl
     $user->send_to_channels("NICK $newnick");
@@ -274,7 +301,7 @@ sub nick {
 sub burst {
     # server dummy
     # :sid   BURST
-    my ($server, $data, $serv) = @_;
+    my ($server, $event, $serv, $their_time) = @_;
     $serv->{is_burst} = time;
     L("$$serv{name} is bursting information");
     notice(server_burst => $serv->{name}, $serv->{sid});
@@ -283,7 +310,7 @@ sub burst {
 sub endburst {
     # server dummy
     # :sid   ENDBURST
-    my ($server, $data, $serv) = @_;
+    my ($server, $event, $serv) = @_;
     my $time    = delete $serv->{is_burst};
     my $elapsed = time - $time;
     $serv->{sent_burst} = time;
@@ -299,30 +326,22 @@ sub endburst {
 sub addumode {
     # server    any  any
     # :sid   ADDUMODE name letter
-    my ($server, $data, $serv) = (shift, shift, shift);
+    my ($server, $event, $serv) = (shift, shift, shift);
     $serv->add_umode(shift, shift);
 }
 
 sub umode {
     # user any
     # :uid UMODE modestring
-    my ($server, $data, $user, $str) = @_;
+    my ($server, $event, $user, $str) = @_;
     $user->do_mode_string_local($str, 1);
 }
 
 sub privmsgnotice {
     #                   any         command        any      :rest
     #                   :source     PRIVMSG|NOTICE target   :message
-    my ($server, $data, $sourcestr, $command,      $target, $message) = @_;
+    my ($server, $event, $source,   $command,      $target, $message) = @_;
     
-    # find the source.
-    # this must be done manually because the source matcher disconnects
-    # servers for protocol error when receiving notices from server name
-    # such as "lookup up your hostname," "found your hostname," etc.
-    $sourcestr = col($sourcestr);
-    my $source = $pool->lookup_user($sourcestr) ||
-                 $pool->lookup_server($sourcestr) or return;
-
     # is it a user?
     my $tuser = $pool->lookup_user($target);
     if ($tuser) {
@@ -352,7 +371,7 @@ sub privmsgnotice {
 sub sjoin {
     # user any     ts
     # :uid JOIN  channel time
-    my ($server, $data, $user, $chname, $time) = @_;
+    my ($server, $event, $user, $chname, $time) = @_;
     my $channel = $pool->lookup_channel($chname);
 
     # channel doesn't exist; make a new one
@@ -380,7 +399,7 @@ sub sjoin {
 sub oper {
     # user @rest
     # :uid OPER  flag flag flag
-    my ($server, $data, $user, @flags) = @_;
+    my ($server, $event, $user, @flags) = @_;
     my (@add, @remove);
     foreach my $flag (@flags) {
         my $first = \substr($flag, 0, 1);
@@ -398,14 +417,14 @@ sub oper {
 sub away {
     # user :rest
     # :uid AWAY  :reason
-    my ($server, $data, $user, $reason) = @_;
+    my ($server, $event, $user, $reason) = @_;
     $user->set_away($reason);
 }
 
 sub return_away {
     # user dummy
     # :uid RETURN
-    my ($server, $data, $user) = @_;
+    my ($server, $event, $user) = @_;
     $user->unset_away();
 }
 
@@ -413,7 +432,7 @@ sub return_away {
 sub addcmode {
     # server    any  any    any
     # :sid   ADDCMODE name letter type
-    my ($server, $data, $serv, @args) = @_;
+    my ($server, $event, $serv, @args) = @_;
     $serv->add_cmode(@args);
 }
 
@@ -421,7 +440,7 @@ sub addcmode {
 sub cmode {
     #                   source   channel   ts     server        :rest
     #                  :source   channel   time   perspective   :modestr
-    my ($server, $data, $source, $channel, $time, $perspective, $modestr) = @_;
+    my ($server, $event, $source, $channel, $time, $perspective, $modestr) = @_;
 
     # ignore if time is older and take lower time
     return if $time > $channel->{time};
@@ -436,7 +455,7 @@ sub cmode {
 sub part {
     # user channel ts   :rest
     # :uid PART  channel time :reason
-    my ($server, $data, $user, $channel, $time, $reason) = @_;
+    my ($server, $event, $user, $channel, $time, $reason) = @_;
 
     # take the lower time
     $channel->take_lower_time($time);
@@ -460,7 +479,7 @@ sub part {
 sub aum {
     # server @rest
     # :sid   AUM   name:letter name:letter
-    my ($server, $data, $serv) = (shift, shift, shift);
+    my ($server, $event, $serv) = (shift, shift, shift);
     foreach my $str (@_) {
         my ($name, $letter) = split /:/, $str;
         next if !length $name || !length $letter;
@@ -473,7 +492,7 @@ sub aum {
 sub acm {
     # server @rest
     # :sid   ACM   name:letter:type name:letter:type
-    my ($server, $data, $serv) = (shift, shift, shift);
+    my ($server, $event, $serv) = (shift, shift, shift);
     foreach my $str (@_) {
         my ($name, $letter, $type) = split /:/, $str, 3;
         
@@ -492,7 +511,7 @@ sub acm {
 sub cum {
     # server any     ts   any   :rest
     # :sid   CUM   channel time users :modestr
-    my ($server, $data, $serv, $chname, $ts, $userstr, $modestr) = @_;
+    my ($server, $event, $serv, $chname, $ts, $userstr, $modestr) = @_;
 
     # we cannot assume that this a new channel
     my $channel = $pool->lookup_channel($chname) || $pool->new_channel(
@@ -571,7 +590,7 @@ sub cum {
 sub topic {
     # source  channel ts ts   :rest
     # :source TOPIC channel ts time :topic
-    my ($server, $data, $source, $channel, $ts, $time, $topic) = @_;
+    my ($server, $event, $source, $channel, $ts, $time, $topic) = @_;
 
     # check that channel exists
     return unless $channel;
@@ -603,7 +622,7 @@ sub topic {
 sub topicburst {
     # source      channel ts   any   ts   :rest
     # :sid   TOPICBURST channel ts   setby time :topic
-    my ($server, $data, $source, $channel, $ts, $setby, $time, $topic) = @_;
+    my ($server, $event, $s_serv, $channel, $ts, $setby, $time, $topic) = @_;
 
     if ($channel->take_lower_time($ts) != $ts) {
         # bad channel time
@@ -613,7 +632,7 @@ sub topicburst {
     # tell users.
     my $t = $channel->topic;
     if (!$t or $t && $t->{topic} ne $topic) {
-        $channel->sendfrom_all($source->full, "TOPIC $$channel{name} :$topic");
+        $channel->sendfrom_all($s_serv->full, "TOPIC $$channel{name} :$topic");
     }
     
     # set it
@@ -635,17 +654,17 @@ sub topicburst {
 sub skill {
     # user  user :rest
     # :uid  KILL  uid  :reason
-    my ($server, $data, $user, $tuser, $reason) = @_;
+    my ($server, $event, $source, $tuser, $reason) = @_;
 
     # this ignores non-local users.
-    $tuser->get_killed_by($user, $reason);
+    $tuser->get_killed_by($source, $reason);
 
 }
 
 sub kick {
     # source channel user :rest
     # :id    KICK  channel uid  :reason
-    my ($server, $data, $source, $channel, $t_user, $reason) = @_;
+    my ($server, $event, $source, $channel, $t_user, $reason) = @_;
     
     # fallback reason to source.
     $reason //= $source->name;
@@ -667,7 +686,7 @@ sub kick {
 # remote numeric.
 # server user any :rest
 sub num {
-    my ($server, $data, $source, $user, $num, $message) = @_;
+    my ($server, $event, $source, $user, $num, $message) = @_;
     
     # local user.
     if ($user->is_local) {
@@ -683,7 +702,7 @@ sub num {
 }
 
 sub links {
-    my ($server, $data, $user, $t_server, $serv_mask, $query_mask) = @_;
+    my ($server, $event, $user, $t_server, $serv_mask, $query_mask) = @_;
 
     # this is the server match.
     if ($t_server->is_local) {
