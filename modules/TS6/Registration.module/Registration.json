@@ -1,0 +1,10 @@
+{
+   "package" : "M::TS6::Registration",
+   "version" : "0.4",
+   "name" : "TS6::Registration",
+   "description" : "registration commands for TS6 protocol",
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   }
+}

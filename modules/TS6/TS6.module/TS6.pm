@@ -19,10 +19,4 @@ use warnings;
 use strict;
 use 5.010;
 
-our ($api, $mod, $pool);
-
-sub init {
-}
-
-$mod
-
+our $mod;

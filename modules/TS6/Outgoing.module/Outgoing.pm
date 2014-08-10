@@ -51,12 +51,11 @@ our %ts6_outgoing = (
 );
 
 sub init {
-    $pool->on('server.send_burst' => \&send_burst, name => 'core', with_eo => 1);
+    $pool->on('server.send_ts6_burst' => \&send_burst, name => 'core', with_eo => 1);
 }
 
 sub send_burst {
     my ($server, $event) = @_;
-    $server->{link_type} eq 'ts6' or return;
     
     # servers.
     my ($do, %done);
@@ -93,7 +92,7 @@ sub send_burst {
     
     # channels.
     foreach my $channel ($pool->channels) {
-        $server->fire_command(cum => $channel, $server);
+        $server->fire_command(cum => $channel);
         
         # there is no topic or this server is how we got the topic.
         next if !$channel->topic;

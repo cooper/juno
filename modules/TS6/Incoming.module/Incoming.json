@@ -1,0 +1,10 @@
+{
+   "package" : "M::TS6::Incoming",
+   "version" : "0.1",
+   "name" : "TS6::Incoming",
+   "description" : "basic set of TS6 command handlers",
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   }
+}

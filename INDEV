@@ -2613,5 +2613,11 @@ CHANGES:
             JELP registration commands moved from Core::RegistrationCommands to new module JELP::Registration.
             listen on *port.
             
-        
+        26. all outgoing command handlers now have the first argument $server.
+            they can also return array refs of multiple lines to send.
+            server burst events are fired per-protocol as send_$PROTO_burst.
+            BURST and ENDBURST moved from ircd::server to JELP::Outgoing.
+            fixed bug where server description starting with colon would lose the colon.
+            implement TS6 registration commands PASS and SERVER.
+            
         

@@ -17,7 +17,7 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils qw(col conf notice irc_match);
+use utils qw(conf notice irc_match);
 
 our ($api, $mod, $pool);
         
@@ -40,8 +40,7 @@ our %registration_commands = (
 
 sub rcmd_server {
     my ($connection, $event, @args) = @_;
-    $connection->{$_}   = shift @args foreach qw[sid name proto ircd];
-    $connection->{desc} = col(join ' ', @args);
+    $connection->{$_} = shift @args foreach qw[sid name proto ircd desc];
 
     # if this was by our request (as in an autoconnect or /connect or something)
     # don't accept any server except the one we asked for.
@@ -111,6 +110,7 @@ sub rcmd_pass {
     # send my own PASS if I haven't already.
     $connection->send_server_pass if !$connection->{i_sent_pass};
     
+    $connection->{link_type} = 'jelp';
     $connection->reg_continue('id2');
     return 1;
 }

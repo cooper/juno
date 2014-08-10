@@ -1,0 +1,10 @@
+{
+   "author" : {
+      "website" : "https://github.com/cooper",
+      "name" : "Mitchell Cooper"
+   },
+   "version" : "0.1",
+   "name" : "TS6::Base",
+   "package" : "M::TS6::Base",
+   "description" : "programming interface for TS6"
+}

@@ -25,7 +25,7 @@ sub init {
     $table = $M::Account::table or return;
 
     # IRCd event for burst.
-    $pool->on('server.send_burst' => \&send_burst,
+    $pool->on('server.send_jelp_burst' => \&send_burst,
         name  => 'account',
         after => 'core',
         with_eo => 1
@@ -101,6 +101,7 @@ sub send_burst {
 #########################
 
 sub out_acct {
+    my $to_server = shift;
     return unless @_;
     my $str = '';
     foreach my $act (@_) {
@@ -111,7 +112,7 @@ sub out_acct {
 }
 
 sub out_acctinfo {
-    my $act = shift;
+    my ($to_server, $act) = @_;
     my $str = '';
     foreach my $key (keys %$act) {
         my $value = $act->{$key};
@@ -123,6 +124,7 @@ sub out_acctinfo {
 }
 
 sub out_acctidk {
+    my $to_server = shift;
     my $str = '';
     while (@_) {
         my $item = shift;
@@ -138,13 +140,13 @@ sub out_acctidk {
 }
 
 sub out_login {
-    my ($user, $act) = @_;
+    my ($to_server, $user, $act) = @_;
     my $id = $act->id;
     ":$$user{uid} LOGIN $id,$$act{updated}"
 }
 
 sub out_logout {
-    my $user = shift;
+    my ($to_server, $user) = @_;
     ":$$user{uid} LOGOUT"
 }
 

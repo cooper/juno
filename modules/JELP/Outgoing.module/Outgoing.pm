@@ -52,8 +52,21 @@ sub init {
         code => $ocommands{$_}
     ) || return foreach keys %ocommands;
 
-    # register server burst event.
-    $pool->on('server.send_burst' => \&send_burst, name => 'core', with_eo => 1);
+    # register server burst events.
+    $pool->on('server.send_jelp_burst' => \&send_burst,
+        name     => 'core',
+        with_eo  => 1
+    );
+    $pool->on('server.send_jelp_burst' => \&send_startburst,
+        name     => 'startburst',
+        with_eo  => 1,
+        priority => 1000
+    );
+    $pool->on('server.send_jelp_burst' => \&send_endburst,
+        name     => 'endburst',
+        with_eo  => 1,
+        priority => -1000
+    );
     
     return 1;
 }
@@ -62,9 +75,14 @@ sub init {
 ### BURST ###
 #############
 
+sub send_startburst {
+    my ($server, $fire, $time) = @_;
+    $server->sendme("BURST $time");
+}
+
 sub send_burst {
     my ($server, $fire, $time) = @_;
-    
+
     # servers and mode names
     my ($do, %done);
 
@@ -122,7 +140,7 @@ sub send_burst {
 
     # channels, using compact CUM
     foreach my $channel ($pool->channels) {
-        $server->fire_command(cum => $channel, $server);
+        $server->fire_command(cum => $channel);
         
         # there is no topic or this server is how we got the topic.
         next if !$channel->topic;
@@ -132,20 +150,24 @@ sub send_burst {
     
 }
 
+sub send_endburst {
+    shift->sendme('ENDBURST '.time);
+}
+
 ###########
 # servers #
 ###########
 
 sub quit {
-    my ($connection, $reason) = @_;
+    my ($to_server, $connection, $reason) = @_;
     my $id = $connection->{type}->id;
     ":$id QUIT :$reason"
 }
 
 # new user
 sub uid {
-    my $user = shift;
-    my $cmd  = sprintf(
+    my ($to_server, $user) = @_;
+    my $cmd = sprintf(
         'UID %s %d %s %s %s %s %s %s :%s',
         $user->{uid}, $user->{time}, $user->mode_string,
         $user->{nick}, $user->{ident}, $user->{host},
@@ -155,8 +177,8 @@ sub uid {
 }
 
 sub sid {
-    my $serv = shift;
-    my $cmd  = sprintf(
+    my ($to_server, $serv) = @_;
+    my $cmd = sprintf(
         'SID %s %d %s %s %s :%s',
         $serv->{sid}, $serv->{time}, $serv->{name},
         $serv->{proto}, $serv->{ircd}, $serv->{desc}
@@ -165,19 +187,19 @@ sub sid {
 }
 
 sub addumode {
-    my ($serv, $name, $mode) = @_;
+    my ($to_server, $serv, $name, $mode) = @_;
     ":$$serv{sid} ADDUMODE $name $mode"
 }
 
 sub addcmode {
-    my ($serv, $name, $mode, $type) = @_;
+    my ($to_server, $serv, $name, $mode, $type) = @_;
     ":$$serv{sid} ADDCMODE $name $mode $type"
 }
 
 
 sub topicburst {
-    my $channel = shift;
-    my $cmd     = sprintf(
+    my ($to_server, $channel) = @_;
+    my $cmd = sprintf(
         'TOPICBURST %s %d %s %d :%s',
         $channel->name,
         $channel->{time},
@@ -195,19 +217,19 @@ sub topicburst {
 
 # nick change
 sub nickchange {
-    my $user = shift;
+    my ($to_server, $user) = @_;
     ":$$user{uid} NICK $$user{nick}"
 }
 
 # user mode change
 sub umode {
-    my ($user, $modestr) = @_;
+    my ($to_server, $user, $modestr) = @_;
     ":$$user{uid} UMODE $modestr"
 }
 
 # privmsg and notice
 sub privmsgnotice {
-    my ($cmd, $source, $target, $message) = @_;
+    my ($to_server, $cmd, $source, $target, $message) = @_;
     my $id  = $source->id;
     my $tid = $target->id;
     ":$id $cmd $tid :$message"
@@ -216,46 +238,46 @@ sub privmsgnotice {
 
 # channel join
 sub sjoin {
-    my ($user, $channel, $time) = @_;
+    my ($to_server, $user, $channel, $time) = @_;
     ":$$user{uid} JOIN $$channel{name} $time"
 }
 
 
 # add oper flags
 sub oper {
-    my ($user, @flags) = @_;
+    my ($to_server, $user, @flags) = @_;
     ":$$user{uid} OPER @flags"
 }
 
 
 # set away
 sub away {
-    my $user = shift;
+    my ($to_server, $user) = @_;
     ":$$user{uid} AWAY :$$user{away}"
 }
 
 
 # return from away
 sub return_away {
-    my $user = shift;
+    my ($to_server, $user) = @_;
     ":$$user{uid} RETURN"
 }
 
 # leave a channel
 sub part {
-    my ($user, $channel, $time, $reason) = @_;
+    my ($to_server, $user, $channel, $time, $reason) = @_;
     $reason ||= q();
     ":$$user{uid} PART $$channel{name} $time :$reason"
 }
 
 
 sub topic {
-    my ($user, $channel, $time, $topic) = @_;
+    my ($to_server, $user, $channel, $time, $topic) = @_;
     ":$$user{uid} TOPIC $$channel{name} $$channel{time} $time :$topic"
 }
 
 sub sconnect {
-    my ($user, $server, $tname) = @_;
+    my ($to_server, $user, $server, $tname) = @_;
     ":$$user{uid} CONNECT $$server{name} $tname"
 }
 
@@ -266,7 +288,7 @@ sub sconnect {
 # channel mode change
 
 sub cmode {
-    my ($source, $channel, $time, $perspective, $modestr) = @_;
+    my ($to_server, $source, $channel, $time, $perspective, $modestr) = @_;
     my $id = $source->id;
     ":$id CMODE $$channel{name} $time $perspective :$modestr"
 }
@@ -274,7 +296,7 @@ sub cmode {
 # kill
 
 sub skill {
-    my ($source, $tuser, $reason) = @_;
+    my ($to_server, $source, $tuser, $reason) = @_;
     my ($id, $tid) = ($source->id, $tuser->id);
     ":$id KILL $tid :$reason"
 }
@@ -286,7 +308,7 @@ sub skill {
 # channel user membership (channel burst)
 # $server = server to send to
 sub cum {
-    my ($channel, $server) = @_;
+    my ($server, $channel) = @_;
     
     # make +modes params string without status modes.
     # modes are from the perspective of this server, $me.
@@ -317,8 +339,7 @@ sub cum {
 
 # add cmodes
 sub acm {
-    my $serv  = shift;
-    my $modes = q();
+    my ($to_server, $serv, $modes) = (shift, shift, '');
     
     # iterate through each mode on the server.
     foreach my $name (keys %{ $serv->{cmodes} }) {
@@ -338,7 +359,7 @@ sub acm {
 
 # add umodes
 sub aum {
-    my $serv  = shift;
+    my ($to_server, $serv) = (shift, shift);
 
     my @modes = map {
        "$_:".($serv->umode_letter($_) || '')
@@ -352,7 +373,7 @@ sub aum {
 
 # KICK command.
 sub kick {
-    my ($source, $channel, $target, $reason) = @_;
+    my ($to_server, $source, $channel, $target, $reason) = @_;
     my $sourceid = $source->can('id') ? $source->id : '';
     my $targetid = $target->can('id') ? $target->id : '';
     return ":$sourceid KICK $$channel{name} $targetid :$reason";
@@ -360,12 +381,12 @@ sub kick {
 
 # remote numerics
 sub num {
-    my ($server, $t_user, $num, $message) = @_;
+    my ($to_server, $server, $t_user, $num, $message) = @_;
     ":$$server{sid} NUM $$t_user{uid} $num :$message"
 }
 
 sub links {
-    my ($user, $target_server, $server_mask, $query_mask) = @_;
+    my ($to_server, $user, $target_server, $server_mask, $query_mask) = @_;
     ":$$user{uid} LINKS $$target_server{sid} $server_mask $query_mask"
 }
 

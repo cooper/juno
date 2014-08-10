@@ -1,0 +1,19 @@
+{
+   "author" : {
+      "website" : "https://github.com/cooper",
+      "name" : "Mitchell Cooper"
+   },
+   "description" : "TS version 6 linking protocol",
+   "package" : "M::TS6",
+   "version" : "0.1",
+   "name" : "TS6",
+   "depends" : {
+      "modules" : [
+         "TS6::Utils",
+         "TS6::Base",
+         "TS6::Incoming",
+         "TS6::Outgoing",
+         "TS6::Registration"
+      ]
+   }
+}

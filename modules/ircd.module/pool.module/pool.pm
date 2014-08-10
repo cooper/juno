@@ -493,6 +493,7 @@ sub fire_oper_notice {
     
     # send to users with this notice flag.
     foreach my $user ($pool->actual_users) {
+        next unless blessed $user; # during destruction.
         next unless $user->is_mode('ircop');
         next unless $user->has_notice($notice);
         
@@ -599,8 +600,11 @@ sub fire_command {
     }
 
     # send to one server.
-    my $data = $pool->{outgoing_commands}{$command}{code}(@args);
-    $server->send($data) if length $data;
+    my $lines = $pool->{outgoing_commands}{$command}{code}($server, @args);
+    foreach my $line (ref $lines ? @$lines : $lines) {
+        next unless length $line;
+        $server->send($line);
+    }
 
     return 1;
 }
@@ -616,8 +620,13 @@ sub fire_command_all {
     }
 
     # send to all children.
-    my $data = $pool->{outgoing_commands}{$command}{code}(@args);
-    $me->send_children(undef, $data) if length $data;
+    foreach ($me->children) {
+
+        # don't send to servers who haven't received my burst.
+        next unless $_->{i_sent_burst};
+        
+        $_->fire_command($command => @args);
+    }
 
     return 1;
 }

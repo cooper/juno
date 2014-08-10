@@ -137,7 +137,7 @@ sub scmd_invite {
 
 # outgoing INVITE command.
 sub ocmd_invite {
-    my ($user, $t_user, $ch_name) = @_;
+    my ($to_server, $user, $t_user, $ch_name) = @_;
     ":$$user{uid} INVITE $$t_user{uid} $ch_name"
 }
 

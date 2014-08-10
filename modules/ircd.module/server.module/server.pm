@@ -378,6 +378,10 @@ sub handle {
     my ($server, $data) = @_;
     return if !$server->{conn} || $server->{conn}{goodbye};
     
+    # FIXME: temporary.
+    my $type = $server->{link_type};
+    return if defined $type && $type ne 'jelp';
+    
     # if debug logging is enabled, log.
     L($server->{name}.q(: ).$data) if conf('log', 'server_debug');
 
@@ -422,19 +426,16 @@ sub handle {
 sub send_burst {
     my $server = shift;
     return if $server->{i_sent_burst};
-    
-    # BURST.
     my $time = time;
-    $server->sendme("BURST $time");
 
-    # fire burst event.
-    $server->fire_event(send_burst => $time);
+    # fire burst events.
+    my $proto = $server->{link_type};
+    $server->prepare(
+        [ send_burst            => $time ],
+        [ "send_${proto}_burst" => $time ]
+    )->fire;
 
-    # ENDBURST.
-    $time = time;
-    $server->sendme("ENDBURST $time");
-    $server->{i_sent_burst} = $time;
-
+    $server->{i_sent_burst} = time;
     return 1;
 }
 
