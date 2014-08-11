@@ -52,8 +52,8 @@ sub new {
 
     bless my $connection = {
         stream        => $stream,
-        ip            => $stream->{write_handle}->peerhost,
-        host          => $stream->{write_handle}->peerhost,
+        ip            => utils::safe_ip($stream->{write_handle}->peerhost),
+        host          => utils::safe_ip($stream->{write_handle}->peerhost),
         localport     => $stream->{write_handle}->sockport,
         peerport      => $stream->{write_handle}->peerport,
         source        => $me->{sid},

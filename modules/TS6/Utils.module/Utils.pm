@@ -22,6 +22,10 @@ use utils 'import';
 
 our ($api, $mod, $pool, $conf);
 
+###################
+### juno -> TS6 ###
+###################
+
 # convert an object to its ID.
 sub ts6_id {
     my $obj = shift;
@@ -46,9 +50,8 @@ sub ts6_uid {
 
 # convert just the alphabetic portion of a UID.
 sub ts6_uid_u {
-    my $id  = uc shift;
-    my $pfx = 'A' x (6 - length $id);
-    return $pfx.$id;
+    my $id = shift;
+    return ts6_id_n(utils::a2n($id));
 }
 
 # convert juno level to prefix.
@@ -74,6 +77,60 @@ sub ts6_prefixes {
         $done{$prefix} = 1;
     }
     return $prefixes;
+}
+
+# get nth ts6 ID.
+sub ts6_id_n {
+    my $n = shift() - 1;
+    my @chars = ('A') x 6;
+    my $i = 0;
+    for my $pow (reverse 0..5) {
+        my $amnt = 36 ** $pow;
+        while ($n >= $amnt) {
+            if    ($chars[$i] eq 'Z') { $chars[$i] = '0' }
+            elsif ($chars[$i] eq '9') { $chars[$i] = 'A' }
+            else  { $chars[$i]++ }
+            $n -= $amnt;
+        }
+        $i++;
+    }
+    return join '', @chars;
+}
+
+###################
+### TS6 -> juno ###
+###################
+
+# TS6 SID -> juno SID
+# e.g. 000 -> 0
+sub sid_from_ts6 {
+    my $sid = shift;
+    return $sid + 0;
+}
+
+# TS6 UID -> juno UID
+# e.g. 000AAAAAA -> 0a
+sub uid_from_ts6 {
+    my $uid = shift;
+    my ($sid, $id) = ($uid =~ m/^([0-9]+)([A-Z]+)$/);
+    return sid_from_ts6($sid).uid_u_from_ts6($id);
+}
+
+# TS6 ID -> juno ID
+# e.g. AAAAAA -> a
+# thanks to @Hakkin for helping with this
+sub uid_u_from_ts6 { utils::n2a(&uid_n_from_ts6) }
+sub uid_n_from_ts6 {
+    my $dec   = 0;
+    my @chars = split //, shift;
+    for (my $i = 0; $i < 6; $i++) {
+        my $ord = ord $chars[$i];
+        my $add = $ord > 57 ? -65 : -22;
+        my $p   = $ord + $add;
+           $p  *= 36 ** (5 - $i) if $i < 5;
+         $dec  += $p;
+    }
+    return ++$dec;
 }
 
 $mod

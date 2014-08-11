@@ -2635,4 +2635,14 @@ CHANGES:
             server command forwarding is now executed by a separate, lower-priority event callback.
             registered servers now have events message_$CMD and $PROTO_message_$CMD.
             
+        29. now that linking protocol messages are parsed properly, IPv6 address can no longer begin with ASCII colon (:).
+            the safe_ip() utility was created to prepend one ASCII zero (0) to IPs starting with the ASCII colon (:).
+            added EUID TS6 server command handler.
+            added TS6 utilities:
+            ts6_id_n:           get the Nth ID in TS6 format;
+            sid_from_ts6:       convert TS6 SID to juno SID;
+            uid_from_ts6:       convert TS6 UID to juno UID;
+            uid_u_from_ts6:     convert the "ID" portion of a UID from TS6 to juno ID;
+            uid_n_from_ts6:     get the integral value of a TS6 UID.
+            
         

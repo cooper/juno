@@ -73,7 +73,7 @@ sub simplify {
 # convert array or hash ref to list or empty list if not ref.
 sub ref_to_list {
     my $ref = shift;
-    return () if !ref $ref;
+    return defined $ref ? ($ref) : () if !ref $ref;
     if (ref $ref eq 'ARRAY') { return @$ref }
     if (ref $ref eq 'HASH')  { return %$ref }
     return ();
@@ -133,6 +133,13 @@ sub irc_time {
     return POSIX::strftime('%a %b %d %Y at %H:%M:%S %Z', localtime $time);
 }
 
+# IRC-safe IP address.
+sub safe_ip {
+    my $ip = shift;
+    return $ip unless substr($ip, 0, 1) eq ':';
+    return "0$ip";
+}
+
 # chop a string to its limit as the config says.
 sub cut_to_limit {
     my ($limit, $string) = (conf('limit', shift), shift);
@@ -178,6 +185,24 @@ sub crypt {
     L("Crypt error: $package cannot $function!");
     return;
     
+}
+
+# alphabet notation to integer.
+sub a2n {
+    my $n = 0;
+    $n = $n * 26 + $_ for map { ord($_) & 0x1F } split //, shift;
+    return $n;
+}
+
+# integer to alphabet notation.
+sub n2a {
+    my $n = shift;
+    my @a;
+    while ($n > 0) {
+        unshift @a, ($n - 1) % 26;
+        $n = int($n / 26);
+    }
+    return join '', map chr(ord('a') + $_), @a;
 }
 
 # fetch variable.

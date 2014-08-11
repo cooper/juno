@@ -530,7 +530,7 @@ sub handle_connect {
     }
 
     # if the connection IP limit has been reached, disconnect.
-    my $ip = $stream->{write_handle}->peerhost;
+    my $ip = utils::safe_ip($stream->{write_handle}->peerhost);
     if (scalar(grep { $_->{ip} eq $ip } $pool->connections) > conf('limit', 'perip')) {
         $conn->done('Connections per IP limit exceeded');
         return;
