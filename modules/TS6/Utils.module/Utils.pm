@@ -123,7 +123,7 @@ sub uid_u_from_ts6 { utils::n2a(&uid_n_from_ts6) }
 sub uid_n_from_ts6 {
     my $dec   = 0;
     my @chars = split //, shift;
-    for (my $i = 0; $i < 6; $i++) {
+    for my $i (0..5) {
         my $ord = ord $chars[$i];
         my $add = $ord > 57 ? -65 : -22;
         my $p   = $ord + $add;
