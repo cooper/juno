@@ -157,7 +157,7 @@ sub out_logout {
 sub in_acct {
     # server  :rest
     # :sid ACCT info
-    my ($server, $event, $str) = @_;
+    my ($server, $msg, $str) = @_;
     my @items = split /\W/, trim($str);
     return if @items % 3;
     
@@ -219,7 +219,7 @@ sub in_acct {
 
 # :sid ACCTIDK 1.1 1.2
 sub in_acctidk {
-    my ($server, $event, @items) = @_;
+    my ($server, $msg, @items) = @_;
     
     # find the accounts.
     my @accts;
@@ -238,7 +238,7 @@ sub in_acctidk {
 # TODO: if any users are logged into an account that is updated,
 # update that information in their {account}.
 sub in_acctinfo {
-    my ($server, $event, @rest) = @_;
+    my ($server, $msg, @rest) = @_;
     return if @rest % 2;
     my %act = @rest;
     return unless defined $act{csid} && defined $act{id};
@@ -247,7 +247,7 @@ sub in_acctinfo {
 
 # :uid LOGIN sid.aid,updated
 sub in_login {
-    my ($server, $event, $user, $str) = @_;
+    my ($server, $msg, $user, $str) = @_;
     my ($sid, $aid, $updated) = split /\W/, $str or return;
     my $act = lookup_account_sid_aid($sid, $aid);
     
@@ -270,7 +270,7 @@ sub in_login {
 
 # :uid LOGOUT
 sub in_logout {
-    my ($server, $event, $user) = @_;
+    my ($server, $msg, $user) = @_;
     $user->account->logout_user($user) if $user->account;
 }
 

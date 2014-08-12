@@ -121,7 +121,7 @@ sub ucmd_invite {
 # server INVITE command.
 sub scmd_invite {
     # :uid INVITE target ch_name
-    my ($server, $event, $user, $t_user, $ch_name) = @_;
+    my ($server, $msg, $user, $t_user, $ch_name) = @_;
 
     # local user.
     if ($t_user->is_local) {

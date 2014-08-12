@@ -1,16 +1,16 @@
 {
+   "description" : "basic set of TS6 outgoing commands",
+   "version" : "3.1",
+   "package" : "M::TS6::Outgoing",
    "depends" : {
       "modules" : [
          "TS6::Utils",
          "TS6::Base"
       ]
    },
-   "package" : "M::TS6::Outgoing",
-   "description" : "basic set of TS6 outgoing commands",
-   "version" : "2.6",
+   "name" : "TS6::Outgoing",
    "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
-   },
-   "name" : "TS6::Outgoing"
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   }
 }

@@ -157,6 +157,7 @@ sub tags    { shift->{tags}             }
 sub tag     { shift->{tags}{+shift}     }
 sub params  { @{ shift->{params} }      }
 sub param   { shift->{params}[shift]    }
+sub event   { shift->{_event}           }
 
 sub source_nick  { ... }
 sub source_ident { ... }
@@ -279,6 +280,8 @@ sub parse_params {
         # we should skip this. well, we should be done with the rest, too.
         last if !$fake && !defined $param;
         
+        my $param_code = $package->can("_param_$type") || __PACKAGE__->can("_any_$type");
+        
         # any string.
         if ($type eq '*' || $type eq 'any') {
             push @final, $param;
@@ -295,7 +298,7 @@ sub parse_params {
         }
         
         # code-implemented type.
-        elsif (my $param_code = $package->can("_param_$type")) {
+        elsif ($param_code) {
             my $res = $param_code->($msg, $param, \@final, $match_attr[$match_i]);
             return $PARAM_BAD if $res && $res eq $PARAM_BAD;
         }
@@ -310,27 +313,37 @@ sub parse_params {
     return @final;
 }
 
-#######################################
-### Client protocol parameter types ###
-#######################################
+############################################
+### Protocol-independent parameter types ###
+############################################
 
 # -message: inserts the message object.
-sub _param_message {
+sub _any_message {
     my ($msg, $param, $params, $opts) = @_;
     push @$params, $msg;
 }
 
+# -event: inserts the event fire object.
+sub _any_event {
+    my ($msg, $param, $params, $opts) = @_;
+    push @$params, $msg->{_event};
+}
+
 # -data: inserts the raw line of data.
-sub _param_data {
+sub _any_data {
     my ($msg, $param, $params, $opts) = @_;
     push @$params, $msg->{data};
 }
 
 # -command: inserts the command name.
-sub _param_command {
+sub _any_command {
     my ($msg, $param, $params, $opts) = @_;
     push @$params, $msg->{command};
 }
+
+#######################################
+### Client protocol parameter types ###
+#######################################
 
 # -oper: checks if oper flags are present.
 sub _param_oper {
@@ -395,5 +408,33 @@ sub _param_channel {
     push @$params, $channel;
 }
 
+#################################
+### Server message forwarding ###
+#################################
+
+# forward to all servers except the source.
+sub forward {
+    my ($msg, $e_name, $amnt) = (shift, shift, 0);
+    my $server = $msg->{_physical_server} or return;
+
+    # send to all children.
+    foreach ($me->children) {
+
+        # don't send to servers who haven't received my burst.
+        next unless $_->{i_sent_burst};
+        
+        # don't send to the server we got it from.
+        next if $_ == $server;
+        
+        $amnt++ if $_->fire_command($e_name => @_);
+    }
+    return $amnt;
+}
+
+# forward to a specific server.
+sub forward_to {
+    my ($msg, $server, $e_name, @args) = @_;
+    return $server->fire_command($e_name => @args);
+}
 
 $mod

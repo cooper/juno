@@ -18,27 +18,28 @@ use 5.010;
 our ($api, $mod, $me, $pool);
 
 my %ocommands = (
-    quit          => \&quit,
-    new_server    => \&sid,                                 # sid
-    uid           => \&uid,
-    nickchange    => \&nickchange,
-    umode         => \&umode,
-    privmsgnotice => \&privmsgnotice,
-    join          => \&_join,                               # sjoin
-    oper          => \&oper,
-    away          => \&away,
-    return_away   => \&return_away,
-    part          => \&part,
-    topic         => \&topic,
-    cmode         => \&cmode,
-    channel_burst => sub { (&cum, &topicburst) },           # cum
-    acm           => \&acm,
-    aum           => \&aum,
-    kill          => \&skill,
-    connect       => \&sconnect,
-    kick          => \&kick,
-    num           => \&num,
-    links         => \&links
+    quit            => \&quit,
+    new_server      => \&sid,                               # sid
+    new_user        => \&uid,                               # uid
+    nickchange      => \&nickchange,
+    umode           => \&umode,
+    privmsgnotice   => \&privmsgnotice,
+    join            => \&_join,                             # sjoin
+    oper            => \&oper,
+    away            => \&away,
+    return_away     => \&return_away,
+    part            => \&part,
+    topic           => \&topic,
+    cmode           => \&cmode,
+    channel_burst   => sub { (&cum, &topicburst) },         # cum
+    create_channel  => \&cum,
+    acm             => \&acm,
+    aum             => \&aum,
+    kill            => \&skill,
+    connect         => \&sconnect,
+    kick            => \&kick,
+    num             => \&num,
+    links           => \&links
 );
 
 sub init {
@@ -121,7 +122,7 @@ sub send_burst {
         # ignore users the server already knows!
         next if $user->{server} == $server || $user->{source} == $server->{sid};
         
-        $server->fire_command(uid => $user);
+        $server->fire_command(new_user => $user);
         
         # oper flags
         if (scalar @{ $user->{flags} }) {

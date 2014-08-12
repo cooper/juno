@@ -425,7 +425,7 @@ sub new_connection {
     $user->sendfrom($user->{nick}, "MODE $$user{nick} :".$user->mode_string);
 
     # tell other servers
-    $pool->fire_command_all(uid => $user);
+    $pool->fire_command_all(new_user => $user);
     
     return $user->{init_complete} = 1;
 }

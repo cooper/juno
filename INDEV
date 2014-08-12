@@ -2657,5 +2657,31 @@ CHANGES:
         added TS6 utilities:
         obj_from_ts6:           convert a TS6 ID to an object;
         user_from_ts6:          convert a TS6 UID to a user object;
-        server_from_ts:         convert a TS6 SID to a server object.
+        server_from_ts6:        convert a TS6 SID to a server object.
+        
+        
+        31. * the server ->cmode_string_difference() method now takes an argument
+              $remove_none which indicates that no modes should be unset. this was
+              previously not necessary for JELP because the servers burst one-at-a-time.
+              
+            * message parameter modifiers that are protocol-independent such as -msg,
+              -command, etc. now are provided by the message class rather and no longer
+              are required for each protocol implementation.
+              
+            * all outgoing command subroutines now have the message object rather than the
+              event fire object as their second argument.
+              
+            * the fire object can be retrieved through $msg->event.
+            
+            * added methods to message objects that aid the forwarding of translated
+              messages from one protocol to another:
+              $msg->forward:      forward a message to all servers but the source;
+              $msg->forward_to:   forward a message to a specific server.
+              
+            * added new forwarding logic to TS6 commands EUID and SJOIN.
+            
+            * renamed outgoing event uid -> new_user.
+            
+            * added new outgoing event create_channel for CUM/SJOIN
+              (new channel, not necessarily during burst).
         

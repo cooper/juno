@@ -591,7 +591,7 @@ sub take_lower_time {
     # note: we don't do this for CUM cmd ($ignore_modes = 1) because it handles
     #       modes in a prettier manner.
     if (!$ignore_modes) {
-        my ($u_str, $s_str) = $channel->mode_string_all($me);
+        my ($u_str, $s_str)  = $channel->mode_string_all($me);
         substr($u_str, 0, 1) = substr($s_str, 0, 1) = '-';
         $channel->sendfrom_all($me->{name}, "MODE $$channel{name} $u_str");
         $channel->handle_mode_string($me, $me, $s_str, 1, 1);

@@ -27,14 +27,12 @@ our %ts6_incoming_commands = (
     EUID => {
                    # :sid EUID      nick hopcount nick_ts umodes ident cloak ip  uid host act :realname
         params  => '-source(server) *    *        ts      *      *     *     *   *   *    *   :rest',
-        code    => \&euid,
-        #forward => 1
+        code    => \&euid
     },
     SJOIN => {
                   # :sid SJOIN     ch_time ch_name mode_str mode_params... :nicklist
         params => '-source(server) ts      *       *        @rest',
         code   => \&sjoin
-        #forward => 1
     }
 );
 
@@ -51,7 +49,7 @@ our %ts6_incoming_commands = (
 # ts6-protocol.txt:315
 #
 sub euid {
-    my ($server, $event, $source_serv, @rest) = @_;
+    my ($server, $msg, $source_serv, @rest) = @_;
     my %u = (
         server   => $source_serv,       # the actual server the user connects from
         source   => $server->{sid},     # SID of the server who told us about him
@@ -79,15 +77,22 @@ sub euid {
     my $used = $pool->lookup_user_nick($u{nick});
     if ($used) {
         # TODO: this.
-        return;
+        return; # don't actually return
     }
 
     # create a new user with the given modes.
     my $user = $pool->new_user(%u);
     $user->handle_mode_string($mode_str, 1);
 
-    return 1;
 
+    # === Forward ===
+    #
+    #   JELP:   UID
+    #   TS6:    EUID
+    #
+    $msg->forward(new_user => $user);
+
+    return 1;
 }
 
 # SJOIN
@@ -100,7 +105,7 @@ sub euid {
 #
 sub sjoin {
     my $nicklist = pop;
-    my ($server, $event, $serv, $ts, $ch_name, $mode_str, @mode_params) = @_;
+    my ($server, $msg, $serv, $ts, $ch_name, $mode_str, @mode_params) = @_;
 
     # maybe we have a channel by this name, otherwise create one.
     my $channel = $pool->lookup_channel($ch_name) || $pool->new_channel(
@@ -119,24 +124,15 @@ sub sjoin {
     my $new_time = $channel->take_lower_time($ts, 1);
     my $accept_new_modes;
     
-    # the channel TS changed (it was older).
-    if ($new_time < $old_time) {
-        # accept all new modes and propagate all simple modes, not just the difference.
-        # wipe out our old modes. (already done)
-        $accept_new_modes++;
-    }
+    # their TS is either older or the same.
+    #
+    # 1. wipe out our old modes. (already done by ->take_lower_time())
+    # 2. accept all new modes.
+    # 3. propagate all simple modes (not just the difference).
+    #
+    $accept_new_modes++ if $new_time <= $old_time;
 
-    # the TS is the same as ours.
-    elsif ($ts == $old_time) {
-        $accept_new_modes++;
-    }
-    
-    # their time was bad (newer).
-    else {
-        # propagate only the users, not the modes.
-        # ignore the modes and prefixes.
-    }
-print "NICKLIST: $nicklist\n";
+
     # handle the nick list.
     #
     # add users to channel.
@@ -175,9 +171,12 @@ print "NICKLIST: $nicklist\n";
     if ($accept_new_modes) {
     
         # determine the difference between
-        # $old_modestr     (all former simple modes [no status, no lists])
-        # $command_modestr (all new modes including status)
-        my $difference = $serv->cmode_string_difference($old_modestr, $command_modestr, 1);
+        my $difference = $serv->cmode_string_difference(
+            $old_modestr,       # $old_modestr     (all former simple modes)
+            $command_modestr,   # $command_modestr (all new modes including status)
+            1,                  # $combine_lists   (all list modes will be accepted)
+            1                   # $remove_none     (no modes will be unset)
+        );
         
         # the command time took over, so we need to remove our current status modes.
         if ($new_time < $old_time) {
@@ -199,6 +198,20 @@ print "NICKLIST: $nicklist\n";
         
     }
     
+    # === Forward ===
+    #
+    #   if their TS was bad, the modes were not applied.
+    #       - no modes will be propagated.
+    #
+    #   if their TS was good, the modes were applied.
+    #       - in TS6,  all simple and status modes will be propagated.
+    #       - in JELP, all modes will be propagated.
+    #
+    #   JELP:   CUM
+    #   TS6:    SJOIN
+    #
+    $msg->forward(create_channel => $channel);
+
     return 1;
 }
 

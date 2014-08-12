@@ -129,7 +129,7 @@ sub _handle_command {
     
     # call actual callback.
     $event->{$props}{data}{allow_fantasy} = $event->callback_data('fantasy');
-    $event->callback_data('cb_code')->($server, $event, @params);
+    $event->callback_data('cb_code')->($server, $msg, @params);
     
 }
 
@@ -146,24 +146,6 @@ sub _forward_handler {
     return if $forward == 2 && $server->{is_burst};
     
     $server->send_children($msg->data);
-}
-
-# -message: inserts the message object.
-sub _param_message {
-    my ($msg, undef, $params, $opts) = @_;
-    push @$params, $msg;
-}
-
-# -data: inserts the raw line of data.
-sub _param_data {
-    my ($msg, undef, $params, $opts) = @_;
-    push @$params, $msg->{data};
-}
-
-# -command: inserts the command name.
-sub _param_command {
-    my ($msg, undef, $params, $opts) = @_;
-    push @$params, $msg->{command};
 }
 
 # -source: insert the message source.

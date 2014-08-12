@@ -186,7 +186,7 @@ sub init {
 sub sid {
     # server any    ts any  any   any  :rest
     # :sid   SID   newsid ts name proto ircd :desc
-    my ($server, $event, @args) = @_;
+    my ($server, $msg, @args) = @_;
 
     my $ref          = {};
     $ref->{$_}       = shift @args foreach qw[parent sid time name proto ircd desc];
@@ -208,7 +208,7 @@ sub sid {
 sub uid {
     # server any ts any   any  any   any  any   any :rest
     # :sid   UID   uid ts modes nick ident host cloak ip  :realname
-    my ($server, $event, @args) = @_;
+    my ($server, $msg, @args) = @_;
     
     my $ref          = {};
     $ref->{$_}       = shift @args foreach qw[server uid time modes nick ident host cloak ip real];
@@ -262,7 +262,7 @@ sub uid {
 sub quit {
     # source   :rest
     # :source QUIT   :reason
-    my ($server, $event, $data, $source, $reason) = @_;
+    my ($server, $msg, $data, $source, $reason) = @_;
     return if $source == $me;
     
     # tell other servers.
@@ -279,7 +279,7 @@ sub quit {
 sub nick {
     # user any
     # :uid NICK  newnick
-    my ($server, $event, $user, $newnick) = @_;
+    my ($server, $msg, $user, $newnick) = @_;
 
     # tell ppl
     $user->send_to_channels("NICK $newnick");
@@ -289,7 +289,7 @@ sub nick {
 sub burst {
     # server dummy
     # :sid   BURST
-    my ($server, $event, $serv, $their_time) = @_;
+    my ($server, $msg, $serv, $their_time) = @_;
     $serv->{is_burst} = time;
     L("$$serv{name} is bursting information");
     notice(server_burst => $serv->{name}, $serv->{sid});
@@ -298,7 +298,7 @@ sub burst {
 sub endburst {
     # server dummy
     # :sid   ENDBURST
-    my ($server, $event, $serv) = @_;
+    my ($server, $msg, $serv) = @_;
     my $time    = delete $serv->{is_burst};
     my $elapsed = time - $time;
     $serv->{sent_burst} = time;
@@ -314,14 +314,14 @@ sub endburst {
 sub umode {
     # user any
     # :uid UMODE modestring
-    my ($server, $event, $user, $str) = @_;
+    my ($server, $msg, $user, $str) = @_;
     $user->do_mode_string_local($str, 1);
 }
 
 sub privmsgnotice {
     #                   any         command        any      :rest
     #                   :source     PRIVMSG|NOTICE target   :message
-    my ($server, $event, $source,   $command,      $target, $message) = @_;
+    my ($server, $msg, $source,   $command,      $target, $message) = @_;
     
     # is it a user?
     my $tuser = $pool->lookup_user($target);
@@ -352,7 +352,7 @@ sub privmsgnotice {
 sub _join {
     # user any     ts
     # :uid JOIN  channel time
-    my ($server, $event, $user, $chname, $time) = @_;
+    my ($server, $msg, $user, $chname, $time) = @_;
     my $channel = $pool->lookup_channel($chname);
 
     # channel doesn't exist; make a new one
@@ -380,7 +380,7 @@ sub _join {
 sub oper {
     # user @rest
     # :uid OPER  flag flag flag
-    my ($server, $event, $user, @flags) = @_;
+    my ($server, $msg, $user, @flags) = @_;
     my (@add, @remove);
     foreach my $flag (@flags) {
         my $first = \substr($flag, 0, 1);
@@ -398,14 +398,14 @@ sub oper {
 sub away {
     # user :rest
     # :uid AWAY  :reason
-    my ($server, $event, $user, $reason) = @_;
+    my ($server, $msg, $user, $reason) = @_;
     $user->set_away($reason);
 }
 
 sub return_away {
     # user dummy
     # :uid RETURN
-    my ($server, $event, $user) = @_;
+    my ($server, $msg, $user) = @_;
     $user->unset_away();
 }
 
@@ -413,7 +413,7 @@ sub return_away {
 sub cmode {
     #                   source   channel   ts     server        :rest
     #                  :source   channel   time   perspective   :modestr
-    my ($server, $event, $source, $channel, $time, $perspective, $modestr) = @_;
+    my ($server, $msg, $source, $channel, $time, $perspective, $modestr) = @_;
 
     # ignore if time is older and take lower time
     return if $time > $channel->{time};
@@ -428,7 +428,7 @@ sub cmode {
 sub part {
     # user channel ts   :rest
     # :uid PART  channel time :reason
-    my ($server, $event, $user, $channel, $time, $reason) = @_;
+    my ($server, $msg, $user, $channel, $time, $reason) = @_;
 
     # take the lower time
     $channel->take_lower_time($time);
@@ -452,7 +452,7 @@ sub part {
 sub aum {
     # server @rest
     # :sid   AUM   name:letter name:letter
-    my ($server, $event, $serv) = (shift, shift, shift);
+    my ($server, $msg, $serv) = (shift, shift, shift);
     foreach my $str (@_) {
         my ($name, $letter) = split /:/, $str;
         next if !length $name || !length $letter;
@@ -465,7 +465,7 @@ sub aum {
 sub acm {
     # server @rest
     # :sid   ACM   name:letter:type name:letter:type
-    my ($server, $event, $serv) = (shift, shift, shift);
+    my ($server, $msg, $serv) = (shift, shift, shift);
     foreach my $str (@_) {
         my ($name, $letter, $type) = split /:/, $str, 3;
         
@@ -484,7 +484,7 @@ sub acm {
 sub cum {
     # server any     ts   any   :rest
     # :sid   CUM   channel time users :modestr
-    my ($server, $event, $serv, $chname, $ts, $userstr, $modestr) = @_;
+    my ($server, $msg, $serv, $chname, $ts, $userstr, $modestr) = @_;
 
     # we cannot assume that this a new channel
     my $channel = $pool->lookup_channel($chname) || $pool->new_channel(
@@ -563,7 +563,7 @@ sub cum {
 sub topic {
     # source  channel ts ts   :rest
     # :source TOPIC channel ts time :topic
-    my ($server, $event, $source, $channel, $ts, $time, $topic) = @_;
+    my ($server, $msg, $source, $channel, $ts, $time, $topic) = @_;
 
     # check that channel exists
     return unless $channel;
@@ -595,7 +595,7 @@ sub topic {
 sub topicburst {
     # source      channel ts   any   ts   :rest
     # :sid   TOPICBURST channel ts   setby time :topic
-    my ($server, $event, $s_serv, $channel, $ts, $setby, $time, $topic) = @_;
+    my ($server, $msg, $s_serv, $channel, $ts, $setby, $time, $topic) = @_;
 
     if ($channel->take_lower_time($ts) != $ts) {
         # bad channel time
@@ -627,7 +627,7 @@ sub topicburst {
 sub skill {
     # user  user :rest
     # :uid  KILL  uid  :reason
-    my ($server, $event, $source, $tuser, $reason) = @_;
+    my ($server, $msg, $source, $tuser, $reason) = @_;
 
     # this ignores non-local users.
     $tuser->get_killed_by($source, $reason);
@@ -637,7 +637,7 @@ sub skill {
 sub kick {
     # source channel user :rest
     # :id    KICK  channel uid  :reason
-    my ($server, $event, $source, $channel, $t_user, $reason) = @_;
+    my ($server, $msg, $source, $channel, $t_user, $reason) = @_;
     
     # fallback reason to source.
     $reason //= $source->name;
@@ -659,7 +659,7 @@ sub kick {
 # remote numeric.
 # server user any :rest
 sub num {
-    my ($server, $event, $source, $user, $num, $message) = @_;
+    my ($server, $msg, $source, $user, $num, $message) = @_;
     
     # local user.
     if ($user->is_local) {
@@ -675,7 +675,7 @@ sub num {
 }
 
 sub links {
-    my ($server, $event, $user, $t_server, $serv_mask, $query_mask) = @_;
+    my ($server, $msg, $user, $t_server, $serv_mask, $query_mask) = @_;
 
     # this is the server match.
     if ($t_server->is_local) {

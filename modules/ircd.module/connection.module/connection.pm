@@ -117,6 +117,7 @@ print "GET: $data\n";
         my $proto = $server->{link_type};
         push @events, [ $server, "${proto}_message"        => $msg ],
                       [ $server, "${proto}_message_${cmd}" => $msg ];
+        $msg->{_physical_server} = $server;
     }
     
     # fire with safe option.

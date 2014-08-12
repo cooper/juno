@@ -209,14 +209,21 @@ sub cmode_takes_parameter {
 #
 # if $combine_lists is true:
 #
-# all list modes are preserved; none are never
+# all list modes are preserved; none are ever
 # removed. when two servers link and  the channel
 # time is valid on both, the final list will be the
 # combination of both lists.
 #
+# if $remove_none is true:
+#
+# no modes will be removed. the resulting mode string
+# will include the new modes in $n_modestr but will
+# not remove any modes missing from $o_modestr.
+# this is useful for when the channel TS is equal on
+# two servers, in which case no modes should be unset.
 #
 sub cmode_string_difference {
-    my ($server, $o_modestr, $n_modestr, $combine_lists) = @_;
+    my ($server, $o_modestr, $n_modestr, $combine_lists, $remove_none) = @_;
 
     # split into modes, @params
     my ($o_modes, @o_params) = split ' ', $o_modestr;
@@ -304,22 +311,23 @@ sub cmode_string_difference {
     }
     
     # remove modes from original not found in new.
-    $final_str .= '-' if scalar @o_modes || scalar keys %o_modes_p;
-    $final_str .= join '', @o_modes;
-    LETTER: foreach my $letter (keys %o_modes_p) {
-    
-        # if we are accepting all list modes, don't remove any.
-        if ($combine_lists) {
-            my $type = $server->cmode_type($server->cmode_name($letter));
-            next LETTER if $type == 3;
-        }
-    
-        # remove each mode or entry.
-        PARAM: foreach my $param (keys %{ $o_modes_p{$letter} }) {
-            $final_str .= $letter;
-            push @final_p, $param;
-        }
+    unless ($remove_none) {
+        $final_str .= '-' if scalar @o_modes || scalar keys %o_modes_p;
+        $final_str .= join '', @o_modes;
+        LETTER: foreach my $letter (keys %o_modes_p) {
+            
+            # if we are accepting all list modes, don't remove any.
+            if ($combine_lists) {
+                my $type = $server->cmode_type($server->cmode_name($letter));
+                next LETTER if $type == 3;
+            }
         
+            # remove each mode or entry.
+            PARAM: foreach my $param (keys %{ $o_modes_p{$letter} }) {
+                $final_str .= $letter;
+                push @final_p, $param;
+            }
+        }
     }
   
     return join ' ', $final_str, @final_p;

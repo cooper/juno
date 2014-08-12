@@ -26,7 +26,7 @@ our ($api, $mod, $pool, $me);
 our %ts6_outgoing_commands = (
    # quit           => \&quit,
      new_server     => \&sid,
-     uid            => \&euid,
+     new_user       => \&euid,
      nickchange     => \&nick,
    # umode          => \&umode,
    # privmsgnotice  => \&privmsgnotice,
@@ -38,6 +38,7 @@ our %ts6_outgoing_commands = (
    # topic          => \&topic,
      cmode          => \&tmode,
      channel_burst  => sub { (&sjoin, &bmask, &tb) },
+     create_channel => \&sjoin,
    # acm            => \&acm,
    # aum            => \&aum,
    # kill           => \&skill,
@@ -90,7 +91,7 @@ sub send_burst {
 
         # ignore users the server already knows!
         next if $user->{server} == $server || $user->{source} == $server->{sid};
-        $server->fire_command(uid => $user);
+        $server->fire_command(new_user => $user);
         
         # TODO: oper flags
         # TODO: away reason
@@ -239,12 +240,13 @@ sub nick {
 # ts6-protocol.txt:937
 #
 sub tmode {
-    my ($server, $source, $channel, $time, $perspective, $modestr) = @_; # why $time?
+    my ($server, $source, $channel, $time, $perspective, $mode_str) = @_; # why $time?
+    $perspective = $pool->lookup_server($perspective) or return;
     sprintf ":%s TMODE %d %s %s",
     ts6_id($source),
     $time,
     $channel->{name},
-    $perspective->convert_cmode_string($server)
+    $perspective->convert_cmode_string($server, $mode_str)
 }
 
 # BMASK

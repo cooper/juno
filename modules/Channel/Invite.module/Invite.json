@@ -1,11 +1,12 @@
 {
-   "version" : "2.3",
-   "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
-   },
-   "package" : "M::Channel::Invite",
+   "version" : "2.4",
+   "description" : "channel invitations",
    "name" : "Channel::Invite",
+   "package" : "M::Channel::Invite",
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
    "depends" : {
       "modules" : [
          "Base::UserCommands",
@@ -13,6 +14,5 @@
          "Core::ChannelModes",
          "Base::UserNumerics"
       ]
-   },
-   "description" : "channel invitations"
+   }
 }
