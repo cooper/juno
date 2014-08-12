@@ -66,14 +66,12 @@ my %scommands = (
     PRIVMSG => {
                    # :src   PRIVMSG  target :message
         params  => '-source -command any    :rest',
-        code    => \&privmsgnotice,
-      # forward => handled manually
+        code    => \&privmsgnotice
     },
     NOTICE => {
                    # :src   NOTICE   target :message
         params  => '-source -command any    :rest',
-        code    => \&privmsgnotice,
-      # forward => handled manually
+        code    => \&privmsgnotice
     },
     JOIN => {
                    # :uid JOIN    ch_name time
@@ -319,22 +317,27 @@ sub umode {
 }
 
 sub privmsgnotice {
-    #                   any         command        any      :rest
-    #                   :source     PRIVMSG|NOTICE target   :message
-    my ($server, $msg, $source,   $command,      $target, $message) = @_;
+    my ($server, $msg, $source, $command, $target, $message) = @_;
     
     # is it a user?
     my $tuser = $pool->lookup_user($target);
     if ($tuser) {
     
-        # if it's mine, send it
+        # if it's mine, send it.
         if ($tuser->is_local) {
             $tuser->sendfrom($source->full, "$command $$tuser{nick} :$message");
             return 1;
         }
-        
-        # otherwise pass this on...
-        $tuser->{location}->fire_command(privmsgnotice => $command, $source, $tuser, $message);
+
+        # === Forward ===
+        #
+        # the user does not belong to us;
+        # pass this on to its physical location.
+        #
+        $msg->forward_to($tuser->{location}, privmsgnotice =>
+            $command, $source,
+            $tuser,   $message
+        );
         
         return 1;
     }
@@ -342,7 +345,21 @@ sub privmsgnotice {
     # must be a channel.
     my $channel = $pool->lookup_channel($target);
     if ($channel) {
-        $channel->handle_privmsgnotice($command, $source, $message);
+    
+        # the last argument here tells ->handle_privmsgnotice to not
+        # forward the message to servers. that is handled below.
+        $channel->handle_privmsgnotice($command, $source, $message, 1);
+        
+        # === Forward ===
+        #
+        # forwarding to a channel means to send it to every server that
+        # has 1 or more members in the channel.
+        #
+        $msg->forward_to($channel, privmsgnotice =>
+            $command, $source,
+            $channel, $message
+        );
+        
         return 1;
     }
     

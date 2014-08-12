@@ -1,12 +1,12 @@
 {
-   "package" : "channel",
-   "version" : "9.31",
-   "no_bless" : 1,
    "author" : {
-      "name" : "Mitchell Cooper",
-      "website" : "https://github.com/cooper"
+      "website" : "https://github.com/cooper",
+      "name" : "Mitchell Cooper"
    },
+   "package" : "channel",
    "description" : "represents an IRC channel",
    "preserve_sym" : 1,
+   "no_bless" : 1,
+   "version" : "9.32",
    "name" : "ircd::channel"
 }

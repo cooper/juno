@@ -2670,8 +2670,7 @@ CHANGES:
               
             * all outgoing command subroutines now have the message object rather than the
               event fire object as their second argument.
-              
-            * the fire object can be retrieved through $msg->event.
+              the fire object can be retrieved through $msg->event.
             
             * added methods to message objects that aid the forwarding of translated
               messages from one protocol to another:
@@ -2684,4 +2683,12 @@ CHANGES:
             
             * added new outgoing event create_channel for CUM/SJOIN
               (new channel, not necessarily during burst).
+        
+        32. *   $msg->forward_to() can now take a channel object as the destination,
+                instructing it to send to all servers with member(s) in that channel.
+            
+            *   added PRIVMSG/NOTICE handler for TS6.
+                it currently only supports simple client or channel destinations.
+        
+        
         

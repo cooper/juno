@@ -592,9 +592,10 @@ sub delete_outgoing_handler {
 sub fire_command {
     my ($pool, $server, $command, @args) = (shift, shift, uc shift, @_);
     return if $server->{fake};
+    return if $server == $me;
     
     # command does not exist.
-    my $proto = $server->{link_type};
+    my $proto = $server->{link_type} or return;
     my $cmd   = $pool->{outgoing_commands}{$proto}{$command};
     return unless $cmd;
 

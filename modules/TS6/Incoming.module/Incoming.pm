@@ -33,7 +33,17 @@ our %ts6_incoming_commands = (
                   # :sid SJOIN     ch_time ch_name mode_str mode_params... :nicklist
         params => '-source(server) ts      *       *        @rest',
         code   => \&sjoin
-    }
+    },
+    PRIVMSG => {
+                   # :src   PRIVMSG  target :message
+        params  => '-source -command any    :rest',
+        code    => \&privmsgnotice
+    },
+    NOTICE => {
+                   # :src   NOTICE   target :message
+        params  => '-source -command any    :rest',
+        code    => \&privmsgnotice
+    },
 );
 
 # EUID
@@ -214,5 +224,118 @@ sub sjoin {
 
     return 1;
 }
+
+# PRIVMSG
+#
+# source:       user
+# parameters:   msgtarget, message
+#
+# Sends a normal message (PRIVMSG) to the given target.
+#
+# The target can be:
+#
+# - a client
+#   propagation: one-to-one
+#
+# - a channel name
+#   propagation: all servers with -D users on the channel
+#   (cmode +m/+n should be checked everywhere, bans should not be checked
+#   remotely)
+#
+# - TODO: Complex PRIVMSG
+#   a status character ('@'/'+') followed by a channel name, to send to users
+#   with that status or higher only.
+#   capab:          CHW
+#   propagation:    all servers with -D users with appropriate status
+#
+# - TODO: Complex PRIVMSG
+#   '=' followed by a channel name, to send to chanops only, for cmode +z.
+#   capab:          CHW and EOPMOD
+#   propagation:    all servers with -D chanops
+#
+# - TODO: Complex PRIVMSG
+#   a user@server message, to send to users on a specific server. The exact
+#   meaning of the part before the '@' is not prescribed, except that "opers"
+#   allows IRC operators to send to all IRC operators on the server in an
+#   unspecified format.
+#   propagation: one-to-one
+#
+# - TODO: Complex PRIVMSG
+#   a message to all users on server names matching a mask ('$$' followed by mask)
+#   propagation: broadcast
+#   Only allowed to IRC operators.
+#
+# - TODO: Complex PRIVMSG
+#   a message to all users with hostnames matching a mask ('$#' followed by mask).
+#   Note that this is often implemented poorly.
+#   propagation: broadcast
+#   Only allowed to IRC operators.
+#
+# In charybdis TS6, services may send to any channel and to statuses on any
+# channel.
+#
+#
+# NOTICE
+#
+# source:       any
+# parameters:   msgtarget, message
+#
+# As PRIVMSG, except NOTICE messages are sent out, server sources are permitted
+# and most error messages are suppressed.
+#
+# Servers may not send '$$', '$#' and opers@server notices. Older servers may
+# not allow servers to send to specific statuses on a channel.
+#
+#
+sub privmsgnotice {
+    my ($server, $msg, $source, $command, $target, $message) = @_;
+    
+    # is it a user?
+    my $tuser = $pool->lookup_user($target);
+    if ($tuser) {
+    
+        # if it's mine, send it.
+        if ($tuser->is_local) {
+            $tuser->sendfrom($source->full, "$command $$tuser{nick} :$message");
+            return 1;
+        }
+
+        # === Forward ===
+        #
+        # the user does not belong to us;
+        # pass this on to its physical location.
+        #
+        $msg->forward_to($tuser->{location}, privmsgnotice =>
+            $command, $source,
+            $tuser,   $message
+        );
+        
+        return 1;
+    }
+
+    # must be a channel.
+    my $channel = $pool->lookup_channel($target);
+    if ($channel) {
+    
+        # the last argument here tells ->handle_privmsgnotice to not
+        # forward the message to servers. that is handled below.
+        $channel->handle_privmsgnotice($command, $source, $message, 1);
+        
+        # === Forward ===
+        #
+        # forwarding to a channel means to send it to every server that
+        # has 1 or more members in the channel.
+        #
+        $msg->forward_to($channel, privmsgnotice =>
+            $command, $source,
+            $channel, $message
+        );
+        
+        return 1;
+    }
+    
+    return;
+}
+
 
 $mod

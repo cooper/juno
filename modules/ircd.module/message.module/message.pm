@@ -431,10 +431,29 @@ sub forward {
     return $amnt;
 }
 
-# forward to a specific server.
+# forward to specific server(s).
 sub forward_to {
-    my ($msg, $server, $e_name, @args) = @_;
-    return $server->fire_command($e_name => @args);
+    my ($msg, $target, $e_name, @args) = @_;
+    blessed $target or return;
+    my $amnt = 0;
+    
+    # directly to a server.
+    if ($target->isa('server')) {
+        $amnt++ if $target->fire_command($e_name => @args);
+        return $amnt;
+    }
+    
+    # to servers with members in a channel.
+    if ($target->isa('channel')) {
+        my %sent = ( $msg->{_physical_server} => 1 );
+        foreach my $user ($target->users) {
+            next if $sent{ $user->{location} };
+            $amnt++ if $user->{location}->fire_command($e_name => @args);
+            $sent{ $user->{location} }++;
+        }
+    }
+    
+    return 0;
 }
 
 $mod

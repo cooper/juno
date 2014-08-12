@@ -659,7 +659,7 @@ sub _do_mode_string {
 # it is necessary though to distinguish real PRIVMSGs from ones initiated by other
 # commands and whatnot; for example ECHO uses this directly.
 sub handle_privmsgnotice {
-    my ($channel, $command, $source, $message) = @_;
+    my ($channel, $command, $source, $message, $dont_forward) = @_;
     my $user   = $source->isa('user')   ? $source : undef;
     my $server = $source->isa('server') ? $source : undef;
     
@@ -686,10 +686,11 @@ sub handle_privmsgnotice {
     # tell local users.
     $channel->sendfrom_all($source->full, "$command $$channel{name} :$message", $source);
 
-    # then tell local servers.
+    # then tell other servers.
     my %sent;
     foreach my $usr ($channel->users) {
-    
+        last if $dont_forward;
+        
         # local users already know.
         next if $usr->is_local;
         
