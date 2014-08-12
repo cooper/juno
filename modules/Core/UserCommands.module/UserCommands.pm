@@ -478,7 +478,7 @@ sub cjoin {
         return if $event->stopper;
 
         # new channel. join internally (without telling the user) & set auto modes.
-        # note: we can't use do_mode_string() here because CMODE must come after SJOIN.
+        # note: we can't use do_mode_string() here because CMODE must come after JOIN.
         my $sstr;
         if ($new) {
             $channel->cjoin($user, $time); # early join
@@ -488,7 +488,7 @@ sub cjoin {
         }
 
         # tell servers that the user joined and the automatic modes were set.
-        $pool->fire_command_all(sjoin => $user, $channel, $time);
+        $pool->fire_command_all(join => $user, $channel, $time);
         # why do we need $time in either of these? just use $channel->{time}
         $pool->fire_command_all(cmode => $me, $channel, $time, $me->{sid}, $sstr) if $sstr;
         # hmm, this needs to be reconsidered since TS6 and some protocols use a channel

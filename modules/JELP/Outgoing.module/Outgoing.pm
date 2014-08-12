@@ -19,22 +19,19 @@ our ($api, $mod, $me, $pool);
 
 my %ocommands = (
     quit          => \&quit,
-    sid           => \&sid,
-    addumode      => \&addumode,
-    addcmode      => \&addcmode,
-    topicburst    => \&topicburst,
+    new_server    => \&sid,                                 # sid
     uid           => \&uid,
     nickchange    => \&nickchange,
     umode         => \&umode,
     privmsgnotice => \&privmsgnotice,
-    sjoin         => \&sjoin,
+    join          => \&_join,                               # sjoin
     oper          => \&oper,
     away          => \&away,
     return_away   => \&return_away,
     part          => \&part,
     topic         => \&topic,
     cmode         => \&cmode,
-    cum           => \&cum,
+    channel_burst => sub { (&cum, &topicburst) },           # cum
     acm           => \&acm,
     aum           => \&aum,
     kill          => \&skill,
@@ -108,7 +105,7 @@ sub send_burst {
         }
         
         # fire the command.
-        $server->fire_command(sid => $serv);
+        $server->fire_command(new_server => $serv);
         $done{$serv} = 1;
         
         # send modes using compact AUM and ACM
@@ -140,12 +137,7 @@ sub send_burst {
 
     # channels, using compact CUM
     foreach my $channel ($pool->channels) {
-        $server->fire_command(cum => $channel);
-        
-        # there is no topic or this server is how we got the topic.
-        next if !$channel->topic;
-        
-        $server->fire_command(topicburst => $channel);
+        $server->fire_command(channel_burst => $channel);
     }
     
 }
@@ -186,19 +178,9 @@ sub sid {
     ":$$serv{parent}{sid} $cmd"
 }
 
-sub addumode {
-    my ($to_server, $serv, $name, $mode) = @_;
-    ":$$serv{sid} ADDUMODE $name $mode"
-}
-
-sub addcmode {
-    my ($to_server, $serv, $name, $mode, $type) = @_;
-    ":$$serv{sid} ADDCMODE $name $mode $type"
-}
-
-
 sub topicburst {
     my ($to_server, $channel) = @_;
+    return unless $channel->topic;
     my $cmd = sprintf(
         'TOPICBURST %s %d %s %d :%s',
         $channel->name,
@@ -237,7 +219,7 @@ sub privmsgnotice {
 
 
 # channel join
-sub sjoin {
+sub _join {
     my ($to_server, $user, $channel, $time) = @_;
     ":$$user{uid} JOIN $$channel{name} $time"
 }

@@ -2,12 +2,12 @@
    "depends" : {
       "modules" : "Base::UserCommands"
    },
+   "package" : "M::Core::UserCommands",
+   "name" : "Core::UserCommands",
+   "description" : "the core set of user commands",
    "author" : {
       "name" : "Mitchell Cooper",
       "website" : "https://github.com/cooper"
    },
-   "version" : "9.22",
-   "package" : "M::Core::UserCommands",
-   "description" : "the core set of user commands",
-   "name" : "Core::UserCommands"
+   "version" : "9.3"
 }

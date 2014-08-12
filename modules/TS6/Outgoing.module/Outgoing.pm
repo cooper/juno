@@ -25,22 +25,19 @@ our ($api, $mod, $pool, $me);
 
 our %ts6_outgoing_commands = (
    # quit           => \&quit,
-     sid            => \&sid,
-   # addumode       => \&addumode,
-   # addcmode       => \&addcmode,
-   # topicburst     => \&topicburst,
+     new_server     => \&sid,
      uid            => \&euid,
      nickchange     => \&nick,
    # umode          => \&umode,
    # privmsgnotice  => \&privmsgnotice,
-     sjoin          => \&_join,
+     join           => \&_join,
    # oper           => \&oper,
    # away           => \&away,
    # return_away    => \&return_away,
    # part           => \&part,
    # topic          => \&topic,
      cmode          => \&tmode,
-     cum            => \&sjoin,
+     channel_burst  => sub { (&sjoin, &bmask, &tb) },
    # acm            => \&acm,
    # aum            => \&aum,
    # kill           => \&skill,
@@ -51,7 +48,15 @@ our %ts6_outgoing_commands = (
 );
 
 sub init {
-    $pool->on('server.send_ts6_burst' => \&send_burst, name => 'core', with_eo => 1);
+    $pool->on('server.send_ts6_burst' => \&send_burst,
+        name    => 'core', # conflicts with JELP, but it'll never be fired with that
+        with_eo => 1
+    );
+    $pool->on('server.send_ts6_burst' => \&send_endburst,
+        name     => 'endburst',
+        with_eo  => 1,
+        priority => -1000
+    );
 }
 
 sub send_burst {
@@ -75,7 +80,7 @@ sub send_burst {
         }
         
         # fire the command.
-        $server->fire_command(sid => $serv);
+        $server->fire_command(new_server => $serv);
         $done{$serv} = 1;
         
     }; $do->($_) foreach $pool->all_servers;
@@ -93,14 +98,14 @@ sub send_burst {
     
     # channels.
     foreach my $channel ($pool->channels) {
-        $server->fire_command(cum => $channel);
-        
-        # there is no topic or this server is how we got the topic.
-        next if !$channel->topic;
-        
-        # TODO: topic burst
+        $server->fire_command(channel_burst => $channel);
     }
     
+}
+
+sub send_endburst {
+    my ($server, $event) = @_;
+    $server->send($server->has_cap('eb') ? '' : sprintf 'PING :%s', ts6_id($me));
 }
 
 # SID
@@ -133,7 +138,7 @@ sub sid {
 # ts6-protocol.txt:315
 #
 sub euid {
-    my ($server, $user) = @_; # no $server
+    my ($server, $user) = @_;
     sprintf ":%s EUID %s %d %d %s %s %s %s %s %s %s :%s",
     ts6_id($user->{server}),                        # source SID
     $user->{nick},                                  # nickname
@@ -159,7 +164,7 @@ sub euid {
 # ts6-protocol.txt:821
 #
 sub sjoin {
-    my ($server, $channel) = @_; # backwards
+    my ($server, $channel) = @_;
     
     my @members;
     foreach my $user ($channel->users) {
@@ -192,7 +197,7 @@ sub sjoin {
 # ts6-protocol.txt:397
 #
 sub _join {
-    my ($server, $user, $channel, $time) = @_; # no $server, why $time?
+    my ($server, $user, $channel, $time) = @_; # why $time?
     
     # there's only one user, so this channel was just created.
     # consider: if a permanent channel mode is added, idk how TS6 bursts that.
@@ -234,7 +239,7 @@ sub nick {
 # ts6-protocol.txt:937
 #
 sub tmode {
-    my ($server, $source, $channel, $time, $perspective, $modestr) = @_; # no $server, why $time?
+    my ($server, $source, $channel, $time, $perspective, $modestr) = @_; # why $time?
     sprintf ":%s TMODE %d %s %s",
     ts6_id($source),
     $time,
@@ -242,6 +247,54 @@ sub tmode {
     $perspective->convert_cmode_string($server)
 }
 
+# BMASK
+#
+# source:       server
+# propagation:  broadcast
+# parameters:   channelTS, channel, type, space separated masks
+#
+# ts6-protocol.txt:194
+#
+sub bmask {
+    my ($server, $channel) = @_;
+    my @lines;
+    foreach my $mode_name (keys %{ $server->{cmodes} }) {
+        next unless $server->cmode_type($mode_name) == 3;
+        my @items  = $channel->list_elements($mode_name);
+        my $letter = $server->cmode_letter($mode_name);
+        push @lines, sprintf(
+            ':%s BMASK %d %s %s %s',
+            ts6_id($me),
+            $channel->{time},
+            $channel->{name},
+            $letter,
+            $_
+        ) foreach @items;
+    }
+    return @lines;
+}
+
+# TB
+#
+# capab:        TB
+# source:       server
+# propagation:  broadcast
+# parameters:   channel, topicTS, opt. topic setter, topic
+#
+# ts6-protocol.txt:916
+#
+sub tb {
+    my ($server, $channel) = @_;
+    $server->has_cap('tb') or return;
+    return unless $channel->topic;
+    sprintf
+    ':%s TB %s %d %s :%s',
+    ts6_id($me),
+    $channel->{name},
+    $channel->{topic}{time},
+    $channel->{topic}{setby},
+    $channel->{topic}{topic}
+}
 
 $mod
 

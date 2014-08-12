@@ -179,7 +179,7 @@ sub new_user {
     my ($pool, %opts) = @_;
     
     # no server provided; default to this server.
-    $opts{server} //= $me;
+    weaken($opts{server} ||= $me);
     
     # no UID provided; generate one.
     # no nick specified; use UID.
@@ -599,11 +599,8 @@ sub fire_command {
     return unless $cmd;
 
     # send to one server.
-    my $lines = $cmd->{code}($server, @args);
-    foreach my $line (ref $lines ? @$lines : $lines) {
-        next unless length $line;
-        $server->send($line);
-    }
+    my @lines = $cmd->{code}($server, @args);
+    $server->send(@lines);
 
     return 1;
 }

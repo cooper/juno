@@ -149,7 +149,7 @@ manage accounts and channels.
 Named after the adored [Kyle](http://mac-mini.org) (mac-mini), kylie introduced several
 previously-missing core components including
 [ident](http://en.wikipedia.org/wiki/Ident_protocol) support and channel modes: limit,
-secret, and key. APIs for [IRCv3](http://ircv3.org) extensions were added, allowing
+secret, and key. APIs for [IRCv3](http://ircv3.org) extensions were added, leading to
 [SASL](http://ircv3.org/extensions/sasl-3.1),
 [multi-prefix](http://ircv3.org/extensions/multi-prefix-3.1), and
 [message tag](http://ircv3.org/specification/message-tags-3.2) support. An improved IRC

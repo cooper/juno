@@ -1,10 +1,10 @@
 {
-   "package" : "M::TS6::Utils",
    "description" : "utilities for the TS6 protocol",
+   "package" : "M::TS6::Utils",
+   "version" : "9.9",
    "name" : "TS6::Utils",
-   "version" : "9.3",
    "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
    }
 }

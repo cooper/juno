@@ -57,12 +57,6 @@ my %scommands = (
         code    => \&endburst,
         forward => 1
     },
-    ADDUMODE => {
-                   # :sid ADDUMODE  name letter
-        params  => '-source(server) any  any',
-        code    => \&addumode,
-        forward => 1
-    },
     UMODE => {
                    # :uid UMODE   +modes
         params  => '-source(user) any',
@@ -84,7 +78,7 @@ my %scommands = (
     JOIN => {
                    # :uid JOIN    ch_name time
         params  => '-source(user) any     ts',
-        code    => \&sjoin,
+        code    => \&_join,
         forward => 1
     },
     OPER => {
@@ -103,12 +97,6 @@ my %scommands = (
                    # :uid RETURN
         params  => '-source(user)',
         code    => \&return_away,
-        forward => 1
-    },
-    ADDCMODE => {
-                   # :sid ADDCMODE  name letter type
-        params  => '-source(server) any  any    any',
-        code    => \&addcmode,
         forward => 1
     },
     CMODE => {
@@ -323,13 +311,6 @@ sub endburst {
     
 }
 
-sub addumode {
-    # server    any  any
-    # :sid   ADDUMODE name letter
-    my ($server, $event, $serv) = (shift, shift, shift);
-    $serv->add_umode(shift, shift);
-}
-
 sub umode {
     # user any
     # :uid UMODE modestring
@@ -368,7 +349,7 @@ sub privmsgnotice {
     return;
 }
 
-sub sjoin {
+sub _join {
     # user any     ts
     # :uid JOIN  channel time
     my ($server, $event, $user, $chname, $time) = @_;
@@ -426,14 +407,6 @@ sub return_away {
     # :uid RETURN
     my ($server, $event, $user) = @_;
     $user->unset_away();
-}
-
-# add a channel mode
-sub addcmode {
-    # server    any  any    any
-    # :sid   ADDCMODE name letter type
-    my ($server, $event, $serv, @args) = @_;
-    $serv->add_cmode(@args);
 }
 
 # set a mode on a channel

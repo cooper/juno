@@ -1841,7 +1841,7 @@ CHANGES:
         92. fixed an issue where protocol errors lead to a QUIT command that causes the receiving server to dispose of its own server object.
             improved logging in ServerCommands parameter handler.
             
-        93. can't use do_mode_string() in user JOIN command handler because CMODE must be sent after SJOIN.
+        93. can't use do_mode_string() in user JOIN command handler because CMODE must be sent after JOIN.
 
         94. use server mode string for ->fire_command() in JOIN user command handler.
 
@@ -2645,4 +2645,17 @@ CHANGES:
             uid_u_from_ts6:     convert the "ID" portion of a UID from TS6 to juno ID;
             uid_n_from_ts6:     get the integral value of a TS6 UID.
             
+    3. removed legacy JELP commands ADDUMODE and ADDCMODE.
+        added TS6::Base method ->register_ts6_command() for adding TS6 command handlers.
+        added TS6 parameter modifier subroutines and message source lookup functions.
+        renamed some outgoing command events to no longer use JELP command names.
+        add modes to TS6 servers before sending out our burst.
+        added TS6 outgoing commands BMASK (list mode burst) and TB (topic burst).
+        added TS6 incoming command SJOIN (channel burst or creation).
+        server method ->cmode_type() now returns -1 rather than undef when the mode doesn't exist.
+        outgoing command callbacks now return a list of lines rather than an array reference.
+        added TS6 utilities:
+        obj_from_ts6:           convert a TS6 ID to an object;
+        user_from_ts6:          convert a TS6 UID to a user object;
+        server_from_ts:         convert a TS6 SID to a server object.
         

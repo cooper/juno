@@ -1,5 +1,9 @@
 {
-   "version" : "1.9",
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
+   "description" : "registration commands for TS6 protocol",
    "package" : "M::TS6::Registration",
    "depends" : {
       "modules" : [
@@ -7,10 +11,6 @@
          "TS6::Utils"
       ]
    },
-   "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
-   },
-   "name" : "TS6::Registration",
-   "description" : "registration commands for TS6 protocol"
+   "version" : "3.2",
+   "name" : "TS6::Registration"
 }

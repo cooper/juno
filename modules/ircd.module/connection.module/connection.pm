@@ -205,7 +205,7 @@ sub ready {
         
         $server->{conn} = $connection;
         weaken($connection->{type}{location} = $connection->{type});
-        $pool->fire_command_all(sid => $connection->{type});
+        $pool->fire_command_all(new_server => $connection->{type});
 
         # if I initiated the connection, now send my burst.
         if (length $connection->{want} && !$server->{i_sent_burst}) {

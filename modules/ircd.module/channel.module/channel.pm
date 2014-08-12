@@ -353,7 +353,7 @@ sub _mode_string       {
     
     # add all the modes for each of these types.
     foreach my $name (@set_modes) {
-        next unless $normal_types{ $server->cmode_type($name) // next };
+        next unless $normal_types{ $server->cmode_type($name) };
 
         push @modes, $server->cmode_letter($name);
         my $param = $channel->mode_parameter($name);

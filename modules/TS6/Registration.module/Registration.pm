@@ -1,4 +1,4 @@
-# Copyright (c) 2014, mitchellcooper
+# Copyright (c) 2014, mitchell cooper
 #
 # Created on Mitchells-Mac-mini.local
 # Sat Aug  9 23:22:50 EDT 2014
@@ -20,7 +20,7 @@ use strict;
 use 5.010;
 
 use utils qw(conf irc_match notice ref_to_list);
-use M::TS6::Utils qw(ts6_id);
+use M::TS6::Utils qw(ts6_id sid_from_ts6);
 
 our ($api, $mod, $pool, $conf, $me);
 
@@ -55,7 +55,15 @@ sub init {
 # send TS6 registration.
 sub send_registration {
     my $connection = shift;
-    $connection->send('CAPAB :EUID ENCAP QS');
+    $connection->send('CAPAB :EUID ENCAP QS TB EOPMOD EOB EX IE');
+    # EUID      = extended user burst support
+    # ENCAP     = enhanced command routing support
+    # QS        = quit storm support
+    # TB        = topic burst support
+    # EOPMOD    = special rules for +z, extended topic burst support 
+    # EX        = ban exception (+e) support
+    # IE        = invite exception (+I) support
+    
     $connection->send(sprintf
         'PASS %s TS 6 :%s',
         conf(['connect', $connection->{want} // $connection->{name}], 'send_password'),
@@ -78,7 +86,8 @@ sub send_registration {
 # ts6-protocol.txt:209
 #
 sub rcmd_capab {
-    my ($connection, $event, @args) = @_;
+    my ($connection, $event, @flags) = @_;
+    $connection->add_cap(map { split /\s+/ } @flags);
 }
 
 # PASS
@@ -119,7 +128,7 @@ sub rcmd_pass {
 #
 sub rcmd_server {
     my ($connection, $event, $name, undef, $desc) = @_;
-    @$connection{ qw(name desc) } = ($name, $desc);
+    @$connection{ qw(name desc ircd proto) } = ($name, $desc, -1, -1);
     my $s_conf = ['connect', $name];
     
     # haven't gotten SERVER yet.
@@ -128,8 +137,7 @@ sub rcmd_server {
         return;
     }
     
-    # FIXME: what if this has letters? need conversion method.
-    $connection->{sid} = $connection->{ts6_sid} + 0;
+    $connection->{sid} = sid_from_ts6($connection->{ts6_sid});
     
     # if this was by our request (as in an autoconnect or /connect or something)
     # don't accept any server except the one we asked for.
@@ -169,6 +177,8 @@ sub rcmd_server {
     # send my own CAPAB/PASS/SERVER if I haven't already.
     # this is postponed until the connection is ready.
     $connection->{ts6_reg_pending} = !$connection->{sent_ts6_registration};
+    
+    
 
     # made it.
     #$connection->fire_event(reg_server => @args); how am I going to do this?
@@ -200,6 +210,15 @@ sub connection_ready {
     my $server = $connection->server or return;
     return unless $server->{link_type} eq 'ts6';
 
+    # we now should add the mode definitions for this IRCd.
+    my %modes = $conf->hash_of_block([ 'ts6_cmodes', $server->{ts6_ircd} ]);
+    foreach my $name (keys %modes) {
+        my ($type, $letter) = ref_to_list($modes{$name});
+        $server->add_cmode($name, $letter, $type);
+    }
+    %modes = $conf->hash_of_block([ 'ts6_umodes', $server->{ts6_ircd} ]);
+    $server->add_umode($_, $modes{$_}) foreach keys %modes;
+
     if (delete $server->{ts6_reg_pending}) {
     
         # at this point, we will say that the server is starting its burst.
@@ -216,14 +235,6 @@ sub connection_ready {
         $server->send_burst if !$server->{i_sent_burst};
     
     }
-    
-    # also, we now should add the mode definitions for this IRCd.
-    my %modes = $conf->hash_of_block([ 'ts6_cmodes', $server->{ts6_ircd} ]);
-    foreach my $name (keys %modes) {
-        my ($type, $letter) = ref_to_list($modes{$name});
-        $server->add_cmode($name, $letter, $type);
-    }
-    
 }
 
 $mod

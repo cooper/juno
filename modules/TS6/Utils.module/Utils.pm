@@ -30,12 +30,15 @@ our ($api, $mod, $pool, $conf);
 sub ts6_id {
     my $obj = shift;
     blessed $obj or return;
+    return $obj->{ts6_uid}     if defined $obj->{ts6_uid};
+    return $obj->{ts6_sid}     if defined $obj->{ts6_sid};
     if ($obj->isa('user'))   { return ts6_uid($obj->{uid}) }
     if ($obj->isa('server')) { return ts6_sid($obj->{sid}) }
     return;
 }
 
 # convert an SID.
+# TODO: this needs a way to convert SIDs with letters.
 sub ts6_sid {
     my $sid = shift;
     return sprintf '%03d', $sid;
@@ -101,6 +104,28 @@ sub ts6_id_n {
 ### TS6 -> juno ###
 ###################
 
+# TS6 SID or UID -> object
+sub obj_from_ts6 {
+    my $id = shift;
+    if (length $id == 3) { return $pool->lookup_server(sid_from_ts6($id)) }
+    if (length $id == 9) { return $pool->lookup_user  (uid_from_ts6($id)) }
+    return;
+}
+
+# TS6 UID -> user
+sub user_from_ts6 {
+    my $user = obj_from_ts6(shift);
+    return unless blessed $user && $user->isa('user');
+    return $user;
+}
+
+# TS6 SID -> server
+sub server_from_ts6 {
+    my $server = obj_from_ts6(shift);
+    return unless blessed $server && $server->isa('server');
+    return $server;
+}
+
 # TS6 SID -> juno SID
 # e.g. 000 -> 0
 sub sid_from_ts6 {
@@ -131,6 +156,18 @@ sub uid_n_from_ts6 {
          $dec  += $p;
     }
     return ++$dec;
+}
+
+# TS6 prefix -> mode letter
+sub mode_from_prefix_ts6 {
+    my ($server, $prefix) = @_;
+    my @pfx = $conf->values_of_block(['ts6_prefixes', $server->{ts6_ircd}]);
+    foreach (@pfx) {
+        my ($letter, $pfx, $lvl) = @$_;
+        next unless $prefix eq $pfx;
+        return $letter;
+    }
+    return '';
 }
 
 $mod

@@ -86,7 +86,9 @@ sub add_umode {
 sub umode_name {
     my ($server, $mode) = @_;
     foreach my $name (keys %{ $server->{umodes} }) {
-        return $name if $mode eq $server->{umodes}{$name}{letter};
+        my $letter = $server->{umodes}{$name}{letter};
+        next unless length $letter;
+        return $name if $mode eq $letter;
     }
     return;
 }
@@ -130,7 +132,7 @@ sub cmode_letter {
 sub cmode_type {
     my ($server, $name) = @_;
     return unless defined $name;
-    return $server->{cmodes}{$name}{type};
+    return $server->{cmodes}{$name}{type} // -1;
 }
 
 # change 1 server's mode string to another server's.
@@ -467,5 +469,10 @@ sub fire_command_data {
     return unless $source->can('id');
     $server->sendfrom($source->id, "$command$data");
 }
+
+# CAP shortcuts.
+sub has_cap    { my $c = shift->conn or return; $c->has_cap(@_)    }
+sub add_cap    { my $c = shift->conn or return; $c->add_cap(@_)    }
+sub remove_cap { my $c = shift->conn or return; $c->remove_cap(@_) }
 
 $mod
