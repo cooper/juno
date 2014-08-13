@@ -46,7 +46,7 @@ sub resolve_address {
 }
 
 # got human-readable hostname
-sub on_got_hosts {
+sub on_got_host1 {
     my ($connection, $host) = @_;
     $host = safe_ip($host);
     
@@ -79,8 +79,8 @@ sub on_got_addr {
     $connection->{resolve_future} = $::loop->resolver->getnameinfo(
         addr        => $addr->{addr},
         socktype    => Socket::SOCK_STREAM(),
-        on_resolved => sub { on_got_ip($connection, @_   ) },
-        on_error    => sub { on_error ($connection, shift) },
+        on_resolved => sub { on_got_host2($connection, @_   ) },
+        on_error    => sub { on_error    ($connection, shift) },
         timeout     => 3
     );
 }
