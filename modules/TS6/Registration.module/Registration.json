@@ -1,8 +1,8 @@
 {
-   "version" : "3.5",
-   "description" : "registration commands for TS6 protocol",
-   "name" : "TS6::Registration",
    "package" : "M::TS6::Registration",
+   "name" : "TS6::Registration",
+   "description" : "registration commands for TS6 protocol",
+   "version" : "3.7",
    "depends" : {
       "modules" : [
          "Base::RegistrationCommands",

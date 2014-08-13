@@ -56,16 +56,16 @@ sub init {
 
     # register server burst events.
     $pool->on('server.send_jelp_burst' => \&send_burst,
-        name     => 'core',
+        name     => 'jelp.mainburst',
         with_eo  => 1
     );
     $pool->on('server.send_jelp_burst' => \&send_startburst,
-        name     => 'startburst',
+        name     => 'jelp.startburst',
         with_eo  => 1,
         priority => 1000
     );
     $pool->on('server.send_jelp_burst' => \&send_endburst,
-        name     => 'endburst',
+        name     => 'jelp.endburst',
         with_eo  => 1,
         priority => -1000
     );
