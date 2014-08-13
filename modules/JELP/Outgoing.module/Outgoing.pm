@@ -33,13 +33,17 @@ my %ocommands = (
     cmode           => \&cmode,
     channel_burst   => [ \&cum, \&topicburst ],         # cum
     create_channel  => \&cum,
-    #acm             => \&acm,
-    #aum             => \&aum,
     kill            => \&skill,
     connect         => \&sconnect,
     kick            => \&kick,
     num             => \&num,
-    links           => \&links
+    links           => \&links,
+    
+    # JELP-specific
+    
+    acm             => \&acm,
+    aum             => \&aum
+    
 );
 
 sub init {
@@ -85,8 +89,8 @@ sub send_burst {
     my ($do, %done);
 
     # first, send modes of this server.
-    aum($server, $me);
-    acm($server, $me);
+    $server->fire_command(aum => $me);
+    $server->fire_command(acm => $me);
 
     # don't send info for this server or the server we're sending to.
     $done{$server} = $done{$me} = 1;
@@ -110,7 +114,6 @@ sub send_burst {
         $done{$serv} = 1;
         
     }; $do->($_) foreach $pool->all_servers;
-
 
     # users
     foreach my $user ($pool->global_users) {
