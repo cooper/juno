@@ -2689,6 +2689,13 @@ CHANGES:
             
             *   added PRIVMSG/NOTICE handler for TS6.
                 it currently only supports simple client or channel destinations.
+                
+        33. *   added SID TS6 command handler.
         
+            *   added PRIVMSG/NOTICE outgoing TS6 command subroutines.
+        
+            *   improved TS6 server mode registration logic.
+            
+            
         
         

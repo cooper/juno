@@ -19,11 +19,16 @@ use warnings;
 use strict;
 use 5.010;
 
-use M::TS6::Utils qw(uid_from_ts6 user_from_ts6 mode_from_prefix_ts6);
+use M::TS6::Utils qw(uid_from_ts6 user_from_ts6 mode_from_prefix_ts6 sid_from_ts6);
 
 our ($api, $mod, $pool);
 
 our %ts6_incoming_commands = (
+    SID => {
+                  # :sid SID       name hops sid :desc
+        params => '-source(server) *    *    *   :rest',
+        code   => \&sid
+    },
     EUID => {
                    # :sid EUID      nick hopcount nick_ts umodes ident cloak ip  uid host act :realname
         params  => '-source(server) *    *        ts      *      *     *     *   *   *    *   :rest',
@@ -45,6 +50,47 @@ our %ts6_incoming_commands = (
         code    => \&privmsgnotice
     },
 );
+
+# SID
+#
+# source:       server
+# propagation:  broadcast
+# parameters:   server name, hopcount, sid, server description
+sub sid {
+    my ($server, $msg, $source_serv, $s_name, $hops, $sid, $desc) = @_;
+    my %s = (
+        parent   => $source_serv,       # the server which is the actual parent
+        source   => $server->{sid},     # SID of the server who told us about him
+        location => $server,            # nearest server we have a physical link to
+        ircd     => -1,                 # not applicable in TS6
+        proto    => -1,                 # not applicable in TS6
+        time     => time                # first time server became known (best bet)
+    );
+    @s{ qw(name desc ts6_sid sid) } = ($s_name, $desc, $sid, sid_from_ts6($sid));
+
+    # do not allow SID or server name collisions.
+    if ($pool->lookup_server($s{sid}) || $pool->lookup_server_name($s{name})) {
+        L("duplicate SID $s{sid} or server name $s{name}; dropping $$server{name}");
+        $server->conn->done('attempted to introduce existing server');
+        return;
+    }
+
+    # create a new server.
+    my $serv = $pool->new_server(%s);
+    
+    # the TS6 IRCd will be considered the same as the parent server.
+    # I think this will be okay because unknown modes would not be
+    # forwarded anyway, and extra modes would not cause any trouble.
+    $serv->{ts6_ircd} = $source_serv->{ts6_ircd} || $server->{ts6_ircd};
+    
+    # add mode definitions.
+    M::TS6::Utils::register_modes($serv);
+    
+    # === Forward ===
+    $msg->forward(new_server => $serv);
+    
+    return 1;
+}
 
 # EUID
 #
@@ -148,7 +194,7 @@ sub sjoin {
     # add users to channel.
     # determine prefix mode string.
     #
-    my ($uids_modes, @uids) = '';
+    my ($uids_modes, @uids, @good_users) = '';
     foreach my $str (split /\s+/, $nicklist) {
         my ($prefixes, $uid) = ($str =~ m/^(\W*)([0-9A-Z]+)$/) or next;
         my $user     = user_from_ts6($uid) or next;
@@ -156,7 +202,8 @@ sub sjoin {
 
         # this user does not physically belong to this server.
         next if $user->{location} != $server;
-
+        push @good_users, $user;
+        
         # join the new users.
         unless ($channel->has_user($user)) {
             $channel->cjoin($user, $channel->{time});
@@ -166,11 +213,12 @@ sub sjoin {
 
         # no prefixes or not accepting the prefixes.
         next unless length $prefixes && $accept_new_modes;
-
+print "ok, gonna add the modes for $$user{nick}: $prefixes\n";
         # determine the modes and add them to the mode string / parameters.
         my $modes    = join '', map { mode_from_prefix_ts6($server, $_) } @prefixes;
+print "turns out the modes are: $modes\n";
         $uids_modes .= $modes;
-        push @uids, $uid for 1 .. length $modes;
+        push @uids, $user->{uid} for 1 .. length $modes;
         
     }
     
@@ -217,10 +265,10 @@ sub sjoin {
     #       - in TS6,  all simple and status modes will be propagated.
     #       - in JELP, all modes will be propagated.
     #
-    #   JELP:   CUM
+    #   JELP:   JOIN, CMODE
     #   TS6:    SJOIN
     #
-    $msg->forward(create_channel => $channel);
+    $msg->forward(create_channel => $channel, $serv, @good_users);
 
     return 1;
 }

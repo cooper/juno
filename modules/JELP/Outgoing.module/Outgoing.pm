@@ -19,7 +19,7 @@ our ($api, $mod, $me, $pool);
 
 my %ocommands = (
     quit            => \&quit,
-    new_server      => \&sid,                               # sid
+    new_server      => [ \&sid, \&aum, \&acm ],          # sid / aum / acm
     new_user        => \&uid,                               # uid
     nickchange      => \&nickchange,
     umode           => \&umode,
@@ -31,10 +31,10 @@ my %ocommands = (
     part            => \&part,
     topic           => \&topic,
     cmode           => \&cmode,
-    channel_burst   => sub { (&cum, &topicburst) },         # cum
+    channel_burst   => [ \&cum, \&topicburst ],         # cum
     create_channel  => \&cum,
-    acm             => \&acm,
-    aum             => \&aum,
+    #acm             => \&acm,
+    #aum             => \&aum,
     kill            => \&skill,
     connect         => \&sconnect,
     kick            => \&kick,
@@ -85,8 +85,8 @@ sub send_burst {
     my ($do, %done);
 
     # first, send modes of this server.
-    $server->fire_command(aum => $me);
-    $server->fire_command(acm => $me);
+    aum($server, $me);
+    acm($server, $me);
 
     # don't send info for this server or the server we're sending to.
     $done{$server} = $done{$me} = 1;
@@ -108,10 +108,6 @@ sub send_burst {
         # fire the command.
         $server->fire_command(new_server => $serv);
         $done{$serv} = 1;
-        
-        # send modes using compact AUM and ACM
-        $server->fire_command(aum => $serv);
-        $server->fire_command(acm => $serv);
         
     }; $do->($_) foreach $pool->all_servers;
 
@@ -171,9 +167,10 @@ sub uid {
 
 sub sid {
     my ($to_server, $serv) = @_;
+    return if $to_server == $serv;
     my $cmd = sprintf(
         'SID %s %d %s %s %s :%s',
-        $serv->{sid}, $serv->{time}, $serv->{name},
+        $serv->{sid},   $serv->{time}, $serv->{name},
         $serv->{proto}, $serv->{ircd}, $serv->{desc}
     );
     ":$$serv{parent}{sid} $cmd"
@@ -272,6 +269,7 @@ sub sconnect {
 
 sub cmode {
     my ($to_server, $source, $channel, $time, $perspective, $modestr) = @_;
+    return unless length $modestr;
     my $id = $source->id;
     ":$id CMODE $$channel{name} $time $perspective :$modestr"
 }
@@ -290,8 +288,9 @@ sub skill {
 
 # channel user membership (channel burst)
 # $server = server to send to
+# @users  = for create_channel only, the users to send.
 sub cum {
-    my ($server, $channel) = @_;
+    my ($server, $channel, $serv, @users) = @_;
     
     # make +modes params string without status modes.
     # modes are from the perspective of this server, $me.
@@ -306,7 +305,8 @@ sub cum {
     }
 
     # create an array of uid!status
-    foreach my $user ($channel->users) {
+    @users = $channel->users if !@users;
+    foreach my $user (@users) {
     
         # this is the server that told us about the user. it already knows.
         next if $user->{location} == $server;
@@ -323,7 +323,7 @@ sub cum {
 # add cmodes
 sub acm {
     my ($to_server, $serv, $modes) = (shift, shift, '');
-    
+
     # iterate through each mode on the server.
     foreach my $name (keys %{ $serv->{cmodes} }) {
         my ($letter, $type) = ($serv->cmode_letter($name), $serv->cmode_type($name));

@@ -48,7 +48,14 @@ our %registration_commands = (
 );
 
 sub init {
-    $pool->on('connection.ready' => \&connection_ready, with_eo => 1, name => 'ts6.ready');
+    $pool->on('connection.server_ready' => \&server_ready,
+        with_eo => 1,
+        name    => 'ts6.server_ready'
+    );
+    $pool->on('connection.ready_done' => \&connection_ready,
+        with_eo => 1,
+        name    => 'ts6.ready_done'
+    );
     return 1;
 }
 
@@ -204,37 +211,35 @@ sub rcmd_ping {
     notice(server_endburst => $server->{name}, $server->{sid}, $elapsed);
 }
 
+sub server_ready {
+    my $server = shift->server or return;
+    return unless $server->{link_type} eq 'ts6';
+
+    # apply modes.
+    M::TS6::Utils::register_modes($server);
+
+}
+
 # connection is ready event.
 sub connection_ready {
     my $connection = shift;
     my $server = $connection->server or return;
     return unless $server->{link_type} eq 'ts6';
-
-    # we now should add the mode definitions for this IRCd.
-    my %modes = $conf->hash_of_block([ 'ts6_cmodes', $server->{ts6_ircd} ]);
-    foreach my $name (keys %modes) {
-        my ($type, $letter) = ref_to_list($modes{$name});
-        $server->add_cmode($name, $letter, $type);
-    }
-    %modes = $conf->hash_of_block([ 'ts6_umodes', $server->{ts6_ircd} ]);
-    $server->add_umode($_, $modes{$_}) foreach keys %modes;
-
-    if (delete $server->{ts6_reg_pending}) {
+    return unless delete $server->{ts6_reg_pending};
     
-        # at this point, we will say that the server is starting its burst.
-        # however, it still may deny our own credentials.
-        $server->{is_burst} = time;
-        L("$$server{name} is bursting information");
-        notice(server_burst => $server->{name}, $server->{sid});
-        
-        # time to send my own credentials.
-        send_registration($connection);
-
-        # we should also go ahead and send our own burst
-        # now that we have verified the password.
-        $server->send_burst if !$server->{i_sent_burst};
+    # at this point, we will say that the server is starting its burst.
+    # however, it still may deny our own credentials.
+    $server->{is_burst} = time;
+    L("$$server{name} is bursting information");
+    notice(server_burst => $server->{name}, $server->{sid});
     
-    }
+    # time to send my own credentials.
+    send_registration($connection);
+
+    # we should also go ahead and send our own burst
+    # now that we have verified the password.
+    $server->send_burst if !$server->{i_sent_burst};
+    
 }
 
 $mod

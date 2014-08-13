@@ -524,7 +524,7 @@ sub cum {
     USER: foreach my $str (split /,/, $userstr) {
         last if $userstr eq '-';
         my ($uid, $modes) = split /!/, $str;
-        my $user          = $pool->lookup_user($uid) or next USER;
+        my $user = $pool->lookup_user($uid) or next USER;
 
         # join the new users
         unless ($channel->has_user($user)) {

@@ -153,7 +153,7 @@ sub convert_cmode_string {
     }
 
     my $newstring = join ' ', $string, @m;
-    L("converted $modes to $string");
+    L("converted $modes ($$server{name}) to $string ($$server2{name})");
     return $newstring;
 }
 

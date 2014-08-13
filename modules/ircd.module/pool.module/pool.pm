@@ -18,7 +18,7 @@ use 5.010;
 use parent 'Evented::Object';
 
 use Scalar::Util qw(weaken blessed);
-use utils qw(v set_v notice conf);
+use utils qw(v set_v notice conf ref_to_list);
 
 our ($api, $mod, $me);
 
@@ -116,6 +116,7 @@ sub new_server {
     
     # weakly reference to the pool.
     weaken($server->{pool} = $pool);
+    weaken($server->{parent});
     
     # become an event listener.
     $server->add_listener($pool, 'server');
@@ -566,14 +567,14 @@ sub register_outgoing_handler {
     }
 
     # ensure that it is CODE.
-    if (ref $ref ne 'CODE') {
+    if (ref $ref ne 'CODE' && ref $ref ne 'ARRAY') {
         L("not a CODE reference for $command");
         return;
     }
 
     # success.
     $pool->{outgoing_commands}{$proto}{$command} = {
-        code    => $ref,
+        code    => ref $ref eq 'ARRAY' ? $ref : [ $ref ],
         source  => $source
     };
     
@@ -600,7 +601,8 @@ sub fire_command {
     return unless $cmd;
 
     # send to one server.
-    my @lines = $cmd->{code}($server, @args);
+    my @code  = ref_to_list($cmd->{code});
+    my @lines = map { $_->($server, @args) } @code;
     $server->send(@lines);
 
     return 1;

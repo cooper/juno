@@ -43,7 +43,7 @@ my %notices = (
     
     perl_warning            => '%s',
     exception               => '%s',
-    server_warning          => 'Protocol error: %s',
+    server_warning          => '%s',
 
 );
  

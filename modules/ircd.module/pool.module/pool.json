@@ -1,12 +1,12 @@
 {
-   "version" : "9.32",
-   "description" : "manage IRC objects",
-   "name" : "ircd::pool",
+   "version" : "9.33",
    "author" : {
       "website" : "https://github.com/cooper",
       "name" : "Mitchell Cooper"
    },
-   "no_bless" : 1,
+   "name" : "ircd::pool",
+   "description" : "manage IRC objects",
+   "preserve_sym" : 1,
    "package" : "pool",
-   "preserve_sym" : 1
+   "no_bless" : 1
 }

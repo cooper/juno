@@ -18,7 +18,7 @@ use strict;
 use 5.010;
 
 use Scalar::Util 'blessed';
-use utils 'import';
+use utils qw(import ref_to_list);
 
 our ($api, $mod, $pool, $conf);
 
@@ -30,10 +30,11 @@ our ($api, $mod, $pool, $conf);
 sub ts6_id {
     my $obj = shift;
     blessed $obj or return;
-    return $obj->{ts6_uid}     if defined $obj->{ts6_uid};
-    return $obj->{ts6_sid}     if defined $obj->{ts6_sid};
-    if ($obj->isa('user'))   { return ts6_uid($obj->{uid}) }
-    if ($obj->isa('server')) { return ts6_sid($obj->{sid}) }
+    return $obj->{ts6_uid}      if defined $obj->{ts6_uid};
+    return $obj->{ts6_sid}      if defined $obj->{ts6_sid};
+    if ($obj->isa('user'))    { return ts6_uid($obj->{uid}) }
+    if ($obj->isa('server'))  { return ts6_sid($obj->{sid}) }
+    if ($obj->isa('channel')) { return $obj->{name}         }
     return;
 }
 
@@ -60,9 +61,8 @@ sub ts6_uid_u {
 # convert juno level to prefix.
 sub ts6_prefix {
     my ($server, $level) = @_;
-    my @pfx = $conf->values_of_block(['ts6_prefixes', $server->{ts6_ircd}]);
-    foreach (@pfx) {
-        my ($letter, $prefix, $lvl) = @$_;
+    foreach my $prefix (keys %{ $server->{ts6_prefixes} || {} }) {
+        my ($letter, $lvl) = ref_to_list($server->{ts6_prefixes}{$prefix});
         next unless $level == $lvl;
         return $prefix;
     }
@@ -161,13 +161,36 @@ sub uid_n_from_ts6 {
 # TS6 prefix -> mode letter
 sub mode_from_prefix_ts6 {
     my ($server, $prefix) = @_;
-    my @pfx = $conf->values_of_block(['ts6_prefixes', $server->{ts6_ircd}]);
-    foreach (@pfx) {
-        my ($letter, $pfx, $lvl) = @$_;
-        next unless $prefix eq $pfx;
-        return $letter;
+    my $p = $server->{ts6_prefixes}{$prefix};
+    return $p ? $p->[0] : '';
+}
+
+#####################
+### Miscellaneous ###
+#####################
+
+sub register_modes {
+    my $server = shift;
+    
+    # user modes.
+    my %modes = $conf->hash_of_block([ 'ts6_umodes', $server->{ts6_ircd} ]);
+    $server->add_umode($_, $modes{$_}) foreach keys %modes;
+    
+    # channel modes.
+    %modes = $conf->hash_of_block([ 'ts6_cmodes', $server->{ts6_ircd} ]);
+    foreach my $name (keys %modes) {
+        my ($type, $letter) = ref_to_list($modes{$name});
+        $server->add_cmode($name, $letter, $type);
     }
-    return '';
+    
+    # status modes.
+    %modes = $conf->hash_of_block([ 'ts6_prefixes', $server->{ts6_ircd} ]);
+    foreach my $name (keys %modes) {
+        my ($letter, $pfx, $lvl) = @{ $modes{$name} };
+        #$server->add_cmode($name, $letter, 4);
+        $server->{ts6_prefixes}{$pfx} = [ $letter, $lvl ];
+    }
+
 }
 
 $mod

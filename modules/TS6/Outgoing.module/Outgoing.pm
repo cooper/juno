@@ -29,7 +29,7 @@ our %ts6_outgoing_commands = (
      new_user       => \&euid,
      nickchange     => \&nick,
    # umode          => \&umode,
-   # privmsgnotice  => \&privmsgnotice,
+     privmsgnotice  => \&privmsgnotice,
      join           => \&_join,
    # oper           => \&oper,
    # away           => \&away,
@@ -37,7 +37,7 @@ our %ts6_outgoing_commands = (
    # part           => \&part,
    # topic          => \&topic,
      cmode          => \&tmode,
-     channel_burst  => sub { (&sjoin, &bmask, &tb) },
+     channel_burst  => [ \&sjoin, \&bmask, \&tb ],
      create_channel => \&sjoin,
    # acm            => \&acm,
    # aum            => \&aum,
@@ -118,6 +118,7 @@ sub send_endburst {
 # ts6-protocol.txt:805
 sub sid {
     my ($server, $serv) = @_;
+    return if $server == $serv;
     sprintf ':%s SID %s %d %s :%s',
     ts6_id($serv->{parent}),
     $serv->{name},
@@ -165,13 +166,16 @@ sub euid {
 # ts6-protocol.txt:821
 #
 sub sjoin {
-    my ($server, $channel) = @_;
+    my ($server, $channel, $serv, @members) = @_;
     
-    my @members;
-    foreach my $user ($channel->users) {
-        my $pfx = ts6_prefixes($server, $channel->user_get_levels($user));
-        my $uid = ts6_id($user);
-        push @members, "$pfx$uid";
+    # if members weren't specified, we are bursting the channel.
+    # include all channel members in the message.
+    if (!@members) {
+        foreach my $user ($channel->users) {
+            my $pfx = ts6_prefixes($server, $channel->user_get_levels($user));
+            my $uid = ts6_id($user);
+            push @members, "$pfx$uid";
+        }
     }
     
     # TODO: probably should split this into several SJOINs?
@@ -296,6 +300,25 @@ sub tb {
     $channel->{topic}{time},
     $channel->{topic}{setby},
     $channel->{topic}{topic}
+}
+
+# PRIVMSG
+#
+# source:       user
+# parameters:   msgtarget, message
+#
+#
+# NOTICE
+#
+# source:       any
+# parameters:   msgtarget, message
+#
+#
+sub privmsgnotice {
+    my ($to_server, $cmd, $source, $target, $message) = @_;
+    my $id  = ts6_id($source);
+    my $tid = ts6_id($target);
+    ":$id $cmd $tid :$message"
 }
 
 $mod

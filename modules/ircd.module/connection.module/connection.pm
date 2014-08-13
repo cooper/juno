@@ -36,7 +36,8 @@ sub init {
         # server command unknown.
         if ($connection->server) {
             my ($command, $name) = ($msg->command, $connection->server->name);
-            notice(server_warning => "unknown command $command from $name!");
+            my $proto = $connection->server->{link_type};
+            notice(server_warning => "unknown $proto command $command from $name!");
             return;
         }
         
@@ -74,7 +75,7 @@ sub new {
 
 sub handle {
     my ($connection, $data) = @_;
-print "GET: $data\n";
+print "GET: $data\n" if $connection->server;
     # update ping information.
     $connection->{ping_in_air}   = 0;
     $connection->{last_response} = time;
@@ -151,7 +152,8 @@ sub reg_continue {
 sub ready {
     my $connection = shift;
     return if $connection->{ready};
-    
+    $connection->fire_event('ready');
+
     # must be a user.
     if (length $connection->{nick} && length $connection->{ident}) {
 
@@ -185,6 +187,8 @@ sub ready {
             $Evented::Object::events => {}
         );
 
+        $connection->fire_event(user_ready => $connection->{type});
+
     }
 
     # must be a server.
@@ -203,6 +207,8 @@ sub ready {
             $Evented::Object::props  => {},
             $Evented::Object::events => {}
         );
+        
+        $connection->fire_event(server_ready => $connection->{type});
         
         $server->{conn} = $connection;
         weaken($connection->{type}{location} = $connection->{type});
@@ -226,7 +232,7 @@ sub ready {
     }
 
     weaken($connection->{type}{conn} = $connection);
-    $connection->fire_event(ready => $connection->{type});
+    $connection->fire_event(ready_done => $connection->{type});
     $connection->{type}->new_connection if $connection->user;
     return $connection->{ready} = 1;
 }
@@ -237,7 +243,7 @@ sub send {
     return unless $connection->{stream};
     return if $connection->{goodbye};
     $connection->{stream}->write("$_\r\n") foreach grep { defined } @msg;
-print "SEND: @msg\n";
+print "SEND: @msg\n" if $connection->server;
 }
 
 # send data with a source
