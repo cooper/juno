@@ -98,7 +98,7 @@ sub on_got_host2 {
     }
     
     # not the same.
-    return on_error($connection, "No match ($ip)");
+    return on_error($connection, "No match ($host)");
     
 }
 
