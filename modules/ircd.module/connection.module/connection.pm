@@ -50,11 +50,11 @@ sub init {
 sub new {
     my ($class, $stream) = @_;
     return unless defined $stream;
-
+    my $ip = utils::safe_ip($stream->{write_handle}->peerhost);
     bless my $connection = {
         stream        => $stream,
-        ip            => utils::safe_ip($stream->{write_handle}->peerhost),
-        host          => utils::safe_ip($stream->{write_handle}->peerhost),
+        ip            => $ip,
+        host          => $ip,
         localport     => $stream->{write_handle}->sockport,
         peerport      => $stream->{write_handle}->peerport,
         source        => $me->{sid},
