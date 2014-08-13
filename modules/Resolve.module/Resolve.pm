@@ -27,7 +27,6 @@ sub connection_new {
     resolve_address($connection);
 }
 
-# peername -> human-readable hostname
 sub resolve_address {
     my $connection = shift;
     return if $connection->{goodbye};
@@ -35,13 +34,13 @@ sub resolve_address {
     # prevent connection registration from completing.
     $connection->reg_wait('resolve');
     
-    # async lookup.
-    $connection->{resolve_future} = $::loop->resolver->getnameinfo(
+    # peername -> human-readable hostname
+    my $f = $connection->{resolve_future} = $::loop->resolver->getnameinfo(
         addr        => $connection->sock->peername,
-        on_resolved => sub { on_got_host1($connection, @_   ) },
-        on_error    => sub { on_error    ($connection, shift) },
         timeout     => 3
     );
+    $f->on_done(sub { on_got_host1($connection, @_   ) });
+    $f->on_fail(sub { on_error    ($connection, shift) });
     
 }
 
@@ -60,15 +59,15 @@ sub on_got_host1 {
     }
     
     # human readable hostname -> binary address
-    $connection->{resolve_future} = $::loop->resolver->getaddrinfo(
+    my $f = $connection->{resolve_future} = $::loop->resolver->getaddrinfo(
         host        => $host,
         service     => '',
         socktype    => Socket::SOCK_STREAM(),
-        on_resolved => sub { on_got_addr($connection, @_   ) },
-        on_error    => sub { on_error   ($connection, shift) },
         timeout     => 3
     );
-    
+    $f->on_done(sub { on_got_addr($connection, @_   ) });
+    $f->on_fail(sub { on_error   ($connection, shift) });
+
 }
 
 # got binary representation of address
@@ -76,13 +75,14 @@ sub on_got_addr {
     my ($connection, $addr) = @_;
     
     # binary address -> human-readable hostname
-    $connection->{resolve_future} = $::loop->resolver->getnameinfo(
+    my $f = $connection->{resolve_future} = $::loop->resolver->getnameinfo(
         addr        => $addr->{addr},
         socktype    => Socket::SOCK_STREAM(),
-        on_resolved => sub { on_got_host2($connection, @_   ) },
-        on_error    => sub { on_error    ($connection, shift) },
         timeout     => 3
     );
+    $f->on_done(sub { on_got_host2($connection, @_   ) });
+    $f->on_fail(sub { on_error    ($connection, shift) });
+    
 }
 
 # got human-readable hostname
