@@ -27,7 +27,7 @@ sub connection_new {
     resolve_address($connection);
 }
 
-# IP -> hostname
+# peername -> human-readable hostname
 sub resolve_address {
     my $connection = shift;
     return if $connection->{goodbye};
@@ -38,26 +38,28 @@ sub resolve_address {
     # async lookup.
     $connection->{resolve_future} = $::loop->resolver->getnameinfo(
         addr        => $connection->sock->peername,
-        on_resolved => sub { on_got_hosts($connection, @_   ) },
+        on_resolved => sub { on_got_host1($connection, @_   ) },
         on_error    => sub { on_error    ($connection, shift) },
         timeout     => 3
     );
     
 }
 
+# got human-readable hostname
 sub on_got_hosts {
     my ($connection, $host) = @_;
+    $host = safe_ip($host);
     
     # temporarily store the host.
     $connection->{temp_host} = $host;
 
     # getnameinfo() spit out the IP.
     # we need better IP comparison probably.
-    if ($connection->{ip} eq safe_ip($host)) {
+    if ($connection->{ip} eq $host) {
         return on_error($connection, 'getnameinfo() spit out IP');
     }
     
-    # try to resolve the host back to the IP.
+    # human readable hostname -> binary address
     $connection->{resolve_future} = $::loop->resolver->getaddrinfo(
         host        => $host,
         service     => '',
@@ -69,10 +71,11 @@ sub on_got_hosts {
     
 }
 
+# got binary representation of address
 sub on_got_addr {
     my ($connection, $addr) = @_;
-
-    # got the addr, now resolve it to human-readable form.
+    
+    # binary address -> human-readable hostname
     $connection->{resolve_future} = $::loop->resolver->getnameinfo(
         addr        => $addr->{addr},
         socktype    => Socket::SOCK_STREAM(),
@@ -80,21 +83,21 @@ sub on_got_addr {
         on_error    => sub { on_error ($connection, shift) },
         timeout     => 3
     );
-    
 }
 
-sub on_got_ip {
-    my ($connection, $ip) = @_;
+# got human-readable hostname
+sub on_got_host2 {
+    my ($connection, $host) = @_;
     
-    # we need better IP comparison.
-    if ($connection->{ip} eq safe_ip($ip)) {
+    # they match.
+    if ($connection->{temp_host} eq $host) {
         $connection->early_reply(NOTICE => ':*** Found your hostname');
         $connection->{host} = safe_ip(delete $connection->{temp_host});
         $connection->reg_continue('resolve');
         return 1;
     }
     
-    # not the same!
+    # not the same.
     return on_error($connection, "No match ($ip)");
     
 }
