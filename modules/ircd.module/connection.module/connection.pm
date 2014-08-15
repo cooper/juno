@@ -75,7 +75,7 @@ sub new {
 
 sub handle {
     my ($connection, $data) = @_;
-print "GET: $data\n" if $connection->server;
+printf "GET(%s): $data\n", $connection->server ? 'server' : $connection->user ? 'user' : 'unregistered';
     # update ping information.
     $connection->{ping_in_air}   = 0;
     $connection->{last_response} = time;
@@ -243,7 +243,7 @@ sub send {
     return unless $connection->{stream};
     return if $connection->{goodbye};
     $connection->{stream}->write("$_\r\n") foreach grep { defined } @msg;
-print "SEND: @msg\n" if $connection->server;
+print "SEND: @msg\n";
 }
 
 # send data with a source

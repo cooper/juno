@@ -586,7 +586,7 @@ sub register_outgoing_handler {
 sub delete_outgoing_handler {
     my ($pool, $command, $proto) = (shift, uc shift, shift);
     #L("deleting handler $command");
-    delete $pool->{outgoing_commands}{proto}{$command};
+    delete $pool->{outgoing_commands}{$proto}{$command};
 }
 
 # fire an outgoing server command for a single server.
