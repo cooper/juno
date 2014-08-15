@@ -94,6 +94,8 @@ sub rcmd_pass {
     my $name = $connection->{name};
     return if !length $name;
     
+    $connection->{link_type} = 'jelp';
+    
     # check for valid password.
     my $password = utils::crypt(
         $connection->{pass},
@@ -108,7 +110,6 @@ sub rcmd_pass {
     # send my own PASS if I haven't already.
     $connection->send_server_pass if !$connection->{i_sent_pass};
     
-    $connection->{link_type} = 'jelp';
     $connection->reg_continue('id2');
     return 1;
 }
