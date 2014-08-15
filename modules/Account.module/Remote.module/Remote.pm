@@ -26,8 +26,8 @@ sub init {
 
     # IRCd event for burst.
     $pool->on('server.send_jelp_burst' => \&send_burst,
-        name  => 'account',
-        after => 'core',
+        name  => 'jelp.accountburst',
+        after => 'jelp.mainburst',
         with_eo => 1
     );
     

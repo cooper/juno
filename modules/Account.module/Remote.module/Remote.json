@@ -1,15 +1,15 @@
 {
-   "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
-   },
-   "package" : "M::Account::Remote",
+   "version" : "7.5",
    "name" : "Account::Remote",
+   "description" : "synchronizes user accounts across servers",
+   "package" : "M::Account::Remote",
    "depends" : {
       "modules" : [
          "JELP::Base"
       ]
    },
-   "version" : "7.4",
-   "description" : "synchronizes user accounts across servers"
+   "author" : {
+      "website" : "https://github.com/cooper",
+      "name" : "Mitchell Cooper"
+   }
 }

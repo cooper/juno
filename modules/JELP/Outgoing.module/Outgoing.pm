@@ -55,19 +55,19 @@ sub init {
     ) || return foreach keys %ocommands;
 
     # register server burst events.
+    $pool->on('server.send_jelp_burst' => \&send_startburst,
+        name     => 'jelp.startburst',
+        with_eo  => 1,
+        priority => 500
+    );
     $pool->on('server.send_jelp_burst' => \&send_burst,
         name     => 'jelp.mainburst',
         with_eo  => 1
     );
-    $pool->on('server.send_jelp_burst' => \&send_startburst,
-        name     => 'jelp.startburst',
-        with_eo  => 1,
-        priority => 1000
-    );
     $pool->on('server.send_jelp_burst' => \&send_endburst,
         name     => 'jelp.endburst',
         with_eo  => 1,
-        priority => -1000
+        priority => -500
     );
     
     return 1;

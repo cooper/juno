@@ -52,7 +52,7 @@ sub init {
         [ users    => [] ],
         [ children => [] ]
     );
-    $me->{parent} = $me; # looping reference, but it'll never be disposed of.
+    $me->{parent} = $me;
 
     # exported variables in modules.
     # note that these will not be available in the utils module.
@@ -114,12 +114,13 @@ sub setup_modules {
     return if $mod->{loading};
     
     # the old way: modules key.
-    my @modules = @{ conf('api', 'modules') || [] };
+    my @modules = ref_to_list(conf('api', 'modules'));
     
     # the new way: other keys.
-    foreach my $mod_name ($conf->keys_of_block('api')) {
+    my %mods = $conf->hash_of_block('api');
+    foreach my $mod_name (keys %mods) {
         next if $mod_name eq 'modules';
-        next unless conf('api', $mod_name);
+        next unless $mods{$mod_name};
         push @modules, $mod_name;
     }
     
