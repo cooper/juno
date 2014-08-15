@@ -249,6 +249,12 @@ sub handle_mode_string {
             next if !defined $parameter && $takes == 1;
         }
 
+        # if over_protocol is specified but not a code reference, fall back
+        # to JELP UID lookup function for compatibility.
+        if ($over_protocol && ref $over_protocol ne 'CODE') {
+            $over_protocol = sub { $pool->lookup_user(@_) };
+        }
+
         # don't allow this mode to be changed if the test fails
         # *unless* force is provided.
         my $params_before = scalar @$parameters;
@@ -262,8 +268,14 @@ sub handle_mode_string {
             params  => $parameters,     # the parameters for the resulting mode string
             force   => $force,          # true if permissions should be ignored
             proto   => $over_protocol,  # true if IDs used rather than nicks/names
+            
+            # source can set simple modes.
             has_basic_status => $force || $source->isa('server') ? 1
-                                : $channel->user_has_basic_status($source)
+                                : $channel->user_has_basic_status($source),
+                                
+            # a function to look up a user by nickname or UID.
+            user_lookup => $over_protocol || sub { $pool->lookup_user_nick(@_) }
+                           
         });
 
         # block says to send ERR_CHANOPRIVSNEEDED.
@@ -643,14 +655,14 @@ sub _do_mode_string {
     $channel->sendfrom_all($source->full, "MODE $$channel{name} $local_ustr");
     
     # stop here if it's not a local user or this server.
-    return unless $source->is_local;
+    return if $local_only || !$source->is_local;
     
     # the source is our user or this server, so tell other servers.
     # ($source, $channel, $time, $perspective, $server_modestr)
     $pool->fire_command_all(cmode =>
         $source, $channel, $channel->{time},
-        $perspective->{sid}, $server_result
-    ) unless $local_only;
+        $perspective, $server_result
+    );
     
 }
 
@@ -659,13 +671,13 @@ sub _do_mode_string {
 # it is necessary though to distinguish real PRIVMSGs from ones initiated by other
 # commands and whatnot; for example ECHO uses this directly.
 sub handle_privmsgnotice {
-    my ($channel, $command, $source, $message, $dont_forward) = @_;
+    my ($channel, $command, $source, $message, $dont_forward, $force) = @_;
     my $user   = $source->isa('user')   ? $source : undef;
     my $server = $source->isa('server') ? $source : undef;
     
     
     # it's a user.
-    if ($user) {
+    if ($user && !$force) {
     
         # no external messages?
         if ($channel->is_mode('no_ext') && !$channel->has_user($user)) {

@@ -2697,6 +2697,14 @@ CHANGES:
             *   improved TS6 server mode registration logic.
             
         34. improved Resolve module.
+        
+        35. fixed things.
+        
+        36. added incoming TS6 command TMODE handler.
+            user ->change_nick() method now takes an optional $time parameter for the nick TS.
+            the $over_protocol argument for channel methods ->handle_mode_string(), ->do_mode_string(), and friends can now optionally be a subroutine to look up a user by UID.
+            fixed some various bugs with user away messages due to improper use of exists() instead of length().
+            
             
             
         

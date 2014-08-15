@@ -245,7 +245,6 @@ sub nick {
 #
 sub tmode {
     my ($server, $source, $channel, $time, $perspective, $mode_str) = @_; # why $time?
-    $perspective = $pool->lookup_server($perspective) or return;
     sprintf ":%s TMODE %d %s %s",
     ts6_id($source),
     $time,

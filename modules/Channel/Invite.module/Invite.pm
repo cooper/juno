@@ -112,7 +112,7 @@ sub ucmd_invite {
     
     # tell the source the target's being invited.
     $user->numeric(RPL_AWAY => $t_user->{nick}, $t_user->{away})
-        if exists $t_user->{away};    
+        if length $t_user->{away};    
     $user->numeric(RPL_INVITING => $t_user->{nick}, $ch_name);
     
     return 1;

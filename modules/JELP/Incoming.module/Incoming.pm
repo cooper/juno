@@ -237,14 +237,14 @@ sub uid {
         # you lose.
         elsif ($ref->{time} < $used->{time}) {
             $used->send_to_channels("NICK $$used{uid}");
-            $used->change_nick($used->{uid});
+            $used->change_nick($used->{uid}, time);
         }
         
         # we both lose.
         else {
             $ref->{nick} = $ref->{uid};
             $used->send_to_channels("NICK $$used{uid}");
-            $used->change_nick($used->{uid});
+            $used->change_nick($used->{uid}, time);
         }
     }
 
@@ -281,7 +281,7 @@ sub nick {
 
     # tell ppl
     $user->send_to_channels("NICK $newnick");
-    $user->change_nick($newnick);
+    $user->change_nick($newnick, time);
 }
 
 sub burst {
@@ -346,9 +346,13 @@ sub privmsgnotice {
     my $channel = $pool->lookup_channel($target);
     if ($channel) {
     
-        # the last argument here tells ->handle_privmsgnotice to not
-        # forward the message to servers. that is handled below.
-        $channel->handle_privmsgnotice($command, $source, $message, 1);
+        # the second-to-last argument here tells ->handle_privmsgnotice
+        # to not forward the message to servers. that is handled below.
+        #
+        # the last argument tells it to force the message to send,
+        # regardless of modes or bans, etc.
+        #
+        $channel->handle_privmsgnotice($command, $source, $message, 1, 1);
         
         # === Forward ===
         #
@@ -437,7 +441,7 @@ sub cmode {
     $channel->take_lower_time($time);
     
     # handle the mode string and send to local users.
-    $channel->do_mode_string($perspective, $source, $modestr, 1, 1);
+    $channel->do_mode_string_local($perspective, $source, $modestr, 1, 1);
     
     return 1;
 }

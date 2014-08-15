@@ -273,8 +273,9 @@ sub sconnect {
 sub cmode {
     my ($to_server, $source, $channel, $time, $perspective, $modestr) = @_;
     return unless length $modestr;
-    my $id = $source->id;
-    ":$id CMODE $$channel{name} $time $perspective :$modestr"
+    my $id  = $source->id;
+    my $pid = $perspective->id;
+    ":$id CMODE $$channel{name} $time $pid :$modestr"
 }
 
 # kill

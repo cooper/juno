@@ -89,10 +89,11 @@ sub quit {
 
 # low-level nick change.
 sub change_nick {
-    my ($user, $newnick) = @_;
+    my ($user, $newnick, $time) = @_;
     $pool->change_user_nick($user, $newnick) or return;
     notice(user_nick_change => $user->notice_info, $newnick);
     $user->{nick} = $newnick;
+    $user->{nick_time} = $time if $time;
 }
 
 # handle a mode string and convert the mode letters to their mode

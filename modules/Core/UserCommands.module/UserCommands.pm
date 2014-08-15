@@ -239,7 +239,7 @@ sub nick {
     $user->send_to_channels("NICK $newnick");
 
     # change it.
-    $user->change_nick($newnick);
+    $user->change_nick($newnick, time);
     $pool->fire_command_all(nickchange => $user);
     
 }
@@ -490,7 +490,7 @@ sub cjoin {
         # tell servers that the user joined and the automatic modes were set.
         $pool->fire_command_all(join => $user, $channel, $time);
         # why do we need $time in either of these? just use $channel->{time}
-        $pool->fire_command_all(cmode => $me, $channel, $time, $me->{sid}, $sstr) if $sstr;
+        $pool->fire_command_all(cmode => $me, $channel, $time, $me, $sstr) if $sstr;
         # hmm, this needs to be reconsidered since TS6 and some protocols use a channel
         # burst command (SJOIN) with both user and modes during channel creation.
         
@@ -631,7 +631,7 @@ sub add_whois_callbacks {
     [ undef,                           'RPL_WHOISSERVER',   $server_info                              ],
     [ sub { shift->is_mode('ssl')   }, 'RPL_WHOISSECURE'                                              ],
     [ sub { shift->is_mode('ircop') }, 'RPL_WHOISOPERATOR'                                            ],
-    [ sub { defined shift->{away}   }, 'RPL_AWAY',          sub { shift->{away}                     } ],
+    [ sub { length shift->{away}    }, 'RPL_AWAY',          sub { shift->{away}                     } ],
     [ sub { shift->mode_string      }, 'RPL_WHOISMODES',    sub { shift->mode_string                } ],
     [ undef,                           'RPL_WHOISHOST',     sub { @{+shift}{ qw(host ip) }          } ],
     [ undef,                           'RPL_ENDOFWHOIS'                                               ]) {
@@ -721,7 +721,7 @@ sub away {
     }
 
     # unsetting.
-    return unless exists $user->{away};
+    return unless length $user->{away};
     $user->unset_away;
     $pool->fire_command_all(return_away => $user);
     $user->numeric('RPL_UNAWAY');
@@ -845,7 +845,7 @@ sub who {
         next if ($args[2] && index($args[2], 'o') != -1 && !$quser->is_mode('ircop'));
 
         # found a match
-        $who_flags = (defined $quser->{away} ? 'G' : 'H') .
+        $who_flags = (length $quser->{away} ? 'G' : 'H') .
                      $who_flags . ($quser->is_mode('ircop') ? '*' : q||);
         $user->numeric(RPL_WHOREPLY =>
             $match_pattern, $quser->{ident}, $quser->{host}, $quser->{server}{name},

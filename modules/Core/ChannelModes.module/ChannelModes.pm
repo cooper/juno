@@ -58,9 +58,7 @@ sub register_statuses {
         my $source = $mode->{source};
         
         # find the target.
-        my $t_user = $mode->{proto} ?
-            $pool->lookup_user($mode->{param}) :
-            $pool->lookup_user_nick($mode->{param});
+        my $t_user = $mode->{user_lookup}($mode->{param});
 
         # make sure the target user exists.
         if (!$t_user) {

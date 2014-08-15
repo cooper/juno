@@ -49,6 +49,10 @@ our %ts6_incoming_commands = (
         params  => '-source -command any    :rest',
         code    => \&privmsgnotice
     },
+    TMODE => {     # :src TMODE ch_time ch_name      mode_str mode_params...
+        params  => '-source     ts      channel      :rest', # just to join them together
+        code    => \&tmode
+    }
 );
 
 # SID
@@ -252,7 +256,8 @@ print "turns out the modes are: $modes\n";
         }
         
         # handle the mode string locally.
-        $channel->do_mode_string_local($serv, $serv, $difference, 1, 1) if $difference;
+        $channel->do_mode_string_local($serv, $serv, $difference, 1, \&user_from_ts6)
+          if $difference;
         
     }
     
@@ -265,7 +270,7 @@ print "turns out the modes are: $modes\n";
     #       - in TS6,  all simple and status modes will be propagated.
     #       - in JELP, all modes will be propagated.
     #
-    #   JELP:   JOIN, CMODE
+    #   JELP:   CUM
     #   TS6:    SJOIN
     #
     $msg->forward(create_channel => $channel, $serv, @good_users);
@@ -339,7 +344,7 @@ sub privmsgnotice {
     my ($server, $msg, $source, $command, $target, $message) = @_;
     
     # is it a user?
-    my $tuser = $pool->lookup_user($target);
+    my $tuser = user_from_ts6($target);
     if ($tuser) {
     
         # if it's mine, send it.
@@ -365,9 +370,13 @@ sub privmsgnotice {
     my $channel = $pool->lookup_channel($target);
     if ($channel) {
     
-        # the last argument here tells ->handle_privmsgnotice to not
-        # forward the message to servers. that is handled below.
-        $channel->handle_privmsgnotice($command, $source, $message, 1);
+        # the second-to-last argument here tells ->handle_privmsgnotice
+        # to not forward the message to servers. that is handled below.
+        #
+        # the last argument tells it to force the message to send,
+        # regardless of modes or bans, etc.
+        #
+        $channel->handle_privmsgnotice($command, $source, $message, 1, 1);
         
         # === Forward ===
         #
@@ -385,5 +394,35 @@ sub privmsgnotice {
     return;
 }
 
+# TMODE
+#
+# source:       any
+# parameters:   channelTS, channel, cmode changes, opt. cmode parameters...
+#
+# ts6-protocol.txt:937
+#
+sub tmode {
+    my ($server, $msg, $source, $ts, $channel, $mode_str) = @_;
+    
+    # take the lower time.
+    my $new_ts = $channel->take_lower_time($ts);
+    return unless $ts == $new_ts;
+
+    # handle the mode string and send to local users.
+    # the last argument here is a function to look up a UID.
+    $channel->do_mode_string_local($server, $source, $mode_str, 1, \&user_from_ts6);
+    
+    # === Forward ===
+    #
+    #   mode changes will be propagated only if the TS was good.
+    #
+    #   JELP:   JOIN, CMODE
+    #   TS6:    SJOIN
+    #
+    # $source, $channel, $time, $perspective, $mode_str
+    #
+    $msg->forward(cmode => $source, $channel, $channel->{time}, $server, $mode_str);
+    
+}
 
 $mod
