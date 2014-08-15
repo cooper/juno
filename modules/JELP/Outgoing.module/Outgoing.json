@@ -2,12 +2,12 @@
    "depends" : {
       "modules" : "JELP::Base"
    },
-   "description" : "basic set of JELP outgoing commands",
-   "name" : "JELP::Outgoing",
-   "version" : "13.05",
    "package" : "M::JELP::Outgoing",
+   "name" : "JELP::Outgoing",
    "author" : {
       "website" : "https://github.com/cooper",
       "name" : "Mitchell Cooper"
-   }
+   },
+   "version" : "13.15",
+   "description" : "basic set of JELP outgoing commands"
 }
