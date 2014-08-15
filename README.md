@@ -26,10 +26,14 @@ useful for something to respond, an event exists and is fired. This functionalit
 provided by [Evented::Object](https://github.com/cooper/evented-object), a showcase
 project that is the base of every class within the IRCd.
 
+![Eventedness](http://i.imgur.com/LyDSFY3.png)
+
 * __Extensibility__: Through the use of events and other mechanisms, extensibility is
 another important guideline around which juno is designed. It should not be assumed that
 any commands, modes, prefixes, etc. are permanent or definite. They should be changeable
 and replaceable, and it should be possible for more to be added with ease.
+
+![Extensibility](http://i.imgur.com/vs0IxY7.png)
 
 * __Modularity__: By responding to events, modules add new features and functionality to
 the IRCd. Without them, juno is made up of a mere sixty lines of Perl code. Everything else
@@ -38,10 +42,14 @@ body whose parts can be added, removed, and modified. This functionality is prov
 the [Evented::API::Engine](https://github.com/cooper/evented-api-engine), a class which
 provides an interface for loading and managing modules.
 
+![Modularity](http://i.imgur.com/EHOfEyS.png)
+
 * __Upgradability__: The beauty of Perl makes it practical for an entire piece of software
 to be upgraded or reloaded without restarting it. With the help of the API engine and
 modularity as a central principle, juno aims to do exactly that. With just one command,
 you can jump from version 10 to 25, all without your users disconnecting.
+
+![Upgradability](http://i.imgur.com/yOQXzTF.png)
 
 * __Configurability__: Very few values are hard coded. Some have default values, but
 nearly everything is configurable. There's little reason to make limitations on what can
@@ -50,11 +58,15 @@ exactly as you please. Made possible by
 [Evented::Configuration](https://github.com/cooper/evented-configuration) and
 [Evented::Database](https://github.com/cooper/evented-database).
 
-* __Efficiency__: Processing efficiency is valued over memory friendliness. I believe that
-a more responsive server is better than one that runs on very minimal resources. Modern
+![Configurability](http://i.imgur.com/Rfk6AXe.png)
+
+* __Efficiency__: Processing efficiency is valued over memory friendliness. A more responsive
+server is better than one that runs on very minimal resources. Modern
 IRC servers typically have a higher per-user load and therefore should be prompt at
 fulfilling request after request. Utilizing the wonderful
 [IO::Async](http://search.cpan.org/perldoc/IO::Async) framework, juno is quite reactive.
+
+![Efficiency](http://i.imgur.com/YpvdIYJ.png)
 
 # History
 
