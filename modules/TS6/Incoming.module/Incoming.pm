@@ -21,7 +21,7 @@ use 5.010;
 
 use M::TS6::Utils qw(uid_from_ts6 user_from_ts6 mode_from_prefix_ts6 sid_from_ts6);
 
-our ($api, $mod, $pool);
+our ($api, $mod, $pool, $me);
 
 our %ts6_incoming_commands = (
     SID => {
@@ -81,6 +81,10 @@ sub sid {
 
     # create a new server.
     my $serv = $pool->new_server(%s);
+    $serv->set_functions(
+        uid_to_user => \&user_from_ts6,
+        user_to_uid => \&ts6_uid
+    );
     
     # the TS6 IRCd will be considered the same as the parent server.
     # I think this will be okay because unknown modes would not be
@@ -217,10 +221,9 @@ sub sjoin {
 
         # no prefixes or not accepting the prefixes.
         next unless length $prefixes && $accept_new_modes;
-print "ok, gonna add the modes for $$user{nick}: $prefixes\n";
+
         # determine the modes and add them to the mode string / parameters.
         my $modes    = join '', map { mode_from_prefix_ts6($server, $_) } @prefixes;
-print "turns out the modes are: $modes\n";
         $uids_modes .= $modes;
         push @uids, $user->{uid} for 1 .. length $modes;
         
@@ -256,8 +259,8 @@ print "turns out the modes are: $modes\n";
         }
         
         # handle the mode string locally.
-        $channel->do_mode_string_local($serv, $serv, $difference, 1, \&user_from_ts6)
-          if $difference;
+        # note: do not supply a $over_protocol sub. this generated string uses juno UIDs.
+        $channel->do_mode_string_local($serv, $serv, $difference, 1, 1) if $difference;
         
     }
     
@@ -408,9 +411,14 @@ sub tmode {
     my $new_ts = $channel->take_lower_time($ts);
     return unless $ts == $new_ts;
 
-    # handle the mode string and send to local users.
-    # the last argument here is a function to look up a UID.
-    $channel->do_mode_string_local($server, $source, $mode_str, 1, \&user_from_ts6);
+    # convert the mode string to this server.
+    # this is not necessary for translating the modes, but it is
+    # instead used because it will convert TS6 UIDs to juno UIDs.
+    #
+    # then, do the mode string from the perspective of this server.
+    #
+    $mode_str = $server->convert_cmode_string($me, $mode_str, 1);
+    $channel->do_mode_string_local($me, $source, $mode_str, 1, 1);
     
     # === Forward ===
     #

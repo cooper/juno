@@ -249,7 +249,7 @@ sub tmode {
     ts6_id($source),
     $time,
     $channel->{name},
-    $perspective->convert_cmode_string($server, $mode_str)
+    $perspective->convert_cmode_string($server, $mode_str, 1)
 }
 
 # BMASK

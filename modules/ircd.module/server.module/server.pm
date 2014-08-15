@@ -18,7 +18,7 @@ use feature 'switch';
 use parent 'Evented::Object';
 
 use utils qw(col v conf notice);
-use Scalar::Util 'looks_like_number';
+use Scalar::Util qw(looks_like_number);
 
 our ($api, $mod, $me, $pool);
 
@@ -137,23 +137,44 @@ sub cmode_type {
 
 # change 1 server's mode string to another server's.
 sub convert_cmode_string {
-    my ($server, $server2, $modestr) = @_;
+    my ($server, $server2, $modestr, $over_protocol) = @_;
     my $string = '';
     my @m      = split /\s+/, $modestr;
     my $modes  = shift @m;
-    
+    my $curr_p = 0;
+    my $state  = 1;
     foreach my $letter (split //, $modes) {
-        my $new = $letter;
 
-        # translate it.
-        my $name = $server->cmode_name($letter);
-        $new     = $server2->cmode_letter($name) // $new if $name;
-        $string .= $new;
+        # state change.
+        if ($letter eq '+' || $letter eq '-') {
+            $state   = $letter eq '+';
+            $string .= $letter;
+            next;
+        }
         
+        my $name = $server->cmode_name($letter) or next;
+        
+        if ($over_protocol) {
+        
+            # if it's a status mode, translate the UID maybe.
+            if ($server->cmode_type($name) == 4 && length $m[$curr_p]) {
+                my $user    = $server ->uid_to_user($m[$curr_p]);
+                $m[$curr_p] = $server2->user_to_uid($user) if $user;
+            }
+            
+            # this one takes a parameter.
+            $curr_p++ if $server->cmode_takes_parameter($name, $state);
+            
+        }
+
+        # translate the letter.
+        my $new  = $server2->cmode_letter($name) or next;
+        $string .= $new;
+
     }
 
     my $newstring = join ' ', $string, @m;
-    L("converted $modes ($$server{name}) to $string ($$server2{name})");
+    L("converted $modestr ($$server{name}) to $newstring ($$server2{name})");
     return $newstring;
 }
 
@@ -361,6 +382,23 @@ sub hops_to {
         $server2 = $server2->{parent};
     }
     return $hops;
+}
+
+sub uid_to_user {
+    my ($server, $uid) = @_;
+    return $server->{uid_to_user}($uid) if $server->{uid_to_user};
+    return $pool->lookup_user($uid);
+}
+
+sub user_to_uid {
+    my ($server, $user) = @_;
+    return $server->{user_to_uid}($user) if $server->{user_to_uid};
+    return $user->{uid};
+}
+
+sub set_functions {
+    my ($server, %functions) = @_;
+    @$server{ keys %functions } = values %functions;
 }
 
 # shortcuts

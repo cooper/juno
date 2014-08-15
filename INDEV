@@ -2705,6 +2705,11 @@ CHANGES:
             the $over_protocol argument for channel methods ->handle_mode_string(), ->do_mode_string(), and friends can now optionally be a subroutine to look up a user by UID.
             fixed some various bugs with user away messages due to improper use of exists() instead of length().
             
+        37. new server methods ->user_to_uid(), ->uid_to_user(), ->set_functions().
+            fixed broken TS6 TMODE handler.
+            fixed uid_from_ts6() misbehavior with UIDs containing integers in the "ID" portion.
+            ->convert_cmode_string() now takes an $over_protocol argument. if true, it will attempt to convert UIDs from one protocol format to another.
+            
             
             
         
