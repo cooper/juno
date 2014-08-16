@@ -28,6 +28,7 @@
     Channel::Secret     =   on      # Secret channel support (+s)
     SASL                =   on      # Support for SASL plain authentication
     Grant               =   on      # grant user oper flags from IRC
+    Alias               =   on      # support for command aliases
 
 [ limit ]
 
@@ -73,6 +74,17 @@
 
     port    = [6667..6669, 7000]                # unsecured listening ports
     sslport = [6697]                            # secure ports
+
+
+# Command aliases - requires Alias module
+
+[ aliases ]
+
+    ns = 'PRIVMSG NickServ $1-'
+    cs = 'PRIVMSG ChanServ $1-'
+    os = 'PRIVMSG OperServ $1-'
+    bs = 'PRIVMSG BotServ $1-'
+    gs = 'PRIVMSG GroupServ $1-'
 
 
 [ connect: server2.example.com ]

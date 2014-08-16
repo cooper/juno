@@ -64,6 +64,7 @@
 		BC95655F1944E032002F52B9 /* Modules.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Modules.pm; path = Modules.module/Modules.pm; sourceTree = "<group>"; };
 		BC9565621944E032002F52B9 /* Reload.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Reload.pm; path = Reload.module/Reload.pm; sourceTree = "<group>"; };
 		BC9565651944E032002F52B9 /* Resolve.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Resolve.pm; path = Resolve.module/Resolve.pm; sourceTree = "<group>"; };
+		BCB05A7B199FD4BF00AB6FEE /* Alias.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Alias.pm; path = Alias.module/Alias.pm; sourceTree = "<group>"; };
 		BCB6C80E1960C47E009F093A /* Access.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Access.pm; path = Access.module/Access.pm; sourceTree = "<group>"; };
 		BCB6C8111960C47E009F093A /* Fantasy.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Fantasy.pm; path = Fantasy.module/Fantasy.pm; sourceTree = "<group>"; };
 		BCB6C8141960C47E009F093A /* Invite.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Invite.pm; path = Invite.module/Invite.pm; sourceTree = "<group>"; };
@@ -164,6 +165,7 @@
 				BC9565311944E032002F52B9 /* Git.pm */,
 				BCBADAF4195DDA910051282D /* SASL.pm */,
 				BC131F38199560D300B8071A /* Grant.pm */,
+				BCB05A7B199FD4BF00AB6FEE /* Alias.pm */,
 			);
 			name = modules;
 			path = ../modules;

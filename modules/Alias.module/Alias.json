@@ -1,0 +1,13 @@
+{
+   "depends" : {
+      "modules" : "Base::UserCommands"
+   },
+   "package" : "M::Alias",
+   "description" : "support for command aliases",
+   "version" : "1.2",
+   "author" : {
+      "website" : "https://github.com/cooper",
+      "name" : "Mitchell Cooper"
+   },
+   "name" : "Alias"
+}
