@@ -30,12 +30,19 @@ our ($api, $mod, $pool, $conf);
 sub ts6_id {
     my $obj = shift;
     blessed $obj or return;
-    return $obj->{ts6_uid}      if defined $obj->{ts6_uid};
-    return $obj->{ts6_sid}      if defined $obj->{ts6_sid};
-    if ($obj->isa('user'))    { return ts6_uid($obj->{uid}) }
-    if ($obj->isa('server'))  { return ts6_sid($obj->{sid}) }
-    if ($obj->isa('channel')) { return $obj->{name}         }
-    return;
+    
+    # cached.
+    return $obj->{ts6_id}  if length $obj->{ts6_id};
+    return $obj->{ts6_uid} if length $obj->{ts6_uid};
+    return $obj->{ts6_sid} if length $obj->{ts6_sid};
+    
+    my $r;
+    if    ($obj->isa('user'))    { $r = ts6_uid($obj->{uid}) }
+    elsif ($obj->isa('server'))  { $r = ts6_sid($obj->{sid}) }
+    elsif ($obj->isa('channel')) { $r = $obj->{name}         }
+    
+    $obj->{ts6_id} = $r if length $r;
+    return $r;
 }
 
 # convert an SID.

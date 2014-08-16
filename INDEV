@@ -2711,6 +2711,8 @@ CHANGES:
             ->convert_cmode_string() now takes an $over_protocol argument. if true, it will attempt to convert UIDs from one protocol format to another.
             
         38. all core JELP commands now utilize the $msg->forward() mechanism.
+        
+        39. ts6_id() now caches TS6 IDs because the translator functions are currently extremely inefficient.
             
             
         
