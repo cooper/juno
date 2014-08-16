@@ -32,7 +32,7 @@ my %ocommands = (
     topic           => \&topic,
     cmode           => \&cmode,
     channel_burst   => [ \&cum, \&topicburst ],         # cum
-    create_channel  => \&cum,
+    join_with_modes => \&join_with_modes,
     kill            => \&skill,
     connect         => \&sconnect,
     kick            => \&kick,
@@ -139,7 +139,7 @@ sub send_burst {
 
     # channels, using compact CUM
     foreach my $channel ($pool->channels) {
-        $server->fire_command(channel_burst => $channel);
+        $server->fire_command(channel_burst => $channel, $me);
     }
     
 }
@@ -294,15 +294,14 @@ sub skill {
 ####################
 
 # channel user membership (channel burst)
-# $server = server to send to
-# @users  = for create_channel only, the users to send.
 sub cum {
-    my ($server, $channel, $serv, $no_modes, @users) = @_;
-    $serv ||= $me;
+    my ($server, $channel, $serv, @members) = @_;
+    $serv  ||= $me;
+    @members = $channel->users if !@members;
     
     # make +modes params string without status modes.
-    # modes are from the perspective of this server, $me.
-    my $modestr = $no_modes ? '+' : $channel->mode_string_all($me, 1);
+    # modes are from the perspective of the source server.
+    my $modestr = $channel->mode_string_all($serv, 1);
     
     # fetch the prefixes for each user.
     my (%prefixes, @userstrs);
@@ -313,8 +312,7 @@ sub cum {
     }
 
     # create an array of uid!status
-    @users = $channel->users if !@users;
-    foreach my $user (@users) {
+    foreach my $user (@members) {
     
         # this is the server that told us about the user. it already knows.
         next if $user->{location} == $server;
@@ -325,7 +323,9 @@ sub cum {
     }
 
     # note: use "-" if no users present
-    ":$$serv{sid} CUM $$channel{name} $$channel{time} ".(join(',', @userstrs) || '-')." :$modestr"
+    my $userstr = @userstrs ? join ',', @userstrs : '-';
+    ":$$serv{sid} CUM $$channel{name} $$channel{time} $userstr :$modestr"
+    
 }
 
 # add cmodes
@@ -389,6 +389,31 @@ sub burst {
 sub endburst {
     my ($to_server, $serv, $time) = @_;
     ":$$serv{sid} ENDBURST $time"
+}
+
+# join_with_modes:
+#
+# $server    = server object we're sending to
+# $channel   = channel object
+# $serv      = server source of the message
+# $mode_str  = mode string being sent
+# $mode_serv = server object for mode perspective
+# @members   = channel members (user objects)
+#
+sub join_with_modes {
+    my ($server, $channel, $serv, $mode_str, $mode_serv, @members) = @_;
+    my (@joins, $cmode);
+    
+    # add a JOIN for each user.
+    push @joins, join($_, $channel, $channel->{time}) foreach @members;
+    
+    # if we're sending modes, add the CMODE.
+    # $source, $channel, $time, $perspective, $modestr
+    if ($mode_str ne '+') {
+        $cmode = cmode($serv, $channel, $channel->{time}, $mode_serv, $mode_str);
+    }
+    
+    return (@joins, $cmode);
 }
 
 $mod

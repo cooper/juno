@@ -37,8 +37,8 @@ our %ts6_outgoing_commands = (
    # part           => \&part,
    # topic          => \&topic,
      cmode          => \&tmode,
-     channel_burst  => [ \&sjoin, \&bmask, \&tb ],
-     create_channel => \&sjoin,
+     channel_burst  => [ \&sjoin_burst, \&bmask, \&tb ],
+     join_with_modes => \&sjoin,
    # acm            => \&acm,
    # aum            => \&aum,
    # kill           => \&skill,
@@ -99,7 +99,7 @@ sub send_burst {
     
     # channels.
     foreach my $channel ($pool->channels) {
-        $server->fire_command(channel_burst => $channel);
+        $server->fire_command(channel_burst => $channel, $me);
     }
     
 }
@@ -165,27 +165,45 @@ sub euid {
 #
 # ts6-protocol.txt:821
 #
+# join_with_modes:
+#
+# $server    = server object we're sending to
+# $channel   = channel object
+# $serv      = server source of the message
+# $mode_str  = mode string being sent
+# $mode_serv = server object for mode perspective
+# @members   = channel members (user objects)
+#
 sub sjoin {
-    my ($server, $channel, $serv, $no_modes, @members) = @_;
+    my ($server, $channel, $serv, $mode_str, $mode_serv, @members) = @_;
     
-    # if members weren't specified, we are bursting the channel.
-    # include all channel members in the message.
-    if (!@members) {
-        foreach my $user ($channel->users) {
-            my $pfx = ts6_prefixes($server, $channel->user_get_levels($user));
-            my $uid = ts6_id($user);
-            push @members, "$pfx$uid";
-        }
+    # if the mode perspective is not the server we're sending to, convert.
+    $mode_str = $mode_serv->convert_cmode_string($server, $mode_str)
+      if $mode_serv != $server;
+    
+    # create @UID +UID etc. strings.
+    my @member_str;
+    foreach my $user (@members) {    
+        my $pfx = ts6_prefixes($server, $channel->user_get_levels($user));
+        my $uid = ts6_id($user);
+        push @member_str, "$pfx$uid";
     }
     
     # TODO: probably should split this into several SJOINs?
-    my $mode_str = $no_modes ? '+' : $channel->mode_string_hidden($server);
     sprintf ":%s SJOIN %d %s %s :%s",
     ts6_id($me),                        # SID of this server
     $channel->{time},                   # channel time
     $channel->{name},                   # channel name
     $mode_str,                          # includes +ntk, excludes +ovbI, etc.
-    "@members"
+    "@member_str"
+}
+
+# for bursting, send SJOIN with all simple modes and all users if none specified.
+sub sjoin_burst {
+    my ($server, $channel, $serv, @members) = @_;
+    my $mode_str = $channel->mode_string_hidden($server);
+    @members = $channel->users if !@members;
+    return sjoin($server, $channel, $serv, $mode_str, $server, @members);
 }
 
 # JOIN

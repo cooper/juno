@@ -19,7 +19,7 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils qw(cut_to_limit);
+use utils qw(cut_to_limit cols);
 
 our ($api, $mod, $pool);
 
@@ -46,16 +46,34 @@ sub init {
 sub cmode_key {
     my ($channel, $mode) = @_;
     $mode->{has_basic_status} or return;
+    
     # if we're unsetting...
-    if (!$mode->{setting} && $channel->is_mode('key')) {
-        # if we unset without a parameter (the key), we need to push the current key to params
-        push @{ $mode->{params} }, $channel->mode_parameter('key') if !defined $mode->{param};
+    if (!$mode->{setting}) {
+        return unless $channel->is_mode('key');
+        
+        # if we unset without a parameter (the key),
+        # we need to push the current key to params
+        push @{ $mode->{params} }, $channel->mode_parameter('key')
+          if !defined $mode->{param};
+        
         $channel->unset_mode('key');
-    } else {
+    }
+    
+    # setting.
+    else {
+    
         # sanity checking
-        $mode->{param} = cut_to_limit('key', $mode->{param});
+        $mode->{param} = cols(cut_to_limit('key', $mode->{param}));
+        
+        # no length; don't set.
+        if (!length $mode->{param}) {
+            $mode->{do_not_set} = 1;
+            return;
+        }
+        
         $channel->set_mode('key', $mode->{param});
     }
+    
     return 1;
 }
 
@@ -66,8 +84,6 @@ sub on_user_can_join {
     $user->numeric(ERR_BADCHANNELKEY => $channel->name);
     $event->stop;
 }
-
-
 
 $mod
 

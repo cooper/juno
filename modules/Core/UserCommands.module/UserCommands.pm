@@ -1109,7 +1109,7 @@ sub version {
 
 sub squit {
     my ($user, $event, $server_name) =  @_;
-    my $server = $pool->lookup_server_mask($server_name);
+    my @servers = $pool->lookup_server_mask($server_name);
     
     # if there is a pending timer, cancel it.
     if (server::linkage::cancel_connection($server_name)) {
@@ -1118,21 +1118,25 @@ sub squit {
         return 1;
     }
     
-    # no such server.
-    if (!$server) {
+    # no servers.
+    if (!@servers) {
         $user->numeric(ERR_NOSUCHSERVER => $server_name);
         return;
     }
     
-    # no direct connection. might be local server or a
-    # psuedoserver or a server reached through another server.
-    if (!$server->{conn}) {
-        $user->server_notice(squit => 'Server is not directly connected');
-        return;
+    foreach my $server (@servers) {
+        
+        # no direct connection. might be local server or a
+        # psuedoserver or a server reached through another server.
+        if (!$server->{conn}) {
+            $user->server_notice(squit => "Server $$server{name} is not directly connected");
+            next;
+        }
+        
+        $server->{conn}->done('SQUIT command');
+        $user->server_notice(squit => "$$server{name} disconnected");
     }
     
-    $server->{conn}->done('SQUIT command');
-    $user->server_notice(squit => "$$server{name} disconnected");
     return 1;
 }
 

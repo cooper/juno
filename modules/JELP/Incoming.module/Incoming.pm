@@ -623,12 +623,7 @@ sub cum {
     }
     
     # === Forward ===
-    # 
-    # JELP: CUM
-    # TS6:  SJOIN
-    #
-    my $no_modes = $modestr eq '+';
-    $msg->forward(create_channel => $channel, $serv, $no_modes, @good_users);
+    $msg->forward(channel_burst => $channel, $serv, @good_users);
     
     return 1;
 }

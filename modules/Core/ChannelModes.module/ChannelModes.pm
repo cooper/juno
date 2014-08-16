@@ -16,6 +16,8 @@ use warnings;
 use strict;
 use 5.010;
 
+use utils 'cols';
+
 our ($api, $mod, $me, $pool);
 
 my %cmodes = (
@@ -131,7 +133,7 @@ sub cmode_banlike {
     my ($list, $reply, $channel, $mode) = @_;
 
     # view list.
-    if (!defined $mode->{param} && $mode->{source}->isa('user')) {
+    if (!length $mode->{param} && $mode->{source}->isa('user')) {
         
         # send each list item.
         my $name = uc($list).q(LIST);
@@ -151,6 +153,13 @@ sub cmode_banlike {
     # needs privs.
     if (!$mode->{has_basic_status}) {
         $mode->{send_no_privs} = 1;
+        return;
+    }
+    
+    # remove prefixing colon.
+    $mode->{param} = cols($mode->{param});
+    if (!length $mode->{param}) {
+        $mode->{do_not_set} = 1;
         return;
     }
 

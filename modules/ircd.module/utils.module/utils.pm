@@ -46,6 +46,13 @@ sub col {
     return $string;
 }
 
+# remove all prefixing colons.
+sub cols {
+    my $string = shift;
+    $string =~ s/^:*//;
+    return $string;
+}
+
 # find an object by it's id (server, user) or channel name.
 sub global_lookup {
     return unless pool->can('lookup_server');

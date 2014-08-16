@@ -2717,6 +2717,13 @@ CHANGES:
     4. added Alias module.
     
         41. don't send channel modes in CUM if the input mode string is '+' (from SJOIN).
+        
+        42. new outgoing event join_with_modes.
+            improved CUM/SJOIN.
+            added new cols() utility function, a recursive version of col().
+            SQUIT now affects all matching servers, not the first match only.
+            fixed up Channel::Key.
+            added some safety measures for colon-prefixed items in channel lists.
             
             
         

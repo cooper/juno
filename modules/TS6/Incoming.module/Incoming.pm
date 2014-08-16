@@ -264,20 +264,43 @@ sub sjoin {
         
     }
     
-    # === Forward ===
+    # === Forward DURING BURST ===
     #
-    #   if their TS was bad, the modes were not applied.
-    #       - no modes will be propagated.
+    #   during burst, all channel modes will be propagated,
+    #   regardless of whether they were present or absent
+    #   in this particular SJOIN message.
     #
-    #   if their TS was good, the modes were applied.
-    #       - in TS6,  all simple and status modes will be propagated.
-    #       - in JELP, all modes will be propagated.
+    #   all users will be sent with their current statuses,
+    #   if any apply, also without regard to this message.
     #
     #   JELP:   CUM
     #   TS6:    SJOIN
+    #   
+    if ($server->{is_burst}) {
+        $msg->forward(channel_burst => $channel, $serv, @good_users);
+        return 1;
+    }
+    
+    # === Forward OUTSIDE OF BURST ===
     #
-    my $no_modes = $mode_str eq '+';
-    $msg->forward(create_channel => $channel, $serv, $no_modes, @good_users);
+    #   if their TS was bad, the modes were not applied.
+    #       - no modes will be propagated (+).
+    #
+    #   if their TS was good, the modes were applied.
+    #       - the modes in the message will be propagated,
+    #       - not necessarily all the modes of the channnel.
+    #
+    #   JELP:   JOIN, CMODE
+    #   TS6:    SJOIN
+    #
+    $mode_str = '+' unless $accept_new_modes;
+    $msg->forward(join_with_modes =>
+        $channel,       # $channel   = channel object  
+        $serv,          # $serv      = server source of the message
+        $mode_str,      # $mode_str  = mode string being sent
+        $serv,          # $mode_serv = server object for mode perspective
+        @good_users     # @members   = channel members (user objects)
+    );
 
     return 1;
 }
