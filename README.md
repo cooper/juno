@@ -52,31 +52,31 @@ and replaceable, and it should be possible for more to be added with ease.
 ```
 [ modes: user ]
 
-    ircop         = 'o'                         # IRC operator                      (o)
-    invisible     = 'i'                         # invisible mode                    (i)
-    ssl           = 'z'                         # SSL connection                    (z)
-    registered    = 'r'                         # registered - Account module       (r)
+    ircop         = 'o'               # IRC operator                      (o)
+    invisible     = 'i'               # invisible mode                    (i)
+    ssl           = 'z'               # SSL connection                    (z)
+    registered    = 'r'               # registered - Account module       (r)
 
 
 [ modes: channel ]
 
-    no_ext        = [0, 'n']                    # no external channel messages      (n)
-    protect_topic = [0, 't']                    # only operators can set the topic  (t)
-    invite_only   = [0, 'i']                    # you must be invited to join       (i)
-    moderated     = [0, 'm']                    # only voiced and up may speak      (m)
-    ban           = [3, 'b']                    # channel ban                       (b)
-    except        = [3, 'e']                    # ban exception                     (e)
-    invite_except = [3, 'I']                    # invite-only exception             (I)
-    access        = [3, 'A']                    # Channel::Access module list mode  (A)
-    limit         = [2, 'l']                    # Channel user limit mode           (l)
+    no_ext        = [0, 'n']          # no external channel messages      (n)
+    protect_topic = [0, 't']          # only operators can set the topic  (t)
+    invite_only   = [0, 'i']          # you must be invited to join       (i)
+    moderated     = [0, 'm']          # only voiced and up may speak      (m)
+    ban           = [3, 'b']          # channel ban                       (b)
+    except        = [3, 'e']          # ban exception                     (e)
+    invite_except = [3, 'I']          # invite-only exception             (I)
+    access        = [3, 'A']          # Channel::Access module list mode  (A)
+    limit         = [2, 'l']          # Channel user limit mode           (l)
 
 [ prefixes ]
 
-    owner  = ['q', '~',  2]                     # channel owner                     (q)
-    admin  = ['a', '&',  1]                     # channel administrator             (a)
-    op     = ['o', '@',  0]                     # channel operator                  (o)
-    halfop = ['h', '%', -1]                     # channel half-operator             (h)
-    voice  = ['v', '+', -2]                     # voiced channel member             (v)
+    owner  = ['q', '~',  2]           # channel owner                     (q)
+    admin  = ['a', '&',  1]           # channel administrator             (a)
+    op     = ['o', '@',  0]           # channel operator                  (o)
+    halfop = ['h', '%', -1]           # channel half-operator             (h)
+    voice  = ['v', '+', -2]           # voiced channel member             (v)
 ```
 
 * __Modularity__: By responding to events, modules add new features and functionality to
