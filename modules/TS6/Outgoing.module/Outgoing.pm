@@ -166,7 +166,7 @@ sub euid {
 # ts6-protocol.txt:821
 #
 sub sjoin {
-    my ($server, $channel, $serv, @members) = @_;
+    my ($server, $channel, $serv, $no_modes, @members) = @_;
     
     # if members weren't specified, we are bursting the channel.
     # include all channel members in the message.
@@ -179,11 +179,12 @@ sub sjoin {
     }
     
     # TODO: probably should split this into several SJOINs?
+    my $mode_str = $no_modes ? '+' : $channel->mode_string_hidden($server);
     sprintf ":%s SJOIN %d %s %s :%s",
-    ts6_id($me),                                    # SID of this server
-    $channel->{time},                               # channel time
-    $channel->{name},                               # channel name
-    $channel->mode_string_hidden($server),          # includes +ntk, excludes +ovbI, etc.
+    ts6_id($me),                        # SID of this server
+    $channel->{time},                   # channel time
+    $channel->{name},                   # channel name
+    $mode_str,                          # includes +ntk, excludes +ovbI, etc.
     "@members"
 }
 

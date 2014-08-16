@@ -627,7 +627,8 @@ sub cum {
     # JELP: CUM
     # TS6:  SJOIN
     #
-    $msg->forward(create_channel => $channel, $serv, @good_users);
+    my $no_modes = $modestr eq '+';
+    $msg->forward(create_channel => $channel, $serv, $no_modes, @good_users);
     
     return 1;
 }

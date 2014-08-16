@@ -297,12 +297,12 @@ sub skill {
 # $server = server to send to
 # @users  = for create_channel only, the users to send.
 sub cum {
-    my ($server, $channel, $serv, @users) = @_;
+    my ($server, $channel, $serv, $no_modes, @users) = @_;
     $serv ||= $me;
     
     # make +modes params string without status modes.
     # modes are from the perspective of this server, $me.
-    my $modestr = $channel->mode_string_all($me, 1);
+    my $modestr = $no_modes ? '+' : $channel->mode_string_all($me, 1);
     
     # fetch the prefixes for each user.
     my (%prefixes, @userstrs);

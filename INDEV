@@ -2715,6 +2715,8 @@ CHANGES:
         39. ts6_id() now caches TS6 IDs because the translator functions are currently extremely inefficient.
         
     4. added Alias module.
+    
+        41. don't send channel modes in CUM if the input mode string is '+' (from SJOIN).
             
             
         

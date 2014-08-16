@@ -1,5 +1,6 @@
 {
    "description" : "basic set of TS6 outgoing commands",
+   "name" : "TS6::Outgoing",
    "depends" : {
       "modules" : [
          "TS6::Utils",
@@ -7,10 +8,9 @@
       ]
    },
    "package" : "M::TS6::Outgoing",
-   "version" : "3.7",
-   "name" : "TS6::Outgoing",
    "author" : {
       "name" : "Mitchell Cooper",
       "website" : "https://github.com/cooper"
-   }
+   },
+   "version" : "3.8"
 }
