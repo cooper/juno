@@ -428,8 +428,9 @@ sub tmode {
     #   TS6:    SJOIN
     #
     # $source, $channel, $time, $perspective, $mode_str
+    # the perspective is $me because it was converted.
     #
-    $msg->forward(cmode => $source, $channel, $channel->{time}, $server, $mode_str);
+    $msg->forward(cmode => $source, $channel, $channel->{time}, $me, $mode_str);
     
 }
 

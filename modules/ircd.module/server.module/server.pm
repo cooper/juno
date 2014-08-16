@@ -137,7 +137,7 @@ sub cmode_type {
 
 # change 1 server's mode string to another server's.
 sub convert_cmode_string {
-    my ($server, $server2, $modestr, $over_protocol) = @_;
+    my ($server1, $server2, $modestr, $over_protocol) = @_;
     my $string = '';
     my @m      = split /\s+/, $modestr;
     my $modes  = shift @m;
@@ -152,18 +152,17 @@ sub convert_cmode_string {
             next;
         }
         
-        my $name = $server->cmode_name($letter) or next;
-        
+        my $name = $server1->cmode_name($letter) or next;
         if ($over_protocol) {
         
             # if it's a status mode, translate the UID maybe.
-            if ($server->cmode_type($name) == 4 && length $m[$curr_p]) {
-                my $user    = $server ->uid_to_user($m[$curr_p]);
+            if ($server1->cmode_type($name) == 4 && length $m[$curr_p]) {
+                my $user    = $server1->uid_to_user($m[$curr_p]);
                 $m[$curr_p] = $server2->user_to_uid($user) if $user;
             }
             
             # this one takes a parameter.
-            $curr_p++ if $server->cmode_takes_parameter($name, $state);
+            $curr_p++ if $server1->cmode_takes_parameter($name, $state);
             
         }
 
@@ -174,7 +173,7 @@ sub convert_cmode_string {
     }
 
     my $newstring = join ' ', $string, @m;
-    L("converted $modestr ($$server{name}) to $newstring ($$server2{name})");
+    L("converted $modestr ($$server1{name}) to $newstring ($$server2{name})");
     return $newstring;
 }
 

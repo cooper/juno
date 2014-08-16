@@ -23,45 +23,38 @@ my %scommands = (
     SID => {
                    # :sid   SID      sid  time  name  proto_v  ircd_v  desc
         params  => '-source(server)  any  ts    any   any      any     :rest',
-        code    => \&sid,
-        forward => 1
+        code    => \&sid
     },
     UID => {
                    # :sid UID       uid  time modes nick ident host cloak ip    realname
         params  => '-source(server) any  ts   any   any  any   any  any   any   :rest',
-        code    => \&uid,
-        forward => 1
+        code    => \&uid
     },
     QUIT => {
                    # needs data for manual forwarding
-                   #      :src QUIT :reason
-        params  => '-data -source   :rest',
+                   # :src QUIT :reason
+        params  => '-source    :rest',
         code    => \&quit
-      # forward => handled manually
     },
     NICK => {
                    # :uid NICK    newnick
         params  => '-source(user) any',
-        code    => \&nick,
-        forward => 1
+        code    => \&nick
     },
     BURST => {
                    # :sid BURST     time
         params  => '-source(server) ts',
-        code    => \&burst,
-        forward => 1
+        code    => \&burst
     },
     ENDBURST => {
                    # :sid ENDBURST  time
         params  => '-source(server) ts',
-        code    => \&endburst,
-        forward => 1
+        code    => \&endburst
     },
     UMODE => {
                    # :uid UMODE   +modes
         params  => '-source(user) any',
-        code    => \&umode,
-        forward => 1
+        code    => \&umode
     },
     PRIVMSG => {
                    # :src   PRIVMSG  target :message
@@ -76,92 +69,77 @@ my %scommands = (
     JOIN => {
                    # :uid JOIN    ch_name time
         params  => '-source(user) any     ts',
-        code    => \&_join,
-        forward => 1
+        code    => \&_join
     },
     OPER => {
                    # :uid OPER    flag1 flag2 ...
         params  => '-source(user) @rest',
-        code    => \&oper,
-        forward => 1
+        code    => \&oper
     },
     AWAY => {
                    # :uid AWAY    :reason
         params  => '-source(user) :rest',
-        code    => \&away,
-        forward => 1
+        code    => \&away
     },
     RETURN => {
                    # :uid RETURN
         params  => '-source(user)',
-        code    => \&return_away,
-        forward => 1
+        code    => \&return_away
     },
     CMODE => {
                    # :src   channel   time   perspective   :modestr
         params  => '-source channel   ts     server        :rest',
-        code    => \&cmode,
-        forward => 1
+        code    => \&cmode
     },
     PART => {
                    # :uid PART    channel time :reason
         params  => '-source(user) channel ts   :rest',
-        code    => \&part,
-        forward => 1
+        code    => \&part
     },
     TOPIC => {
                    # :src TOPIC     ch_time topic_time :topic 
         params  => '-source channel ts      ts         :rest',
-        code    => \&topic,
-        forward => 1
+        code    => \&topic
     },
     TOPICBURST => {
                    # :sid TOPICBURST channel ch_time setby topic_time :topic
         params  => '-source(server)  channel ts      any   ts         :rest',
-        code    => \&topicburst,
-        forward => 1
+        code    => \&topicburst
     },
     KILL => {
                    # :src KILL uid  :reason
         params  => '-source    user :rest',
-        code    => \&skill,
-        forward => 1
+        code    => \&skill
     },
     AUM => {
                    # :sid AUM       name1:letter1 name2:letter2 ...
         params  => '-source(server) @rest',
-        code    => \&aum,
-        forward => 1
+        code    => \&aum
     },
     ACM => {
                    # :sid ACM       name1:letter1:type1 name2:letter2:type2 ...
         params  => '-source(server) @rest',
-        code    => \&acm,
-        forward => 1
+        code    => \&acm
     },
     CUM => {
                    # :sid CUM       ch_name time user_list :mode_string
         params  => '-source(server) any     ts   any       :rest',
-        code    => \&cum,
-        forward => 1
+        code    => \&cum
     },
     KICK => {
                    # :src KICK channel uid  :reason
         params  => '-source    channel user :rest',
-        code    => \&kick,
-        forward => 1
+        code    => \&kick
     },
     NUM => {
                    # :sid NUM       uid  integer :message
         params  => '-source(server) user any     :rest',
-        code    => \&num,
-      # forward => handled manually
+        code    => \&num
     },
     LINKS => {
                    # :uid LINKS    target_serv serv_mask query_mask
         params  => '-source(user)  server      any       any',
-        code    => \&links,
-      # forward => handled manually
+        code    => \&links
     }
 );
  
@@ -200,6 +178,10 @@ sub sid {
 
     # create a new server
     my $serv = $pool->new_server(%$ref);
+    
+    # === Forward ===
+    $msg->forward(new_server => $serv);
+    
     return 1;
 }
 
@@ -254,22 +236,27 @@ sub uid {
     # set modes.
     $user->handle_mode_string($modestr, 1);
 
+    # === Forward ===
+    #
+    #   JELP:   UID
+    #   TS6:    EUID
+    #
+    $msg->forward(new_user => $user);
+
     return 1;
 }
 
 sub quit {
     # source   :rest
     # :source QUIT   :reason
-    my ($server, $msg, $data, $source, $reason) = @_;
+    my ($server, $msg, $source, $reason) = @_;
     return if $source == $me;
-    
-    # tell other servers.
-    # note: must be done manually because it
-    # should not be done if $source is this server
-    $server->send_children($data);
     
     # delete the server or user
     $source->quit($reason);
+    
+    # === Forward ===
+    $msg->forward(quit => $server->conn, $reason);
     
 }
 
@@ -282,6 +269,10 @@ sub nick {
     # tell ppl
     $user->send_to_channels("NICK $newnick");
     $user->change_nick($newnick, time);
+    
+    # === Forward ===
+    $msg->forward(nickchange => $user);
+    
 }
 
 sub burst {
@@ -291,12 +282,16 @@ sub burst {
     $serv->{is_burst} = time;
     L("$$serv{name} is bursting information");
     notice(server_burst => $serv->{name}, $serv->{sid});
+    
+    # === Forward ===
+    $msg->forward(burst => $serv, $their_time);
+    
 }
 
 sub endburst {
     # server dummy
     # :sid   ENDBURST
-    my ($server, $msg, $serv) = @_;
+    my ($server, $msg, $serv, $their_time) = @_;
     my $time    = delete $serv->{is_burst};
     my $elapsed = time - $time;
     $serv->{sent_burst} = time;
@@ -307,6 +302,9 @@ sub endburst {
     # if we haven't sent our own burst yet, do so.
     $serv->send_burst if $serv->{conn} && !$serv->{i_sent_burst};
     
+    # === Forward ===
+    $msg->forward(endburst => $serv, $their_time);
+    
 }
 
 sub umode {
@@ -314,6 +312,10 @@ sub umode {
     # :uid UMODE modestring
     my ($server, $msg, $user, $str) = @_;
     $user->do_mode_string_local($str, 1);
+    
+    # === Forward ===
+    $msg->forward(umode => $user, $str);
+    
 }
 
 sub privmsgnotice {
@@ -394,6 +396,8 @@ sub _join {
     # fire after join event.
     $channel->fire_event(user_joined => $user);
 
+    # === Forward ===
+    $msg->forward(join => $user, $channel, $channel->{time});
     
 }
 
@@ -414,6 +418,10 @@ sub oper {
     }
     $user->add_flags(@add);
     $user->remove_flags(@remove);
+    
+    # === Forward ===
+    $msg->forward(oper => $user, @flags);
+    
 }
 
 sub away {
@@ -421,6 +429,10 @@ sub away {
     # :uid AWAY  :reason
     my ($server, $msg, $user, $reason) = @_;
     $user->set_away($reason);
+    
+    # === Forward ===
+    $msg->forward(away => $user);
+    
 }
 
 sub return_away {
@@ -428,6 +440,10 @@ sub return_away {
     # :uid RETURN
     my ($server, $msg, $user) = @_;
     $user->unset_away();
+    
+    # === Forward ===
+    $msg->forward(return_away => $user);
+    
 }
 
 # set a mode on a channel
@@ -437,11 +453,20 @@ sub cmode {
     my ($server, $msg, $source, $channel, $time, $perspective, $modestr) = @_;
 
     # ignore if time is older and take lower time
-    return if $time > $channel->{time};
-    $channel->take_lower_time($time);
+    my $new_ts = $channel->take_lower_time($time);
+    return unless $time == $new_ts;
     
     # handle the mode string and send to local users.
     $channel->do_mode_string_local($perspective, $source, $modestr, 1, 1);
+    
+    # === Forward ===
+    #
+    # $source, $channel, $time, $perspective, $modestr
+    #
+    # JELP: CMODE
+    # TS6:  TMODE
+    #
+    $msg->forward(cmode => $source, $channel, $time, $perspective, $modestr);
     
     return 1;
 }
@@ -466,6 +491,9 @@ sub part {
     $reason = defined $reason ? " :$reason" : '';
     $channel->sendfrom_all($user->full, "PART $$channel{name}$reason");
     
+    # === Forward ===
+    $msg->forward(part => $user, $channel, $time, $reason);
+    
     return 1
 }
 
@@ -479,6 +507,13 @@ sub aum {
         next if !length $name || !length $letter;
         $serv->add_umode($name, $letter);
     }
+    
+    # === Forward ===
+    # 
+    # this will probably only be used for JELP
+    #
+    $msg->forward(aum => $serv);
+    
     return 1;
 }
 
@@ -498,6 +533,13 @@ sub acm {
             
         $serv->add_cmode($name, $letter, $type)
     }
+    
+    # === Forward ===
+    # 
+    # this will probably only be used for JELP
+    #
+    $msg->forward(acm => $serv);
+    
     return 1;
 }
 
@@ -522,14 +564,16 @@ sub cum {
     # take the new time if it's less recent.
     my $old_time = $channel->{time};
     my $new_time = $channel->take_lower_time($ts, 1);
-
+    my @good_users;
+    
     # determine the user mode string.
     my ($uids_modes, @uids) = '';
     USER: foreach my $str (split /,/, $userstr) {
         last if $userstr eq '-';
         my ($uid, $modes) = split /!/, $str;
         my $user = $pool->lookup_user($uid) or next USER;
-
+        push @good_users, $user;
+        
         # join the new users
         unless ($channel->has_user($user)) {
             $channel->cjoin($user, $channel->{time});
@@ -578,6 +622,13 @@ sub cum {
         
     }
     
+    # === Forward ===
+    # 
+    # JELP: CUM
+    # TS6:  SJOIN
+    #
+    $msg->forward(create_channel => $channel, $serv, @good_users);
+    
     return 1;
 }
 
@@ -609,6 +660,9 @@ sub topic {
     else {
         delete $channel->{topic}
     }
+    
+    # === Forward ===
+    $msg->forward(topic => $source, $channel, $channel->{time}, $topic);
 
     return 1
 }
@@ -642,6 +696,9 @@ sub topicburst {
         delete $channel->{topic};
     }
 
+    # === Forward ===
+    $msg->forward(topicburst => $channel);
+
     return 1;
 }
 
@@ -652,6 +709,9 @@ sub skill {
 
     # this ignores non-local users.
     $tuser->get_killed_by($source, $reason);
+
+    # === Forward ===
+    $msg->forward(kill => $source, $tuser, $reason);
 
 }
 
@@ -674,6 +734,9 @@ sub kick {
     # remove the user from the channel.
     $channel->remove_user($t_user);
     
+    # === Forward ===
+    $msg->forward(kick => $source, $channel, $t_user, $reason);
+    
     return 1;
 }
 
@@ -692,6 +755,9 @@ sub num {
         $user->{location}->fire_command(num => $source, $user, $num, $message);
     }
     
+    # === Forward ===
+    $msg->forward(num => $source, $user, $num, $message);
+    
     return 1;
 }
 
@@ -703,8 +769,10 @@ sub links {
         return $user->handle_unsafe("LINKS $serv_mask $query_mask");
     }
     
-    # pass it on.
-    $t_server->{location}->fire_command($user, $t_server, $serv_mask, $query_mask);
+    # === Forward ===
+    $msg->forward_to($t_server->{location}, links =>
+        $user, $t_server, $serv_mask, $query_mask
+    );
 
     return 1;
 }

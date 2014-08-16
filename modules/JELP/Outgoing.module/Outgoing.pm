@@ -42,7 +42,9 @@ my %ocommands = (
     # JELP-specific
     
     acm             => \&acm,
-    aum             => \&aum
+    aum             => \&aum,
+    burst           => \&burst,
+    endburst        => \&endburst
     
 );
 
@@ -79,7 +81,7 @@ sub init {
 
 sub send_startburst {
     my ($server, $fire, $time) = @_;
-    $server->sendme("BURST $time");
+    $server->fire_command(burst => $me, $time);
 }
 
 sub send_burst {
@@ -143,7 +145,7 @@ sub send_burst {
 }
 
 sub send_endburst {
-    shift->sendme('ENDBURST '.time);
+    shift->fire_command(endburst => $me, time);
 }
 
 ###########
@@ -255,8 +257,9 @@ sub part {
 
 
 sub topic {
-    my ($to_server, $user, $channel, $time, $topic) = @_;
-    ":$$user{uid} TOPIC $$channel{name} $$channel{time} $time :$topic"
+    my ($to_server, $source, $channel, $time, $topic) = @_;
+    my $id = $source->id;
+    ":$id TOPIC $$channel{name} $$channel{time} $time :$topic"
 }
 
 sub sconnect {
@@ -295,6 +298,7 @@ sub skill {
 # @users  = for create_channel only, the users to send.
 sub cum {
     my ($server, $channel, $serv, @users) = @_;
+    $serv ||= $me;
     
     # make +modes params string without status modes.
     # modes are from the perspective of this server, $me.
@@ -321,7 +325,7 @@ sub cum {
     }
 
     # note: use "-" if no users present
-    ":$$me{sid} CUM $$channel{name} $$channel{time} ".(join(',', @userstrs) || '-')." :$modestr"
+    ":$$serv{sid} CUM $$channel{name} $$channel{time} ".(join(',', @userstrs) || '-')." :$modestr"
 }
 
 # add cmodes
@@ -375,6 +379,16 @@ sub num {
 sub links {
     my ($to_server, $user, $target_server, $server_mask, $query_mask) = @_;
     ":$$user{uid} LINKS $$target_server{sid} $server_mask $query_mask"
+}
+
+sub burst {
+    my ($to_server, $serv, $time) = @_;
+    ":$$serv{sid} BURST $time"
+}
+
+sub endburst {
+    my ($to_server, $serv, $time) = @_;
+    ":$$serv{sid} ENDBURST $time"
 }
 
 $mod

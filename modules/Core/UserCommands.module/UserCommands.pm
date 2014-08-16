@@ -349,7 +349,7 @@ sub privmsgnotice {
         # the user from sending the message.
 
         # tell them of away if set
-        if ($command eq 'PRIVMSG' && exists $user->{away}) {
+        if ($command eq 'PRIVMSG' && length $user->{away}) {
             $user->numeric('RPL_AWAY', $tuser->{nick}, $tuser->{away});
         }
 
