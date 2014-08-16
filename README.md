@@ -26,14 +26,58 @@ useful for something to respond, an event exists and is fired. This functionalit
 provided by [Evented::Object](https://github.com/cooper/evented-object), a showcase
 project that is the base of every class within the IRCd.
 
-![Eventedness](http://i.imgur.com/LyDSFY3.png)
+```perl
+# user events.
+if (my $user = $connection->user) {
+    push @events, $user->events_for_message($msg);
+}
+
+# if it's a server, add the $PROTO_message events.
+elsif (my $server = $connection->server) {
+    my $proto = $server->{link_type};
+    push @events, [ $server, "${proto}_message"        => $msg ],
+                  [ $server, "${proto}_message_${cmd}" => $msg ];
+    $msg->{_physical_server} = $server;
+}
+  
+# fire with safe option.
+my $fire = $connection->prepare(@events)->fire('safe');
+```
 
 * __Extensibility__: Through the use of events and other mechanisms, extensibility is
 another important guideline around which juno is designed. It should not be assumed that
 any commands, modes, prefixes, etc. are permanent or definite. They should be changeable
 and replaceable, and it should be possible for more to be added with ease.
 
-![Extensibility](http://i.imgur.com/vs0IxY7.png)
+```
+[ modes: user ]
+
+    ircop         = 'o'                         # IRC operator                      (o)
+    invisible     = 'i'                         # invisible mode                    (i)
+    ssl           = 'z'                         # SSL connection                    (z)
+    registered    = 'r'                         # registered - Account module       (r)
+
+
+[ modes: channel ]
+
+    no_ext        = [0, 'n']                    # no external channel messages      (n)
+    protect_topic = [0, 't']                    # only operators can set the topic  (t)
+    invite_only   = [0, 'i']                    # you must be invited to join       (i)
+    moderated     = [0, 'm']                    # only voiced and up may speak      (m)
+    ban           = [3, 'b']                    # channel ban                       (b)
+    except        = [3, 'e']                    # ban exception                     (e)
+    invite_except = [3, 'I']                    # invite-only exception             (I)
+    access        = [3, 'A']                    # Channel::Access module list mode  (A)
+    limit         = [2, 'l']                    # Channel user limit mode           (l)
+
+[ prefixes ]
+
+    owner  = ['q', '~',  2]                     # channel owner                     (q)
+    admin  = ['a', '&',  1]                     # channel administrator             (a)
+    op     = ['o', '@',  0]                     # channel operator                  (o)
+    halfop = ['h', '%', -1]                     # channel half-operator             (h)
+    voice  = ['v', '+', -2]                     # voiced channel member             (v)
+```
 
 * __Modularity__: By responding to events, modules add new features and functionality to
 the IRCd. Without them, juno is made up of a mere sixty lines of Perl code. Everything else
@@ -58,7 +102,26 @@ exactly as you please. Made possible by
 [Evented::Configuration](https://github.com/cooper/evented-configuration) and
 [Evented::Database](https://github.com/cooper/evented-database).
 
-![Configurability](http://i.imgur.com/Rfk6AXe.png)
+```
+[ ping: user ]
+    message   = 'Ping timeout'  
+    frequency = 30              
+    timeout   = 120         
+    
+[ listen: 0.0.0.0 ]
+    port    = [6667..6669, 7000]
+    sslport = [6697]
+    ts6port = [7050]
+    
+[ listen: :: ]
+    port    = [6667..6669, 7000]
+    sslport = [6697]
+    ts6port = [7050]
+    
+[ ssl ]
+    cert = 'etc/ssl/cert.pem'   
+    key  = 'etc/ssl/key.pem'    
+```
 
 * __Efficiency__: Processing efficiency is valued over memory friendliness. A more responsive
 server is better than one that runs on very minimal resources. Modern
