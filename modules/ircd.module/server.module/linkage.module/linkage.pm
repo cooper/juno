@@ -183,15 +183,17 @@ sub _establish_connection {
 sub cancel_connection {
     my ($server_name, $keep_conn) = (lc shift, shift);
     my $timer = delete $timers->{$server_name};
+    my $ret;
     if ($timer) {
         $timer->stop if $timer->is_running;
         $timer->loop->remove($timer) if $timer->loop;
+        $ret = 1;
     }
     unless ($keep_conn) {
         my $conn = delete $conns->{$server_name};
         $conn->done('Connection canceled') if $conn;
     }
-    return 1;
+    return $ret;
 }
 
 # new server event.
