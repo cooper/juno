@@ -108,7 +108,11 @@ sub rcmd_pass {
     }
     
     # send my own PASS if I haven't already.
-    $connection->send_server_pass if !$connection->{i_sent_pass};
+    # this is postponed so that the burst will not be triggered until
+    # hostname resolve, ident, etc. are done.
+    $connection->on(ready_done => sub {
+        shift->send_server_pass;
+    }, name => 'jelp.send.password', with_eo => 1) if !$connection->{i_sent_pass};
     
     $connection->reg_continue('id2');
     return 1;

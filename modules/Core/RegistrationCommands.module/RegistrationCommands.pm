@@ -225,13 +225,6 @@ sub rcmd_error {
     my ($connection, $event, @args) = @_;
     my $reason = "Received ERROR: @args";
     $connection->done($reason);
-    if ($connection->{is_linkage}) {
-        my ($conn, $stream, $server_name, $reason) = @_;
-        server::linkage::_end(
-            $connection, $connection->{stream},
-            $connection->{want}, $reason
-        );
-    }
 }
 
 $mod

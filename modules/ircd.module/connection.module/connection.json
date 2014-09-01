@@ -1,12 +1,12 @@
 {
-   "package" : "connection",
-   "description" : "represents a connection to the server",
    "author" : {
       "name" : "Mitchell Cooper",
       "website" : "https://github.com/cooper"
    },
+   "preserve_sym" : 1,
    "name" : "ircd::connection",
    "no_bless" : 1,
-   "version" : "9.38",
-   "preserve_sym" : 1
+   "version" : "9.43",
+   "description" : "represents a connection to the server",
+   "package" : "connection"
 }

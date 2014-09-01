@@ -49,7 +49,8 @@ sub init {
 
 sub new {
     my ($class, $stream) = @_;
-    return unless defined $stream;
+    print "stream : $stream\n";
+    return unless $stream && $stream->{write_handle};
     my $ip = utils::safe_ip($stream->{write_handle}->peerhost);
     bless my $connection = {
         stream        => $stream,
@@ -215,12 +216,9 @@ sub ready {
         $pool->fire_command_all(new_server => $connection->{type});
 
         # if I initiated the connection, now send my burst.
-        if (length $connection->{want} && !$server->{i_sent_burst}) {
+        unless (length $connection->{want} && !$server->{i_sent_burst}) {
             $server->send_burst;
         }
-
-        # honestly at this point the connect timer needs to die.
-        server::linkage::cancel_connection($connection->{name});
 
     }
 
@@ -306,8 +304,10 @@ sub done {
     delete $connection->{ready};
     $connection->{goodbye} = 1;
 
+    # fire done event, then
     # delete all callbacks to dispose of any possible
     # looping references within them.
+    $connection->fire_event(done => $reason);
     $connection->delete_all_events;
 
     return 1;

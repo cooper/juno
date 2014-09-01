@@ -2725,6 +2725,12 @@ CHANGES:
             fixed up Channel::Key.
             added some safety measures for colon-prefixed items in channel lists.
             
+        43. completely rewrote server::linkage. it was very buggy.
+            improved CONNECT and SQUIT commands.
+            added connection event "done" which indicates the connection will be dropped.
+            fixed an issue where BURST would be sent before finishing registration (due to slow host or ident resolve).
+            
+            
             
         
         

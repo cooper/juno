@@ -17,138 +17,213 @@ use strict;
 
 use utils qw(conf v notice);
 
-our ($api, $mod, $me, $pool);
+our ($api, $mod, $me, $pool, $conf);
+my $timers  = \%ircd::link_timers;
+my $futures = \%ircd::link_futures;
+my $conns   = \%ircd::link_connections;
 
-# connect to a server in the configuration
+sub init {
+    $pool->on('server.new'      => \&new_server,      with_eo => 1);
+    $pool->on('connection.done' => \&connection_done, with_eo => 1);
+    return 1;
+}
+
+# connect_server()
+#
+# attempt to connect to a server in the configuration.
+#
+# if the server is connected already
+#   (whether directly or indirectly),
+#   returns an error string.
+#
+# if we're already trying to connect,
+#   returns an error string.
+#
+# if some other IMMEDIATE error occurs,
+#   returns that error string.
+#
+# if no immediate error occurs,
+#   returns nothing.
+#
+# however, because the connection is asynchronous,
+# returning no error does not guarantee success.
+#
 sub connect_server {
-    my $server_name = shift;
-
-    # make sure we at least have some configuration information about the server.
-    unless ($ircd::conf->has_block(['connect', $server_name])) {
-        L("Attempted to connect to nonexistent server: $server_name");
-        return;
-    }
+    my ($server_name, $auto_only) = (lc shift, shift);
     
-    # then, ensure that the server is not connected already.
+    # server is already registered/known.
     if ($pool->lookup_server_name($server_name)) {
-        L("Attempted to connect an already connected server: $server_name");
-        return;
+        return 'Server exists';
     }
     
-    # and that we're not trying to connect already.
-    if ($ircd::connect_conns{ lc $server_name }) {
-        L("Already connected or trying to connect to $server_name");
-        return;
+    # we're already trying to connect.
+    if ($timers->{$server_name} || $futures->{$server_name}) {
+        return 'Already attempting to connect';
     }
     
-    my $timer   = $ircd::connect_timer{ lc $server_name };
-    my $attempt = $timer ? $timer->{_juno_attempt} : 1;
-    my %serv    = $ircd::conf->hash_of_block(['connect', $server_name]);
-    notice(server_connect => $server_name, $serv{address}, $serv{port}, $attempt);
-
-    # create the socket.
-    my $socket = IO::Socket::IP->new(
-        PeerAddr => $serv{address},
-        PeerPort => $serv{port},
-        Proto    => 'tcp',
-        Timeout  => 5
-    );
-
-    if (!$socket) {
-        L("Could not connect to server $server_name: $!");
-        _end(undef, undef, $server_name, $!);
-        return;
+    # does the server exist in configuration?
+    my %serv = $conf->hash_of_block(['connect', $server_name]);
+    if (!scalar keys %serv) {
+        return 'Server does not exist in configuration';
     }
-
-    notice(server_connect_success => $server_name);
     
-    # create a stream.
-    my $stream = IO::Async::Stream->new(
-        read_handle  => $socket,
-        write_handle => $socket
-    );
-
-    # create connection object.
-    my $conn = $ircd::connect_conns{ lc $server_name } =
-      $pool->new_connection(stream => $stream);
-
-    # configure the stream events.
-    my @a = ($conn, $stream, $server_name);
-    $stream->configure(
-        read_all       => 0,
-        read_len       => POSIX::BUFSIZ,
-        on_read        => sub { &ircd::handle_data },
-        on_read_eof    => sub { _end(@a, 'Connection closed')   },
-        on_write_eof   => sub { _end(@a, 'Connection closed')   },
-        on_read_error  => sub { _end(@a, 'Read error: ' .$_[1]) },
-        on_write_error => sub { _end(@a, 'Write error: '.$_[1]) }
-    );
-
-    # add to loop.
-    $::loop->add($stream);
-
-    $conn->{is_linkage} = 1;
-    $conn->{sent_creds} = 1;
-    $conn->{want}       = $server_name; # server name to expect in return.
-    $conn->send_server_server;
+    # is the server supposed to autoconnect?
+    my $interval = $serv{auto_timeout} || $serv{auto_timer} || -1;
+    if ($auto_only && $interval == -1) {
+        return 'Server not configured for autoconnect';
+    }
     
-    return $conn;
+    # not using a timer.
+    if ($interval == -1) {
+        _establish_connection($server_name, undef, %serv);
+    }
+    
+    # create a timer.
+    else {
+        my $timer = $timers->{$server_name} = IO::Async::Timer::Periodic->new( 
+            first_interval => 0,
+            interval => $interval,
+            on_tick  => sub {
+                _establish_connection($server_name, $timers->{$server_name}, %serv)
+            }
+        );
+        $timer->start;
+        $::loop->add($timer);
+    }
+    
+    return;
 }
 
-sub _end {
-    my ($conn, $stream, $server_name, $reason) = @_;
-    $conn->done($reason) if $conn;
-    $stream->close_now   if $stream;
-    notice(server_connect_fail => $server_name, $reason);
-    delete $ircd::connect_conns{ lc $server_name };
+sub _establish_connection {
+    my ($server_name, $timer, %serv) = @_;
     
-    # already have a timer going.
-    if (my $t = $ircd::connect_timer{ lc $server_name }) {
-        $t->{_juno_attempt}++;
-        return;
-    }
-    
-    # if we have an autoconnect_timer for this server, start a connection timer.
-    my $timeout = conf(['connect', $server_name], 'auto_timeout') ||
-                  conf(['connect', $server_name], 'auto_timer');
-                  
-    # no timer.
-    return unless $timeout;
-    
-    L("Going to attempt to connect to server $server_name in $timeout seconds.");
-    
-    # start the timer.
-    my $timer = $ircd::connect_timer{ lc $server_name } =
-    IO::Async::Timer::Periodic->new( 
-        interval => $timeout,
-        on_tick  => sub { connect_server($server_name) }
-    );
-    $timer->{_juno_attempt} = 2;
-    $timer->{_juno_start}   = $::loop->time;
-    $::loop->add($timer);
-    $timer->start;
-}
-
-
-# if the server link is actually established, this does not terminate it.
-sub cancel_connection {
-    my $server_name = shift;
-    my $conn  = delete $ircd::connect_conns{ lc $server_name };
-    my $timer = delete $ircd::connect_timer{ lc $server_name };
-    return if !$conn && !$timer;
-    
-    # if there's a timer, cancel it.
+    #%s (%s) on port %d (Attempt %d)
     if ($timer) {
-        $timer->stop;
+        my $attempt = ++$timer->{_attempt};
+        notice(server_connect => $server_name, $serv{address}, $serv{port}, $attempt);
+    }
+    
+    # create a future that attempts to connect.
+    my $connect_future = $::loop->connect(addr => {
+        family   => index($serv{address}, ':') != -1 ? 'inet6' : 'inet',
+        socktype => 'stream',
+        port     => $serv{port},
+        ip       => $serv{address}
+    });
+
+    # create a future to time out after 5 seconds.
+    # create a third future that will wait for whichever comes first.
+    my $timeout_future = $::loop->timeout_future(after => 5);
+    my $future = Future->wait_any($connect_future, $timeout_future);
+    
+    # retain the future.
+    $futures->{$server_name} = $future;
+    
+    # once this is ready, the connection succeeded or failed.
+    $future->on_ready(sub {
+        delete $futures->{$server_name};
+        my $f = shift;
+        
+        # it failed.
+        if (my $e = $f->failure) {
+            chomp $e;
+            notice(server_connect_fail => $server_name, length $e ? $e : 'Timeout');
+            return;
+        }
+        
+        # success!
+        my $socket = $f->get;
+        notice(server_connect_success => $server_name);
+        
+        # configure the stream events.
+        my $conn;
+        my $done   = sub { $conn->done(shift) if $conn; shift->close_now };
+        my $stream = IO::Async::Stream->new(
+            handle         => $socket,
+            read_all       => 0,
+            read_len       => POSIX::BUFSIZ(),
+            on_read        => sub { &ircd::handle_data },
+            on_read_eof    => sub { $done->('Connection closed',   shift) },
+            on_write_eof   => sub { $done->('Connection closed',   shift) },
+            on_read_error  => sub { $done->('Read error: ' .$_[1], shift) },
+            on_write_error => sub { $done->('Write error: '.$_[1], shift) }
+        );
+        
+        # create a connection object.
+        $conn = $conns->{$server_name} = $pool->new_connection(stream => $stream);
+        
+        # add to loop.
+        $::loop->add($stream);
+        
+        # set up the connection; send SERVER command.
+        $conn->{is_linkage} = 1;
+        $conn->{sent_creds} = 1;
+        $conn->{want}       = $server_name; # server name to expect in return.
+        $conn->send_server_server;
+        
+    });
+}
+
+# cancel_connection()
+#
+# cancels a connection timer.
+# this does not necessarily mean that it was unsuccessful.
+#
+# if the server is not connected but we're trying to connect,
+#   return true,
+#   cancel the connection attempt.
+#
+# if the server is connected,
+#   return false.
+#
+# this is also called by the server.new callback below,
+# e.g. when the server becomes connected or is introduced
+# by some other means.
+#
+sub cancel_connection {
+    my ($server_name, $keep_conn) = (lc shift, shift);
+    my $timer = delete $timers->{$server_name};
+    if ($timer) {
+        $timer->stop if $timer->is_running;
         $timer->loop->remove($timer) if $timer->loop;
     }
+    unless ($keep_conn) {
+        my $conn = delete $conns->{$server_name};
+        $conn->done('Connection canceled') if $conn;
+    }
+    return 1;
+}
+
+# new server event.
+#
+# this applies to ANY server that becomes recognized by the pool.
+# if any connection timers exist for a server that was introduced
+# successfully, they are terminated here.
+#
+sub new_server {
+    my $server = shift;
+    my $name   = lc $server->{name};
+    cancel_connection($name, 1);
+}
+
+# connection done event.
+sub connection_done {
+    my ($connection, $event, $reason) = @_;
+    my $server_name = $connection->{name} // $connection->{want};
+    return unless length $server_name;
     
-    # if there's a connection, close it.
-    if ($conn) {
-        $conn->done('Connection canceled') unless $conn->{type};
+    # we already have a connection timer going.
+    # this means that a connection object was created,
+    # (the connection was actually established),
+    # but some error occurred before finishing registration.
+    if ($timers->{$server_name}) {
+        notice(server_connect_fail => $server_name, $reason);
+        return;
     }
     
-    return 1;
+    # if we're supposed to autoconnect but don't have a timer going, start one now.
+    connect_server($server_name, 1) unless $connection->{dont_reconnect};
+    
 }
 
 $mod

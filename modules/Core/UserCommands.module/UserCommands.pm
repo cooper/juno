@@ -17,7 +17,7 @@ use strict;
 use 5.010;
 
 use Scalar::Util qw(blessed);
-use utils qw(col match cut_to_limit conf v notice simplify ref_to_list);
+use utils qw(col match cut_to_limit conf v notice simplify ref_to_list irc_match);
 
 our ($api, $mod, $me, $pool, $conf, $VERSION);
 
@@ -749,25 +749,15 @@ sub part {
 }
 
 sub sconnect {
-    my ($user, $event, $sname) = @_;
-
-    # make sure the server exists
-    if (!$ircd::conf->has_block(['connect', $sname])) {
-        $user->server_notice('CONNECT', 'No such server '.$sname);
-        return;
+    my ($user, $event, $smask) = @_;
+    my @servers = grep irc_match($_, $smask), $conf->names_of_block('connect');
+    foreach my $s_name (@servers) {
+        if (my $e = server::linkage::connect_server($s_name)) {
+            $user->server_notice(connect => "$s_name: $e");
+            next;
+        }
+        $user->server_notice(connect => "Attempting to connect to $s_name");
     }
-
-    # make sure it's not already connected
-    if ($pool->lookup_server_name($sname)) {
-        $user->server_notice('CONNECT', "$sname already exists");
-        return;
-    }
-
-    if (!server::linkage::connect_server($sname)) {
-        $user->server_notice('CONNECT', 'Cannot connect');
-        return;
-    }
-    
     return 1;
 }
 
@@ -1124,19 +1114,20 @@ sub squit {
         return;
     }
     
+    my $amnt = 0;
     foreach my $server (@servers) {
         
         # no direct connection. might be local server or a
         # psuedoserver or a server reached through another server.
-        if (!$server->{conn}) {
-            $user->server_notice(squit => "Server $$server{name} is not directly connected");
-            next;
-        }
+        next unless $server->{conn};
+        $amnt++;
         
         $server->{conn}->done('SQUIT command');
         $user->server_notice(squit => "$$server{name} disconnected");
     }
     
+    my $servers = @servers == 1 ? 'server' : 'servers';
+    $user->server_notice(squit => "$amnt $servers disconnected");
     return 1;
 }
 
