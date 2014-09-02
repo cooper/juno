@@ -155,9 +155,8 @@ sub send_endburst {
 # this can take a server object, user object, or connection object.
 sub quit {
     my ($to_server, $object, $reason) = @_;
-    my $object = $connection;
-    $object    = $object->type if $object->isa('connection');
-    my $id     = $object->id;
+    $object = $object->type if $object->isa('connection');
+    my $id  = $object->id;
     ":$id QUIT :$reason"
 }
 
@@ -173,7 +172,7 @@ sub uid {
     ":$$user{server}{sid} $cmd"
 }
 
-sub sid {
+sub sid { 
     my ($to_server, $serv) = @_;
     return if $to_server == $serv;
     my $cmd = sprintf(
