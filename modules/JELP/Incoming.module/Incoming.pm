@@ -256,7 +256,7 @@ sub quit {
     $source->quit($reason);
     
     # === Forward ===
-    $msg->forward(quit => $server->conn, $reason);
+    $msg->forward(quit => $source, $reason);
     
 }
 

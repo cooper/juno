@@ -152,9 +152,12 @@ sub send_endburst {
 # servers #
 ###########
 
+# this can take a server object, user object, or connection object.
 sub quit {
-    my ($to_server, $connection, $reason) = @_;
-    my $id = $connection->{type}->id;
+    my ($to_server, $object, $reason) = @_;
+    my $object = $connection;
+    $object    = $object->type if $object->isa('connection');
+    my $id     = $object->id;
     ":$id QUIT :$reason"
 }
 
