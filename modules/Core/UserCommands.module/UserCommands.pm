@@ -1102,6 +1102,7 @@ sub squit {
     my @servers = $pool->lookup_server_mask($server_name);
     
     # if there is a pending timer, cancel it.
+    # FIXME: stopping a timer does not support wildcards currently.
     if (server::linkage::cancel_connection($server_name)) {
         $user->server_notice(squit => 'Canceled connection to '.$server_name);
         notice(server_connect_cancel => $user->notice_info, $server_name);
@@ -1122,6 +1123,7 @@ sub squit {
         next unless $server->{conn};
         $amnt++;
         
+        $server->{conn}->{dont_reconnect} = 1;
         $server->{conn}->done('SQUIT command');
         $user->server_notice(squit => "$$server{name} disconnected");
     }

@@ -2731,6 +2731,8 @@ CHANGES:
             fixed an issue where BURST would be sent before finishing registration (due to slow host or ident resolve).
             
         44. reimplemented the READY command due to the issues that have arisen since its removal in version 8.1.
+        
+        45. if autoconnect is enabled, do not try to reconnect after an SQUIT command is issued.
             
             
         
