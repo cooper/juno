@@ -2730,6 +2730,7 @@ CHANGES:
             added connection event "done" which indicates the connection will be dropped.
             fixed an issue where BURST would be sent before finishing registration (due to slow host or ident resolve).
             
+        44. reimplemented the READY command due to the issues that have arisen since its removal in version 8.1.
             
             
         

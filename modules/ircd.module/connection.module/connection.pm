@@ -215,11 +215,6 @@ sub ready {
         weaken($connection->{type}{location} = $connection->{type});
         $pool->fire_command_all(new_server => $connection->{type});
 
-        # if I initiated the connection, now send my burst.
-        unless (length $connection->{want} && !$server->{i_sent_burst}) {
-            $server->send_burst;
-        }
-
     }
 
     # must be an intergalactic alien.

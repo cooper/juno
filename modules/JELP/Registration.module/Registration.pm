@@ -33,6 +33,11 @@ our %registration_commands = (
         code   => \&rcmd_pass,
         params => 1,
         proto  => 'jelp'
+    },
+    READY => {
+        code  => \&rcmd_ready,
+        proto => 'jelp',
+        after_reg => 1
     }
 );
 
@@ -112,10 +117,42 @@ sub rcmd_pass {
     # hostname resolve, ident, etc. are done.
     $connection->on(ready_done => sub {
         shift->send_server_pass;
+        shift->send('READY');
     }, name => 'jelp.send.password', with_eo => 1) if !$connection->{i_sent_pass};
     
     $connection->reg_continue('id2');
     return 1;
+}
+
+sub _send_burst {
+    my $connection = shift;
+    
+    # the server is registered on our end.
+    my $server = $connection->server or return;
+
+    # send the burst.
+    if (!$server->{i_sent_burst}) {
+        $server->send_burst;
+        return 1;
+    }
+    
+    # already did?
+    L("$$server{name} is requesting burst, but I already sent it");
+    return;
+    
+}
+
+# the server is ready to receive burst.
+sub rcmd_ready {
+    my ($connection, $event) = @_;
+    
+    # the server is registered, and we haven't sent burst. do so.
+    _send_burst($connection) and return;
+    
+    # the server is not yet registered; postpone the burst.
+    $connection->on(ready_done => \&_send_burst, with_eo => 1)
+        unless $connection->{ready};
+    
 }
 
 $mod
