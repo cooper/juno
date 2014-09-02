@@ -1,13 +1,13 @@
 {
-   "package" : "M::JELP::Registration",
-   "description" : "JELP registration commands",
-   "depends" : {
-      "modules" : "Base::RegistrationCommands"
-   },
    "author" : {
       "name" : "Mitchell Cooper",
       "website" : "https://github.com/cooper"
    },
-   "name" : "JELP::Registration",
-   "version" : "1.7"
+   "package" : "M::JELP::Registration",
+   "depends" : {
+      "modules" : "Base::RegistrationCommands"
+   },
+   "version" : "1.8",
+   "description" : "JELP registration commands",
+   "name" : "JELP::Registration"
 }
