@@ -379,21 +379,6 @@ I would be surprised yet pleased if someone got this software working on Windows
 Xcode project isn't a good enough indication, I currently use OS X to develop this software.
 I don't think it's appropriate for Perl, but I have not yet found a great OS X editor.
 
-I live in the middle of nowhere and prefer the dark chicken meat over white meat. I'll
-drink a Coke if there's no better option, but I'd take a Sunkist, Pepsi or Dr. Pepper first.
-I don't watch much television, but when I do, it's usually on news networks, C-SPAN, and
-night shows.
-  
-I repair computers and visit people's homes to help with their electronic troubles.
-I've designed websites for local entities in the area. I collect computers and have
-gradually removed items from my home to make more room for them. Some of my friends have
-tagged me a "computer hoarder."
-
-I always feel that I'm too busy to do anything and therefore accomplish almost nothing. I
-am a lazy procrastinator but work well under the pressure of time limits. During my
-"free time," I ride a motorized bike for hours even further into the middle of nowhere
-without reason. I garden during the summer: Asparagus and onions are my favorite.
-
 juno-ircd was my first project in Perl — ever.
 Most of my creations in Perl are related to IRC in some way, but I have other projects as
 well. I always look back at things I worked on a month ago and realize how terrible they
