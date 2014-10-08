@@ -26,7 +26,7 @@ our ($api, $mod, $pool);
 
 sub init {
     $mod->register_capability('sasl');
-    $pool->on('user.new' => \&user_new, with_eo => 1);
+    $pool->on('user.initially_propagated' => \&user_propagated, with_eo => 1);
     
     $mod->register_registration_command(
         name       => 'AUTHENTICATE',
@@ -91,7 +91,7 @@ sub rcmd_authenticate {
 }
 
 # user.new event
-sub user_new {
+sub user_propagated {
     my ($user, $event) = @_;
     my $act = delete $user->{sasl_account} or return;
     $act->login_user($user);

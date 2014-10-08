@@ -405,7 +405,11 @@ sub new_connection {
     $user->handle_mode_string(conf qw/users automodes/);
     $user->set_mode('ssl') if $user->conn->{listener}{ssl};
     
-    # send numerics
+    # tell other servers
+    $pool->fire_command_all(new_user => $user);
+    $user->fire_event('initially_propagated');
+    
+    # send numerics.
     my $network = conf('server', 'network') // conf('network', 'name');
     $user->numeric(RPL_WELCOME  => $network, $user->{nick}, $user->{ident}, $user->{host});
     $user->numeric(RPL_YOURHOST => $me->{name}, v('NAME').q(-).v('VERSION'));
@@ -424,9 +428,6 @@ sub new_connection {
 
     # send mode string
     $user->sendfrom($user->{nick}, "MODE $$user{nick} :".$user->mode_string);
-
-    # tell other servers
-    $pool->fire_command_all(new_user => $user);
     
     return $user->{init_complete} = 1;
 }
