@@ -15,7 +15,7 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils qw(conf match);
+use utils qw(conf match safe_arrayref);
 
 our ($api, $mod, $me, $pool);
 
@@ -87,7 +87,7 @@ sub cmode_access {
 
     # view access list.
     if (!defined $mode->{param} && $mode->{source}->isa('user') && $mode->{state}) {
-        # TODO
+        # not doing anything here; use modelist instead.
         return;
     }
 
@@ -116,11 +116,10 @@ sub cmode_access {
     return if !defined $final_status;
     
     # ensure that this user is at least the $final_status unless forced.
-    # TODO: should we always allow over-protocol?
+    # consider: should we always allow over-protocol?
     if (!$mode->{force} && $mode->{source}->isa('user')) {
         my $level1 = $channel->user_get_highest_level($mode->{source});
-        my $level2 = conf('prefixes', $final_status)->[2];
-        # TODO: major issues if improper configuration values are not array references.
+        my $level2 = safe_arrayref(conf('prefixes', $final_status))->[2];
         
         # the level being set is higher than the level of the setter.
         if ($level2 > $level1) {

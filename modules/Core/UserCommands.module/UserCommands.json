@@ -1,13 +1,13 @@
 {
+   "package" : "M::Core::UserCommands",
+   "author" : {
+      "website" : "https://github.com/cooper",
+      "name" : "Mitchell Cooper"
+   },
+   "description" : "the core set of user commands",
+   "version" : "9.47",
+   "name" : "Core::UserCommands",
    "depends" : {
       "modules" : "Base::UserCommands"
-   },
-   "author" : {
-      "name" : "Mitchell Cooper",
-      "website" : "https://github.com/cooper"
-   },
-   "name" : "Core::UserCommands",
-   "version" : "9.46",
-   "description" : "the core set of user commands",
-   "package" : "M::Core::UserCommands"
+   }
 }

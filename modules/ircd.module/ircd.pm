@@ -73,7 +73,7 @@ sub init {
     $ircd::pool = $::pool ||= pool->new; # must be ircd::pool; don't change.
     $mod->load_submodule($_) or return foreach qw(message user server channel connection);
 
-    # TODO: new values are NOT inserted after reloading.
+    # consider: new values are NOT inserted after reloading.
     # I had an idea once upon a time to make $server->configure(%opts)
     # which would optionally only set the values if nothing exists there.
     # but this works for now.

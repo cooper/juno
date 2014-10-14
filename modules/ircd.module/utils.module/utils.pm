@@ -86,6 +86,12 @@ sub ref_to_list {
     return ();
 }
 
+sub safe_arrayref {
+    my $ref = shift;
+    return [] if !ref $ref || ref $ref ne 'ARRAY';
+    return $ref;
+}
+
 # check if a nickname is valid.
 sub validnick {
     my $str   = shift;

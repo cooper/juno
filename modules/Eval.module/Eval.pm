@@ -29,8 +29,8 @@ our %user_commands = (EVAL => {
     fntsy   => 1
 });
 
-# TODO: perhaps we should use IO::Async::File to automatically
-# reload the evalers file every now and then.
+# consider: perhaps we should use IO::Async::File to automatically
+# reload the evalers file every now and then. or maybe it's not worth it.
 sub init {
     load();
     return 1;

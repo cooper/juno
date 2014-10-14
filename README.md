@@ -365,10 +365,9 @@ several programming interfaces!
 
 ## Versions, changes, and plans
 
-See INDEV for a changelog and TODO list. It has been extended throughout all versions of
-this software starting with juno-ircd (juno1). The newest changes are at the bottom.
-The current version is in the VERSION file. Planned features are in the GOALS file
-(but I forget to update that sometimes).
+See INDEV for a changelog and PLANS for a TODO/bugs list. They have been extended throughout
+all versions of this software starting with juno-ircd (juno1). The newest changes are at
+the bottom of INDEV. The current version is in the VERSION file.
 
 ## Author
 

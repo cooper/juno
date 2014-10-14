@@ -27,7 +27,7 @@
 		BC131F4019971A7500B8071A /* Registration.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Registration.pm; path = Registration.module/Registration.pm; sourceTree = "<group>"; };
 		BC131F4119971A8B00B8071A /* Registration.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Registration.pm; path = TS6/Registration.module/Registration.pm; sourceTree = "<group>"; };
 		BC174752194A36F0005C2D83 /* doc */ = {isa = PBXFileReference; lastKnownFileType = folder; name = doc; path = ../doc; sourceTree = "<group>"; };
-		BC515539195C7E1D00110EBE /* TODO */ = {isa = PBXFileReference; lastKnownFileType = text; name = TODO; path = ../TODO; sourceTree = "<group>"; };
+		BC515539195C7E1D00110EBE /* PLANS */ = {isa = PBXFileReference; lastKnownFileType = text; name = PLANS; path = ../PLANS; sourceTree = "<group>"; };
 		BC7068FE196642E600A2915D /* message.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = message.pm; path = message.module/message.pm; sourceTree = "<group>"; };
 		BC9564F61944E032002F52B9 /* Account.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Account.pm; sourceTree = "<group>"; };
 		BC9564F91944E032002F52B9 /* Local.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Local.pm; path = Local.module/Local.pm; sourceTree = "<group>"; };
@@ -122,7 +122,7 @@
 			children = (
 				BCBADAF6195E51140051282D /* VERSION */,
 				BCBADAF5195E510D0051282D /* INDEV */,
-				BC515539195C7E1D00110EBE /* TODO */,
+				BC515539195C7E1D00110EBE /* PLANS */,
 				A75C5D1D18B4321A007780A3 /* rfc-2812 */,
 				A75C5D1B18B4321A007780A3 /* README.md */,
 				A75C5D0E18B4321A007780A3 /* LICENSE */,

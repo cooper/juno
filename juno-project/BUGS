@@ -1,0 +1,38 @@
+##########################################################################################
+##                                                                                      ##
+##                        juno-ircd planned bugs/fixme list                             ##
+##                                                                                      ##
+##########################################################################################
+
+Legend
+------------------------------------------------------------------------------------------
+
+[ ] = not fixed
+[x] = intentional or unlikely to be fixed anytime soon
+[~] = work in progress but far from fixed
+[*] = mostly fixed or worked around, usable
+[√] = completely fixed
+
+Bugs
+------------------------------------------------------------------------------------------
+
+14 Oct 2014
+
+[ ] Pretty sure that user modes must be equal on all servers for some reason.
+
+[ ] SQUIT cannot stop a connection timer by server name wildcards, but it can disconnect
+    servers matching wildcards. therefore it is confusing since that only works sometimes.
+
+Cleanup
+------------------------------------------------------------------------------------------
+
+14 Oct 2014
+
+[ ] Why is the NAMES command in channel.pm?
+
+[ ] channel handle_privmsgnotice() is just a mess. needs more events.
+
+[ ] user mode handler uses ridiculous regex, needs to work just like the newer
+    channel mode handler.
+
+[ ] WHO command is a mess, but it works.

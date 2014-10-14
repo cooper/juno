@@ -21,7 +21,7 @@ use 5.010;
 
 our ($api, $mod, $pool, $conf);
 
-# TODO: this needs to use ->on_change_section() or something.
+# TODO: (evented configuration) this needs to use ->on_change_section() or something.
 sub init {
     add_aliases();
 }
