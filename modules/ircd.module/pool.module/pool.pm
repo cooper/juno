@@ -332,7 +332,7 @@ sub lookup_or_create_channel {
     
     # if the channel exists, just join.
     my $channel = $pool->lookup_channel($name);
-    return $channel;
+    return $channel if $channel;
     
     # otherwise create a new one.
     $channel = $pool->new_channel(
