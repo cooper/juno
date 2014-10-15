@@ -41,6 +41,7 @@
     client      = 80                            # users (currently unused)
     bytes_line  = 2048                          # bytes per line
     lines_sec   = 30                            # lines per second
+    channel     = 100                           # channels a user can be in at once
 
     # the maximum number of characters in:
 
@@ -152,4 +153,18 @@
     # Multiple flags accepted. Wildcards not accepted. 'all' matches all flags.
     
         notices = ['all']
-    
+
+[ aliases ]
+
+    nickserv  = 'PRIVMSG NickServ $1-'
+    chanserv  = 'PRIVMSG ChanServ $1-'
+    operserv  = 'PRIVMSG OperServ $1-'
+    botserv   = 'PRIVMSG BotServ $1-'
+    groupserv = 'PRIVMSG GroupServ $1-'
+
+    ns = 'PRIVMSG NickServ $1-'
+    cs = 'PRIVMSG ChanServ $1-'
+    os = 'PRIVMSG OperServ $1-'
+    bs = 'PRIVMSG BotServ $1-'
+    gs = 'PRIVMSG GroupServ $1-'
+

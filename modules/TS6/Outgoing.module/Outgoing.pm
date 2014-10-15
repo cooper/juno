@@ -191,7 +191,7 @@ sub sjoin {
     
     # TODO: probably should split this into several SJOINs?
     sprintf ":%s SJOIN %d %s %s :%s",
-    ts6_id($me),                        # SID of this server
+    ts6_id($serv),                      # SID of the source server
     $channel->{time},                   # channel time
     $channel->{name},                   # channel name
     $mode_str,                          # includes +ntk, excludes +ovbI, etc.
@@ -224,9 +224,9 @@ sub _join {
     my ($server, $user, $channel, $time) = @_; # why $time?
     
     # there's only one user, so this channel was just created.
-    # consider: if a permanent channel mode is added, idk how TS6 bursts that.
-    # this might need to be rethought.
-    return sjoin($server, $channel) if scalar $channel->users == 1;
+    # we will just pretend we're bursting, sending the single user with modes
+    # from THIS local server ($me).
+    return sjoin_burst($server, $channel, $me) if scalar $channel->users == 1;
     
     sprintf ':%s JOIN %d %s +',
     ts6_id($user),
@@ -248,7 +248,7 @@ sub _join {
 # ts6-protocol.txt:562
 #
 sub nick {
-    my $user = shift;
+    my ($server, $user) = @_;
     sprintf ':%s NICK %s :%d',
     ts6_id($user),
     $user->{nick},
