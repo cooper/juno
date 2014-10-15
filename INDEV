@@ -2741,5 +2741,8 @@ CHANGES:
         48. Added free invite mode (+g)
 
         49. implemented invite exception (+I)
-        
-        
+
+    5. added keys_values() utility to create a hash out of lists of keys and values.
+        can_join event errors can now be silented by earlier callbacks.
+        new event join_failed, fired for any reason that a user cannot join a channel.
+        now able to identify the reason for join failure.

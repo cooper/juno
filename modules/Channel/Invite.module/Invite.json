@@ -1,6 +1,5 @@
 {
-   "package" : "M::Channel::Invite",
-   "name" : "Channel::Invite",
+   "version" : "2.8",
    "depends" : {
       "modules" : [
          "Base::UserCommands",
@@ -9,7 +8,8 @@
          "Base::UserNumerics"
       ]
    },
-   "version" : "2.7",
+   "package" : "M::Channel::Invite",
+   "name" : "Channel::Invite",
    "author" : {
       "website" : "https://github.com/cooper",
       "name" : "Mitchell Cooper"

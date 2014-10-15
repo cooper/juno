@@ -148,7 +148,7 @@ sub rpl_isupport {
     
         # configuration value probably nonexistent.
         next unless defined $val;
-        
+
         # only allow around 140 chars per line.
         if (length $lines[$curr] > 135) {
             $curr++;

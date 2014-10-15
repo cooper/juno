@@ -218,6 +218,18 @@ sub n2a {
     return join '', map chr(ord('a') + $_), @a;
 }
 
+# arrayref of keys and values -> hash.
+sub keys_values {
+    my ($keys, $values) = @_;
+    return unless ref $keys eq 'ARRAY' and ref $values eq 'ARRAY';
+    my %hash;
+    while (@$keys == @$values && @$keys) {
+        my ($key, $value) = (shift @$keys, shift @$values);
+        $hash{$key} = $value;
+    }
+    return (%hash);
+}
+
 # fetch variable.
 sub v {
     my $h = \%::v;

@@ -18,7 +18,7 @@ package M::Core::RegistrationCommands;
 use warnings;
 use strict;
 use 5.010;
-use utils 'col';
+use utils qw(col keys_values);
 
 our ($api, $mod, $pool, $me);
 
@@ -30,8 +30,7 @@ sub init {
     );
     
     $mod->register_registration_command(
-        name       => shift @$_, code       => shift @$_,
-        parameters => shift @$_, after_reg  => shift @$_
+        keys_values([qw/name code parameters after_reg/], $_)
     ) or return foreach (
     #
     # PARAMS = number of parameters

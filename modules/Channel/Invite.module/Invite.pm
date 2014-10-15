@@ -212,8 +212,8 @@ sub add_invite_callbacks {
         return if $channel->list_matches('invite_except', $user);
         
         # sorry, not invited, no exception.
-        $user->numeric(ERR_INVITEONLYCHAN => $channel->name);
-        $event->stop;
+        $user->numeric(ERR_INVITEONLYCHAN => $channel->name) unless $event->{silent_errors};
+        $event->stop('not_invited');
         
     }, name => 'has.invite', priority => 20);
     

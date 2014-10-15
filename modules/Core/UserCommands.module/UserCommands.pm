@@ -418,7 +418,7 @@ sub add_join_callbacks {
         my ($event, $channel) = @_;
         my $user = $event->object;
         
-        $event->stop if $channel->has_user($user);
+        $event->stop('in_channel') if $channel->has_user($user);
     }, name => 'in.channel', priority => 30);
 
 
@@ -433,7 +433,7 @@ sub add_join_callbacks {
         # sorry, banned.
         if ($banned && !$exempt) {
             $user->numeric(ERR_BANNEDFROMCHAN => $channel->name);
-            $event->stop;
+            $event->stop('banned');
         }
     
     }, name => 'is.banned', priority => 10);
@@ -475,7 +475,10 @@ sub cjoin {
         my $event = $user->fire(can_join => $channel, $channel_key);
         
         # event was stopped; can't join.
-        return if $event->stopper;
+        if ($event->stopper) {
+            $user->fire(join_failed => $channel, $event->stop, $event->stopper);
+            return;
+        }
 
         # new channel. join internally (without telling the user) & set auto modes.
         # note: we can't use do_mode_string() here because CMODE must come after JOIN.

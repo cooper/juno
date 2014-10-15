@@ -65,8 +65,8 @@ sub on_user_can_join {
     my ($user, $event, $channel) = @_;
     return unless $channel->is_mode('limit');
     return if 1 + scalar $channel->users <= $channel->mode_parameter('limit');
-    $user->numeric(ERR_CHANNELISFULL => $channel->name);
-    $event->stop;
+    $user->numeric(ERR_CHANNELISFULL => $channel->name) unless $event->{silent_errors};
+    $event->stop('channel_full');
 }
 
 
