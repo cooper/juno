@@ -88,6 +88,7 @@ sub cmode_forward {
             $channel->set_mode('forward', $mode->{param});
         } else {
             $source->numeric(ERR_CHANOPRIVSNEEDED => $f_channel->name);
+            return;
         }
     }   
     
@@ -107,6 +108,8 @@ sub on_user_join_failed {
     # We need the channel object, unfortunately it is not always the case that
     # we are being forwarded to a channel that already exists.
     $f_chan = $pool->lookup_or_create_channel($f_chan);
+    # Let the user know we're forwarding...
+    $user->numeric(ERR_LINKCHAN => $channel->name, $f_chan->name);
     # Check if we're even able to join the channel to be forwarded to
     my $join_event = $user->fire('can_join' => $f_chan);
     # We can't join
