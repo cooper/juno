@@ -2751,4 +2751,6 @@ CHANGES:
 
         52. added Channel::Forward 1.0, allows for channel forwarding
 
+        53. dispose of channel that was just created if failed.
+
 

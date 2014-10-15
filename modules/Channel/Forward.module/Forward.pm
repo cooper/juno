@@ -107,13 +107,20 @@ sub on_user_join_failed {
     my $f_chan = $channel->mode_parameter('forward');
     # We need the channel object, unfortunately it is not always the case that
     # we are being forwarded to a channel that already exists.
-    $f_chan = $pool->lookup_or_create_channel($f_chan);
+    ($f_chan, $new) = $pool->lookup_or_create_channel($f_chan);
     # Let the user know we're forwarding...
     $user->numeric(ERR_LINKCHAN => $channel->name, $f_chan->name);
     # Check if we're even able to join the channel to be forwarded to
     my $join_event = $user->fire('can_join' => $f_chan);
     # We can't join
-    return if $join_event->stopper;
+    if ($join_event_stopper) {
+        # if we just created this channel, dispose of it.
+        if ($new) {
+            $pool->delete_channel($f_chan);
+            $f_chan->delete_all_events();
+        }
+        return;
+    }
     # We can join
     my $cjoin = $api->get_module('Core::UserCommands')->can('_cjoin');
     $cjoin->(1, $user, undef, $f_chan->name); 
