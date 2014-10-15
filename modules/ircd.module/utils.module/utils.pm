@@ -221,9 +221,9 @@ sub n2a {
 # arrayref of keys and values -> hash.
 sub keys_values {
     my ($keys, $values) = @_;
-    return unless ref $keys eq 'ARRAY' and ref $values eq 'ARRAY';
+    return unless ref $keys eq 'ARRAY' && ref $values eq 'ARRAY';
     my %hash;
-    while (@$keys == @$values && @$keys) {
+    while (@$keys || @$values) {
         my ($key, $value) = (shift @$keys, shift @$values);
         $hash{$key} = $value;
     }
