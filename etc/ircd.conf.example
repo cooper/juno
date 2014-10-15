@@ -26,6 +26,7 @@
     Channel::Key        =   on      # Channel key support (+k)
     Channel::Limit      =   on      # Channel user limit support (+l)
     Channel::Secret     =   on      # Secret channel support (+s)
+    Channel::Forward    =   on      # Channel forward support (+f)
     SASL                =   on      # Support for SASL plain authentication
     Grant               =   on      # grant user oper flags from IRC
     Alias               =   on      # support for command aliases

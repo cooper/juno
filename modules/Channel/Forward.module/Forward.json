@@ -1,0 +1,17 @@
+{
+   "version" : "1.0",
+   "name" : "Channel::Forward",
+   "author" : {
+      "website" : "https://github.com/mattwb65",
+      "name" : "Matthew Barksdale"
+   },
+   "description" : "adds channel forwarding abilities",
+   "package" : "M::Channel::Forward",
+   "depends" : {
+      "modules" : [
+         "Base::ChannelModes",
+         "Base::UserNumerics",
+         "Core::UserCommands"
+      ]
+   }
+}

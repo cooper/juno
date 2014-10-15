@@ -2749,4 +2749,6 @@ CHANGES:
 
         51. added ->lookup_or_create_channel() method and eliminated repetition.
 
+        52. added Channel::Forward 1.0, allows for channel forwarding
+
 
