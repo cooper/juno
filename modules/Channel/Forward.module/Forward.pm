@@ -104,10 +104,10 @@ sub on_user_can_join {
 sub on_user_join_failed {
     my ($user, $event, $channel) = @_;
     return unless $channel->is_mode('forward');
-    my $f_chan = $channel->mode_parameter('forward');
+    my $f_ch_name = $channel->mode_parameter('forward');
     # We need the channel object, unfortunately it is not always the case that
     # we are being forwarded to a channel that already exists.
-    ($f_chan, $new) = $pool->lookup_or_create_channel($f_chan);
+    my ($f_chan, $new) = $pool->lookup_or_create_channel($f_ch_name);
     # Let the user know we're forwarding...
     $user->numeric(ERR_LINKCHAN => $channel->name, $f_chan->name);
     # Check if we're even able to join the channel to be forwarded to
