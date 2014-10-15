@@ -2753,4 +2753,4 @@ CHANGES:
 
         53. dispose of channel that was just created if failed.
 
-
+        54. added Channel::OperOnly, allows for IRCop only channels
