@@ -2754,3 +2754,7 @@ CHANGES:
         53. dispose of channel that was just created if failed.
 
         54. added Channel::OperOnly, allows for IRCop only channels
+
+        55. added limit:channel setting to limit the number of channels a user may be in at one time.
+            fixed broken TS6 outgoing NICK command.
+            fixed exception in JOIN command caused by TS6 outgoing channel creation.
