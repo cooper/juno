@@ -216,7 +216,7 @@ Unfinished or missing IRC functionality
 
     [ ] WHOIS           Lacks numeric 137 idle time.
 
-    [ ] Invite except   Exception mode (+I) exists, but it is not taken into account yet.
+    [√] Invite except   Exception mode (+I) exists, but it is not taken into account yet.
 
     [ ] MOTD            Missing remote MOTD (<server> parameter) support.
 
@@ -234,7 +234,7 @@ Unfinished or missing IRC functionality
 
     [ ] Number of modes in a single MODE message is unlimited.
 
-    [ ] Number of channels a user may join is unlimited.
+    [√] Number of channels a user may join is unlimited.
 
     [ ] Number of entries in a channel mode list is unlimited.
 
