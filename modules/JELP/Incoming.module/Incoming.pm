@@ -376,19 +376,11 @@ sub _join {
     # user any     ts
     # :uid JOIN  channel time
     my ($server, $msg, $user, $chname, $time) = @_;
-    my $channel = $pool->lookup_channel($chname);
-
-    # channel doesn't exist; make a new one
-    if (!$channel) {
-        $channel = $pool->new_channel(
-            name => $chname,
-            time => $time
-        );
-    }
+    my ($channel, $new) = $pool->lookup_or_create_channel($chname, $time);
 
     # take lower time if necessary, and add the user to the channel.
-    $channel->take_lower_time($time);
-    $channel->cjoin($user, $time) unless $channel->has_user($user);
+    $channel->take_lower_time($time) unless $new;
+    $channel->cjoin($user, $time)    unless $channel->has_user($user);
     
     # for each user in the channel, send a JOIN message.
     $channel->sendfrom_all($user->full, "JOIN $$channel{name}");

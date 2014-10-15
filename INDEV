@@ -2746,3 +2746,7 @@ CHANGES:
         can_join event errors can now be silented by earlier callbacks.
         new event join_failed, fired for any reason that a user cannot join a channel.
         now able to identify the reason for join failure.
+
+        51. added ->lookup_or_create_channel() method and eliminated repetition.
+
+

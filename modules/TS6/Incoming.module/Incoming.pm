@@ -172,10 +172,7 @@ sub sjoin {
     my ($server, $msg, $serv, $ts, $ch_name, $mode_str, @mode_params) = @_;
 
     # maybe we have a channel by this name, otherwise create one.
-    my $channel = $pool->lookup_channel($ch_name) || $pool->new_channel(
-        name => $ch_name,
-        time => $ts
-    );
+    my $channel = $pool->lookup_or_createchannel($ch_name, $ts);
 
     # store mode string before any possible changes.
     my @after_params;       # params after changes.

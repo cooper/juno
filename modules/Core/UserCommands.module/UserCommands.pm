@@ -459,17 +459,8 @@ sub _cjoin {
         }
 
         # if the channel exists, just join.
-        my $channel = $pool->lookup_channel($chname);
-        my $time    = time;
-
-        # otherwise create a new one.
-        if (!$channel) {
-            $new     = 1;
-            $channel = $pool->new_channel(
-                name => $chname,
-                time => $time
-            );
-        }
+        my ($channel, $new) = $pool->lookup_or_create_channel($chname);
+        my $time = $channel->{time};
 
         unless ($force) {
             

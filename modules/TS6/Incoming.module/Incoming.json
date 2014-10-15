@@ -1,7 +1,4 @@
 {
-   "depends" : {
-      "modules" : "TS6::Base"
-   },
    "description" : "basic set of TS6 command handlers",
    "author" : {
       "website" : "https://github.com/cooper",
@@ -9,5 +6,8 @@
    },
    "package" : "M::TS6::Incoming",
    "name" : "TS6::Incoming",
-   "version" : "6"
+   "depends" : {
+      "modules" : "TS6::Base"
+   },
+   "version" : "6.1"
 }

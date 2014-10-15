@@ -327,6 +327,24 @@ sub lookup_channel {
     return $pool->{channels}{ lc $name };
 }
 
+sub lookup_or_create_channel {
+    my ($pool, $name, $time) = @_;
+    
+    # if the channel exists, just join.
+    my $channel = $pool->lookup_channel($name);
+    return $channel;
+    
+    # otherwise create a new one.
+    $channel = $pool->new_channel(
+        name => $name,
+        time => $time || time
+    );
+    
+    # second return value is whether it's a new channel.
+    return wantarray ? ($channel, 1) : $channel;
+    
+}
+
 # returns true if the two passed users have a channel in common.
 # well actually it returns the first match found, but that's usually useless.
 sub channel_in_common {
