@@ -195,18 +195,23 @@ sub add_invite_callbacks {
         $event->stop;
         $user->numeric(ERR_CHANOPRIVSNEEDED => $ch_name);        
     }, name => 'has.basic.status', priority => 10);
-    
      
     # ON JOIN,
     # check if the channel is invite only.
     $pool->on('user.can_join' => sub {
         my ($event, $channel) = @_;
         my $user = $event->object;
-        # TODO: invite exceptions.
+
+        # channel is not invite-only.
         return unless $channel->is_mode('invite_only');
+        
+        # user has been invited.
         return if $user->{invite_pending}{ lc $channel->name };
         
-        # sorry, not invited.
+        # user matches the exception list.
+        return if $channel->list_matches('invite_except', $user);
+        
+        # sorry, not invited, no exception.
         $user->numeric(ERR_INVITEONLYCHAN => $channel->name);
         $event->stop;
         
