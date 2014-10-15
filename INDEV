@@ -2738,6 +2738,6 @@ CHANGES:
 
         47. fixed a bug where SASL authentication did not propagate correctly because LOGIN was sent before UID or equivalent.
             
-            
+        48. Added free invite mode (+g)            
         
         

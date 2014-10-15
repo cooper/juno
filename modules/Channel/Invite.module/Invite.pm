@@ -41,6 +41,10 @@ sub init {
         code => $ccm->can('cmode_normal')
     );
     $mod->register_channel_mode_block(
+        name => 'free_invite',
+        code => $ccm->can('cmode_normal')
+    );
+    $mod->register_channel_mode_block(
         name => 'invite_except',
         code => sub { $ccm->can('cmode_banlike')->('invite_except', 'invite', @_) }
     );
@@ -183,9 +187,10 @@ sub add_invite_callbacks {
         my $user = $event->object;
         return unless $channel;
         
-        # channel's not invite only, or the user has basic status.
+        # channel's not invite only, the user has basic status, or the channel
+        # is free invite.
         return 1 unless $channel->is_mode('invite_only');
-        return 1 if $channel->user_has_basic_status($user);
+        return 1 if ($channel->user_has_basic_status($user) || $channel->is_mode('free_invite'));
         
         $event->stop;
         $user->numeric(ERR_CHANOPRIVSNEEDED => $ch_name);        
