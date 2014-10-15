@@ -29,6 +29,7 @@
 		BC174752194A36F0005C2D83 /* doc */ = {isa = PBXFileReference; lastKnownFileType = folder; name = doc; path = ../doc; sourceTree = "<group>"; };
 		BC515539195C7E1D00110EBE /* PLANS */ = {isa = PBXFileReference; lastKnownFileType = text; name = PLANS; path = ../PLANS; sourceTree = "<group>"; };
 		BC7068FE196642E600A2915D /* message.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = message.pm; path = message.module/message.pm; sourceTree = "<group>"; };
+		BC8BAD3A19EF007E00216958 /* Forward.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Forward.pm; path = Forward.module/Forward.pm; sourceTree = "<group>"; };
 		BC9564F61944E032002F52B9 /* Account.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Account.pm; sourceTree = "<group>"; };
 		BC9564F91944E032002F52B9 /* Local.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Local.pm; path = Local.module/Local.pm; sourceTree = "<group>"; };
 		BC9564FC1944E032002F52B9 /* Remote.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Remote.pm; path = Remote.module/Remote.pm; sourceTree = "<group>"; };
@@ -252,6 +253,7 @@
 				BCB6C8191963DDE5009F093A /* Key.pm */,
 				BCB6C81A196495D6009F093A /* Secret.pm */,
 				BC131F391995C25200B8071A /* ModeSync.pm */,
+				BC8BAD3A19EF007E00216958 /* Forward.pm */,
 			);
 			path = Channel;
 			sourceTree = "<group>";
