@@ -531,7 +531,7 @@ sub handle_connect {
     }
 
     # if the connection IP limit has been reached, disconnect.
-    my $ip = utils::safe_ip($stream->{write_handle}->peerhost);
+    my $ip = $conn->{ip};
     if (scalar(grep { $_->{ip} eq $ip } $pool->connections) > conf('limit', 'perip')) {
         $conn->done('Connections per IP limit exceeded');
         return;
@@ -542,6 +542,10 @@ sub handle_connect {
         $conn->done('Global connections per IP limit exceeded');
         return;
     }
+
+    # Allow for modules to prevent a user from registering
+    my $event = $conn->fire('can_continue');
+    $conn->done($event->stop) if $event->stopper;
     
     return 1;
 }

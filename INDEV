@@ -2764,3 +2764,5 @@ CHANGES:
         57. added functionality to prevent users from messaging a channel they're banned in.
 
         58. added show_in_whois event, useful for hiding channels from WHOIS queries.
+
+        59. added can_continue event to allow for modules to prevent a user from continuing to registration
