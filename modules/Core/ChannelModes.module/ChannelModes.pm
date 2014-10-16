@@ -217,11 +217,11 @@ sub add_message_restrictions {
         my ($user, $event, $channel, $message, $type) = @_;
 
         # not moderated, or the user has proper status.
-        return unless $channel->list_matches('ban', $user);
         return if $channel->user_get_highest_level($user) >= -2;
+        return unless $channel->list_matches('ban', $user);
         return if $channel->list_matches('except', $user);
 
-        $user->numeric(ERR_CANNOTSENDTOCHAN => $channel->name, 'You are banned');
+        $user->numeric(ERR_CANNOTSENDTOCHAN => $channel->name, "You're banned");
         $event->stop('banned');
 
     }, name => 'stop.banned.users', with_eo => 1, priority => 10);
