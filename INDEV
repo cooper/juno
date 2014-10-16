@@ -2766,3 +2766,5 @@ CHANGES:
         58. added show_in_whois event, useful for hiding channels from WHOIS queries.
 
         59. added can_continue event to allow for modules to prevent a user from continuing to registration
+
+    6. created Channel::Mute to add channel muteban mode (+Z).

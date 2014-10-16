@@ -1,16 +1,16 @@
 {
-   "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
-   },
-   "name" : "Core::ChannelModes",
-   "version" : "9.57",
-   "package" : "M::Core::ChannelModes",
-   "description" : "the core set of channel modes",
    "depends" : {
       "modules" : [
          "Base::ChannelModes",
          "Base::Capabilities"
       ]
-   }
+   },
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
+   "description" : "the core set of channel modes",
+   "version" : "9.6",
+   "name" : "Core::ChannelModes",
+   "package" : "M::Core::ChannelModes"
 }

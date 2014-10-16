@@ -132,16 +132,36 @@ sub cmode_normal {
     return $mode->{has_basic_status};
 }
 
+# new extended version.
+sub cmode_banlike_ext {
+    my ($at_underscore, %opts) = @_;
+    _cmode_banlike(
+        $opts{list},
+        $opts{reply},
+        $opts{show_mode},
+        @$at_underscore
+    );
+}
+
+# compatibility wrapper.
 sub cmode_banlike {
-    my ($list, $reply, $channel, $mode) = @_;
+    my ($list, $reply) = (shift, shift);
+    _cmode_banlike($list, $reply, undef, @_);
+}
+
+# not to be used directly.
+sub _cmode_banlike {
+    my ($list, $reply, $show_letter, $channel, $mode) = @_;
 
     # view list.
     if (!length $mode->{param} && $mode->{source}->isa('user')) {
         
         # send each list item.
-        my $name = uc($list).q(LIST);
+        my $name   = uc($reply).q(LIST);
+        my $letter = $me->cmode_letter($list);
+        my @channel_w_letter = $show_letter ? ($channel->name, $letter) : $channel->name;
         $mode->{source}->numeric("RPL_$name" =>
-            $channel->name,
+            @channel_w_letter,
             $_->[0],
             $_->[1]{setby},
             $_->[1]{time}
