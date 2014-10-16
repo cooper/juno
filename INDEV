@@ -2758,3 +2758,7 @@ CHANGES:
         55. added limit:channel setting to limit the number of channels a user may be in at one time.
             fixed broken TS6 outgoing NICK command.
             fixed exception in JOIN command caused by TS6 outgoing channel creation.
+
+        56. move hardcoded +m and +n to use new events can_message, can_privmsg, and can_notice.
+
+

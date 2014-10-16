@@ -674,25 +674,17 @@ sub handle_privmsgnotice {
     my ($channel, $command, $source, $message, $dont_forward, $force) = @_;
     my $user   = $source->isa('user')   ? $source : undef;
     my $server = $source->isa('server') ? $source : undef;
-    
+    $command   = lc $command;
     
     # it's a user.
     if ($user && !$force) {
-    
-        # no external messages?
-        if ($channel->is_mode('no_ext') && !$channel->has_user($user)) {
-            $user->numeric(ERR_CANNOTSENDTOCHAN => $channel->name, 'No external messages');
-            return;
-        }
 
-        # moderation and no voice?
-        if ($channel->is_mode('moderated')   &&
-          !$channel->user_is($user, 'voice') &&
-          !$channel->user_has_basic_status($user)) {
-            $user->numeric(ERR_CANNOTSENDTOCHAN => $channel->name, 'Channel is moderated');
-            return;
-        }
-
+        # can_message, can_notice, can_privmsg.
+        return if $user->fire_events_together(
+            [  can_message   => $channel, $message, $command ],
+            [ "can_$command" => $channel, $message           ]
+        )->stopper;
+        
     }
 
     # tell local users.
@@ -720,7 +712,7 @@ sub handle_privmsgnotice {
     }
     
     # fire event.
-    $channel->fire_event(lc $command => $source, $message);
+    $channel->fire_event($command => $source, $message);
 
     return 1;
 }

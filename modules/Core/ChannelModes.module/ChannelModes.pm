@@ -43,6 +43,9 @@ sub init {
     # add multi-prefix capability.
     $mod->register_capability('multi-prefix');
 
+    # add channel message restrictions.
+    add_message_restrictions();
+    
     undef %cmodes;
     return 1;
 }
@@ -177,6 +180,39 @@ sub cmode_banlike {
     }
     
     return 1;
+}
+
+sub add_message_restrictions {
+
+    # not in channel and no external messages?
+    $pool->on('user.can_message' => sub {
+        my ($user, $event, $channel, $message, $type) = @_;
+        
+        # not internal only, or user is in channel.
+        return unless $channel->is_mode('no_ext');
+        return if $channel->has_user($user);
+        
+        # no external messages.
+        $user->numeric(ERR_CANNOTSENDTOCHAN => $channel->name, 'No external messages');
+        $event->stop('no_ext');
+        
+    }, name => 'no.external.messages', with_eo => 1, priority => 30);
+    
+    
+    # moderation and no voice?
+    $pool->on('user.can_message' => sub {
+        my ($user, $event, $channel, $message, $type) = @_;
+        
+        # not moderated, or the user has proper status.
+        return unless $channel->is_mode('moderated');
+        return if $channel->user_get_highest_level($user) >= -2;
+        
+        # no external messages.
+        $user->numeric(ERR_CANNOTSENDTOCHAN => $channel->name, 'Channel is moderated');
+        $event->stop('moderated');
+        
+    }, name => 'moderated', with_eo => 1, priority => 30);
+    
 }
 
 $mod
