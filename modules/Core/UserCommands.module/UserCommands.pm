@@ -623,7 +623,7 @@ sub add_whois_callbacks {
         foreach my $channel ($quser->channels) {
             my $e = $channel->fire_event(show_in_whois => $quser, $ruser);
             next if $e->stopper;
-            push @channels, $channel;
+            push @channels, $channel->name;
         }
         
         $channels{$quser} = \@channels;
