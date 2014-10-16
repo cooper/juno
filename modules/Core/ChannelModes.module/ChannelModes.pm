@@ -198,7 +198,6 @@ sub add_message_restrictions {
         
     }, name => 'no.external.messages', with_eo => 1, priority => 30);
     
-    
     # moderation and no voice?
     $pool->on('user.can_message' => sub {
         my ($user, $event, $channel, $message, $type) = @_;
@@ -212,6 +211,20 @@ sub add_message_restrictions {
         $event->stop('moderated');
         
     }, name => 'moderated', with_eo => 1, priority => 20);
+
+    # banned and no voice?
+    $pool->on('user.can_message' => sub {
+        my ($user, $event, $channel, $message, $type) = @_;
+
+        # not moderated, or the user has proper status.
+        return unless $channel->list_matches('ban', $user);
+        return if $channel->user_get_highest_level($user) >= -2;
+        return if $channel->list_matches('except', $user);
+
+        $user->numeric(ERR_CANNOTSENDTOCHAN => $channel->name, 'You are banned');
+        $event->stop('banned');
+
+    }, name => 'stop.banned.users', with_eo => 1, priority => 10);
     
 }
 
