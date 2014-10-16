@@ -616,8 +616,16 @@ sub add_whois_callbacks {
     # whether to show RPL_WHOISCHANNELS.
     my %channels;
     my $show_channels = sub {
-        my $quser = shift;
-        my @channels = map { $_->{name} } grep { $_->has_user($quser) } $pool->channels;
+        my ($quser, $ruser) = @_;
+
+        # some channels may be skipped using event stopper.
+        my @channels;
+        foreach my $channel ($quser->channels) {
+            my $e = $channel->fire_event(show_in_whois => $quser, $ruser);
+            next if $e->stopper;
+            push @channels, $channel;
+        }
+        
         $channels{$quser} = \@channels;
         return scalar @channels;
     };
@@ -655,7 +663,7 @@ sub add_whois_callbacks {
             $conditional_sub->($quser) or return if $conditional_sub;
             
             # argument sub.
-            my @args = $argument_sub->($quser) if $argument_sub;
+            my @args = $argument_sub->($quser, $ruser) if $argument_sub;
             
             $ruser->numeric($constant => $quser->{nick}, @args);
         }, name => $constant, priority => $p, with_eo => 1);

@@ -113,7 +113,7 @@ sub on_user_join_failed {
     # Check if we're even able to join the channel to be forwarded to
     my $join_event = $user->fire('can_join' => $f_chan);
     # We can't join
-    if ($join_event_stopper) {
+    if ($join_event->stopper) {
         # if we just created this channel, dispose of it.
         if ($new) {
             $pool->delete_channel($f_chan);

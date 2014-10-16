@@ -1,4 +1,5 @@
 {
+   "version" : "1.6",
    "name" : "Channel::Forward",
    "depends" : {
       "modules" : [
@@ -7,11 +8,10 @@
          "Core::UserCommands"
       ]
    },
-   "version" : "1.4",
+   "package" : "M::Channel::Forward",
    "description" : "adds channel forwarding abilities",
    "author" : {
-      "name" : "Matthew Barksdale",
-      "website" : "https://github.com/mattwb65"
-   },
-   "package" : "M::Channel::Forward"
+      "website" : "https://github.com/mattwb65",
+      "name" : "Matthew Barksdale"
+   }
 }

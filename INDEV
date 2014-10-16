@@ -2761,4 +2761,6 @@ CHANGES:
 
         56. move hardcoded +m and +n to use new events can_message, can_privmsg, and can_notice.
 
-        57. added functionality to prevent users from messaging a channel they're banned in
+        57. added functionality to prevent users from messaging a channel they're banned in.
+
+        58. added show_in_whois event, useful for hiding channels from WHOIS queries.
