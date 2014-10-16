@@ -211,7 +211,7 @@ sub add_message_restrictions {
         $user->numeric(ERR_CANNOTSENDTOCHAN => $channel->name, 'Channel is moderated');
         $event->stop('moderated');
         
-    }, name => 'moderated', with_eo => 1, priority => 30);
+    }, name => 'moderated', with_eo => 1, priority => 20);
     
 }
 
