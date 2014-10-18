@@ -241,6 +241,11 @@ Unfinished or missing IRC functionality
     [ ] Several commands can only take one target, others can take infinitely many.
         It's both inconsistent and vulnerable.
 
+    [ ] Some server notices should be broadcasted, especially those used in modules.
+        For things like new users, we should stick to how it is, but for things like
+        eval, modules, etc., we can use broadcast. Just add an option for registering
+        them as broadcast notices.
+
 Miscellaneous
 ------------------------------------------------------------------------------------------
 

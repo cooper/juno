@@ -674,15 +674,16 @@ sub handle_privmsgnotice {
     my ($channel, $command, $source, $message, $dont_forward, $force) = @_;
     my $user   = $source->isa('user')   ? $source : undef;
     my $server = $source->isa('server') ? $source : undef;
-    $command   = lc $command;
+    $command   = uc $command;
     
     # it's a user.
     if ($user && !$force) {
-
+        my $lccommand = lc $command;
+        
         # can_message, can_notice, can_privmsg.
         return if $user->fire_events_together(
-            [  can_message   => $channel, $message, $command ],
-            [ "can_$command" => $channel, $message           ]
+            [  can_message     => $channel, $message, $lccommand ],
+            [ "can_$lccommand" => $channel, $message           ]
         )->stopper;
         
     }
@@ -706,7 +707,7 @@ sub handle_privmsgnotice {
         # already sent to this server.
         next if $sent{ $usr->{location} };
         
-        $usr->{location}->fire_command(privmsgnotice => uc $command, $source, $channel, $message);
+        $usr->{location}->fire_command(privmsgnotice => $command, $source, $channel, $message);
         $sent{ $usr->{location} } = 1;
 
     }

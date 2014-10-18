@@ -1,12 +1,12 @@
 {
-   "name" : "Base::UserCommands",
    "package" : "M::Base::UserCommands",
-   "author" : {
-      "name" : "Mitchell Cooper",
-      "website" : "https://github.com/cooper"
-   },
    "depends" : {
       "modules" : "API::Methods"
    },
-   "version" : "9.31"
+   "version" : "9.61",
+   "author" : {
+      "website" : "https://github.com/cooper",
+      "name" : "Mitchell Cooper"
+   },
+   "name" : "Base::UserCommands"
 }

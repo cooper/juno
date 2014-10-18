@@ -464,7 +464,6 @@ sub _cjoin {
     }
     
     foreach my $chname (split ',', $given) {
-        my $new = 0;
 
         # make sure it's a valid name.
         if (!utils::validchan($chname)) {
@@ -646,14 +645,15 @@ sub add_whois_callbacks {
     # too bad this is >90 width.
     my $p = 1000;
     foreach (
-    [ undef,                           'RPL_WHOISUSER',     sub { @{+shift}{ qw(ident cloak real) } } ],
+    [ undef,                           'RPL_WHOISUSER',     sub { @{+shift}{qw(ident cloak real)}   } ],
     [ $show_channels,                  'RPL_WHOISCHANNELS', $channels_list                            ],
     [ undef,                           'RPL_WHOISSERVER',   $server_info                              ],
     [ sub { shift->is_mode('ssl')   }, 'RPL_WHOISSECURE'                                              ],
     [ sub { shift->is_mode('ircop') }, 'RPL_WHOISOPERATOR'                                            ],
     [ sub { length shift->{away}    }, 'RPL_AWAY',          sub { shift->{away}                     } ],
     [ sub { shift->mode_string      }, 'RPL_WHOISMODES',    sub { shift->mode_string                } ],
-    [ undef,                           'RPL_WHOISHOST',     sub { @{+shift}{ qw(host ip) }          } ],
+    [ undef,                           'RPL_WHOISHOST',     sub { @{+shift}{qw(host ip)}            } ],
+    [ sub { shift->is_local         }, 'RPL_WHOISIDLE',     sub { @{+shift}{qw(time last_response)} } ],
     [ undef,                           'RPL_ENDOFWHOIS'                                               ]) {
         my ($conditional_sub, $constant, $argument_sub) = @$_; $p -= 5;
         $pool->on('user.whois_query' => sub {
@@ -671,19 +671,38 @@ sub add_whois_callbacks {
     
 }
 
+# may be called remotely.
 sub whois {
     my ($user, $event, @args) = @_;
 
-    # this is the way inspircd does it so I can too.
-    my $query = $args[1] // $args[0];
-    my $quser = $pool->lookup_user_nick($query);
+    # server parameter.
+    my ($server, $quser, $query);
+    if (length $args[1]) {
+        $server = lc $args[0] eq lc $args[1] ? $me : $pool->lookup_server_mask($args[0]);
+        $query  = $args[1];
+        $quser  = $pool->lookup_user_nick($query);
+    }
+    
+    # no server parameter.
+    else {
+        $server = $me;
+        $query  = $args[0];
+        $quser  = $pool->lookup_user_nick($query);
+    }
 
-    # exists?
+    # server exists?
+    if (!$server) {
+        $user->numeric(ERR_NOSUCHSERVER => $args[0]);
+        return;
+    }
+    
+    # user exists?
     if (!$quser) {
         $user->numeric(ERR_NOSUCHNICK => $query);
         return;
     }
 
+    # NOTE: these handlers must not assume $quser to be local.
     $user->fire(whois_query => $quser);
 
     # TODO: 137 idle

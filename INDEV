@@ -2774,4 +2774,8 @@ CHANGES:
             channel mode blocks can now be registerd automatically from %channel_modes.
             deleted Base::Database, as it has been replaced by Evented::Database.
             miscellaneous cleanup.
+
+        62. fixed a bug where PRIVMSG/NOTICE were sent out in lowercase to users.
+            fixed a bug where the callback to register commands from %user_commands was overwritten.
+            
             
