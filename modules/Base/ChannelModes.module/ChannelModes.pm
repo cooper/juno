@@ -25,6 +25,12 @@ sub init {
     # module unload event.
     $api->on('module.unload' => \&unload_module, with_eo => 1) or return;
     
+    # module initialization.
+    $api->on('module.init' => \&module_init,
+        name    => '%channel_modes',
+        with_eo => 1
+    ) or return;
+    
     return 1;
 }
 
@@ -57,6 +63,17 @@ sub unload_module {
     $pool->delete_channel_mode_block($_, $mod->name)
       foreach $mod->list_store_items('channel_modes');
     
+    return 1;
+}
+
+# a module is being initialized.
+sub module_init {
+    my $mod = shift;
+    my %cmodes = $mod->get_symbol('%channel_modes');
+    $mod->register_channel_mode_block(
+        name => $_,
+        code => $cmodes{$_}
+    ) || return foreach keys %cmodes;
     return 1;
 }
 

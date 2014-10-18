@@ -1,16 +1,16 @@
 {
+   "author" : {
+      "website" : "https://github.com/cooper",
+      "name" : "Mitchell Cooper"
+   },
+   "package" : "M::Channel::Access",
+   "name" : "Channel::Access",
+   "version" : "3.5",
    "depends" : {
       "modules" : [
          "Base::ChannelModes",
          "Base::UserCommands"
       ]
    },
-   "description" : "implements channel access mode",
-   "name" : "Channel::Access",
-   "version" : "3.4",
-   "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
-   },
-   "package" : "M::Channel::Access"
+   "description" : "implements channel access mode"
 }

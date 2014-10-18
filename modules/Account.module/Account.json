@@ -1,15 +1,10 @@
 {
-   "version" : "7.1",
-   "package" : "M::Account",
-   "name" : "Account",
-   "depends" : {
-      "modules" : [
-         "Base::Database"
-      ]
-   },
+   "version" : "7.2",
    "description" : "implements user accounts",
+   "package" : "M::Account",
    "author" : {
       "website" : "https://github.com/cooper",
       "name" : "Mitchell Cooper"
-   }
+   },
+   "name" : "Account"
 }

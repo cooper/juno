@@ -35,7 +35,6 @@
 		BC9564F91944E032002F52B9 /* Local.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Local.pm; path = Local.module/Local.pm; sourceTree = "<group>"; };
 		BC9564FC1944E032002F52B9 /* Remote.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Remote.pm; path = Remote.module/Remote.pm; sourceTree = "<group>"; };
 		BC9565011944E032002F52B9 /* ChannelModes.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = ChannelModes.pm; path = ChannelModes.module/ChannelModes.pm; sourceTree = "<group>"; };
-		BC9565041944E032002F52B9 /* Database.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Database.pm; path = Database.module/Database.pm; sourceTree = "<group>"; };
 		BC9565071944E032002F52B9 /* Matchers.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Matchers.pm; path = Matchers.module/Matchers.pm; sourceTree = "<group>"; };
 		BC95650A1944E032002F52B9 /* OperNotices.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = OperNotices.pm; path = OperNotices.module/OperNotices.pm; sourceTree = "<group>"; };
 		BC95650D1944E032002F52B9 /* UserCommands.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = UserCommands.pm; path = UserCommands.module/UserCommands.pm; sourceTree = "<group>"; };
@@ -189,7 +188,6 @@
 			children = (
 				BC9565131944E032002F52B9 /* UserNumerics.pm */,
 				BC9565011944E032002F52B9 /* ChannelModes.pm */,
-				BC9565041944E032002F52B9 /* Database.pm */,
 				BC9565071944E032002F52B9 /* Matchers.pm */,
 				BC95650A1944E032002F52B9 /* OperNotices.pm */,
 				BC95650D1944E032002F52B9 /* UserCommands.pm */,

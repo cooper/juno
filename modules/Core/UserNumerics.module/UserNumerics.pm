@@ -20,7 +20,7 @@ use utils qw(conf v);
 
 our ($api, $mod, $me, $pool);
 
-my %numerics = (
+our %user_numerics = (
                             ###############################################################################
                             #                              core numerics list                             #
                             #                              ------------------                             #
@@ -105,16 +105,6 @@ my %numerics = (
     RPL_WHOISSECURE      => [671, '%s :is using a secure connection'                                      ],
                             ###############################################################################
 );                  
- 
-sub init {
-    $mod->register_user_numeric(
-        name    => $_,
-        number  => $numerics{$_}[0],
-        format  => $numerics{$_}[1]
-    ) || return foreach keys %numerics;
-    undef %numerics;
-    return 1;
-}
 
 # RPL_ISUPPORT
 sub rpl_isupport {

@@ -24,19 +24,23 @@ our ($api, $mod, $pool);
 my $MAX = ~0 >> 1;
 
 sub init {
+    
     # register limit mode block.
     $mod->register_channel_mode_block(
         name => 'limit',
         code => \&cmode_limit
     ) or return;
+    
     # register ERR_CHANNELISFULL
     $mod->register_user_numeric(
         name   => 'ERR_CHANNELISFULL',
         number => 471,
         format => '%s :Channel is full'
     ) or return;
+    
     # Hook on the can_join event to prevent joining a channel that is full
     $pool->on('user.can_join' => \&on_user_can_join, with_eo => 1, name => 'has.limit');
+    
     return 1;
 }
 

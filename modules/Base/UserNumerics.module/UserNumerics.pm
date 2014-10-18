@@ -25,6 +25,12 @@ sub init {
     # module unload event.
     $api->on('module.unload' => \&unload_module, with_eo => 1) or return;
     
+    # module initialization.
+    $api->on('module.init' => \&module_init,
+        name    => '%user_commands',
+        with_eo => 1
+    ) or return;
+    
     return 1;
 }
 
@@ -58,5 +64,18 @@ sub unload_module {
     $pool->delete_numeric($mod->name, $_) foreach $mod->list_store_items('user_numerics');
     return 1;
 }
+
+# a module is being initialized.
+sub module_init {
+    my $mod = shift;
+    my %numerics = $mod->get_symbol('%user_numerics');
+    $mod->register_user_numeric(
+        name    => $_,
+        number  => $numerics{$_}[0],
+        format  => $numerics{$_}[1]
+    ) || return foreach keys %numerics;
+    return 1;
+}
+
 
 $mod

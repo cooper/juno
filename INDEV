@@ -2768,3 +2768,10 @@ CHANGES:
         59. added can_continue event to allow for modules to prevent a user from continuing to registration
 
     6. created Channel::Mute to add channel muteban mode (+Z).
+
+        61. fixed a bug where PRIVMSG/NOTICE were sent out in lowercase to servers.
+            numerics can now be registered automatically from %user_numerics.
+            channel mode blocks can now be registerd automatically from %channel_modes.
+            deleted Base::Database, as it has been replaced by Evented::Database.
+            miscellaneous cleanup.
+            

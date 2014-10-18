@@ -20,7 +20,7 @@ use utils 'cols';
 
 our ($api, $mod, $me, $pool);
 
-my %cmodes = (
+our %channel_modes = (
     no_ext        => \&cmode_normal,
     protect_topic => \&cmode_normal,
     moderated     => \&cmode_normal,
@@ -30,13 +30,7 @@ my %cmodes = (
 
 sub init {
 
-    # register channel mode blocks
-    $mod->register_channel_mode_block(
-        name => $_,
-        code => $cmodes{$_}
-    ) || return foreach keys %cmodes;
-
-    # register status channel modes
+    # register status channel modes.
     register_statuses($_) or return foreach
         sort { $b <=> $a } keys %ircd::channel_mode_prefixes;
     
@@ -46,7 +40,6 @@ sub init {
     # add channel message restrictions.
     add_message_restrictions();
     
-    undef %cmodes;
     return 1;
 }
 
@@ -236,7 +229,7 @@ sub add_message_restrictions {
     $pool->on('user.can_message' => sub {
         my ($user, $event, $channel, $message, $type) = @_;
 
-        # not moderated, or the user has proper status.
+        # not banned, or the user has overriding status.
         return if $channel->user_get_highest_level($user) >= -2;
         return unless $channel->list_matches('ban', $user);
         return if $channel->list_matches('except', $user);

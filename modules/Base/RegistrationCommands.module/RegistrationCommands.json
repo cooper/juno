@@ -1,10 +1,10 @@
 {
-   "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
-   },
    "description" : "provides an interface for client registration commands",
    "name" : "Base::RegistrationCommands",
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
    "package" : "M::Base::RegistrationCommands",
-   "version" : "9.27"
+   "version" : "9.61"
 }

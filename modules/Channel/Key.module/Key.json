@@ -1,16 +1,16 @@
 {
-   "description" : "adds channel key mode",
+   "version" : "1.7",
    "depends" : {
       "modules" : [
          "Base::ChannelModes",
          "Base::UserNumerics"
       ]
    },
+   "description" : "adds channel key mode",
+   "name" : "Channel::Key",
    "author" : {
       "website" : "https://github.com/mattwb65",
       "name" : "Matthew Barksdale"
    },
-   "package" : "M::Channel::Key",
-   "version" : "1.6",
-   "name" : "Channel::Key"
+   "package" : "M::Channel::Key"
 }

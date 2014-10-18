@@ -22,13 +22,16 @@ use 5.010;
 our ($api, $mod, $pool);
 
 sub init {
+    
     # register secret mode block.
     $mod->register_channel_mode_block(
         name => 'secret',
         code => \&M::Core::ChannelModes::cmode_normal
     ) or return;
+    
     # Hook on the show_in_list event to prevent secret channels frm showing in list
     $pool->on('channel.show_in_list' => \&on_show_in_list, with_eo => 1, name => 'show.list');
+    
     return 1;
 }
 

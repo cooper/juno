@@ -20,7 +20,7 @@ use strict;
 use 5.010;
 
 our ($api, $mod, $pool);
-my $ccm;
+my $banlike;
 
 sub init {
     
@@ -39,7 +39,8 @@ sub init {
     ) or return;
     
     # register block.
-    $ccm = $api->get_module('Core::ChannelModes') or return;
+    my $ccm  = $api->get_module('Core::ChannelModes') or return;
+    $banlike = $ccm->can('cmode_banlike_ext')         or return;
     $mod->register_channel_mode_block(
         name => 'mute',
         code => \&cmode_mute
@@ -49,7 +50,7 @@ sub init {
     $pool->on('user.can_message' => sub {
         my ($user, $event, $channel, $message, $type) = @_;
         
-        # not moderated, or the user has proper status.
+        # not muted, or the user has overriding status.
         return if $channel->user_get_highest_level($user) >= -2;
         return unless $channel->list_matches('mute', $user);
         return if $channel->list_matches('except', $user);
@@ -64,8 +65,7 @@ sub init {
 }
 
 sub cmode_mute {
-    $ccm or return;
-    $ccm->can('cmode_banlike_ext')->(
+    $banlike->(
         \@_,
         list      => 'mute',    # name of the list mode
         reply     => 'quiet',   # reply numerics to send

@@ -18,7 +18,7 @@ use 5.010;
 
 our ($api, $mod, $me);
 
-my %notices = (
+our %oper_notices = (
 
     new_connection          => '%s (%d)',
     connection_terminated   => '%s (%s): %s',
@@ -46,15 +46,5 @@ my %notices = (
     server_warning          => '%s',
 
 );
- 
-sub init {
-    $mod->register_oper_notice(
-        name    => $_,
-        format  => $notices{$_}
-    ) || return foreach keys %notices;
-    
-    undef %notices;
-    return 1;
-}
 
 $mod

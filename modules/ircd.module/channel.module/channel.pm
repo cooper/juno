@@ -706,7 +706,7 @@ sub handle_privmsgnotice {
         # already sent to this server.
         next if $sent{ $usr->{location} };
         
-        $usr->{location}->fire_command(privmsgnotice => $command, $source, $channel, $message);
+        $usr->{location}->fire_command(privmsgnotice => uc $command, $source, $channel, $message);
         $sent{ $usr->{location} } = 1;
 
     }
