@@ -2790,4 +2790,7 @@ CHANGES:
         65. added ADMIN command and corresponding [admin] configuration block. works remotely.
             added server_mask parameter type, returning the first server matching a mask.
             $pool->lookup_server_mask() now always returns the local server if it matches and a scalar return is expected (previously, it would return the first alphabetical match).
+
+        66. added TIME command; works remotely.
+            LINKS command now uses the same @for= format as WHOIS, TIME, and ADMIN.
             

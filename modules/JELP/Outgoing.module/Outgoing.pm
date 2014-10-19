@@ -40,6 +40,7 @@ my %ocommands = (
     links           => \&links,
     whois           => \&whois,
     admin           => \&admin,
+    time            => \&_time,
 
     # JELP-specific
     
@@ -368,8 +369,8 @@ sub num {
 }
 
 sub links {
-    my ($to_server, $user, $target_server, $server_mask, $query_mask) = @_;
-    ":$$user{uid} LINKS $$target_server{sid} $server_mask $query_mask"
+    my ($to_server, $user, $t_server, $server_mask, $query_mask) = @_;
+    "\@for=$$t_server{sid} :$$user{uid} LINKS $server_mask $query_mask"
 }
 
 sub burst {
@@ -410,6 +411,12 @@ sub join_with_modes {
 sub admin {
     my ($to_server, $user, $t_server) = @_;
     "\@for=$$t_server{sid} :$$user{uid} ADMIN"
+}
+
+
+sub _time {
+    my ($to_server, $user, $t_server) = @_;
+    "\@for=$$t_server{sid} :$$user{uid} TIME"
 }
 
 $mod

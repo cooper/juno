@@ -168,7 +168,12 @@ our %user_commands = (
         code   => \&admin,
         desc   => 'server administrative information',
         params => 'server_mask(opt)'
-    }
+    },
+    TIME => {
+        code   => \&_time,
+        desc   => 'server time',
+        params => 'server_mask(opt)'
+    },
 );
 
 sub init {
@@ -1240,6 +1245,7 @@ sub echo {
     $user->sendfrom($user->full, "PRIVMSG $$channel{name} :$message") if $continue;
 }
 
+# note: this handler is used also for remote users.
 sub admin {
     my ($user, $event, $server) = @_;
     
@@ -1262,5 +1268,22 @@ sub admin {
     
     return 1;
 }
+
+# note: this handler is used also for remote users.
+sub _time {
+    my ($user, $event, $server) = @_;
+    
+    # this does not apply to me; forward it.
+    if ($server && $server != $me) {
+        $server->{location}->fire_command(time => $user, $server);
+        return 1;
+    }
+    
+    # it's for me.
+    $user->numeric(RPL_TIME => time);
+    
+    return 1;
+}
+
 
 $mod

@@ -87,6 +87,7 @@ our %user_numerics = (
     RPL_WHOISHOST        => [378, '%s :is connecting from *@%s %s'                                        ],
     RPL_YOUREOPER        => [381, ':You are now an IRC operator'                                          ],
     RPL_REHASHING        => [382, '%s :Rehashing server configuration file'                               ],
+    RPL_TIME             => [391, \&rpl_time                                                              ],
     ERR_NOSUCHNICK       => [401, '%s :No such nick/channel'                                              ],
     ERR_NOSUCHSERVER     => [402, '%s :No such server'                                                    ],
     ERR_NOSUCHCHANNEL    => [403, '%s :No such channel'                                                   ],
@@ -201,6 +202,12 @@ sub isp_prefix {
     }
     
     return "($modestr)$prefixes";
+}
+
+sub rpl_time {
+    my ($user, $ts) = @_;
+    my $time = POSIX::strftime('%A %B %d %Y %H:%M:%S %z (%Z)', localtime $ts);
+    return "$$me{name} :$time";
 }
 
 $mod

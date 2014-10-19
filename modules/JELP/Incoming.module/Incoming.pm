@@ -137,17 +137,21 @@ my %scommands = (
         code    => \&num
     },
     LINKS => {
-                   # :uid LINKS    target_serv serv_mask query_mask
-        params  => '-source(user)  server      any       any',
+                   # @for=sid        :uid    LINKS  serv_mask  query_mask
+        params  => '-tag.for(server) -source(user)  any        any',
         code    => \&links
     },
-    WHOIS => {     # :uid WHOIS   @for=server       target_user
-        params  => '-source(user) -tag.for(server)  user',
+    WHOIS => {     # @for=sid        :uid   WHOIS   target_user
+        params  => '-tag.for(server) -source(user)  user',
         code    => \&whois
     },
-    WHOIS => {     # :uid ADMIN   @for=server
-        params  => '-source(user) -tag.for(server)',
-        code    => \&whois
+    ADMIN => {     # @for=sid        :uid     ADMIN
+        params  => '-tag.for(server) -source(user)',
+        code    => \&admin
+    },
+    TIME => {      # @for=sid        :uid     TIME
+        params  => '-tag.for(server) -source(user)',
+        code    => \&_time
     }
 );
 
@@ -758,7 +762,7 @@ sub num {
 }
 
 sub links {
-    my ($server, $msg, $user, $t_server, $serv_mask, $query_mask) = @_;
+    my ($server, $msg, $t_server, $user, $serv_mask, $query_mask) = @_;
 
     # this is the server match.
     if ($t_server->is_local) {
@@ -774,7 +778,7 @@ sub links {
 }
 
 sub whois {
-    my ($server, $msg, $user, $t_server, $t_user) = @_;
+    my ($server, $msg, $t_server, $user, $t_user) = @_;
     
     # this message is for me.
     if ($t_server->is_local) {
@@ -788,7 +792,7 @@ sub whois {
 }
 
 sub admin {
-    my ($server, $msg, $user, $t_server) = @_;
+    my ($server, $msg, $t_server, $user) = @_;
     
     # this message is for me.
     if ($t_server->is_local) {
@@ -797,6 +801,20 @@ sub admin {
     
     # === Forward ===
     $msg->forward_to($t_server->{location}, admin => $user, $t_server);
+    
+    return 1;
+}
+
+sub _time {
+    my ($server, $msg, $t_server, $user) = @_;
+    
+    # this message is for me.
+    if ($t_server->is_local) {
+        return $user->handle_unsafe('TIME');
+    }
+    
+    # === Forward ===
+    $msg->forward_to($t_server->{location}, time => $user, $t_server);
     
     return 1;
 }

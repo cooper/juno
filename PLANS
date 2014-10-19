@@ -27,9 +27,12 @@ Configuration
 Modules
 ------------------------------------------------------------------------------------------
 
-    [*] SASL                    SASL account authentication
-                                works but currently only has PLAIN authentication
-                                
+    [~] SASL                    SASL account authentication
+
+        works but currently only has PLAIN authentication.
+        also need to implement in TS6/JELP remote SASL.
+        see "remote SASL" below.
+
     [ ] Channel::ModeSync       see "Mode synchronization" below
     
     [ ] Configuration::Fetch    fetch configuration values from HTTP or other sources
@@ -138,6 +141,12 @@ Mode synchronization
             :0 MODESYNC REP #k * :+AAntb admin:$r:vulpia op:$r:alyx github*!*@*
             
         All other servers should then send replies as well if applicable.
+
+Remote SASL
+
+    [ ] TS6 ENCAP SASL
+
+    [ ] JELP equivalent
             
 Server linkage
 
@@ -242,9 +251,9 @@ Unfinished or missing IRC functionality
 
         [ ] u - returns a string showing how long the server has been up.
 
-    [ ] TIME            Server time
+    [√] TIME            Server time
 
-    [ ] ADMIN           Server administrator
+    [√] ADMIN           Server administrator
 
     [ ] RPL_ISUPPORT    A lot of the information is just hard coded. Therefore it could be
                         wrong. In fact, some of it is wrong for sure. Plus it's hideous.
