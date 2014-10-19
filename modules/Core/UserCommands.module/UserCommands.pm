@@ -163,6 +163,11 @@ our %user_commands = (
         code   => \&nick,
         desc   => 'change your nickname',
         params => '*'
+    },
+    ADMIN => {
+        code   => \&admin,
+        desc   => 'server administrative information',
+        params => 'server_mask(opt)'
     }
 );
 
@@ -1233,6 +1238,29 @@ sub echo {
     my ($user, undef, $channel, $message) = @_;
     my $continue = $channel->handle_privmsgnotice(PRIVMSG => $user, $message);;
     $user->sendfrom($user->full, "PRIVMSG $$channel{name} :$message") if $continue;
+}
+
+sub admin {
+    my ($user, $event, $server) = @_;
+    
+    # this does not apply to me; forward it.
+    if ($server && $server != $me) {
+        $server->{location}->fire_command(admin => $user, $server);
+        return 1;
+    }
+    
+    # it's for me.
+    #
+    # note: the RFC says RPL_ADMINME should send <server> :<info>, but most IRCds
+    # (including charybdis) only send the <info> parameter with the server name in it.
+    # so we will too.
+    #
+    $user->numeric(RPL_ADMINME    => $me->name             );
+    $user->numeric(RPL_ADMINLOC1  => conf('admin', 'line1'));
+    $user->numeric(RPL_ADMINLOC2  => conf('admin', 'line2'));
+    $user->numeric(RPL_ADMINEMAIL => conf('admin', 'email'));
+    
+    return 1;
 }
 
 $mod

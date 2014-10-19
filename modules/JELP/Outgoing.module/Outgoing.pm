@@ -39,6 +39,7 @@ my %ocommands = (
     num             => \&num,
     links           => \&links,
     whois           => \&whois,
+    admin           => \&admin,
 
     # JELP-specific
     
@@ -75,10 +76,6 @@ sub init {
     
     return 1;
 }
-
-#############
-### BURST ###
-#############
 
 sub send_startburst {
     my ($server, $fire, $time) = @_;
@@ -149,10 +146,6 @@ sub send_endburst {
     shift->fire_command(endburst => $me, time);
 }
 
-###########
-# servers #
-###########
-
 # this can take a server object, user object, or connection object.
 sub quit {
     my ($to_server, $object, $reason) = @_;
@@ -197,11 +190,6 @@ sub topicburst {
     );
     ":$$me{sid} $cmd"
 }
-
-
-#########
-# users #
-#########
 
 # nick change
 sub nickchange {
@@ -278,10 +266,6 @@ sub whois {
     "\@for=$$wserver{sid} :$$wuser{uid} WHOIS $$quser{uid}"
 }
 
-########
-# both #
-########
-
 # channel mode change
 
 sub cmode {
@@ -299,10 +283,6 @@ sub skill {
     my ($id, $tid) = ($source->id, $tuser->id);
     ":$id KILL $tid :$reason"
 }
-
-####################
-# COMPACT commands #
-####################
 
 # channel user membership (channel burst)
 sub cum {
@@ -425,6 +405,11 @@ sub join_with_modes {
     }
     
     return (@joins, $cmode);
+}
+
+sub admin {
+    my ($to_server, $user, $t_server) = @_;
+    "\@for=$$t_server{sid} :$$user{uid} ADMIN"
 }
 
 $mod

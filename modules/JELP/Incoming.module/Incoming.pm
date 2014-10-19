@@ -141,12 +141,16 @@ my %scommands = (
         params  => '-source(user)  server      any       any',
         code    => \&links
     },
-    WHOIS => {     # :uid WHOIS   target_server     target_user
+    WHOIS => {     # :uid WHOIS   @for=server       target_user
         params  => '-source(user) -tag.for(server)  user',
+        code    => \&whois
+    },
+    WHOIS => {     # :uid ADMIN   @for=server
+        params  => '-source(user) -tag.for(server)',
         code    => \&whois
     }
 );
- 
+
 sub init {
     $mod->register_jelp_command(
         name       => $_,
@@ -779,6 +783,20 @@ sub whois {
     
     # === Forward ===
     $msg->forward_to($t_server->{location}, whois => $user, $t_user, $t_server);
+    
+    return 1;
+}
+
+sub admin {
+    my ($server, $msg, $user, $t_server) = @_;
+    
+    # this message is for me.
+    if ($t_server->is_local) {
+        return $user->handle_unsafe('ADMIN');
+    }
+    
+    # === Forward ===
+    $msg->forward_to($t_server->{location}, admin => $user, $t_server);
     
     return 1;
 }

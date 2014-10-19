@@ -150,7 +150,15 @@ sub lookup_server_mask {
     my ($pool, $mask) = @_;
     my @matches;
     foreach my $server (sort { $a->{name} cmp $b->{name} } $pool->servers) {
-        push @matches, $server if utils::irc_match($server->{name}, $mask);
+        next unless utils::irc_match($server->{name}, $mask);
+        
+        # if we are returning a single server and if
+        # the local server matches, return it.
+        return $server if !wantarray && $server->is_local;
+        
+        # otherwise, just add to the list.
+        push @matches, $server;
+        
     }
     return wantarray ? @matches : $matches[0];
 }

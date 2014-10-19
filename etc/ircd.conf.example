@@ -79,17 +79,6 @@
     sslport = [6697]                            # secure ports
 
 
-# Command aliases - requires Alias module
-
-[ aliases ]
-
-    ns = 'PRIVMSG NickServ $1-'
-    cs = 'PRIVMSG ChanServ $1-'
-    os = 'PRIVMSG OperServ $1-'
-    bs = 'PRIVMSG BotServ $1-'
-    gs = 'PRIVMSG GroupServ $1-'
-
-
 [ connect: server2.example.com ]
 
     # Address(es) to accept connection from.
@@ -155,6 +144,9 @@
     
         notices = ['all']
 
+
+# Require Alias module
+
 [ aliases ]
 
     nickserv  = 'PRIVMSG NickServ $1-'
@@ -169,3 +161,11 @@
     bs = 'PRIVMSG BotServ $1-'
     gs = 'PRIVMSG GroupServ $1-'
 
+
+# Administrator information
+
+[admin]
+
+    line1 = 'John Doe'
+    line2 = 'Server administrator'
+    email = 'admin@example.com'

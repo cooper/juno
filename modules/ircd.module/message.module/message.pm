@@ -379,13 +379,27 @@ sub _param_oper {
 sub _param_server {
     my ($msg, $param, $params, $opts) = @_;
     my $server = $pool->lookup_server_name($param);
-
+    
     # not found, send no such server.
     if (!$server) {
         $msg->source->numeric(ERR_NOSUCHSERVER => $param);
         return $PARAM_BAD;
     }
+    
+    push @$params, $server;
+}
 
+# server_mask: match a mask to a single server.
+sub _param_server_mask {
+    my ($msg, $param, $params, $opts) = @_;
+    my $server = $pool->lookup_server_mask($param);
+    
+    # not found, send no such server.
+    if (!$server) {
+        $msg->source->numeric(ERR_NOSUCHSERVER => $param);
+        return $PARAM_BAD;
+    }
+    
     push @$params, $server;
 }
 
