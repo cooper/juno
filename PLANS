@@ -214,7 +214,7 @@ Unfinished or missing IRC functionality
     
     [ ] WHOWAS          look up a disconnected user.
 
-    [ ] WHOIS           Lacks numeric 137 idle time.
+    [√] WHOIS           Lacks numeric 137 idle time.
 
     [√] Invite except   Exception mode (+I) exists, but it is not taken into account yet.
 
@@ -224,8 +224,27 @@ Unfinished or missing IRC functionality
                         There is currently no mechanism for anything to do that.
                         The only things that do that, such as +n, are hard coded. :(
 
-    [ ] LIST            Does not allow matching certain channels. +s and +p modes are not
+    [~] LIST            Does not allow matching certain channels. +s and +p modes are not
                         taken into account. At least I don't think so. Check Secret.pm.
+
+    [ ] TRACE           trace route
+
+    [ ] STATS           
+
+        [ ] l - returns a list of the server's connections, showing how long each
+                connection has been established and the traffic over that connection in
+                Kbytes and messages for each direction;
+
+        [ ] m - returns the usage count for each of commands supported by the server;
+                commands for which the usage count is zero MAY be omitted;
+
+        [ ] o - returns a list of configured privileged users, operators;
+
+        [ ] u - returns a string showing how long the server has been up.
+
+    [ ] TIME            Server time
+
+    [ ] ADMIN           Server administrator
 
     [ ] RPL_ISUPPORT    A lot of the information is just hard coded. Therefore it could be
                         wrong. In fact, some of it is wrong for sure. Plus it's hideous.
