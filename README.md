@@ -93,7 +93,7 @@ to be upgraded or reloaded without restarting it. With the help of the API engin
 modularity as a central principle, juno aims to do exactly that. With just one command,
 you can jump from version 10 to 25, all without your users disconnecting.
 
-![Upgradability](http://i.imgur.com/yOQXzTF.png)
+![Upgradability](http://i.imgur.com/LJiVAnX.png)
 
 * __Configurability__: Very few values are hard coded. Some have default values, but
 nearly everything is configurable. There's little reason to make limitations on what can
