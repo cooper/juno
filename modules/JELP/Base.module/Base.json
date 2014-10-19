@@ -1,15 +1,15 @@
 {
-   "version" : "13.13",
-   "name" : "JELP::Base",
    "depends" : {
       "modules" : [
          "API::Methods",
          "ircd::message"
       ]
    },
-   "package" : "M::JELP::Base",
    "author" : {
       "website" : "https://github.com/cooper",
       "name" : "Mitchell Cooper"
-   }
+   },
+   "name" : "JELP::Base",
+   "package" : "M::JELP::Base",
+   "version" : "13.23"
 }

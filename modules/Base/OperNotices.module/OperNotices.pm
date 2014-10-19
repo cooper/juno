@@ -23,10 +23,13 @@ sub init {
     $mod->register_module_method('register_oper_notice') or return;
     
     # module unload event.
-    $api->on('module.unload' => \&unload_module,
+    $api->on('module.unload' => \&unload_module, with_eo => 1);
+
+    # module events.
+    $api->on('module.init' => \&module_init,
         name    => '%oper_notices',
         with_eo => 1
-    ) or return;
+    );
     
     return 1;
 }

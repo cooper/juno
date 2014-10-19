@@ -2780,5 +2780,11 @@ CHANGES:
 
         63. WHOIS command now works remotely with the <server> parameter.
             this allowed for the addition of idle time in local queries, RPL_WHOISIDLE.
+
+        64. fixed a bug where notices in Core::OperNotices were not registered since 9.61.
+            added new message pseudoparameter type tag.* to access message tags.
+            any missing (undefined) tag will assume unsatisfied parameter requirements.
+            these parameter types can optionally take a type such as server, user, etc.
+            JELP WHOIS now uses a message tag for its target server.
             
             

@@ -30,7 +30,7 @@ sub init {
     $api->on('module.init' => \&module_init,
         name    => '%user_commands',
         with_eo => 1
-    ) or return;
+    );
         
     return 1;
 }

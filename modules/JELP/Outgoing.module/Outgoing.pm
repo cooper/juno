@@ -275,7 +275,7 @@ sub sconnect {
 # $wserver = target server
 sub whois {
     my ($to_server, $wuser, $quser, $wserver) = @_;
-    ":$$wuser{uid} WHOIS $$quser{uid} $$wserver{sid}"
+    "\@for=$$wserver{sid} :$$wuser{uid} WHOIS $$quser{uid}"
 }
 
 ########

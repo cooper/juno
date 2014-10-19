@@ -275,14 +275,14 @@ sub account       { my $act = shift->{account}; blessed $act ? $act : undef }
 
 # check for local user
 sub safe {
-    my $user = shift;
+    my $user = $_[0];
     if (!$user->is_local) {
         my $sub = (caller 1)[3];
         L("Attempted to call ->${sub}() on nonlocal user");
         return;
     }
     return unless $user->conn;
-    return ($user, @_);
+    return @_;
 }
 
 # handle incoming data.
@@ -318,7 +318,7 @@ sub _handle_with_opts        {
 
 # send data to a local user.
 sub send {
-    @_ = &safe or return;
+    &safe or return;
     my $user = shift;
     if (!$user->{conn}) {
         my $sub = (caller 1)[3];
@@ -397,7 +397,7 @@ sub numeric {
 
 # send welcomes
 sub new_connection {
-    @_ = &safe or return;
+    &safe or return;
     my $user = shift;
 
     # set modes.
@@ -528,8 +528,8 @@ sub get_invited_by {
 }
 
 # CAP shortcuts.
-sub has_cap    { @_ = &safe or return; shift->conn->has_cap(@_)    }
-sub add_cap    { @_ = &safe or return; shift->conn->add_cap(@_)    }
-sub remove_cap { @_ = &safe or return; shift->conn->remove_cap(@_) }
+sub has_cap    { &safe or return; shift->conn->has_cap(@_)    }
+sub add_cap    { &safe or return; shift->conn->add_cap(@_)    }
+sub remove_cap { &safe or return; shift->conn->remove_cap(@_) }
 
 $mod

@@ -141,8 +141,8 @@ my %scommands = (
         params  => '-source(user)  server      any       any',
         code    => \&links
     },
-    WHOIS => {     # :uid WHOIS   target_user target_server
-        params  => '-source(user) user        server',
+    WHOIS => {     # :uid WHOIS   target_server     target_user
+        params  => '-source(user) -tag.for(server)  user',
         code    => \&whois
     }
 );
@@ -770,7 +770,7 @@ sub links {
 }
 
 sub whois {
-    my ($server, $msg, $user, $t_user, $t_server) = @_;
+    my ($server, $msg, $user, $t_server, $t_user) = @_;
     
     # this message is for me.
     if ($t_server->is_local) {

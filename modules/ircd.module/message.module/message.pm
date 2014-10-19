@@ -297,6 +297,23 @@ sub parse_params {
             push @final, join ' ', @params[$param_i..$#params];
         }
         
+        # parameter as a certain type.
+        elsif ($type =~ m/^tag\.(\w+)$/) {
+            $param = $msg->tag($1);
+            return $PARAM_BAD if not defined $param;
+            my @parts = keys %{ $match_attr[$match_i] };
+            
+            # it has a type.
+            if (@parts) {
+                $type       = shift @parts;
+                $param_code = $package->can("_param_$type") ||
+                              __PACKAGE__->can("_any_$type");
+                my $res     = $param_code->($msg, $param, \@final, \@parts);
+                return $PARAM_BAD if $res && $res eq $PARAM_BAD;
+            }
+            
+        }
+        
         # code-implemented type.
         elsif ($param_code) {
             my $res = $param_code->($msg, $param, \@final, $match_attr[$match_i]);
