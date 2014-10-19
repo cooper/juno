@@ -19,7 +19,7 @@ our ($api, $mod, $me, $pool);
 
 my %ocommands = (
     quit            => \&quit,
-    new_server      => [ \&sid, \&aum, \&acm ],          # sid / aum / acm
+    new_server      => [ \&sid, \&aum, \&acm ],             # sid / aum / acm
     new_user        => \&uid,                               # uid
     nickchange      => \&nickchange,
     umode           => \&umode,
@@ -31,14 +31,15 @@ my %ocommands = (
     part            => \&part,
     topic           => \&topic,
     cmode           => \&cmode,
-    channel_burst   => [ \&cum, \&topicburst ],         # cum
+    channel_burst   => [ \&cum, \&topicburst ],             # cum
     join_with_modes => \&join_with_modes,
     kill            => \&skill,
     connect         => \&sconnect,
     kick            => \&kick,
     num             => \&num,
     links           => \&links,
-    
+    whois           => \&whois,
+
     # JELP-specific
     
     acm             => \&acm,
@@ -267,6 +268,14 @@ sub topic {
 sub sconnect {
     my ($to_server, $user, $server, $tname) = @_;
     ":$$user{uid} CONNECT $$server{name} $tname"
+}
+
+# $wuser   = whoiser
+# $quser   = target user
+# $wserver = target server
+sub whois {
+    my ($to_server, $wuser, $quser, $wserver) = @_;
+    ":$$wuser{uid} WHOIS $$quser{uid} $$wserver{sid}"
 }
 
 ########

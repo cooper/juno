@@ -45,7 +45,8 @@ our %ts6_outgoing_commands = (
    # connect        => \&sconnect,
    # kick           => \&kick,
    # num            => \&num,
-   # links          => \&links
+   # links          => \&links,
+   # whois          => \&whois
 );
 
 sub init {

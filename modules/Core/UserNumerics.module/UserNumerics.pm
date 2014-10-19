@@ -53,6 +53,7 @@ our %user_numerics = (
     RPL_WHOISSERVER      => [312, '%s %s :%s'                                                             ],
     RPL_WHOISOPERATOR    => [313, '%s :is an IRC operator'                                                ],
     RPL_ENDOFWHO         => [315, '%s :End of WHO list'                                                   ],
+    RPL_WHOISIDLE        => [317, '%s %d %d :seconds idle, signon time'                                   ],
     RPL_ENDOFWHOIS       => [318, '%s :End of WHOIS list'                                                 ],
     RPL_WHOISCHANNELS    => [319, '%s :%s'                                                                ],
     RPL_LISTSTART        => [321, 'Channel :Users  Name'                                                  ],

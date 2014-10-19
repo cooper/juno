@@ -642,6 +642,13 @@ sub add_whois_callbacks {
         return @$server{ qw(name desc ) };
     };
 
+    # seconds idle.
+    my $seconds_idle = sub {
+        my $user = shift;
+        my $idle = time - $user->{conn}{last_response};
+        return ($idle, $user->{time});
+    };
+    
     # too bad this is >90 width.
     my $p = 1000;
     foreach (
@@ -653,7 +660,7 @@ sub add_whois_callbacks {
     [ sub { length shift->{away}    }, 'RPL_AWAY',          sub { shift->{away}                     } ],
     [ sub { shift->mode_string      }, 'RPL_WHOISMODES',    sub { shift->mode_string                } ],
     [ undef,                           'RPL_WHOISHOST',     sub { @{+shift}{qw(host ip)}            } ],
-    [ sub { shift->is_local         }, 'RPL_WHOISIDLE',     sub { @{+shift}{qw(time last_response)} } ],
+    [ sub { shift->is_local         }, 'RPL_WHOISIDLE',     $seconds_idle                             ],
     [ undef,                           'RPL_ENDOFWHOIS'                                               ]) {
         my ($conditional_sub, $constant, $argument_sub) = @$_; $p -= 5;
         $pool->on('user.whois_query' => sub {
@@ -678,9 +685,10 @@ sub whois {
     # server parameter.
     my ($server, $quser, $query);
     if (length $args[1]) {
-        $server = lc $args[0] eq lc $args[1] ? $me : $pool->lookup_server_mask($args[0]);
         $query  = $args[1];
         $quser  = $pool->lookup_user_nick($query);
+        $server = lc $args[0] eq lc $args[1] ?
+            $quser->{server} : $pool->lookup_server_mask($args[0]);
     }
     
     # no server parameter.
@@ -701,11 +709,17 @@ sub whois {
         $user->numeric(ERR_NOSUCHNICK => $query);
         return;
     }
+    
+    # this does not apply to me; forward it.
+    # no reason to forward it if the target server isn't the user's server.
+    if ($server != $me && $server == $quser->{location}) {
+        $server->{location}->fire_command(whois => $user, $quser, $server);
+        return 1;
+    }
 
     # NOTE: these handlers must not assume $quser to be local.
     $user->fire(whois_query => $quser);
 
-    # TODO: 137 idle
     return 1;
 }
 

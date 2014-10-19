@@ -1,13 +1,13 @@
 {
-   "version" : "9.61",
-   "package" : "M::Core::UserNumerics",
    "author" : {
       "name" : "Mitchell Cooper",
       "website" : "https://github.com/cooper"
    },
-   "name" : "Core::UserNumerics",
-   "description" : "the core set of user numerics",
    "depends" : {
       "modules" : "Base::UserNumerics"
-   }
+   },
+   "name" : "Core::UserNumerics",
+   "package" : "M::Core::UserNumerics",
+   "description" : "the core set of user numerics",
+   "version" : "9.63"
 }

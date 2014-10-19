@@ -2777,5 +2777,8 @@ CHANGES:
 
         62. fixed a bug where PRIVMSG/NOTICE were sent out in lowercase to users.
             fixed a bug where the callback to register commands from %user_commands was overwritten.
+
+        63. WHOIS command now works remotely with the <server> parameter.
+            this allowed for the addition of idle time in local queries, RPL_WHOISIDLE.
             
             

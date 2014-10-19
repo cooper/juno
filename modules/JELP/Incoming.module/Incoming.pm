@@ -140,6 +140,10 @@ my %scommands = (
                    # :uid LINKS    target_serv serv_mask query_mask
         params  => '-source(user)  server      any       any',
         code    => \&links
+    },
+    WHOIS => {     # :uid WHOIS   target_user target_server
+        params  => '-source(user) user        server',
+        code    => \&whois
     }
 );
  
@@ -762,6 +766,20 @@ sub links {
         $user, $t_server, $serv_mask, $query_mask
     );
 
+    return 1;
+}
+
+sub whois {
+    my ($server, $msg, $user, $t_user, $t_server) = @_;
+    
+    # this message is for me.
+    if ($t_server->is_local) {
+        return $user->handle_unsafe("WHOIS $$t_user{nick}");
+    }
+    
+    # === Forward ===
+    $msg->forward_to($t_server->{location}, whois => $user, $t_user, $t_server);
+    
     return 1;
 }
 
