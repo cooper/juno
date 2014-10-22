@@ -1,13 +1,13 @@
 {
-   "name" : "TS6::Incoming",
+   "author" : {
+      "website" : "https://github.com/cooper",
+      "name" : "Mitchell Cooper"
+   },
    "package" : "M::TS6::Incoming",
+   "name" : "TS6::Incoming",
+   "description" : "basic set of TS6 command handlers",
+   "version" : "6.3",
    "depends" : {
       "modules" : "TS6::Base"
-   },
-   "description" : "basic set of TS6 command handlers",
-   "version" : "6.2",
-   "author" : {
-      "name" : "Mitchell Cooper",
-      "website" : "https://github.com/cooper"
    }
 }

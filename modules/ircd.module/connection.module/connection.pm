@@ -76,7 +76,7 @@ sub new {
 
 sub handle {
     my ($connection, $data) = @_;
-printf "GET(%s): %s\n", $connection->server ? 'server' : $connection->user ? 'user' : 'unregistered', $data;
+printf "GET(%s): %s\n", $connection->type ? $connection->type->name : 'unregistered', $data;
     # update ping information.
     $connection->{ping_in_air}   = 0;
     $connection->{last_response} = time;

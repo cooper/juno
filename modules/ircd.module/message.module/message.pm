@@ -467,10 +467,20 @@ sub forward_to {
     my ($msg, $target, $e_name, @args) = @_;
     blessed $target or return;
     my $amnt = 0;
-    
-    # directly to a server.
+
+    # directly to a server or its location.
     if ($target->isa('server')) {
-        $amnt++ if $target->fire_command($e_name => @args);
+        $target = $target->{conn} ? $target : $target->{location};
+        return 0 if $msg->{_physical_server} == $target;
+        $amnt++  if $target->fire_command($e_name => @args);
+        return $amnt;
+    }
+    
+    # to a user's server location.
+    if ($target->isa('user')) {
+        $target = $target->{location};
+        return 0 if $msg->{_physical_server} == $target;
+        $amnt++  if $target->fire_command($e_name => @args);
         return $amnt;
     }
     

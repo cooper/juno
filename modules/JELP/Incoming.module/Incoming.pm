@@ -348,7 +348,7 @@ sub privmsgnotice {
         # the user does not belong to us;
         # pass this on to its physical location.
         #
-        $msg->forward_to($tuser->{location}, privmsgnotice =>
+        $msg->forward_to($tuser, privmsgnotice =>
             $command, $source,
             $tuser,   $message
         );
@@ -770,7 +770,7 @@ sub links {
     }
     
     # === Forward ===
-    $msg->forward_to($t_server->{location}, links =>
+    $msg->forward_to($t_server, links =>
         $user, $t_server, $serv_mask, $query_mask
     );
 
@@ -786,7 +786,7 @@ sub whois {
     }
     
     # === Forward ===
-    $msg->forward_to($t_server->{location}, whois => $user, $t_user, $t_server);
+    $msg->forward_to($t_server, whois => $user, $t_user, $t_server);
     
     return 1;
 }
@@ -800,7 +800,7 @@ sub admin {
     }
     
     # === Forward ===
-    $msg->forward_to($t_server->{location}, admin => $user, $t_server);
+    $msg->forward_to($t_server, admin => $user, $t_server);
     
     return 1;
 }
@@ -814,7 +814,7 @@ sub _time {
     }
     
     # === Forward ===
-    $msg->forward_to($t_server->{location}, time => $user, $t_server);
+    $msg->forward_to($t_server, time => $user, $t_server);
     
     return 1;
 }

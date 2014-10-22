@@ -382,7 +382,7 @@ sub privmsgnotice {
         # the user does not belong to us;
         # pass this on to its physical location.
         #
-        $msg->forward_to($tuser->{location}, privmsgnotice =>
+        $msg->forward_to($tuser, privmsgnotice =>
             $command, $source,
             $tuser,   $message
         );
