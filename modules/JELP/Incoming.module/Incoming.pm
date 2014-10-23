@@ -750,14 +750,12 @@ sub num {
         $user->sendfrom($source->full, "$num $$user{nick} $message");
     }
     
+    # === Forward ===
     # forward to next hop.
     else {
-        $user->{location}->fire_command(num => $source, $user, $num, $message);
+        $msg->forward_to($user, num => $source, $user, $num, $message);
     }
-    
-    # === Forward ===
-    $msg->forward(num => $source, $user, $num, $message);
-    
+
     return 1;
 }
 

@@ -2797,4 +2797,6 @@ CHANGES:
         67. $msg->forward_to() is now much smarter and can take a user, channel, or server target.
             this will hopefully fix a flooding issue.
 
+        68. believe to have fixed a bug where responses to WHOIS, TIME, maybe others sent over and over.
+
             
