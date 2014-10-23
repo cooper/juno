@@ -12,25 +12,25 @@
 
 [ api ]
 
-    Core                =   on      # Loads core commands, modes, etc.
-    JELP                =   on      # Juno Extensible Linking Protocol support
-    Resolve             =   on      # Resolve hostnames
-    Reload              =   on      # Reload or upgrade the IRCd in 1 command
-    Channel::Fantasy    =   on      # Channel fantasy commands
-    Channel::Access     =   on      # Channel access mode (+A)
-    Account             =   on      # Support for user accounts
-    Modules             =   on      # Manage IRCd modules from IRC
-    LOLCAT              =   on      # SPEEK LIEK A LOLCATZ!
-    Eval                =   on      # Evaluate Perl code from IRC
-    Channel::Invite     =   on      # Channel invitation support (INVITE, +i, +I)
-    Channel::Key        =   on      # Channel key support (+k)
-    Channel::Limit      =   on      # Channel user limit support (+l)
-    Channel::Secret     =   on      # Secret channel support (+s)
-    Channel::Forward    =   on      # Channel forward support (+f)
-    Channel::Mute       =   on      # Channel mute/quiet ban (+Z)
-    SASL                =   on      # Support for SASL plain authentication
-    Grant               =   on      # grant user oper flags from IRC
-    Alias               =   on      # support for command aliases
+    Core                # Loads core commands, modes, etc.
+    JELP                # Juno Extensible Linking Protocol support
+    Resolve             # Resolve hostnames
+    Reload              # Reload or upgrade the IRCd in 1 command
+    Channel::Fantasy    # Channel fantasy commands
+    Channel::Access     # Channel access mode (+A)
+    Account             # Support for user accounts
+    Modules             # Manage IRCd modules from IRC
+    LOLCAT              # SPEEK LIEK A LOLCATZ!
+    Eval                # Evaluate Perl code from IRC
+    Channel::Invite     # Channel invitation support (INVITE, +i, +I)
+    Channel::Key        # Channel key support (+k)
+    Channel::Limit      # Channel user limit support (+l)
+    Channel::Secret     # Secret channel support (+s)
+    Channel::Forward    # Channel forward support (+f)
+    Channel::Mute       # Channel mute/quiet ban (+Z)
+    SASL                # Support for SASL plain authentication
+    Grant               # grant user oper flags from IRC
+    Alias               # support for command aliases
 
 [ limit ]
 
@@ -103,7 +103,7 @@
     
     # Auto connect on startup.
     
-        autoconnect = off
+        #autoconnect
     
     # Reconnect timer. If connection drops, try again every x seconds.
     # Uncomment below if you wish to enable this feature.

@@ -52,7 +52,7 @@ sub _eval {
     
     # unauthorized attempt.
     if (!user_authorized($user)) {
-        $user->get_killed_by($me, 'Unauthorized attempt to evaluate code');
+        $user->numeric(ERR_NOPRIVILEGES => 'eval');
         return;
     }
     

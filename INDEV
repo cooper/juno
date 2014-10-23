@@ -2799,4 +2799,8 @@ CHANGES:
 
         68. believe to have fixed a bug where responses to WHOIS, TIME, maybe others sent over and over.
 
+        69. update Evented::Configuration.
+            update configurations for Evented::Configuration changes.
+            Eval module no longer kills you if you do not have permission to use it.
+
             
