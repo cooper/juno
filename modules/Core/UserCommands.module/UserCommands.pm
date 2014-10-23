@@ -1272,7 +1272,7 @@ sub admin {
 # note: this handler is used also for remote users.
 sub _time {
     my ($user, $event, $server) = @_;
-    
+    print "local TIME: user($user) event($event) server($$server{name})" if $server;
     # this does not apply to me; forward it.
     if ($server && $server != $me) {
         $server->{location}->fire_command(time => $user, $server);
