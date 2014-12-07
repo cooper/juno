@@ -108,7 +108,7 @@ sub _establish_connection {
         family   => index($serv{address}, ':') != -1 ? 'inet6' : 'inet',
         socktype => 'stream',
         port     => $serv{port},
-        ip       => $serv{address}
+        ip       => $serv{address} # FIXME: 
     });
 
     # create a future to time out after 5 seconds.

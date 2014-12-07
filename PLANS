@@ -327,4 +327,7 @@ Bugs
         disconnect servers matching wildcards. therefore it is confusing since that only
         works sometimes.
 
+    [ ] Multiple addresses in a connect block only works when the connection is incoming.
+        Outgoing connections to servers with more than one address do not currently work.
+        server::linkage needs to alternate through them in the configured order.
 
