@@ -164,7 +164,7 @@
 
 # Administrator information
 
-[admin]
+[ admin ]
 
     line1 = 'John Doe'
     line2 = 'Server administrator'

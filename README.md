@@ -195,21 +195,21 @@ mesh server linking. It seemed that it would be easy to implement, so I forked j
 create juno-mesh. In addition to mesh linking, it introduced several new commands and a
 new permission system with a method by which additional statuses/prefixes can be added.
 
-* [__juno5__](https://github.com/cooper/kylie/tree/f0d3e8f31062faa894ae1d8db3c0796630b2ee42):
+* [__juno5__](https://github.com/cooper/agnie/tree/f0d3e8f31062faa894ae1d8db3c0796630b2ee42):
 It turned out that mesh linking required more code and effort than intended and introduced
 countless bugs that I didn't want to bother correcting. I knew that if I started from
 scratch again, it would never reach the completeness of the previous generation. Therefore,
 juno5 was born as yet another fork that removes the mesh capability while preserving the 
 other new features that were introduced in juno-mesh. 
 
-* [__kedler__](https://github.com/cooper/kylie/tree/4fec4b52841eaca3a43003df8f979ac098bb367d) (juno6): 
+* [__kedler__](https://github.com/cooper/agnie/tree/4fec4b52841eaca3a43003df8f979ac098bb367d) (juno6): 
 Named after a Haitian computer technician, kedler was a continuation of juno5. Its main goal was
 to implement the missing standard IRC functions that had never been implemented in the
 third juno generation. kedler reintroduced hostname resolving, a long-broken feature that
 had not worked properly since juno2. It also reintroduced channel access, this time in the
 form of a module. kedler featured new APIs and improvements to the linking protocol.
 
-* [__vulpia__](https://github.com/cooper/kylie/tree/001b766439ed8423e8eda1c41dd578c899cd7946) (juno7):
+* [__vulpia__](https://github.com/cooper/agnie/tree/001b766439ed8423e8eda1c41dd578c899cd7946) (juno7):
 Romanian for a female wolf, vulpia was named after the alias of a dear friend,
 [Ruin](https://soundcloud.com/ruuuuuuuuuuuuin). It included several improvements, making
 the IRCd more extensible than ever before. The
@@ -220,7 +220,7 @@ event that occurs within juno. vulpia completed the relocation of JELP
 in the future. Additionally, it established the Account module, allowing users to better
 manage accounts and channels.
 
-* [__kylie__](https://github.com/cooper/kylie/tree/4512ebcd3b526781662ca9f3588df285ed1290da) (juno8):
+* [__kylie__](https://github.com/cooper/agnie/tree/4512ebcd3b526781662ca9f3588df285ed1290da) (juno8):
 Named after the adored [Kyle](http://mac-mini.org) (mac-mini), kylie introduced several
 previously-missing core components including
 [ident](http://en.wikipedia.org/wiki/Ident_protocol) support and channel modes: limit,
@@ -257,21 +257,15 @@ curl -L http://cpanmin.us | perl - --sudo App::cpanminus
 Then, install these modules:
 
 ```bash
-cpanm --sudo IO::Async IO::Socket::IP Socket::GetAddrInfo JSON JSON::XS
-```
-
-If you want to use any module which requires database (such as Account), install this:
-
-```bash
-cpanm --sudo DBD::SQLite
+cpanm --sudo IO::Async IO::Socket::IP Socket::GetAddrInfo JSON JSON::XS DBD::SQLite
 ```
 
 After you've installed the appropriate Perl packages, clone the repository:
 
 ```bash
-git clone --recursive https://github.com/cooper/kylie.git
+git clone --recursive https://github.com/cooper/agnie.git
 # OR (whichever is available on your git)
-git clone --recurse-submodules https://github.com/cooper/kylie.git
+git clone --recurse-submodules https://github.com/cooper/agnie.git
 ```
 
 Now you need to configure it.
