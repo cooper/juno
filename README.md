@@ -258,7 +258,7 @@ Install the tools in a common building environment (a compiler, `make`, etc.) Be
 example on a Debian-based distribution. Also install a few Perl modules from the CPAN:
 
 ```bash
-sudpo apt-get install build-essential # or similar
+sudo apt-get install build-essential # or similar
 cpanm --sudo IO::Async IO::Socket::IP Socket::GetAddrInfo JSON JSON::XS DBD::SQLite
 ```
 
