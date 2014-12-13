@@ -254,9 +254,11 @@ To install `cpanm`, run the following command:
 curl -L http://cpanmin.us | perl - --sudo App::cpanminus
 ```
 
-Then, install these modules:
+Install the tools in a common building environment (a compiler, `make`, etc.) Below is an
+example on a Debian-based distribution. Also install a few Perl modules from the CPAN:
 
 ```bash
+sudpo apt-get install build-essential # or similar
 cpanm --sudo IO::Async IO::Socket::IP Socket::GetAddrInfo JSON JSON::XS DBD::SQLite
 ```
 
@@ -268,7 +270,14 @@ git clone --recursive https://github.com/cooper/agnie.git
 git clone --recurse-submodules https://github.com/cooper/agnie.git
 ```
 
-Now you need to configure it.
+If you wish to use SSL on the server, install `libssl` and the following Perl module:
+
+```bash
+sudo apt-get install libssl-dev
+cpanm --sudo IO::Async::SSL
+```
+
+You will need to run `./juno genssl` afterward.
 
 ## Configuration
 
