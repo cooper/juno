@@ -322,10 +322,9 @@ sub cum {
 
 # add cmodes
 sub acm {
-    my ($to_server, $serv, $modes) = (shift, shift, '');
+    my ($to_server, $serv, $modes, %prefixes) = (shift, shift, '', ());
     
     # grab and reorder prefixes.
-    %prefixes = ();
     foreach my $level (sort { $b <=> $a } keys %ircd::channel_mode_prefixes) {
         $prefixes{$ircd::channel_mode_prefixes{$level}[2]} =
             [ $ircd::channel_mode_prefixes{$level}[1], $level ];
