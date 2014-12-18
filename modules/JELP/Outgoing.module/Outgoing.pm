@@ -323,6 +323,13 @@ sub cum {
 # add cmodes
 sub acm {
     my ($to_server, $serv, $modes) = (shift, shift, '');
+    
+    # grab and reorder prefixes.
+    %prefixes = ();
+    foreach my $level (sort { $b <=> $a } keys %ircd::channel_mode_prefixes) {
+        $prefixes{$ircd::channel_mode_prefixes{$level}[2]} =
+            [ $ircd::channel_mode_prefixes{$level}[1], $level ];
+    }
 
     # iterate through each mode on the server.
     foreach my $name (keys %{ $serv->{cmodes} }) {
@@ -332,7 +339,15 @@ sub acm {
         next if !defined $letter || !defined $type;
         
         # it's not. append it to the mode list.
-        $modes .= " $name:$letter:$type";
+        if ($type != 4) {
+            # act normally for non-status type modes.
+            $modes .= " $name:$letter:$type";
+        }
+        else {
+            # for status modes, send prefix and weight as well.
+            my ($prefix, $weight) = ($prefixes{$name}[0], $prefixes{$name}[1]);
+            $modes .= " $name:$letter:$type:$prefix:$weight";
+        }
 
     }
     
