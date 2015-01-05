@@ -17,7 +17,7 @@ use strict;
 use utf8;
 
 use Scalar::Util 'blessed';
-use utils 'trim';
+use utils qw(trim col);
 
 our ($api, $mod, $pool, $me);
 our $TRUE      = '__TAG_TRUE__';
@@ -44,6 +44,10 @@ sub parse {
     my ($word_i, $word, $last_word, @params) = 0;
     WORD: while (defined($word = shift @words)) {
         my $f_char_ref = \substr($word, 0, 1);
+        
+        # this is for :rest.
+        # TODO: I would like to do this without splitting again...
+        $msg->{_rest}[$word_i] = col((split /\s+/, $msg->data, $word_i + 1)[$word_i]);
         
         # first word could be message tags.
         if (!$got_source && !$got_tags && $word_i == 0 && $$f_char_ref eq '@') {
@@ -91,9 +95,8 @@ sub parse {
         }
         
         # sentinel-prefixed final parameter.
-        # TODO: I would like to do this without splitting again...
         if ($$f_char_ref eq ':') {
-            push @params, substr((split /\s+/, $msg->data, $word_i + 1)[$word_i], 1);
+            push @params, $msg->{_rest}[$word_i];
             last WORD;
         }
         
@@ -294,7 +297,7 @@ sub parse_params {
         
         # rest of arguments, space-separated.
         elsif ($type eq ':rest') {
-            push @final, join ' ', @params[$param_i..$#params];
+            push @final, $msg->{_rest}[ $param_i + 1 ];
         }
         
         # parameter as a certain type.

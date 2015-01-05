@@ -2803,4 +2803,8 @@ CHANGES:
             update configurations for Evented::Configuration changes.
             Eval module no longer kills you if you do not have permission to use it.
 
+    7. created Channel::TopicAdditions which adds topicprepend and topicappend commands.
+       added several convenience functions to eval module.
+       improved ':rest' parameter matcher to consider all whitespace.
+       delete lingering connection_future on all local connection objects.
             

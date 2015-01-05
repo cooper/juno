@@ -15,6 +15,7 @@
 		A75C5D0E18B4321A007780A3 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
 		A75C5D1B18B4321A007780A3 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		A75C5D1D18B4321A007780A3 /* rfc-2812 */ = {isa = PBXFileReference; lastKnownFileType = text; name = "rfc-2812"; path = "../rfc-2812"; sourceTree = "<group>"; };
+		BC0CA6F01A5399E2000ABAE6 /* TopicAdditions.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = TopicAdditions.pm; path = TopicAdditions.module/TopicAdditions.pm; sourceTree = "<group>"; };
 		BC131F361994444500B8071A /* UnsafeEval.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = UnsafeEval.pm; path = UnsafeEval.module/UnsafeEval.pm; sourceTree = "<group>"; };
 		BC131F371994445500B8071A /* Eval.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Eval.pm; path = Eval.module/Eval.pm; sourceTree = "<group>"; };
 		BC131F38199560D300B8071A /* Grant.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Grant.pm; path = Grant.module/Grant.pm; sourceTree = "<group>"; };
@@ -254,6 +255,7 @@
 				BC131F391995C25200B8071A /* ModeSync.pm */,
 				BC8BAD3A19EF007E00216958 /* Forward.pm */,
 				BC6A7BB019F0623D0061CD59 /* Mute.pm */,
+				BC0CA6F01A5399E2000ABAE6 /* TopicAdditions.pm */,
 			);
 			path = Channel;
 			sourceTree = "<group>";

@@ -1,12 +1,12 @@
 {
-   "name" : "ircd::server::linkage",
-   "version" : "9.43",
-   "preserve_sym" : 1,
    "description" : "manages server connections",
    "no_bless" : 1,
-   "package" : "server::linkage",
+   "name" : "ircd::server::linkage",
    "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
-   }
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
+   "package" : "server::linkage",
+   "version" : "9.7",
+   "preserve_sym" : 1
 }

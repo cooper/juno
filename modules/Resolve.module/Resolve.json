@@ -1,10 +1,10 @@
 {
+   "description" : "resolve hostnames",
+   "version" : "4.2",
    "package" : "M::Resolve",
    "author" : {
       "website" : "https://github.com/cooper",
       "name" : "Mitchell Cooper"
    },
-   "description" : "resolve hostnames",
-   "version" : "4",
    "name" : "Resolve"
 }

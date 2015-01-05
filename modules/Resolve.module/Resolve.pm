@@ -94,6 +94,7 @@ sub on_got_host2 {
         $connection->early_reply(NOTICE => ':*** Found your hostname');
         $connection->{host} = safe_ip(delete $connection->{temp_host});
         $connection->reg_continue('resolve');
+        delete $connection->{resolve_future};
         return 1;
     }
     

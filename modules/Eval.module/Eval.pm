@@ -107,4 +107,14 @@ sub user_authorized {
     return $allowed{ lc $user->{oper} };
 }
 
+#############################
+### convenience functions ###
+#############################
+
+use utils qw(conf ref_to_list);
+
+sub user { $pool->lookup_user(@_)    || $pool->lookup_user_nick (@_)   }
+sub serv { $pool->lookup_server(@_)  || $pool->lookup_server_name (@_) }
+sub chan { $pool->lookup_channel(@_) }
+
 $mod
