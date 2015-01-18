@@ -74,8 +74,10 @@ sub parse {
             
             # got the tags.
             ($got_tags, $msg->{tags}) = (1, \%tags);
-            $word_n--;
-            next WORD;
+
+            # don't increment the word_n, then redo.
+            $word_i++;
+            redo;
             
         }
         
