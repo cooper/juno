@@ -2807,4 +2807,6 @@ CHANGES:
        added several convenience functions to eval module.
        improved ':rest' parameter matcher to consider all whitespace.
        delete lingering connection_future on all local connection objects.
+
+        71. this should fix an issue with sentinel-prefixed parameters within messages with IRCv3 message tags.
             

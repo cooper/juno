@@ -89,7 +89,7 @@
 		A75C5CC518B43206007780A3 = {
 			isa = PBXGroup;
 			children = (
-				BC9564F01944E032002F52B9 /* modules */,
+				BC9564F01944E032002F52B9 /* Modules */,
 				A75C5CCC18B43219007780A3 /* Executables */,
 				A75C5CD118B43219007780A3 /* Configuration */,
 				A75C5D1F18B43242007780A3 /* Documentation */,
@@ -146,7 +146,7 @@
 			name = TS6;
 			sourceTree = "<group>";
 		};
-		BC9564F01944E032002F52B9 /* modules */ = {
+		BC9564F01944E032002F52B9 /* Modules */ = {
 			isa = PBXGroup;
 			children = (
 				BC9565351944E032002F52B9 /* ircd */,
@@ -169,7 +169,7 @@
 				BC131F38199560D300B8071A /* Grant.pm */,
 				BCB05A7B199FD4BF00AB6FEE /* Alias.pm */,
 			);
-			name = modules;
+			name = Modules;
 			path = ../modules;
 			sourceTree = "<group>";
 		};

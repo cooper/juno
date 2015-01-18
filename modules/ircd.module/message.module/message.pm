@@ -40,14 +40,17 @@ sub parse {
     return unless length $msg->data;
     my @words = split /\s+/, $msg->data;
     
+    # $word_i = current word, including message tags
+    # $word_n = current word, exluding message tags
+    #
     my ($got_tags, $got_source, $got_command);
-    my ($word_i, $word, $last_word, @params) = 0;
+    my ($word_i, $word_n, $word, $last_word, @params) = (0, 0);
     WORD: while (defined($word = shift @words)) {
         my $f_char_ref = \substr($word, 0, 1);
         
         # this is for :rest.
         # TODO: I would like to do this without splitting again...
-        $msg->{_rest}[$word_i] = col((split /\s+/, $msg->data, $word_i + 1)[$word_i]);
+        $msg->{_rest}[$word_n] = col((split /\s+/, $msg->data, $word_n + 1)[$word_n]);
         
         # first word could be message tags.
         if (!$got_source && !$got_tags && $word_i == 0 && $$f_char_ref eq '@') {
@@ -71,6 +74,7 @@ sub parse {
             
             # got the tags.
             ($got_tags, $msg->{tags}) = (1, \%tags);
+            $word_n--;
             next WORD;
             
         }
@@ -96,7 +100,7 @@ sub parse {
         
         # sentinel-prefixed final parameter.
         if ($$f_char_ref eq ':') {
-            push @params, $msg->{_rest}[$word_i];
+            push @params, $msg->{_rest}[$word_n];
             last WORD;
         }
         
@@ -106,6 +110,7 @@ sub parse {
     }
     continue {
         $word_i++;
+        $word_n++;
         $last_word = $word;
     }
     
