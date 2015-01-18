@@ -50,7 +50,7 @@ sub parse {
         
         # this is for :rest.
         # TODO: I would like to do this without splitting again...
-        $msg->{_rest}[$word_n] = col((split /\s+/, $msg->data, $word_n)[$word_n]);
+        $msg->{_rest}[$word_n] = col((split /\s+/, $msg->data, $word_n + 1)[$word_n]);
         
         # first word could be message tags.
         if (!$got_source && !$got_tags && $word_i == 0 && $$f_char_ref eq '@') {
@@ -302,7 +302,7 @@ sub parse_params {
         
         # rest of arguments, space-separated.
         elsif ($type eq ':rest') {
-            push @final, $msg->{_rest}[ $param_i + 1 ];
+            push @final, $msg->{_rest}[$param_i];
         }
         
         # parameter as a certain type.

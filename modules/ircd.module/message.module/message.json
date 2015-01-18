@@ -1,9 +1,9 @@
 {
-   "version" : "9.71",
    "description" : "represents an IRC message",
+   "version" : "9.71",
    "preserve_sym" : 1,
-   "name" : "ircd::message",
    "no_bless" : 1,
+   "name" : "ircd::message",
    "author" : {
       "name" : "Mitchell Cooper",
       "website" : "https://github.com/cooper"
