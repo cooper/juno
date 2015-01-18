@@ -50,7 +50,7 @@ sub parse {
         
         # this is for :rest.
         # TODO: I would like to do this without splitting again...
-        $msg->{_rest}[$word_n] = col((split /\s+/, $msg->data, $word_n + 1)[$word_n]);
+        $msg->{_rest}[$word_n] = col((split /\s+/, $msg->data, $word_n + 1)[$word_n + 1]);
         
         # first word could be message tags.
         if (!$got_source && !$got_tags && $word_i == 0 && $$f_char_ref eq '@') {
