@@ -40,18 +40,13 @@ sub parse {
     return unless length $msg->data;
     my @words = split /\s+/, $msg->data;
     
-    # $word_i = current word, including message tags
-    # $word_n = current word, exluding message tags
+    # $word_i = current word, including message tags and command
+    # $word_n = current word, exluding  message tags and command
     #
     my ($got_tags, $got_source, $got_command);
-    my ($word_i, $word_n, $word, $last_word, $redo, @params) = (0, 0);
+    my ($word_i, $word_n, $word, $last_word, $redo, @params) = (0, -1);
     WORD: while (defined($word = shift @words)) {
         my $f_char_ref = \substr($word, 0, 1);
-        
-        # this is for :rest.
-        # TODO: I would like to do this without splitting again...
-        $msg->{_rest}[$word_n] = col((split /\s+/, $msg->data, $word_i + 1)[$word_i]);
-        print "set rest[$word_n] to $msg->{_rest}[$word_n]\n";
         
         # first word could be message tags.
         if (!$got_source && !$got_tags && $word_i == 0 && $$f_char_ref eq '@') {
@@ -76,12 +71,16 @@ sub parse {
             # got the tags.
             ($got_tags, $msg->{tags}) = (1, \%tags);
 
-            # don't increment the word_n, then redo.
+            # don't increment the word_n.
             $word_n--;
-            $redo = 1;
             next;
             
         }
+        
+        # this is for :rest.
+        # TODO: I would like to do this without splitting again...
+        $msg->{_rest}[$word_n] = col((split /\s+/, $msg->data, $word_i + 1)[$word_i])
+            if $word_n >= 0;
         
         # could be the source if we haven't gotten it.
         if (!$got_command && !$got_source && $$f_char_ref eq ':') {
@@ -116,7 +115,6 @@ sub parse {
         $word_i++;
         $word_n++;
         $last_word = $word;
-        undef $redo and redo if $redo;
     }
     
     $msg->{params} = \@params;
@@ -308,7 +306,6 @@ sub parse_params {
         # rest of arguments, space-separated.
         elsif ($type eq ':rest') {
             push @final, $msg->{_rest}[$param_i];
-            print ":rest = $msg->{_rest}[$param_i] (\$param_i = $param_i)\n";
         }
         
         # parameter as a certain type.

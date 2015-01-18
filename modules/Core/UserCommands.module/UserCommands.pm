@@ -138,12 +138,12 @@ our %user_commands = (
     PRIVMSG => {
         code   => \&privmsgnotice,
         desc   => 'send a message to a user or channel',
-        params => '-message -command * *'
+        params => '-message -command * :rest'
     },
     NOTICE => {
         code   => \&privmsgnotice,
         desc   => 'send a notice to a user or channel',
-        params => '-message -command * *'
+        params => '-message -command * :rest'
     },
     MODE => {
         code   => \&mode,
