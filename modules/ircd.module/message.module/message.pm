@@ -40,11 +40,11 @@ sub parse {
     return unless length $msg->data;
     my @words = split /\s+/, $msg->data;
     
-    # $word_i = current word, including message tags and command
-    # $word_n = current word, exluding  message tags and command
+    # $word_i = current word
+    # $word_n = current word, exluding tags, source, command
     #
     my ($got_tags, $got_source, $got_command);
-    my ($word_i, $word_n, $word, $last_word, $redo, @params) = (0, -1);
+    my ($word_i, $word_n, $word, $last_word, $redo, @params) = (0, 0);
     WORD: while (defined($word = shift @words)) {
         my $f_char_ref = \substr($word, 0, 1);
         
@@ -68,38 +68,30 @@ sub parse {
                 
             }
             
-            # got the tags.
             ($got_tags, $msg->{tags}) = (1, \%tags);
-
-            # don't increment the word_n.
             $word_n--;
-            next;
-            
+            next WORD;
+        }
+        
+        # could be the source if we haven't gotten it.
+        if (!$got_command && !$got_source && $$f_char_ref eq ':') {
+            $$f_char_ref = '';
+            ($got_source, $msg->{source}) = (1, $word);
+            $word_n--;
+            next WORD;
+        }
+        
+        # otherwise, this is the command if we haven't determined it.
+        if (!$got_command) {
+            ($got_command, $msg->{command}) = (1, $word);
+            $word_n--;
+            next WORD;
         }
         
         # this is for :rest.
         # TODO: I would like to do this without splitting again...
         $msg->{_rest}[$word_n] = col((split /\s+/, $msg->data, $word_i + 1)[$word_i])
             if $word_n >= 0;
-        
-        # could be the source if we haven't gotten it.
-        if (!$got_command && !$got_source && $$f_char_ref eq ':') {
-            $$f_char_ref = '';
-            
-            # got the source.
-            ($got_source, $msg->{source}) = (1, $word);
-            next WORD;
-            
-        }
-        
-        # otherwise, this is the command if we haven't determined it.
-        if (!$got_command) {
-        
-            # got the command.
-            ($got_command, $msg->{command}) = (1, $word);
-            next WORD;
-            
-        }
         
         # sentinel-prefixed final parameter.
         if ($$f_char_ref eq ':') {
