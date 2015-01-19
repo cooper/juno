@@ -795,7 +795,6 @@ sub user_match {
     return $e->{matched};
 }
 
-
 ####################
 ### CAPABILITIES ###
 ####################

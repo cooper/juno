@@ -655,7 +655,7 @@ sub add_whois_callbacks {
     # seconds idle.
     my $seconds_idle = sub {
         my $user = shift;
-        my $idle = time - $user->{conn}{last_response};
+        my $idle = time - ($user->{conn}{last_command} || 0);
         return ($idle, $user->{time});
     };
     

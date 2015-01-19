@@ -2809,4 +2809,6 @@ CHANGES:
        delete lingering connection_future on all local connection objects.
 
         71. this should fix an issue with sentinel-prefixed parameters within messages with IRCv3 message tags.
+
+        72. fixed long-broken idle time.
             
