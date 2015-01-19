@@ -402,6 +402,12 @@ sub misc_upgrades {
         $server->{link_type} //= 'jelp';
     }
     
+    # local users
+    foreach my $user ($pool->local_users) {
+        next unless $user->{conn};
+        $user->{conn}{last_command} ||= time;
+    }
+    
 }
 
 ##########################

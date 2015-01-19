@@ -113,7 +113,7 @@ printf "GET(%s): %s\n", $connection->type ? $connection->type->name : 'unregiste
     # user events.
     if (my $user = $connection->user) {
         push @events, $user->events_for_message($msg);
-        $connection->{last_command} = time unless $cmd eq 'PING';
+        $connection->{last_command} = time unless $cmd eq 'PING' || $cmd eq 'PONG';
     }
     
     # if it's a server, add the $PROTO_message events.
