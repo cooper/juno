@@ -31,7 +31,9 @@ EOF
 runningq() {
     if [ -e "$DIR/etc/juno.pid" ]; then
         PID=`cat $DIR/etc/juno.pid`
-        RUNNING=true
+        if kill -0 $PID; then
+            RUNNING=true
+        fi
     fi
 }
 
