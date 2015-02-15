@@ -20,10 +20,8 @@ use strict;
 use 5.010;
 
 our ($api, $mod, $pool);
-my $ban_m;
 
 sub init {
-    $ban_m = $api->get_module('Ban') or return;
     $mod->register_ban_type(
         name       => 'kline',          # ban type
         add_cmd    => 'kline',          # add command
@@ -53,7 +51,9 @@ sub _match {
 
 sub user_matches {
     my ($user, $ban) = @_;
-    return utils::irc_match($user->{ident}.'@'.$user->{host}, $ban->{match});
+    return 1 if utils::irc_match($user->{ident}.'@'.$user->{host}, $ban->{match});
+    return 1 if utils::irc_match($user->{ident}.'@'.$user->{ip},   $ban->{match});
+    return;
 }
 
 $mod

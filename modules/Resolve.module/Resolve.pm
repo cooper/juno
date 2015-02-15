@@ -17,7 +17,10 @@ use utils 'safe_ip';
 our ($api, $mod, $me, $pool);
 
 sub init {
-    $pool->on('connection.new' => \&connection_new, with_eo => 1) or return;
+    $pool->on('connection.new' => \&connection_new,
+        with_eo => 1,
+        name    => 'resolve.hostname'
+    ) or return;
     return 1;
 }
 

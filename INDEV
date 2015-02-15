@@ -2829,4 +2829,9 @@ CHANGES:
 
         78. implement ban expiration.
 
+        79. deactivate ban timers on ban deletion.
+
+    8. added Dline module.
+        updated Ident and Resolve modules such that the dline check will come first, the hostname lookup initiation will follow, and the ident check will start last.
+
             

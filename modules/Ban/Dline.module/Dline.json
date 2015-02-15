@@ -1,0 +1,13 @@
+{
+   "depends" : {
+      "modules" : "Ban"
+   },
+   "version" : "0.2",
+   "description" : "ban users from server by hostmask",
+   "package" : "M::Ban::Dline",
+   "author" : {
+      "website" : "https://github.com/cooper",
+      "name" : "Mitchell Cooper"
+   },
+   "name" : "Ban::Dline"
+}

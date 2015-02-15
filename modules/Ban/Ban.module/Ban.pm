@@ -407,23 +407,46 @@ sub ucmd_bans {
 
 sub add_enforcement_events {
     
-    # user connected
+    # new connection
+    $pool->on('connection.new' => sub {
+        my $conn = shift;
+        print "enforcing bans on $conn\n";
+        enforce_all_on_conn($conn);
+    },
+        name    => 'ban.enforce.conn',
+        with_eo => 1,
+        after   => [ 'resolve.hostname', 'check.ident' ]
+    );
+    
+    # new local user
     $pool->on('connection.user_ready' => sub {
         my ($event, $user) = @_;
         enforce_all_on_user($user);
-    }, 'ban.enforce.user');
+    }, name => 'ban.enforce.user');
     
 }
 
 # Enforce all bans on a single entity
 # -----
 
+# enforce ball bans on a user
 sub enforce_all_on_user {
     my $user = shift;
     foreach my $ban (get_all_bans()) {
         my $type = $ban_types{ $ban->{type} };
         next unless $type->{class} eq 'user';
         return 1 if enforce_ban_on_user($ban, $user);
+    }
+    return;
+}
+
+# enforce all bans on a connection
+sub enforce_all_on_conn {
+    my $conn = shift;
+    foreach my $ban (get_all_bans()) {
+        my $type = $ban_types{ $ban->{type} };
+        next unless $type->{class} eq 'conn';
+        return 1 if enforce_ban_on_conn($ban, $conn);
     }
     return;
 }
@@ -437,10 +460,40 @@ sub enforce_ban {
     
     # user ban
     if ($type->{class} eq 'user') { return enforce_ban_on_users(%ban) }
+    if ($type->{class} eq 'conn') { return enforce_ban_on_conns(%ban) }
     
     return;
 }
 
+# enforce a ban on all connections
+sub enforce_ban_on_conns {
+    my %ban = @_;
+    my $type = $ban_types{ $ban{type} } or return;
+    my @affected;
+
+    foreach my $conn ($pool->connections) {
+        my $affected = enforce_ban_on_conn(\%ban, $conn);
+        push @affected, $conn if $affected;
+    }
+    
+    return @affected;
+}
+
+# enforce a ban on a single connection
+sub enforce_ban_on_conn {
+    my ($ban, $conn) = @_;
+    my $type = $ban_types{ $ban->{type} } or return;
+    return unless $type->{conn_code}->($conn, $ban);
+    
+    # like "Banned" or "Banned: because"
+    my $reason = $type->{reason};
+    $reason .= ": $$ban{reason}" if length $ban->{reason};
+    
+    $conn->done($reason);
+    return 1;
+}
+
+# enforce a ban on all local users
 sub enforce_ban_on_users {
     my %ban = @_;
     my $type = $ban_types{ $ban{type} } or return;
@@ -454,6 +507,7 @@ sub enforce_ban_on_users {
     return @affected;
 }
 
+# enforce a ban on a single user
 sub enforce_ban_on_user {
     my ($ban, $user) = @_;
     my $type = $ban_types{ $ban->{type} } or return;
@@ -463,6 +517,7 @@ sub enforce_ban_on_user {
     my $reason = $type->{reason};
     $reason .= ": $$ban{reason}" if length $ban->{reason};
     
+    return unless $user->conn;
     $user->conn->done($reason);
     return 1;
 }

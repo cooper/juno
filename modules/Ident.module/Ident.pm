@@ -18,7 +18,11 @@ use utils qw(trim);
 our ($api, $mod, $me, $pool);
 
 sub init {
-    $pool->on('connection.new'        => \&connection_new,    with_eo => 1) or return;
+    $pool->on('connection.new'        => \&connection_new,
+        name    => 'check.ident',
+        after   => 'resolve.hostname',
+        with_eo => 1
+    ) or return;
     $pool->on('connection.reg_user'   => \&connection_user,   with_eo => 1) or return;
     $pool->on('connection.reg_server' => \&connection_server, with_eo => 1) or return;
     return 1;

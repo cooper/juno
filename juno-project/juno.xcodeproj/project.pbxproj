@@ -29,6 +29,7 @@
 		BC131F4119971A8B00B8071A /* Registration.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Registration.pm; path = TS6/Registration.module/Registration.pm; sourceTree = "<group>"; };
 		BC174752194A36F0005C2D83 /* doc */ = {isa = PBXFileReference; lastKnownFileType = folder; name = doc; path = ../doc; sourceTree = "<group>"; };
 		BC515539195C7E1D00110EBE /* PLANS */ = {isa = PBXFileReference; lastKnownFileType = text; name = PLANS; path = ../PLANS; sourceTree = "<group>"; };
+		BC663D571A9118BE004C5ADE /* Dline.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Dline.pm; path = Dline.module/Dline.pm; sourceTree = "<group>"; };
 		BC6A7BB019F0623D0061CD59 /* Mute.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Mute.pm; path = Mute.module/Mute.pm; sourceTree = "<group>"; };
 		BC7068FE196642E600A2915D /* message.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = message.pm; path = message.module/message.pm; sourceTree = "<group>"; };
 		BC7B16941A900AFB00228EF1 /* Kline.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Kline.pm; path = Kline.module/Kline.pm; sourceTree = "<group>"; };
@@ -153,6 +154,7 @@
 			children = (
 				BC7B16961A9017D000228EF1 /* Ban.pm */,
 				BC7B16941A900AFB00228EF1 /* Kline.pm */,
+				BC663D571A9118BE004C5ADE /* Dline.pm */,
 			);
 			path = Ban;
 			sourceTree = "<group>";
