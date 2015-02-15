@@ -1,9 +1,8 @@
 {
    "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
    },
-   "name" : "Ban",
    "depends" : {
       "modules" : [
          "JELP::Base",
@@ -12,6 +11,7 @@
       ]
    },
    "description" : "provides an interface for user and server banning",
-   "package" : "M::Ban",
-   "version" : "7"
+   "version" : "7.1",
+   "name" : "Ban",
+   "package" : "M::Ban"
 }
