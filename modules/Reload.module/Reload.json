@@ -7,11 +7,11 @@
       ]
    },
    "description" : "reload the entire IRCd in one command",
+   "version" : "4.8",
    "package" : "M::Reload",
-   "name" : "Reload",
-   "version" : "4.7",
    "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
-   }
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
+   "name" : "Reload"
 }
