@@ -156,7 +156,6 @@ sub expire_ban {
     
     # remove from database
     delete_ban_by_id($ban{id});
-    $pool->fire_command_all(bandel => $ban{id});
 
     notice("$ban{type}_expire" => $ban{match});
 }
