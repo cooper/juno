@@ -1,7 +1,9 @@
 {
+   "name" : "Ban",
+   "description" : "provides an interface for user and server banning",
    "author" : {
-      "name" : "Mitchell Cooper",
-      "website" : "https://github.com/cooper"
+      "website" : "https://github.com/cooper",
+      "name" : "Mitchell Cooper"
    },
    "depends" : {
       "modules" : [
@@ -10,8 +12,6 @@
          "Base::OperNotices"
       ]
    },
-   "description" : "provides an interface for user and server banning",
-   "version" : "7.1",
-   "name" : "Ban",
+   "version" : "7.2",
    "package" : "M::Ban"
 }

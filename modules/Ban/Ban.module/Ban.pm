@@ -121,6 +121,7 @@ sub init {
 ### TIMERS ###
 ##############
 
+# activate a ban timer
 sub activate_ban {
     my %ban = @_;
     
@@ -144,6 +145,9 @@ sub activate_ban {
     
 }
 
+# deactivate a ban timer
+# this is also called when a ban is deleted
+# but with deleted => 1
 sub expire_ban {
     my %ban = @_;
     
@@ -157,7 +161,7 @@ sub expire_ban {
     # remove from database
     delete_ban_by_id($ban{id});
 
-    notice("$ban{type}_expire" => $ban{match});
+    notice("$ban{type}_expire" => $ban{match}) unless $ban{deleted};
 }
 
 ################
@@ -360,6 +364,7 @@ sub handle_del_command {
     
     # delete it
     delete_ban_by_id($ban{id});
+    expire_ban(%ban, deleted => 1);
     $pool->fire_command_all(bandel => $ban{id});
 
     # notices
@@ -574,16 +579,24 @@ sub scmd_ban {
 }
 
 # BANINFO: share ban data
+# :sid BANINFO key value key value :reason
 sub scmd_baninfo {
     my ($server, $msg, @parts) = @_;
+    
+    # must be divisible by two.
     my $reason = pop @parts;
     return if @parts % 2;
     my %ban = @parts;
     $ban{reason} = $reason;
+    
+    # we need an ID at the very least
     return unless defined $ban{id};
+    
+    # update, enforce, and activate
     add_or_update_ban(%ban);
     enforce_ban(%ban);
     activate_ban(%ban);
+    
 }
 
 # BANIDK: request ban data
