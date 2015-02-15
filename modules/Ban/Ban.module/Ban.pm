@@ -156,7 +156,7 @@ sub expire_ban {
     
     # remove from database
     delete_ban_by_id($ban{id});
-    $pool->fire_command_all(bandel => $id);
+    $pool->fire_command_all(bandel => $ban{id});
 
     notice("$ban{type}_expire" => $ban{match});
 }
@@ -361,7 +361,7 @@ sub handle_del_command {
     
     # delete it
     delete_ban_by_id($ban{id});
-    $pool->fire_command_all(bandel => $id);
+    $pool->fire_command_all(bandel => $ban{id});
 
     # notices
     my $notice = notice("${type_name}_delete" => $ban{match}, $user->notice_info);
