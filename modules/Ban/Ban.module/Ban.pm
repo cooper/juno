@@ -473,7 +473,7 @@ sub enforce_ban_on_user {
         forward => 2 # never forward during burst
     },
     BANINFO => {
-        params   => '@rest',
+        params   => ':rest',
         code     => \&scmd_baninfo,
         forward  => 1
     },
@@ -521,7 +521,7 @@ sub ocmd_baninfo {
         next if ref $value;
         $str .= "$key $value ";
     }
-    ":$$me{sid} BANINFO $str"
+    ":$$me{sid} BANINFO :$str"
 }
 
 # BANIDK: request ban data
@@ -573,7 +573,9 @@ sub scmd_ban {
 
 # BANINFO: share ban data
 sub scmd_baninfo {
-    my ($server, $msg, @parts) = @_;
+    my ($server, $msg, $end) = @_;
+    print "baninfo: $end\n";
+    my @parts = split /\s+/, $end;
     return if @parts % 2;
     my %ban = @parts;
     return unless defined $ban{id};
