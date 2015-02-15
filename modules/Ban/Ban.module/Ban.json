@@ -1,17 +1,17 @@
 {
-   "package" : "M::Ban",
-   "name" : "Ban",
    "author" : {
-      "name" : "Mitchell Cooper",
-      "website" : "https://github.com/cooper"
+      "website" : "https://github.com/cooper",
+      "name" : "Mitchell Cooper"
    },
-   "version" : "5.5",
-   "description" : "provides an interface for user and server banning",
+   "name" : "Ban",
+   "package" : "M::Ban",
    "depends" : {
       "modules" : [
          "JELP::Base",
          "Base::UserCommands",
          "Base::OperNotices"
       ]
-   }
+   },
+   "description" : "provides an interface for user and server banning",
+   "version" : "5.6"
 }

@@ -99,7 +99,8 @@ sub init {
     ) || return foreach (
         [ ban     => \&ocmd_ban     ],
         [ banidk  => \&ocmd_banidk  ],
-        [ baninfo => \&ocmd_baninfo ]
+        [ baninfo => \&ocmd_baninfo ],
+        [ bandel  => \&ocmd_bandel  ]
     );
     
     # incoming commands.
@@ -154,6 +155,7 @@ sub add_or_update_ban {
 # delete a ban
 sub delete_ban_by_id {
     my $id = shift;
+    $pool->fire_command_all(bandel => $id);
     $table->row(id => $id)->delete;
 }
 
@@ -431,6 +433,11 @@ sub enforce_ban_on_user {
     BANIDK => {
         params  => '@rest',
         code    => \&scmd_banidk
+    },
+    BANDEL => {
+        params  => '@rest',
+        code    => \&scmd_bandel,
+        forward => 1
     }
 );
 
@@ -477,13 +484,20 @@ sub ocmd_banidk {
     ":$$me{sid} BANIDK $str"
 }
 
+# BANDEL: delete a ban
+sub ocmd_bandel {
+    my $to_server = shift;
+    my $str = join ' ', @_;
+    ":$$me{sid} BANDEL $str"
+}
+
 # Incoming
 # -----
 
 # BAN: burst bans
 sub scmd_ban {
     my ($server, $msg, @items) = @_;
-    print "@_\n";
+
     # check ban times
     my (@i_dk, @u_dk, %done);
     foreach my $item (@items) {
@@ -526,6 +540,14 @@ sub scmd_banidk {
     foreach my $id (@ids) {
         my %ban = ban_by_id($id) or next;
         $server->fire_command(baninfo => \%ban);
+    }
+}
+
+# BANDEL: delete a ban
+sub scmd_bandel {
+    my ($server, $msg, @ids) = @_;
+    foreach my $id (@ids) {
+        delete_ban_by_id($id);
     }
 }
 

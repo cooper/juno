@@ -2825,4 +2825,6 @@ CHANGES:
             added oper notices to Ban module.
             implemented ban propagation.
 
+        77. propagate ban deletion.
+
             
