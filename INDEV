@@ -2819,4 +2819,6 @@ CHANGES:
 
         74. added Ban module which provides an interface for server/user bans.
 
+        75. added Ban::Kline.
+
             
