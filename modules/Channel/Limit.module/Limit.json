@@ -1,16 +1,16 @@
 {
-   "version" : "2.2",
-   "name" : "Channel::Limit",
-   "author" : {
-      "website" : "https://github.com/mattwb65",
-      "name" : "Matthew Barksdale"
-   },
-   "description" : "adds channel user limit mode",
    "depends" : {
       "modules" : [
          "Base::ChannelModes",
          "Base::UserNumerics"
       ]
    },
-   "package" : "M::Channel::Limit"
+   "package" : "M::Channel::Limit",
+   "version" : "2.3",
+   "author" : {
+      "website" : "https://github.com/mattwb65",
+      "name" : "Matthew Barksdale"
+   },
+   "description" : "adds channel user limit mode",
+   "name" : "Channel::Limit"
 }

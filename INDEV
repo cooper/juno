@@ -2811,4 +2811,12 @@ CHANGES:
         71. this should fix an issue with sentinel-prefixed parameters within messages with IRCv3 message tags.
 
         72. fixed long-broken idle time.
+            start script actually checks if the process is running now.
+
+        73. added two utilities:
+            pretty_mask() takes an incomplete mask and returns a valid one;
+            string_to_seconds() takes a duration format like "1d" and converts to seconds.
+
+        74. added Ban module which provides an interface for server/user bans.
+
             

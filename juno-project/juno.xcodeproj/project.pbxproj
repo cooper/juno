@@ -31,6 +31,8 @@
 		BC515539195C7E1D00110EBE /* PLANS */ = {isa = PBXFileReference; lastKnownFileType = text; name = PLANS; path = ../PLANS; sourceTree = "<group>"; };
 		BC6A7BB019F0623D0061CD59 /* Mute.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Mute.pm; path = Mute.module/Mute.pm; sourceTree = "<group>"; };
 		BC7068FE196642E600A2915D /* message.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = message.pm; path = message.module/message.pm; sourceTree = "<group>"; };
+		BC7B16941A900AFB00228EF1 /* Kline.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Kline.pm; path = Kline.module/Kline.pm; sourceTree = "<group>"; };
+		BC7B16961A9017D000228EF1 /* Ban.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Ban.pm; path = Ban.module/Ban.pm; sourceTree = "<group>"; };
 		BC8BAD3A19EF007E00216958 /* Forward.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Forward.pm; path = Forward.module/Forward.pm; sourceTree = "<group>"; };
 		BC9564F61944E032002F52B9 /* Account.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Account.pm; sourceTree = "<group>"; };
 		BC9564F91944E032002F52B9 /* Local.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Local.pm; path = Local.module/Local.pm; sourceTree = "<group>"; };
@@ -146,6 +148,15 @@
 			name = TS6;
 			sourceTree = "<group>";
 		};
+		BC7B16921A900AFB00228EF1 /* Ban */ = {
+			isa = PBXGroup;
+			children = (
+				BC7B16961A9017D000228EF1 /* Ban.pm */,
+				BC7B16941A900AFB00228EF1 /* Kline.pm */,
+			);
+			path = Ban;
+			sourceTree = "<group>";
+		};
 		BC9564F01944E032002F52B9 /* Modules */ = {
 			isa = PBXGroup;
 			children = (
@@ -157,6 +168,7 @@
 				BC9564F41944E032002F52B9 /* Account */,
 				BCB6C80B1960C47E009F093A /* Channel */,
 				BCBADAF0195CD5DE0051282D /* Last.fm */,
+				BC7B16921A900AFB00228EF1 /* Ban */,
 				BC131F371994445500B8071A /* Eval.pm */,
 				BC131F361994444500B8071A /* UnsafeEval.pm */,
 				BC9565621944E032002F52B9 /* Reload.pm */,

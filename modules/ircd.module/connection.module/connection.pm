@@ -190,6 +190,7 @@ sub ready {
             $Evented::Object::events => {}
         );
 
+        weaken($connection->{type}{conn} = $connection);
         $connection->fire_event(user_ready => $connection->{type});
 
     }
@@ -211,6 +212,7 @@ sub ready {
             $Evented::Object::events => {}
         );
         
+        weaken($connection->{type}{conn} = $connection);
         $connection->fire_event(server_ready => $connection->{type});
         
         $server->{conn} = $connection;
@@ -226,7 +228,6 @@ sub ready {
         return;
     }
 
-    weaken($connection->{type}{conn} = $connection);
     $connection->fire_event(ready_done => $connection->{type});
     $connection->{type}->new_connection if $connection->user;
     return $connection->{ready} = 1;

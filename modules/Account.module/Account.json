@@ -1,10 +1,10 @@
 {
-   "version" : "7.2",
-   "description" : "implements user accounts",
    "package" : "M::Account",
+   "version" : "7.5",
+   "description" : "implements user accounts",
+   "name" : "Account",
    "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
-   },
-   "name" : "Account"
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   }
 }

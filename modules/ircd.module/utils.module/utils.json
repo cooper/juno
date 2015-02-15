@@ -1,12 +1,12 @@
 {
-   "description" : "provides convenience and utility functions",
+   "no_bless" : 1,
    "package" : "utils",
+   "version" : "9.72",
+   "preserve_sym" : 1,
+   "name" : "ircd::utils",
+   "description" : "provides convenience and utility functions",
    "author" : {
       "website" : "https://github.com/cooper",
       "name" : "Mitchell Cooper"
-   },
-   "preserve_sym" : 1,
-   "name" : "ircd::utils",
-   "no_bless" : 1,
-   "version" : "9.72"
+   }
 }
