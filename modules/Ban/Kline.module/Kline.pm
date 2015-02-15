@@ -28,7 +28,7 @@ sub init {
         name       => 'kline',          # ban type
         add_cmd    => 'kline',          # add command
         del_cmd    => 'unkline',        # delete command
-        reason     => 'K-Lined',        # default reason
+        reason     => 'K-Lined',        # reason prefix
         class      => 'user',           # bans apply to
         user_code  => \&user_matches,   # user matcher
         match_code => \&_match,         # match checker

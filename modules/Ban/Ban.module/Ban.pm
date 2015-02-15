@@ -240,7 +240,7 @@ sub register_ban {
 sub handle_add_command {
     my ($type_name, $command, $user, $event, $duration, $match, $reason) = @_;
     my $type = $ban_types{$type_name} or return;
-    $reason //= $type->{reason} // 'Banned';
+    $reason //= '';
     
     # check that the duration is numeric
     my $seconds = utils::string_to_seconds($duration);
@@ -385,7 +385,12 @@ sub enforce_ban_on_user {
     my ($ban, $user) = @_;
     my $type = $ban_types{ $ban->{type} } or return;
     return unless $type->{user_code}->($user, $ban);
-    $user->conn->done($ban->{reason});
+    
+    # like "Banned" or "Banned: because"
+    my $reason = $type->{reason};
+    $reason .= ": $$ban{reason}" if length $ban->{reason};
+    
+    $user->conn->done($reason);
     return 1;
 }
 
