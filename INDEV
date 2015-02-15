@@ -2837,5 +2837,7 @@ CHANGES:
         81. added gnotice() utility for propagating oper notices.
             ban oper notices now propagate.
 
+        82. improve server notice propagation.
+
 
             

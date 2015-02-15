@@ -6,12 +6,12 @@
          "Base::OperNotices"
       ]
    },
-   "package" : "M::Ban",
+   "version" : "8.2",
    "name" : "Ban",
    "description" : "provides an interface for user and server banning",
+   "package" : "M::Ban",
    "author" : {
       "name" : "Mitchell Cooper",
       "website" : "https://github.com/cooper"
-   },
-   "version" : "8.1"
+   }
 }

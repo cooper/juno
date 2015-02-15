@@ -1,12 +1,12 @@
 {
-   "version" : "9.72",
-   "description" : "represents an IRC user",
-   "package" : "user",
-   "name" : "ircd::user",
-   "no_bless" : 1,
    "author" : {
-      "name" : "Mitchell Cooper",
-      "website" : "https://github.com/cooper"
+      "website" : "https://github.com/cooper",
+      "name" : "Mitchell Cooper"
    },
+   "package" : "user",
+   "description" : "represents an IRC user",
+   "name" : "ircd::user",
+   "version" : "9.82",
+   "no_bless" : 1,
    "preserve_sym" : 1
 }

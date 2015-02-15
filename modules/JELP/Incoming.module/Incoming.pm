@@ -832,6 +832,11 @@ sub snotice {
         next unless $user->has_notice($notice);
         $user->server_notice('Notice', "$pretty: $message");
     }
+    
+    # === Forward ===
+    $msg->forward();
+    
+    return 1;
 }
 
 $mod

@@ -161,7 +161,7 @@ sub expire_ban {
     # remove from database
     delete_ban_by_id($ban{id});
 
-    gnotice("$ban{type}_expire" => $ban{match}) unless $ban{deleted};
+    notice("$ban{type}_expire" => $ban{match}) unless $ban{deleted};
 }
 
 ################

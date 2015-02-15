@@ -344,17 +344,25 @@ sub sendme {
 # revision: supports nonlocal users as well now.
 sub server_notice {
     my ($user, @args) = @_;
+    
+    # first parameter can be a server
+    my $server = $me;
+    if ($user->isa('server')) {
+        $server = $user;
+        $user   = shift @args;
+    }
+    
     my $cmd = ucfirst $args[0];
     my $msg = defined $args[1] ? "*** \2$cmd:\2 $args[1]" : $args[0];
     
     # user is local.
     if ($user->is_local) {
-        $user->sendme("NOTICE $$user{nick} :$msg");
+        $user->sendfrom($server->name, "NOTICE $$user{nick} :$msg");
         return 1;
     }
     
     # not local; pass it on.
-    $user->{location}->fire_command(privmsgnotice => 'NOTICE', $me, $user, $msg);
+    $user->{location}->fire_command(privmsgnotice => 'NOTICE', $server, $user, $msg);
     
 }
 
