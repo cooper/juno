@@ -1,0 +1,16 @@
+{
+   "author" : {
+      "website" : "https://github.com/cooper",
+      "name" : "Mitchell Cooper"
+   },
+   "name" : "Git",
+   "depends" : {
+      "modules" : [
+         "Base::UserCommands",
+         "JELP::Base"
+      ]
+   },
+   "package" : "M::Git",
+   "description" : "git repository management",
+   "version" : "0.7"
+}

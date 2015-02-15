@@ -5,11 +5,11 @@
          "ircd::message"
       ]
    },
+   "name" : "JELP::Base",
    "author" : {
       "website" : "https://github.com/cooper",
       "name" : "Mitchell Cooper"
    },
-   "name" : "JELP::Base",
    "package" : "M::JELP::Base",
-   "version" : "13.23"
+   "version" : "13.33"
 }

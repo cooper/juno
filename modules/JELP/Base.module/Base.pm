@@ -89,14 +89,14 @@ sub register_global_command {
     
     # create a handler that calls ->handle_unsafe().
     $opts{code} = sub {
-        my ($server, $data, $user, $rest) = @_;
+        my ($server, $msg, $user, $rest) = @_;
         $user->handle_unsafe("$opts{name} $rest");
     };
     
     # pass it on to this base's ->register_jelp_command().
     return register_jelp_command($mod, $event,
         %opts,
-        parameters => 'user :rest(opt)'
+        parameters => '-source(user) :rest(opt)'
     );
     
 }

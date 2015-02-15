@@ -2841,5 +2841,6 @@ CHANGES:
 
         83. added developer mode to prevent module manifest conflicts.
 
+        84. added Git module which allows remote repository operations.
 
             
