@@ -41,6 +41,7 @@ my %ocommands = (
     whois           => \&whois,
     admin           => \&admin,
     time            => \&_time,
+    snotice         => \&snotice,
 
     # JELP-specific
     
@@ -417,6 +418,11 @@ sub admin {
 sub _time {
     my ($to_server, $user, $t_server) = @_;
     "\@for=$$t_server{sid} :$$user{uid} TIME"
+}
+
+sub snotice {
+    my ($to_server, $flag, $message) = @_;
+    ":$$me{sid} SNOTICE $flag :$message"
 }
 
 $mod

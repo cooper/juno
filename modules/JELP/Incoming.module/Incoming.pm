@@ -152,6 +152,10 @@ my %scommands = (
     TIME => {      # @for=sid        :uid     TIME
         params  => '-tag.for(server) -source(user)',
         code    => \&_time
+    },
+    SNOTICE => {  # :sid SNOTICE   flag  :message
+        params => '-source(server) any   :rest',
+        code   => \&snotice
     }
 );
 
@@ -815,6 +819,19 @@ sub _time {
     $msg->forward_to($t_server, time => $user, $t_server);
     
     return 1;
+}
+
+sub snotice {
+    my ($server, $msg, $s_serv, $notice, $message) = @_;
+    (my $pretty = ucfirst $notice) =~ s/_/ /g;
+
+    # send to users with this notice flag.
+    foreach my $user ($pool->actual_users) {
+        next unless blessed $user; # during destruction.
+        next unless $user->is_mode('ircop');
+        next unless $user->has_notice($notice);
+        $user->server_notice('Notice', "$pretty: $message");
+    }
 }
 
 $mod

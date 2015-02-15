@@ -321,7 +321,7 @@ sub set_v ($$) {
 # send a notice to opers.
 sub notice {
     return unless pool->can('fire_oper_notice') && $::pool;
-    my @caller = caller 1;
+    my @caller = ref $_[0] eq 'ARRAY' ? @{+shift} : caller 1;
 
     # fire it.
     my ($amnt, $key, $str) = $::pool->fire_oper_notice(@_);
@@ -333,6 +333,15 @@ sub notice {
     ircd::_L($obj, \@caller, "$key: $str");
     
     return $str;
+}
+
+# send a notice that propagates.
+sub gnotice {
+    return unless pool->can('fire_oper_notice') && $::pool;
+    my $flag = shift;
+    my $message = notice([caller 1], $flag, @_);
+    $::pool->fire_command_all(snotice => $flag, $message);
+    return $message;
 }
 
 sub import {

@@ -20,7 +20,7 @@ use 5.010;
 
 use IO::Async::Timer::Absolute;
 use Scalar::Util 'looks_like_number';
-use utils 'notice';
+use utils qw(notice gnotice string_to_seconds);
 
 our ($api, $mod, $pool, $conf, $me);
 our ($table, %ban_types, %timers);
@@ -161,7 +161,7 @@ sub expire_ban {
     # remove from database
     delete_ban_by_id($ban{id});
 
-    notice("$ban{type}_expire" => $ban{match}) unless $ban{deleted};
+    gnotice("$ban{type}_expire" => $ban{match}) unless $ban{deleted};
 }
 
 ################
@@ -311,7 +311,7 @@ sub handle_add_command {
     $reason //= '';
     
     # check that the duration is numeric
-    my $seconds = utils::string_to_seconds($duration);
+    my $seconds = string_to_seconds($duration);
     if (!defined $seconds) {
         $user->server_notice($command => 'Invalid duration format');
         return;
@@ -343,7 +343,7 @@ sub handle_add_command {
     # notices
     my $when   = $ban{expires}  ? localtime $ban{expires}  : 'never';
     my $after  = $ban{duration} ? "$ban{duration}s" : 'permanent';
-    my $notice = notice($type_name => $match, $user->notice_info, $when, $after);
+    my $notice = gnotice($type_name => $match, $user->notice_info, $when, $after);
     $user->server_notice($command  => $notice);
     
     return 1;
@@ -368,7 +368,7 @@ sub handle_del_command {
     $pool->fire_command_all(bandel => $ban{id});
 
     # notices
-    my $notice = notice("${type_name}_delete" => $ban{match}, $user->notice_info);
+    my $notice = gnotice("${type_name}_delete" => $ban{match}, $user->notice_info);
     $user->server_notice($command => $notice);
     
     return 1;
