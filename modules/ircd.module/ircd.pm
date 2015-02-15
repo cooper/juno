@@ -159,6 +159,9 @@ sub setup_config {
         $conf->parse_config or return;
         $conf->{conffile} = "$::run_dir/etc/ircd.conf";
     }
+    
+    # developer mode?
+    $api->{developer} = conf('server', 'developer');
         
     return 1;
 }
@@ -464,9 +467,9 @@ sub load_dependencies {
         [ 'Evented::Object::Collection',   5.50 ],
         [ 'Evented::Object::EventFire',    5.50 ],
     
-        [ 'Evented::API::Engine',          3.64 ],
-        [ 'Evented::API::Module',          3.64 ],
-        [ 'Evented::API::Hax',             3.64 ],
+        [ 'Evented::API::Engine',          3.65 ],
+        [ 'Evented::API::Module',          3.65 ],
+        [ 'Evented::API::Hax',             3.65 ],
 
         [ 'Evented::Configuration',        3.90 ],
         

@@ -2839,5 +2839,7 @@ CHANGES:
 
         82. improve server notice propagation.
 
+        83. added developer mode to prevent module manifest conflicts.
+
 
             
