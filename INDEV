@@ -2827,4 +2827,6 @@ CHANGES:
 
         77. propagate ban deletion.
 
+        78. implement ban expiration.
+
             

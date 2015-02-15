@@ -18,11 +18,12 @@ use warnings;
 use strict;
 use 5.010;
 
+use IO::Async::Timer::Absolute;
 use Scalar::Util 'looks_like_number';
 use utils 'notice';
 
 our ($api, $mod, $pool, $conf, $me);
-our ($table, %ban_types);
+our ($table, %ban_types, %timers);
 my %jelp_commands;
 
 # specification
@@ -112,10 +113,51 @@ sub init {
     ) || return foreach keys %jelp_commands;
     
     add_enforcement_events();
-    # TODO: activate bans from database
-    # TODO: timers
-    
+    activate_ban(%$_) foreach get_all_bans();
     return 1;
+}
+
+##############
+### TIMERS ###
+##############
+
+sub activate_ban {
+    my %ban = @_;
+    
+    # it has already expired
+    if ($ban{expires} <= time) {
+        expire_ban(%ban);
+        return;
+    }
+    
+    # create a timer
+    my $timer = $timers{ $ban{id} } ||= IO::Async::Timer::Absolute->new(
+        time      => $ban{expires},
+        on_expire => sub { expire_ban(%ban) }
+    );
+    
+    # start timer
+    if (!$timer->is_running) {
+        $timer->start;
+        $::loop->add($timer);
+    }
+    
+}
+
+sub expire_ban {
+    my %ban = @_;
+    
+    # dispose of the timer
+    if (my $timer = $timers{ $ban{id} }) {
+        $timer->stop;
+        $timer->remove_from_parent;
+        delete $timers{ $ban{id} };
+    }
+    
+    # remove from database
+    delete_ban_by_id($ban{id});
+    
+    notice("$ban{type}_expire" => $ban{match});
 }
 
 ################
@@ -215,6 +257,10 @@ sub register_ban_type {
         name   => "${type_name}_delete",
         format => 'Ban for %s deleted by %s (%s@%s)'
     );
+    $_mod->register_oper_notice(
+        name   => "${type_name}_expire",
+        format => 'Ban for %s expired'
+    );
     
     # store this type.
     $ban_types{$type_name} = {
@@ -243,6 +289,7 @@ sub register_ban {
     
     add_or_update_ban(%ban);
     enforce_ban(%ban);
+    activate_ban(%ban);
     
     # forward it
     $pool->fire_command_all(baninfo => \%ban);
@@ -502,7 +549,7 @@ sub scmd_ban {
     my (@i_dk, @u_dk, %done);
     foreach my $item (@items) {
         my @parts = split /,/, $item;
-        next if $item % 2;
+        next if @parts % 2;
         my ($id, $modified) = @parts;
         
         # does this ban exist?
@@ -532,6 +579,7 @@ sub scmd_baninfo {
     return unless defined $ban{id};
     add_or_update_ban(%ban);
     enforce_ban(%ban);
+    activate_ban(%ban);
 }
 
 # BANIDK: request ban data
