@@ -241,6 +241,10 @@ sub register_ban {
     
     add_or_update_ban(%ban);
     enforce_ban(%ban);
+    
+    # forward it
+    $pool->fire_command_all(baninfo => \%ban);
+    
     return %ban;
 }
 
@@ -310,7 +314,7 @@ sub handle_del_command {
     delete_ban_by_id($ban{id});
 
     # notices
-    my $notice = notice("${type_name}_delete" => $match, $user->notice_info);
+    my $notice = notice("${type_name}_delete" => $ban{match}, $user->notice_info);
     $user->server_notice($command => $notice);
     
     return 1;

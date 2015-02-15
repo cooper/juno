@@ -1,5 +1,11 @@
 {
-   "version" : "5.4",
+   "package" : "M::Ban",
+   "name" : "Ban",
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
+   "version" : "5.5",
    "description" : "provides an interface for user and server banning",
    "depends" : {
       "modules" : [
@@ -7,11 +13,5 @@
          "Base::UserCommands",
          "Base::OperNotices"
       ]
-   },
-   "name" : "Ban",
-   "package" : "M::Ban",
-   "author" : {
-      "name" : "Mitchell Cooper",
-      "website" : "https://github.com/cooper"
    }
 }
