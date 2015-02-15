@@ -1,16 +1,16 @@
 {
    "package" : "M::Git",
-   "version" : "0.8",
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
    "name" : "Git",
-   "description" : "git repository management",
    "depends" : {
       "modules" : [
          "Base::UserCommands",
          "JELP::Base"
       ]
    },
-   "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
-   }
+   "description" : "git repository management",
+   "version" : "0.9"
 }

@@ -14,7 +14,7 @@ package M::Reload;
 use warnings;
 use strict;
 
-use utils qw(notice);
+use utils qw(notice gnotice);
 
 our ($api, $mod, $me, $pool);
 
@@ -33,7 +33,7 @@ sub init {
     # notices.
     $mod->register_oper_notice(
         name   => 'reload',
-        format => '%s (%s@%s): %s'
+        format => '%s %s by %s (%s@%s)'
     ) or return;
     
     return 1;
@@ -80,6 +80,7 @@ sub cmd_reload {
             next unless $serv->{location};
             
             # pass it on :)
+            $user->server_notice(update => "Sending reload command to $$serv{name}");
             $serv->{location}->fire_command_data(reload => $user, "RELOAD $$serv{name}");
             
         }
@@ -90,7 +91,7 @@ sub cmd_reload {
     }
     
     my $old_v = $ircd::VERSION;
-    $user->server_notice(reload => "Reloading IRCd $old_v");
+    $user->server_notice(reload => "Reloading IRCd $old_v on $$me{name}");
 
     # log to user if verbose.
     my $cb;
@@ -160,15 +161,15 @@ sub cmd_reload {
     my $info;
     if ($new_v != $old_v) {
         my $amnt = sprintf('%.f', abs($new_v - $::VERSION) * 100);
-        $info = "Server upgraded from $old_v to $new_v (up $amnt versions since start)";
+        $info = "upgraded from $old_v to $new_v (up $amnt versions since start)";
     }
     else {
-        $info = 'Server reloaded';
+        $info = 'reloaded';
     }
 
     $::api->delete_callback('log', $cb->{name}) if $verbose;
-    $user->server_notice(reload => $info);
-    notice(reload => $user->notice_info, $info);
+    $user->server_notice(reload => "$$me{name} $info");
+    gnotice(reload => $me->name, $info, $user->notice_info);
     return 1;
 }
 

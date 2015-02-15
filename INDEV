@@ -2843,4 +2843,7 @@ CHANGES:
 
         84. added Git module which allows remote repository operations.
 
+        85. RELOAD and UPDATE can now be performed remotely.
+            improved server notices for RELOAD and UPDATE.
+
             
