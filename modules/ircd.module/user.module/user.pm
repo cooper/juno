@@ -347,7 +347,7 @@ sub server_notice {
     
     # first parameter can be a server
     my $server = $me;
-    if ($args[0]->isa('server')) {
+    if (blessed $args[0] && $args[0]->isa('server')) {
         $server = shift @args;
     }
     
