@@ -6,7 +6,7 @@
 #
 # @name:            'Ban::Dline'
 # @package:         'M::Ban::Dline'
-# @description:     'ban users from server by hostmask'
+# @description:     'ban connections from server by IP'
 #
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'

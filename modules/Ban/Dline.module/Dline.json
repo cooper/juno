@@ -1,13 +1,13 @@
 {
+   "name" : "Ban::Dline",
    "depends" : {
       "modules" : "Ban"
    },
-   "version" : "0.2",
-   "description" : "ban users from server by hostmask",
+   "description" : "ban connections from server by IP",
    "package" : "M::Ban::Dline",
    "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
    },
-   "name" : "Ban::Dline"
+   "version" : "0.3"
 }
