@@ -830,7 +830,7 @@ sub snotice {
         next unless blessed $user; # during destruction.
         next unless $user->is_mode('ircop');
         next unless $user->has_notice($notice);
-        $user->server_notice('Notice', "$pretty: $message");
+        $user->server_notice($s_serv, 'Notice', "$pretty: $message");
     }
     
     # === Forward ===
