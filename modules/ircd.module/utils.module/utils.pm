@@ -140,6 +140,48 @@ sub irc_match {
     } @list;
 }
 
+# convert mask to pretty
+sub pretty_mask_parts {
+    my $str = shift;
+    return unless defined $str;
+    $str =~ s/\*{2,}/*/g;
+    my (@mask, $r);
+    
+    # no nickname provided, but ident and hostname were
+    if ($str !~ /!/ and $str =~ /@/) {
+        $r       = $str;
+        $mask[0] = '*';
+    }
+    
+    # nickname and possibly ident provided
+    else {
+        ($mask[0], $r) = split /!/, $str, 2;
+    }
+    
+    # anything left over is ident and hostname
+    if (defined $r) {
+        $r =~ s/!//g;
+        @mask[1..2] = split /@/, $r, 2;
+    }
+    
+    # if there's a dot in the nickname and
+    # no hostname or ident, assume it's a hostname
+    if ($mask[0] =~ m/\./ && !length $mask[1] && !length $mask[2]) {
+        @mask = (undef, undef, $mask[0]);
+    }
+    
+    # replace empty spots with *
+    $mask[2] =~ s/@//g if defined $mask[2];
+    for (0..2) { $mask[$_] = '*' unless defined $mask[$_] }
+    
+    return @mask;
+}
+
+sub pretty_mask {
+    my @mask = pretty_mask(@_);
+    return "$mask[0]!$mask[1]\@$mask[2]";
+}
+
 # format time for IRC.
 sub irc_time {
     my $time = shift;
@@ -228,6 +270,41 @@ sub keys_values {
         $hash{$key} = $value;
     }
     return (%hash);
+}
+
+my %multi = (
+    'y' => 31536000,    # year
+    'M' => 2592000,     # month (30 days)
+    'd' => 86400,       # day
+    'h' => 3600,        # hour
+    'm' => 60,          # minute
+    's' => 1            # second
+);
+
+# string -> seconds
+sub string_to_seconds {
+    my $str = shift;
+    my ($current, $last_char) = ('') x 2;
+    my $total = 0;
+    for my $char (split //, $str) {
+        
+        # multiplier.
+        if ($multi{$char}) {
+            return undef unless length $current;    # no number
+            return undef if $multi{$last_char};     # last character was multiplier
+            
+            $total += $current * $multi{$char};
+            $current = '';
+            next;
+        }
+        
+        return if $char =~ m/\D/;
+        $current .= $char;
+    }
+    
+    # number with no multiplier is seconds.
+    return $total || length $current ? $current : $total;
+    
 }
 
 # fetch variable.
