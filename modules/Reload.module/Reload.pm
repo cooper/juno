@@ -79,6 +79,9 @@ sub cmd_reload {
             next if $serv->is_local;
             next unless $serv->{location};
             
+            # if we already sent to the location, don't send it again
+            next if $done{ $serv->{location} };
+            
             # pass it on :)
             $user->server_notice(update => "Sending reload command to $$serv{name}");
             $serv->{location}->fire_command_data(reload => $user, "RELOAD $$serv{name}");

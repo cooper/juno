@@ -1,6 +1,4 @@
 {
-   "description" : "reload the entire IRCd in one command",
-   "name" : "Reload",
    "depends" : {
       "modules" : [
          "Base::UserCommands",
@@ -8,10 +6,12 @@
          "JELP::Base"
       ]
    },
-   "version" : "4.6",
+   "description" : "reload the entire IRCd in one command",
+   "package" : "M::Reload",
+   "name" : "Reload",
+   "version" : "4.7",
    "author" : {
-      "name" : "Mitchell Cooper",
-      "website" : "https://github.com/cooper"
-   },
-   "package" : "M::Reload"
+      "website" : "https://github.com/cooper",
+      "name" : "Mitchell Cooper"
+   }
 }

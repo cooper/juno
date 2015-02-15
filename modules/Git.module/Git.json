@@ -1,10 +1,4 @@
 {
-   "package" : "M::Git",
-   "author" : {
-      "name" : "Mitchell Cooper",
-      "website" : "https://github.com/cooper"
-   },
-   "name" : "Git",
    "depends" : {
       "modules" : [
          "Base::UserCommands",
@@ -12,5 +6,11 @@
       ]
    },
    "description" : "git repository management",
-   "version" : "0.9"
+   "package" : "M::Git",
+   "name" : "Git",
+   "version" : "1",
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   }
 }
