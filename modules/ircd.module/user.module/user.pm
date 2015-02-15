@@ -347,9 +347,8 @@ sub server_notice {
     
     # first parameter can be a server
     my $server = $me;
-    if ($user->isa('server')) {
-        $server = $user;
-        $user   = shift @args;
+    if ($args[0]->isa('server')) {
+        $server = shift @args;
     }
     
     my $cmd = ucfirst $args[0];
