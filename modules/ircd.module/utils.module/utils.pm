@@ -284,26 +284,24 @@ my %multi = (
 # string -> seconds
 sub string_to_seconds {
     my $str = shift;
-    my ($current, $last_char) = ('') x 2;
-    my $total = 0;
+    my ($current, $total) = ('', 0);
     for my $char (split //, $str) {
         
         # multiplier.
         if ($multi{$char}) {
-            return undef unless length $current;    # no number
-            return undef if $multi{$last_char};     # last character was multiplier
+            return undef unless length $current; # no number
             
             $total += $current * $multi{$char};
             $current = '';
             next;
         }
         
-        return if $char =~ m/\D/;
+        return undef if $char =~ m/\D/;
         $current .= $char;
     }
     
     # number with no multiplier is seconds.
-    return $total || length $current ? $current : $total;
+    return $total || (length $current ? $current : 0);
     
 }
 

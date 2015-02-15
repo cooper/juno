@@ -10,7 +10,7 @@
 #
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'
-# @depends.modules: ['JELP::Base', 'Base::UserCommands']
+# @depends.modules: ['JELP::Base', 'Base::UserCommands', 'Base::OperNotices']
 #
 package M::Ban;
 
@@ -19,6 +19,7 @@ use strict;
 use 5.010;
 
 use Scalar::Util 'looks_like_number';
+use utils 'notice';
 
 our ($api, $mod, $pool, $conf, $me);
 our ($table, %ban_types);
@@ -95,7 +96,7 @@ sub init {
     $mod->register_outgoing_command(
         name => $_->[0],
         code => $_->[1]
-    ) foreach (
+    ) || return foreach (
         [ ban     => \&ocmd_ban     ],
         [ banidk  => \&ocmd_banidk  ],
         [ baninfo => \&ocmd_baninfo ]
@@ -172,6 +173,7 @@ sub delete_ban_by_id {
 # reason        default ban reason
 #
 # note: $mod refers to the module calling the method
+# TODO: when Ban module is unloaded, delete everything registered by other modules
 #
 sub register_ban_type {
     my ($_mod, $event, %opts) = @_;
@@ -201,6 +203,16 @@ sub register_ban_type {
             parameters  => "-oper($type_name) *" # ban ID | match
         );
     }
+    
+    # oper notices.
+    $_mod->register_oper_notice(
+        name   => $type_name,
+        format => 'Ban for %s added by %s (%s@%s), will expire %s (%s)'
+    );
+    $_mod->register_oper_notice(
+        name   => "${type_name}_delete",
+        format => 'Ban for %s deleted by %s (%s@%s)'
+    );
     
     # store this type.
     $ban_types{$type_name} = {
@@ -272,10 +284,11 @@ sub handle_add_command {
         auser       => $user->full
     );
     
-    # TODO: notice
-    my $when  = $ban{expires}  ? localtime $ban{expires}  : 'never';
-    my $after = $ban{duration} ? "$ban{duration}s" : 'permanent';
-    $user->server_notice($command => "Ban for $match added, will expire $when ($after)");
+    # notices
+    my $when   = $ban{expires}  ? localtime $ban{expires}  : 'never';
+    my $after  = $ban{duration} ? "$ban{duration}s" : 'permanent';
+    my $notice = notice($type_name => $match, $user->notice_info, $when, $after);
+    $user->server_notice($command  => $notice);
     
     return 1;
 }
@@ -295,9 +308,11 @@ sub handle_del_command {
     
     # delete it
     delete_ban_by_id($ban{id});
-    $user->server_notice($command => "Ban for $ban{match} deleted");
+
+    # notices
+    my $notice = notice("${type_name}_delete" => $match, $user->notice_info);
+    $user->server_notice($command => $notice);
     
-    # TODO: notice
     return 1;
 }
 
@@ -399,13 +414,26 @@ sub enforce_ban_on_user {
 ###################
 
 %jelp_commands = (
+    BAN => {
+        params  => '@rest',
+        code    => \&scmd_ban,
+        forward => 2 # never forward during burst
+    },
+    BANINFO => {
+        params   => '@rest',
+        code     => \&scmd_baninfo,
+        forward  => 1
+    },
+    BANIDK => {
+        params  => '@rest',
+        code    => \&scmd_banidk
+    }
 );
 
 sub burst_bans {
     my ($server, $fire, $time) = @_;
     if (!$server->{bans_negotiated}) {
-        my @ban_refs = $table->rows->select_hash;
-        $server->fire_command(ban => @ban_refs);
+        $server->fire_command(ban => get_all_bans());
         $server->{bans_negotiated} = 1;
     }
 }
@@ -415,17 +443,34 @@ sub burst_bans {
 
 # BAN: burst bans
 sub ocmd_ban {
-    
+    my $to_server = shift;
+    return unless @_;
+    my $str = '';
+    foreach my $ban (@_) {
+        $str .= ' ' if $str;
+        $str .= $ban->{id}.q(,).$ban->{modified};
+    }
+    ":$$me{sid} BAN $str"
 }
 
 # BANINFO: share ban data
 sub ocmd_baninfo {
-    
+    my ($to_server, $ban) = @_;
+    my $str = '';
+    foreach my $key (keys %$ban) {
+        my $value = $ban->{$key};
+        next unless length $value;
+        next if ref $value;
+        $str .= "$key $value ";
+    }
+    ":$$me{sid} BANINFO $str"
 }
 
 # BANIDK: request ban data
 sub ocmd_banidk {
-    
+    my $to_server = shift;
+    my $str = join ' ', @_;
+    ":$$me{sid} BANIDK $str"
 }
 
 # Incoming
@@ -433,17 +478,51 @@ sub ocmd_banidk {
 
 # BAN: burst bans
 sub scmd_ban {
+    my ($server, $msg, @items) = @_;
+    print "@_\n";
+    # check ban times
+    my (@i_dk, @u_dk, %done);
+    foreach my $item (@items) {
+        my @parts = split /,/, $item;
+        next if $item % 2;
+        my ($id, $modified) = @parts;
+        
+        # does this ban exist?
+        if (my %ban = ban_by_id($id)) {
+            next if $ban{modified} == $modified;
+            push @i_dk, $id if $modified > $ban{modified};
+            push @u_dk, $id if $modified < $ban{modified};
+        }
+        
+        push @i_dk, $id;
+        $done{$id} = 1;
+    }
     
+    # if the server didn't mention some bans, send them out too
+    push @u_dk, grep { !$done{$_} } map $_->{id}, get_all_bans();
+    
+    # FIXME: do I need u_dk or not?
+    
+    $server->fire_command(banidk => @i_dk) if @i_dk;
 }
 
 # BANINFO: share ban data
 sub scmd_baninfo {
-    
+    my ($server, $msg, @parts) = @_;
+    return if @parts % 2;
+    my %ban = @parts;
+    return unless defined $ban{id};
+    add_or_update_ban(%ban);
+    enforce_ban(%ban);
 }
 
 # BANIDK: request ban data
 sub scmd_banidk {
-    
+    my ($server, $msg, @ids) = @_;
+    foreach my $id (@ids) {
+        my %ban = ban_by_id($id) or next;
+        $server->fire_command(baninfo => \%ban);
+    }
 }
 
 $mod

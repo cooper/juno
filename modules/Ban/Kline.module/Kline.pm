@@ -44,9 +44,11 @@ sub _match {
     }
     
     # user[@]host only
-    my @parts = utils::pretty_mask_parts($str);
-    return "$parts[1]\@$parts[2]";
+    my @parts  = utils::pretty_mask_parts($str);
+    my $result = "$parts[1]\@$parts[2]";
     
+    return if $result eq '*@*';
+    return $result;
 }
 
 sub user_matches {

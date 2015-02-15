@@ -2821,4 +2821,8 @@ CHANGES:
 
         75. added Ban::Kline.
 
+        76. fixed issue with string_to_seconds().
+            added oper notices to Ban module.
+            implemented ban propagation.
+
             
