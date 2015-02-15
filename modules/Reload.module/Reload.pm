@@ -80,7 +80,8 @@ sub cmd_reload {
             next unless $serv->{location};
             
             # pass it on :)
-            $user->server_notice(update => "Sending reload command to $$serv{name}");
+            $user->server_notice(reload => "Sending reload command to $$serv{name}")
+                if $user->is_local;
             $serv->{location}->fire_command_data(reload => $user, "RELOAD $$serv{name}");
             
         }

@@ -76,7 +76,8 @@ sub ucmd_update {
             next unless $serv->{location};
             
             # pass it on :)
-            $user->server_notice(update => "Sending update command to $$serv{name}");
+            $user->server_notice(update => "Sending update command to $$serv{name}")
+                if $user->is_local;
             $serv->{location}->fire_command_data(update => $user, "UPDATE $$serv{name}");
             
         }
