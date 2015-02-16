@@ -3,10 +3,10 @@
       "name" : "Mitchell Cooper",
       "website" : "https://github.com/cooper"
    },
-   "version" : "9.74",
-   "preserve_sym" : 1,
    "description" : "represents a connection to the server",
    "name" : "ircd::connection",
    "no_bless" : 1,
-   "package" : "connection"
+   "package" : "connection",
+   "preserve_sym" : 1,
+   "version" : "9.86"
 }

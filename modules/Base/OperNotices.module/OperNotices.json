@@ -1,12 +1,12 @@
 {
    "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
    },
    "depends" : {
       "modules" : "API::Methods"
    },
    "name" : "Base::OperNotices",
    "package" : "M::Base::OperNotices",
-   "version" : "9.64"
+   "version" : "9.86"
 }

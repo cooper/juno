@@ -1,12 +1,8 @@
 {
-   "version" : "8.42",
-   "name" : "Core",
    "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
    },
-   "description" : "the core components of the ircd",
-   "package" : "M::Core",
    "depends" : {
       "modules" : [
          "Core::UserModes",
@@ -17,5 +13,9 @@
          "Core::Matchers",
          "Core::RegistrationCommands"
       ]
-   }
+   },
+   "description" : "the core components of the ircd",
+   "name" : "Core",
+   "package" : "M::Core",
+   "version" : "9.86"
 }

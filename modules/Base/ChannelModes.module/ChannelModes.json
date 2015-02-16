@@ -1,12 +1,12 @@
 {
-   "depends" : {
-      "modules" : "API::Methods"
-   },
-   "name" : "Base::ChannelModes",
    "author" : {
       "name" : "Mitchell Cooper",
       "website" : "https://github.com/cooper"
    },
+   "depends" : {
+      "modules" : "API::Methods"
+   },
+   "name" : "Base::ChannelModes",
    "package" : "M::Base::ChannelModes",
-   "version" : "9.61"
+   "version" : "9.86"
 }

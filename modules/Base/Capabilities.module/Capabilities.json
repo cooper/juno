@@ -1,13 +1,13 @@
 {
-   "package" : "M::Base::Capabilities",
-   "description" : "provides an interface for client capabilities",
    "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
    },
-   "version" : "9.09",
    "depends" : {
       "modules" : "API::Methods"
    },
-   "name" : "Base::Capabilities"
+   "description" : "provides an interface for client capabilities",
+   "name" : "Base::Capabilities",
+   "package" : "M::Base::Capabilities",
+   "version" : "9.86"
 }

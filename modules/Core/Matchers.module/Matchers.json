@@ -1,13 +1,13 @@
 {
-   "version" : "7.87",
-   "name" : "Core::Matchers",
    "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
    },
-   "description" : "the core set of mask matchers",
-   "package" : "M::Core::Matchers",
    "depends" : {
       "modules" : "Base::Matchers"
-   }
+   },
+   "description" : "the core set of mask matchers",
+   "name" : "Core::Matchers",
+   "package" : "M::Core::Matchers",
+   "version" : "9.86"
 }

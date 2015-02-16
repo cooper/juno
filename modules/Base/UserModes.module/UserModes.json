@@ -1,12 +1,12 @@
 {
-   "version" : "9.64",
-   "name" : "Base::UserModes",
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
    "depends" : {
       "modules" : "API::Methods"
    },
-   "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
-   },
-   "package" : "M::Base::UserModes"
+   "name" : "Base::UserModes",
+   "package" : "M::Base::UserModes",
+   "version" : "9.86"
 }
