@@ -45,7 +45,7 @@ our %user_commands = (
 );
 
 sub init {
-    $mod->register_global_command($_) || return foreach qw(confset confdel confget);
+    $mod->register_global_command($_) || return foreach qw(confset confget);
     return 1;
 }
 
@@ -98,8 +98,8 @@ sub forwarder {
     }
     
     # if $me is done, just keep going.
-    return 1 unless $done{$me};
-    return;
+    return !$done{$me};
+    
 }
 
 sub cmd_confget {
