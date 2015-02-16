@@ -126,7 +126,7 @@ sub rpl_isupport {
         CHANLIMIT   => '#:100',                     # TODO: currently unlimited
         NICKLEN     => conf('limit', 'nick'),
         MAXLIST     => "$listmodes:1000",           # TODO: currently unlimited
-        NETWORK     => conf('network', 'name'),
+        NETWORK     => conf('server', 'network') // conf('network', 'name'),
         EXCEPTS     => $me->cmode_letter('except'),
         INVEX       => $me->cmode_letter('invite_except'),
         CASEMAPPING => 'rfc1459',

@@ -2851,4 +2851,6 @@ CHANGES:
         87. fixed Git command failure handling.
 
         88. added Configuration::Set module which provides simple commands for modifying the configuration.
+
+        89. fixed a bug where NETWORK in RPL_ISUPPORT was missing with certain configurations.
             
