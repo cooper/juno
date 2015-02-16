@@ -2849,4 +2849,6 @@ CHANGES:
         86. fix broken Channel::OperOnly.
 
         87. fixed Git command failure handling.
+
+        88. added Configuration::Set module which provides simple commands for modifying the configuration.
             

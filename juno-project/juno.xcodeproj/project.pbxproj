@@ -87,6 +87,7 @@
 		BCD615471953963D00E1B0FE /* RegistrationCommands.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = RegistrationCommands.pm; path = RegistrationCommands.module/RegistrationCommands.pm; sourceTree = "<group>"; };
 		BCD615481953A66000E1B0FE /* RegistrationCommands.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = RegistrationCommands.pm; path = RegistrationCommands.module/RegistrationCommands.pm; sourceTree = "<group>"; };
 		BCF6734A1A91878C006E8E34 /* OperOnly.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = OperOnly.pm; path = OperOnly.module/OperOnly.pm; sourceTree = "<group>"; };
+		BCF6734D1A91AEB9006E8E34 /* Set.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Set.pm; path = Set.module/Set.pm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -172,6 +173,7 @@
 				BCB6C80B1960C47E009F093A /* Channel */,
 				BCBADAF0195CD5DE0051282D /* Last.fm */,
 				BC7B16921A900AFB00228EF1 /* Ban */,
+				BCF6734B1A91AEB9006E8E34 /* Configuration */,
 				BC131F371994445500B8071A /* Eval.pm */,
 				BC131F361994444500B8071A /* UnsafeEval.pm */,
 				BC9565621944E032002F52B9 /* Reload.pm */,
@@ -284,6 +286,14 @@
 			);
 			name = Last.fm;
 			path = Lastfm.module;
+			sourceTree = "<group>";
+		};
+		BCF6734B1A91AEB9006E8E34 /* Configuration */ = {
+			isa = PBXGroup;
+			children = (
+				BCF6734D1A91AEB9006E8E34 /* Set.pm */,
+			);
+			path = Configuration;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

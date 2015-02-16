@@ -1,0 +1,16 @@
+{
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
+   "depends" : {
+      "modules" : [
+         "JELP::Base",
+         "Base::UserCommands"
+      ]
+   },
+   "description" : "set and fetch configuration values across servers",
+   "name" : "Configuration::Set",
+   "package" : "M::Configuration::Set",
+   "version" : "2.1"
+}

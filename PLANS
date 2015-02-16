@@ -229,7 +229,7 @@ Unfinished or missing IRC functionality
 
     [ ] MOTD            Missing remote MOTD (<server> parameter) support.
 
-    [ ] Message block   Bans do not prevent messages from being sent to a channel.
+    [√] Message block   Bans do not prevent messages from being sent to a channel.
                         There is currently no mechanism for anything to do that.
                         The only things that do that, such as +n, are hard coded. :(
 
@@ -269,7 +269,7 @@ Unfinished or missing IRC functionality
     [ ] Several commands can only take one target, others can take infinitely many.
         It's both inconsistent and vulnerable.
 
-    [ ] Some server notices should be broadcasted, especially those used in modules.
+    [√] Some server notices should be broadcasted, especially those used in modules.
         For things like new users, we should stick to how it is, but for things like
         eval, modules, etc., we can use broadcast. Just add an option for registering
         them as broadcast notices.
@@ -313,7 +313,7 @@ Cleanup
 
     [ ] NAMES - why is it in channel.pm?
 
-    [ ] channel::handle_privmsgnotice() is just a mess. needs more events.
+    [√] channel::handle_privmsgnotice() is just a mess. needs more events.
 
     [ ] user mode handler uses ridiculous regex, needs to work just like the newer
         channel mode handler.
