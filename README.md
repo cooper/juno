@@ -339,7 +339,11 @@ To upgrade an existing repository, run the following commands:
 git pull origin master
 git submodule update --init
 ```
-
+  
+**OR**
+  
+Use the `UPDATE` command (provided by the Git module) to update the current repository.
+  
 Then, assuming the Reload module is loaded on your server, use the `RELOAD` command to
 upgrade the server without restarting. Because there are no stable releases, the
 possibility for this to fail is definitely there. Perhaps one day we will have stable
@@ -379,7 +383,8 @@ the bottom of INDEV. The current version is in the VERSION file.
 Mitchell Cooper, mitchell@notroll.net  
 
 I use Unix-like systems, and much of my work is designed specifically for such.
-I would be surprised yet pleased if someone got this software working on Windows. If the
+~~I would be surprised yet pleased if someone got this software working on Windows.~~
+It seems as though it works decently on Windows now. If the
 Xcode project isn't a good enough indication, I currently use OS X to develop this software.
 I don't think it's appropriate for Perl, but I have not yet found a great OS X editor.
 
