@@ -26,6 +26,7 @@
     Channel::Key        # Channel key support (+k)
     Channel::Limit      # Channel user limit support (+l)
     Channel::Secret     # Secret channel support (+s)
+    Channel::OperOnly   # Oper-only channel support (+O)
     Channel::Forward    # Channel forward support (+f)
     Channel::Mute       # Channel mute/quiet ban (+Z)
     SASL                # Support for SASL plain authentication

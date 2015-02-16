@@ -86,6 +86,7 @@
 		BCD615461953963500E1B0FE /* Capabilities.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Capabilities.pm; path = Capabilities.module/Capabilities.pm; sourceTree = "<group>"; };
 		BCD615471953963D00E1B0FE /* RegistrationCommands.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = RegistrationCommands.pm; path = RegistrationCommands.module/RegistrationCommands.pm; sourceTree = "<group>"; };
 		BCD615481953A66000E1B0FE /* RegistrationCommands.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = RegistrationCommands.pm; path = RegistrationCommands.module/RegistrationCommands.pm; sourceTree = "<group>"; };
+		BCF6734A1A91878C006E8E34 /* OperOnly.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = OperOnly.pm; path = OperOnly.module/OperOnly.pm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -266,6 +267,7 @@
 				BCB6C8171960C47E009F093A /* Limit.pm */,
 				BCB6C8191963DDE5009F093A /* Key.pm */,
 				BCB6C81A196495D6009F093A /* Secret.pm */,
+				BCF6734A1A91878C006E8E34 /* OperOnly.pm */,
 				BC131F391995C25200B8071A /* ModeSync.pm */,
 				BC8BAD3A19EF007E00216958 /* Forward.pm */,
 				BC6A7BB019F0623D0061CD59 /* Mute.pm */,
