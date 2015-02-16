@@ -344,7 +344,9 @@ git submodule update --init
   
 Use the `UPDATE` command (provided by the Git module) to update the current repository.
   
-Then, assuming the Reload module is loaded on your server, use the `RELOAD` command to
+**THEN**
+  
+Assuming the Reload module is loaded on your server, use the `RELOAD` command to
 upgrade the server without restarting. Because there are no stable releases, the
 possibility for this to fail is definitely there. Perhaps one day we will have stable
 releases that are known to upgrade without error.
