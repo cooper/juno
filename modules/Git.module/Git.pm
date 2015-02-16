@@ -162,13 +162,18 @@ sub command {
             }
         },
     
-        on_finish    => sub {
+        on_finish => sub {
+            my ($self, $exitcode) = @_;
+            
+            # error
+            if ($exitcode) {
+                L("Exception: $command_name: $error_msg");
+                $error_cb->($error_msg) if $error_cb;
+                return;
+            }
+            
             L("Finished: $command_name");
             $finish_cb->() if $finish_cb;
-        },
-        on_exception => sub {
-            L("Exception: $command_name: $error_msg");
-            $error_cb->($error_msg) if $error_cb;
         }
     );
     L("Running: $command_name");

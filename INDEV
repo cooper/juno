@@ -2847,4 +2847,6 @@ CHANGES:
             improved server notices for RELOAD and UPDATE.
 
         86. fix broken Channel::OperOnly.
+
+        87. fixed Git command failure handling.
             
