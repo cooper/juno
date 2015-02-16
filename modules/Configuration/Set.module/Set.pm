@@ -45,7 +45,7 @@ our %user_commands = (
 );
 
 sub init {
-    $mod->register_global_command($_) || return foreach qw(confset confget);
+    $mod->register_global_command(name => $_) || return foreach qw(confset confget);
     return 1;
 }
 
