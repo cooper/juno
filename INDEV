@@ -2856,5 +2856,6 @@ CHANGES:
 
     9. fixed inaccurate hop count in LINKS.
         update example configuration to include new modules.
+        fixed an issue where ->hops_to() can loop infinitely if used incorrectly.
 
             

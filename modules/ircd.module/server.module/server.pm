@@ -376,6 +376,7 @@ sub hops_to {
     my ($server1, $server2) = @_;
     my $hops = 0;
     return $hops if $server1 == $server2;
+    return -1    if $server2->{parent} == $server2;
     until (!$server2 || $server2 == $server1) {
         $hops++;
         $server2 = $server2->{parent};
