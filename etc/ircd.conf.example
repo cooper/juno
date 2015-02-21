@@ -12,26 +12,31 @@
 
 [ api ]
 
-    Core                # Loads core commands, modes, etc.
-    JELP                # Juno Extensible Linking Protocol support
-    Resolve             # Resolve hostnames
-    Reload              # Reload or upgrade the IRCd in 1 command
-    Channel::Fantasy    # Channel fantasy commands
-    Channel::Access     # Channel access mode (+A)
-    Account             # Support for user accounts
-    Modules             # Manage IRCd modules from IRC
-    LOLCAT              # SPEEK LIEK A LOLCATZ!
-    Eval                # Evaluate Perl code from IRC
-    Channel::Invite     # Channel invitation support (INVITE, +i, +I)
-    Channel::Key        # Channel key support (+k)
-    Channel::Limit      # Channel user limit support (+l)
-    Channel::Secret     # Secret channel support (+s)
-    Channel::OperOnly   # Oper-only channel support (+O)
-    Channel::Forward    # Channel forward support (+f)
-    Channel::Mute       # Channel mute/quiet ban (+Z)
-    SASL                # Support for SASL plain authentication
-    Grant               # grant user oper flags from IRC
-    Alias               # support for command aliases
+    Core                        # Loads core commands, modes, etc.
+    JELP                        # Juno Extensible Linking Protocol support
+    Resolve                     # Resolve hostnames
+    Git                         # update git repository directly from IRC
+    Reload                      # Reload or upgrade the IRCd in 1 command
+    Account                     # Support for user accounts
+    Modules                     # Manage IRCd modules directly from IRC
+    LOLCAT                      # SPEEK LIEK A LOLCATZ!
+    Eval                        # Evaluate Perl code directly from IRC
+    SASL                        # Support for SASL plain authentication
+    Grant                       # grant user oper flags from IRC
+    Alias                       # support for command aliases
+    Configuration::Set          # manage configuration directly from IRC
+    Channel::Fantasy            # Channel fantasy commands
+    Channel::Access             # Channel access mode (+A)
+    Channel::Invite             # Channel invitation support (INVITE, +i, +I)
+    Channel::Key                # Channel key support (+k)
+    Channel::Limit              # Channel user limit support (+l)
+    Channel::Secret             # Secret channel support (+s)
+    Channel::OperOnly           #       Oper-only channel support (+O)
+    Channel::Forward            # Channel forward support (+f)
+    Channel::Mute               # Channel mute/quiet ban (+Z)
+    Channel::TopicAdditions     # commands to prepend or append topic
+    Ban::Dline                  # server/user IP ban (D-Line/Z-Line)
+    Ban::Kline                  # user hostmask ban (K-Line)
 
 [ limit ]
 

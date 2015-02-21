@@ -2853,4 +2853,8 @@ CHANGES:
         88. added Configuration::Set module which provides simple commands for modifying the configuration.
 
         89. fixed a bug where NETWORK in RPL_ISUPPORT was missing with certain configurations.
+
+    9. fixed inaccurate hop count in LINKS.
+        update example configuration to include new modules.
+
             

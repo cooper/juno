@@ -1,7 +1,5 @@
 # agnie
 
-[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/cooper/agnie?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
 Yes.  
 It really is an IRC daemon.  
 It's written in Perl.  
@@ -18,6 +16,8 @@ you ask? No one knows for sure. Perl and IRC are both neat, so why not?
 This software will probably surprise you with its functionality and features. However, it
 should by no means be considered stable. Throughout several years of development, no
 stable versions have been released. Nonetheless, you are encouraged to give it a try.
+
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/cooper/agnie?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [irc.notroll.net #k](irc://irc.notroll.net/k)
 
 ## Concepts
 
