@@ -1231,7 +1231,7 @@ sub links {
     $user->numeric(RPL_LINKS =>
         $_->{name},
         $_->{parent}{name},
-        $_->hops_to($me),
+        $me->hops_to($_),
         $_->{desc}
     ) foreach $pool->lookup_server_mask($query_mask);
     
