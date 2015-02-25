@@ -465,19 +465,22 @@ sub sendfrom_to_many {
 }
 
 # handle a mode string, send to the local user, send to other servers.
-sub do_mode_string { _do_mode_string(undef, @_) }
+sub do_mode_string { _do_mode_string(undef, undef, @_) }
 
 # same as do_mode_string() except it does not send to other servers.
-sub do_mode_string_local { _do_mode_string(1, @_) }
+sub do_mode_string_local { _do_mode_string(1, undef, @_) }
+
+# same as do_mode_string() except it works on remote users.
+sub do_mode_string_unsafe { _do_mode_string(undef, 1, @_) }
 
 sub _do_mode_string {
-    my ($local_only, $user, $modestr, $force) = @_;
+    my ($local_only, $unsafe, $user, $modestr, $force) = @_;
     
     # handle.
     my $result = $user->handle_mode_string($modestr, $force) or return;
     
-    # not local or not done registering; stop.
-    return if !$user->is_local || !$user->{init_complete};
+    return if !$user->is_local && !$unsafe;                 # remote not allowed
+    return if $user->is_local  && !$user->{init_complete};  # local user not done registering
     
     # tell the user himself and other servers.
     $user->sendfrom($user->{nick}, "MODE $$user{nick} :$result");

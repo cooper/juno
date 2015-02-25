@@ -57,9 +57,8 @@ sub grant {
     # user isn't an IRC cop yet.
     my $already_irc_cop = $t_user->is_mode('ircop');
     if (!$already_irc_cop) {
-        my $mode   = $t_user->{server}->umode_letter('ircop');
-        my $result = $t_user->do_mode_string_local("+$mode", 1) or return;
-        $pool->fire_command_all(umode => $t_user, $result);
+        my $mode = $t_user->{server}->umode_letter('ircop');
+        $t_user->do_mode_string_unsafe("+$mode", 1);
     }
 
     # tell other servers about the flags.

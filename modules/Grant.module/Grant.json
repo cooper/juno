@@ -1,8 +1,7 @@
 {
-   "name" : "Grant",
    "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
    },
    "depends" : {
       "modules" : [
@@ -10,7 +9,8 @@
          "Base::OperNotices"
       ]
    },
-   "package" : "M::Grant",
    "description" : "grant privileges to a user",
-   "version" : "1.8"
+   "name" : "Grant",
+   "package" : "M::Grant",
+   "version" : "2"
 }

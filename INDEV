@@ -2858,4 +2858,6 @@ CHANGES:
         update example configuration to include new modules.
         fixed an issue where ->hops_to() can loop infinitely if used incorrectly.
 
+        91. fixed broken -oper parameter matcher.
+            fixed broken GRANT command; it wasn't working when used remotely.
             
