@@ -100,10 +100,18 @@ sub ungrant {
  
     # note: these will come from the server the GRANT command is issued on.
     my @all = ref_to_list($t_user->{flags});
-    $t_user->server_notice("You now have flags: @all") if @all;
     
+    # for notices
+    if (!@all) {
+        @all   = '(no flags)';
+        @flags = '(all flags)';
+    }
+    
+    # notices
+    $t_user->server_notice("You now have flags: @all");
     notice(ungrant => $user->{nick}, $t_user->{nick}, "@flags");
     $user->server_notice(ungrant => "$$t_user{nick} was revoked of: @flags");
+    
     return 1;
 }
 
