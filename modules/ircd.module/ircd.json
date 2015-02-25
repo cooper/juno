@@ -1,12 +1,12 @@
 {
-   "name" : "ircd",
-   "preserve_sym" : 1,
    "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
    },
-   "no_bless" : 1,
-   "version" : "9.85",
    "description" : "main IRCd module",
-   "package" : "ircd"
+   "name" : "ircd",
+   "no_bless" : 1,
+   "package" : "ircd",
+   "preserve_sym" : 1,
+   "version" : "9.91"
 }

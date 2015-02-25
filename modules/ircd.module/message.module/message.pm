@@ -372,7 +372,7 @@ sub _param_oper {
     my @flags = keys %$opts;
        @flags = 'do that' if !@flags;
     foreach my $flag (@flags) {
-        next if $is_irc_cop && $msg->source->has_flag($msg);
+        next if $is_irc_cop && $msg->source->has_flag($flag);
         $msg->source->numeric(ERR_NOPRIVILEGES => $flag);
         return $PARAM_BAD;
     }
