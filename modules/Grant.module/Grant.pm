@@ -80,10 +80,9 @@ sub ungrant {
     # removing all flags and unsetting oper.
     my $unopered = $flags[0] eq '*';
     if ($unopered) {
-        @flags     = @{ $t_user->{flags} };
-        my $mode   = $t_user->{server}->umode_letter('ircop');
-        my $result = $t_user->do_mode_string_local("-$mode", 1) or return;
-        $pool->fire_command_all(umode => $t_user, $result);
+        @flags   = @{ $t_user->{flags} };
+        my $mode = $t_user->{server}->umode_letter('ircop');
+        $t_user->do_mode_string_unsafe("-$mode", 1);
     }
 
     # remove the flags.
