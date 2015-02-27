@@ -1191,7 +1191,7 @@ sub squit {
         $user->server_notice(squit => "$$server{name} disconnected");
     }
     
-    my $servers = @servers == 1 ? 'server' : 'servers';
+    my $servers = $amnt == 1 ? 'server' : 'servers';
     $user->server_notice(squit => "$amnt $servers disconnected");
     return 1;
 }

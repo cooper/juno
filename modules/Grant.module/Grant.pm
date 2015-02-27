@@ -94,6 +94,12 @@ sub ungrant {
         $user->server_notice(grant => "User doesn't have any of those flags");
         return;
     }
+    
+    # all removed but not unopered.
+    # show this little reminder.
+    if (!@{ $t_user->{flags} } && !$unopered) {
+        $user->server_notice(grant => 'Please note that the user will remain an IRC operator even with no flags unless you ungrant "*"');
+    }
 
     # tell other servers about the flags.
     $pool->fire_command_all(oper => $t_user, map { "-$_" } @flags);

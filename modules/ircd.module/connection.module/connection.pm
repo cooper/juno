@@ -202,6 +202,7 @@ sub ready {
         # check if the server is linked already.
         if ($pool->lookup_server($connection->{sid}) || $pool->lookup_server_name($connection->{name})) {
             notice(connection_invalid => $connection->{ip}, 'Server exists');
+            $connection->done('Server exists');
             return;
         }
 

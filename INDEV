@@ -2860,4 +2860,7 @@ CHANGES:
 
         91. fixed broken -oper parameter matcher.
             fixed broken GRANT command; it wasn't working when used remotely.
-            
+
+        92. permanent bans no longer expire immediately after adding them.
+            GRANT command more verbose.
+            if a connection attempts to introduce an existing server, drop the connection immediately rather than waiting for it to timeout.

@@ -125,6 +125,9 @@ sub init {
 sub activate_ban {
     my %ban = @_;
     
+    # it's permanent
+    return if !$ban{expires};
+    
     # it has already expired
     if ($ban{expires} <= time) {
         expire_ban(%ban);
@@ -219,7 +222,7 @@ sub delete_ban_by_id {
 #
 # reason        default ban reason
 #
-# note: $mod refers to the module calling the method
+# note: $_mod refers to the module calling the method
 # TODO: when Ban module is unloaded, delete everything registered by other modules
 #
 sub register_ban_type {
