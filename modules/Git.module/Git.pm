@@ -42,7 +42,6 @@ sub init {
 }
 
 sub ucmd_update {
-    #my ($user, $event
     my ($user, $event, $server_mask_maybe) = @_;
     
     
@@ -100,9 +99,14 @@ sub ucmd_update {
         
         # error
         sub {
-            my @lines = split /\n/, shift;
+            my $error = shift;
+            my @lines = split /\n/, $error;
             $user->server_notice(update => "$$me{name} pull failed: $_") foreach @lines;
             gnotice(update_fail => $me->name, $user->notice_info);
+            
+            # handle Evented API Engine manifest conflicts
+            deal_with_manifest($user, $event) if index($error, '.json') != -1;
+            
         }
     );
 }
@@ -131,6 +135,21 @@ sub git_submodule_succeeded {
     my ($user, $event) = @_;
     $user->server_notice(update => "$$me{name} updated successfully");
     gnotice(update_success => $me->name, $user->notice_info);
+}
+
+# handle Evented API Engine manifest conflicts
+sub deal_with_manifest {
+    my ($user, $event) = @_;
+    
+    # if this server is in developer mode, we can't do much about it.
+    return if $api->{developer};
+    
+    # otherwise, dispose of the manifests for git to replace.
+    # then retry from the beginning.
+    command('rm $(find . | grep \'\.json\' | xargs)', undef, sub {
+        ucmd_update($user, $event, $me->{name});
+    });
+    
 }
 
 sub command {
