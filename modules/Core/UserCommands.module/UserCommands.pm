@@ -17,7 +17,7 @@ use strict;
 use 5.010;
 
 use Scalar::Util qw(blessed);
-use utils qw(col match cut_to_limit conf v notice simplify ref_to_list irc_match);
+use utils qw(col match cut_to_limit conf v notice gnotice simplify ref_to_list irc_match);
 
 our ($api, $mod, $me, $pool, $conf, $VERSION);
 
@@ -1005,16 +1005,17 @@ sub lusers {
 
 sub rehash {
     my $user = shift;
-
+    notice(rehash => $user->notice_info);
+    
     # rehash.
     $user->numeric(RPL_REHASHING => $ircd::conf->{conffile});
     if (ircd::rehash()) {
-        $user->server_notice('rehash', 'Configuration loaded successfully');
+        $user->server_notice(rehash => 'Configuration loaded successfully');
         return 1;
     }
 
     # error.
-    $user->server_notice('rehash', 'There was an error parsing the configuration');
+    $user->server_notice(rehash => 'There was an error parsing the configuration');
     return;
     
 }

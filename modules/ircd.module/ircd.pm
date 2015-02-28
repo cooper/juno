@@ -29,7 +29,7 @@ sub init {
 
     # load utils immediately.
     $mod->load_submodule('utils') or return;
-    utils->import(qw|conf fatal v trim notice ref_to_list|);
+    utils->import(qw|conf fatal v trim notice gnotice ref_to_list|);
     $VERSION = get_version();
     
     &set_variables;         # set default global variables.
@@ -498,8 +498,12 @@ sub load_optionals {
 ###############
 
 # handle a HUP
-# TODO: do something. LOL
-sub signalhup  { }
+sub signalhup {
+    notice(rehash => 'HUP signal', 'someone', 'localhost');
+    rehash();
+}
+
+# handle a PIPE
 sub signalpipe { }
 
 # handle warning
@@ -656,7 +660,6 @@ sub ping_check {
 
 # stop the ircd
 sub terminate {
-
     L("removing all connections for server shutdown");
 
     # delete all users/servers/other
@@ -675,10 +678,18 @@ sub terminate {
 
 # rehash the server.
 sub rehash {
-    eval { &setup_config } or L("Configuration error: ".($@ || $!)) and return;
+    
+    # rehash
+    eval { &setup_config } or
+        notice(rehash_fail => $@ || $!)
+        and return;
+    
+    # set up other stuff
     setup_sockets();
     add_internal_user_modes();
     add_internal_channel_modes();
+    
+    notice('rehash_success');
     return 1;
 }
 

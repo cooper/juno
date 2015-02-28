@@ -297,9 +297,9 @@ sub done {
 
     # destroy these references, just in case.
     delete $connection->{type}{conn};
-    delete $connection->{type};
-
-    # prevent confusion if more data is received.
+    delete $connection->{$_} foreach qw(type location server stream);
+    
+    # prevent confusion if buffer spits out more data.
     delete $connection->{ready};
     $connection->{goodbye} = 1;
 

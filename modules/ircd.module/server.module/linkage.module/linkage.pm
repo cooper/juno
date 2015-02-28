@@ -209,6 +209,8 @@ sub new_server {
 }
 
 # connection done event.
+# note: {type, location, server, stream} are deleted at this point
+# as well as all events
 sub connection_done {
     my ($connection, $event, $reason) = @_;
     my $server_name = $connection->{name} // $connection->{want};

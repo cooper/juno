@@ -44,6 +44,9 @@ our %oper_notices = (
     perl_warning            => '%s',
     exception               => '%s',
     server_warning          => '%s',
+    rehash                  => '%s (%s@%s) is rehashing the server',
+    rehash_fail             => 'Configuration error: %s',
+    rehash_success          => 'Server configuration reloaded successfully'
 
 );
 

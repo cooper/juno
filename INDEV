@@ -2868,3 +2868,7 @@ CHANGES:
         93. eval command now times out after 10 seconds.
 
         94. SQUIT can now cancel connection timers with wildcards.
+
+        95. improve connection object disposal.
+            rehash on HUP.
+            
