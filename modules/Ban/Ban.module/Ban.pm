@@ -586,7 +586,7 @@ sub ocmd_baninfo {
         $str .= "$key $value ";
     }
     my $reason = $ban->{reason} // '';
-    ":$$me{sid} BANINFO $str :$reason"
+    ":$$me{sid} BANINFO $str:$reason"
 }
 
 # BANIDK: request ban data

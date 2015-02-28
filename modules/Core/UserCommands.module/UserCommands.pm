@@ -842,7 +842,6 @@ sub sconnect {
 # host, or server name.                                                 #
 #########################################################################
 
-# FIXME: PLEASE! WHO is really bad.
 sub who {
     my ($user, $event, @args) = @_;
     my $query                = $args[0];

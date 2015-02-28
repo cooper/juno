@@ -13,5 +13,5 @@
    "description" : "provides an interface for user and server banning",
    "name" : "Ban",
    "package" : "M::Ban",
-   "version" : "8.4"
+   "version" : "8.5"
 }

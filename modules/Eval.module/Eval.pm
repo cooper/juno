@@ -78,9 +78,15 @@ sub _eval {
     }
     
     # evaluate.
-       $code //= '';
-    my $result = eval $code;
-    my @result = split "\n", $result // ($@ || "\2undef\2");
+    $code //= '';
+    my $result = eval {
+        local $SIG{ALRM} = sub { die "Timed out\n" };
+        alarm 10;
+        my $r = eval $code;
+        alarm 0;
+        $r // $@;
+    } // $@ // "\2undef\2";
+    my @result = split "\n", $result;
 
     # send the result to the channel.
     my $i = 0;
@@ -94,7 +100,12 @@ sub _eval {
     
     # send the result to the user.
     else {
-        $user->server_notice($i++ ? "eval ($i)" : 'eval', $_) foreach @result;
+        my $i = 0;
+        foreach (@result) {
+            $i++;
+            my $e = ($#result ? "($i): " : '').$_;
+            $user->server_notice(eval => $e);
+        }
     }
     
     return 1;
