@@ -2866,3 +2866,5 @@ CHANGES:
             if a connection attempts to introduce an existing server, drop the connection immediately rather than waiting for it to timeout.
 
         93. eval command now times out after 10 seconds.
+
+        94. SQUIT can now cancel connection timers with wildcards.

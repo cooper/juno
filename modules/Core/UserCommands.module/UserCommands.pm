@@ -1160,20 +1160,22 @@ sub version {
 }
 
 sub squit {
-    my ($user, $event, $server_name) =  @_;
-    my @servers = $pool->lookup_server_mask($server_name);
+    my ($user, $event, $server_input_name) =  @_;
+    my @servers = $pool->lookup_server_mask($server_input_name);
     
     # if there is a pending timer, cancel it.
-    # FIXME: stopping a timer does not support wildcards currently.
-    if (server::linkage::cancel_connection($server_name)) {
-        $user->server_notice(squit => 'Canceled connection to '.$server_name);
-        notice(server_connect_cancel => $user->notice_info, $server_name);
-        return 1;
+    my $canceled_some;
+    foreach my $server_name (keys %ircd::link_timers) {
+        if (server::linkage::cancel_connection($server_name)) {
+            $user->server_notice(squit => 'Canceled connection to '.$server_name);
+            notice(server_connect_cancel => $user->notice_info, $server_name);
+            $canceled_some = 1;
+        }
     }
     
-    # no servers.
+    # no connected servers match.
     if (!@servers) {
-        $user->numeric(ERR_NOSUCHSERVER => $server_name);
+        $user->numeric(ERR_NOSUCHSERVER => $server_input_name) unless $canceled_some;
         return;
     }
     
@@ -1182,9 +1184,16 @@ sub squit {
         
         # no direct connection. might be local server or a
         # psuedoserver or a server reached through another server.
-        next unless $server->{conn};
-        $amnt++;
+        if (!$server->{conn}) {
+            $user->server_notice(squit =>
+                "$$server{name} is not connected directly; " .
+                "use /SQUIT $$server{name} $$server{parent}{name} to " .
+                "disconnect it from its parent"
+            ) unless $server->{fake};
+            next;
+        }
         
+        $amnt++;
         $server->{conn}->{dont_reconnect} = 1;
         $server->{conn}->done('SQUIT command');
         $user->server_notice(squit => "$$server{name} disconnected");
@@ -1220,7 +1229,9 @@ sub links {
     
     # if it's not the local server, pass this on.
     if (!$server->is_local) {
-        $server->{location}->fire_command(links => $user, $server, $serv_mask, $query_mask);
+        $server->{location}->fire_command(links =>
+            $user, $server, $serv_mask, $query_mask
+        );
         return 1;
     }
     

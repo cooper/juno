@@ -311,7 +311,7 @@ Cleanup
 
     [√] WHOIS - needs to be evented and extensible.
 
-    [ ] NAMES - why is it in channel.pm?
+    [ ] NAMES - why is it in channel.pm? (who cares?)
 
     [√] channel::handle_privmsgnotice() is just a mess. needs more events.
 
@@ -323,7 +323,7 @@ Bugs
 
     [ ] Pretty sure that user modes must be equal on all servers for some reason.
 
-    [ ] SQUIT cannot stop a connection timer by server name wildcards, but it can
+    [√] SQUIT cannot stop a connection timer by server name wildcards, but it can
         disconnect servers matching wildcards. therefore it is confusing since that only
         works sometimes.
 

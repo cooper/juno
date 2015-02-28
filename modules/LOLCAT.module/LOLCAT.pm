@@ -29,8 +29,8 @@ our %user_commands = (LOLCAT => {
 
 sub lolcat {
     my ($user, $event, $channel, $msg) = @_;
-    my $cmd = ':'.$user->full." PRIVMSG $$where{name} :$msg";
-    $user->handle("ECHO $$where{name} :$msg");
+    my $cmd = ':'.$user->full." PRIVMSG $$channel{name} :$msg";
+    $user->handle("ECHO $$channel{name} :$msg");
 }
 
 $mod
