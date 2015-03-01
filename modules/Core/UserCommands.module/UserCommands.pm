@@ -174,6 +174,11 @@ our %user_commands = (
         desc   => 'server time',
         params => 'server_mask(opt)'
     },
+    USERHOST => {
+        code   => \&userhost,
+        desc   => 'user hostmask query',
+        params => '@rest'
+    }
 );
 
 sub init {
@@ -1296,5 +1301,18 @@ sub _time {
     return 1;
 }
 
+sub userhost {
+    my ($user, $event, @nicknames) = @_;
+    my @strs;
+    
+    # non-matches should be ignored
+    # if no matches are found, still send an empty reply
+    foreach my $usr (map $pool->lookup_user_nick($_), @nicknames) {
+        next unless $usr;
+        push @strs, $usr->{nick}.q(*=).(exists $usr->{away} ? '-' : '+').$usr->full;
+    }
+    
+    $user->numeric(RPL_USERHOST => join ' ', @strs);
+}
 
 $mod

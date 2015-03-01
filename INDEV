@@ -2873,4 +2873,6 @@ CHANGES:
             rehash on HUP.
 
         96. Git module now attempts to resolve Evented API Engine manifest conflicts.
+
+        97. added USERHOST command.
             
