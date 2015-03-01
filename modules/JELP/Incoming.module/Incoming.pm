@@ -159,6 +159,11 @@ sub init {
         forward    => $scommands{$_}{forward}
     ) || return foreach keys %scommands;
 
+    # global user commands
+    $mod->register_global_command(name => $_) || return foreach qw(
+        version time admin
+    );
+    
     undef %scommands;
     return 1;
 }

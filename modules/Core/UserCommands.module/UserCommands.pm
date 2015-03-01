@@ -182,9 +182,6 @@ our %user_commands = (
 );
 
 sub init {
-    $mod->register_global_command(name => $_) || return foreach qw(
-        version time admin
-    );
     
     &add_join_callbacks;
     &add_whois_callbacks;
