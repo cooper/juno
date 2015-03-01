@@ -182,7 +182,8 @@ our %user_commands = (
 );
 
 sub init {
-    
+    $mod->register_global_command(name => 'version') or return;
+
     &add_join_callbacks;
     &add_whois_callbacks;
     
@@ -1154,13 +1155,20 @@ sub modelist {
 
 sub version {
     my ($user, $event, $server) = (shift, shift, shift || $me);
+    
+    # if the server isn't me, forward it.
+    if ($server != $me) {
+        $server->{location}->fire_command_data(version => $user, "\$$$server{sid}");
+        return 1;
+    }
+    
     $user->numeric(RPL_VERSION =>
-        v('SNAME').q(-).v('NAME'), # all
-        $ircd::VERSION,            # of
-        $server->{name},           # this
-        $::VERSION,                # is
-        $ircd::VERSION,            # wrong for nonlocal servers.
-        $VERSION                   # TODO: send this info over protocol.
+        v('SNAME').q(-).v('NAME'),
+        $ircd::VERSION,
+        $server->{name},
+        $::VERSION,     
+        $ircd::VERSION, 
+        $VERSION
     );
     $user->numeric('RPL_ISUPPORT') if $server->is_local;
 }
@@ -1288,7 +1296,7 @@ sub admin {
 # note: this handler is used also for remote users.
 sub _time {
     my ($user, $event, $server) = @_;
-    print "local TIME: user($user) event($event) server($$server{name})" if $server;
+
     # this does not apply to me; forward it.
     if ($server && $server != $me) {
         $server->{location}->fire_command(time => $user, $server);

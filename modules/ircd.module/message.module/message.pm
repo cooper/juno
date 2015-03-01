@@ -395,6 +395,12 @@ sub _param_server {
 # server_mask: match a mask to a single server.
 sub _param_server_mask {
     my ($msg, $param, $params, $opts) = @_;
+    
+    # if it's *, always use the local server.
+    if ($param eq '*') {
+        return push @$params, $me;
+    }
+    
     my $server = $pool->lookup_server_mask($param);
     
     # not found, send no such server.

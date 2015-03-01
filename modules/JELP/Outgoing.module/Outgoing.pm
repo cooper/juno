@@ -42,6 +42,7 @@ my %ocommands = (
     admin           => \&admin,
     time            => \&_time,
     snotice         => \&snotice,
+    version         => \&version,
 
     # JELP-specific
     
@@ -423,6 +424,11 @@ sub _time {
 sub snotice {
     my ($to_server, $flag, $message) = @_;
     ":$$me{sid} SNOTICE $flag :$message"
+}
+
+sub version {
+    my ($to_server, $user, $target_server) = @_;
+    ":$$user{uid} VERSION \$$$target_server{sid}"
 }
 
 $mod

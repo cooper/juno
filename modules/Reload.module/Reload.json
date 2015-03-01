@@ -1,5 +1,8 @@
 {
-   "name" : "Reload",
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
    "depends" : {
       "modules" : [
          "Base::UserCommands",
@@ -8,10 +11,7 @@
       ]
    },
    "description" : "reload the entire IRCd in one command",
-   "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
-   },
-   "version" : "4.9",
-   "package" : "M::Reload"
+   "name" : "Reload",
+   "package" : "M::Reload",
+   "version" : "5"
 }

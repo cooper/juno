@@ -142,12 +142,24 @@ sub lookup_server {
 # find a server by its name.
 sub lookup_server_name {
     my ($pool, $sname) = @_;
+    
+    # $sid format
+    if ($sname =~ m/^\$(\d+)$/) {
+        return $pool->lookup_server($1);
+    }
+    
     return $pool->{server_names}{ lc $sname };
 }
 
 # find any number of servers by mask.
 sub lookup_server_mask {
     my ($pool, $mask) = @_;
+    
+    # $sid format
+    if ($mask =~ m/^\$(\d+)$/) {
+        return $pool->lookup_server($1);
+    }
+    
     my @matches;
     foreach my $server (sort { $a->{name} cmp $b->{name} } $pool->servers) {
         next unless utils::irc_match($server->{name}, $mask);

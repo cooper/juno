@@ -82,7 +82,7 @@ sub cmd_reload {
             # pass it on :)
             $user->server_notice(reload => "Sending reload command to $$serv{name}")
                 if $user->is_local;
-            $serv->{location}->fire_command_data(reload => $user, "RELOAD $$serv{name}");
+            $serv->{location}->fire_command_data(reload => $user, "\$$$serv{sid}");
             
         }
         
