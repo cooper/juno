@@ -2882,3 +2882,6 @@ CHANGES:
 
         99. updated TIME and ADMIN commands to use the same global command mechanism used by VERSION, UPDATE, RELOAD...
 
+10. juno-ircd version 10 is being branded as yiria.
+
+    0. rebranding.
