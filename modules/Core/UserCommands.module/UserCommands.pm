@@ -1309,8 +1309,8 @@ sub userhost {
     # if no matches are found, still send an empty reply
     foreach my $usr (map $pool->lookup_user_nick($_), @nicknames) {
         next unless $usr;
-        my $oper = $user->is_mode('ircop') ? '*' : '';
-        my $away = exists $usr->{away}     ? '-' : '+';
+        my $oper = $usr->is_mode('ircop') ? '*' : '';
+        my $away = exists $usr->{away}    ? '-' : '+';
         push @strs, $usr->{nick}."$oper=$away".$usr->full;
     }
     
