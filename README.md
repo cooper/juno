@@ -236,8 +236,33 @@ non-modular packages into modules significantly improved the stability and reloa
 of the IRCd.
 
 * [__agnie__](https://github.com/cooper/yiria/tree/2a50d41ea3274ad8d157c029976c53cc51bca27a) (juno9):
-Named after the beautiful and talented [Agnes](http://agnes.mac-mini.org), agnie is a
-continuation of kylie.
+Named after the beautiful and talented [Agnes](http://agnes.mac-mini.org), agnie
+introduced lots of new functionality: the ability to
+[manage oper flags](https://github.com/cooper/yiria/blob/master/modules/Grant.module/Grant.pm)
+from IRC, much-improved
+[account management](https://github.com/cooper/yiria/tree/master/modules/Account.module),
+and
+[command aliases](https://github.com/cooper/yiria/blob/master/modules/Alias.module/Alias.pm)
+to name a few. It opened a new door of possibility by adding partial
+[TS6 protocol](https://github.com/atheme/charybdis/blob/master/doc/technical/ts6.txt) support, and
+it even supports [atheme](https://github.com/atheme/atheme) now to some extent. New
+channel modes include invite exception (+I), free invite (+g), channel forward (+F),
+oper only channel (+O), and mute ban (+Z); also, the
+[TopicAdditions](https://github.com/cooper/yiria/blob/master/modules/Channel/TopicAdditions.module/TopicAdditions.pm)
+module added convenient commands to prepend or append the topic. Some missing commands
+were added: ADMIN, TIME, and USERHOST; and several commands that previously did not work
+remotely now do. agnie introduced a
+[new mechanism](https://github.com/cooper/yiria/tree/master/modules/Ban/Ban.module/Ban.pm)
+for storing and enforcing bans (functionality missing since juno2), followed by
+[K-Line](https://github.com/cooper/yiria/blob/master/modules/Ban/Kline.module/Kline.pm)
+and
+[D-Line](https://github.com/cooper/yiria/blob/master/modules/Ban/Dline.module/Dline.pm)
+support in the form of modules. In addition to the existing RELOAD command, agnie
+includes new ways to manage servers remotely, including
+[repository](https://github.com/cooper/yiria/blob/master/modules/Git.module/Git.pm)
+and
+[configuration](https://github.com/cooper/yiria/blob/master/modules/Configuration/Set.module/Set.pm)
+management directly from IRC. And, as always, there were lots of efficiency improvements.
 
 * [__yiria__](https://github.com/cooper/yiria) (juno10):
 yiria is a continuation of agnie and is the current version under active development.
