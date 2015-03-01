@@ -412,13 +412,12 @@ sub join_with_modes {
 
 sub admin {
     my ($to_server, $user, $t_server) = @_;
-    "\@for=$$t_server{sid} :$$user{uid} ADMIN"
+    ":$$user{uid} ADMIN \$$$t_server{sid}"
 }
-
 
 sub _time {
     my ($to_server, $user, $t_server) = @_;
-    "\@for=$$t_server{sid} :$$user{uid} TIME"
+    ":$$user{uid} TIME \$$$t_server{sid}"
 }
 
 sub snotice {
@@ -427,8 +426,8 @@ sub snotice {
 }
 
 sub version {
-    my ($to_server, $user, $target_server) = @_;
-    ":$$user{uid} VERSION \$$$target_server{sid}"
+    my ($to_server, $user, $t_server) = @_;
+    ":$$user{uid} VERSION \$$$t_server{sid}"
 }
 
 $mod

@@ -1,13 +1,13 @@
 {
    "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
    },
-   "description" : "basic set of JELP command handlers",
    "depends" : {
       "modules" : "JELP::Base"
    },
+   "description" : "basic set of JELP command handlers",
+   "name" : "JELP::Incoming",
    "package" : "M::JELP::Incoming",
-   "version" : "15.73",
-   "name" : "JELP::Incoming"
+   "version" : "15.93"
 }

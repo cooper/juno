@@ -2879,4 +2879,6 @@ CHANGES:
         98. VERSION command now accurately displays version info for remote servers.
             improved reliablity of commands which take a remote server argument like VERSION, TIME, RELOAD, etc.
             commands which take a server mask parameter that can only match one server will now always match the local server if the query is "*".
-            
+
+        99. updated TIME and ADMIN commands to use the same global command mechanism used by VERSION, UPDATE, RELOAD...
+

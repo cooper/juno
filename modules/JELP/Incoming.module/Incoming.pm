@@ -145,14 +145,6 @@ my %scommands = (
         params  => '-tag.for(server) -source(user)  user',
         code    => \&whois
     },
-    ADMIN => {     # @for=sid        :uid     ADMIN
-        params  => '-tag.for(server) -source(user)',
-        code    => \&admin
-    },
-    TIME => {      # @for=sid        :uid     TIME
-        params  => '-tag.for(server) -source(user)',
-        code    => \&_time
-    },
     SNOTICE => {  # :sid SNOTICE   flag  :message
         params => '-source(server) any   :rest',
         code   => \&snotice
@@ -789,34 +781,6 @@ sub whois {
     
     # === Forward ===
     $msg->forward_to($t_server, whois => $user, $t_user, $t_server);
-    
-    return 1;
-}
-
-sub admin {
-    my ($server, $msg, $t_server, $user) = @_;
-    
-    # this message is for me.
-    if ($t_server->is_local) {
-        return $user->handle_unsafe('ADMIN');
-    }
-    
-    # === Forward ===
-    $msg->forward_to($t_server, admin => $user, $t_server);
-    
-    return 1;
-}
-
-sub _time {
-    my ($server, $msg, $t_server, $user) = @_;
-    
-    # this message is for me.
-    if ($t_server->is_local) {
-        return $user->handle_unsafe('TIME');
-    }
-    
-    # === Forward ===
-    $msg->forward_to($t_server, time => $user, $t_server);
     
     return 1;
 }

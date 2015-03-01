@@ -60,7 +60,7 @@ our %user_commands = (
     VERSION => {
         code   => \&version,
         desc   => 'view server version information',
-        params => 'server(opt)'
+        params => 'server_mask(opt)'
     },
     LINKS => {
         code   => \&links,
@@ -182,8 +182,10 @@ our %user_commands = (
 );
 
 sub init {
-    $mod->register_global_command(name => 'version') or return;
-
+    $mod->register_global_command(name => $_) || return foreach qw(
+        version time admin
+    );
+    
     &add_join_callbacks;
     &add_whois_callbacks;
     
@@ -1158,7 +1160,7 @@ sub version {
     
     # if the server isn't me, forward it.
     if ($server != $me) {
-        $server->{location}->fire_command_data(version => $user, "\$$$server{sid}");
+        $server->{location}->fire_command(version => $user, $server);
         return 1;
     }
     
