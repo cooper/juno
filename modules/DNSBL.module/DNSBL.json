@@ -1,0 +1,10 @@
+{
+   "author" : {
+      "name" : "Matthew Barksdale",
+      "website" : "https://github.com/mattwb65"
+   },
+   "description" : "Adds DNSBL checking on new connections",
+   "name" : "DNSBL",
+   "package" : "M::DNSBL",
+   "version" : "1.0"
+}

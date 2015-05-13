@@ -2888,5 +2888,10 @@ CHANGES:
 
         01. Allow retrieving the MOTD of a remote server.
         
-        02. Add send_to_channels_with_cap to send a cap notification to common
+        02. Added send_to_channels_with_cap to send a cap notification to common
             users.
+            
+        03. Added sendfrom_to_cap to send to a list of users who have a cap.
+            Additionally, add away-notify support.
+            
+        04. Added DNSBL module.
