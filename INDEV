@@ -2887,3 +2887,6 @@ CHANGES:
     0. rebranding.
 
         01. Allow retrieving the MOTD of a remote server.
+        
+        02. Add send_to_channels_with_cap to send a cap notification to common
+            users.
