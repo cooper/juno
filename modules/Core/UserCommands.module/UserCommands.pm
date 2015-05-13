@@ -5,7 +5,7 @@
 # @package:         "M::Core::UserCommands"
 # @description:     "the core set of user commands"
 #
-# @depends.modules: "Base::UserCommands"
+# @depends.modules: ['Base::UserCommands', 'Base::Capabilities']
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"
@@ -186,6 +186,9 @@ sub init {
 
     &add_join_callbacks;
     &add_whois_callbacks;
+    
+    #  Add away-notify capability.
+    $mod->register_capability('away-notify');
 
     return 1;
 }
@@ -792,6 +795,8 @@ sub away {
         $user->set_away($reason);
         $pool->fire_command_all(away => $user);
         $user->numeric('RPL_NOWAWAY');
+        # let people with away-notify know
+        $user->send_to_channels_with_cap("AWAY :$reason", 'away-notify');
         return 1;
     }
 
@@ -800,6 +805,8 @@ sub away {
     $user->unset_away;
     $pool->fire_command_all(return_away => $user);
     $user->numeric('RPL_UNAWAY');
+    # let people with away-notify know
+    $user->send_to_channels_with_cap('AWAY', 'away-notify');
 
     return 1;
 }

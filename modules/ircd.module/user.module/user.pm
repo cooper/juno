@@ -444,7 +444,7 @@ sub new_connection {
 # also, the source user will receive the message as well if local.
 sub send_to_channels {
     my ($user, $message) = @_;    
-    sendfrom_to_many($user->full, $message, undef, $user, map { $_->users } $user->channels);
+    sendfrom_to_many($user->full, $message, $user, map { $_->users } $user->channels);
     return 1;
 }
 
@@ -452,25 +452,41 @@ sub send_to_channels {
 # note: the source user does not need to be local.
 # also, the source user will receive the message as well if local.
 sub send_to_channels_with_cap {
-    my ($user, $message, $cap) = @_;
-    sendfrom_to_many($user->full, $message, $cap, map { $_->users } $user->channels);
+    my ($user, $message, $cap, $self) = @_;
+    sendfrom_to_cap($user->full, $message, $cap, $self, map { $_->users } $user
+        ->channels);
     return 1;
 }
 
 # class function:
 # send to a number of users but only once per user.
 # returns the number of users affected.
-# user::sendfrom_to_many($from, $message, $cap, @users)
+# user::sendfrom_to_many($from, $message, @users)
 sub sendfrom_to_many {
-    my ($from, $message, $cap, @users) = @_;
+    my ($from, $message, @users) = @_;
     my %done;
     foreach my $user (@users) {
         next if !$user->is_local;
         next if $done{$user};
-        if (defined $cap) {
-            next if $from eq $user->full; # Don't send to ourselves.
-            next if !$user->has_cap($cap);
-        }
+        $user->sendfrom($from, $message);
+        $done{$user} = 1;
+    }
+    return scalar keys %done;
+}
+
+
+# class function:
+# send to a number of users that have a cap.
+# returns the number of users affected
+# user::sendfrom_to_cap($from, $message, $cap, $self, @users)
+sub sendfrom_to_cap {
+    my ($from, $message, $cap, $self, @users) = @_;
+    my %done;
+    foreach my $user (@users) {
+        next if !$user->is_local;
+        next if $done{$user};
+        next if !$self && $from eq $user->full;
+        next if !$user->has_cap($cap);
         $user->sendfrom($from, $message);
         $done{$user} = 1;
     }

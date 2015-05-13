@@ -4,10 +4,13 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
-      "modules" : "Base::UserCommands"
+      "modules" : [
+         "Base::UserCommands",
+         "Base::Capabilities"
+      ]
    },
    "description" : "the core set of user commands",
    "name" : "Core::UserCommands",
    "package" : "M::Core::UserCommands",
-   "version" : "9.99"
+   "version" : "10.03"
 }
