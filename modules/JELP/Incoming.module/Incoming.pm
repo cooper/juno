@@ -97,7 +97,7 @@ my %scommands = (
         code    => \&part
     },
     TOPIC => {
-                   # :src TOPIC     ch_time topic_time :topic 
+                   # :src TOPIC     ch_time topic_time :topic
         params  => '-source channel ts      ts         :rest',
         code    => \&topic
     },
@@ -161,9 +161,9 @@ sub init {
 
     # global user commands
     $mod->register_global_command(name => $_) || return foreach qw(
-        version time admin
+        version time admin motd
     );
-    
+
     undef %scommands;
     return 1;
 }
@@ -191,10 +191,10 @@ sub sid {
 
     # create a new server
     my $serv = $pool->new_server(%$ref);
-    
+
     # === Forward ===
     $msg->forward(new_server => $serv);
-    
+
     return 1;
 }
 
@@ -202,7 +202,7 @@ sub uid {
     # server any ts any   any  any   any  any   any :rest
     # :sid   UID   uid ts modes nick ident host cloak ip  :realname
     my ($server, $msg, @args) = @_;
-    
+
     my $ref          = {};
     $ref->{$_}       = shift @args foreach qw[server uid time modes nick ident host cloak ip real];
     $ref->{source}   = $server->{sid}; # source = sid we learned about the user from
@@ -223,18 +223,18 @@ sub uid {
     my $used = $pool->lookup_user_nick($ref->{nick});
     if ($used) {
         L("nick collision! $$ref{nick}");
-        
+
         # I lose.
         if ($ref->{time} > $used->{time}) {
             $ref->{nick} = $ref->{uid};
         }
-         
+
         # you lose.
         elsif ($ref->{time} < $used->{time}) {
             $used->send_to_channels("NICK $$used{uid}");
             $used->change_nick($used->{uid}, time);
         }
-        
+
         # we both lose.
         else {
             $ref->{nick} = $ref->{uid};
@@ -264,13 +264,13 @@ sub quit {
     # :source QUIT   :reason
     my ($server, $msg, $source, $reason) = @_;
     return if $source == $me;
-    
+
     # delete the server or user
     $source->quit($reason);
-    
+
     # === Forward ===
     $msg->forward(quit => $source, $reason);
-    
+
 }
 
 # handle a nickchange
@@ -282,10 +282,10 @@ sub nick {
     # tell ppl
     $user->send_to_channels("NICK $newnick");
     $user->change_nick($newnick, time);
-    
+
     # === Forward ===
     $msg->forward(nickchange => $user);
-    
+
 }
 
 sub burst {
@@ -295,10 +295,10 @@ sub burst {
     $serv->{is_burst} = time;
     L("$$serv{name} is bursting information");
     notice(server_burst => $serv->{name}, $serv->{sid});
-    
+
     # === Forward ===
     $msg->forward(burst => $serv, $their_time);
-    
+
 }
 
 sub endburst {
@@ -308,16 +308,16 @@ sub endburst {
     my $time    = delete $serv->{is_burst};
     my $elapsed = time - $time;
     $serv->{sent_burst} = time;
-    
+
     L("end of burst from $$serv{name}");
     notice(server_endburst => $serv->{name}, $serv->{sid}, $elapsed);
-    
+
     # if we haven't sent our own burst yet, do so.
     $serv->send_burst if $serv->{conn} && !$serv->{i_sent_burst};
-    
+
     # === Forward ===
     $msg->forward(endburst => $serv, $their_time);
-    
+
 }
 
 sub umode {
@@ -325,19 +325,19 @@ sub umode {
     # :uid UMODE modestring
     my ($server, $msg, $user, $str) = @_;
     $user->do_mode_string_local($str, 1);
-    
+
     # === Forward ===
     $msg->forward(umode => $user, $str);
-    
+
 }
 
 sub privmsgnotice {
     my ($server, $msg, $source, $command, $target, $message) = @_;
-    
+
     # is it a user?
     my $tuser = $pool->lookup_user($target);
     if ($tuser) {
-    
+
         # if it's mine, send it.
         if ($tuser->is_local) {
             $tuser->sendfrom($source->full, "$command $$tuser{nick} :$message");
@@ -353,14 +353,14 @@ sub privmsgnotice {
             $command, $source,
             $tuser,   $message
         );
-        
+
         return 1;
     }
 
     # must be a channel.
     my $channel = $pool->lookup_channel($target);
     if ($channel) {
-    
+
         # the second-to-last argument here tells ->handle_privmsgnotice
         # to not forward the message to servers. that is handled below.
         #
@@ -368,7 +368,7 @@ sub privmsgnotice {
         # regardless of modes or bans, etc.
         #
         $channel->handle_privmsgnotice($command, $source, $message, 1, 1);
-        
+
         # === Forward ===
         #
         # forwarding to a channel means to send it to every server that
@@ -378,10 +378,10 @@ sub privmsgnotice {
             $command, $source,
             $channel, $message
         );
-        
+
         return 1;
     }
-    
+
     return;
 }
 
@@ -394,16 +394,16 @@ sub _join {
     # take lower time if necessary, and add the user to the channel.
     $channel->take_lower_time($time) unless $new;
     $channel->cjoin($user, $time)    unless $channel->has_user($user);
-    
+
     # for each user in the channel, send a JOIN message.
     $channel->sendfrom_all($user->full, "JOIN $$channel{name}");
-   
+
     # fire after join event.
     $channel->fire_event(user_joined => $user);
 
     # === Forward ===
     $msg->forward(join => $user, $channel, $channel->{time});
-    
+
 }
 
 # add user flags
@@ -423,10 +423,10 @@ sub oper {
     }
     $user->add_flags(@add);
     $user->remove_flags(@remove);
-    
+
     # === Forward ===
     $msg->forward(oper => $user, @flags);
-    
+
 }
 
 sub away {
@@ -434,10 +434,10 @@ sub away {
     # :uid AWAY  :reason
     my ($server, $msg, $user, $reason) = @_;
     $user->set_away($reason);
-    
+
     # === Forward ===
     $msg->forward(away => $user);
-    
+
 }
 
 sub return_away {
@@ -445,10 +445,10 @@ sub return_away {
     # :uid RETURN
     my ($server, $msg, $user) = @_;
     $user->unset_away();
-    
+
     # === Forward ===
     $msg->forward(return_away => $user);
-    
+
 }
 
 # set a mode on a channel
@@ -460,10 +460,10 @@ sub cmode {
     # ignore if time is older and take lower time
     my $new_ts = $channel->take_lower_time($time);
     return unless $time == $new_ts;
-    
+
     # handle the mode string and send to local users.
     $channel->do_mode_string_local($perspective, $source, $modestr, 1, 1);
-    
+
     # === Forward ===
     #
     # $source, $channel, $time, $perspective, $modestr
@@ -472,7 +472,7 @@ sub cmode {
     # TS6:  TMODE
     #
     $msg->forward(cmode => $source, $channel, $time, $perspective, $modestr);
-    
+
     return 1;
 }
 
@@ -495,10 +495,10 @@ sub part {
     $channel->remove($user);
     $reason = defined $reason ? " :$reason" : '';
     $channel->sendfrom_all($user->full, "PART $$channel{name}$reason");
-    
+
     # === Forward ===
     $msg->forward(part => $user, $channel, $time, $reason);
-    
+
     return 1
 }
 
@@ -512,13 +512,13 @@ sub aum {
         next if !length $name || !length $letter;
         $serv->add_umode($name, $letter);
     }
-    
+
     # === Forward ===
-    # 
+    #
     # this will probably only be used for JELP
     #
     $msg->forward(aum => $serv);
-    
+
     return 1;
 }
 
@@ -529,22 +529,22 @@ sub acm {
     my ($server, $msg, $serv) = (shift, shift, shift);
     foreach my $str (@_) {
         my ($name, $letter, $type) = split /:/, $str, 3;
-        
+
         # ensure that all values are present.
         next if
             !length $name   ||
             !length $letter ||
             !length $type;
-            
+
         $serv->add_cmode($name, $letter, $type)
     }
-    
+
     # === Forward ===
-    # 
+    #
     # this will probably only be used for JELP
     #
     $msg->forward(acm => $serv);
-    
+
     return 1;
 }
 
@@ -565,12 +565,12 @@ sub cum {
     my $after_modestr = ''; # mode string after changes.
     my $old_modestr   = $channel->mode_string_all($serv, 1); # all but status
     my $old_s_modestr = $channel->mode_string_status($serv); # status only
-    
+
     # take the new time if it's less recent.
     my $old_time = $channel->{time};
     my $new_time = $channel->take_lower_time($ts, 1);
     my @good_users;
-    
+
     # determine the user mode string.
     my ($uids_modes, @uids) = '';
     USER: foreach my $str (split /,/, $userstr) {
@@ -578,7 +578,7 @@ sub cum {
         my ($uid, $modes) = split /!/, $str;
         my $user = $pool->lookup_user($uid) or next USER;
         push @good_users, $user;
-        
+
         # join the new users
         unless ($channel->has_user($user)) {
             $channel->cjoin($user, $channel->{time});
@@ -592,44 +592,44 @@ sub cum {
 
         $uids_modes .= $modes;
         push @uids, $uid for 1 .. length $modes;
-        
+
     }
-    
+
     # combine this with the other modes.
     my ($other_modes, @other_params) = split ' ', $modestr;
     my $command_modestr = join(' ', '+'.$other_modes.$uids_modes, @other_params, @uids);
-    
+
     # the channel time is the same as in the command, so new modes are valid.
     if ($new_time == $ts) {
-    
+
         # determine the difference between
         # $old_modestr     (all former modes except status)
         # $command_modestr (all new modes including status)
         my $difference = $serv->cmode_string_difference($old_modestr, $command_modestr, 1);
-        
+
         # the command time took over, so we need to remove our current status modes.
         if ($new_time < $old_time) {
             substr($old_s_modestr, 0, 1) = '-';
-            
+
             # separate each string into modes and params.
             my ($s_modes, @s_params) = split ' ', $old_s_modestr;
             my ($d_modes, @d_params) = split ' ', $difference;
-            
+
             # combine.
             $s_modes  //= '';
             $d_modes  //= '';
             $difference = join(' ', join('', $d_modes, $s_modes), @d_params, @s_params);
 
         }
-        
+
         # handle the mode string locally.
         $channel->do_mode_string_local($serv, $serv, $difference, 1, 1) if $difference;
-        
+
     }
-    
+
     # === Forward ===
     $msg->forward(channel_burst => $channel, $serv, @good_users);
-    
+
     return 1;
 }
 
@@ -648,7 +648,7 @@ sub topic {
 
     # tell users.
     $channel->sendfrom_all($source->full, "TOPIC $$channel{name} :$topic");
-    
+
     # set it
     if (length $topic) {
         $channel->{topic} = {
@@ -661,7 +661,7 @@ sub topic {
     else {
         delete $channel->{topic}
     }
-    
+
     # === Forward ===
     $msg->forward(topic => $source, $channel, $channel->{time}, $topic);
 
@@ -683,7 +683,7 @@ sub topicburst {
     if (!$t or $t && $t->{topic} ne $topic) {
         $channel->sendfrom_all($s_serv->full, "TOPIC $$channel{name} :$topic");
     }
-    
+
     # set it
     if (length $topic) {
         $channel->{topic} = {
@@ -720,10 +720,10 @@ sub kick {
     # source channel user :rest
     # :id    KICK  channel uid  :reason
     my ($server, $msg, $source, $channel, $t_user, $reason) = @_;
-    
+
     # fallback reason to source.
     $reason //= $source->name;
-    
+
     # tell the local users of the channel.
     notice(user_part =>
         $t_user->notice_info,
@@ -731,13 +731,13 @@ sub kick {
         "Kicked by $$source{nick}: $reason"
     ) if $source->isa('user');
     $channel->sendfrom_all($source->full, "KICK $$channel{name} $$t_user{nick} :$reason");
-    
+
     # remove the user from the channel.
     $channel->remove_user($t_user);
-    
+
     # === Forward ===
     $msg->forward(kick => $source, $channel, $t_user, $reason);
-    
+
     return 1;
 }
 
@@ -745,12 +745,12 @@ sub kick {
 # server user any :rest
 sub num {
     my ($server, $msg, $source, $user, $num, $message) = @_;
-    
+
     # local user.
     if ($user->is_local) {
         $user->sendfrom($source->full, "$num $$user{nick} $message");
     }
-    
+
     # === Forward ===
     # forward to next hop.
     else {
@@ -767,7 +767,7 @@ sub links {
     if ($t_server->is_local) {
         return $user->handle_unsafe("LINKS $serv_mask $query_mask");
     }
-    
+
     # === Forward ===
     $msg->forward_to($t_server, links =>
         $user, $t_server, $serv_mask, $query_mask
@@ -778,15 +778,15 @@ sub links {
 
 sub whois {
     my ($server, $msg, $t_server, $user, $t_user) = @_;
-    
+
     # this message is for me.
     if ($t_server->is_local) {
         return $user->handle_unsafe("WHOIS $$t_user{nick}");
     }
-    
+
     # === Forward ===
     $msg->forward_to($t_server, whois => $user, $t_user, $t_server);
-    
+
     return 1;
 }
 
@@ -801,10 +801,10 @@ sub snotice {
         next unless $user->has_notice($notice);
         $user->server_notice($s_serv, 'Notice', "$pretty: $message");
     }
-    
+
     # === Forward ===
     $msg->forward(snotice => $notice, $message);
-    
+
     return 1;
 }
 

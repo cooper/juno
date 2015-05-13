@@ -11,7 +11,7 @@
 # @author.website:  "https://github.com/cooper"
 #
 package M::Core::UserCommands;
- 
+
 use warnings;
 use strict;
 use 5.010;
@@ -157,7 +157,8 @@ our %user_commands = (
     },
     MOTD => {
         code   => \&motd,
-        desc   => 'display the message of the day'
+        desc   => 'display the message of the day',
+        params => 'server_mask(opt)'
     },
     NICK => {
         code   => \&nick,
@@ -182,43 +183,49 @@ our %user_commands = (
 );
 
 sub init {
-    
+
     &add_join_callbacks;
     &add_whois_callbacks;
-    
+
     return 1;
 }
 
 sub motd {
-    # TODO: <server> parameter
-    my $user = shift;
+    my ($user, $event, $server) = @_;
+
+    # this does not apply to me; forward it.
+    if ($server && $server != $me) {
+        $server->{location}->fire_command(motd => $user, $server);
+        return 1;
+    }
+
     my @motd_lines;
-    
+
     # note: as of 5.95, MOTD is typically not stored in RAM.
     # instead, it is read from the disk each time it is requested.
-    
+
     # first, check if an MOTD is present in v.
     if (defined v('MOTD') && ref v('MOTD') eq 'ARRAY') {
         @motd_lines = @{ v('MOTD') };
     }
-    
+
     # it is not in RAM. we will try to read from file.
     elsif (open my $motd, conf('file', 'motd')) {
         @motd_lines = map { chomp; $_ } my @lines = <$motd>;
         close $motd;
     }
-    
+
     # if there are no MOTD lines, we have no MOTD.
     if (!scalar @motd_lines) {
         $user->numeric('ERR_NOMOTD');
         return;
     }
-     
-    # yay, we found an MOTD. let's send it.   
+
+    # yay, we found an MOTD. let's send it.
     $user->numeric('RPL_MOTDSTART', $me->{name});
     $user->numeric('RPL_MOTD', $_) foreach @motd_lines;
     $user->numeric('RPL_ENDOFMOTD');
-    
+
     return 1;
 }
 
@@ -231,7 +238,7 @@ sub nick {
         $newnick = $user->{uid};
     }
     else {
-    
+
         # check for valid nick.
         if (!utils::validnick($newnick)) {
             $user->numeric(ERR_ERRONEUSNICKNAME => $newnick);
@@ -244,7 +251,7 @@ sub nick {
             $user->numeric(ERR_NICKNAMEINUSE => $newnick);
             return;
         }
-        
+
     }
 
     # ignore stupid nick changes.
@@ -256,7 +263,7 @@ sub nick {
     # change it.
     $user->change_nick($newnick, time);
     $pool->fire_command_all(nickchange => $user);
-    
+
 }
 
 sub info {
@@ -265,16 +272,16 @@ sub info {
     my $info = <<"END";
 
 \2***\2 this is \2$LNAME\2 $NAME version \2$VERSION ***\2
- 
+
 Copyright (c) 2010-14, the $NAME developers
- 
+
 This program is free software.
 You are free to modify and redistribute it under the terms of
 the three-clause "New" BSD license (see LICENSE in source.)
- 
+
 $NAME wouldn't be here if it weren't for the people who have
 contributed time, effort, love, and care to the project.
- 
+
 \2Developers\2
     Mitchell Cooper, \"cooper\" <mitchell\@notroll.net> https://github.com/cooper
     Kyle Paranoid, \"mac-mini\" <mac-mini\@mac-mini.org> https://github.com/mac-mini
@@ -287,13 +294,13 @@ contributed time, effort, love, and care to the project.
     Brandon Rodriguez, \"beyond\" <beyond\@mailtrap.org>
     Nick Dalsheimer, \"AstroTurf\" <astronomerturf\@gmail.com>
     Corey Chex, \"Corey\" <corey\@notroll.net>
- 
+
 If you have any questions or concerns, feel free to email the above
 developers directly or contact NoTrollPlzNet at <contact\@notroll.net>.
- 
+
 Proudly brought to you by \2\x0302No\x0313Troll\x0304Plz\x0309Net\x0f
 http://notroll.net
- 
+
 END
     $user->numeric('RPL_INFO', $_) foreach split /\n/, $info;
     $user->numeric('RPL_ENDOFINFO');
@@ -303,7 +310,7 @@ END
 sub mode {
     my ($user, $event, $t_name, @rest) = @_;
     my $modestr = join ' ', @rest;
-    
+
     # is it the user himself?
     if (lc $user->{nick} eq lc $t_name) {
 
@@ -332,7 +339,7 @@ sub mode {
         # setting.
         $channel->do_mode_string($user->{server}, $user, $modestr);
         return 1;
-        
+
     }
 
     # hmm.. maybe it's another user
@@ -349,7 +356,7 @@ sub mode {
 sub privmsgnotice {
     my ($user, $event, $msg, $command, $t_name, $message) = @_;
     $msg->{message} = $message;
-    
+
     # no text to send.
     if (!length $message) {
         $user->numeric('ERR_NOTEXTTOSEND');
@@ -377,7 +384,7 @@ sub privmsgnotice {
         else {
             $tuser->{location}->fire_command(privmsgnotice => $command, $user, $tuser, $message);
         }
-        
+
         $msg->{target} = $tuser;
         return 1;
     }
@@ -393,7 +400,7 @@ sub privmsgnotice {
     # no such nick/channel.
     $user->numeric(ERR_NOSUCHNICK => $t_name);
     return;
-    
+
 }
 
 sub smap {
@@ -404,18 +411,18 @@ sub smap {
     $do = sub {
         my $server = shift;
         return if $done{$server};
-        
+
         my $spaces = ' ' x $indent;
         my $users  = scalar $server->actual_users;
         my $per    = sprintf '%.f', $users / $total * 100;
 
         $user->numeric(RPL_MAP => $spaces, $server->{name}, $users, $per);
-        
+
         # increase indent and do children.
         $indent += 4;
         $do->($_) foreach $server->children;
         $indent -= 4;
-        
+
         $done{$server} = 1;
     };
     $do->($me);
@@ -423,16 +430,16 @@ sub smap {
     my $average = int($total / scalar(keys %done) + 0.5);
     $user->numeric(RPL_MAP2 => $total, scalar(keys %done), $average);
     $user->numeric('RPL_MAPEND');
-    
+
 }
 
 sub add_join_callbacks {
-    
+
     # check if user is in channel already.
     $pool->on('user.can_join' => sub {
         my ($event, $channel) = @_;
         my $user = $event->object;
-        
+
         $event->stop('in_channel') if $channel->has_user($user);
     }, name => 'in.channel', priority => 30);
 
@@ -440,44 +447,44 @@ sub add_join_callbacks {
     $pool->on('user.can_join' => sub {
         my ($event, $channel) = @_;
         my $user = $event->object;
-        
+
         # hasn't reached the limit.
         return unless $user->channels >= conf('limit', 'channel');
-        
+
         # limit reached.
         $user->numeric(ERR_TOOMANYCHANNELS => $channel->name);
         $event->stop('max_channels');
-        
+
     }, name => 'max.channels', priority => 25);
-    
+
     # check for a ban.
     $pool->on('user.can_join' => sub {
         my ($event, $channel) = @_;
         my $user = $event->object;
-        
+
         my $banned = $channel->list_matches('ban',    $user);
         my $exempt = $channel->list_matches('except', $user);
-        
+
         # sorry, banned.
         if ($banned && !$exempt) {
             $user->numeric(ERR_BANNEDFROMCHAN => $channel->name);
             $event->stop('banned');
         }
-    
+
     }, name => 'is.banned', priority => 10);
-    
+
 }
 
 sub  cjoin { _cjoin(undef, @_) }
 sub _cjoin {
     my ($force, $user, $event, $given, $channel_key) = @_;
-    
+
     # part all channels.
     if ($given eq '0') {
         $user->handle_unsafe("PART $_") foreach map { $_->name } $user->channels;
         return 1;
     }
-    
+
     foreach my $chname (split ',', $given) {
 
         # make sure it's a valid name.
@@ -491,18 +498,18 @@ sub _cjoin {
         my $time = $channel->{time};
 
         unless ($force) {
-            
+
             # fire the event and delete the callbacks.
             my $event = $user->fire(can_join => $channel, $channel_key);
-            
+
             # event was stopped; can't join.
             if ($event->stopper) {
                 $user->fire(join_failed => $channel, $event->stop, $event->stopper);
                 return;
             }
-            
+
         }
-        
+
         # new channel. join internally (without telling the user) & set auto modes.
         # note: we can't use do_mode_string() here because CMODE must come after JOIN.
         my $sstr;
@@ -519,10 +526,10 @@ sub _cjoin {
         $pool->fire_command_all(cmode => $me, $channel, $time, $me, $sstr) if $sstr;
         # hmm, this needs to be reconsidered since TS6 and some protocols use a channel
         # burst command (SJOIN) with both user and modes during channel creation.
-        
+
         # do the actual local join.
         $channel->localjoin($user, $time);
-        
+
     }
     return 1;
 }
@@ -541,10 +548,10 @@ sub names {
 
 sub oper {
     my ($user, $event, $oper_name, $oper_password) = @_;
-    
+
     # find the account.
     my %oper = $conf->hash_of_block(['oper', $oper_name]);
-    
+
     # make sure required options are present.
     my @required = qw(password encryption);
     foreach (@required) {
@@ -560,13 +567,13 @@ sub oper {
         foreach my $host (@hosts) {
             $win = 1, last if match($user, $host);
         }
-        
+
         # sorry, no host matched.
         if (!$win) {
             $user->numeric('ERR_NOOPERHOST');
             return;
         }
-        
+
     }
 
     # so now let's check if the password is right.
@@ -579,13 +586,13 @@ sub oper {
     # flags in their own oper block.
     my @flags   = ref_to_list($oper{flags});
     my @notices = ref_to_list($oper{notices});
-    
+
     # flags in their oper class block.
     my $add_class;
     $add_class = sub {
         my $oper_class = shift;
         my %class = $conf->hash_of_block(['operclass', $oper_class]);
-        
+
         # add flags in this block.
         push @flags,   ref_to_list($class{flags});
         push @notices, ref_to_list($class{notices});
@@ -599,7 +606,7 @@ sub oper {
     # remove duplicate flags.
     @flags   = simplify(@flags);
     @notices = simplify(@notices);
-    
+
     # add the flags.
     $user->add_flags(@flags);
     $user->add_notices(@notices);
@@ -619,14 +626,14 @@ sub oper {
     # set ircop.
     $user->do_mode_string('+'.$user->{server}->umode_letter('ircop'), 1);
     $user->numeric('RPL_YOUREOPER');
-    
+
     return 1;
 }
 
 sub add_whois_callbacks {
-    
+
     # DISCUSS: could we use state for these, or will that break reloading?
-    
+
     # whether to show RPL_WHOISCHANNELS.
     my %channels;
     my $show_channels = sub {
@@ -639,18 +646,18 @@ sub add_whois_callbacks {
             next if $e->stopper;
             push @channels, $channel->name;
         }
-        
+
         $channels{$quser} = \@channels;
         return scalar @channels;
     };
-    
+
     # list of channels.
     my $channels_list = sub {
         my $quser     = shift;
         my @channels  = @{ delete $channels{$quser} || [] };
         return "@channels";
     };
-    
+
     # server information.
     my $server_info = sub {
         my $server  = shift->{server};
@@ -663,7 +670,7 @@ sub add_whois_callbacks {
         my $idle = time - ($user->{conn}{last_command} || 0);
         return ($idle, $user->{time});
     };
-    
+
     # too bad this is >90 width.
     my $p = 1000;
     foreach (
@@ -680,17 +687,17 @@ sub add_whois_callbacks {
         my ($conditional_sub, $constant, $argument_sub) = @$_; $p -= 5;
         $pool->on('user.whois_query' => sub {
             my ($ruser, $event, $quser) = @_;
-        
+
             # conditional sub.
             $conditional_sub->($quser) or return if $conditional_sub;
-            
+
             # argument sub.
             my @args = $argument_sub->($quser, $ruser) if $argument_sub;
-            
+
             $ruser->numeric($constant => $quser->{nick}, @args);
         }, name => $constant, priority => $p, with_eo => 1);
     }
-    
+
 }
 
 # may be called remotely.
@@ -705,7 +712,7 @@ sub whois {
         $server = lc $args[0] eq lc $args[1] ?
             $quser->{server} : $pool->lookup_server_mask($args[0]);
     }
-    
+
     # no server parameter.
     else {
         $server = $me;
@@ -718,13 +725,13 @@ sub whois {
         $user->numeric(ERR_NOSUCHSERVER => $args[0]);
         return;
     }
-    
+
     # user exists?
     if (!$quser) {
         $user->numeric(ERR_NOSUCHNICK => $query);
         return;
     }
-    
+
     # this does not apply to me; forward it.
     # no reason to forward it if the target server isn't the user's server.
     if ($server != $me && $server == $quser->{location}) {
@@ -793,7 +800,7 @@ sub away {
     $user->unset_away;
     $pool->fire_command_all(return_away => $user);
     $user->numeric('RPL_UNAWAY');
-    
+
     return 1;
 }
 
@@ -811,7 +818,7 @@ sub part {
     my $ureason = defined $reason ? " :$reason" : q();
     $channel->sendfrom_all($user->full, "PART $$channel{name}$ureason");
     $pool->fire_command_all(part => $user, $channel, $channel->{time}, $reason);
-    
+
     $channel->remove($user);
     return 1;
 }
@@ -863,10 +870,10 @@ sub who {
 
     # match an exact channel name
     elsif (my $channel = $pool->lookup_channel($query)) {
-    
+
         # multi-prefix support?
         my $prefixes = $user->has_cap('multi-prefix') ? 'prefixes' : 'prefix';
-        
+
         $match_pattern = $channel->name;
         foreach my $quser ($channel->users) {
             $matches{ $quser->{uid} } = $quser;
@@ -921,7 +928,7 @@ sub topic {
     if (defined $new_topic) {
         my $can = (!$channel->is_mode('protect_topic')) ?
             1 : $channel->user_has_basic_status($user);
-            
+
         # not permitted.
         if (!$can) {
             $user->numeric(ERR_CHANOPRIVSNEEDED => $channel->name);
@@ -939,7 +946,7 @@ sub topic {
                 topic => $new_topic
             };
         }
-        
+
         # delete it.
         else {
             delete $channel->{topic};
@@ -961,7 +968,7 @@ sub topic {
             $user->numeric(RPL_NOTOPIC => $channel->name);
             return;
         }
-        
+
     }
 
     return 1;
@@ -970,7 +977,7 @@ sub topic {
 sub lusers {
     my $user = shift;
     my @actual_users = $pool->actual_users;
-    
+
     # get server count
     my $servers   = scalar $pool->servers;
     my $l_servers = scalar grep { $_->{conn} } $pool->servers;
@@ -1011,7 +1018,7 @@ sub lusers {
 sub rehash {
     my $user = shift;
     notice(rehash => $user->notice_info);
-    
+
     # rehash.
     $user->numeric(RPL_REHASHING => $ircd::conf->{conffile});
     if (ircd::rehash()) {
@@ -1022,7 +1029,7 @@ sub rehash {
     # error.
     $user->server_notice(rehash => 'There was an error parsing the configuration');
     return;
-    
+
 }
 
 sub ukill {
@@ -1039,7 +1046,7 @@ sub ukill {
 
         # rip in peace.
         $tuser->get_killed_by($user, $reason);
-        
+
     }
 
     # tell other servers.
@@ -1069,32 +1076,32 @@ sub kick {
     # KICK             #channel        nickname :reason
     # dummy            channel(inchan) user     :rest(opt)
     my ($user, $event, $channel,       $t_user, $reason) = @_;
-    
+
     # target user is not in channel.
     if (!$channel->has_user($t_user)) {
         $user->numeric(ERR_USERNOTINCHANNEL => $channel->name, $t_user->{nick});
         return;
     }
-    
+
     # check if the user has basic status in the channel.
     if (!$channel->user_has_basic_status($user)) {
         $user->numeric(ERR_CHANOPRIVSNEEDED => $channel->name);
         return;
     }
-    
+
     # if the user has a lower status level than the target, he can't kick him.
     if ($channel->user_get_highest_level($t_user) > $channel->user_get_highest_level($user)) {
         $user->numeric(ERR_CHANOPRIVSNEEDED => $channel->name);
         return;
     }
-    
+
     # determine the reason.
     $reason //= $user->{nick};
-    
+
     # tell the local users of the channel.
     notice(user_part => $t_user->notice_info, $channel->name, "Kicked by $$user{nick}: $reason");
     $channel->sendfrom_all($user->full, "KICK $$channel{name} $$t_user{nick} :$reason");
-    
+
     # remove the user from the channel.
     $channel->remove_user($t_user);
 
@@ -1106,7 +1113,7 @@ sub kick {
 
 sub list {
     my $user = shift;
-    
+
     #:ashburn.va.mac-mini.org 321 k Channel :Users  Name
     $user->numeric('RPL_LISTSTART');
 
@@ -1121,52 +1128,52 @@ sub list {
 
     # TODO: implement list for specific channels.
     # TODO: +s and +p (partially done, stopper in place but modes need to be added)
-    
+
     $user->numeric('RPL_LISTEND');
     return 1;
 }
 
 sub modelist {
     my ($user, $event, $channel, $list) = @_;
-    
+
     # one-character list name indicates a channel mode.
     if (length $list == 1) {
         $list = $me->cmode_name($list);
         $user->server_notice('No such mode') and return unless defined $list;
     }
-    
+
     # no items in the list.
     my @items = $channel->list_elements($list);
     if (!@items) {
         $user->server_notice('The list is empty');
         return;
     }
-    
+
     $user->server_notice('modelist', "$$channel{name} \2$list\2 list");
     foreach my $item (@items) {
         $item = $item->{nick} if blessed $item && $item->isa('user');
         $user->server_notice("| $item");
     }
     $user->server_notice('modelist', "End of \2$list\2 list");
-    
+
     return 1;
 }
 
 sub version {
     my ($user, $event, $server) = (shift, shift, shift || $me);
-    
+
     # if the server isn't me, forward it.
     if ($server != $me) {
         $server->{location}->fire_command(version => $user, $server);
         return 1;
     }
-    
+
     $user->numeric(RPL_VERSION =>
         v('SNAME').q(-).v('NAME'),
         $ircd::VERSION,
         $server->{name},
-        $::VERSION,     
-        $ircd::VERSION, 
+        $::VERSION,
+        $ircd::VERSION,
         $VERSION
     );
     $user->numeric('RPL_ISUPPORT') if $server->is_local;
@@ -1175,7 +1182,7 @@ sub version {
 sub squit {
     my ($user, $event, $server_input_name) =  @_;
     my @servers = $pool->lookup_server_mask($server_input_name);
-    
+
     # if there is a pending timer, cancel it.
     my $canceled_some;
     foreach my $server_name (keys %ircd::link_timers) {
@@ -1185,16 +1192,16 @@ sub squit {
             $canceled_some = 1;
         }
     }
-    
+
     # no connected servers match.
     if (!@servers) {
         $user->numeric(ERR_NOSUCHSERVER => $server_input_name) unless $canceled_some;
         return;
     }
-    
+
     my $amnt = 0;
     foreach my $server (@servers) {
-        
+
         # no direct connection. might be local server or a
         # psuedoserver or a server reached through another server.
         if (!$server->{conn}) {
@@ -1205,13 +1212,13 @@ sub squit {
             ) unless $server->{fake};
             next;
         }
-        
+
         $amnt++;
         $server->{conn}->{dont_reconnect} = 1;
         $server->{conn}->done('SQUIT command');
         $user->server_notice(squit => "$$server{name} disconnected");
     }
-    
+
     my $servers = $amnt == 1 ? 'server' : 'servers';
     $user->server_notice(squit => "$amnt $servers disconnected");
     return 1;
@@ -1221,25 +1228,25 @@ sub squit {
 sub links {
     my ($user, $event, $serv_mask, $query_mask) = @_;
     my $server = $me;
-    
+
     # query mask but no server mask.
     if (defined $serv_mask && !defined $query_mask) {
         $query_mask = $serv_mask;
         undef $serv_mask;
     }
-    
+
     # server mask provided.
     if (defined $serv_mask) {
         $server = $pool->lookup_server_mask($serv_mask);
-        
+
         # no matches.
         if (!$server) {
             $user->numeric(ERR_NOSUCHSERVER => $serv_mask);
             return;
         }
-        
+
     }
-    
+
     # if it's not the local server, pass this on.
     if (!$server->is_local) {
         $server->{location}->fire_command(links =>
@@ -1247,17 +1254,17 @@ sub links {
         );
         return 1;
     }
-    
+
     # it's a request for this server.
     $query_mask //= '*';
-    
+
     $user->numeric(RPL_LINKS =>
         $_->{name},
         $_->{parent}{name},
         $me->hops_to($_),
         $_->{desc}
     ) foreach $pool->lookup_server_mask($query_mask);
-    
+
     $user->numeric(RPL_ENDOFLINKS => $query_mask);
     return 1;
 }
@@ -1271,13 +1278,13 @@ sub echo {
 # note: this handler is used also for remote users.
 sub admin {
     my ($user, $event, $server) = @_;
-    
+
     # this does not apply to me; forward it.
     if ($server && $server != $me) {
         $server->{location}->fire_command(admin => $user, $server);
         return 1;
     }
-    
+
     # it's for me.
     #
     # note: the RFC says RPL_ADMINME should send <server> :<info>, but most IRCds
@@ -1288,7 +1295,7 @@ sub admin {
     $user->numeric(RPL_ADMINLOC1  => conf('admin', 'line1'));
     $user->numeric(RPL_ADMINLOC2  => conf('admin', 'line2'));
     $user->numeric(RPL_ADMINEMAIL => conf('admin', 'email'));
-    
+
     return 1;
 }
 
@@ -1301,17 +1308,17 @@ sub _time {
         $server->{location}->fire_command(time => $user, $server);
         return 1;
     }
-    
+
     # it's for me.
     $user->numeric(RPL_TIME => time);
-    
+
     return 1;
 }
 
 sub userhost {
     my ($user, $event, @nicknames) = @_;
     my @strs;
-    
+
     # non-matches should be ignored
     # if no matches are found, still send an empty reply
     foreach my $usr (map $pool->lookup_user_nick($_), @nicknames) {
@@ -1320,7 +1327,7 @@ sub userhost {
         my $away = exists $usr->{away}    ? '-' : '+';
         push @strs, $usr->{nick}."$oper=$away".$usr->full;
     }
-    
+
     $user->numeric(RPL_USERHOST => join ' ', @strs);
 }
 

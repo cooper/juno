@@ -40,17 +40,18 @@ my %ocommands = (
     links           => \&links,
     whois           => \&whois,
     admin           => \&admin,
+    motd            => \&motd,
     time            => \&_time,
     snotice         => \&snotice,
     version         => \&version,
 
     # JELP-specific
-    
+
     acm             => \&acm,
     aum             => \&aum,
     burst           => \&burst,
     endburst        => \&endburst
-    
+
 );
 
 sub init {
@@ -76,7 +77,7 @@ sub init {
         with_eo  => 1,
         priority => -500
     );
-    
+
     return 1;
 }
 
@@ -100,22 +101,22 @@ sub send_burst {
 
     $do = sub {
         my $serv = shift;
-        
+
         # already did this one.
         return if $done{$serv};
-        
+
         # we learned about this server from the server we're sending to.
         return if defined $serv->{source} && $serv->{source} == $server->{sid};
-        
+
         # we need to do the parent first.
         if (!$done{ $serv->{parent} } && $serv->{parent} != $serv) {
             $do->($serv->{parent});
         }
-        
+
         # fire the command.
         $server->fire_command(new_server => $serv);
         $done{$serv} = 1;
-        
+
     }; $do->($_) foreach $pool->all_servers;
 
     # users
@@ -123,26 +124,26 @@ sub send_burst {
 
         # ignore users the server already knows!
         next if $user->{server} == $server || $user->{source} == $server->{sid};
-        
+
         $server->fire_command(new_user => $user);
-        
+
         # oper flags
         if (scalar @{ $user->{flags} }) {
             $server->fire_command(oper => $user, @{ $user->{flags} })
         }
-        
+
         # away reason
         if (exists $user->{away}) {
             $server->fire_command(away => $user)
         }
-        
+
     }
 
     # channels, using compact CUM
     foreach my $channel ($pool->channels) {
         $server->fire_command(channel_burst => $channel, $me);
     }
-    
+
 }
 
 sub send_endburst {
@@ -169,7 +170,7 @@ sub uid {
     ":$$user{server}{sid} $cmd"
 }
 
-sub sid { 
+sub sid {
     my ($to_server, $serv) = @_;
     return if $to_server == $serv;
     my $cmd = sprintf(
@@ -292,11 +293,11 @@ sub cum {
     my ($server, $channel, $serv, @members) = @_;
     $serv  ||= $me;
     @members = $channel->users if !@members;
-    
+
     # make +modes params string without status modes.
     # modes are from the perspective of the source server.
     my $modestr = $channel->mode_string_all($serv, 1);
-    
+
     # fetch the prefixes for each user.
     my (%prefixes, @userstrs);
     foreach my $name (keys %{ $channel->{modes} }) {
@@ -307,10 +308,10 @@ sub cum {
 
     # create an array of uid!status
     foreach my $user (@members) {
-    
+
         # this is the server that told us about the user. it already knows.
         next if $user->{location} == $server;
-        
+
         my $str = $user->{uid};
         $str .= '!'.$prefixes{$user} if exists $prefixes{$user};
         push @userstrs, $str;
@@ -319,7 +320,7 @@ sub cum {
     # note: use "-" if no users present
     my $userstr = @userstrs ? join ',', @userstrs : '-';
     ":$$serv{sid} CUM $$channel{name} $$channel{time} $userstr :$modestr"
-    
+
 }
 
 # add cmodes
@@ -329,15 +330,15 @@ sub acm {
     # iterate through each mode on the server.
     foreach my $name (keys %{ $serv->{cmodes} }) {
         my ($letter, $type) = ($serv->cmode_letter($name), $serv->cmode_type($name));
-        
+
         # first, make sure this isn't garbage.
         next if !defined $letter || !defined $type;
-        
+
         # it's not. append it to the mode list.
         $modes .= " $name:$letter:$type";
 
     }
-    
+
     return unless length $modes;
     return ":$$serv{sid} ACM$modes";
 }
@@ -397,22 +398,27 @@ sub endburst {
 sub join_with_modes {
     my ($server, $channel, $serv, $mode_str, $mode_serv, @members) = @_;
     my (@joins, $cmode);
-    
+
     # add a JOIN for each user.
     push @joins, join($_, $channel, $channel->{time}) foreach @members;
-    
+
     # if we're sending modes, add the CMODE.
     # $source, $channel, $time, $perspective, $modestr
     if ($mode_str ne '+') {
         $cmode = cmode($serv, $channel, $channel->{time}, $mode_serv, $mode_str);
     }
-    
+
     return (@joins, $cmode);
 }
 
 sub admin {
     my ($to_server, $user, $t_server) = @_;
     ":$$user{uid} ADMIN \$$$t_server{sid}"
+}
+
+sub motd {
+    my ($to_server, $user, $t_server) = @_;
+    ":$$user{uid} MOTD \$$$t_server{sid}"
 }
 
 sub _time {

@@ -6,19 +6,19 @@ CHANGES:
 (-1). Late 1990s - June 5, 2002 - pIRCd, the perl IRCd daemon by Jay Koninek
 
     01/04/00 - The world didn't end. How disappointing. pircd has now been moved to SourceForge. Check out all the neat things you can do over in the side bar.
-    
+
     01/21/00 - Aww yeah. Alpha Thirteen is out. Check out the change log to see what is new. Or just download it.
-    
+
     01/24/00 - I know you're reading this web page. Go take the survey!
-    
+
     08/18/00 - Hmm. Sort of dead, eh? Work has been continuing, albeit slowly. Hopefully it will culminate in a new release soon, with more features and increased stability. Until then, though, lots of people keep wanting to know how to set the oper password. This small Perl program can be used to generated encrypted passwords.
-    
+
     10/13/00 - There is some munchkin out there who keeps submitting pircd to IRC related web pages' link lists. This I don't mind. But they're using MY email address, increasing the amount of spam that I am going to get. This is lame in the extreme. Stop it. Now.
-    
+
     12/14/00 - pircd Beta Zero is out! It now has SSL support, a feature present in few other IRC servers!
-    
+
     06/05/02 - pircd Beta One is out! Not quite as exciting as Beta Zero, but if it were, then it would be called Gamma Zero, instead of Beta One. This release fixes some rather annoying bugs regarding channel keys and channel limits. If you make significant use of channel keys, UPDATE!
-    
+
 0. pIRCd2, first fork pIRCd.
 
     pIRCd2 was not versioned.
@@ -27,39 +27,39 @@ CHANGES:
 
 1. May 29, 2010 - July 5, 2010 (first commit) - version 1 of juno-ircd is based on pIRCd, the perl IRCd daemon.
     Although juno version 1 was not versioned, this lists some of the main features added.
-    
+
     Reverse DNS is checked for resolving back to the connection IP, unlike in pIRCd.
-    
+
     Prefixes ~, &, and % were added, making juno a 5-prefix server with owner, administrator, operator, halfop, and voice.
-    
+
     NAMES outputs multiple prefixes, allowing clients to keep track of multiple status modes set on users.
-    
+
     The server now responds to CAP messages.
-    
+
     Added channel link (+L) mode. If the population limit (set by +l) is reached, users are forwarded to the linked channel.
-    
+
     Automatic modes are set when channels are created.
-    
+
     Added internal logging channel where the IRCd sends messages to an operator-only channel.
-    
+
     Added network administrator lines (NA).
-    
+
     Added operator override mode (+O) to prevent accidental abuse of override capabilities, which is unset after 2 minutes of inactivity.
-    
+
     In viewing of ban and mute lists, juno now keeps track of the users or servers who set the modes.
-    
+
     Masks are now checked to be valid when setting modes such as ban and mute.
-    
+
     Added mute/quiet channel mode (+Z), similar to +q of charybdis.
-    
+
     Users who are banned from channels but are in them can no longer speak.
-    
+
     Fixed K:Line, adding the ability for operators to add K:Lines through the use of an IRCd command.
-    
+
     Rewrote the linking protocol, properly sending bursts, modes, topics, joins, and more.
-    
+
     Fixed an issue where XChat users report enormous amounts of lag on their lag indicators.
-    
+
     Added a network name configuration option (NETWORK in RPL_ISUPPORT.)
 
     Fixed many, many other bugs of pIRCd, making it almost usable.
@@ -164,7 +164,7 @@ CHANGES:
                 * S is now for away in WHO query. (how that happened, the world may never know.)
 
                 * Added user::acceptcheck. This checks if the server is accepting new connections. (defined by limit:clients)
-                
+
                 * Added user::ip_accept. This prevents a user from connecting if their per-ip limit is reached. (defined by limit:perip)
                   This will also be used when Z-Line is added, forcing the user to disconnect before they finish the connection process.
                   These fixes should fix the crash that occurs when the server accepts more connections than it can handle.
@@ -308,7 +308,7 @@ CHANGES:
                 * Fixed a major bug where the outbuffer does not clear properly.
 
                 * Fixed bug in numeric where the user object was being sent in numerics. (Fail)
-                
+
                 * Added a sleep to --restart argument to ensure that the process was killed before attempting to listen.
 
             8. March 7, 2011
@@ -400,7 +400,7 @@ CHANGES:
             7. March 25, 2011
 
                 * Beginning redesigned module API.
-                
+
                 * Added API::Module package (currently nonfunctional).
                   By the way, the API is excluded from versioning and changelog until it is functional.
 
@@ -769,7 +769,7 @@ CHANGES:
             1. Finished ping system!
                Failure to respond to the first PING now leads to a registration timeout on unregistered connections.
                Added lconf() util for fetching name configuration values.
-               
+
             2. Only send PING if there isn't a pending ping.
 
             3. Constants on and off define true and false values in the configuration.
@@ -1391,7 +1391,7 @@ CHANGES:
 
         5. January 16, 2012
 
-            0. fixed a bug where juno crashes if data is received from a socket that has been ->done. 
+            0. fixed a bug where juno crashes if data is received from a socket that has been ->done.
 
             1. fixed a bug where NICK messages were not propagated properly.
 
@@ -1571,197 +1571,197 @@ CHANGES:
             3. added 'forward' options to server::mine::register_handler() to forward messages to child servers.
 
             4. replaced forward where necessary.
-            
+
             5. removed broken server CONNECT command.
-            
+
             6. addresses an server-crashing issue where PRIVMSGing to a channel could sometimes cause a fatal error.
-            
+
             NON-VERSIONED
-            
+
             0. replaced SID propogation.
-            
+
             VERSIONING SYSTEM CHANGED: juno-ircd now uses single decimal versions, such as 5.34.
-            
+
     8. when channel timestamp is changed, the server removes all channel modes using handle_mode_string().
-    
+
         81. adds log:server_debug option, which logs all incoming linking protocol data.
-        
+
         82. list_elements() now double checks the data type of each element, just in case.
-        
+
         83. don't send AUM and ACM twice.
-        
+
         84. fixes the issue where some users are not propogated properly in channels.
-        
+
         85. resolves an issue where some users were added to status lists two times.
-        
+
         86. adds the 'auto_timeout' connect block configuration key, which allows you to specify a time frequency in seconds for attempting to connect to the server.
-        
+
         87. juno now depends on API Engine rather than using its own module API system. API Engine's objective interface is, for the most part, compatible with the former juno3 API.
-        
+
         88. fixes an issue where MODULES command does not work correctly.
-        
+
         89. juno now depends on the EventedObject framework.
-        
+
     9. includes the new ChannelEvents API engine base, allowing modules to safely attach handlers to channel-related events without the worry of events being called if the module is unloaded. this version also adds register_event() and delete_event() IRCd utilities.
-    
+
         91. fires channel:user_joined event in channel::mine::cjoin() and core_scommands::sjoin() to ensure that it is fired AFTER the join command is sent to users of the channel.
-        
+
         92. fire user_joined event after CUM.
-        
+
         93.  fixes an issue where a server SID command might be sent before its parent's, causing multi-jump links to work improperly.
-        
+
         94. adds protection to prevent nonexistent modes from being registered to servers. for example, '::4' in an ACM command would be ignored.
-        
+
         95. rather than storing the message of the day in memory, it will be read each time. this addresses an issue where the MOTD is doubled in size after each REHASH command.
-        
+
         96. improved MOTD command.
-        
+
         97. moved inc/ to lib/, run/ to bin/. juno has historically been using these improper directory names for nearly three years.
 
         98. juno is now dependent on Evented::Configuration and includes it as a submodule.
-        
+
         99. the UserCommands base now allows convenience parameter fetching, similar to what is found in the ServerCommands base. Rather than looking up users and servers using their numerical identifiers, UserCommands uses nicknames and server names. If a user, channel, or server cannot be looked up, a numeric will be sent to say so. If less parameters are received than are registered for parsing, a numeric reply will be sent.
-        
+
 6. juno version 6, started December 15, 2012.
 
     0. the UserCommands base now allows you to use attributes to specify different behavior for parameter checking. this adds the first attribute, 'opt', which allows you to specify that a parameter is optional. this way, ERR_NEEDMOREPARAMS will not be sent if it is absent. in addition to these changes, you can now use a whitespace-separated string of parameter types rather than an array reference in register_user_command_handler().
-    
+
         01. parameter checking can now specify a value other than boolean, which will typically be a numerical identifier of another parameter. this also adds the 'inchan' channel attribute, which ensures that the user sending the command is in that channel, sending ERR_NOTINCHAN otherwise.
-        
+
         02. finally added KICK user command.
-        
+
         03. adds KICK outgoing command and JELP command. KICKs are now synchronized through the linking protocol.
-        
+
         04. adds add_cap(), remove_cap(), and has_cap() methods to connections for managing client compatibility flags.
-        
+
         05. this should fix an issue where even channel owners cannot set bans.
-        
+
         06. fixes a crashing issue with REHASH.
-        
+
         07. adds LIST user command, which allows users to see information about channels on the IRC server.
-        
+
         08. juno now depends on the Evented::Database package and includes it as submodule.
-        
+
         09. juno now implements Evented::Database. If all goes well, this should work seamlessly without any changes to juno's core as Evented::Database is designed to be API-compatible with Evented::Configuration.
-        
+
     1. juno-ircd version 6 is now being branded as 'kedler-ircd' rather than juno6.
-    
+
         11. these few changes allow you to reload ircd.pm even after a new submodule dependency is added. changes to @INC are now made in ircd.pm rather than in the main package. also, only packages vital to booting are loaded in boot() and begin(). instead, they are loaded in start().
 
         12. updated to a new version of EventedObject.
-        
+
         13. update API Engine and Evented::Configuration.
-        
+
         14. update to newer API Engine module structure (directory structure).
-        
+
         15. permanently broke kedler.
 
     2. development resumed after a very long idle period.
         added channel modes ban exception (e) and invite exception (I).
         removed disgusting code for an old idea that went very wrong.
-        
+
         21. improved server variable system.
             reenabled DNS resolution using IO::Async's built-in resolver.
 
         22. fixed a bug that allows ops to grant themselves channel ownership.
-        
+
         23. added UP command to the Access module.
-        
+
         24. Access no longer grants statuses that have already been granted.
-        
+
         25. fixed a bug where ops cannot grant status to those of an already higher status.
             all core modules now share the IRCd version.
 
         26. added MODELIST command.
-        
+
         27. MODELIST now accepts mode letters as well.
-        
+
         28. Access's UP command now uses the parameter handler.
             prefer short IRCd name over the full name.
-            
+
         29. fixed an issue where the :rest matcher splits the data properly but does not return the appropriate piece of data.
             the 'dummy' identifier is no longer needed to skip of the command name.
             the command name will only be included if the 'command' matcher is explicitly provided.
-            
+
     3. added RPL_REHASHING.
         fixed an issue where the user command parameter count was sometimes inaccurate.
         added EVAL command and the associated 'eval' oper flag.
-        
+
         31. removed IRCd command. I have never seen anything so useless in my entire life.
             user command parameter matchers that start with '-' are not considered in the argument count.
-            
+
         32. added -oper matcher that checks for an oper flag in the parameter parser.
             always show parent modules before submodules in MODULES command.
-            
+
         33. always prioritize the core modules over all others in MODULES command.
-        
+
         34. this more sophisticated MODULES command only allows 50 bytes per line length.
-        
+
         35. corrected multiple bugs in the UserCommands API base parameter handler.
-        
+
         36. fixed an issue where user numerics could not be unregistered.
-        
+
         37. solved a malfunction where the IRCd crashes if a user commits virtual suicide (/killing oneself).
             updated KILL command to the UserCommands parameter handler.
-            
+
         38. improved MODULES command to not allow more than 60 characters per line.
             updated MODLOAD, MODUNLOAD, and MODRELOAD commands to the UserCommands parameter handler.
             MODRELOAD now holds a reference to the MODLOAD handler in order to retain it and prevent its premature disposal.
-            
+
         39. deleted user::numerics package - no longer used.
             all remaining numerics have been moved to the UserNumerics core module.
             code reference numeric handlers are now accepted. a list of resulting lines is returned.
             RPL_ISUPPORT now takes configured except and invite except mode letters into account.
-            
+
     4. ircd.pm now manages all component packages of the ircd as well as all dependency packages.
         ircd::start() can be safely called multiple times after the ircd boots.
-        
+
         41. fixed an issue where real parameter matchers would be matched to nothing if no parameters remain.
             added VERSION command.
-            
+
         42. current version is now stored in the VERSION file.
             $::VERSION will remain static from start, but $ircd::VERSION may change with each reload of the ircd core.
             updated VERSION command accordingly.
-            
+
         43. the ServerCommands API base now assumes a nonreference scalar value to be a space-separated list.
             the ServerCommands core module has been updated accordingly.
-            
+
         44. use increments and decrements during connection registration.
             this will allow modules to temporarily halt a the registration; i.e. for a hostname lookup.
-            
+
     5. created pool, a single object that contains and manages all other objects in a single place rather across many packages.
-    
+
         51. all IRCd events without specific objects are now handled through the Events API base.
             utils::fire_event() has been removed because all events are now fired directly on channels, servers, users, etc.
-            
+
         52. Goodbye $main::eo - the pool object replaced this functionality.
             connection host must default to IP even before ->ready() is called in case of a registration timeout.
             extra protection: check if connection is still alive just in case in ->send().
-            
+
         53. added Resolve module. this replaces the res package.
-        
+
         54. all users inherit from the user::mine package now. these methods check if the user is local before doing anything dangerous.
 
         55. did the same for channel::mine. channel::mine::cjoin() was renamed to localjoin() due to conflicting names.
-        
+
         56. did the same for server::mine.
-        
+
         57. all user command handlers, server command handlers, outgoing server command formatters, user numeric handlers, etc. have been moved from their ::mine packages to the pool object.
-        
+
         58. moved mode configuration functions out of ::mode packages and into the ircd package.
 
         59. ::modes packages deleted; all remaining functionality moved to the pool object.
-        
+
     6. clean up old code that was moved to pool package.
-    
+
         61. the Resolve module now accepts any record to match rather than ignoring multiple records.
-        
+
         62. improved match() and validnick() utilities.
-        
+
         63. created Matching API base for registering user matching event callbacks.
             created Matchers core module which provides the standard matchers.
             the match() utility function now calls $pool->user_match() if the item being matched is a blessed object.
-            
+
         64. read VERSION file for the minimum version of juno components in load_or_reload().
 
         65. do not use the module name in matcher callback names.
@@ -1775,131 +1775,131 @@ CHANGES:
         68. no longer limit masks to nick!user@host in Access module.
 
             681. fixed the above commit.
-            
+
             682. fixed the above commit for real.
-            
+
             683. fixed the above commit for sure.
-            
+
         69. it makes way more sense to check if the user is an oper before checking the list.
             match $o:<flag> to any oper with flag <flag>.
-            
+
     7. always return a scalar value from match().
         update Evented::Database.
         other random changes.
-        
+
         71. temporarily use a main package variable to determine if sockets were created already.
-        
+
         72. fixed a "Very bad error" where juno component package versions were incorrect.
-        
+
         73. implemented SQLite support for use with the Evented::Database configuration instance.
 
         74. fixed a fatal error in which data sent after QUIT but before EOF causes ->handle to be called on a dead connection.
 
         75. solved an issue where hostmask matching was half-case-sensitive, causing any mask with an uppercase letter to fail.
             created Database API base for accessing DBI databases in the configured format.
-        
+
         76. fixed a fatal issue where nick changing causes immediate IRCd crash due to lookup_by_nick().
             added ->change_user_nick() method to the pool object to replace that functionality.
             annihilated a bug in which nickname changes to the same nickname in a different case were ignored.
-            
+
         77. added additional safety checks to Resolve module.
 
         78. added convenient methods to the Database API base: create_table(), table_exists(), create_or_alter_table().
             included start of Account module.
-            
+
         79. more work to Account module.
-        
+
     8. finished REGISTER and LOGIN commands.
 
         81. fixed a ridiculous bug in channel status mode tracking.
-        
+
         82. fixed broken nick change.
 
         82. removed unnecessary code in channel matcher blocks.
             added a bit of spam protection to the Account module's REGISTER command.
 
         83. accidentally skipped this version.
-            
+
         84. fixed an issue where SERVER command does not work at all because of changes to match().
-            
+
         85. this should fix an occasional crash in connection closure.
-        
+
         86. added fire_command() method to server::mine for direct use on a server object.
-        
+
         87. fixed an issue in the ServerCommands base parameter handler that lead to several fatal errors.
-        
+
         88. fixed a crash that occurred only when a UID command was sent on a user with no modes.
-        
+
         89. solved a problem that prevented servers from linking properly due to pre-registration notices from the Resolve module.
-        
+
     9. fixed a few random quirks.
-    
+
         91. added ->do_mode_string() methods to channel::mine and user::mine. these methods handle a mode string, tell local users about the change, and send the mode string to other servers if necessary.
             update modules according to this change.
             the Access module no longer has to be loaded across all servers in order to work properly.
-            
+
         92. fixed an issue where protocol errors lead to a QUIT command that causes the receiving server to dispose of its own server object.
             improved logging in ServerCommands parameter handler.
-            
+
         93. can't use do_mode_string() in user JOIN command handler because CMODE must be sent after JOIN.
 
         94. use server mode string for ->fire_command() in JOIN user command handler.
 
         95. handle modes from the local server rather than the user in Access module.
-        
+
         96. solved an issue where some users may not be ->quit()ted during netsplit due to modification of the {users} array during iteration.
-        
+
         97. fixed broken CONNECT command.
             added ->do_mode_string_local() which is the same as ->do_mode_string() except it doesn't tell other servers about the change.
 
         98. not sure why but topic information was sent awkwardly between names list and RPL_ENDOF_NAMES.
-        
+
         99. fixed a few bugs in server burst.
-        
-        
+
+
 7. juno-ircd version 7 is now being branded as vulpia.
 
     0. fixed broken CONNECT command (again).
         moved global variables from utils to main package, fixing an issue where they were discarded during ircd reload.
         corrected a flaw that caused the connection count to be incorrect.
         don't send TOPICBURST to the server we obtained the topic from.
-        
+
         01. renamed project files to juno so I don't have to mess with it after every major version increment.
 
         02. only send a single mode string for status modes in CUM command handler.
-        
+
         03. fixed channel mode reset problem where + was not replaced with - because retarding.
-        
+
         04. I think this should fix an issue where CMODE is sent even in ->handle_mode_local().
             removed annoying notices in channel mode reset.
-            
+
         05. cleanup.
-        
+
         06. added SQUIT user command and squit oper flag.
             fixed issue where QUIT messages for a server are forwarded to other servers.
-        
+
                 061. $line -> $data
-                
+
         07. added server method ->cmode_string_difference().
             if all goes well, this should eleminate the mode spamming during server bursts.
-            
+
                 071. changes to ->cmode_string_difference().
-            
+
         08. channel ->list_elements() takes an optional argument to include all information like setby and time.
             fixed an issue where /LIST command shows no channels.
             fixed a fatal issue when viewing a list for banlike.
-            
+
         09. fixed ->cmode_string_difference(). I think it is now flawless.
             this should eliminate all mode flooding during server bursts.
             do not sent TOPICBURST to the server we got the topic from.
             this should eliminate topic flooding during server bursts.
-        
+
     1. fixed an issue where the modes in a CUM command were handled even if the time was newer.
 
         11. fixed a bug where topic was sometimes not deleted properly and caused multiple problems.
-        
+
         12. solved an issue where channel ->take_local_time() method conflicts with the new mode handling in the CUM command handler.
-        
+
         13. fixed broken ISON command.
 
         14. solved an issue where status modes were sometimes handled incorrectly in CUM command.
@@ -1910,29 +1910,29 @@ CHANGES:
 
         16. fixed an issue where the configured ping settings for server were always used regardless of the connection type.
             added 'all' oper flag which grants all privileges.
-            
+
         17. fixed a bug where TOPICBURST was not handled at all if no topic existed locally beforehand.
-            
+
         18. store all {source}s as SIDs rather than server objects to prevent forgotten references and avoid confusion.
-            
+
         19. fully replaced user ->sendserv() with ->sendme().
             added ->sendfrom() and ->sendme() to connection.pm so that they can now be used for unregistered connections.
             set lexical variable $me in modules where the local server object is accessed frequently.
             make proper use of channel ->sendfrom_all() in places where it was not utilized already.
-            
+
                 191. $s -> $me
-                
+
     2. added ->handle_privmsgnotice() method to channel::local - handles privmsg, forwards to all local users in channel, forwards to all servers with a user in channel.
         updated PRIVMSG/NOTICE server and user command handlers accordingly.
-        
+
         21. created Fantasy module for channel fantasy commands.
-        
+
         22. slightly improved fantasy module with some stupidity checks, but it still needs a lot of work.
             fixed an issue where iterating ->user_handlers() or ->server_handlers() methods may cause a crash due to return of undef rather than an empty list.
 
         23. fantasy commands are only handled now if the user command handler was registered with the fantasy option enabled.
             updating core and other modules accordingly.
-            
+
         24. added Reload module to reload the entire IRCd in one command.
 
         25. improved Reload module.
@@ -1943,53 +1943,53 @@ CHANGES:
         27. improved reloading mechanisms to utilize Module::Loaded.
             updated the included API Engine.
             fixed a major bug where API bases are never reloaded because those package versions were not set on load.
-            
+
         28. created DOWN command in Access module.
-            
+
         29. since we now call class_unload() to all packages including ircd.pm, all of these crucial variables were undefined after reload.
 
 
     3. added additional protection to ->handle() methods to ensure that any connections in question are still active.
 
         31. I have resorted to not allowing the fantasy prefix at the start of the first argument. this will prevent any Fantasy exploits.
-            
+
             311. fixed the above attempt which did not work due to retarding.
-            
+
         32. reverted changes from a while ago when I removed the + from these regexes. the + is mandatory because it will match multiple instances of whitespace rather than a single character, the default behavior.
 
         33. undefine the periodic ping timer object when removing it from loop to prevent future "notifier not in collection" errors.
-            
+
         34. fixed a potentially fatal issue where the UID lookup in the ServerCommands base could lead to the redefinition of $server.
-        
+
         35. improved the mechanism by which API bases are reloaded, fixing multiple bugs.
-            
-        36. only removed $timer from the loop if it is already running.    
+
+        36. only removed $timer from the loop if it is already running.
 
         37. account names are now case-insensitive in the Account module.
 
         38. always send TOPICBURST if a topic is set. It is better to send it to the server we received it from and just have that server ignore it than to not send it at all because if our time is older, the server we got the topic from originally will dispose of the topic.
             only send users the server doesn't already know about in CUM command. It is useless to send information about users who we know through the server we're sending to.
-         
+
         39. fixed confusing, ancient ping check code. pings were sent too frequently and in multiples before, but that is all fixed now. pings and ping timeouts are now accurate within 30 seconds of the configured frequencies.
 
     4. automatically apply access list to users upon identification to an account.
-            
+
         41. fixed an issue with fantasy commands with no arguments.
 
         42. minor fixes in channel mode handler.
-        
+
         43. delete user and channel mode information before re-adding in ircd::start().
-            
+
         44. cleanup: I've moved on to text editors that support the $:: syntax.
-        
+
         45. added two new flood protection configuration options
             limit:bytes_line, maximum number of bytes per line;
             limit:lines_sec, maximum number of lines per client per second.
-            
+
         46. because lvalue subroutines are experimental and behave strangely on some versions of perl, the set_v() utility function has been reimplemented, and v() no longer has the lvalue attribute.
-            
+
                 461. fixed the above commit.
-            
+
         47. fixed LUSERS always saying "x users and y invisible on 0 servers."
             fixed LUSERS always saying "0 channels formed."
             added oper notice format registration methods to the pool object.
@@ -1999,9 +1999,9 @@ CHANGES:
             added notice() utility function for quickly firing oper notices.
             added 'notices' option to oper and operclass blocks in configuration.
             the notice flag 'all' instructs the server to send all notices.
-            
+
         48. fixed an issue where an infinite number of carriage returns could be processed without terminating a connection because they were completely ignored before even reaching flood consideration.
-        
+
         49. resolved uninitialized warnings in CUM command handler due to split() returning undef with empty modestrings.
             added new oper notice flags:
 
@@ -2012,34 +2012,34 @@ CHANGES:
             server_endburst, a server finished bursting information;
             server_quit, a local or remote server disconnected;
             connection_terminated, a local connection was closed.
-            
+
     5. user->full replaced ->fullcloak and now returns the full mask with the visible host rather than actual host.
         user->fullreal replaces the former ->full, returning the full mask with the actual host.
         notice() now log2()s the "pretty version" of a message. this eliminates a lot of repetitive code between logs and notices.
-        
-        
+
+
         51. fixed an bug where every other IRCd RELOAD command broke PREFIX in RPL_ISUPPORT.
             the lconf() utility function has been removed in favor of the [type, name] format.
-            
+
         52. fixed the very-long-broken MAP command.
-        
+
         53. servers should never be affected by the bytes-per-line or lines-per-second limits.
             fixed an extreme desync issue caused by an unintentional scalar interpretation of split().
 
         54. fixed a bug where servers were not remove from their parent's children array, causing /MAP to go crazy.
-        
+
         55. RELOAD command now completely reloads ircd.pm before calling start().
             this is better because it will take changes in ircd.pm itself into consideration.
             this also fixes the issue with PREFIX in RPL_ISUPPORT.
-            
+
         56. fixed a bug where users can be kicked from channels of which they are not a member.
-        
+
         57. fixed broken COMMANDS command.
             made MODULES command prettier.
-            
+
         58. solved a desync issue with the handling of lists modes when two channel timestamps are valid.
             the new behavior is that the resulting list will be the combination of all lists with a valid timestamp.
-        
+
         59. fixed several commands that have an extra space since I switched ->send_all() to ->sendfrom_all().
 
     6. added new oper notice flags:
@@ -2060,7 +2060,7 @@ CHANGES:
         62. load the API Engine before any other modules in case class_unload() must be called during boot.
             fixed rounding in percentages in MAP command.
             fixed "authenticated as <server>" in account server notices.
-            
+
         63. update API engine. this fixes a crash issue with MOD(UN)LOAD due to case sensitivity of module names.
             update Evented::Configuration. it no longer die()s when there is an error. can't believe it did in the first place.
 
@@ -2071,298 +2071,298 @@ CHANGES:
 
         65. rewrote the crypt() utility function. it now dynamically loads encryption modules as needed, so the former 'enabled' configuration keys are now obsolete.
             new simplified configuration example included.
-            
+
         66. the network:name configuration key has been renamed to server:network because the [network] section was unnecessary.
             fixed an issue with kick reasons.
             updated Evented::Object.
-        
+
         67. updated Evented::Object.
-        
+
         68. eval command now supports sending results to a channel rather than the user.
-            server bursts are now an evented mechanism. the JELP burst commands have been moved to Core.OutgoingCommands.            
+            server bursts are now an evented mechanism. the JELP burst commands have been moved to Core.OutgoingCommands.
             fixed some connection error messages.
-            
+
         69. fixed incorrect kick server notices.
             made oper notices prettier.
             added notices for connection credential errors.
             fixed a crash when unloading Core.OutgoingCommands in version 7.68.
-            fixed a desync issue caused by the new server burst thingy.        
-        
+            fixed a desync issue caused by the new server burst thingy.
+
     7. fixed a desync issue where multi-hop servers and their users were sometimes not disposed of due to a change made a couple months ago where server children were managed by the IRC pool.
         fixed a bug where channel list modes of modules that are not loaded (e.g. +A) appeared in mode strings without any parameters present (due to the absence of a module to handle them), causing a shift in parameters within the string.
-        
+
         71. fixed deep recursion in new ->children server method.
             began implementation of modules for Evented::API Engine.
             created all core bases for Evented::API::Engine.
-            
+
         72. more work for the transition to Evented::API::Engine.
-        
+
         73. implementation of the Evented::API::Engine Core modules.
-        
+
         74. implementation of JELP in an evented module.
-        
+
         75. more improvements to JELP module.
-        
+
         76. implemented evented Access module.
             implemented evented Fantasy module.
             more improvements to new module management.
-        
+
         77. implemented evented Account module.
             fixed some issues in Base::Database module.
-        
+
         78. disposed of old modules and removed API Engine submodule, finalizing the transition to Evented::API::Engine.
-        
+
         79. implemented evented Reload module.
             solved several issues with the transition to the new API.
-            
+
             791. colons prefixing channel names in the JOIN command are now ignored.
             fixed broken eval command.
-        
+
             792. fixed an issue with Base::Database where the ircd would refuse to start with Account module loaded.
-            
+
             793. added none encryption option.
-        
-        
+
+
     8. don't accept OPER for a user that does not connect via the requesting server.
         say which modules were loaded for the first time in RELOAD command.
         local Account commands and modes are now in the Local submodule.
         remote Account operations are now handled in the Remote submodule.
         update Evented::Object.
         update Evented::API::Engine.
-        
+
         81. utils import() can now be imported.
             fixed a fatal scenario in the new Account module update.
             do not allow SERVER registration for a name or SID that already exists.
-        
+
         82. added more convenience database methods to Base::Database.
             more work done for Account module's remote functions.
             update Evented::Object.
             update Evented::API::Engine.
-        
+
         83. continued work on cross-server accounts.
-        
+
         84. the 'forward' parameter for JELP command handlers now accepts a value of 2 to indicate that the command should be forward if and only if the sending server is not bursting its information.
             more work on cross-server accounts.
-        
+
         85. added INVITE user and server commands.
-        
+
         86. added invite-only channel mode.
             greatly improved the JOIN user command handler.
-        
+
         87. fixed.
-        
+
         88. added $pool->lookup_server_mask() to find server(s) by wildcard.
-        
+
         89. added the ability to send numerics to remote users.
-        
+
             891. fixed very dumb crash during server reload.
 
     9. added LINKS command that works both locally and remotely.
-    
+
         91. fixed.
-    
+
         92. Fixed An Issue Where Invalid Server Lookups May Lead To Crashing.
             Fixed A Parameter Shift Issue In The New LINKS Command.
-    
+
         93. solved a problem with remote LINKS command.
-        
+
         94. fixed a couple other miscellaneous cross-server command issues.
             solved a problem where a server with no accounts with Account loaded would be disconnected for a protocol error.
-            
+
         95. fixed a bug in Access where +o might be given when it's already set.
             creates Modules module which provides IRC commands for managing modules.
             Moved MODLOAD, MODUNLOAD, MODRELOAD, and MODULES commands out of Core and into this module.
-            
+
         96. added two new option to the start script.
             forever: run the IRCd continuously;
             foreverd: run continuously in foreground/debug mode.
-            
+
         97. improved clarity in RELOAD module.
             utilize the new ->delete_all_events() Evented::Object feature to prevent cyclical references due to references within event callbacks.
             EVAL command moved out of Core and into its own module.
-            
+
         98. in Access, don't grant modes less than level 0 (op) if anything greater than or equal to level 0 will be given.
             Base::Database's ->create_or_alter_table() now adds missing columns to tables using SQLite's table_info() pragma.
             in Account, added the lookup_sid_aid() to find an account by SID and account ID.
             added add_account() to insert an account from an account hash reference.
             added server command handlers for ACCTINFO, ACCTIDK, and finished ACCT.
             added outgoing command ACCTIDK.
-            
+
         99. updated Evented::API::Engine which solves some really bad bugs in RELOAD.
             updated Reload module accordingly.
-            
+
                 991. should fix mysterious crashing of 4 servers at once.
-                
+
 8. juno-ircd version 8 is being branded as kylie.
-            
+
      0. rebranding.
-     
+
         01. update Evented::API::Engine.
             continued work on account synchronization.
             added Base::Database methods ->db_insert_hash() and ->db_update_hash().
             added server command handlers and outgoing commands LOGIN, LOGOUT.
             added ->do_mode_string_local() to handle a user mode string without telling the other servers.
-            
+
         02. fixed an issue where LOGIN and LOGOUT would bounce back and forth.
-        
+
             021. the server that initiates a connection should send burst first.
-        
+
         03. added ACCTDUMP command for operators to inspect accounts.
-        
+
         04. improved ACCTDUMP btw is not NSA.
-        
+
         05. improved syncing of accounts.
             fixed warnings due to connection objects being disposed of prematurely.
-            
+
         06. Account module now preserves the oldest account when there is a name collision during negotiation.
-        
+
         07. solved an issue that arises in a newer version of Future where hostname lookup was never completed.
-        
+
         08. fixed an issue where only the first argument to ACCTIDK was accounted for.
-        
+
         09. added Ident module.
             prepared user and pool objects for the possibility of pseudousers.
             cleaned up some other things.
-        
+
     1. rip READY command. new logic for bursting information between servers.
-    
+
             101. set ->{conn} before attempting to send burst.
-        
+
         11. refined new server burst logic.
             fixed protocol errors with AUM and ACM when no modes are registered on a server.
-        
+
         12. all IRCd packages are now contained within IRCd modules.
-        
+
         13. updated Evented::API::Engine.
             continued the relocation of ircd.pm and friends into the ircd module.
             updated MODRELOAD command to utilize the new functionality provided by Evented::API::Engine.
             the ircd module can now be reloaded without error.
-        
+
         14. update Evented::API::Engine.
             added "juno dev runlocal" command to run the IRCd in debug mode while using local submodule revisions.
-        
+
         15. improved module loading sequence.
             improved logging from within modules, finally replacing the years-old log2() function (which was basically a wrapper to print()) with Evented::API::Engine's evented logging interface.
             the server object is now magically created before the server module is loaded, allowing its availability ($me) in modules that are loaded beforehand.
             other random cleanup and improvement.
-            
+
         16. improved reloading of modules.
             updated the Reload module to utilize the new functionality provided by Evented::API::Engine.
             updated Evented::API::Engine.
-            
+
         17. lots of cleanup.
-        
+
         18. channel invite stuff was moved out of Core modules and into a separate Invite module.
             solved an issue where the pool object was unavailable to other submodules of the ircd module.
             cleaned up ugly v('SERVER') stuff and $::variables.
             updated Evented::Object.
-        
+
         19. move invite numerics to Invite module also.
             fixed server INVITE command which I just broke a minute ago.
-            
+
     2. fixed an issue where servers would not link because I broke it a few commits ago.
-    
+
         21. fixed crash: create_sockets() -> setup_sockets().
             more clear account registration errors.
-            
+
         22. fixed automatic op in Access on account login.
             fixed misleading server burst notices.
             fixed an issue where old listeners or those which failed were not disposed of.
-            
+
         23. solved Invite module reloading failure because I forgot to specify its dependencies.
             in Reload, modules containing 'Base' are now unloaded last, just as an extra safety measure.
-            
+
         24. fixed a fatal error in Invite module.
             improved reloading of Evented::API::Engine.
             updated Evented::API::Engine.
-        
+
         25. this might fix a crash idk.
-        
+
         26. believe it or not, I've decided that load_or_reload() will redefine symbols.
-        
+
         27. SQUIT command now accepts wildcards.
             fixed the long-broken connect timer and corresponding auto_timer configuration key.
             SQUIT command now cancels connection timers.
-            
+
         28. improved SQUIT and connection timers.
             improved oper notices for server connections, adding server_connect_fail, server_connect_success, and server_connect_cancel.
             moved module-related notices to Modules.
-            
+
         29. added pre-registration ERROR handling for more descriptive notices.
             handle_connect, handle_data, and similar callbacks can be modified between upgrades now.
             fixed connection limits: connection, perip, globalperip.
             moved server authentication login into connection.pm to eliminate code repetition.
             fixed a rare but fatal bug in the Ident module.
             improved SQUIT and connection timers.
-            
+
     3. added ->register_global_command() method to JELP::Base, instructing the IRCd to permit the use of a user handler on a nonlocal user.
-            
+
         31. JELP::Base has adopted the same sort of parameter parser as Base::UserCommands.
             server handlers can now specify optional parameters, etc. just as with user handlers.
             all affected modules updated to make use of the new server parameter parser.
             'source' now only matches users and servers. it was never supposed to match channels in the first place.
             the former behavior of 'source' can now be achieved with 'object'.
-        
+
         32. fixed a few things in Account and Modules modules that I broke in the preceding commit.
-        
+
             321. um maybe this needs a dash on it.
-            
+
         33. improved handling when a connection is terminated, doing extra checks and such.
             added ->fire_command_data() to send out a command with predetermined data.
             RELOAD command should work remotely now.
-            
+
         34. fixed some quirks in the new remote RELOAD command and ->fire_command_data().
-        
+
         35. wow! RELOAD * should work now.
-        
+
         36. fixed an issue where REHASH claimed failure even when it was successful.
             greatly improved the way listeners are created and managed.
             './juno dev makemodule' now creates the module metadata with placeholder values.
             listener improvements should later support SSL, but it still isn't working.
-            
+
         37. simplified the executable.
             added sendfrom_to_many() procedural user function to send something to several users but only once.
             started documentation wow.
-            
+
         38. improved the way the Access module decides which modes to ignore.
             fixed annoying warnings in the new `sendfrom_to_many()` function.
             more documentation.
-            
+
         39. fixed broken listeners, now directly creating IO::Async::Listeners.
             SSL now seems to be working, but I am unsure whether it uses an outrageous amount of memory as it has been known to do in the past.
-            
+
     4. added two new connection events:
         reg_user: fired when the USER command is used successfully;
         reg_nick: fired when the NICK command is used successfully.
         added validident() utility which uses the same character set as charybdis's match.c.
         ALL ident lookup logic is now in the Ident module, including the tilde insertion.
         if the user requests an ident prefixed with a tilde in the USER command, the ident check is skipped.
-        
+
         41. removed old broken CAP code. will be replaced in the future.
             added RegistrationCommands base for adding new pre-registration commands to connection.pm.
             fixed an issue in Eval where the message is sent back to the source user even if the PRIVMSG fails.
-            
+
         42. created Core::RegistrationCommands which will eventually have USER, NICK, CAP, etc. handlers.
             more work for client capabilities and improvements to connection.pm.
-            
+
         43. fully implemented IRCv3 capability negotation.
-        
+
         44. greatly improved the new IRCv3 capability support.
             fixed some issues with class monitors/event tracking in modules.
             added support for IRCv3 multi-prefix capability.
             updated Evented::Object.
-        
+
         45. all hardcoded commands are gone! hooray!
             NICK, USER, SERVER, and PASS handlers moved to Core::RegistrationCommands.
-            
+
         46. improved ugly WHOIS code, but there's probably not a pretty way to do it.
             added SSL user mode (default +z) and corresponding WHOIS numeric.
-            
+
         47. further improved the way incoming commands are handled.
             registration commands can now specify after_reg option to specify that users should be able to use them even after registration is complete.
             registration command handlers with after_reg enabled will cancel any further user/server commands unless after_reg is accompanied by continue_handlers.
             fixed an issue where Ident would say "can't look up your ident" even if the lookup was canceled.
-            
+
         48. fixed a fatal issue with INVITE command to nonexistent channels.
             moved outgoing INVITE command logic to the Invite module where it belongs.
             updated Evented::Object.
@@ -2370,7 +2370,7 @@ CHANGES:
 
         49. commands are now fired with the 'safe' Evented::Object option.
             updated Evented::Object.
-            
+
     5. added eval BLOCK..END.
         started work on Git module to manage git repository from IRC.
         updated Evented::Object.
@@ -2378,48 +2378,48 @@ CHANGES:
 
         51. included Evented::Properties with the distribution.
             add missing Perl include directories in ircd initialization.
-            
+
         52. Account improvements.
             Resolve and Ident improvements.
             Lastfm module in progress.
-            
+
         53. fixed an embarrassing issue where the entirety of connection events and event-related properties were passed on to their associated user and server objects.
             I CAN'T EVEN BELIEVE THIS HAS BEEN THIS WAY FOR SO LONG WITHOUT NOTICING.
-            
+
         54. Added SASL module.
-        
+
         55. numerics can now be sent directly from connection objects.
             a new ->register_numeric() option 'allow_conn' indicates it's ok to use a numeric code on connections.
-            
+
         56. updated modules to use $connection->numeric() instead of ->early_reply().
-            
-        57. Added ECHO command.            
-            
+
+        57. Added ECHO command.
+
         58. send out NICK messages for nick collisions just as an extra measure of sync accuracy.
 
     6. added juno dev commit for easier commit and version increment.
         reverted changes to nick collisions because they didn't work.
-    
+
         61. don't echo out loud; echo to INDEV :)
 
         62. needs more newlines!
-        
+
         63. fixed several bugs with nickname reservation during registration.
-        
+
         64. fixed a couple numeric errors in registration commands.
-        
+
         65. fixed buggy registration waits.
             fixed an issue where multiple users could have the same nick if registered at the same time.
-            
+
         66. fixed bugs with parameter check in registration commands.
-        
+
         67. added Limit module (channel mode +l).
-        
+
         68. fixed some bugs in Ident.
             postpone registration when either a CAP LS or CAP REQ is received.
-        
+
         69. reorganized channel modules.
-        
+
     7. time out hostname lookups after 3 seconds.
         finished renaming channel-related modules.
 
@@ -2427,70 +2427,70 @@ CHANGES:
             improved some things with modes and such.
             updated Evented::API::Engine.
             updated Evented::Object.
-            
+
         72. cleanup.
             updated Evented::API::Engine.
             updated Evented::Object.
-            
-        73. added ability to stop a channel from being shown in LIST.    
-        
+
+        73. added ability to stop a channel from being shown in LIST.
+
         74. fixed some issues with connection timers.
             ->do_mode_string() now will only send out UMODE after UID has been sent.
             protocol errors for missing users, channels, etc. now do not result in delinkage but instead only warn IRC operators. the connection will stay alive.
-            
+
         75. 'address' key in connect blocks now accepts a list of addresses to accept.
             addresses in connect blocks can now contain wildcards * and ?.
-            
+
         76. fixed a bug where the connection limits were off by one.
             fixed a bug where the ~ was not added sometimes in Ident.
-            
+
         77. greatly improved channel's ->handle_mode_string(). goodbye +- regex!
             greatly improved mode blocks. modes without blocks can no longer be set/unset.
             updated modules that provide channel modes accordingly.
             fixed another bug in Ident.
-            
+
         78. made similar changes to user mode blocks as were made to channel mode blocks in the last commit.
             channel and user modes now only appear in RPL_ISUPPORT if they have 1 or more blocks registered.
-            
+
         79. fixed a bug with status modes set by servers that arose in 8.77.
-        
+
     8. added default.conf for fallback configuration values.
-        
+
          81. because the api:modules configuration value is getting out of hand, modules can now be loaded with Some::Module = on instead.
              improved the default.conf warning visibility. thank you @Hakkin for helping with this. :)
-             
+
         82. rewrote channel's ->mode_string_all(). much improved.
             outgoing CUM command now utilizies the new ->mode_string_all().
             fixed another bug in server connection timers.
-            
+
         83. WHOIS command can now be extended by modules with the whois_query event.
             added RPL_WHOISACCOUNT to Account.
-            
+
         84. fixed account propagation issues.
-            
+
         85. Added Channel Key module
-            The can_join hook now sends the channel key if used         
-         
+            The can_join hook now sends the channel key if used
+
         86. Added Channel Secret module (+s)
             Fixed an issue with the channel key module
-            
+
         87. updated Evented::Object.
             added room for more WHOIS lines in the future.
             fixed an issue where the IRCd sometimes would not start due to notice() in pool.pm before $pool exists.
             fixed an issue where you could set the channel user limit to nan (not a number).
-            
+
         88. fixed a bug where QUIT before registration would send "not enough parameters."
             removed ancient functions.
             improved the efficiency of lots of other functions by removing regex and utilizing List::Util.
             cleaned up a lot of other things.
-            
+
         89. added message class for parsing IRC messages; its objects represent a single message.
-        
+
     9. improvements to message object.
         fixed an issue where a user could be in a channel twice under certain conditions.
         removed more ancient utilities.
         miscellaneous cleanup.
-        
+
         91. added ->local_users to the pool object.
             fixed total client (local user limit) limit:client; broken since version 6.5.
             fire command events on user objects in conjunction with those on connection objects.
@@ -2498,101 +2498,101 @@ CHANGES:
             added new evented method for adding user commands which will eventually replace ->register_user_command().
             the magical %user_commands now eliminates the need for ->register_user_command() over a foreach.
             updated Evented::API::Engine and Evented::Object.
-            
+
         92. fixed an issue that arose in 8.88 where channel's ->list_matches() was not behaving appropriately.
             fixed an issue where (opt) parameters at the end of a parameter list were ignored due to ->parse_params() returning an empty list.
-        
+
         93. moved all of the old core command handlers over to the new API.
-        
+
         94. moved the remainder of the command handlers to the new API.
             removed the hideous old parameter parser.
             ERR_UNKNOWNCOMMAND is now an event callback that is canceled by handler wrappers.
-            
+
         95. updated Fantasy for the new evented command handler.
             fixed an issue where parameter parser errors would lead to ERR_UNKNOWNCOMMAND.
             fixed a vulnerability where commands using echo or PRIVMSG could trigger additional fantasy commands.
-            
+
         96. message object ->source now automatically determines source object.
             fixed a bug where ->numeric() on a connection object will always use the nickname from registration.
             added 'exception' oper notice flag for Perl exceptions in command handlers.
-            
+
         97. silently ignore unhandled numerics from servers.
             removed the matcher identifier code as it was unused and causing problems for the '...' (synonymous with @rest) modifier.
-            
+
         98. fixed a bug where servers would send ERR_UNKNOWNCOMMAND after incoming numerics which were being sent due to the recent changes that allow numerics to be fired on connection objects.
             numerics are no longer sent to servers (not with the server as the target anyway).
             servers now do not send ERR_UNKNOWNCOMMAND to other registered servers, and all incoming numerics are ignored.
-            
+
         99. $user->events_for_message($msg) returns events for user handlers.
             fixed $user->handle() and $user->handle_unsafe() for use with the new system.
             registration commands now utilize the new parameter parser.
             other cleanup.
-            
+
 9. juno-ircd version 9 is being branded as agnie.
 
     0. rebranding.
 
         01. properly handle "JOIN 0" - thanks @blasphemy for pointing this out.
             fixed an error due to logging during global destruction.
-            
+
         02. added ->hops_to() method to users and servers.
             WHO and LINKS commands now show the actual hop count rather than always 0.
-            
+
         03. improved ident validation checks.
             updated Evented::Database to the 1.* series built upon SQLite.
             updated Evented::Object.
-        
+
         04. gradually rewriting hideous Account module to be objective and use the new Evented::Database API.
             updated Evented::Database.
-            
+
         05. more work on the newly-rewritten Account module.
             fixed an issue in user ->do_mode_string_local() where it was never sent back to the user.
-            
+
         06. updated SASL module to work with the new Account module.
-        
+
         07. fixed bug causing endless loop of mode unsets in Account module.
-        
+
         08. fixed REGISTER command.
-        
+
         09. fixed server flooding issues caused by NOTICEs sent before registration.
-        
+
     1. fixed some more issues with new Account module.
-    
+
         11. don't forward ACCT during burst; it is a one-to-one negotiation.
-        
+
         12. respect account ID parameter.
-        
+
         13. fixed an exception in SASL when account does not exist.
-        
+
         14. properly handle LOGIN command for unknown account.
-            
+
         15. improved delayed LOGIN handling.
             occasionally clear account keys whose values were deleted by garbage disposal.
-            
+
         16. use ->account fetcher which double-checks that an {account} key is an object.
             sometimes an empty hash ref can be created automatically.
-            
+
         17. created a more secure replacement for the Eval module.
             the old module has been renamed to UnsafeEval.
             rewrote the oper command handler which I previously considered some of the ugliest code in the project.
             added utilities ref_to_list() and simplify().
             -oper modifier can now be specified without any oper flags.
-            
+
         18. improved security in server registration by negotiating SERVER and PASS separately.
             ident checks are now canceled immediately upon receiving SERVER command, speeding up the server connect process.
-            
+
         19. improve new server registration process.
-            
+
     2. added Grant module which has been missing since juno 2.
-    
+
         21. added UNGRANT command.
-            
+
         22. started working on implementing the TS6 protocol.
             started working on Channel::ModeSync module.
             user ->mode_string() can now take a server perspective.
-            
+
         23. added TS6 outgoing commands NICK and TMODE.
-        
+
         24. added TS6 outgoing command SID.
             began implementing network burst for TS6.
             TS6 prefixes are mapped to definitions in default.conf.
@@ -2605,26 +2605,26 @@ CHANGES:
             ts6_uid_u:      convert the "ID" portion of UID to TS6 ID;
             ts6_prefix:     convert juno status level to TS6 prefix;
             ts6_prefixes:   convert juno status levels to TS6 prefixes without duplicates.
-            
+
         25. protocols can now be tied to ports; i.e. jelpport = or ts6port = in configuration.
             added connection methods ->possible_protocols() and ->possibly_protocol().
             ->register_registration_command() now takes an optional 'proto' option.
             registration commands can now be registered automatically from %registration_commands.
             JELP registration commands moved from Core::RegistrationCommands to new module JELP::Registration.
             listen on *port.
-            
+
         26. all outgoing command handlers now have the first argument $server.
             they can also return array refs of multiple lines to send.
             server burst events are fired per-protocol as send_$PROTO_burst.
             BURST and ENDBURST moved from ircd::server to JELP::Outgoing.
             fixed bug where server description starting with colon would lose the colon.
             implement TS6 registration commands PASS and SERVER.
-            
+
         27. lots more work for TS6 support.
             outgoing commands are now registered with a protocol option.
             created TS6::Base with method ->register_outgoing_ts6_command() and %ts6_outgoing_commands.
             juno can now establish a link with charybdis and send its burst.
-            
+
         28. message object can now be used for other IRC-like protocols such as JELP and TS6.
             each implementation will provide its own parameter modifier subroutines and a function to look up message sources.
             finally removed the hideous parameter parser from JELP::Base.
@@ -2634,7 +2634,7 @@ CHANGES:
             server method ->handle() is no longer used as of right now.
             server command forwarding is now executed by a separate, lower-priority event callback.
             registered servers now have events message_$CMD and $PROTO_message_$CMD.
-            
+
         29. now that linking protocol messages are parsed properly, IPv6 address can no longer begin with ASCII colon (:).
             the safe_ip() utility was created to prepend one ASCII zero (0) to IPs starting with the ASCII colon (:).
             added EUID TS6 server command handler.
@@ -2644,7 +2644,7 @@ CHANGES:
             uid_from_ts6:       convert TS6 UID to juno UID;
             uid_u_from_ts6:     convert the "ID" portion of a UID from TS6 to juno ID;
             uid_n_from_ts6:     get the integral value of a TS6 UID.
-            
+
     3. removed legacy JELP commands ADDUMODE and ADDCMODE.
         added TS6::Base method ->register_ts6_command() for adding TS6 command handlers.
         added TS6 parameter modifier subroutines and message source lookup functions.
@@ -2658,86 +2658,86 @@ CHANGES:
         obj_from_ts6:           convert a TS6 ID to an object;
         user_from_ts6:          convert a TS6 UID to a user object;
         server_from_ts6:        convert a TS6 SID to a server object.
-        
-        
+
+
         31. * the server ->cmode_string_difference() method now takes an argument
               $remove_none which indicates that no modes should be unset. this was
               previously not necessary for JELP because the servers burst one-at-a-time.
-              
+
             * message parameter modifiers that are protocol-independent such as -msg,
               -command, etc. now are provided by the message class rather and no longer
               are required for each protocol implementation.
-              
+
             * all outgoing command subroutines now have the message object rather than the
               event fire object as their second argument.
               the fire object can be retrieved through $msg->event.
-            
+
             * added methods to message objects that aid the forwarding of translated
               messages from one protocol to another:
               $msg->forward:      forward a message to all servers but the source;
               $msg->forward_to:   forward a message to a specific server.
-              
+
             * added new forwarding logic to TS6 commands EUID and SJOIN.
-            
+
             * renamed outgoing event uid -> new_user.
-            
+
             * added new outgoing event create_channel for CUM/SJOIN
               (new channel, not necessarily during burst).
-        
+
         32. *   $msg->forward_to() can now take a channel object as the destination,
                 instructing it to send to all servers with member(s) in that channel.
-            
+
             *   added PRIVMSG/NOTICE handler for TS6.
                 it currently only supports simple client or channel destinations.
-                
+
         33. *   added SID TS6 command handler.
-        
+
             *   added PRIVMSG/NOTICE outgoing TS6 command subroutines.
-        
+
             *   improved TS6 server mode registration logic.
-            
+
         34. improved Resolve module.
-        
+
         35. fixed things.
-        
+
         36. added incoming TS6 command TMODE handler.
             user ->change_nick() method now takes an optional $time parameter for the nick TS.
             the $over_protocol argument for channel methods ->handle_mode_string(), ->do_mode_string(), and friends can now optionally be a subroutine to look up a user by UID.
             fixed some various bugs with user away messages due to improper use of exists() instead of length().
-            
+
         37. new server methods ->user_to_uid(), ->uid_to_user(), ->set_functions().
             fixed broken TS6 TMODE handler.
             fixed uid_from_ts6() misbehavior with UIDs containing integers in the "ID" portion.
             ->convert_cmode_string() now takes an $over_protocol argument. if true, it will attempt to convert UIDs from one protocol format to another.
-            
+
         38. all core JELP commands now utilize the $msg->forward() mechanism.
-        
+
         39. ts6_id() now caches TS6 IDs because the translator functions are currently extremely inefficient.
-        
+
     4. added Alias module.
-    
+
         41. don't send channel modes in CUM if the input mode string is '+' (from SJOIN).
-        
+
         42. new outgoing event join_with_modes.
             improved CUM/SJOIN.
             added new cols() utility function, a recursive version of col().
             SQUIT now affects all matching servers, not the first match only.
             fixed up Channel::Key.
             added some safety measures for colon-prefixed items in channel lists.
-            
+
         43. completely rewrote server::linkage. it was very buggy.
             improved CONNECT and SQUIT commands.
             added connection event "done" which indicates the connection will be dropped.
             fixed an issue where BURST would be sent before finishing registration (due to slow host or ident resolve).
-            
+
         44. reimplemented the READY command due to the issues that have arisen since its removal in version 8.1.
-        
+
         45. if autoconnect is enabled, do not try to reconnect after an SQUIT command is issued.
-        
+
         46. fixed a bug where the QUIT command would be forwarded with the physically linked server rather than the message source server.
 
         47. fixed a bug where SASL authentication did not propagate correctly because LOGIN was sent before UID or equivalent.
-            
+
         48. Added free invite mode (+g)
 
         49. implemented invite exception (+I)
@@ -2885,3 +2885,5 @@ CHANGES:
 10. juno-ircd version 10 is being branded as yiria.
 
     0. rebranding.
+
+        01. Allow retrieving the MOTD of a remote server.
