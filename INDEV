@@ -2911,5 +2911,8 @@ CHANGES:
 
     1. fixed an issue with CAP ACK with multiple capabilities.
 
+        11. fixed TS6 outgoing QUIT command.
+            add TS6 outgoing command TOPIC.
+
 
 

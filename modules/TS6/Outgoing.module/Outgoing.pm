@@ -36,7 +36,7 @@ our %ts6_outgoing_commands = (
    # away           => \&away,
    # return_away    => \&return_away,
      part           => \&part,
-   # topic          => \&topic,
+     topic          => \&topic,
      cmode          => \&tmode,
      channel_burst  => [ \&sjoin_burst, \&bmask, \&tb ],
      join_with_modes => \&sjoin,
@@ -44,7 +44,7 @@ our %ts6_outgoing_commands = (
    # aum            => \&aum,
    # kill           => \&skill,
    # connect        => \&sconnect,
-   # kick           => \&kick,
+     kick           => \&kick,
    # num            => \&num,
    # links          => \&links,
    # whois          => \&whois
@@ -377,8 +377,9 @@ sub part {
 }
 
 # QUIT
-# source: user
-# parameters: comment
+#
+# source:       user
+# parameters:   comment
 #
 # this can take a server object, user object, or connection object.
 #
@@ -387,8 +388,38 @@ sub part {
 sub quit {
     my ($to_server, $object, $reason) = @_;
     $object = $object->type if $object->isa('connection');
-    my $id  = $object->id;
+    my $id  = ts6_id($object);
     ":$id QUIT :$reason"
+}
+
+# KICK
+#
+# source:       any
+# parameters:   channel, target user, opt. reason
+# propagation:  broadcast
+#
+# ts6-protocol.txt:433
+#
+sub kick {
+    my ($to_server, $source, $channel, $target, $reason) = @_;
+    my $sourceid = ts6_id($source);
+    my $targetid = ts6_id($target);
+    my $reason = length $reason ? " :$reason" : '';
+    return ":$sourceid KICK $$channel{name} $targetid$reason";
+}
+
+# TOPIC
+#
+# source:       user
+# propagation:  broadcast
+# parameters:   channel, topic
+#
+# ts6-protocol.txt:957
+#
+sub topic {
+    my ($to_server, $source, $channel, $time, $topic) = @_;
+    my $id = ts6_id($source);
+    ":$id TOPIC $$channel{name} :$topic"
 }
 
 $mod
