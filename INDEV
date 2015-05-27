@@ -2908,7 +2908,8 @@ CHANGES:
 
         09. add TS6 outgoing command PART.
             add TS6 outgoing command QUIT.
-            
+
+    1. fixed an issue with CAP ACK with multiple capabilities.
 
 
 

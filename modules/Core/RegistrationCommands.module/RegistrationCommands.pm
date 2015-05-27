@@ -110,7 +110,7 @@ sub cap_req {
     
     # handle each capability.
     my (@add, @remove, $nak);
-    foreach my $item (@args) {
+    foreach my $item (map { split / / } @args) {
         $item = col($item);
         my ($m, $flag) = ($item =~ m/^([-]?)(.+)$/);
         next unless length $flag;
