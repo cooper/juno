@@ -57,6 +57,9 @@ our %ts6_incoming_commands = (
                   # :src          JOIN  ch_time  ch_name +
         params => '-source(user)        ts       channel(opt)',
         code   => \&_join
+    },
+    ENCAP => {    # :src   ENCAP serv_mask  sub_cmd  sub_params...
+        params => '-source       *          *        @rest'
     }
 );
 
@@ -552,6 +555,66 @@ sub _join {
     # === Forward ===
     $msg->forward(join => $user, $channel, $ts);
     
+    return 1;
+}
+
+
+# ENCAP
+#
+# source:       any
+# parameters:   target server mask, subcommand, opt. parameters...
+#
+# ts6-protocol.txt:253
+#
+sub encap {
+    my ($server, $msg, $source, $serv_mask, $cmd, @rest) = @_;
+
+    my (%done, $doing_me);
+    foreach my $serv ($pool->lookup_server_mask($serv_mask)) {
+        my $location = $serv->{location} || $serv; # for $me, location = nil
+        
+        # already did or the server is connected via the source server
+        next if $done{$server};
+        next if $location == $server;
+        
+        # if the server is me
+        if ($serv == $me) {
+            $doing_me = 1;
+            next;
+        }
+        
+        # === Forward ===
+        #
+        # TODO: !!! this will have to actually break down
+        # what the commands are and fire the appropriate outgoing
+        # handlers, since other protocols do not have ENCAP
+        #
+        
+        $done{$location} = 1;
+    }
+    
+    return 1 unless $doing_me;
+    
+    # TODO: make a better way to handle ENCAP stuff
+    if ($cmd eq 'LOGIN') {
+        return login($server, $msg, $source, @rest);
+    }
+    
+    return 1;
+}
+
+# LOGIN
+#
+# encap only
+# source:       user
+# parameters:   account name
+#
+# ts6-protocol.txt:505
+#
+sub login {
+    my ($server, $msg, $user, $act_name) = @_;
+    L("TS6 login $$user{nick} as $act_name");
+    $user->{account} = { name => $act_name };
     return 1;
 }
 

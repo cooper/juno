@@ -2902,6 +2902,9 @@ CHANGES:
             made eval command more descriptive for undef/empty values.
 
         07. add TS6 JOIN incoming command.
+
+        08. add base code for TS6 ENCAP commands.
+            add TS6 LOGIN incoming command.
             
 
 
