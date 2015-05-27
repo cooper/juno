@@ -351,15 +351,16 @@ sub privmsgnotice {
         # consider: what if a server is hidden? would this skip it?
         my %done;
         foreach my $serv ($pool->lookup_server_mask($mask)) {
+            my $location = $serv->{location} || $serv; # for $me, location = nil
             
             # already did or the server is connected via the source server
-            next if $done{$server};
-            next if $serv->{location} == $server;
+            next if $done{$location};
+            next if $location == $server;
             
             # if the server is me, send to all my users
             if ($serv == $me) {
                 $_->sendfrom($source->full, "$command $$_{nick} :$message")
-                foreach $pool->local_users;
+                    foreach $pool->local_users;
                 $done{$me} = 1;
                 next;
             }
@@ -370,7 +371,7 @@ sub privmsgnotice {
                 $mask,    $message
             );
             
-            $done{ $serv->{location} } = 1;
+            $done{$location} = 1;
         }
         
         return 1;

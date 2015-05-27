@@ -85,9 +85,9 @@ sub _eval {
         my $r = eval $code;
         alarm 0;
         $r // $@;
-    } // $@ // "\2undef\2";
-    my @result = split "\n", $result;
-
+    } // $@ || "\2undef\2";
+    my @result = map { length $_ ? $_ : "\2empty\2" } split "\n", $result;
+    
     # send the result to the channel.
     my $i = 0;
     if ($channel) {

@@ -11,5 +11,5 @@
    "description" : "evaluate Perl code",
    "name" : "Eval",
    "package" : "M::Eval",
-   "version" : "2.9"
+   "version" : "3"
 }
