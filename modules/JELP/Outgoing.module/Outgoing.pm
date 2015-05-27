@@ -24,6 +24,7 @@ my %ocommands = (
     nickchange      => \&nickchange,
     umode           => \&umode,
     privmsgnotice   => \&privmsgnotice,
+    privmsgnotice_server_mask => \&privmsgnotice_smask,
     join            => \&_join,                             # sjoin
     oper            => \&oper,
     away            => \&away,
@@ -215,6 +216,21 @@ sub privmsgnotice {
     ":$id $cmd $tid :$message"
 }
 
+# Complex PRIVMSG
+#
+#   a message to all users on server names matching a mask ('$$' followed by mask)
+#   propagation: broadcast
+#   Only allowed to IRC operators.
+#
+# privmsgnotice_server_mask =>
+#     $command, $source,
+#     $mask, $message
+#
+sub privmsgnotice_smask {
+    my ($to_server, $cmd, $source, $server_mask, $message) = @_;
+    my $id = $source->id;
+    ":$id $cmd \$\$$server_mask :$message"
+}
 
 # channel join
 sub _join {

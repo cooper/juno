@@ -2895,3 +2895,9 @@ CHANGES:
             Additionally, add away-notify support.
             
         04. Added DNSBL module.
+
+        05. added support for server mask broadcast PRIVMSG/NOTICE. implemented as defined in the TS6 spec and adopted by JELP as well.
+
+
+
+

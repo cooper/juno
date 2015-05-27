@@ -30,6 +30,7 @@ our %ts6_outgoing_commands = (
      nickchange     => \&nick,
    # umode          => \&umode,
      privmsgnotice  => \&privmsgnotice,
+     privmsgnotice_server_mask => \&privmsgnotice_smask,
      join           => \&_join,
    # oper           => \&oper,
    # away           => \&away,
@@ -338,6 +339,22 @@ sub privmsgnotice {
     my $id  = ts6_id($source);
     my $tid = ts6_id($target);
     ":$id $cmd $tid :$message"
+}
+
+# Complex PRIVMSG
+#
+#   a message to all users on server names matching a mask ('$$' followed by mask)
+#   propagation: broadcast
+#   Only allowed to IRC operators.
+#
+# privmsgnotice_server_mask =>
+#     $command, $source,
+#     $mask, $message
+#
+sub privmsgnotice_smask {
+    my ($to_server, $cmd, $source, $server_mask, $message) = @_;
+    my $id = ts6_id($source);
+    ":$id $cmd \$\$$server_mask :$message"
 }
 
 $mod

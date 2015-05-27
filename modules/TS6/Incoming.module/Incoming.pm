@@ -366,6 +366,48 @@ sub sjoin {
 #
 sub privmsgnotice {
     my ($server, $msg, $source, $command, $target, $message) = @_;
+
+    # Complex PRIVMSG
+    #   a message to all users on server names matching a mask ('$$' followed by mask)
+    #   propagation: broadcast
+    #   Only allowed to IRC operators.
+    if ($target =~ m/^\$\$(.+)$/) {
+        my $mask = $1;
+        
+        # it cannot be a server source.
+        if ($source->isa('server')) {
+            L('As per spec, "$$" complex PRIVMSG not permitted with server as a source');
+            return;
+        }
+        
+        # consider each server that matches
+        # consider: what if a server is hidden? would this skip it?
+        my %done;
+        foreach my $serv ($pool->lookup_server_mask($mask)) {
+            
+            # already did or the server is connected via the source server
+            next if $done{$server};
+            next if $serv->{location} == $server;
+            
+            # if the server is me, send to all my users
+            if ($serv == $me) {
+                $_->sendfrom($source->full, "$command $$_{nick} :$message")
+                    foreach $pool->local_users;
+                $done{$me} = 1;
+                next;
+            }
+            
+            # otherwise, forward it
+            $msg->forward_to($serv, privmsgnotice_server_mask =>
+                $command, $source,
+                $mask,    $message
+            );
+            
+            $done{ $serv->{location} } = 1;
+        }
+        
+        return 1;
+    }
     
     # is it a user?
     my $tuser = user_from_ts6($target);
