@@ -52,6 +52,11 @@ our %ts6_incoming_commands = (
     TMODE => {     # :src TMODE ch_time ch_name      mode_str mode_params...
         params  => '-source     ts      channel      :rest', # just to join them together
         code    => \&tmode
+    },
+    JOIN => {
+                  # :src          JOIN  ch_time  ch_name +
+        params => '-source(user)        ts       channel(opt)',
+        code   => \&_join
     }
 );
 
@@ -398,7 +403,10 @@ sub privmsgnotice {
                 next;
             }
             
+            # === Forward ===
+            #
             # otherwise, forward it
+            #
             $msg->forward_to($serv, privmsgnotice_server_mask =>
                 $command, $source,
                 $mask,    $message
@@ -496,6 +504,55 @@ sub tmode {
     #
     $msg->forward(cmode => $source, $channel, $channel->{time}, $me, $mode_str);
     
+}
+
+# JOIN
+#
+# 1.
+# source:       user
+# parameters:   '0' (one ASCII zero)
+# propagation:  broadcast
+#
+# Parts the source user from all channels.
+#
+# 2.
+# source:       user
+# parameters:   channelTS, channel, '+' (a plus sign)
+# propagation:  broadcast
+#
+# ts6-protocol.txt:397
+#
+sub _join {
+    my ($server, $msg, $user, $ts, $ch_name) = @_;
+
+    # JOIN 0 - part all channels.
+    if ($ts eq '0' && !length $ch_name) {
+        # TODO: this is not done!
+        # p.s. it's not done well for JELP either
+        $msg->forward(part_all => $user);
+        return 1;
+    }
+    
+    # at this point, there must be a channel.
+    return unless length $ch_name;
+    
+    # find or create.
+    my ($channel, $new) = $pool->lookup_or_create_channel($ch_name, $ts);
+    
+    # take lower time if necessary, and add the user to the channel.
+    $channel->take_lower_time($ts) unless $new;
+    $channel->cjoin($user, $ts)    unless $channel->has_user($user);
+    
+    # for each user in the channel, send a JOIN message.
+    $channel->sendfrom_all($user->full, "JOIN $$channel{name}");
+    
+    # fire after join event.
+    $channel->fire_event(user_joined => $user);
+    
+    # === Forward ===
+    $msg->forward(join => $user, $channel, $ts);
+    
+    return 1;
 }
 
 $mod

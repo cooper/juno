@@ -2900,6 +2900,8 @@ CHANGES:
 
         06. fixed issues with "$$" PRIVMSG/NOTICE.
             made eval command more descriptive for undef/empty values.
+
+        07. add TS6 JOIN incoming command.
             
 
 
