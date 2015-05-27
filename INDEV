@@ -2905,6 +2905,9 @@ CHANGES:
 
         08. add base code for TS6 ENCAP commands.
             add TS6 LOGIN incoming command.
+
+        09. add TS6 outgoing command PART.
+            add TS6 outgoing command QUIT.
             
 
 

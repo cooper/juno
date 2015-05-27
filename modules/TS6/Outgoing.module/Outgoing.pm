@@ -24,7 +24,7 @@ use M::TS6::Utils qw(ts6_id ts6_prefixes);
 our ($api, $mod, $pool, $me);
 
 our %ts6_outgoing_commands = (
-   # quit           => \&quit,
+     quit           => \&quit,
      new_server     => \&sid,
      new_user       => \&euid,
      nickchange     => \&nick,
@@ -35,7 +35,7 @@ our %ts6_outgoing_commands = (
    # oper           => \&oper,
    # away           => \&away,
    # return_away    => \&return_away,
-   # part           => \&part,
+     part           => \&part,
    # topic          => \&topic,
      cmode          => \&tmode,
      channel_burst  => [ \&sjoin_burst, \&bmask, \&tb ],
@@ -355,6 +355,40 @@ sub privmsgnotice_smask {
     my ($to_server, $cmd, $source, $server_mask, $message) = @_;
     my $id = ts6_id($source);
     ":$id $cmd \$\$$server_mask :$message"
+}
+
+# PART
+#
+# source:       user
+# parameters:   comma separated channel list, message
+#
+# FIXME: TS6 allows comma-separated list of channels.
+# this takes a channel object. maybe I need to make
+# the part outgoing command scheme accept an array
+# reference of channel objects alternatively?
+#
+# ts6-protocol.txt:617
+#
+sub part {
+    my ($to_server, $user, $channel, $time, $reason) = @_;
+    $reason ||= q();
+    my $id = ts6_id($user);
+    ":$id PART $$channel{name} $time :$reason"
+}
+
+# QUIT
+# source: user
+# parameters: comment
+#
+# this can take a server object, user object, or connection object.
+#
+# ts6-protocol.txt:694
+#
+sub quit {
+    my ($to_server, $object, $reason) = @_;
+    $object = $object->type if $object->isa('connection');
+    my $id  = $object->id;
+    ":$id QUIT :$reason"
 }
 
 $mod
