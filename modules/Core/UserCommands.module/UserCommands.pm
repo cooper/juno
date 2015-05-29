@@ -1072,7 +1072,7 @@ sub ukill {
         
         $tuser->{location}->fire_command(kill => $user, $tuser, $reason);
         my $name = $user->name;
-        $tuser->quit("Killed ($name ($reason)");
+        $tuser->quit("Killed ($name ($reason))");
     }
 
     $user->server_notice('kill', "$$tuser{nick} has been killed");
