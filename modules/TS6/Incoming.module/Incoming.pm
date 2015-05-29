@@ -634,18 +634,16 @@ sub login {
 sub skill {
     # source            user  :rest
     # :source     KILL  uid   :path
-    # path is the source and the reason; e.g. mad (go away)
+    # path is the source and the reason; e.g. server!host!iuser!nick (go away)
     my ($server, $msg, $source, $tuser, $path) = @_;
     
     # this ignores non-local users.
-    #
-    # path is passed as a scalar ref to indicate that
-    # the source should not be added
-    #
-    $tuser->get_killed_by($source, \$path);
+    my $reason = (split / /, $path, 2)[1];
+    $reason = substr $reason, 1, -1;
+    $tuser->get_killed_by($source, $reason);
     
     # === Forward ===
-    $msg->forward(kill => $source, $tuser, $path);
+    $msg->forward(kill => $source, $tuser, $reason);
     
 }
 

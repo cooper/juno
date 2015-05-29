@@ -2918,6 +2918,10 @@ CHANGES:
         12. add TS6 outgoing command KILL.
             add TS6 incoming command KILL.
             kill messages now use the normal path format: Killed (source (reason)).
+
+        13. fix path for TS6 KILL.
+            fixed broken outgoing TS6 KILL.
+            
             
 
 
