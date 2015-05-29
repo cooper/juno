@@ -60,6 +60,11 @@ our %ts6_incoming_commands = (
     },
     ENCAP => {    # :src   ENCAP serv_mask  sub_cmd  sub_params...
         params => '-source       *          *        @rest'
+    },
+    KILL => {
+                   # :src   KILL    uid     :path
+        params  => '-source         user    :rest',
+        code    => \&skill
     }
 );
 
@@ -616,6 +621,32 @@ sub login {
     L("TS6 login $$user{nick} as $act_name");
     $user->{account} = { name => $act_name };
     return 1;
+}
+
+# KILL
+#
+# source:       any
+# parameters:   target user, path
+# propagation:  broadcast
+#
+# ts6-protocol.txt:444
+#
+sub skill {
+    # source            user  :rest
+    # :source     KILL  uid   :path
+    # path is the source and the reason; e.g. mad (go away)
+    my ($server, $msg, $source, $tuser, $path) = @_;
+    
+    # this ignores non-local users.
+    #
+    # path is passed as a scalar ref to indicate that
+    # the source should not be added
+    #
+    $tuser->get_killed_by($source, \$path);
+    
+    # === Forward ===
+    $msg->forward(kill => $source, $tuser, $path);
+    
 }
 
 $mod

@@ -42,7 +42,7 @@ our %ts6_outgoing_commands = (
      join_with_modes => \&sjoin,
    # acm            => \&acm,
    # aum            => \&aum,
-   # kill           => \&skill,
+     kill           => \&skill,
    # connect        => \&sconnect,
      kick           => \&kick,
    # num            => \&num,
@@ -420,6 +420,20 @@ sub topic {
     my ($to_server, $source, $channel, $time, $topic) = @_;
     my $id = ts6_id($source);
     ":$id TOPIC $$channel{name} :$topic"
+}
+
+# KILL
+#
+# source:       any
+# parameters:   target user, path
+# propagation:  broadcast
+#
+# ts6-protocol.txt:444
+#
+sub skill {
+    my ($source, $tuser, $path);
+    my ($id, $tid) = (ts6_id($source), ts6_id($tuser));
+    ":$id KILL $tid :$path"
 }
 
 $mod

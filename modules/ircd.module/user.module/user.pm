@@ -542,8 +542,11 @@ sub add_notices {
 sub get_killed_by {
     my ($user, $murderer, $reason) = @_;
     return unless $user->is_local;
-    my $name = $murderer->name;
-    $user->{conn}->done("Killed by $name: $reason");
+    if (!ref $reason) {
+        my $name = $murderer->name;
+        $reason = \ "$name ($reason)";
+    }
+    $user->{conn}->done("Killed ($$reason)");
     notice(user_killed => $user->notice_info, $murderer->full, $reason);
 }
 

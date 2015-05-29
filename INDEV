@@ -2912,7 +2912,12 @@ CHANGES:
     1. fixed an issue with CAP ACK with multiple capabilities.
 
         11. fixed TS6 outgoing QUIT command.
+            add TS6 outgoing command KICK.
             add TS6 outgoing command TOPIC.
 
+        12. add TS6 outgoing command KILL.
+            add TS6 incoming command KILL.
+            kill messages now use the normal path format: Killed (source (reason)).
+            
 
 
