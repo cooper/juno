@@ -640,7 +640,17 @@ sub skill {
     # this ignores non-local users.
     my $reason = (split / /, $path, 2)[1];
     $reason = substr $reason, 1, -1;
-    $tuser->get_killed_by($source, $reason);
+
+    # local; destroy connection.
+    if ($tuser->is_local) {
+        $tuser->get_killed_by($source, $reason);
+    }
+    
+    # not local; just dispose of it.
+    else {
+        my $name = $tuser->name;
+        $tuser->quit("Killed ($name ($reason)");
+    }
     
     # === Forward ===
     $msg->forward(kill => $source, $tuser, $reason);

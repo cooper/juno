@@ -2921,6 +2921,11 @@ CHANGES:
 
         13. fix path for TS6 KILL.
             fixed broken outgoing TS6 KILL.
+
+        14. kills are now immediately effective.
+            quit messages are no longer sent for users which have been killed.
+            this also fixes compatibility for TS6 kills.
+
             
             
 

@@ -546,6 +546,7 @@ sub get_killed_by {
         my $name = $murderer->name;
         $reason = \ "$name ($reason)";
     }
+    $user->{conn}{killed} = 1;
     $user->{conn}->done("Killed ($$reason)");
     notice(user_killed => $user->notice_info, $murderer->full, $reason);
 }

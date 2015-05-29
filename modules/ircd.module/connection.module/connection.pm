@@ -275,7 +275,8 @@ sub done {
     if ($connection->{type}) {
 
         # share this quit with the children.
-        $pool->fire_command_all(quit => $connection, $reason);
+        $pool->fire_command_all(quit => $connection, $reason)
+            unless $connection->{killed};
 
         # tell user.pm or server.pm that the connection is closed.
         $connection->{type}->quit($reason);

@@ -751,9 +751,17 @@ sub skill {
     # :uid  KILL  uid  :reason
     my ($server, $msg, $source, $tuser, $reason) = @_;
 
-    # this ignores non-local users.
-    $tuser->get_killed_by($source, $reason);
-
+    # local; destroy connection.
+    if ($tuser->is_local) {
+        $tuser->get_killed_by($source, $reason);
+    }
+    
+    # not local; just dispose of it.
+    else {
+        my $name = $tuser->name;
+        $tuser->quit("Killed ($name ($reason)");
+    }
+    
     # === Forward ===
     $msg->forward(kill => $source, $tuser, $reason);
 
