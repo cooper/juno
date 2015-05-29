@@ -431,7 +431,7 @@ sub topic {
 # ts6-protocol.txt:444
 #
 sub skill {
-    my ($source, $tuser, $reason) = @_;
+    my ($to_server, $source, $tuser, $reason) = @_;
     my ($id, $tid) = (ts6_id($source), ts6_id($tuser));
     my $path = $source->isa('user') ?
         join('!', $source->{server}->name, @$source{qw(host ident nick)}) :
