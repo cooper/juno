@@ -758,7 +758,7 @@ sub skill {
     
     # not local; just dispose of it.
     else {
-        my $name = $tuser->name;
+        my $name = $source->name;
         $tuser->quit("Killed ($name ($reason)");
     }
     
