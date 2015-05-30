@@ -362,11 +362,6 @@ sub privmsgnotice_smask {
 # source:       user
 # parameters:   comma separated channel list, message
 #
-# FIXME: TS6 allows comma-separated list of channels.
-# this takes a channel object. maybe I need to make
-# the part outgoing command scheme accept an array
-# reference of channel objects alternatively?
-#
 # ts6-protocol.txt:617
 #
 sub part {
@@ -386,9 +381,23 @@ sub part {
 #
 # ts6-protocol.txt:694
 #
+# SQUIT
+# parameters:   target server, comment
+#
+# ts6-protocol.txt:858
+#
 sub quit {
     my ($to_server, $object, $reason) = @_;
     $object = $object->type if $object->isa('connection');
+    
+    # if it's a server, SQUIT.
+    if ($object->isa('server')) {
+        return sprintf ":%s SQUIT %s :%s",
+            ts6_id($object->{parent}),
+            ts6_id($object),
+            $reason;
+    }
+    
     my $id  = ts6_id($object);
     ":$id QUIT :$reason"
 }

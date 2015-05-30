@@ -2934,7 +2934,8 @@ CHANGES:
         16. moved JELP stuff out of the Ban module and into a separate submodule.
             this allows JELP and TS6 support to be loaded dependently of the protocol modules.
             update Evented::API::Engine.
-            
+
+        17. send SQUIT for server quit messages in TS6.
             
 
 
