@@ -373,7 +373,7 @@ sub part {
     my ($to_server, $user, $channel, $reason) = @_;
     my $id = ts6_id($user);
     $reason //= q();
-    my @channels = ref $channel ? @$channel : $channel;
+    my @channels = ref $channel eq 'ARRAY' ? @$channel : $channel;
     map ":$id PART $$_{name} $$_{time} :$reason", @channels;
 }
 

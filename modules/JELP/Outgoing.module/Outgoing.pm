@@ -263,7 +263,7 @@ sub return_away {
 sub part {
     my ($to_server, $user, $channel, $reason) = @_;
     $reason //= q();
-    my @channels = ref $channel ? @$channel : $channel;
+    my @channels = ref $channel eq 'ARRAY' ? @$channel : $channel;
     map ":$$user{uid} PART $$_{name} $$_{time} :$reason", @channels;
 }
 
