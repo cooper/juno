@@ -2931,6 +2931,9 @@ CHANGES:
             add utility channel_str_to_list().
             add TS6 command PART.
 
+        16. moved JELP stuff out of the Ban module and into a separate submodule.
+            this allows JELP and TS6 support to be loaded dependently of the protocol modules.
+            update Evented::API::Engine.
             
             
 

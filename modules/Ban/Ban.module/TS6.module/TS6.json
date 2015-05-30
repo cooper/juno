@@ -1,0 +1,15 @@
+{
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
+   "depends" : {
+      "modules" : [
+         "TS6::Base"
+      ]
+   },
+   "description" : "TS6 ban propagation",
+   "name" : "Ban::TS6",
+   "package" : "M::Ban::TS6",
+   "version" : "0.5"
+}

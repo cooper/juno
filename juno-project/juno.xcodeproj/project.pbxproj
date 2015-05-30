@@ -77,6 +77,8 @@
 		BCB6C81819626D61009F093A /* default.conf */ = {isa = PBXFileReference; lastKnownFileType = text; path = default.conf; sourceTree = "<group>"; };
 		BCB6C8191963DDE5009F093A /* Key.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Key.pm; path = Key.module/Key.pm; sourceTree = "<group>"; };
 		BCB6C81A196495D6009F093A /* Secret.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Secret.pm; path = Secret.module/Secret.pm; sourceTree = "<group>"; };
+		BCBA98311B1A1A6D00778ABD /* JELP.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = JELP.pm; path = Ban.module/JELP.module/JELP.pm; sourceTree = "<group>"; };
+		BCBA98321B1A1A7600778ABD /* TS6.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = TS6.pm; path = Ban.module/TS6.module/TS6.pm; sourceTree = "<group>"; };
 		BCBADAF2195CD5DE0051282D /* Daemon.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Daemon.pm; path = Daemon.module/Daemon.pm; sourceTree = "<group>"; };
 		BCBADAF3195CD5DE0051282D /* Lastfm.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Lastfm.pm; sourceTree = "<group>"; };
 		BCBADAF4195DDA910051282D /* SASL.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = SASL.pm; path = SASL.module/SASL.pm; sourceTree = "<group>"; };
@@ -157,6 +159,8 @@
 				BC7B16961A9017D000228EF1 /* Ban.pm */,
 				BC7B16941A900AFB00228EF1 /* Kline.pm */,
 				BC663D571A9118BE004C5ADE /* Dline.pm */,
+				BCBA98311B1A1A6D00778ABD /* JELP.pm */,
+				BCBA98321B1A1A7600778ABD /* TS6.pm */,
 			);
 			path = Ban;
 			sourceTree = "<group>";

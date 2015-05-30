@@ -1,0 +1,15 @@
+{
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
+   "depends" : {
+      "modules" : [
+         "JELP::Base"
+      ]
+   },
+   "description" : "JELP ban propagation",
+   "name" : "Ban::JELP",
+   "package" : "M::Ban::JELP",
+   "version" : "0.5"
+}

@@ -207,6 +207,7 @@ sub new_user {
     $opts{uid}  //= $me->{sid}.$pool->{user_i}++;
     $opts{nick} //= $opts{uid};
     
+    delete $opts{stream};
     my $user = user->new(%opts) or return;
     
     # store it by ID and nick.
