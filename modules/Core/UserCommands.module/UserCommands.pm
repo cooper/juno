@@ -821,12 +821,9 @@ sub part {
     my ($user, $event, $channel, $reason) = @_;
 
     # tell channel's users and servers.
-    notice(user_part => $user->notice_info, $channel->name, $reason // 'no reason');
-    my $ureason = defined $reason ? " :$reason" : q();
-    $channel->sendfrom_all($user->full, "PART $$channel{name}$ureason");
-    $pool->fire_command_all(part => $user, $channel, $channel->{time}, $reason);
+    $channel->handle_part($user, $reason);
+    $pool->fire_command_all(part => $user, $channel, $reason);
 
-    $channel->remove($user);
     return 1;
 }
 
@@ -1070,7 +1067,7 @@ sub ukill {
             return;
         }
         
-        $tuser->{location}->fire_command(kill => $user, $tuser, $reason);
+        $pool->fire_command_all(kill => $user, $tuser, $reason);
         my $name = $user->name;
         $tuser->quit("Killed ($name ($reason))");
     }

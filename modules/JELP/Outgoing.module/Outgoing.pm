@@ -261,9 +261,11 @@ sub return_away {
 
 # leave a channel
 sub part {
-    my ($to_server, $user, $channel, $time, $reason) = @_;
-    $reason ||= q();
-    ":$$user{uid} PART $$channel{name} $time :$reason"
+    my ($to_server, $user, $channel, $reason) = @_;
+    my $id = ts6_id($user);
+    $reason //= q();
+    my @channels = ref $channel ? @$channel : $channel;
+    map ":$$user{uid} PART $$_{name} $$_{time} :$reason", @channels;
 }
 
 

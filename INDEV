@@ -2926,6 +2926,11 @@ CHANGES:
             quit messages are no longer sent for users which have been killed.
             this also fixes compatibility for TS6 kills.
 
+        15. fixed KILL propagation.
+            fixed PART propagation.
+            add utility channel_str_to_list().
+            add TS6 command PART.
+
             
             
 

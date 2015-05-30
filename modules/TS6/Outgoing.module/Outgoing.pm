@@ -370,10 +370,11 @@ sub privmsgnotice_smask {
 # ts6-protocol.txt:617
 #
 sub part {
-    my ($to_server, $user, $channel, $time, $reason) = @_;
-    $reason ||= q();
+    my ($to_server, $user, $channel, $reason) = @_;
     my $id = ts6_id($user);
-    ":$id PART $$channel{name} $time :$reason"
+    $reason //= q();
+    my @channels = ref $channel ? @$channel : $channel;
+    map ":$id PART $$_{name} $$_{time} :$reason", @channels;
 }
 
 # QUIT

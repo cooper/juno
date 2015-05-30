@@ -20,6 +20,7 @@ use strict;
 use 5.010;
 
 use M::TS6::Utils qw(uid_from_ts6 user_from_ts6 mode_from_prefix_ts6 sid_from_ts6);
+use utils qw(channel_str_to_list);
 
 our ($api, $mod, $pool, $me);
 
@@ -65,6 +66,11 @@ our %ts6_incoming_commands = (
                    # :src   KILL    uid     :path
         params  => '-source         user    :rest',
         code    => \&skill
+    },
+    PART => {
+                   # :uid PART    ch_name_multi  :reason
+        params  => '-source(user) *              :rest',
+        code    => \&part
     }
 );
 
@@ -654,6 +660,34 @@ sub skill {
     
     # === Forward ===
     $msg->forward(kill => $source, $tuser, $reason);
+    
+}
+
+# PART
+#
+# source:       user
+# parameters:   comma separated channel list, message
+#
+# ts6-protocol.txt:617
+#
+sub part {
+    my ($server, $msg, $user, $ch_str, $reason) = @_;
+    my @channels = channel_str_to_list($ch_str);
+    foreach my $channel (@channels) {
+    
+        # ?!?!!?!
+        if (!$channel->has_user($user)) {
+            L("attempting to remove $$user{nick} from $$channel{name} but that user isn't on that channel");
+            return;
+        }
+        
+        # remove the user and tell others
+        $channel->handle_part($user, $reason);
+        
+    }
+    
+    # === Forward ===
+    $msg->forward(part => $user, \@channels, $reason);
     
 }
 

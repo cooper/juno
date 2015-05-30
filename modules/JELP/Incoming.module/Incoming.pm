@@ -530,19 +530,16 @@ sub part {
     # ?!?!!?!
     if (!$channel->has_user($user)) {
         L("attempting to remove $$user{nick} from $$channel{name} but that user isn't on that channel");
-        return
+        return;
     }
-
-    # remove the user and tell the local channel users
-    notice(user_part => $user->notice_info, $channel->name, $reason // 'no reason');
-    $channel->remove($user);
-    $reason = defined $reason ? " :$reason" : '';
-    $channel->sendfrom_all($user->full, "PART $$channel{name}$reason");
+    
+    # remove the user and tell others
+    $channel->handle_part($user, $reason);
 
     # === Forward ===
-    $msg->forward(part => $user, $channel, $time, $reason);
+    $msg->forward(part => $user, $channel, $reason);
 
-    return 1
+    return 1;
 }
 
 # add user mode, compact AUM

@@ -344,6 +344,18 @@ sub gnotice {
     return $message;
 }
 
+# convert a string list of channels to channel objects.
+# e.g. "#a,#b,#c"
+# nonexistent channels are ignored
+sub channel_str_to_list {
+    my $ch_name_list = shift;
+    my @names = split /,/, $ch_name_list;
+    if (my $limit = shift) {
+        @names = @names[0 .. $limit - 1];
+    }
+    return grep defined, map $::pool->lookup_channel($_), @names;
+}
+
 sub import {
     my $this_package = shift;
     my $package = caller;
