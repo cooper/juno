@@ -723,9 +723,9 @@ sub handle_part {
     my ($channel, $user, $reason) = @_;
     
     # remove the user and tell the local channel users
+    my $ureason = defined $reason ? " :$reason" : '';
+    $channel->sendfrom_all($user->full, "PART $$channel{name}$ureason");
     $channel->remove($user);
-    $reason = defined $reason ? " :$reason" : '';
-    $channel->sendfrom_all($user->full, "PART $$channel{name}$reason");
     notice(user_part => $user->notice_info, $channel->name, $reason // 'no reason');
 
     return 1;
