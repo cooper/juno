@@ -2950,4 +2950,7 @@ CHANGES:
 
         23. add SERVICES capab to indicate +S and +r are available.
 
+        24. fixed a bug where SJOIN would preserve all modes from all servers.
+            add TS6 incoming KICK command.
+
 

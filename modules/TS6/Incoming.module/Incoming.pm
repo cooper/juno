@@ -77,6 +77,11 @@ our %ts6_incoming_commands = (
                    # :src QUIT   :reason
         params  => '-source      :rest',
         code    => \&quit
+    },
+    KICK => {
+                   # :source KICK channel  target_user :reason
+        params  => '-source       channel  user        :reason(opt)',
+        code    => \&kick
     }
 );
 
@@ -208,7 +213,6 @@ sub sjoin {
     # take the new time if it's less recent.
     my $old_time = $channel->{time};
     my $new_time = $channel->take_lower_time($ts, 1);
-    my $accept_new_modes;
     
     # their TS is either older or the same.
     #
@@ -216,8 +220,8 @@ sub sjoin {
     # 2. accept all new modes.
     # 3. propagate all simple modes (not just the difference).
     #
-    $accept_new_modes++ if $new_time <= $old_time;
-
+    (my $accept_new_modes)++ if $new_time == $ts;
+    
 
     # handle the nick list.
     #
@@ -715,6 +719,39 @@ sub quit {
     # === Forward ===
     $msg->forward(quit => $source, $reason);
     
+}
+
+# KICK
+#
+# source:       any
+# parameters:   channel, target user, opt. reason
+# propagation:  broadcast
+#
+# ts6-protocol.txt:433
+#
+sub kick {
+    my ($server, $msg, $source, $channel, $t_user, $reason) = @_;
+    # note: we're technically supposed to check for $source's op if
+    # it's a user, iff the channel TS is zero.
+    
+    # fallback reason to source.
+    $reason //= $source->name;
+
+    # tell the local users of the channel.
+    notice(user_part =>
+        $t_user->notice_info,
+        $channel->name,
+        "Kicked by $$source{nick}: $reason"
+    ) if $source->isa('user');
+    $channel->sendfrom_all($source->full, "KICK $$channel{name} $$t_user{nick} :$reason");
+
+    # remove the user from the channel.
+    $channel->remove_user($t_user);
+
+    # === Forward ===
+    $msg->forward(kick => $source, $channel, $t_user, $reason);
+
+    return 1;
 }
 
 $mod
