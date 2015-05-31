@@ -2956,4 +2956,6 @@ CHANGES:
         25. consolidate the KICK commands.
             fixed TS6 KICK.
 
+        26. add TS6 incoming NICK command.
+
 

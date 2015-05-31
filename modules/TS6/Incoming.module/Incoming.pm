@@ -82,7 +82,12 @@ our %ts6_incoming_commands = (
                    # :source KICK channel  target_user :reason
         params  => '-source       channel  user        :rest(opt)',
         code    => \&kick
-    }
+    },
+    NICK => {
+                   # :uid NICK    newnick
+        params  => '-source(user) any',
+        code    => \&nick
+    },
 );
 
 # SID
@@ -740,6 +745,32 @@ sub kick {
     $msg->forward(kick => $source, $channel, $t_user, $reason);
 
     return 1;
+}
+
+# NICK
+# 1.
+# source: user
+# parameters: new nickname, new nickTS
+# propagation: broadcast
+#
+# 2.
+# source: server
+# parameters: nickname, hopcount, nickTS, umodes, username, hostname, server, gecos
+#
+# ts6-protocol.txt:562
+#
+sub nick {
+    # user any
+    # :uid NICK  newnick
+    my ($server, $msg, $user, $newnick) = @_;
+    
+    # tell ppl
+    $user->send_to_channels("NICK $newnick");
+    $user->change_nick($newnick, time);
+    
+    # === Forward ===
+    $msg->forward(nickchange => $user);
+    
 }
 
 $mod
