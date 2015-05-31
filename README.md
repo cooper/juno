@@ -1,5 +1,7 @@
 # yiria
 
+[![Join the chat at https://gitter.im/cooper/yiria](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/cooper/yiria?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Yes.  
 It really is an IRC daemon.  
 It's written in Perl.  
