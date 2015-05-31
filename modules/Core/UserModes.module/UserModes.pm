@@ -20,8 +20,9 @@ our ($api, $mod, $me);
 
 my %umodes = (
     ircop     => \&umode_ircop,
-    ssl       => \&umode_ssl,
-    invisible => \&umode_normal
+    ssl       => \&umode_never,
+    invisible => \&umode_normal,
+    service   => \&umode_never
 );
 
 sub init {
@@ -50,7 +51,9 @@ sub umode_ircop {
 }
 
 # SSL can never be set or unset without force.
-sub umode_ssl {
+# network service can never be set or unset without force.
+# etc.
+sub umode_never {
     return;
 }
 

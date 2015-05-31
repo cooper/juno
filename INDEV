@@ -2946,3 +2946,5 @@ CHANGES:
 
         21. add TS6 incoming QUIT command.
 
+        22. add network service user mode (+S).
+
