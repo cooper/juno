@@ -2948,3 +2948,6 @@ CHANGES:
 
         22. add network service user mode (+S).
 
+        23. add SERVICES capab to indicate +S and +r are available.
+
+

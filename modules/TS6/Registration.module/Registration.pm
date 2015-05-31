@@ -62,7 +62,8 @@ sub init {
 # send TS6 registration.
 sub send_registration {
     my $connection = shift;
-    $connection->send('CAPAB :EUID ENCAP QS TB EOPMOD EOB EX IE');
+    $connection->send('CAPAB :EUID ENCAP QS TB EOPMOD EOB EX IE SERVICES');
+    
     # EUID      = extended user burst support
     # ENCAP     = enhanced command routing support
     # QS        = quit storm support
@@ -70,6 +71,7 @@ sub send_registration {
     # EOPMOD    = special rules for +z, extended topic burst support 
     # EX        = ban exception (+e) support
     # IE        = invite exception (+I) support
+    # SERVICES  = support for +S (network service) and +r (channel registered)
     
     $connection->send(sprintf
         'PASS %s TS 6 :%s',
