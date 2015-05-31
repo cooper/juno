@@ -45,7 +45,7 @@ sub register_jelp_command {
     foreach my $what (qw|name code|) {
         next if defined $opts{$what};
         $opts{name} ||= 'unknown';
-        L("user command $opts{name} does not have '$what' option");
+        L("JELP command $opts{name} does not have '$what' option");
         return;
     }
     
@@ -108,7 +108,7 @@ sub register_outgoing_command {
     foreach my $what (qw|name code|) {
         next if exists $opts{$what};
         $opts{name} ||= 'unknown';
-        L("outgoing command $opts{name} does not have '$what' option");
+        L("outgoing JELP command $opts{name} does not have '$what' option");
         return
     }
 

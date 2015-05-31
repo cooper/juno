@@ -60,7 +60,8 @@ our %ts6_incoming_commands = (
         code   => \&_join
     },
     ENCAP => {    # :src   ENCAP serv_mask  sub_cmd  sub_params...
-        params => '-source       *          *        @rest'
+        params => '-source       *          *        @rest',
+        code   => \&encap
     },
     KILL => {
                    # :src   KILL    uid     :path

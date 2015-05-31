@@ -2936,6 +2936,8 @@ CHANGES:
             update Evented::API::Engine.
 
         17. send SQUIT for server quit messages in TS6.
+
+        18. misc. TS6 fixes.
             
 
 

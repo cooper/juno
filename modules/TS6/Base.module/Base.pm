@@ -51,7 +51,7 @@ sub register_ts6_command {
     foreach my $what (qw|name code|) {
         next if defined $opts{$what};
         $opts{name} ||= 'unknown';
-        L("user command $opts{name} does not have '$what' option");
+        L("TS6 command $opts{name} does not have '$what' option");
         return;
     }
     
@@ -89,7 +89,7 @@ sub register_outgoing_ts6_command {
     foreach my $what (qw|name code|) {
         next if exists $opts{$what};
         $opts{name} ||= 'unknown';
-        L("outgoing command $opts{name} does not have '$what' option");
+        L("outgoing TS6 command $opts{name} does not have '$what' option");
         return
     }
 

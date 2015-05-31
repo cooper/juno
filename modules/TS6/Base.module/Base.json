@@ -1,8 +1,4 @@
 {
-   "version" : "1",
-   "description" : "programming interface for TS6",
-   "package" : "M::TS6::Base",
-   "name" : "TS6::Base",
    "author" : {
       "name" : "Mitchell Cooper",
       "website" : "https://github.com/cooper"
@@ -12,5 +8,9 @@
          "API::Methods",
          "TS6::Utils"
       ]
-   }
+   },
+   "description" : "programming interface for TS6",
+   "name" : "TS6::Base",
+   "package" : "M::TS6::Base",
+   "version" : "1.1"
 }

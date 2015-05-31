@@ -548,7 +548,7 @@ sub get_killed_by {
     }
     $user->{conn}{killed} = 1;
     $user->{conn}->done("Killed ($$reason)");
-    notice(user_killed => $user->notice_info, $murderer->full, $reason);
+    notice(user_killed => $user->notice_info, $murderer->full, $$reason);
 }
 
 # handle an invite for a local user.

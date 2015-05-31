@@ -1,4 +1,8 @@
 {
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
    "depends" : {
       "modules" : [
          "API::Methods",
@@ -6,10 +10,6 @@
       ]
    },
    "name" : "JELP::Base",
-   "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
-   },
    "package" : "M::JELP::Base",
-   "version" : "13.33"
+   "version" : "13.43"
 }
