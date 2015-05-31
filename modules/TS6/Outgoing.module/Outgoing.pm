@@ -224,16 +224,24 @@ sub sjoin_burst {
 #
 sub _join {
     my ($server, $user, $channel, $time) = @_; # why $time?
-    
-    # there's only one user, so this channel was just created.
-    # we will just pretend we're bursting, sending the single user with modes
-    # from THIS local server ($me).
-    return sjoin_burst($server, $channel, $me) if scalar $channel->users == 1;
-    
-    sprintf ':%s JOIN %d %s +',
-    ts6_id($user),
-    $channel->{time},
-    $channel->{name}
+    my @channels = ref $channel eq 'ARRAY' ? @$channel : $channel;
+    my @lines;
+    foreach my $channel (@channels) {
+        
+        # there's only one user, so this channel was just created.
+        # we will just pretend we're bursting, sending the single user with modes
+        # from THIS local server ($me).
+        if (scalar $channel->users == 1) {
+            push @lines, sjoin_burst($server, $channel, $me);
+            next;
+        }
+        
+        push @lines, sprintf ':%s JOIN %d %s +',
+            ts6_id($user),
+            $channel->{time},
+            $channel->{name};
+    }
+    return @lines;
 }
 
 # NICK

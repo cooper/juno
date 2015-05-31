@@ -2938,6 +2938,8 @@ CHANGES:
         17. send SQUIT for server quit messages in TS6.
 
         18. misc. TS6 fixes.
+
+        19. fix TS6 JOIN.
             
 
 

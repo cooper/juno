@@ -55,8 +55,8 @@ our %ts6_incoming_commands = (
         code    => \&tmode
     },
     JOIN => {
-                  # :src          JOIN  ch_time  ch_name +
-        params => '-source(user)        ts       channel(opt)',
+                  # :src          JOIN  ch_time  ch_name
+        params => '-source(user)        ts       *(opt)',
         code   => \&_join
     },
     ENCAP => {    # :src   ENCAP serv_mask  sub_cmd  sub_params...
@@ -528,8 +528,6 @@ sub tmode {
 # parameters:   '0' (one ASCII zero)
 # propagation:  broadcast
 #
-# Parts the source user from all channels.
-#
 # 2.
 # source:       user
 # parameters:   channelTS, channel, '+' (a plus sign)
@@ -550,7 +548,7 @@ sub _join {
     
     # at this point, there must be a channel.
     return unless length $ch_name;
-    
+
     # find or create.
     my ($channel, $new) = $pool->lookup_or_create_channel($ch_name, $ts);
     

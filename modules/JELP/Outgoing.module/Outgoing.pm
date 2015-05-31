@@ -235,7 +235,8 @@ sub privmsgnotice_smask {
 # channel join
 sub _join {
     my ($to_server, $user, $channel, $time) = @_;
-    ":$$user{uid} JOIN $$channel{name} $time"
+    my @channels = ref $channel eq 'ARRAY' ? @$channel : $channel;
+    map ":$$user{uid} JOIN $$_{name} $time", @channels;
 }
 
 
