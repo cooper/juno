@@ -260,7 +260,8 @@ sub parse_params {
     # check argument count.
     my @params = $msg->params;
     if (scalar @params < $required_parameters) {
-        $msg->source->numeric(ERR_NEEDMOREPARAMS => $msg->command);
+        $msg->source->numeric(ERR_NEEDMOREPARAMS => $msg->command)
+            if $msg->source && $msg->source->isa('user');
         return $PARAM_BAD;
     }
 

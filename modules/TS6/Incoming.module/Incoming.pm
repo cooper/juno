@@ -70,7 +70,7 @@ our %ts6_incoming_commands = (
     },
     PART => {
                    # :uid PART    ch_name_multi  :reason
-        params  => '-source(user) *              :rest',
+        params  => '-source(user) *              :rest(opt)',
         code    => \&part
     }
 );

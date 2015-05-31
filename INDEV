@@ -2941,5 +2941,6 @@ CHANGES:
 
         19. fix TS6 JOIN.
             
-
+    2. part reason is not required. fixed ts6 handler accordingly.
+        fixed an issue where incorrect number of parameters from a JELP command raises an exception when the ircd attempts to send ERR_NEEDMOREPARAMS.
 
