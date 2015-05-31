@@ -31,7 +31,6 @@ my %scommands = (
         code    => \&uid
     },
     QUIT => {
-                   # needs data for manual forwarding
                    # :src QUIT :reason
         params  => '-source    :rest',
         code    => \&quit

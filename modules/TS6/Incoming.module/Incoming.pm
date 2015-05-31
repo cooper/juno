@@ -72,6 +72,11 @@ our %ts6_incoming_commands = (
                    # :uid PART    ch_name_multi  :reason
         params  => '-source(user) *              :rest(opt)',
         code    => \&part
+    },
+    QUIT => {
+                   # :src QUIT   :reason
+        params  => '-source      :rest',
+        code    => \&quit
     }
 );
 
@@ -687,6 +692,28 @@ sub part {
     
     # === Forward ===
     $msg->forward(part => $user, \@channels, $reason);
+    
+}
+
+# QUIT
+#
+# source:       user
+# parameters:   comment
+#
+# ts6-protocol.txt:696
+#
+sub quit {
+    # source   :rest
+    # :source QUIT   :reason
+    my ($server, $msg, $source, $reason) = @_;
+    return if $source == $me;
+    return unless $source->{location} == $server->{location};
+    
+    # delete the server or user
+    $source->quit($reason);
+    
+    # === Forward ===
+    $msg->forward(quit => $source, $reason);
     
 }
 
