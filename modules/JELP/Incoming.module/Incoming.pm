@@ -768,19 +768,7 @@ sub kick {
     # :id    KICK  channel uid  :reason
     my ($server, $msg, $source, $channel, $t_user, $reason) = @_;
 
-    # fallback reason to source.
-    $reason //= $source->name;
-
-    # tell the local users of the channel.
-    notice(user_part =>
-        $t_user->notice_info,
-        $channel->name,
-        "Kicked by $$source{nick}: $reason"
-    ) if $source->isa('user');
-    $channel->sendfrom_all($source->full, "KICK $$channel{name} $$t_user{nick} :$reason");
-
-    # remove the user from the channel.
-    $channel->remove_user($t_user);
+    $channel->user_get_kicked($t_user, $source, $reason);
 
     # === Forward ===
     $msg->forward(kick => $source, $channel, $t_user, $reason);

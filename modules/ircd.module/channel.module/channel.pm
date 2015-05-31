@@ -731,4 +731,23 @@ sub handle_part {
     return 1;
 }
 
+# handle a kick. send it to local users.
+sub user_get_kicked {
+    my ($channel, $user, $source, $reason) = @_;
+    
+    # fallback reason to source.
+    $reason //= $source->name;
+    
+    # tell the local users of the channel.
+    $channel->sendfrom_all($source->full, "KICK $$channel{name} $$user{nick} :$reason");
+    
+    notice(user_part =>
+        $user->notice_info,
+        $channel->name,
+        "Kicked by $$source{nick}: $reason"
+    ) if $source->isa('user');
+    
+    return $channel->remove_user($user);
+}
+
 $mod

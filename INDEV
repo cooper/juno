@@ -2953,4 +2953,7 @@ CHANGES:
         24. fixed a bug where SJOIN would preserve all modes from all servers.
             add TS6 incoming KICK command.
 
+        25. consolidate the KICK commands.
+            fixed TS6 KICK.
+
 
