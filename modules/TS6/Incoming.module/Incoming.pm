@@ -80,7 +80,7 @@ our %ts6_incoming_commands = (
     },
     KICK => {
                    # :source KICK channel  target_user :reason
-        params  => '-source       channel  user        :reason(opt)',
+        params  => '-source       channel  user        :rest(opt)',
         code    => \&kick
     }
 );
