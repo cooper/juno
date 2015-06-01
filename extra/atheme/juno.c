@@ -45,6 +45,12 @@
 /*        CMODE_CENSOR         0x400000000       unreal      +G     censor bad words        */
 /*        CMODE_NOKNOCK        0x800000000       unreal      +K     disable KNOCK command   */
 
+#ifdef PROTOCOL_ELEMENTAL_IRCD
+    #define PROTOCOL_JUNO PROTOCOL_ELEMENTAL_IRCD
+#else
+    #define PROTOCOL_JUNO PROTOCOL_SHADOWIRCD
+#endif
+
 DECLARE_MODULE_V1("protocol/juno", true, _modinit, NULL, PACKAGE_STRING, "Mitchell Cooper <https://github.com/cooper>");
 
 ircd_t juno = {
@@ -65,15 +71,14 @@ ircd_t juno = {
     .owner_mchar        = "+y",
     .protect_mchar      = "+a",
     .halfops_mchar      = "+h",
-    .type               = PROTOCOL_SHADOWIRCD,  /* close enough */
+    .type               = PROTOCOL_JUNO,
     .perm_mode          = 0,                    /* CMODE_PERM */
     .oimmune_mode       = 0,                    /* CMODE_IMMUNE */
     .ban_like_modes     = "AbeIZ",
     .except_mchar       = 'e',
     .invex_mchar        = 'I',
-    .flags              = IRCD_CIDR_BANS | IRCD_HOLDNICK,
+    .flags              = IRCD_CIDR_BANS | IRCD_HOLDNICK
 };
-
 
 struct cmode_ juno_mode_list[] = {
     { 'i', CMODE_INVITE         },      /* invite only                              */
@@ -106,14 +111,12 @@ struct cmode_ juno_mode_list[] = {
     { '\0', 0 }
 };
 
-
 static bool check_forward(const char *, channel_t *, mychan_t *, user_t *, myuser_t *);
 
 struct extmode juno_ignore_mode_list[] = {
     { 'f', check_forward        },
     { '\0', 0 }
 };
-
 
 struct cmode_ juno_status_mode_list[] = {
     { 'y', CSTATUS_OWNER        },
@@ -123,7 +126,6 @@ struct cmode_ juno_status_mode_list[] = {
     { 'v', CSTATUS_VOICE        },
     { '\0', 0 }
 };
-
 
 /* these can be any arbitrary symbols
  * as long as they are consistent with
@@ -136,7 +138,6 @@ struct cmode_ juno_prefix_mode_list[] = {
     { '+', CSTATUS_VOICE        },
     { '\0', 0 }
 };
-
 
 struct cmode_ juno_user_mode_list[] = {
  /* { 'p', UF_IMMUNE            }, */       /*  immune from kickban         */
