@@ -2958,4 +2958,7 @@ CHANGES:
 
         26. add TS6 incoming NICK command.
 
+        27. included a proper atheme protocol module in the distribution.
+            updated default.conf accordingly.
+
 

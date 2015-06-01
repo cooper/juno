@@ -35,6 +35,7 @@
 		BC7B16941A900AFB00228EF1 /* Kline.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Kline.pm; path = Kline.module/Kline.pm; sourceTree = "<group>"; };
 		BC7B16961A9017D000228EF1 /* Ban.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Ban.pm; path = Ban.module/Ban.pm; sourceTree = "<group>"; };
 		BC8BAD3A19EF007E00216958 /* Forward.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Forward.pm; path = Forward.module/Forward.pm; sourceTree = "<group>"; };
+		BC8DAA7D1B1BB90100709B74 /* juno.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = juno.c; path = ../extra/atheme/juno.c; sourceTree = "<group>"; };
 		BC9564F61944E032002F52B9 /* Account.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = Account.pm; sourceTree = "<group>"; };
 		BC9564F91944E032002F52B9 /* Local.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Local.pm; path = Local.module/Local.pm; sourceTree = "<group>"; };
 		BC9564FC1944E032002F52B9 /* Remote.pm */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = Remote.pm; path = Remote.module/Remote.pm; sourceTree = "<group>"; };
@@ -97,6 +98,7 @@
 			isa = PBXGroup;
 			children = (
 				BC9564F01944E032002F52B9 /* Modules */,
+				BC8DAA7E1B1BC65600709B74 /* Extra */,
 				A75C5CCC18B43219007780A3 /* Executables */,
 				A75C5CD118B43219007780A3 /* Configuration */,
 				A75C5D1F18B43242007780A3 /* Documentation */,
@@ -163,6 +165,14 @@
 				BCBA98321B1A1A7600778ABD /* TS6.pm */,
 			);
 			path = Ban;
+			sourceTree = "<group>";
+		};
+		BC8DAA7E1B1BC65600709B74 /* Extra */ = {
+			isa = PBXGroup;
+			children = (
+				BC8DAA7D1B1BB90100709B74 /* juno.c */,
+			);
+			name = Extra;
 			sourceTree = "<group>";
 		};
 		BC9564F01944E032002F52B9 /* Modules */ = {
