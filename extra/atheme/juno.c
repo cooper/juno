@@ -45,11 +45,19 @@
 /*        CMODE_CENSOR         0x400000000       unreal      +G     censor bad words        */
 /*        CMODE_NOKNOCK        0x800000000       unreal      +K     disable KNOCK command   */
 
+/* Compatibility stuff */
+
 #ifdef PROTOCOL_ELEMENTAL_IRCD
     #define PROTOCOL_JUNO PROTOCOL_ELEMENTAL_IRCD
 #else
     #define PROTOCOL_JUNO PROTOCOL_SHADOWIRCD
 #endif
+
+#ifndef MYCHAN_FROM
+    #define MYCHAN_FROM(x) mychan_from(x)
+#endif
+
+/* Protocol definition */
 
 DECLARE_MODULE_V1("protocol/juno", true, _modinit, NULL, PACKAGE_STRING, "Mitchell Cooper <https://github.com/cooper>");
 
