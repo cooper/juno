@@ -58,6 +58,10 @@
     channelname = 50                            # channel names
     away        = 100                           # away messages
     key         = 50                            # channel keys
+    
+[ file ]
+
+    motd = 'etc/ircd.motd.example'
 
 [ users ]
 
