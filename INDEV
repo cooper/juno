@@ -2964,3 +2964,5 @@ CHANGES:
         28. reveal network service status (+S) in RPL_WHOISOPERATOR.
 
         29. improve module load errors.
+
+    3. further improve module load errors.
