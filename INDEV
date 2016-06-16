@@ -2979,3 +2979,7 @@ CHANGES:
 
         36. add ENCAP LOGIN outgoing command, sent during TS6 burst.
             RPL_WHOISACCOUNT now works for accounts set by services.
+
+        37. deleted poorly-designed Account module.
+            deleted deprecated UnsafeEval module.
+            fixed LOGIN commands for JELP and TS6.

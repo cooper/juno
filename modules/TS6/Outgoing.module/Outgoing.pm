@@ -472,9 +472,9 @@ sub skill {
 # ts6-protocol.txt:505
 #
 sub login {
-    my ($to_server, $user, $act) = @_;
+    my ($to_server, $user, $acctname) = @_;
     my $id = ts6_id($user);
-    ":$id ENCAP * LOGIN $$act{name}"
+    ":$id ENCAP * LOGIN $acctname"
 }
 
 $mod

@@ -2,7 +2,7 @@
 
 
 [ server ]
-    
+
     network     = 'JunoDevNet'                  # network name
     name        = 'devserver.example.com'       # server name
     description = 'juno development server'     # server description
@@ -17,7 +17,6 @@
     Resolve                     # Resolve hostnames
     Git                         # update git repository directly from IRC
     Reload                      # Reload or upgrade the IRCd in 1 command
-    Account                     # Support for user accounts
     Modules                     # Manage IRCd modules directly from IRC
     LOLCAT                      # SPEEK LIEK A LOLCATZ!
     Eval                        # Evaluate Perl code directly from IRC
@@ -58,7 +57,7 @@
     channelname = 50                            # channel names
     away        = 100                           # away messages
     key         = 50                            # channel keys
-    
+
 [ file ]
 
     motd = 'etc/ircd.motd.example'
@@ -94,30 +93,30 @@
     # Address(es) to accept connection from.
     # MUST be IP addresses, not hostnames.
     # Wildcards are accepted. Any number of address allowed.
-    
-        address = ['192.168.1.*', '127.0.0.1'] 
-    
+
+        address = ['192.168.1.*', '127.0.0.1']
+
     # Outgoing port. If initiating a connection, the server will try this port.
     # Currently, the port does not affect incoming connections.
-    
+
         port = 7000
-    
+
     # Plain text outgoing password
-    
+
         send_password = 'k'
-    
+
     # Incoming password and the encryption for it
-    
+
         receive_password = '13fbd79c3d390e5d6585a21e11ff5ec1970cff0c'
         encryption       = 'sha1'
-    
+
     # Auto connect on startup.
-    
+
         #autoconnect
-    
+
     # Reconnect timer. If connection drops, try again every x seconds.
     # Uncomment below if you wish to enable this feature.
-    
+
         #auto_timer = 30
 
 
@@ -126,32 +125,32 @@
     # Operator class (optional)
     # If present, the oper will receive flags and notices defined in this class
     # and all other classes from which it may inherit.
-    
+
         class      = 'netadmin'
-        
+
     # Hostmask(s) to accept for opering.
     # These can include either hostnames or IP addresses.
     # Multiple values accepted. Wildcards accepted.
-    
+
         host = ['*@*']
-        
+
     # The password and encyption for it
-    
+
         password   = '13fbd79c3d390e5d6585a21e11ff5ec1970cff0c'
         encryption = 'sha1'
-        
+
     # Flags (optional)
     # Oper flags which are specific to this oper. These will be granted in
     # conjunction with any others that might exist from oper classes.
     # Multiple flags accepted. Wildcards not accepted. 'all' matches all flags.
-    
+
         flags = ['all']
-    
+
     # Oper notice flags (optional)
     # Notice flags which are specific to this oper. These will be granted in
     # conjunction with any others that might exist from oper classes.
     # Multiple flags accepted. Wildcards not accepted. 'all' matches all flags.
-    
+
         notices = ['all']
 
 

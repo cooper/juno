@@ -147,6 +147,11 @@ my %scommands = (
     SNOTICE => {  # :sid SNOTICE   flag  :message
         params => '-source(server) any   :rest',
         code   => \&snotice
+    },
+    LOGIN => {
+                  # :uid LOGIN      actname,...
+        params => '-source(user)    any'
+        code   => \&login
     }
 );
 
@@ -847,6 +852,24 @@ sub snotice {
 
     # === Forward ===
     $msg->forward(snotice => $notice, $message);
+
+    return 1;
+}
+
+sub login {
+    my ($server, $msg, $user, $str) = @_;
+    # $str is a comma-separated list.
+    # the first item is always the account name. the rest can be any strings,
+    # depending on the builtin account implementation. here, we are only
+    # concerned with the account name.
+    # consider: if other items are present, should we ignore this entirely here?
+
+    my @items = split /,/, $str;
+    $user->{account} ||= {};
+    $user->{account}{name} = $items[0];
+
+    # === Forward ===
+    $msg->forward(login => $user, @items);
 
     return 1;
 }

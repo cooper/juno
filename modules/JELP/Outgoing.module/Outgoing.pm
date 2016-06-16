@@ -15,6 +15,8 @@ use warnings;
 use strict;
 use 5.010;
 
+use Scalar::Util qw(blessed);
+
 our ($api, $mod, $me, $pool);
 
 my %ocommands = (
@@ -45,6 +47,7 @@ my %ocommands = (
     time            => \&_time,
     snotice         => \&snotice,
     version         => \&version,
+    login           => \&login,
 
     # JELP-specific
 
@@ -457,6 +460,14 @@ sub snotice {
 sub version {
     my ($to_server, $user, $t_server) = @_;
     ":$$user{uid} VERSION \$$$t_server{sid}"
+}
+
+# :uid LOGIN accountname,others,...
+# the comma-separated list is passed as a list here.
+sub login {
+    my ($to_server, $user, @items) = @_;
+    my $items = join ',', @items;
+    ":$$user{uid} LOGIN $items"
 }
 
 $mod
