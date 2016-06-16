@@ -632,7 +632,20 @@ sub encap {
 
     # TODO: make a better way to handle ENCAP stuff
     if ($cmd eq 'LOGIN') {
+        # source: user
+        # parameters: account name
         return login($server, $msg, $source, @rest);
+    }
+    if ($cmd eq 'SU') {
+        # source: services server
+        # parameters: user, new login name
+        my $user = $pool->lookup_user(uid_from_ts6($rest[0])) or return;
+        if (!length $rest[1]) {
+            delete $user->{account};
+            L("TS6 logout $$user{nick}");
+            return 1;
+        }
+        return login($server, $msg, $source, $user, $rest[1]);
     }
 
     return 1;
