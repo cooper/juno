@@ -645,7 +645,7 @@ sub encap {
             L("TS6 logout $$user{nick}");
             return 1;
         }
-        return login($server, $msg, $source, $user, $rest[1]);
+        return login($server, $msg, $user, $rest[1]);
     }
 
     return 1;
