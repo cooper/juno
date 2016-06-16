@@ -2976,3 +2976,5 @@ CHANGES:
         34. reversed server order in netsplit user quit message.
 
         35. handle TS6 ENCAP SU (account name set by services).
+
+        36. add ENCAP LOGIN outgoing command, sent during TS6 burst.

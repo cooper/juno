@@ -45,6 +45,7 @@ our %ts6_outgoing_commands = (
      kill           => \&skill,
    # connect        => \&sconnect,
      kick           => \&kick,
+     login          => \&login,
    # num            => \&num,
    # links          => \&links,
    # whois          => \&whois
@@ -460,6 +461,20 @@ sub skill {
         join('!', $source->{server}->name, @$source{qw(host ident nick)}) :
         $source->name;
     ":$id KILL $tid :$path ($reason)"
+}
+
+# LOGIN
+# encap only
+#
+# source:       user
+# parameters:   account name
+#
+# ts6-protocol.txt:505
+#
+sub login {
+    my ($to_server, $user, $act) = @_;
+    my $id = ts6_id($user);
+    ":$id ENCAP * LOGIN $$act{name}"
 }
 
 $mod
