@@ -2983,3 +2983,6 @@ CHANGES:
         37. deleted poorly-designed Account module.
             deleted deprecated UnsafeEval module.
             fixed LOGIN commands for JELP and TS6.
+
+        38. temporary fix for a TS6 UID conversion issue.
+            re-added RPL_WHOISACCOUNT, now independent of the former Account module.

@@ -186,7 +186,7 @@ sub init {
 
     &add_join_callbacks;
     &add_whois_callbacks;
-    
+
     #  Add away-notify capability.
     $mod->register_capability('away-notify');
 
@@ -679,7 +679,7 @@ sub add_whois_callbacks {
         my $user = shift;
         return $user->is_mode('service') ? 'a network service' : 'an IRC operator'
     };
-    
+
     # too bad this is >90 width.
     my $p = 1000;
     foreach (
@@ -692,6 +692,7 @@ sub add_whois_callbacks {
     [ sub { shift->mode_string      }, 'RPL_WHOISMODES',    sub { shift->mode_string                } ],
     [ undef,                           'RPL_WHOISHOST',     sub { @{+shift}{qw(host ip)}            } ],
     [ sub { shift->is_local         }, 'RPL_WHOISIDLE',     $seconds_idle                             ],
+    [ sub { shift->{account}        }, 'RPL_WHOISACCOUNT',  sub { shift->{account}{name}            } ],
     [ undef,                           'RPL_ENDOFWHOIS'                                               ]) {
         my ($conditional_sub, $constant, $argument_sub) = @$_; $p -= 5;
         $pool->on('user.whois_query' => sub {
@@ -1072,7 +1073,7 @@ sub ukill {
             $user->numeric(ERR_NOPRIVILEGES => 'gkill');
             return;
         }
-        
+
         $pool->fire_command_all(kill => $user, $tuser, $reason);
         my $name = $user->name;
         $tuser->quit("Killed ($name ($reason))");

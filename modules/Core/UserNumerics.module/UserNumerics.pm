@@ -11,11 +11,11 @@
 # @author.website:  "https://github.com/cooper"
 #
 package M::Core::UserNumerics;
- 
+
 use warnings;
 use strict;
 use 5.010;
- 
+
 use utils qw(conf v);
 
 our ($api, $mod, $me, $pool);
@@ -66,6 +66,7 @@ our %user_numerics = (
     RPL_LISTEND          => [323, ':End of channel list'                                                  ],
     RPL_CHANNELMODEIS    => [324, '%s %s'                                                                 ],
     RPL_CREATIONTIME     => [329, '%s %d'                                                                 ],
+    RPL_WHOISACCOUNT     => [330, '%s %s :is logged in as'                                                ],
     RPL_NOTOPIC          => [331, '%s :No topic is set'                                                   ],
     RPL_TOPIC            => [332, '%s :%s'                                                                ],
     RPL_TOPICWHOTIME     => [333, '%s %s %d'                                                              ],
@@ -111,7 +112,7 @@ our %user_numerics = (
     ERR_USERSDONTMATCH   => [502, ':Can\'t change mode for other users'                                   ],
     RPL_WHOISSECURE      => [671, '%s :is using a secure connection'                                      ],
                             ###############################################################################
-);                  
+);
 
 # RPL_ISUPPORT
 sub rpl_isupport {
@@ -143,7 +144,7 @@ sub rpl_isupport {
 
     my ($curr, @lines) = (0, '');
     while (my ($param, $val) = each %things) {
-    
+
         # configuration value probably nonexistent.
         next unless defined $val;
 
@@ -152,7 +153,7 @@ sub rpl_isupport {
             $curr++;
             $lines[$curr] = '';
         }
-        
+
         $lines[$curr] .= $val eq 'YES' ? "$param " : "$param=$val ";
     }
 
@@ -169,17 +170,17 @@ sub isp_chanmodes {
     #   key             (5)
     my %m;
     my @a = ('') x 5;
-    
+
     # find each mode letter.
     foreach my $name ($ircd::conf->keys_of_block(['modes', 'channel'])) {
-    
+
         # fetch the type.
         my ($type, $letter) = @{ conf(['modes', 'channel'], $name) };
         $type = 1 if $type == 5; # channel key (+k) is an exception...
-        
+
         # ignore modes without blocks.
         next unless keys %{ $pool->{channel_modes}{$name} || {} };
-        
+
         push @{ $m{$type} ||= [] }, $letter;
     }
 
@@ -195,13 +196,13 @@ sub isp_chanmodes {
 # PREFIX in RPL_ISUPPORT.
 sub isp_prefix {
     my ($modestr, $prefixes) = ('', '');
-    
+
     # sort from largest to smallest level.
     foreach my $level (sort { $b <=> $a } keys %ircd::channel_mode_prefixes) {
         $modestr  .= $ircd::channel_mode_prefixes{$level}[0];
         $prefixes .= $ircd::channel_mode_prefixes{$level}[1];
     }
-    
+
     return "($modestr)$prefixes";
 }
 
