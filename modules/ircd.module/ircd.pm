@@ -31,12 +31,12 @@ sub init {
     $mod->load_submodule('utils') or return;
     utils->import(qw|conf fatal v trim notice gnotice ref_to_list|);
     $VERSION = get_version();
-    
+
     &set_variables;         # set default global variables.
     &boot;                  # boot if we haven't already.
-    
+
     L('Started server at '.scalar(localtime v('START')));
-    
+
     &setup_inc;             # add things to @INC.
     &load_dependencies;     # load or reload all dependency packages.
     &setup_config;          # parse the configuration.
@@ -94,7 +94,7 @@ sub init {
     &setup_timer;           # set up ping timer.
     &setup_autoconnect;     # connect to servers with autoconnect enabled.
     &misc_upgrades;         # miscellaneous upgrade fixes
-    
+
     L("server initialization complete");
     return 1;
 }
@@ -112,10 +112,10 @@ sub setup_inc {
 
 sub setup_modules {
     return if $mod->{loading};
-    
+
     # the old way: modules key.
     my @modules = ref_to_list(conf('api', 'modules'));
-    
+
     # the new way: other keys.
     my %mods = $conf->hash_of_block('api');
     foreach my $mod_name (keys %mods) {
@@ -123,7 +123,7 @@ sub setup_modules {
         next unless $mods{$mod_name};
         push @modules, $mod_name;
     }
-    
+
     L('Loading API configuration modules');
     $api->load_modules(@modules);
     L('Done loading modules');
@@ -139,30 +139,30 @@ sub setup_config {
         db       => $dbh,
         conffile => "$::run_dir/etc/default.conf"
     );
-    
+
     my $new = !$conf->table('configuration')->exists;
     $conf->create_tables_maybe;
-    
+
     # parse the default configuration.
     unless ($new) {
         $conf->{conffile} = "$::run_dir/etc/default.conf";
         $conf->parse_config or return;
     }
-    
+
     # parse the actual configuration.
     $conf->{conffile} = "$::run_dir/etc/ircd.conf";
     $conf->parse_config or return;
-    
+
     # if upgrading, parse default configuration after.
     if ($new) {
         $conf->{conffile} = "$::run_dir/etc/default.conf";
         $conf->parse_config or return;
         $conf->{conffile} = "$::run_dir/etc/ircd.conf";
     }
-    
+
     # developer mode?
     $api->{developer} = conf('server', 'developer');
-        
+
     return 1;
 }
 
@@ -180,7 +180,7 @@ sub setup_timer {
     if ($timer = $::timer) {
         $loop->remove($timer) if $timer->is_running;
     }
-    
+
     # create a new timer.
     $timer = $::timer = IO::Async::Timer::Periodic->new(
         interval => 30,
@@ -188,7 +188,7 @@ sub setup_timer {
     );
     $loop->add($timer);
     $timer->start;
-        
+
 }
 
 sub setup_autoconnect {
@@ -200,7 +200,7 @@ sub setup_autoconnect {
         next unless conf(['connect', $name], 'autoconnect');
         server::linkage::connect_server($name);
     }
-    
+
 }
 
 sub set_variables {
@@ -226,11 +226,11 @@ sub set_variables {
 
     # replacements.
     @::v{keys %v_replace} = values %v_replace;
-    
+
     # insertions.
     my @missing_keys    = grep { not exists $::v{$_} } keys %v_insert;
     @::v{@missing_keys} = @v_insert{@missing_keys};
-    
+
 }
 
 sub setup_sockets {
@@ -246,12 +246,12 @@ sub setup_sockets {
     #
     ADDR: foreach my $addr ($conf->names_of_block('listen')) {
         my %listen = $conf->hash_of_block(['listen', $addr]);
-        
+
         KEY: foreach my $key (keys %listen) {
             $key =~ m/^(.*)port$/ or next;
             my $prefix = $1;
             my @ports  = ref_to_list($listen{$key});
-            
+
             # plain ports.
             if (!$prefix) {
                 listen_addr_port($addr, $_) foreach @ports;
@@ -265,21 +265,21 @@ sub setup_sockets {
                 listen_addr_port($addr, $_, 1) foreach @ports;
                 next KEY;
             }
-            
+
             # protocol-specific ports.
             foreach (@ports) {
                 listen_addr_port($addr, $_);
                 $listen_protocol{$_} = $prefix;
             }
-        
+
         }
     }
-    
+
     # reconfigure existing notifiers.
     foreach ($loop->notifiers) {
         configure_listener($_) if $_->isa('IO::Async::Listener');
         configure_stream($_)   if $_->isa('IO::Async::Stream');
-        
+
         # dead timer.
         if ($_->isa('IO::Async::Timer::Periodic')) {
             next unless $timer->loop;
@@ -288,7 +288,7 @@ sub setup_sockets {
             $loop->remove($timer);
         }
     }
-    
+
 }
 
 # this is called for both new and
@@ -300,7 +300,7 @@ sub configure_listener {
     if ($listener->loop && !$listener->read_handle && !$listener->parent) {
         $loop->remove($listener);
     }
-    
+
     $listener->{on_accept} = sub { &handle_connect };
     $listener->{ssl} = $listener->{handle_class} eq 'IO::Async::SSLStream';
 }
@@ -309,12 +309,12 @@ sub configure_listener {
 # existing streams,  even during reload.
 sub configure_stream {
     my $stream = shift;
-    
+
     # if there is no read handle, this is dead.
     if ($stream->loop && !$stream->read_handle && !$stream->parent) {
         $loop->remove($stream);
     }
-    
+
     $stream->{on_read} = sub { &handle_data };
 }
 
@@ -323,12 +323,12 @@ sub listen_addr_port {
     my $ipv6 = $addr =~ m/:/;
     my ($p_addr, $p_port) = ($ipv6 ? "[$addr]" : $addr, $ssl ? "+$port" : $port);
     my $l_key = lc "$p_addr:$p_port";
-        
+
     # use SSL.
     my ($method, %sslopts) = 'listen';
     if ($ssl) {
         $method  = 'SSL_listen';
-        
+
         # ensure the key and certificate exist.
         my $ssl_cert = $::run_dir.q(/).conf('ssl', 'cert');
         my $ssl_key  = $::run_dir.q(/).conf('ssl', 'key');
@@ -336,7 +336,7 @@ sub listen_addr_port {
             L("SSL key or certificate missing! Cannnot listen on $l_key");
             return;
         }
-        
+
         # pass SSL options to ->SSL_listen().
         %sslopts = (
             SSL_cert_file => $ssl_cert,
@@ -344,7 +344,7 @@ sub listen_addr_port {
             SSL_server    => 1,
             on_ssl_error  => sub { L("SSL error: @_") }
         );
-        
+
     }
 
     # create a listener object.
@@ -355,7 +355,7 @@ sub listen_addr_port {
         on_accept    => sub { &handle_connect },
     );
     $loop->add($listener);
-    
+
     # call ->listen() or ->SSL_listen() on the loop.
     my $f = $listeners{$l_key}{future} = $loop->$method(
         addr => {
@@ -367,7 +367,7 @@ sub listen_addr_port {
         listener => $listener,
         %sslopts
     );
-    
+
     # when the listener is ready.
     $f->on_ready(sub {
         my $f = shift;
@@ -378,7 +378,7 @@ sub listen_addr_port {
             L("Listen on $l_key failed: $err");
             return;
         }
-        
+
         # store the listener.
         my $listener = $listeners{$l_key}{listener} = $f->get;
         configure_listener($listener);
@@ -404,13 +404,13 @@ sub misc_upgrades {
         next unless $server->{conn};
         $server->{link_type} //= 'jelp';
     }
-    
+
     # local users
     foreach my $user ($pool->local_users) {
         next unless $user->{conn};
         $user->{conn}{last_command} ||= time;
     }
-    
+
 }
 
 ##########################
@@ -427,7 +427,7 @@ sub load_or_reload {
         L("$name is loaded and up-to-date ($v)");
         return 1;
     }
-    
+
     # it hasn't been loaded yet at all.
     # use require to load it the first time.
     if (!is_loaded($name) && !$name->VERSION) {
@@ -435,17 +435,17 @@ sub load_or_reload {
         require $file or L("Very bad error: could not load $name!".($@ || $!)) and return;
         return 1;
     }
-        
+
     # load it.
     L("Reloading package $name");
     do $file or L("Very bad error: could not load $name! ".($@ || $!)) and return;
-    
+
     # version check.
     if ((my $v = $name->VERSION // -1) < $min_v) {
         L("Very bad error: $name is outdated ($min_v required, $v loaded)");
         return;
     }
-    
+
     return 1;
 }
 
@@ -454,39 +454,39 @@ sub load_dependencies {
 
     # main dependencies.
     load_or_reload(@$_) foreach (
-        
+
         [ 'IO::Async::Loop',               0.60 ],
         [ 'IO::Async::Stream',             0.60 ],
         [ 'IO::Async::Listener',           0.60 ],
         [ 'IO::Async::Timer::Periodic',    0.60 ],
         [ 'IO::Async::Timer::Countdown',   0.60 ],
-        
+
         [ 'IO::Socket::IP',                0.25 ],
-        
+
         [ 'Evented::Object',               5.50 ],
         [ 'Evented::Object::Collection',   5.50 ],
         [ 'Evented::Object::EventFire',    5.50 ],
-    
-        [ 'Evented::API::Engine',          3.80 ],
-        [ 'Evented::API::Module',          3.80 ],
-        [ 'Evented::API::Hax',             3.80 ],
+
+        [ 'Evented::API::Engine',          3.81 ],
+        [ 'Evented::API::Module',          3.81 ],
+        [ 'Evented::API::Hax',             3.81 ],
 
         [ 'Evented::Configuration',        3.90 ],
-        
+
         [ 'Evented::Database',             1.09 ],
         [ 'Evented::Database::Rows',       1.09 ],
         [ 'Evented::Database::Table',      1.09 ],
-        
-        [ 'Scalar::Util',                  1.00 ], 
+
+        [ 'Scalar::Util',                  1.00 ],
         [ 'List::Util',                    1.00 ]
-        
+
     );
-    
+
 }
 
 # load configured optional packages.
 sub load_optionals {
-    
+
     #load_or_reload('Digest::SHA', 0) if conf qw[enabled sha];
     #load_or_reload('Digest::MD5', 0) if conf qw[enabled md5];
     load_or_reload('DBD::SQLite', 0) if conf('database', 'type') eq 'sqlite';
@@ -517,7 +517,7 @@ sub WARNING { ircd->can('notice') ? notice(perl_warning => shift) : L(shift) }
 sub handle_connect {
     my ($listener, $stream) = @_;
     return unless $stream->{write_handle};
-    
+
     # create connection object.
     my $conn = $pool->new_connection(stream => $stream);
     weaken( $conn->{listener} = $listener );
@@ -559,7 +559,7 @@ sub handle_connect {
     # Allow for modules to prevent a user from registering
     my $event = $conn->fire('can_continue');
     $conn->done($event->stop) if $event->stopper;
-    
+
     return 1;
 }
 
@@ -568,89 +568,89 @@ sub handle_data {
     my ($stream, $buffer) = @_;
     my $connection = $pool->lookup_connection($stream) or return;
     my $is_server  = $connection->server;
-    
+
     # fetch the values at which the limit was exceeded.
     my $overflow_1line = (my $max_in_line = conf('limit', 'bytes_line')  // 2048) + 1;
     my $overflow_lines = (my $max_lines   = conf('limit', 'lines_sec')   // 30  ) + 1;
-    
+
     foreach my $char (split '', $$buffer) {
         my $length = length $connection->{current_line} || 0;
-    
+
         # end of line.
         if ($char eq "\n") {
-            
+
             # a line other than the first of this second.
             my $time = int time;
             if (exists $connection->{lines_sec}{$time}) {
                 $connection->{lines_sec}{$time}++;
             }
-            
+
             # first line of this second; overwrite entire hash.
             else {
                 $connection->{lines_sec} = { $time => 1 };
             }
-            
+
             # too many lines!
             my $num_lines = $connection->{lines_sec}{$time};
             if ($num_lines == $overflow_lines && !$is_server) {
                 $connection->done("Exceeded $max_lines lines per second");
                 return;
             }
-            
+
             # no error. handle this data.
             $connection->handle(delete $connection->{current_line});
             $length = 0;
-            
+
             next;
         }
-        
+
         # even if this is an unwanted character, count it toward limit.
         $length++;
-        
+
         # line too long.
         if ($length == $overflow_1line && !$is_server) {
             $connection->done("Exceeded $max_in_line bytes in line");
             return;
         }
-        
+
         # unwanted characters.
         next if $char eq "\0" || $char eq "\r";
-        
+
         # regular character;
         ($connection->{current_line} //= '') .= $char;
-        
+
     }
-    
+
     $$buffer = '';
 }
 
 # send out PINGs and check for timeouts
 sub ping_check {
     foreach my $connection ($pool->connections) {
-    
+
         # not yet registered.
         # if they have been connected for 30 secs without registering, drop.
         if (!$connection->{type}) {
             $connection->done('Registration timeout') if time - $connection->{time} > 30;
             next;
         }
-        
+
         my $type = $connection->user ? 'user' : 'server';
         my $since_last = time - $connection->{last_response};
-        
+
         # no incoming data for configured frequency.
         next unless $since_last >= conf(['ping', $type], 'frequency');
-        
+
         # send a ping if we haven't already.
         if (!$connection->{ping_in_air}) {
             $connection->send("PING :$$me{name}");
             $connection->{ping_in_air} = 1;
         }
-    
+
         # ping timeout.
         $connection->done("Ping timeout: $since_last seconds")
           if $since_last >= conf(['ping', $type], 'timeout');
-        
+
     }
 }
 
@@ -678,17 +678,17 @@ sub terminate {
 
 # rehash the server.
 sub rehash {
-    
+
     # rehash
     eval { &setup_config } or
         notice(rehash_fail => $@ || $!)
         and return;
-    
+
     # set up other stuff
     setup_sockets();
     add_internal_user_modes();
     add_internal_channel_modes();
-    
+
     notice('rehash_success');
     return 1;
 }
@@ -697,7 +697,7 @@ sub boot {
     return if $::has_booted;
     $boot = 1;
     $::VERSION = $VERSION;
-    
+
     # load mandatory boot stuff.
     require POSIX;
     require IO::Async;
@@ -707,7 +707,7 @@ sub boot {
     $::loop = $loop = IO::Async::Loop->new;
 
     become_daemon();
-    
+
     undef $boot;
     $::has_booted = 1;
 }
@@ -731,7 +731,7 @@ sub become_daemon {
 
         # try to fork.
         $::v{PID} = fork;
-        
+
         # it worked.
         if (v('PID')) {
             say $pidfh v('PID');
@@ -739,9 +739,9 @@ sub become_daemon {
         }
 
         close $pidfh;
-        
+
     }
-    
+
     # don't become a daemon.
     else {
         $::v{PID} = $$;
@@ -754,8 +754,8 @@ sub become_daemon {
         exit;
         POSIX::setsid();
     }
-    
-}   
+
+}
 
 # get version from VERSION file.
 # $::VERSION = version of IRCd when it was started; version of static code
@@ -776,7 +776,7 @@ sub get_version {
 # this just tells the internal server what
 # mode is associated with what letter and type by configuration
 sub add_internal_channel_modes {
-    
+
     L('registering channel status modes');
     $me->{cmodes}      = {};
     %channel_mode_prefixes = ();
@@ -807,7 +807,7 @@ sub add_internal_channel_modes {
 
 # this just tells the internal server what
 # mode is associated with what letter as defined by the configuration
-sub add_internal_user_modes {    
+sub add_internal_user_modes {
     $me->{umodes} = {};
     return unless $conf->has_block(['modes', 'user']);
     L("registering user mode letters");
@@ -828,13 +828,13 @@ sub L { _L($mod, [caller 1], @_) }
 # past the $caller argument only.
 sub _L {
     my ($obj, $caller, $line) = (shift, shift, shift);
-    
+
     # use a different object.
     if (blessed $line && $line->isa('Evented::API::Module')) {
         $obj  = $line;
         $line = shift;
     }
-    
+
    (my $sub  = shift // $caller->[3]) =~ s/(.+)::(.+)/$2/;
     my $info = $sub && $sub ne '(eval)' ? "$sub()" : $caller->[0];
     return unless $obj->can('_log');

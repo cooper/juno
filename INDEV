@@ -2887,13 +2887,13 @@ CHANGES:
     0. rebranding.
 
         01. Allow retrieving the MOTD of a remote server.
-        
+
         02. Added send_to_channels_with_cap to send a cap notification to common
             users.
-            
+
         03. Added sendfrom_to_cap to send to a list of users who have a cap.
             Additionally, add away-notify support.
-            
+
         04. Added DNSBL module.
 
         05. added support for server mask broadcast PRIVMSG/NOTICE. implemented as defined in the TS6 spec and adopted by JELP as well.
@@ -2940,7 +2940,7 @@ CHANGES:
         18. misc. TS6 fixes.
 
         19. fix TS6 JOIN.
-            
+
     2. part reason is not required. fixed ts6 handler accordingly.
         fixed an issue where incorrect number of parameters from a JELP command raises an exception when the ircd attempts to send ERR_NEEDMOREPARAMS.
 
@@ -2963,4 +2963,4 @@ CHANGES:
 
         28. reveal network service status (+S) in RPL_WHOISOPERATOR.
 
-
+        29. improve module load errors.
