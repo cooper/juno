@@ -2966,3 +2966,5 @@ CHANGES:
         29. improve module load errors.
 
     3. further improve module load errors.
+
+        31. update Evented::API::Engine.
