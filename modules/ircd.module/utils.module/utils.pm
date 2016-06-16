@@ -146,34 +146,34 @@ sub pretty_mask_parts {
     return unless defined $str;
     $str =~ s/\*{2,}/*/g;
     my (@mask, $r);
-    
+
     # no nickname provided, but ident and hostname were
     if ($str !~ /!/ and $str =~ /@/) {
         $r       = $str;
         $mask[0] = '*';
     }
-    
+
     # nickname and possibly ident provided
     else {
         ($mask[0], $r) = split /!/, $str, 2;
     }
-    
+
     # anything left over is ident and hostname
     if (defined $r) {
         $r =~ s/!//g;
         @mask[1..2] = split /@/, $r, 2;
     }
-    
+
     # if there's a dot in the nickname and
     # no hostname or ident, assume it's a hostname
     if ($mask[0] =~ m/\./ && !length $mask[1] && !length $mask[2]) {
         @mask = (undef, undef, $mask[0]);
     }
-    
+
     # replace empty spots with *
     $mask[2] =~ s/@//g if defined $mask[2];
     for (0..2) { $mask[$_] = '*' unless defined $mask[$_] }
-    
+
     return @mask;
 }
 
@@ -220,17 +220,17 @@ sub _none { shift }
 sub crypt {
     my ($what, $crypt, $salt) = @_;
     $salt //= '';
-    
+
     # no such crypt.
     if (!defined $crypts{$crypt}) {
         L("Crypt error: Unknown crypt $crypt!");
         return;
     }
-    
+
     # load if it isn't loaded.
     my ($package, $function) = @{ $crypts{$crypt} };
     ircd::load_or_reload($package, 0);
-    
+
     # call the function.
     if (my $code = $package->can($function)) {
         return $code->($salt.$what);
@@ -239,7 +239,7 @@ sub crypt {
     # couldn't find the function.
     L("Crypt error: $package cannot $function!");
     return;
-    
+
 }
 
 # alphabet notation to integer.
@@ -254,7 +254,8 @@ sub n2a {
     my $n = shift;
     my @a;
     while ($n > 0) {
-        unshift @a, ($n - 1) % 26;
+        my $rem = ($n - 1) % 26;
+        unshift @a, $rem||0;
         $n = int($n / 26);
     }
     return join '', map chr(ord('a') + $_), @a;
@@ -286,23 +287,23 @@ sub string_to_seconds {
     my $str = shift;
     my ($current, $total) = ('', 0);
     for my $char (split //, $str) {
-        
+
         # multiplier.
         if ($multi{$char}) {
             return undef unless length $current; # no number
-            
+
             $total += $current * $multi{$char};
             $current = '';
             next;
         }
-        
+
         return undef if $char =~ m/\D/;
         $current .= $char;
     }
-    
+
     # number with no multiplier is seconds.
     return $total || (length $current ? $current : 0);
-    
+
 }
 
 # fetch variable.
@@ -326,12 +327,12 @@ sub notice {
     # fire it.
     my ($amnt, $key, $str) = $::pool->fire_oper_notice(@_);
     return if !$key || !$str;
-    
+
     # log it.
     return if !$api || !ircd->can('_L');
     my $obj = $api->package_to_module($caller[0]) or return;
     ircd::_L($obj, \@caller, "$key: $str");
-    
+
     return $str;
 }
 
