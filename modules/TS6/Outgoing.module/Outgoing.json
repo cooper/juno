@@ -12,5 +12,5 @@
    "description" : "basic set of TS6 outgoing commands",
    "name" : "TS6::Outgoing",
    "package" : "M::TS6::Outgoing",
-   "version" : "1.3"
+   "version" : "1.4"
 }

@@ -22,7 +22,7 @@ use 5.010;
 use utils qw(conf notice irc_match);
 
 our ($api, $mod, $pool);
-        
+
 our %registration_commands = (
     SERVER => {
         code   => \&rcmd_server,
@@ -48,6 +48,13 @@ our %registration_commands = (
 sub rcmd_server {
     my ($connection, $event, @args) = @_;
     $connection->{$_} = shift @args foreach qw[sid name proto ircd desc];
+
+    # hidden?
+    my $sub = \substr($connection->{desc}, 0, 4);
+    if (length $sub && $$sub eq '(H) ') {
+        $$sub = '';
+        $connection->{hidden} = 1;
+    }
 
     # if this was by our request (as in an autoconnect or /connect or something)
     # don't accept any server except the one we asked for.
@@ -77,7 +84,7 @@ sub rcmd_server {
     if (!$connection->{i_sent_server}) {
         $connection->send_server_server;
     }
-    
+
     # otherwise, I am going to expose my password.
     # this means that I was the one that issued the connect.
     else {
@@ -88,7 +95,7 @@ sub rcmd_server {
     $connection->fire_event(reg_server => @args);
     $connection->reg_continue('id1');
     return 1;
-    
+
 }
 
 sub rcmd_pass {
@@ -98,9 +105,9 @@ sub rcmd_pass {
     # moron hasn't sent SERVER yet.
     my $name = $connection->{name};
     return if !length $name;
-    
+
     $connection->{link_type} = 'jelp';
-    
+
     # check for valid password.
     my $password = utils::crypt(
         $connection->{pass},
@@ -111,7 +118,7 @@ sub rcmd_pass {
         notice(connection_invalid => $connection->{ip}, 'Received invalid password');
         return;
     }
-    
+
     # send my own PASS if I haven't already.
     # this is postponed so that the burst will not be triggered until
     # hostname resolve, ident, etc. are done.
@@ -120,14 +127,14 @@ sub rcmd_pass {
         $c->send_server_pass;
         $c->send('READY');
     }, name => 'jelp.send.password', with_eo => 1) if !$connection->{i_sent_pass};
-    
+
     $connection->reg_continue('id2');
     return 1;
 }
 
 sub _send_burst {
     my $connection = shift;
-    
+
     # the server is registered on our end.
     my $server = $connection->server or return;
 
@@ -136,25 +143,24 @@ sub _send_burst {
         $server->send_burst;
         return 1;
     }
-    
+
     # already did?
     L("$$server{name} is requesting burst, but I already sent it");
     return;
-    
+
 }
 
 # the server is ready to receive burst.
 sub rcmd_ready {
     my ($connection, $event) = @_;
-    
+
     # the server is registered, and we haven't sent burst. do so.
     _send_burst($connection) and return;
-    
+
     # the server is not yet registered; postpone the burst.
     $connection->on(ready_done => \&_send_burst, with_eo => 1)
         unless $connection->{ready};
-    
+
 }
 
 $mod
-

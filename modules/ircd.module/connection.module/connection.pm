@@ -28,11 +28,11 @@ sub init {
     # send unknown command. this is canceled by handlers.
     $pool->on('connection.message' => sub {
         my ($connection, $event, $msg) = @_;
-        
+
         # ignore things that aren't a big deal.
         return if $msg->command eq 'NOTICE' && ($msg->param(0) || '') eq '*';
         return if looks_like_number($msg->command); # numeric
-        
+
         # server command unknown.
         if ($connection->server) {
             my ($command, $name) = ($msg->command, $connection->server->name);
@@ -40,11 +40,11 @@ sub init {
             notice(server_warning => "unknown $proto command $command from $name!");
             return;
         }
-        
+
         $connection->numeric(ERR_UNKNOWNCOMMAND => $msg->raw_cmd);
         return;
     }, name => 'ERR_UNKNOWNCOMMAND', priority => -200, with_eo => 1);
-    
+
 }
 
 sub new {
@@ -70,7 +70,7 @@ sub new {
     # in servers - one for SERVER (id1), one for PASS (id2).
     $connection->reg_wait('id1');
     $connection->reg_wait('id2');
-    
+
 
     return $connection;
 }
@@ -92,30 +92,30 @@ printf "GET(%s): %s\n", $connection->type ? $connection->type->name : 'unregiste
 
     # connection events.
     my @events = (
-    
+
     #   .---------------.
     #   | legacy events |
     #   '---------------'
- 
-        [ raw                   => $data, @args ],  
-        [ "command_${cmd}_raw"  => $data, @args ],  
+
+        [ raw                   => $data, @args ],
+        [ "command_${cmd}_raw"  => $data, @args ],
         [ "command_$cmd"        =>        @args ],
-        
+
     #   .------------.
     #   | new events |
     #   '------------'
 
         [ message               => $msg ],
         [ "message_${cmd}"      => $msg ]
-        
+
     );
-    
+
     # user events.
     if (my $user = $connection->user) {
         push @events, $user->events_for_message($msg);
         $connection->{last_command} = time unless $cmd eq 'PING' || $cmd eq 'PONG';
     }
-    
+
     # if it's a server, add the $PROTO_message events.
     elsif (my $server = $connection->server) {
         my $proto = $server->{link_type};
@@ -123,7 +123,7 @@ printf "GET(%s): %s\n", $connection->type ? $connection->type->name : 'unregiste
                       [ $server, "${proto}_message_${cmd}" => $msg ];
         $msg->{_physical_server} = $server;
     }
-    
+
     # fire with safe option.
     my $fire = $connection->prepare(@events)->fire('safe');
 
@@ -212,10 +212,10 @@ sub ready {
             $Evented::Object::props  => {},
             $Evented::Object::events => {}
         );
-        
+
         weaken($connection->{type}{conn} = $connection);
         $connection->fire_event(server_ready => $connection->{type});
-        
+
         $server->{conn} = $connection;
         weaken($connection->{type}{location} = $connection->{type});
         $pool->fire_command_all(new_server => $connection->{type});
@@ -299,7 +299,7 @@ sub done {
     # destroy these references, just in case.
     delete $connection->{type}{conn};
     delete $connection->{$_} foreach qw(type location server stream);
-    
+
     # prevent confusion if buffer spits out more data.
     delete $connection->{ready};
     $connection->{goodbye} = 1;
@@ -384,9 +384,9 @@ sub send_server_server {
         $me->{name},
         v('PROTO'),
         v('VERSION'),
-        $me->{desc}
-    );  
-    $connection->{i_sent_server} = 1;  
+        ($me->{hidden} ? '(H) ' : '').$me->{desc}
+    );
+    $connection->{i_sent_server} = 1;
 }
 
 sub send_server_pass {
@@ -444,7 +444,7 @@ sub user {
     blessed $type && $type->isa('user') or return;
     return $type;
 }
-    
+
 sub server {
     my $type = shift->{type};
     blessed $type && $type->isa('server') or return;

@@ -63,16 +63,16 @@ sub init {
 sub send_registration {
     my $connection = shift;
     $connection->send('CAPAB :EUID ENCAP QS TB EOPMOD EOB EX IE SERVICES');
-    
+
     # EUID      = extended user burst support
     # ENCAP     = enhanced command routing support
     # QS        = quit storm support
     # TB        = topic burst support
-    # EOPMOD    = special rules for +z, extended topic burst support 
+    # EOPMOD    = special rules for +z, extended topic burst support
     # EX        = ban exception (+e) support
     # IE        = invite exception (+I) support
     # SERVICES  = support for +S (network service) and +r (channel registered)
-    
+
     $connection->send(sprintf
         'PASS %s TS 6 :%s',
         conf(['connect', $connection->{want} // $connection->{name}], 'send_password'),
@@ -108,16 +108,16 @@ sub rcmd_capab {
 #
 sub rcmd_pass {
     my ($connection, $event, $pass, undef, $ts_version, $sid) = @_;
-    
+
     # not supported.
     if ($ts_version ne '6') {
         $connection->done('Incompatible TS version');
         return;
     }
-    
+
     # temporarily store password and SID.
     @$connection{'ts6_sid', 'pass'} = ($sid, $pass);
-    
+
     $connection->reg_continue('id1');
     return 1;
 }
@@ -139,15 +139,22 @@ sub rcmd_server {
     my ($connection, $event, $name, undef, $desc) = @_;
     @$connection{ qw(name desc ircd proto) } = ($name, $desc, -1, -1);
     my $s_conf = ['connect', $name];
-    
+
+    # hidden?
+    my $sub = \substr($connection->{desc}, 0, 4);
+    if (length $sub && $$sub eq '(H) ') {
+        $$sub = '';
+        $connection->{hidden} = 1;
+    }
+
     # haven't gotten SERVER yet.
     if (!defined $connection->{ts6_sid}) {
         $connection->done('Invalid credentials');
         return;
     }
-    
+
     $connection->{sid} = sid_from_ts6($connection->{ts6_sid});
-    
+
     # if this was by our request (as in an autoconnect or /connect or something)
     # don't accept any server except the one we asked for.
     if (length $connection->{want} && lc $connection->{want} ne lc $connection->{name}) {
@@ -171,7 +178,7 @@ sub rcmd_server {
         notice(connection_invalid => $connection->{ip}, 'No block for this server');
         return;
     }
-    
+
     # check for valid password.
     my $password = utils::crypt(
         $connection->{pass},
@@ -186,8 +193,8 @@ sub rcmd_server {
     # send my own CAPAB/PASS/SERVER if I haven't already.
     # this is postponed until the connection is ready.
     $connection->{ts6_reg_pending} = !$connection->{sent_ts6_registration};
-    
-    
+
+
 
     # made it.
     #$connection->fire_event(reg_server => @args); how am I going to do this?
@@ -195,7 +202,7 @@ sub rcmd_server {
     $connection->{link_type} = 'ts6';
     $connection->reg_continue('id2');
     return 1;
-    
+
 }
 
 # the first ping here indicates end of burst.
@@ -203,12 +210,12 @@ sub rcmd_ping {
     my ($connection, $event) = @_;
     my $server = $connection->server or return;
     $server->{is_burst} or return;
-    
+
     # how much time has elapsed?
     my $time    = delete $server->{is_burst};
     my $elapsed = time - $time;
     $server->{sent_burst} = time;
-    
+
     L("end of burst from $$server{name}");
     notice(server_endburst => $server->{name}, $server->{sid}, $elapsed);
 }
@@ -234,21 +241,20 @@ sub connection_ready {
     my $server = $connection->server or return;
     return unless $server->{link_type} eq 'ts6';
     return unless delete $server->{ts6_reg_pending};
-    
+
     # at this point, we will say that the server is starting its burst.
     # however, it still may deny our own credentials.
     $server->{is_burst} = time;
     L("$$server{name} is bursting information");
     notice(server_burst => $server->{name}, $server->{sid});
-    
+
     # time to send my own credentials.
     send_registration($connection);
 
     # we should also go ahead and send our own burst
     # now that we have verified the password.
     $server->send_burst if !$server->{i_sent_burst};
-    
+
 }
 
 $mod
-

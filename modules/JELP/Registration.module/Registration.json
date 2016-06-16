@@ -3,11 +3,11 @@
       "name" : "Mitchell Cooper",
       "website" : "https://github.com/cooper"
    },
-   "package" : "M::JELP::Registration",
    "depends" : {
       "modules" : "Base::RegistrationCommands"
    },
-   "version" : "1.8",
    "description" : "JELP registration commands",
-   "name" : "JELP::Registration"
+   "name" : "JELP::Registration",
+   "package" : "M::JELP::Registration",
+   "version" : "1.9"
 }

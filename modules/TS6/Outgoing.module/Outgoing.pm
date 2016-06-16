@@ -64,46 +64,46 @@ sub init {
 
 sub send_burst {
     my ($server, $event) = @_;
-    
+
     # servers.
     my ($do, %done);
     $done{$server} = $done{$me} = 1;
     $do = sub {
         my $serv = shift;
-        
+
         # already did this one.
         return if $done{$serv};
-        
+
         # we learned about this server from the server we're sending to.
         return if defined $serv->{source} && $serv->{source} == $server->{sid};
-        
+
         # we need to do the parent first.
         if (!$done{ $serv->{parent} } && $serv->{parent} != $serv) {
             $do->($serv->{parent});
         }
-        
+
         # fire the command.
         $server->fire_command(new_server => $serv);
         $done{$serv} = 1;
-        
+
     }; $do->($_) foreach $pool->all_servers;
-    
+
     # users.
     foreach my $user ($pool->global_users) {
 
         # ignore users the server already knows!
         next if $user->{server} == $server || $user->{source} == $server->{sid};
         $server->fire_command(new_user => $user);
-        
+
         # TODO: oper flags
         # TODO: away reason
     }
-    
+
     # channels.
     foreach my $channel ($pool->channels) {
         $server->fire_command(channel_burst => $channel, $me);
     }
-    
+
 }
 
 sub send_endburst {
@@ -121,12 +121,17 @@ sub send_endburst {
 sub sid {
     my ($server, $serv) = @_;
     return if $server == $serv;
+
+    # hidden?
+    my $desc = $serv->{desc};
+    $desc = "(H) $desc" if $serv->{hidden};
+
     sprintf ':%s SID %s %d %s :%s',
     ts6_id($serv->{parent}),
     $serv->{name},
     $me->hops_to($serv),
     ts6_id($serv),
-    $serv->{desc}
+    $desc
 }
 
 # EUID
@@ -154,7 +159,7 @@ sub euid {
     $user->{ip},                                    # IP address
     ts6_id($user),                                  # UID
     $user->{cloak} eq $user->{host} ?               # real hostname
-        '*' : $user->{host},                        #   (* if equal to visible)             
+        '*' : $user->{host},                        #   (* if equal to visible)
     $user->account ? $user->account->name : '*',    # account name
     $user->{real}
 }
@@ -178,19 +183,19 @@ sub euid {
 #
 sub sjoin {
     my ($server, $channel, $serv, $mode_str, $mode_serv, @members) = @_;
-    
+
     # if the mode perspective is not the server we're sending to, convert.
     $mode_str = $mode_serv->convert_cmode_string($server, $mode_str)
       if $mode_serv != $server;
-    
+
     # create @UID +UID etc. strings.
     my @member_str;
-    foreach my $user (@members) {    
+    foreach my $user (@members) {
         my $pfx = ts6_prefixes($server, $channel->user_get_levels($user));
         my $uid = ts6_id($user);
         push @member_str, "$pfx$uid";
     }
-    
+
     # TODO: probably should split this into several SJOINs?
     sprintf ":%s SJOIN %d %s %s :%s",
     ts6_id($serv),                      # SID of the source server
@@ -227,7 +232,7 @@ sub _join {
     my @channels = ref $channel eq 'ARRAY' ? @$channel : $channel;
     my @lines;
     foreach my $channel (@channels) {
-        
+
         # there's only one user, so this channel was just created.
         # we will just pretend we're bursting, sending the single user with modes
         # from THIS local server ($me).
@@ -235,7 +240,7 @@ sub _join {
             push @lines, sjoin_burst($server, $channel, $me);
             next;
         }
-        
+
         push @lines, sprintf ':%s JOIN %d %s +',
             ts6_id($user),
             $channel->{time},
@@ -397,7 +402,7 @@ sub part {
 sub quit {
     my ($to_server, $object, $reason) = @_;
     $object = $object->type if $object->isa('connection');
-    
+
     # if it's a server, SQUIT.
     if ($object->isa('server')) {
         return sprintf ":%s SQUIT %s :%s",
@@ -405,7 +410,7 @@ sub quit {
             ts6_id($object),
             $reason;
     }
-    
+
     my $id  = ts6_id($object);
     ":$id QUIT :$reason"
 }
@@ -458,4 +463,3 @@ sub skill {
 }
 
 $mod
-

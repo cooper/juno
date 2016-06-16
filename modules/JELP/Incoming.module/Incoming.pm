@@ -176,10 +176,18 @@ sub sid {
     # :sid   SID   newsid ts name proto ircd :desc
     my ($server, $msg, @args) = @_;
 
+    # info.
     my $ref          = {};
     $ref->{$_}       = shift @args foreach qw[parent sid time name proto ircd desc];
     $ref->{source}   = $server->{sid}; # source = sid we learned about the server from
     $ref->{location} = $server;
+
+    # hidden?
+    my $sub = \substr($ref->{desc}, 0, 4);
+    if (length $sub && $$sub eq '(H) ') {
+        $$sub = '';
+        $ref->{hidden} = 1;
+    }
 
     # do not allow SID or server name collisions
     if ($pool->lookup_server($ref->{sid}) || $pool->lookup_server_name($ref->{name})) {
@@ -339,23 +347,23 @@ sub privmsgnotice {
     #   Only allowed to IRC operators.
     if ($target =~ m/^\$\$(.+)$/) {
         my $mask = $1;
-        
+
         # it cannot be a server source.
         if ($source->isa('server')) {
             L('For TS6 compatibility, "$$" complex PRIVMSG not permitted with server as a source');
             return;
         }
-        
+
         # consider each server that matches
         # consider: what if a server is hidden? would this skip it?
         my %done;
         foreach my $serv ($pool->lookup_server_mask($mask)) {
             my $location = $serv->{location} || $serv; # for $me, location = nil
-            
+
             # already did or the server is connected via the source server
             next if $done{$location};
             next if $location == $server;
-            
+
             # if the server is me, send to all my users
             if ($serv == $me) {
                 $_->sendfrom($source->full, "$command $$_{nick} :$message")
@@ -363,19 +371,19 @@ sub privmsgnotice {
                 $done{$me} = 1;
                 next;
             }
-            
+
             # otherwise, forward it
             $msg->forward_to($serv, privmsgnotice_server_mask =>
                 $command, $source,
                 $mask,    $message
             );
-            
+
             $done{$location} = 1;
         }
-        
+
         return 1;
     }
-    
+
     # is it a user?
     my $tuser = $pool->lookup_user($target);
     if ($tuser) {
@@ -531,7 +539,7 @@ sub part {
         L("attempting to remove $$user{nick} from $$channel{name} but that user isn't on that channel");
         return;
     }
-    
+
     # remove the user and tell others
     $channel->handle_part($user, $reason);
 
@@ -751,13 +759,13 @@ sub skill {
     if ($tuser->is_local) {
         $tuser->get_killed_by($source, $reason);
     }
-    
+
     # not local; just dispose of it.
     else {
         my $name = $source->name;
         $tuser->quit("Killed ($name ($reason))");
     }
-    
+
     # === Forward ===
     $msg->forward(kill => $source, $tuser, $reason);
 

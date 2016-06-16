@@ -2968,3 +2968,7 @@ CHANGES:
     3. further improve module load errors.
 
         31. update Evented::API::Engine.
+
+        32. update Evented::API::Engine.
+
+        33. handle (H) to indicate hidden server.

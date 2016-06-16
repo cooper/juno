@@ -174,10 +174,15 @@ sub uid {
 sub sid {
     my ($to_server, $serv) = @_;
     return if $to_server == $serv;
+
+    # hidden?
+    my $desc = $serv->{desc};
+    $desc = "(H) $desc" if $serv->{hidden};
+
     my $cmd = sprintf(
         'SID %s %d %s %s %s :%s',
         $serv->{sid},   $serv->{time}, $serv->{name},
-        $serv->{proto}, $serv->{ircd}, $serv->{desc}
+        $serv->{proto}, $serv->{ircd}, $desc
     );
     ":$$serv{parent}{sid} $cmd"
 }

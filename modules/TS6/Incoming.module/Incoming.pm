@@ -97,6 +97,8 @@ our %ts6_incoming_commands = (
 # parameters:   server name, hopcount, sid, server description
 sub sid {
     my ($server, $msg, $source_serv, $s_name, $hops, $sid, $desc) = @_;
+
+    # info.
     my %s = (
         parent   => $source_serv,       # the server which is the actual parent
         source   => $server->{sid},     # SID of the server who told us about him
@@ -105,6 +107,15 @@ sub sid {
         proto    => -1,                 # not applicable in TS6
         time     => time                # first time server became known (best bet)
     );
+
+    # if the server description has (H), it's to be hidden.
+    my $sub = \substr($desc, 0, 4);
+    if (length $sub && $$sub eq '(H) ') {
+        $$sub = '';
+        $s{hidden} = 1;
+    }
+
+    # more info.
     @s{ qw(name desc ts6_sid sid) } = ($s_name, $desc, $sid, sid_from_ts6($sid));
 
     # do not allow SID or server name collisions.
@@ -120,18 +131,18 @@ sub sid {
         uid_to_user => \&user_from_ts6,
         user_to_uid => \&ts6_uid
     );
-    
+
     # the TS6 IRCd will be considered the same as the parent server.
     # I think this will be okay because unknown modes would not be
     # forwarded anyway, and extra modes would not cause any trouble.
     $serv->{ts6_ircd} = $source_serv->{ts6_ircd} || $server->{ts6_ircd};
-    
+
     # add mode definitions.
     M::TS6::Utils::register_modes($serv);
-    
+
     # === Forward ===
     $msg->forward(new_server => $serv);
-    
+
     return 1;
 }
 
@@ -159,7 +170,7 @@ sub euid {
         cloak ip ts6_uid host account_name real
     );
     my ($mode_str, undef) = (delete $u{umodes}, delete $u{ts6_dummy});
-    
+
     $u{time} = $u{nick_time};                   # for compatibility
     $u{host} = $u{cloak} if $u{host} eq '*';    # host equal to visible
     $u{uid}  = uid_from_ts6($u{ts6_uid});       # convert to juno UID
@@ -214,11 +225,11 @@ sub sjoin {
     my $after_modestr = ''; # mode string after changes.
     my $old_modestr   = $channel->mode_string_hidden($serv, 1); # all but status and lists
     my $old_s_modestr = $channel->mode_string_status($serv);    # status only
-    
+
     # take the new time if it's less recent.
     my $old_time = $channel->{time};
     my $new_time = $channel->take_lower_time($ts, 1);
-    
+
     # their TS is either older or the same.
     #
     # 1. wipe out our old modes. (already done by ->take_lower_time())
@@ -226,7 +237,7 @@ sub sjoin {
     # 3. propagate all simple modes (not just the difference).
     #
     (my $accept_new_modes)++ if $new_time == $ts;
-    
+
 
     # handle the nick list.
     #
@@ -242,7 +253,7 @@ sub sjoin {
         # this user does not physically belong to this server.
         next if $user->{location} != $server;
         push @good_users, $user;
-        
+
         # join the new users.
         unless ($channel->has_user($user)) {
             $channel->cjoin($user, $channel->{time});
@@ -257,15 +268,15 @@ sub sjoin {
         my $modes    = join '', map { mode_from_prefix_ts6($server, $_) } @prefixes;
         $uids_modes .= $modes;
         push @uids, $user->{uid} for 1 .. length $modes;
-        
+
     }
-    
+
     # combine this with the other modes in the message.
     my $command_modestr = join(' ', '+'.$mode_str.$uids_modes, @mode_params, @uids);
-    
+
     # okay, now we're ready to apply the modes.
     if ($accept_new_modes) {
-    
+
         # determine the difference between
         my $difference = $serv->cmode_string_difference(
             $old_modestr,       # $old_modestr     (all former simple modes)
@@ -273,28 +284,28 @@ sub sjoin {
             1,                  # $combine_lists   (all list modes will be accepted)
             1                   # $remove_none     (no modes will be unset)
         );
-        
+
         # the command time took over, so we need to remove our current status modes.
         if ($new_time < $old_time) {
             substr($old_s_modestr, 0, 1) = '-';
-            
+
             # separate each string into modes and params.
             my ($s_modes, @s_params) = split ' ', $old_s_modestr;
             my ($d_modes, @d_params) = split ' ', $difference;
-            
+
             # combine.
             $s_modes  //= '';
             $d_modes  //= '';
             $difference = join(' ', join('', $d_modes, $s_modes), @d_params, @s_params);
 
         }
-        
+
         # handle the mode string locally.
         # note: do not supply a $over_protocol sub. this generated string uses juno UIDs.
         $channel->do_mode_string_local($serv, $serv, $difference, 1, 1) if $difference;
-        
+
     }
-    
+
     # === Forward DURING BURST ===
     #
     #   during burst, all channel modes will be propagated,
@@ -306,12 +317,12 @@ sub sjoin {
     #
     #   JELP:   CUM
     #   TS6:    SJOIN
-    #   
+    #
     if ($server->{is_burst}) {
         $msg->forward(channel_burst => $channel, $serv, @good_users);
         return 1;
     }
-    
+
     # === Forward OUTSIDE OF BURST ===
     #
     #   if their TS was bad, the modes were not applied.
@@ -326,7 +337,7 @@ sub sjoin {
     #
     $mode_str = '+' unless $accept_new_modes;
     $msg->forward(join_with_modes =>
-        $channel,       # $channel   = channel object  
+        $channel,       # $channel   = channel object
         $serv,          # $serv      = server source of the message
         $mode_str,      # $mode_str  = mode string being sent
         $serv,          # $mode_serv = server object for mode perspective
@@ -407,23 +418,23 @@ sub privmsgnotice {
     #   Only allowed to IRC operators.
     if ($target =~ m/^\$\$(.+)$/) {
         my $mask = $1;
-        
+
         # it cannot be a server source.
         if ($source->isa('server')) {
             L('As per spec, "$$" complex PRIVMSG not permitted with server as a source');
             return;
         }
-        
+
         # consider each server that matches
         # consider: what if a server is hidden? would this skip it?
         my %done;
         foreach my $serv ($pool->lookup_server_mask($mask)) {
             my $location = $serv->{location} || $serv; # for $me, location = nil
-            
+
             # already did or the server is connected via the source server
             next if $done{$server};
             next if $location == $server;
-            
+
             # if the server is me, send to all my users
             if ($serv == $me) {
                 $_->sendfrom($source->full, "$command $$_{nick} :$message")
@@ -431,7 +442,7 @@ sub privmsgnotice {
                 $done{$me} = 1;
                 next;
             }
-            
+
             # === Forward ===
             #
             # otherwise, forward it
@@ -440,17 +451,17 @@ sub privmsgnotice {
                 $command, $source,
                 $mask,    $message
             );
-            
+
             $done{$location} = 1;
         }
-        
+
         return 1;
     }
-    
+
     # is it a user?
     my $tuser = user_from_ts6($target);
     if ($tuser) {
-    
+
         # if it's mine, send it.
         if ($tuser->is_local) {
             $tuser->sendfrom($source->full, "$command $$tuser{nick} :$message");
@@ -466,14 +477,14 @@ sub privmsgnotice {
             $command, $source,
             $tuser,   $message
         );
-        
+
         return 1;
     }
 
     # must be a channel.
     my $channel = $pool->lookup_channel($target);
     if ($channel) {
-    
+
         # the second-to-last argument here tells ->handle_privmsgnotice
         # to not forward the message to servers. that is handled below.
         #
@@ -481,7 +492,7 @@ sub privmsgnotice {
         # regardless of modes or bans, etc.
         #
         $channel->handle_privmsgnotice($command, $source, $message, 1, 1);
-        
+
         # === Forward ===
         #
         # forwarding to a channel means to send it to every server that
@@ -491,10 +502,10 @@ sub privmsgnotice {
             $command, $source,
             $channel, $message
         );
-        
+
         return 1;
     }
-    
+
     return;
 }
 
@@ -507,7 +518,7 @@ sub privmsgnotice {
 #
 sub tmode {
     my ($server, $msg, $source, $ts, $channel, $mode_str) = @_;
-    
+
     # take the lower time.
     my $new_ts = $channel->take_lower_time($ts);
     return unless $ts == $new_ts;
@@ -520,7 +531,7 @@ sub tmode {
     #
     $mode_str = $server->convert_cmode_string($me, $mode_str, 1);
     $channel->do_mode_string_local($me, $source, $mode_str, 1, 1);
-    
+
     # === Forward ===
     #
     #   mode changes will be propagated only if the TS was good.
@@ -532,7 +543,7 @@ sub tmode {
     # the perspective is $me because it was converted.
     #
     $msg->forward(cmode => $source, $channel, $channel->{time}, $me, $mode_str);
-    
+
 }
 
 # JOIN
@@ -559,26 +570,26 @@ sub _join {
         $msg->forward(part_all => $user);
         return 1;
     }
-    
+
     # at this point, there must be a channel.
     return unless length $ch_name;
 
     # find or create.
     my ($channel, $new) = $pool->lookup_or_create_channel($ch_name, $ts);
-    
+
     # take lower time if necessary, and add the user to the channel.
     $channel->take_lower_time($ts) unless $new;
     $channel->cjoin($user, $ts)    unless $channel->has_user($user);
-    
+
     # for each user in the channel, send a JOIN message.
     $channel->sendfrom_all($user->full, "JOIN $$channel{name}");
-    
+
     # fire after join event.
     $channel->fire_event(user_joined => $user);
-    
+
     # === Forward ===
     $msg->forward(join => $user, $channel, $ts);
-    
+
     return 1;
 }
 
@@ -596,34 +607,34 @@ sub encap {
     my (%done, $doing_me);
     foreach my $serv ($pool->lookup_server_mask($serv_mask)) {
         my $location = $serv->{location} || $serv; # for $me, location = nil
-        
+
         # already did or the server is connected via the source server
         next if $done{$server};
         next if $location == $server;
-        
+
         # if the server is me
         if ($serv == $me) {
             $doing_me = 1;
             next;
         }
-        
+
         # === Forward ===
         #
         # TODO: !!! this will have to actually break down
         # what the commands are and fire the appropriate outgoing
         # handlers, since other protocols do not have ENCAP
         #
-        
+
         $done{$location} = 1;
     }
-    
+
     return 1 unless $doing_me;
-    
+
     # TODO: make a better way to handle ENCAP stuff
     if ($cmd eq 'LOGIN') {
         return login($server, $msg, $source, @rest);
     }
-    
+
     return 1;
 }
 
@@ -655,7 +666,7 @@ sub skill {
     # :source     KILL  uid   :path
     # path is the source and the reason; e.g. server!host!iuser!nick (go away)
     my ($server, $msg, $source, $tuser, $path) = @_;
-    
+
     # this ignores non-local users.
     my $reason = (split / /, $path, 2)[1];
     $reason = substr $reason, 1, -1;
@@ -664,16 +675,16 @@ sub skill {
     if ($tuser->is_local) {
         $tuser->get_killed_by($source, $reason);
     }
-    
+
     # not local; just dispose of it.
     else {
         my $name = $source->name;
         $tuser->quit("Killed ($name ($reason))");
     }
-    
+
     # === Forward ===
     $msg->forward(kill => $source, $tuser, $reason);
-    
+
 }
 
 # PART
@@ -687,21 +698,21 @@ sub part {
     my ($server, $msg, $user, $ch_str, $reason) = @_;
     my @channels = channel_str_to_list($ch_str);
     foreach my $channel (@channels) {
-    
+
         # ?!?!!?!
         if (!$channel->has_user($user)) {
             L("attempting to remove $$user{nick} from $$channel{name} but that user isn't on that channel");
             return;
         }
-        
+
         # remove the user and tell others
         $channel->handle_part($user, $reason);
-        
+
     }
-    
+
     # === Forward ===
     $msg->forward(part => $user, \@channels, $reason);
-    
+
 }
 
 # QUIT
@@ -717,13 +728,13 @@ sub quit {
     my ($server, $msg, $source, $reason) = @_;
     return if $source == $me;
     return unless $source->{location} == $server->{location};
-    
+
     # delete the server or user
     $source->quit($reason);
-    
+
     # === Forward ===
     $msg->forward(quit => $source, $reason);
-    
+
 }
 
 # KICK
@@ -738,7 +749,7 @@ sub kick {
     my ($server, $msg, $source, $channel, $t_user, $reason) = @_;
     # note: we're technically supposed to check for $source's op if
     # it's a user, iff the channel TS is zero.
-    
+
     $channel->user_get_kicked($t_user, $source, $reason);
 
     # === Forward ===
@@ -763,14 +774,14 @@ sub nick {
     # user any
     # :uid NICK  newnick
     my ($server, $msg, $user, $newnick) = @_;
-    
+
     # tell ppl
     $user->send_to_channels("NICK $newnick");
     $user->change_nick($newnick, time);
-    
+
     # === Forward ===
     $msg->forward(nickchange => $user);
-    
+
 }
 
 $mod
