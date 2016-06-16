@@ -674,6 +674,12 @@ sub add_whois_callbacks {
         return ($idle, $user->{time});
     };
 
+    # IRC operator info.
+    my $irc_operator = sub {
+        my $user = shift;
+        return $user->is_mode('service') ? 'a network service' : 'an IRC operator'
+    };
+    
     # too bad this is >90 width.
     my $p = 1000;
     foreach (
@@ -681,7 +687,7 @@ sub add_whois_callbacks {
     [ $show_channels,                  'RPL_WHOISCHANNELS', $channels_list                            ],
     [ undef,                           'RPL_WHOISSERVER',   $server_info                              ],
     [ sub { shift->is_mode('ssl')   }, 'RPL_WHOISSECURE'                                              ],
-    [ sub { shift->is_mode('ircop') }, 'RPL_WHOISOPERATOR'                                            ],
+    [ sub { shift->is_mode('ircop') }, 'RPL_WHOISOPERATOR', $irc_operator                             ],
     [ sub { length shift->{away}    }, 'RPL_AWAY',          sub { shift->{away}                     } ],
     [ sub { shift->mode_string      }, 'RPL_WHOISMODES',    sub { shift->mode_string                } ],
     [ undef,                           'RPL_WHOISHOST',     sub { @{+shift}{qw(host ip)}            } ],

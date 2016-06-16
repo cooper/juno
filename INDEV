@@ -2961,4 +2961,6 @@ CHANGES:
         27. included a proper atheme protocol module in the distribution.
             updated default.conf accordingly.
 
+        28. reveal network service status (+S) in RPL_WHOISOPERATOR.
+
 
