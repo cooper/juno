@@ -253,10 +253,11 @@ sub a2n {
 sub n2a {
     my $n = shift;
     my @a;
+    print "START($n)\n";
     while ($n > 0) {
         my $rem = ($n - 1) % 26;
-        unshift @a, $rem||0;
-        $n = int($n / 26);
+        unshift @a, $rem || 0;
+        $n = int(($n / 26) - 0.01); # this is terrible
     }
     return join '', map chr(ord('a') + $_), @a;
 }
