@@ -29,11 +29,11 @@ sub init {
 
 sub new {
     my ($class, %opts) = @_;
-    
+
     # although currently unimportant, it is noteworthy that
     # ->new() is never called for the local server. it is
     # constructed manually before the server module is loaded.
-    
+
     return bless {
         umodes   => {},
         cmodes   => {},
@@ -48,7 +48,7 @@ sub new {
 # does not close a connection; use $server->conn->done() for that.
 sub quit {
     my ($server, $reason, $why) = @_;
-    $why //= $server->{name}.q( ).$server->{parent}{name};
+    $why //= "$$server{parent}{name} $$server{name}";
 
     notice(server_quit =>
         $server->{name},
@@ -56,7 +56,7 @@ sub quit {
         $server->{parent}{name},
         $why
     );
-    
+
     # all children must be disposed of.
     foreach my $serv ($server->children) {
         next if $serv == $server;
@@ -151,19 +151,19 @@ sub convert_cmode_string {
             $string .= $letter;
             next;
         }
-        
+
         my $name = $server1->cmode_name($letter) or next;
         if ($over_protocol) {
-        
+
             # if it's a status mode, translate the UID maybe.
             if ($server1->cmode_type($name) == 4 && length $m[$curr_p]) {
                 my $user    = $server1->uid_to_user($m[$curr_p]);
                 $m[$curr_p] = $server2->user_to_uid($user) if $user;
             }
-            
+
             # this one takes a parameter.
             $curr_p++ if $server1->cmode_takes_parameter($name, $state);
-            
+
         }
 
         # translate the letter.
@@ -253,21 +253,21 @@ sub cmode_string_difference {
     # determine the original values. ex. $o_modes_p{b}{'hi!*@*'} = 1
     my (@o_modes, %o_modes_p);
     foreach my $letter (split //, $o_modes) {
-    
+
         # find mode name and type.
         my $name = $server->cmode_name($letter) or next;
         my $type = $server->cmode_type($name);
-        
+
         # this type takes a parameter.
         if ($server->cmode_takes_parameter($name, 1)) {
             defined(my $param = shift @o_params) or next;
             $o_modes_p{$letter}{$param} = 1;
             next;
         }
-        
+
         # no parameter.
         push @o_modes, $letter;
-       
+
     }
 
     # find the new modes.
@@ -280,7 +280,7 @@ sub cmode_string_difference {
         # find mode name and type.
         my $name = $server->cmode_name($letter) or next;
         my $type = $server->cmode_type($name);
-        
+
         # this type takes a parameter.
         if ($server->cmode_takes_parameter($name, 1)) {
             defined(my $param = shift @n_params) or next;
@@ -291,29 +291,29 @@ sub cmode_string_difference {
                 delete $m->{$param};
                 delete $o_modes_p{$letter} if !scalar keys %$m;
             }
-            
+
             # not there.
             else {
                 $modes_added_p{$letter}{$param} = 1;
             }
-            
+
             next;
         }
-        
+
         # no parameter.
 
         # it's in the original.
         if ($letter ~~ @o_modes) {
             @o_modes = grep { $_ ne $letter } @o_modes;
         }
-        
+
         # not there.
         else {
             push @modes_added, $letter;
         }
-        
+
     }
-    
+
     # at this point, anything in @o_modes or %o_modes_p is not
     # present in the new mode string but is in the old.
 
@@ -329,19 +329,19 @@ sub cmode_string_difference {
             push @final_p, $param;
         }
     }
-    
+
     # remove modes from original not found in new.
     unless ($remove_none) {
         $final_str .= '-' if scalar @o_modes || scalar keys %o_modes_p;
         $final_str .= join '', @o_modes;
         LETTER: foreach my $letter (keys %o_modes_p) {
-            
+
             # if we are accepting all list modes, don't remove any.
             if ($combine_lists) {
                 my $type = $server->cmode_type($server->cmode_name($letter));
                 next LETTER if $type == 3;
             }
-        
+
             # remove each mode or entry.
             PARAM: foreach my $param (keys %{ $o_modes_p{$letter} }) {
                 $final_str .= $letter;
@@ -349,7 +349,7 @@ sub cmode_string_difference {
             }
         }
     }
-  
+
     return join ' ', $final_str, @final_p;
 }
 
@@ -505,13 +505,13 @@ sub fire_command {
 sub fire_command_data {
     my ($server, $command, $source, $data) = @_;
     $command = uc $command;
-    
+
     # remove command from data.
     if (length $data) {
         $data =~ s/^\Q$command\E\s+//i;
         $data = " :$data";
     }
-    
+
     return unless $source->can('id');
     $server->sendfrom($source->id, "$command$data");
 }

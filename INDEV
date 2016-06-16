@@ -2972,3 +2972,5 @@ CHANGES:
         32. update Evented::API::Engine.
 
         33. handle (H) to indicate hidden server.
+
+        34. reversed server order in netsplit user quit message.
