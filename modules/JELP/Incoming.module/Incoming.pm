@@ -150,7 +150,7 @@ my %scommands = (
     },
     LOGIN => {
                   # :uid LOGIN      actname,...
-        params => '-source(user)    any'
+        params => '-source(user)    any',
         code   => \&login
     }
 );
