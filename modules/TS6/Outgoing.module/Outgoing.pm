@@ -95,7 +95,7 @@ sub send_burst {
         # ignore users the server already knows!
         next if $user->{server} == $server || $user->{source} == $server->{sid};
         $server->fire_command(new_user => $user);
-
+        $server->fire_command(login => $user, $user->{account}) if $user->{account};
         # TODO: oper flags
         # TODO: away reason
     }
