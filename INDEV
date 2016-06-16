@@ -2978,3 +2978,4 @@ CHANGES:
         35. handle TS6 ENCAP SU (account name set by services).
 
         36. add ENCAP LOGIN outgoing command, sent during TS6 burst.
+            RPL_WHOISACCOUNT now works for accounts set by services.

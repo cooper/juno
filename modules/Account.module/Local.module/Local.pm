@@ -39,7 +39,7 @@ our %user_commands = (
 );
 
 sub init {
-    
+
     # RPL_LOGGEDIN and RPL_LOGGEDOUT.
     $mod->register_user_numeric(
         name   => 'RPL_LOGGEDIN',
@@ -56,19 +56,19 @@ sub init {
         number => 330,
         format => '%s %s :is logged in as'
     );
-    
+
     # registered user mode.
     $mod->register_user_mode_block(
         name => 'registered',
         code => \&umode_registered
     );
-    
+
     # account matcher.
     $mod->register_matcher(
         name => 'account',
         code => \&account_matcher
     ) or return;
-    
+
     # oper notices.
     $mod->register_oper_notice(
         name   => $_->[0],
@@ -78,12 +78,12 @@ sub init {
         [ account_login    => '%s (%s@%s) authenticated as \'%s\' on %s'       ],
         [ account_logout   => '%s (%s@%s) logged out from \'%s\' on %s'        ]
     );
-    
+
     # WHOIS account line.
     $pool->on('user.whois_query' => sub {
         my ($user, $event, $quser) = @_;
-        return unless $quser->account;
-        $user->numeric(RPL_WHOISACCOUNT => $quser->{nick}, $quser->account->{name});
+        return unless $quser->{account};
+        $user->numeric(RPL_WHOISACCOUNT => $quser->{nick}, $quser->{account}{name});
     }, name     => 'RPL_WHOISACCOUNT',
         after   => ['RPL_WHOISMODES', 'RPL_WHOISHOST'],
         before  => 'RPL_ENDOFWHOIS',
@@ -105,7 +105,7 @@ sub umode_registered {
 
     # but always allow them to unset it.
     $user->account->logout_user($user, 1) if $user->account;
-    
+
     return 1;
 }
 
@@ -118,33 +118,33 @@ sub umode_registered {
 # /REGISTER <accountname> <password>
 sub cmd_register {
     my ($user, $event, $act_name, $password) = @_;
-    
+
     # already registered.
     # this is to prevent several registrations in one connection.
     if (defined $user->{registered}) {
         $user->server_notice(register => 'You have already registered an account');
         return;
     }
-    
+
     # no account name.
     if (!defined $password) {
         $password = $act_name;
         $act_name = $user->{nick};
     }
-    
+
     # taken.
     if (lookup_account_name($act_name)) {
         $user->server_notice(register => 'Account name taken');
         return;
     }
-    
+
     # attempt.
     my $act = register_account($act_name, $password, $me, $user);
     if (!$act) {
         $user->server_notice(register => 'Registration error');
         return;
     }
-    
+
     # success.
     $user->server_notice(register => 'Registration successful');
     $pool->fire_command_all(acctinfo => $act);
@@ -158,29 +158,29 @@ sub cmd_register {
 # /LOGIN <accountname> <password>
 sub cmd_login {
     my ($user, $event, $act_name, $password) = @_;
-    
+
     # no account name.
     if (!defined $password) {
         $password = $act_name;
         $act_name = $user->{nick};
     }
-    
+
     # find account.
     my $act = lookup_account_name($act_name);
     if (!$act) {
         $user->server_notice(login => 'No such account');
         return;
     }
-    
+
     # check password.
     if (!$act->verify_password($password)) {
         $user->server_notice(login => 'Incorrect password');
         return;
     }
-    
+
     # success.
     $act->login_user($user);
-    
+
 }
 
 # inspect accounts.
@@ -197,14 +197,14 @@ sub account_matcher {
     my ($event, $user, @list) = @_;
     return unless $user->is_mode('registered');
     foreach my $item (@list) {
-    
+
         # just check if registered.
         return $event->{matched} = 1 if $item eq '$r';
-        
+
         # match a specific account.
         next unless $item =~ m/^\$r:(.+)$/;
         return $event->{matched} = 1 if lc $user->account->{name} eq lc $1;
-        
+
     }
     return;
 }
