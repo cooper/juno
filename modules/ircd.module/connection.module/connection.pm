@@ -240,7 +240,7 @@ sub send {
     return unless $connection->{stream};
     return if $connection->{goodbye};
     @msg = grep { defined } @msg;
-    $connection->{stream}->write("$_\r\n") @msg;
+    $connection->{stream}->write("$_\r\n") foreach @msg;
 print "SEND: @msg\n";
 }
 
