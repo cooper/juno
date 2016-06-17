@@ -38,7 +38,7 @@ sub init {
     #
     #   [ NAME      => \&sub            PARAMS  LATER
         [ PING      => \&rcmd_ping,     1,              ],
-        [ PONG      => sub { 1 },       undef   1       ],
+        [ PONG      => sub { 1 },       undef,  1       ],
         [ CAP       => \&rcmd_cap,      1,      1       ],
         [ NICK      => \&rcmd_nick,     1,              ],
         [ USER      => \&rcmd_user,     4,      1       ],
