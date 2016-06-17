@@ -20,7 +20,7 @@ use strict;
 use 5.010;
 
 use M::TS6::Utils qw(uid_from_ts6 user_from_ts6 mode_from_prefix_ts6 sid_from_ts6);
-use utils qw(channel_str_to_list);
+use utils qw(channel_str_to_list notice);
 
 our ($api, $mod, $pool, $me);
 
