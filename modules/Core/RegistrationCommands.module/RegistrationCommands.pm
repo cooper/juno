@@ -37,8 +37,8 @@ sub init {
     # LATER  = true if the command should be handled even after registration
     #
     #   [ NAME      => \&sub            PARAMS  LATER
-        [ PING      => \&rcmd_ping,     1,              ],
-        [ PONG      => sub { 1 },       undef,  1       ],
+        [ PING      => sub { 1 },       undef           ],
+        [ PONG      => sub { 1 },       undef           ],
         [ CAP       => \&rcmd_cap,      1,      1       ],
         [ NICK      => \&rcmd_nick,     1,              ],
         [ USER      => \&rcmd_user,     4,      1       ],
@@ -47,15 +47,6 @@ sub init {
     );
 
     return 1;
-}
-
-#################
-### PING PONG ###
-#################
-
-sub rcmd_ping {
-    my ($connection, $event, $given) = @_;
-    $connection->sendme("PONG $$me{name} :$given");
 }
 
 ####################
