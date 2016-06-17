@@ -89,7 +89,7 @@ our %ts6_incoming_commands = (
         code    => \&nick
     },
     PING => {
-        code    => \&ping
+        code    => \&ping,
         params  => ':rest(opt)'
     }
 );
