@@ -88,6 +88,9 @@ our %ts6_incoming_commands = (
         params  => '-source(user) any',
         code    => \&nick
     },
+    PING => {
+        code    => \&ping
+    }
 );
 
 # SID
@@ -795,6 +798,25 @@ sub nick {
     # === Forward ===
     $msg->forward(nickchange => $user);
 
+}
+
+sub ping {
+    my ($server, $msg) = @_;
+
+    # the first ping indicates the end of a burst.
+    if ($server->{is_burst}) {
+        my $time    = delete $server->{is_burst};
+        my $elapsed = time - $time;
+        $server->{sent_burst} = time;
+
+        L("end of burst from $$server{name}");
+        notice(server_endburst => $server->{name}, $server->{sid}, $elapsed);
+
+        # === Forward ===
+        $msg->forward(endburst => $server, time);
+    }
+
+    $server->sendme("PONG $$me{sid} $$server{sid}");
 }
 
 $mod

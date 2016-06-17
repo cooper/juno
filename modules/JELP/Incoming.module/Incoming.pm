@@ -152,6 +152,10 @@ my %scommands = (
                   # :uid LOGIN      actname,...
         params => '-source(user)    any',
         code   => \&login
+    },
+    PING => {
+        params => 'any',
+        code   => \&ping
     }
 );
 
@@ -872,6 +876,11 @@ sub login {
     $msg->forward(login => $user, @items);
 
     return 1;
+}
+
+sub ping {
+    my ($server, $msg, $given) = @_;
+    $server->sendme("PONG $$me{name} :$given");
 }
 
 $mod

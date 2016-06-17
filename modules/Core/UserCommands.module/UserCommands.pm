@@ -179,6 +179,11 @@ our %user_commands = (
         code   => \&userhost,
         desc   => 'user hostmask query',
         params => '@rest'
+    },
+    PING => {
+        code    => \&ping,
+        desc    => 'check connection status',
+        params  => '*'
     }
 );
 
@@ -1343,6 +1348,11 @@ sub userhost {
     }
 
     $user->numeric(RPL_USERHOST => join ' ', @strs);
+}
+
+sub ping {
+    my ($user, $event, $given) = @_;
+    $user->sendme("PONG $$me{name} :$given");
 }
 
 $mod

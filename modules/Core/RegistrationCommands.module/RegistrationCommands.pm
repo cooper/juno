@@ -22,13 +22,13 @@ use utils qw(col keys_values);
 
 our ($api, $mod, $pool, $me);
 
-sub init {    
+sub init {
     $mod->register_user_numeric(
         name   => 'ERR_INVALIDCAPCMD',
         number => 410,
         format => '%s :Invalid CAP subcommand'
     );
-    
+
     $mod->register_registration_command(
         keys_values([qw/name code parameters after_reg/], $_)
     ) or return foreach (
@@ -38,14 +38,14 @@ sub init {
     #
     #   [ NAME      => \&sub            PARAMS  LATER
         [ PING      => \&rcmd_ping,     1,      1       ],
-        [ PONG      => sub { 1 },       undef,  1       ],
+        [ PONG      => sub { 1 },       undef           ],
         [ CAP       => \&rcmd_cap,      1,      1       ],
         [ NICK      => \&rcmd_nick,     1,              ],
         [ USER      => \&rcmd_user,     4,      1       ],
         [ QUIT      => \&rcmd_quit,     undef,          ],
         [ ERROR     => \&rcmd_error,    1,      1       ],
     );
-    
+
     return 1;
 }
 
@@ -66,15 +66,15 @@ sub rcmd_ping {
 sub rcmd_cap {
     my ($connection, $event, @args) = @_;
     my $subcmd = lc shift @args;
-    
+
     # handle the subcommand.
     if (my $code = __PACKAGE__->can("cap_$subcmd")) {
         return $code->($connection, $event, @args);
     }
-    
+
     $connection->numeric(ERR_INVALIDCAPCMD => $subcmd);
     return;
-    
+
 }
 
 # CAP LS: display the server's available caps.
@@ -87,7 +87,7 @@ sub cap_ls {
         $connection->{cap_suspend} = 1;
         $connection->reg_wait('cap');
     }
-    
+
     $connection->early_reply(CAP => "LS :@flags");
 }
 
@@ -101,46 +101,46 @@ sub cap_list {
 # CAP REQ: client requests a capability.
 sub cap_req {
     my ($connection, $event, @args) = @_;
-    
+
     # first LS - postpone registration.
     if (!$connection->{cap_suspend}) {
         $connection->{cap_suspend} = 1;
         $connection->reg_wait('cap');
     }
-    
+
     # handle each capability.
     my (@add, @remove, $nak);
     foreach my $item (map { split / / } @args) {
         $item = col($item);
         my ($m, $flag) = ($item =~ m/^([-]?)(.+)$/);
         next unless length $flag;
-        
+
         # requesting to remove it.
         if ($m eq '-') {
             push @remove, $flag;
         }
-        
+
         # no such flag.
         if (!$pool->has_cap($flag)) {
             $nak = 1;
             last;
         }
-        
+
         # it was removed.
         next if $m eq '-';
-        
+
         # adding.
         push @add, $flag;
-        
+
     }
-    
+
     # sending NAK; don't change anything.
     my $cmd = 'ACK';
     if ($nak) {
         $cmd = 'NAK';
         @add = @remove = ();
     }
-    
+
     $connection->add_cap(@add);
     $connection->remove_cap(@remove);
     $connection->early_reply(CAP => "$cmd :@args");
@@ -191,18 +191,18 @@ sub rcmd_nick {
     $connection->{nick} = $nick;
     $connection->fire_event(reg_nick => $nick);
     $connection->reg_continue('id1');
-    
+
 }
 
 sub rcmd_user {
     my ($connection, $event, @args) = @_;
-    
+
     # already registered.
     if ($connection->{type}) {
         $connection->numeric('ERR_ALREADYREGISTRED');
         return;
     }
-    
+
     $connection->{ident} = $args[0];
     $connection->{real}  = $args[3];
     $connection->fire_event(reg_user => @args[0,3]);
@@ -227,4 +227,3 @@ sub rcmd_error {
 }
 
 $mod
-
