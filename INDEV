@@ -2988,4 +2988,5 @@ CHANGES:
             re-added RPL_WHOISACCOUNT, now independent of the former Account module.
 
         39. replaced temporary fix on TS6 UID conversion with a permanent, better solution.
-            
+
+    4. fixed an issue where local kills were not propagated correctly.
