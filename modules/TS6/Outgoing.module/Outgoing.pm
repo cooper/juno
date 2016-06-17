@@ -113,7 +113,7 @@ sub send_endburst {
 
     # we did not initiate this. we sent burst first. so send PING now.
     if (!$server->{is_linkage}) {
-        $server->send(":$$me{id} PING $$me{name} $$server{name}");
+        $server->send(":$$me{sid} PING $$me{name} $$server{name}");
         return;
     }
 
