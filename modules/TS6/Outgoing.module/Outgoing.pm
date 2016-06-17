@@ -46,6 +46,7 @@ our %ts6_outgoing_commands = (
    # connect        => \&sconnect,
      kick           => \&kick,
      login          => \&login,
+     pong           => \&pong,
    # num            => \&num,
    # links          => \&links,
    # whois          => \&whois
@@ -475,6 +476,11 @@ sub login {
     my ($to_server, $user, $acctname) = @_;
     my $id = ts6_id($user);
     ":$id ENCAP * LOGIN $acctname"
+}
+
+sub pong {
+    my ($to_server, $source_serv, $dest_serv) = @_;
+    $server->sendme("PONG $$source_serv{name} $$dest_serv{sid}");
 }
 
 $mod

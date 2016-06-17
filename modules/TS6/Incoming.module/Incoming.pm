@@ -816,7 +816,7 @@ sub ping {
         $msg->forward(endburst => $server, time);
     }
 
-    $server->sendme("PONG $$me{sid} $$server{sid}");
+    $server->fire_command(pong => $me, $server);
 }
 
 $mod
