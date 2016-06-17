@@ -62,7 +62,7 @@ sub init {
 # send TS6 registration.
 sub send_registration {
     my $connection = shift;
-    $connection->send('CAPAB :EUID ENCAP QS TB EOPMOD EOB EX IE SERVICES');
+    $connection->send('CAPAB :EUID ENCAP QS TB EOPMOD EOB EX IE SERVICES SAVE');
 
     # EUID      = extended user burst support
     # ENCAP     = enhanced command routing support
