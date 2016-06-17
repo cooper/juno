@@ -2994,3 +2994,5 @@ CHANGES:
         41. PING is now handled separately for each protocol.
             end of burst in TS6 is now handled during the first PING.
             we still need to handle EB capab eventually.
+
+        42. improve bursting and whatnot with TS6.

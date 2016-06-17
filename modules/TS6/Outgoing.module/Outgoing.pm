@@ -110,7 +110,14 @@ sub send_burst {
 
 sub send_endburst {
     my ($server, $event) = @_;
-    $server->send($server->has_cap('eb') ? '' : sprintf 'PING :%s', ts6_id($me));
+
+    # we initiated this connection, which means we are expecting a PONG.
+    return if $server->{is_linkage};
+
+    # otherwise, assume they sent a PING I guess.
+    # for now. this is actually terrible tho.
+    $server->send($server->has_cap('eb') ? '' : sprintf 'PONG :%s', $server->{name});
+
 }
 
 # SID
