@@ -87,7 +87,7 @@ sub send_registration {
         $me->{desc}
     );
 
-    $connection->send("PING :$$me{name}");
+    $connection->send("PING :$$me{name}") if $connection->{is_linkage};
 }
 
 # CAPAB
