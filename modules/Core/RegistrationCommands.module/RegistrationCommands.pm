@@ -37,8 +37,8 @@ sub init {
     # LATER  = true if the command should be handled even after registration
     #
     #   [ NAME      => \&sub            PARAMS  LATER
-        [ PING      => \&rcmd_ping,     1,      1       ],
-        [ PONG      => sub { 1 },       undef           ],
+        [ PING      => \&rcmd_ping,     1,              ],
+        [ PONG      => sub { 1 },       undef   1       ],
         [ CAP       => \&rcmd_cap,      1,      1       ],
         [ NICK      => \&rcmd_nick,     1,              ],
         [ USER      => \&rcmd_user,     4,      1       ],
