@@ -33,8 +33,8 @@ our %ts6_outgoing_commands = (
      privmsgnotice_server_mask => \&privmsgnotice_smask,
      join           => \&_join,
    # oper           => \&oper,
-   # away           => \&away,
-   # return_away    => \&return_away,
+     away           => \&away,
+     return_away    => \&return_away,
      part           => \&part,
      topic          => \&topic,
      cmode          => \&tmode,
@@ -98,7 +98,7 @@ sub send_burst {
         $server->fire_command(new_user => $user);
         $server->fire_command(login => $user, $user->{account}{name}) if $user->{account};
         # TODO: oper flags
-        # TODO: away reason
+        $server->fire_command(away => $user) if length $user->{away};
     }
 
     # channels.
@@ -478,11 +478,46 @@ sub login {
     ":$id ENCAP * LOGIN $acctname"
 }
 
+# PONG
+#
+# source:       server
+# parameters:   origin, destination
+#
+# ts6-protocol.txt:714
+#
 sub pong {
     my ($to_server, $source_serv, $dest) = @_;
     my $id = ts6_id($source_serv);
     $dest ||= $to_server->id;
     ":$id PONG $$source_serv{name} $dest"
+}
+
+# AWAY
+#
+# source:       user
+# propagation:  broadcast
+# parameters:   opt. away reason
+#
+# ts6-protocol.txt:215
+#
+sub away {
+    my ($to_server, $user) = @_;
+    my $id = ts6_id($user);
+    ":$id AWAY :$$user{away}"
+}
+
+# AWAY (Return)
+#
+# source:       user
+# propagation:  broadcast
+# parameters:   opt. away reason
+#
+# ts6-protocol.txt:215
+#
+sub return_away {
+    my ($to_server, $user) = @_;
+    my $id = ts6_id($user);
+    ":$id AWAY"
 }
 
 $mod

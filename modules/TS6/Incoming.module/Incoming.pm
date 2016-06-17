@@ -95,6 +95,11 @@ our %ts6_incoming_commands = (
     PONG => {
         code    => \&pong,
         params  => ':rest(opt)'
+    },
+    AWAY => {
+                   # :uid AWAY    :reason
+        params  => '-source(user) :rest(opt)',
+        code    => \&away
     }
 );
 
@@ -756,6 +761,7 @@ sub quit {
     # === Forward ===
     $msg->forward(quit => $source, $reason);
 
+    return 1;
 }
 
 # KICK
@@ -780,6 +786,7 @@ sub kick {
 }
 
 # NICK
+#
 # 1.
 # source: user
 # parameters: new nickname, new nickTS
@@ -803,13 +810,29 @@ sub nick {
     # === Forward ===
     $msg->forward(nickchange => $user);
 
+    return 1;
 }
 
+# PING
+#
+# source:       any
+# parameters:   origin, opt. destination server
+#
+# ts6-protocol.txt:700
+#
 sub ping {
     my ($server, $msg, $dest) = @_;
     $server->fire_command(pong => $me, $dest);
+    return 1;
 }
 
+# PONG
+#
+# source:       server
+# parameters:   origin, destination
+#
+# ts6-protocol.txt:714
+#
 sub pong {
     my ($server, $msg, $dest) = @_;
 
@@ -825,6 +848,38 @@ sub pong {
         # === Forward ===
         $msg->forward(endburst => $server, time);
     }
+
+    return 1;
+}
+
+# AWAY
+#
+# source:       user
+# propagation:  broadcast
+# parameters:   opt. away reason
+#
+# ts6-protocol.txt:215
+#
+sub away {
+    my ($server, $msg, $user, $reason) = @_;
+
+    # if the reason is not present, the user has returned.
+    if (!length $reason) {
+        $user->unset_away();
+
+        # === Forward ===
+        $msg->forward(return_away => $user);
+
+        return 1;
+    }
+
+    # otherwise, set the away reason.
+    $user->set_away($reason);
+
+    # === Forward ===
+    $msg->forward(away => $user);
+
+    return 1;
 }
 
 $mod

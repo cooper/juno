@@ -2997,3 +2997,6 @@ CHANGES:
 
         42. improve bursting and whatnot with TS6.
             remove PONG registration command handler.
+
+        43. add AWAY command for TS6.
+            send AWAY in TS6 burst.
