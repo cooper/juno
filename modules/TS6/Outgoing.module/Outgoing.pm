@@ -480,7 +480,8 @@ sub login {
 
 sub pong {
     my ($to_server, $source_serv, $dest_serv) = @_;
-    $server->sendme("PONG $$source_serv{name} $$dest_serv{sid}");
+    my $id = ts6_id($source_serv);
+    ":$id PONG $$source_serv{name} $$dest_serv{sid}"
 }
 
 $mod
