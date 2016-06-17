@@ -2986,3 +2986,6 @@ CHANGES:
 
         38. temporary fix for a TS6 UID conversion issue.
             re-added RPL_WHOISACCOUNT, now independent of the former Account module.
+
+        39. replaced temporary fix on TS6 UID conversion with a permanent, better solution.
+            

@@ -23,7 +23,7 @@ our ($api, $mod, $pool);
 my $banlike;
 
 sub init {
-    
+
     # add numerics.
     $mod->register_user_numeric(
         name   => 'RPL_QUIETLIST',
@@ -34,10 +34,9 @@ sub init {
     $mod->register_user_numeric(
         name   => 'RPL_ENDOFQUIETLIST',
         number => 729,
-        format => '%s %s :End of Channel Quiet List'
-                  # (channel, mode)
+        format => '%s :End of Channel Quiet List'
     ) or return;
-    
+
     # register block.
     my $ccm  = $api->get_module('Core::ChannelModes') or return;
     $banlike = $ccm->can('cmode_banlike_ext')         or return;
@@ -49,18 +48,18 @@ sub init {
     # message blocking event - muted and no voice?
     $pool->on('user.can_message' => sub {
         my ($user, $event, $channel, $message, $type) = @_;
-        
+
         # not muted, or the user has overriding status.
         return if $channel->user_get_highest_level($user) >= -2;
         return unless $channel->list_matches('mute', $user);
         return if $channel->list_matches('except', $user);
-        
+
         $user->numeric(ERR_CANNOTSENDTOCHAN => $channel->name, "You're muted");
         $event->stop('muted');
-        
+
     }, name => 'stop.muted.users', with_eo => 1, priority => 10);
-    
-    
+
+
     return 1;
 }
 
@@ -74,4 +73,3 @@ sub cmode_mute {
 }
 
 $mod
-

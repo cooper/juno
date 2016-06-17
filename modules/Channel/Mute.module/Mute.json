@@ -1,16 +1,16 @@
 {
-   "package" : "M::Channel::Mute",
-   "version" : "0.5",
-   "description" : "adds channel mute ban",
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
    "depends" : {
       "modules" : [
          "Core::ChannelModes",
          "Base::UserNumerics"
       ]
    },
+   "description" : "adds channel mute ban",
    "name" : "Channel::Mute",
-   "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
-   }
+   "package" : "M::Channel::Mute",
+   "version" : "0.6"
 }
