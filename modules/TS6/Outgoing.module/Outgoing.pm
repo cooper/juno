@@ -111,8 +111,11 @@ sub send_burst {
 sub send_endburst {
     my ($server, $event) = @_;
 
-    # we initiated this connection, which means we are expecting a PONG.
-    return if $server->{is_linkage};
+    # we did not initiate this. we sent burst first. so send PING now.
+    if (!$server->{is_linkage}) {
+        $server->send(":$$me{id} PING $$me{name} $$server{name}");
+        return;
+    }
 
     # otherwise, assume they sent a PING I guess.
     # for now. this is actually terrible tho.
