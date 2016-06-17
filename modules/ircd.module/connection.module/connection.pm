@@ -31,7 +31,7 @@ sub init {
 
         # ignore things that aren't a big deal.
         return if $msg->command eq 'NOTICE' && ($msg->param(0) || '') eq '*';
-        return if $msg->command eq 'PONG' && $msg->command eq 'PING';
+        return if $msg->command eq 'PONG' || $msg->command eq 'PING';
         return if looks_like_number($msg->command); # numeric
 
         # server command unknown.
