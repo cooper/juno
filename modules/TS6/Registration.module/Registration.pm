@@ -62,7 +62,6 @@ sub init {
 # send TS6 registration.
 sub send_registration {
     my $connection = shift;
-    $connection->send('CAPAB :EUID ENCAP QS TB EOPMOD EOB EX IE SERVICES SAVE');
 
     # EUID      = extended user burst support
     # ENCAP     = enhanced command routing support
@@ -78,6 +77,9 @@ sub send_registration {
         conf(['connect', $connection->{want} // $connection->{name}], 'send_password'),
         ts6_id($me)
     );
+
+    $connection->send('CAPAB :EUID ENCAP QS TB EOPMOD EOB EX IE SERVICES SAVE');
+
     $connection->send(sprintf
         'SERVER %s %d :%s',
         $me->{name},
@@ -147,7 +149,7 @@ sub rcmd_server {
         $connection->{hidden} = 1;
     }
 
-    # haven't gotten SERVER yet.
+    # haven't gotten PASS yet.
     if (!defined $connection->{ts6_sid}) {
         $connection->done('Invalid credentials');
         return;
@@ -194,13 +196,12 @@ sub rcmd_server {
     # this is postponed until the connection is ready.
     $connection->{ts6_reg_pending} = !$connection->{sent_ts6_registration};
 
-
-
     # made it.
     #$connection->fire_event(reg_server => @args); how am I going to do this?
     $connection->{ts6_ircd}  = conf($s_conf, 'ircd') // 'charybdis';
     $connection->{link_type} = 'ts6';
     $connection->reg_continue('id2');
+
     return 1;
 
 }
@@ -242,18 +243,18 @@ sub connection_ready {
     return unless $server->{link_type} eq 'ts6';
     return unless delete $server->{ts6_reg_pending};
 
-    # at this point, we will say that the server is starting its burst.
-    # however, it still may deny our own credentials.
-    $server->{is_burst} = time;
-    L("$$server{name} is bursting information");
-    notice(server_burst => $server->{name}, $server->{sid});
-
     # time to send my own credentials.
     send_registration($connection);
 
     # we should also go ahead and send our own burst
     # now that we have verified the password.
     $server->send_burst if !$server->{i_sent_burst};
+
+    # at this point, we will say that the server is starting its burst.
+    # however, it still may deny our own credentials.
+    $server->{is_burst} = time;
+    L("$$server{name} is bursting information");
+    notice(server_burst => $server->{name}, $server->{sid});
 
 }
 
