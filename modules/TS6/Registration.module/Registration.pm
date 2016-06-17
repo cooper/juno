@@ -87,7 +87,7 @@ sub send_registration {
         $me->{desc}
     );
 
-    $connection->send("PING :$$me{name}") if $connection->{is_linkage};
+    $connection->send("PING :$$me{name}");
 }
 
 # CAPAB
@@ -196,7 +196,7 @@ sub rcmd_server {
 
     # send my own CAPAB/PASS/SERVER if I haven't already.
     # this is postponed until the connection is ready.
-    $connection->{ts6_reg_pending} = !$connection->{sent_ts6_registration};
+    $connection->{ts6_reg_pending} = 1;
 
     # made it.
     #$connection->fire_event(reg_server => @args); how am I going to do this?
@@ -248,8 +248,9 @@ sub connection_ready {
     # time to send my own credentials.
     send_registration($connection);
 
-    # we should also go ahead and send our own burst
-    # now that we have verified the password.
+    # since I did not initiate this, I have to send my burst first.
+    # I am to send it now, immediately after sending my registration,
+    # even before the initiator has verified my credentials.
     $server->send_burst if !$server->{i_sent_burst};
 
     # at this point, we will say that the server is starting its burst.

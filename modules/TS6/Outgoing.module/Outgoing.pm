@@ -110,18 +110,7 @@ sub send_burst {
 
 sub send_endburst {
     my ($server, $event) = @_;
-
-    # we did not initiate this. we sent burst first. so send PING now.
-    if (!$server->{is_linkage}) {
-        $id = ts6_id($me);
-        $server->send(":$id PING $$me{name} $$server{name}");
-        return;
-    }
-
-    # otherwise, assume they sent a PING I guess.
-    # for now. this is actually terrible tho.
     $server->send($server->has_cap('eb') ? '' : sprintf 'PONG :%s', $server->{name});
-
 }
 
 # SID

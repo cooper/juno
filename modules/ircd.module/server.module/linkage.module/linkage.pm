@@ -156,7 +156,7 @@ sub _establish_connection {
         $::loop->add($stream);
 
         # set up the connection; send SERVER command.
-        $conn->{is_linkage} = 1;
+        $conn->{i_initiated} = 1;
         $conn->{sent_creds} = 1;
         $conn->{want}       = $server_name; # server name to expect in return.
         $conn->send_server_server;
