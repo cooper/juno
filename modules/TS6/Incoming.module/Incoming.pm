@@ -90,6 +90,7 @@ our %ts6_incoming_commands = (
     },
     PING => {
         code    => \&ping
+        params  => ':rest(opt)'
     }
 );
 
@@ -801,7 +802,7 @@ sub nick {
 }
 
 sub ping {
-    my ($server, $msg) = @_;
+    my ($server, $msg, $dest) = @_;
 
     # the first ping indicates the end of a burst.
     if ($server->{is_burst}) {
@@ -816,7 +817,7 @@ sub ping {
         $msg->forward(endburst => $server, time);
     }
 
-    $server->fire_command(pong => $me, $server);
+    $server->fire_command(pong => $me, $dest);
 }
 
 $mod

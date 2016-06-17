@@ -239,7 +239,8 @@ sub send {
     my ($connection, @msg) = @_;
     return unless $connection->{stream};
     return if $connection->{goodbye};
-    $connection->{stream}->write("$_\r\n") foreach grep { defined } @msg;
+    @msg = grep { defined } @msg;
+    $connection->{stream}->write("$_\r\n") @msg;
 print "SEND: @msg\n";
 }
 
