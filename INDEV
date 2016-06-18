@@ -3000,3 +3000,5 @@ CHANGES:
 
         43. add AWAY command for TS6.
             send AWAY in TS6 burst.
+
+        44. added TS6 incoming command handlers TOPIC and TB.

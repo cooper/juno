@@ -47,6 +47,7 @@ our %ts6_outgoing_commands = (
      kick           => \&kick,
      login          => \&login,
      pong           => \&pong,
+     topicburst     => \&tb,
    # num            => \&num,
    # links          => \&links,
    # whois          => \&whois
@@ -325,9 +326,17 @@ sub bmask {
 # ts6-protocol.txt:916
 #
 sub tb {
-    my ($server, $channel) = @_;
-    $server->has_cap('tb') or return;
+    my ($to_server, $channel) = @_;
     return unless $channel->topic;
+
+    # if TB is not supported, use TOPIC.
+    if (!$to_server->has_cap('tb')) {
+        return topic(
+            $to_server, $me, $channel,
+            $channel->{topic}{time}, $channel->{topic}{topic}
+        );
+    }
+
     sprintf
     ':%s TB %s %d %s :%s',
     ts6_id($me),

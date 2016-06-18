@@ -100,6 +100,16 @@ our %ts6_incoming_commands = (
                    # :uid AWAY    :reason
         params  => '-source(user) :rest(opt)',
         code    => \&away
+    },
+    TB => {
+                   # :sid TB        channel topic_ts setby :topic
+        params  => '-source(server) channel ts       *     :rest',
+        code    => \&tb
+    },
+    TOPIC => {
+                  # :uid   TOPIC channel :topic
+        params => '-source(user) channel :rest',
+        code   => \&topic
     }
 );
 
@@ -878,6 +888,85 @@ sub away {
 
     # === Forward ===
     $msg->forward(away => $user);
+
+    return 1;
+}
+
+# TOPIC
+#
+# source:       user
+# propagation:  broadcast
+# parameters:   channel, topic
+#
+# ts6-protocol.txt:957
+#
+sub topic {
+    # -source(user) channel :rest
+    # :uid TOPIC    channel :topic
+    my ($server, $msg, $user, $channel, $topic) = @_;
+
+    # tell users.
+    $channel->sendfrom_all($user->full, "TOPIC $$channel{name} :$topic");
+
+    # set it
+    if (length $topic) {
+        $channel->{topic} = {
+            setby  => $user->full,
+            time   => time,
+            topic  => $topic,
+            source => $server->{sid}
+        };
+    }
+    else {
+        delete $channel->{topic}
+    }
+
+    # === Forward ===
+    $msg->forward(topic => $user, $channel, $channel->{time}, $topic);
+
+    return 1;
+}
+
+# TB
+#
+# capab:        TB
+# source:       server
+# propagation:  broadcast
+# parameters:   channel, topicTS, opt. topic setter, topic
+#
+# ts6-protocol.txt:916
+#
+sub tb {
+    # -source(server)   channel ts       *     :rest
+    # :sid TB           channel topic_ts setby :topic
+    my ($server, $msg, $s_serv, $channel, $topic_ts, $setby, $topic) = @_;
+
+    # the topic TS we have is older than the new one; ignore.
+    if ($channel->{topic} && $channel->{topic}{time} < $topic_ts) {
+        return;
+    }
+
+    # tell users.
+    my $t = $channel->topic;
+    if (!$t or $t && $t->{topic} ne $topic) {
+        $channel->sendfrom_all($s_serv->full, "TOPIC $$channel{name} :$topic");
+    }
+
+    # set it.
+    if (length $topic) {
+        $channel->{topic} = {
+            setby  => $setby,
+            time   => $topic_ts,
+            topic  => $topic,
+            source => $server->{sid} # source = SID of server location where topic set
+        };
+    }
+    else {
+        delete $channel->{topic};
+    }
+
+    # === Forward ===
+    $msg->forward(topicburst => $channel);
 
     return 1;
 }

@@ -694,9 +694,6 @@ sub topic {
     # :source TOPIC channel ts time :topic
     my ($server, $msg, $source, $channel, $ts, $time, $topic) = @_;
 
-    # check that channel exists
-    return unless $channel;
-
     if ($channel->take_lower_time($ts) != $ts) {
         # bad channel time
         return
