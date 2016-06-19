@@ -3002,3 +3002,6 @@ CHANGES:
             send AWAY in TS6 burst.
 
         44. added TS6 incoming command handlers TOPIC and TB.
+
+        45. server can now initiate an SSL connection.
+            fix TS6 PART outgoing command.

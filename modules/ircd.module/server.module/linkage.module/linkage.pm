@@ -104,11 +104,12 @@ sub _establish_connection {
     }
 
     # create a future that attempts to connect.
-    my $connect_future = $::loop->connect(addr => {
+    my $connect = $serv{ssl} ? 'SSL_connect' : 'connect';
+    my $connect_future = $::loop->$connect(addr => {
         family   => index($serv{address}, ':') != -1 ? 'inet6' : 'inet',
         socktype => 'stream',
         port     => $serv{port},
-        ip       => $serv{address} # FIXME:
+        ip       => $serv{address}
     });
 
     # create a future to time out after 5 seconds.
@@ -160,7 +161,7 @@ sub _establish_connection {
         $conn->{sent_creds} = 1;
         $conn->{want}       = $server_name; # server name to expect in return.
         $conn->send_server_server;
-        
+
     });
 }
 

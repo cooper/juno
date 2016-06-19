@@ -121,6 +121,7 @@ sub send_endburst {
 # parameters:   server name, hopcount, sid, server description
 #
 # ts6-protocol.txt:805
+#
 sub sid {
     my ($server, $serv) = @_;
     return if $server == $serv;
@@ -151,6 +152,11 @@ sub sid {
 #
 sub euid {
     my ($server, $user) = @_;
+
+    if (!$server->has_cap('euid')) {
+        # TODO: use UID
+    }
+
     sprintf ":%s EUID %s %d %d %s %s %s %s %s %s %s :%s",
     ts6_id($user->{server}),                        # source SID
     $user->{nick},                                  # nickname
@@ -393,7 +399,7 @@ sub part {
     my $id = ts6_id($user);
     $reason //= q();
     my @channels = ref $channel eq 'ARRAY' ? @$channel : $channel;
-    map ":$id PART $$_{name} $$_{time} :$reason", @channels;
+    map ":$id PART $$_{name} :$reason", @channels;
 }
 
 # QUIT

@@ -101,6 +101,13 @@
 
         port = 7000
 
+    # Enable SSL connection? If so, be sure that the above port is an SSL listen
+    # port and that the other server has SSL configured properly. This setting
+    #is only applicable to outgoing connections
+    # (i.e., when this server is the initiator).
+
+        ssl = on
+
     # Plain text outgoing password
 
         send_password = 'k'
