@@ -252,12 +252,6 @@ sub setup_sockets {
             my ($prefix, $is_ssl) = ($1, $2);
             my @ports  = ref_to_list($listen{$key});
 
-            # plain ports.
-            if (!$prefix) {
-                listen_addr_port($addr, $_) foreach @ports;
-                next KEY;
-            }
-
             # SSL?
             if ($is_ssl) {
                 load_or_reload('IO::Async::SSL',       0.14) or next;
