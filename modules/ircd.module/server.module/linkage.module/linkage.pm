@@ -106,6 +106,7 @@ sub _establish_connection {
     # SSL?
     my ($connect, %ssl_opts) = 'connect';
     if ($serv{ssl}) {
+        require IO::Async::SSL;
         $connect = 'SSL_connect';
         %ssl_opts = (SSL_verify_mode => IO::Socket::SSL::SSL_VERIFY_NONE());
         # TODO: fingerprints
@@ -117,8 +118,7 @@ sub _establish_connection {
         socktype => 'stream',
         port     => $serv{port},
         ip       => $serv{address},
-        %ssl_opts
-    });
+    }, %ssl_opts);
 
     # create a future to time out after 5 seconds.
     # create a third future that will wait for whichever comes first.
