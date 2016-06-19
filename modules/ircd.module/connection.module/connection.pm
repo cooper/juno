@@ -59,6 +59,7 @@ sub new {
         host          => $ip,
         localport     => $stream->{write_handle}->sockport,
         peerport      => $stream->{write_handle}->peerport,
+        ssl           => $stream->isa('IO::Async::SSLStream'),
         source        => $me->{sid},
         time          => time,
         last_response => time,
@@ -71,7 +72,6 @@ sub new {
     # in servers - one for SERVER (id1), one for PASS (id2).
     $connection->reg_wait('id1');
     $connection->reg_wait('id2');
-
 
     return $connection;
 }

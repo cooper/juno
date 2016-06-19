@@ -38,13 +38,13 @@ sub new {
 sub new_connection {
     my ($pool, %opts) = @_;
     my $connection = connection->new($opts{stream}) or return;
-    
+
     # store it by stream.
     $pool->{connections}{ $opts{stream} } = $connection;
-    
+
     # weakly reference to the pool.
     weaken($connection->{pool} = $pool);
-    
+
     # become an event listener.
     $connection->add_listener($pool, 'connection');
 
@@ -78,11 +78,11 @@ sub delete_connection {
         $connection->{type} ? $connection->{type}->full : 'unregistered',
         $reason // 'Unknown reason'
     );
-    
+
     # forget it.
     delete $pool->{connections}{ $connection->{stream} };
     delete $connection->{pool};
-    
+
     return 1;
 }
 
@@ -95,7 +95,7 @@ sub connections { values %{ shift->{connections} } }
 # create a server.
 sub new_server {
     my $pool = shift;
-    
+
     # if the first arg is blessed, it's a server.
     # this is used only for the local server.
     my $server = shift;
@@ -103,25 +103,25 @@ sub new_server {
         my %opts = @_;
         @$server{keys %opts} = values %opts;
     }
-    
+
     # not blessed, just options.
     else {
         unshift @_, $server;
         $server = server->new(@_) or return;
     }
-    
+
     # store it by ID and name.
     $pool->{servers}{ $server->{sid} } =
     $pool->{server_names}{ lc $server->{name} } = $server;
-    
+
     # weakly reference to the pool.
     weaken($server->{pool} = $pool);
     weaken($server->{parent});
-    
+
     # become an event listener.
     $server->add_listener($pool, 'server');
     $server->fire_event('new');
-    
+
     notice(new_server =>
         $server->{name},
         $server->{sid},
@@ -142,35 +142,35 @@ sub lookup_server {
 # find a server by its name.
 sub lookup_server_name {
     my ($pool, $sname) = @_;
-    
+
     # $sid format
     if ($sname =~ m/^\$(\d+)$/) {
         return $pool->lookup_server($1);
     }
-    
+
     return $pool->{server_names}{ lc $sname };
 }
 
 # find any number of servers by mask.
 sub lookup_server_mask {
     my ($pool, $mask) = @_;
-    
+
     # $sid format
     if ($mask =~ m/^\$(\d+)$/) {
         return $pool->lookup_server($1);
     }
-    
+
     my @matches;
     foreach my $server (sort { $a->{name} cmp $b->{name} } $pool->servers) {
         next unless utils::irc_match($server->{name}, $mask);
-        
+
         # if we are returning a single server and if
         # the local server matches, return it.
         return $server if !wantarray && $server->is_local;
-        
+
         # otherwise, just add to the list.
         push @matches, $server;
-        
+
     }
     return wantarray ? @matches : $matches[0];
 }
@@ -178,12 +178,12 @@ sub lookup_server_mask {
 # delete a server.
 sub delete_server {
     my ($pool, $server) = @_;
-    
+
     # forget it.
     delete $server->{pool};
     delete $pool->{servers}{ $server->{sid} };
     delete $pool->{server_names}{ lc $server->{name} };
-    
+
     L("deleted server $$server{name}");
     return 1;
 }
@@ -198,32 +198,32 @@ sub all_servers { values %{ shift->{servers} }            }
 # create a user.
 sub new_user {
     my ($pool, %opts) = @_;
-    
+
     # no server provided; default to this server.
     weaken($opts{server} ||= $me);
-    
+
     # no UID provided; generate one.
     # no nick specified; use UID.
     $opts{uid}  //= $me->{sid}.$pool->{user_i}++;
     $opts{nick} //= $opts{uid};
-    
+
     delete $opts{stream};
     my $user = user->new(%opts) or return;
-    
+
     # store it by ID and nick.
     $pool->{users}{ $opts{uid} } =
     $pool->{nicks}{ lc $opts{nick} } = $user;
-    
+
     # weakly reference to the pool.
     weaken($user->{pool} = $pool);
-    
+
     # become an event listener.
     $user->add_listener($pool, 'user');
     $user->fire_event('new');
 
     # add the user to the server.
     push @{ $opts{server}{users} }, $user;
-    
+
     # update max local and global user counts.
     my $max_l = v('max_local_user_count');
     my $max_g = v('max_global_user_count');
@@ -275,12 +275,12 @@ sub delete_user {
     # this isn't a very efficient way to do this.
     my $users = $user->{server}{users};
     @$users = grep { $_ != $user } @$users;
-    
+
     # forget it.
     delete $user->{pool};
     delete $pool->{users}{ $user->{uid} };
     delete $pool->{nicks}{ lc $user->{nick} };
-    
+
     L("deleted user $$user{nick}");
     return 1;
 }
@@ -288,18 +288,18 @@ sub delete_user {
 # change a user's nickname.
 sub change_user_nick {
     my ($pool, $user, $newnick) = @_;
-    
+
     # make sure it doesn't exist first.
     my $in_use = $pool->nick_in_use($newnick);
     if ($in_use && $in_use != $user) {
         L("attempted to change nicks to a nickname that already exists! $newnick");
         return;
     }
-    
+
     # it does not exist.
     delete $pool->{nicks}{ lc $user->{nick} };
     $pool->{nicks}{ lc $newnick } = $user;
-    
+
     return 1;
 }
 
@@ -320,24 +320,24 @@ sub all_users    { values %{ shift->{users}                 }                   
 # create a channel.
 sub new_channel {
     my ($pool, %opts) = @_;
-    
+
     # make sure it doesn't exist already.
     if ($pool->{channels}{ lc $opts{name} }) {
         L("attempted to create channel that already exists: $opts{name}");
         return;
     }
-    
+
     my $channel = channel->new(%opts) or return;
-    
+
     # store it by name.
     $pool->{channels}{ lc $opts{name} } = $channel;
-    
+
     # weakly reference to the pool.
     weaken($channel->{pool} = $pool);
-    
+
     # become an event listener.
     $channel->add_listener($pool, 'channel');
-    
+
     L("new channel $opts{name} at $opts{time}");
     return $channel;
 }
@@ -350,20 +350,20 @@ sub lookup_channel {
 
 sub lookup_or_create_channel {
     my ($pool, $name, $time) = @_;
-    
+
     # if the channel exists, just join.
     my $channel = $pool->lookup_channel($name);
     return $channel if $channel;
-    
+
     # otherwise create a new one.
     $channel = $pool->new_channel(
         name => $name,
         time => $time || time
     );
-    
+
     # second return value is whether it's a new channel.
     return wantarray ? ($channel, 1) : $channel;
-    
+
 }
 
 # returns true if the two passed users have a channel in common.
@@ -379,11 +379,11 @@ sub channel_in_common {
 # delete a channel.
 sub delete_channel {
     my ($pool, $channel) = @_;
-    
+
     # forget it.
     delete $channel->{pool};
     delete $pool->{channels}{ lc $channel->name };
-    
+
     L("deleted channel $$channel{name}");
     return 1;
 }
@@ -420,7 +420,7 @@ sub register_user_handler {
         desc    => $desc,
         fantasy => $fantasy
     };
-    
+
     #L("$source registered $command: $desc");
     return 1;
 }
@@ -469,7 +469,7 @@ sub delete_numeric {
 
     delete $pool->{numerics}{$numeric};
     #L("$source deleted $numeric");
-    
+
     return 1;
 }
 
@@ -510,7 +510,7 @@ sub delete_notice {
 
     delete $pool->{oper_notices}{$notice};
     #L("$source deleted oper notice '$notice'");
-    
+
     return 1;
 }
 
@@ -518,29 +518,29 @@ sub delete_notice {
 sub fire_oper_notice {
     my ($pool, $notice, $amnt) = (shift, lc shift, 0);
     my $message = $pool->{oper_notices}{$notice} or return;
-    
+
     # code reference.
     if (ref $message eq 'CODE') {
         $message = $message->(@_);
     }
-    
+
     # formatter.
     else {
         $message = sprintf $message, @_;
     }
 
     (my $pretty = ucfirst $notice) =~ s/_/ /g;
-    
+
     # send to users with this notice flag.
     foreach my $user ($pool->actual_users) {
         next unless blessed $user; # during destruction.
         next unless $user->is_mode('ircop');
         next unless $user->has_notice($notice);
-        
+
         $user->server_notice('Notice', ucfirst($pretty).': '.$message);
         $amnt++;
     }
-    
+
     return wantarray ? ($amnt, $pretty, $message) : $amnt;
 }
 
@@ -573,7 +573,7 @@ sub register_server_handler {
         source  => $source,
         forward => shift
     };
-    
+
     #L("$source registered $command");
     return 1;
 }
@@ -616,7 +616,7 @@ sub register_outgoing_handler {
         code    => ref $ref eq 'ARRAY' ? $ref : [ $ref ],
         source  => $source
     };
-    
+
     #L("$source registered $command");
     return 1;
 }
@@ -633,7 +633,7 @@ sub fire_command {
     my ($pool, $server, $command, @args) = (shift, shift, uc shift, @_);
     return if $server->{fake};
     return if $server == $me;
-    
+
     # command does not exist.
     my $proto = $server->{link_type} or return;
     my $cmd   = $pool->{outgoing_commands}{$proto}{$command};
@@ -656,7 +656,7 @@ sub fire_command_all {
 
         # don't send to servers who haven't received my burst.
         next unless $_->{i_sent_burst};
-        
+
         $_->fire_command($command => @args);
     }
 
@@ -704,7 +704,7 @@ sub delete_user_mode_block {
 sub fire_user_mode {
     my ($pool, $user, $state, $name) = @_;
     my $amount = 0;
-    
+
     # nothing to do.
     return $amount unless exists $pool->{user_modes}{$name};
 
@@ -742,19 +742,19 @@ sub user_mode_string {
 # register a block check to a mode.
 sub register_channel_mode_block {
     my ($pool, $name, $what, $code) = @_;
-    
+
     # not a code reference.
     if (ref $code ne 'CODE') {
         L((caller)[0]." tried to register a block to $name that isn't CODE.");
         return;
     }
-    
+
     # it exists already from this source.
     if (exists $pool->{channel_modes}{$name}{$what}) {
         L((caller)[0]." tried to register $name to $what which is already registered");
         return;
     }
-    
+
     #L("registered $name from $what");
     $pool->{channel_modes}{$name}{$what} = $code;
     return 1;
@@ -775,7 +775,7 @@ sub delete_channel_mode_block {
 sub fire_channel_mode {
     my ($pool, $channel, $name, $this) = @_;
     my $amount = 0;
-    
+
     # nothing to do.
     return $amount unless $pool->{channel_modes}{$name};
 
@@ -784,7 +784,7 @@ sub fire_channel_mode {
         return (undef, $this) unless $block->($channel, $this);
         $amount++;
     }
-    
+
     return ($amount, $this);
 }
 
