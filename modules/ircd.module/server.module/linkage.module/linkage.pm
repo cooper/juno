@@ -144,13 +144,23 @@ sub _establish_connection {
         my $socket = $f->get;
         notice(server_connect_success => $server_name);
 
+        # if it's a stream already, it was probably SSL.
+        my $stream;
+        if ($socket->isa('IO::Async::Stream')) {
+            $stream = $socket;
+        }
+        else {
+            $stream = IO::Async::Stream->new(
+                handle         => $socket,
+                read_all       => 0,
+                read_len       => POSIX::BUFSIZ()
+            );
+        }
+
         # configure the stream events.
         my $conn;
-        my $done   = sub { $conn->done(shift) if $conn; shift->close_now };
-        my $stream = IO::Async::Stream->new(
-            handle         => $socket,
-            read_all       => 0,
-            read_len       => POSIX::BUFSIZ(),
+        my $done = sub { $conn->done(shift) if $conn; shift->close_now };
+        $stream->configure(
             on_read        => sub { &ircd::handle_data },
             on_read_eof    => sub { $done->('Connection closed',   shift) },
             on_write_eof   => sub { $done->('Connection closed',   shift) },
