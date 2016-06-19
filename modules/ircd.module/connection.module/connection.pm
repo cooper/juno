@@ -53,6 +53,7 @@ sub new {
     print "stream : $stream\n";
     return unless $stream && $stream->{write_handle};
     my $ip = utils::safe_ip($stream->{write_handle}->peerhost);
+
     bless my $connection = {
         stream        => $stream,
         ip            => $ip,

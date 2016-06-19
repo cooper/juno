@@ -3005,3 +3005,5 @@ CHANGES:
 
         45. server can now initiate an SSL connection.
             fix TS6 PART outgoing command.
+
+        46. add TS6 SSL link support.

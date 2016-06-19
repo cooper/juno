@@ -248,8 +248,8 @@ sub setup_sockets {
         my %listen = $conf->hash_of_block(['listen', $addr]);
 
         KEY: foreach my $key (keys %listen) {
-            $key =~ m/^(.*)port$/ or next;
-            my $prefix = $1;
+            $key =~ m/^(.*?)(ssl)?port$/ or next;
+            my ($prefix, $is_ssl) = ($1, $2);
             my @ports  = ref_to_list($listen{$key});
 
             # plain ports.
@@ -258,18 +258,16 @@ sub setup_sockets {
                 next KEY;
             }
 
-            # SSL ports.
-            if ($prefix eq 'ssl') {
+            # SSL?
+            if ($is_ssl) {
                 load_or_reload('IO::Async::SSL',       0.14) or next;
                 load_or_reload('IO::Async::SSLStream', 0.14) or next;
-                listen_addr_port($addr, $_, 1) foreach @ports;
-                next KEY;
             }
 
-            # protocol-specific ports.
+             # listen.
             foreach (@ports) {
-                listen_addr_port($addr, $_);
-                $listen_protocol{$_} = $prefix;
+                listen_addr_port($addr, $_, $is_ssl);
+                $listen_protocol{$_} = $prefix if length $prefix;
             }
 
         }
