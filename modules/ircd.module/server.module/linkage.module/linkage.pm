@@ -103,13 +103,21 @@ sub _establish_connection {
         notice(server_connect => $server_name, $serv{address}, $serv{port}, $attempt);
     }
 
+    # SSL?
+    my ($connect, %ssl_opts) = 'connect';
+    if ($serv{ssl}) {
+        $connect = 'SSL_connect';
+        %ssl_opts = (SSL_verify_mode => IO::Socket::SSL::SSL_VERIFY_NONE());
+        # TODO: fingerprints
+    }
+
     # create a future that attempts to connect.
-    my $connect = $serv{ssl} ? 'SSL_connect' : 'connect';
     my $connect_future = $::loop->$connect(addr => {
         family   => index($serv{address}, ':') != -1 ? 'inet6' : 'inet',
         socktype => 'stream',
         port     => $serv{port},
-        ip       => $serv{address}
+        ip       => $serv{address},
+        %ssl_opts
     });
 
     # create a future to time out after 5 seconds.
