@@ -571,21 +571,30 @@ sub get_invited_by {
     $user->sendfrom($i_user->full, "INVITE $$user{nick} $ch_name");
 }
 
-# handle a cloak change for a local user.
-sub get_host_changed {
-    my ($user, $old_host) = @_;
-    return unless $user->is_local;
-    return if $old_host eq $user->{cloak};
+# handle a ident or cloak change.
+#
+# sends notifications to local users,
+# but any user (local or nonlocal) can be passed.
+#
+sub get_mask_changed {
+    my ($user, $new_ident, $new_host) = @_;
+    my $old_ident = $user->{ident};
+    my $old_host  = $user->{cloak};
+    return if $old_host eq $new_host && $old_ident eq $new_ident;;
+
+    # set the stuff.
+    $user->{ident} = $new_ident;
+    $user->{cloak} = $new_host;
 
     # send CHGHOST to those who support it.
     # ($from, $message, $cap, $self, @users)
     my %done = %{ sendfrom_to_cap($user->full,
-        "CHGHOST $$user{ident} $$user{cloak}",
+        "CHGHOST $new_ident $new_host",
         'chghost', 1, $user, map($_->users, $user->channels)
     ) };
 
     # even if $user does not support CHGHOST, say he does. otherwise,
-    # he'll receive a QUIT message from himself.
+    # he'll receive a QUIT message from himself if he's local.
     $done{$user} = 1;
 
     # for clients not supporting CHGHOST, we have to emulate a reconnect.
@@ -614,6 +623,8 @@ sub get_host_changed {
         }
     }
 
+    notice(user_mask_changed => $user->{nick},
+        $old_ident, $old_host, $new_ident, $new_host);
     return 1;
 }
 

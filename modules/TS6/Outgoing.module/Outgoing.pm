@@ -49,6 +49,7 @@ our %ts6_outgoing_commands = (
      pong           => \&pong,
      topicburst     => \&tb,
      wallops        => \&wallops,
+     chghost        => \&chghost,
    # num            => \&num,
    # links          => \&links,
    # whois          => \&whois
@@ -551,9 +552,21 @@ sub return_away {
 # ts6-protocol.txt:1140
 #
 sub wallops {
-    my ($to_user, $source, $message) = @_;
+    my ($to_server, $source, $message) = @_;
     my $id = ts6_id($source);
     ":$id WALLOPS :$message"
+}
+# CHGHOST
+#
+# charybdis TS6
+# source:       any
+# propagation:  broadcast
+# parameters:   client, new hostname
+#
+sub chghost {
+    my ($to_server, $source, $user, $new_host) = @_;
+    my ($source_id, $user_id) = (ts6_id($source), ts6_id($user));
+    ":$source_id CHGHOST $user_id :$new_host"
 }
 
 $mod

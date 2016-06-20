@@ -115,6 +115,11 @@ our %ts6_incoming_commands = (
                   # :source WALLOPS :message
         params => '-source          :rest',
         code   => \&wallops
+    },
+    CHGHOST => {
+                  # :source CHGHOST uid   newhost
+        params => '-source          user  *',
+        code   => \&chghost
     }
 );
 
@@ -1005,6 +1010,23 @@ sub wallops {
 
     #=== Forward ===#
     $msg->forward(wallops => $source, $message);
+
+    return 1;
+}
+
+# CHGHOST
+#
+# charybdis TS6
+# source:       any
+# propagation:  broadcast
+# parameters:   client, new hostname
+#
+sub chghost {
+    my ($server, $msg, $source, $user, $new_host) = @_;
+    $user->get_host_changed($new_host);
+
+    #=== Forward ===#
+    $msg->forward(chghost => $source, $user, $new_host);
 
     return 1;
 }
