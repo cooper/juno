@@ -623,7 +623,7 @@ sub get_mask_changed {
         }
     }
 
-    notice(user_mask_changed => $user->{nick},
+    notice(user_mask_change => $user->{nick},
         $old_ident, $old_host, $new_ident, $new_host);
     return 1;
 }

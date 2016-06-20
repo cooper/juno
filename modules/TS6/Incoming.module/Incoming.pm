@@ -747,7 +747,8 @@ sub part {
 
         # ?!?!!?!
         if (!$channel->has_user($user)) {
-            L("attempting to remove $$user{nick} from $$channel{name} but that user isn't on that channel");
+            L("attempting to remove $$user{nick} from $$channel{name} ".
+                "but that user isn't on that channel");
             return;
         }
 

@@ -31,7 +31,7 @@ our %oper_notices = (
     user_nick_change        => '%s (%s@%s) is now known as %s',
     user_join               => '%s (%s@%s) joined %s',
     user_part               => '%s (%s@%s) parted %s (%s)',
-    user_mask_changed       => '%s mask changed from (%s@%s) to (%s@%s)',
+    user_mask_change        => '%s switched from (%s@%s) to (%s@%s)',
 
     new_server              => '%s (%d) ircd %s, proto %s [%s] parent: %s',
     server_quit             => '%s (%d) parent %s (%s)',
