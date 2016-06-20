@@ -21,7 +21,7 @@ use overload
     '""'     => sub { shift->id },
     '0+'     => sub { shift     },
     bool     => sub { 1         };
-    
+
 use utils qw(v notice col conf irc_time);
 use List::Util   'first';
 use Scalar::Util 'blessed';
@@ -76,7 +76,7 @@ sub unset_mode {
 sub quit {
     my ($user, $reason) = @_;
     notice(user_quit => $user->notice_info, $user->{real}, $user->{server}{name}, $reason);
-    
+
     # send to all users in common channels as well as including himself.
     $user->send_to_channels("QUIT :$reason");
 
@@ -136,7 +136,7 @@ sub handle_mode_string {
             my $do = $state ? 'set_mode' : 'unset_mode';
             $user->$do($name);
             $str .= $letter;
-            
+
         }
     }
 
@@ -144,7 +144,7 @@ sub handle_mode_string {
     # keep track of them
     # FIXME: PLEASE!
     $str =~ s/\+\+/\+/g;
-    $str =~ s/\-\-/\-/g; 
+    $str =~ s/\-\-/\-/g;
     $str =~ s/\+\-/\-/g;
     $str =~ s/\-\+/\+/g;
 
@@ -304,16 +304,16 @@ sub  handle_with_opts        { _handle_with_opts(undef, @_) }
 sub _handle_with_opts_unsafe { _handle_with_opts(1,     @_) }
 sub _handle_with_opts        {
     my ($allow_nonlocal, $user, $line, %opts) = @_;
-    
+
     # nonlocal user on ->handle() or some other safe method.
     return if !$allow_nonlocal && !$user->is_local;
-    
+
     my $msg = blessed $line ? $line : message->new(data => $line);
-    
+
     # fire commands with options.
     my @events = $user->events_for_message($msg);
     $user->prepare(@events)->fire('safe', data => \%opts);
-    
+
 }
 
 # send data to a local user.
@@ -344,62 +344,62 @@ sub sendme {
 # revision: supports nonlocal users as well now.
 sub server_notice {
     my ($user, @args) = @_;
-    
+
     # first parameter can be a server
     my $server = $me;
     if (blessed $args[0] && $args[0]->isa('server')) {
         $server = shift @args;
     }
-    
+
     my $cmd = ucfirst $args[0];
     my $msg = defined $args[1] ? "*** \2$cmd:\2 $args[1]" : $args[0];
-    
+
     # user is local.
     if ($user->is_local) {
         $user->sendfrom($server->name, "NOTICE $$user{nick} :$msg");
         return 1;
     }
-    
+
     # not local; pass it on.
     $user->{location}->fire_command(privmsgnotice => 'NOTICE', $server, $user, $msg);
-    
+
 }
 
 # send a numeric to a local user.
 sub numeric {
     my ($user, $const, @response) = (shift, shift);
-    
+
     # does not exist.
     if (!$pool->numeric($const)) {
         L("attempted to send nonexistent numeric $const");
         return;
     }
-    
+
     my ($num, $val) = @{ $pool->numeric($const) };
 
     # CODE reference for numeric response.
     if (ref $val eq 'CODE') {
         @response = $val->($user, @_);
     }
-    
+
     # formatted string.
     else {
         @response = sprintf $val, @_;
     }
-    
+
     # local user.
     if ($user->is_local) {
         $user->sendme("$num $$user{nick} $_") foreach @response;
     }
-    
+
     # remote user.
     else {
         $user->{location}->fire_command(num => $me, $user, $num, $_)
             foreach @response;
     }
-    
+
     return 1;
-    
+
 }
 
 # send welcomes
@@ -411,11 +411,11 @@ sub new_connection {
     # note: we don't use do_mode_string() because we wait until afterward to send MODE.
     $user->handle_mode_string(conf qw/users automodes/);
     $user->set_mode('ssl') if $user->conn->{listener}{ssl};
-    
+
     # tell other servers
     $pool->fire_command_all(new_user => $user);
     $user->fire_event('initially_propagated');
-    
+
     # send numerics.
     my $network = conf('server', 'network') // conf('network', 'name');
     $user->numeric(RPL_WELCOME  => $network, $user->{nick}, $user->{ident}, $user->{host});
@@ -435,7 +435,7 @@ sub new_connection {
 
     # send mode string
     $user->sendfrom($user->{nick}, "MODE $$user{nick} :".$user->mode_string);
-    
+
     return $user->{init_complete} = 1;
 }
 
@@ -443,8 +443,9 @@ sub new_connection {
 # note: the source user does not need to be local.
 # also, the source user will receive the message as well if local.
 sub send_to_channels {
-    my ($user, $message) = @_;    
-    sendfrom_to_many($user->full, $message, $user, map { $_->users } $user->channels);
+    my ($user, $message) = @_;
+    sendfrom_to_many($user->full, $message, $user,
+        map { $_->users } $user->channels);
     return 1;
 }
 
@@ -453,14 +454,14 @@ sub send_to_channels {
 # also, the source user will receive the message as well if local.
 sub send_to_channels_with_cap {
     my ($user, $message, $cap, $self) = @_;
-    sendfrom_to_cap($user->full, $message, $cap, $self, map { $_->users } $user
-        ->channels);
+    sendfrom_to_cap($user->full, $message, $cap, $self,
+        map { $_->users } $user->channels);
     return 1;
 }
 
 # class function:
 # send to a number of users but only once per user.
-# returns the number of users affected.
+# returns the hashref of users affected.
 # user::sendfrom_to_many($from, $message, @users)
 sub sendfrom_to_many {
     my ($from, $message, @users) = @_;
@@ -471,13 +472,13 @@ sub sendfrom_to_many {
         $user->sendfrom($from, $message);
         $done{$user} = 1;
     }
-    return scalar keys %done;
+    return \%done;
 }
 
 
 # class function:
 # send to a number of users that have a cap.
-# returns the number of users affected
+# returns the hashref of users affected.
 # user::sendfrom_to_cap($from, $message, $cap, $self, @users)
 sub sendfrom_to_cap {
     my ($from, $message, $cap, $self, @users) = @_;
@@ -490,7 +491,7 @@ sub sendfrom_to_cap {
         $user->sendfrom($from, $message);
         $done{$user} = 1;
     }
-    return scalar keys %done;
+    return \%done;
 }
 
 # handle a mode string, send to the local user, send to other servers.
@@ -504,17 +505,17 @@ sub do_mode_string_unsafe { _do_mode_string(undef, 1, @_) }
 
 sub _do_mode_string {
     my ($local_only, $unsafe, $user, $modestr, $force) = @_;
-    
+
     # handle.
     my $result = $user->handle_mode_string($modestr, $force) or return;
-    
+
     return if !$user->is_local && !$unsafe;                 # remote not allowed
     return if $user->is_local  && !$user->{init_complete};  # local user not done registering
-    
+
     # tell the user himself and other servers.
     $user->sendfrom($user->{nick}, "MODE $$user{nick} :$result");
     $pool->fire_command_all(umode => $user, $result) unless $local_only;
-    
+
 }
 
 # has a notice flag
@@ -525,7 +526,7 @@ sub has_notice {
         return 1 if $f eq 'all';
         return 1 if $f eq $flag;
     }
-    
+
     return;
 }
 
@@ -556,18 +557,64 @@ sub get_killed_by {
 sub get_invited_by {
     my ($user, $i_user, $ch_name) = @_;
     return unless $user->is_local;
-    
+
     # it's an object.
     if (ref(my $channel = $ch_name)) {
         $ch_name = $channel->name;
-        
+
         # user is already in channel.
         return if $channel->has_user($user);
 
     }
-    
+
     $user->{invite_pending}{ lc $ch_name } = 1;
     $user->sendfrom($i_user->full, "INVITE $$user{nick} $ch_name");
+}
+
+# handle a cloak change for a local user.
+sub get_host_changed {
+    my ($user, $old_host) = @_;
+    return unless $user->is_local;
+    return if $old_host eq $user->{cloak};
+
+    # send CHGHOST to those who support it.
+    # ($from, $message, $cap, $self, @users)
+    my %done = %{ sendfrom_to_cap($user->full,
+        "CHGHOST $$user{ident} $$user{cloak}",
+        'chghost', 1, $user, map($_->users, $user->channels)
+    ) };
+
+    # even if $user does not support CHGHOST, say he does. otherwise,
+    # he'll receive a QUIT message from himself.
+    $done{$user} = 1;
+
+    # for clients not supporting CHGHOST, we have to emulate a reconnect.
+    foreach my $channel ($user->channels) {
+
+        # determine status mode letters, if any.
+        my @levels = $channel->user_get_levels($user); # already sorted
+        my $letters = join '',
+            map { $ircd::channel_mode_prefixes{$_}[0] } @levels;
+        $letters .= join(' ', '', ($user->{nick}) x length $letters);
+
+        # send commands to users we didn't already do above.
+        foreach my $usr ($channel->users) {
+            next if !$usr->is_local;
+            next if $done{$usr};
+
+            # QUIT and JOIN.
+            $usr->sendfrom($user->full, "QUIT :Changing hosts");
+            $usr->sendfrom($user->full, "JOIN $$channel{name}");
+
+            # MODE for statuses.
+            $usr->sendfrom($me->full, "MODE $$channel{name} +$letters")
+                if length $letters;
+
+            $done{$usr} = 1;
+        }
+    }
+
+    return 1;
 }
 
 # CAP shortcuts.
