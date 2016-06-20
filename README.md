@@ -37,7 +37,7 @@ Plus, juno-ircd
 * Is free and open-source
 * Is written in Perl, making it fun and easy to tinker with
 * Is extensively configurable
-* Despite that, ships with a working configuration and works out-of-the-box
+* Despite that, ships with a working configuration and runs out-of-the-box
 * Consists entirely of modules and therefore can be as minimal or as bloated as
   you're comfortable with
 * Supports the latest [IRCv3](http://ircv3.net) standards
