@@ -59,7 +59,7 @@ sub new_connection {
     if (scalar keys %{ $pool->{connections} } > v('max_connection_count')) {
         set_v(max_connection_count => scalar keys %{ $pool->{connections} });
     }
-    
+
     notice(new_connection => $connection->{ip}, $connection_num);
     return $connection;
 }
@@ -542,6 +542,27 @@ sub fire_oper_notice {
     }
 
     return wantarray ? ($amnt, $pretty, $message) : $amnt;
+}
+
+###############
+### WALLOPS ###
+###############
+
+sub fire_wallops_local {
+    my ($pool, $source, $notice, $only_opers) = @_;
+
+    # send to local users with wallops.
+    my $amnt = 0;
+    foreach my $user ($pool->local_users) {
+        next unless blessed $user; # during destruction.
+        next unless $user->is_mode('wallops');
+        next if $only_opers && !$user->is_mode('ircop');
+        # TODO: send
+        $user->sendfrom($source->full, "");
+        $amnt++;
+    }
+
+    return $amnt;
 }
 
 ###############################

@@ -48,6 +48,7 @@ our %ts6_outgoing_commands = (
      login          => \&login,
      pong           => \&pong,
      topicburst     => \&tb,
+     wallops        => \&wallops,
    # num            => \&num,
    # links          => \&links,
    # whois          => \&whois
@@ -533,6 +534,26 @@ sub return_away {
     my ($to_server, $user) = @_;
     my $id = ts6_id($user);
     ":$id AWAY"
+}
+
+# WALLOPS
+#
+# 1.
+# source:       user
+# parameters:   message
+# propagation:  broadcast
+#
+# 2.
+# source:       server
+# parameters:   message
+# propagation:  broadcast
+#
+# ts6-protocol.txt:1140
+#
+sub wallops {
+    my ($to_user, $source, $message) = @_;
+    my $id = ts6_id($source);
+    ":$id WALLOPS :$message"
 }
 
 $mod

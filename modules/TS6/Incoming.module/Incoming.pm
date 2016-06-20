@@ -110,6 +110,11 @@ our %ts6_incoming_commands = (
                   # :uid   TOPIC channel :topic
         params => '-source(user) channel :rest',
         code   => \&topic
+    },
+    WALLOPS => {
+                  # :source WALLOPS :message
+        params => '-source          :rest',
+        code   => \&wallops
     }
 );
 
@@ -967,6 +972,39 @@ sub tb {
 
     # === Forward ===
     $msg->forward(topicburst => $channel);
+
+    return 1;
+}
+
+# WALLOPS
+#
+# 1.
+# source:       user
+# parameters:   message
+# propagation:  broadcast
+# In charybdis TS6, includes non-opers.
+#
+# 2.
+# source:       server
+# parameters:   message
+# propagation:  broadcast
+# In charybdis TS6, this may only be sent to opers.
+#
+# ts6-protocol.txt:1140
+#
+# :source WALLOPS :message
+# -source         :rest
+#
+sub wallops {
+    my ($server, $msg, $source, $message) = @_;
+
+    # is it a server or a user? this determines whether it is oper-only.
+    my $source_serv = $source->isa('server');
+
+    $pool->fire_wallops($source, $message, $source_serv);
+
+    #=== Forward ===#
+    $msg->forward(wallops => $source, $message);
 
     return 1;
 }

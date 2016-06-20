@@ -3007,3 +3007,5 @@ CHANGES:
             fix TS6 PART outgoing command.
 
         46. add TS6 SSL link support.
+
+        47. added incoming and outgoing WALLOPS command for TS6.
