@@ -557,8 +557,7 @@ sub fire_wallops_local {
         next unless blessed $user; # during destruction.
         next unless $user->is_mode('wallops');
         next if $only_opers && !$user->is_mode('ircop');
-        # TODO: send
-        $user->sendfrom($source->full, "");
+        $user->sendfrom($source->full, "WALLOPS :$notice");
         $amnt++;
     }
 
