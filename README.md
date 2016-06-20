@@ -3,7 +3,7 @@
 Yes.  
 It really is an IRC daemon.  
 It's written in Perl.  
-  
+
 ...  
 You can breathe again.  
 There. Very good.  
@@ -17,8 +17,34 @@ This software will probably surprise you with its functionality and features. Ho
 should by no means be considered stable. Throughout several years of development, no
 stable versions have been released. Nonetheless, you are encouraged to give it a try.
 
-[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/cooper/yiria?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
- [irc.notroll.net #k](irc://irc.notroll.net/k)
+[irc.notroll.net #k](irc://irc.notroll.net/k)
+
+## Features
+
+There are a lot of them! But here are some things that make juno-ircd stand out.
+
+You can
+
+* Upgrade an entire network without restarting any servers
+* Check out the latest version from git via IRC, even remotely
+* Modify server configuration dynamically from IRC, even remotely
+* Link a complex network of various IRCds spanning multiple server protocols
+* Write modules for the easy-to-use and event-based module API
+* Or rather, [beg us](irc://irc.notroll.net/k) to add the features you want
+
+Plus, juno-ircd
+
+* Is free and open-source
+* Is written in Perl, making it fun and easy to tinker with
+* Is extensively configurable
+* Despite that, ships with a working configuration and works out-of-the-box
+* Consists entirely of modules and therefore can be as minimal or as bloated as
+  you're comfortable with
+* Supports the latest [IRCv3](http://ircv3.net) standards
+* Supports multiple linking protocols, including several TS6 implementations
+  and a custom user-extensible protocol
+* Supports [Atheme](http://atheme.net),
+  [PyLink](https://github.com/GLolol/PyLink) and probably other IRC services packages
 
 ## Concepts
 
@@ -42,7 +68,7 @@ elsif (my $server = $connection->server) {
                   [ $server, "${proto}_message_${cmd}" => $msg ];
     $msg->{_physical_server} = $server;
 }
-  
+
 # fire with safe option.
 my $fire = $connection->prepare(@events)->fire('safe');
 ```
@@ -110,17 +136,17 @@ exactly as you please. Made possible by
     message   = 'Ping timeout'  
     frequency = 30              
     timeout   = 120         
-    
+
 [ listen: 0.0.0.0 ]
     port    = [6667..6669, 7000]
     sslport = [6697]
     ts6port = [7050]
-    
+
 [ listen: :: ]
     port    = [6667..6669, 7000]
     sslport = [6697]
     ts6port = [7050]
-    
+
 [ ssl ]
     cert = 'etc/ssl/cert.pem'   
     key  = 'etc/ssl/key.pem'    
@@ -133,140 +159,6 @@ fulfilling request after request. Utilizing the wonderful
 [IO::Async](http://search.cpan.org/perldoc/IO::Async) framework, juno is quite reactive.
 
 ![Efficiency](http://i.imgur.com/YpvdIYJ.png)
-
-# History
-
-juno-ircd was born a fork of [pIRCd](http://pircd.sourceforge.net) (the Perl IRC daemon)
-but has since been rewritten (multiple times) from the ground up.
-
-* [__pIRCd__](http://pircd.sourceforge.net):
-Born in the 20th century and written by Jay Kominek, pIRCd is a very buggy,
-poorly-coded, feature-lacking (well, compared to those now) IRC server. During its time,
-it was one of only a number of IRCds featuring SSL support. Having been abandoned in 2002,
-pIRCd is ancient history.
-
-* __pIRCd2__:
-A PHP novice, I was convinced by someone to learn Perl. I discovered pIRCd
-and spent hours trying to change something without breaking it. pIRCd2 allowed you to use
-the dollar sign ($) in nicknames, adding support for users such as
-[Ke$ha](https://twitter.com/KeshaRose). Truly revolutionary to IRC as a whole.
-
-* [__juno-ircd__](https://github.com/cooper/juno1) (juno1):
-A fork of pIRCd2, juno-ircd introduced a handful of new features:
-five prefixes (~&@%+), CAP and multi-prefix support, channel link mode (+L), internal
-logging channel (inspired by InspIRCd), network administrator support and the
-corresponding NA:line, temporary oper-override mode (+O), channel mute mode (+Z, inspired
-by charybdis +q), KLINE command for adding K:lines from IRC, an almost-but-never-fully
-working buggy linking protocol, and a network name (NETWORK in RPL_ISUPPORT) option.
-juno-ircd's name was chosen by [Autumn](https://github.com/lacp) after the Roman goddess
-[Juno](http://en.wikipedia.org/wiki/Juno_(mythology)).
-Unfortunately it introduced dozens of new bugs along with its features, and it
-included some of the ugliest code in all of Perl history.
-An example of the attention juno-ircd received from the [Atheme](http://atheme.org)
-(then StaticBox) community:
-
-```
-[04:15pm] -Global- [Network Notice] Alice (nenolod) - We will be upgrading to "juno-ircd" in 5 seconds.
-```
-
-* [__juno__](https://github.com/cooper/juno2) (juno2):
-At some point, some [IRC bullies](http://stop-irc-bullying.eu) made me
-realize how horrific juno-ircd was. I decided to dramatically announce that I would no
-longer be developing the project, but I could not resist. I started from scratch, dropping
-the '-ircd' from the name. juno was actually quite complete and surprisingly reliable.
-Unlike pIRCd and its derivatives, it introduced an interface for modules which later
-became a separate project, [API Engine](https://github.com/cooper/api-engine). It
-brought forth more new features than can be mentioned, namely: host cloaking, server
-notices, channel access mode (+A), GRANT command, D:line, lots more. juno unfortunately
-was completely incapable of server linkage.
-
-* [__juno3__](https://github.com/cooper/juno3):
-It occurred to me one day that an IRC server incapable of linking is somewhat
-impractical (as if one written in Perl were not impractical enough already). I decided to
-put the past behind and say goodbye to juno2. Another complete rewrite, juno3's showcase
-improvement was a dazzling linking protocol. It was even more extensible than ever before
-with greatly improved module interfaces. juno3 was also the first version to make use of
-[IO::Async](http://search.cpan.org/perldoc/IO::Async), exponentially boosting its speed
-efficiency. Although it required more memory resources than juno2, it was prepared to
-take on a massive load, tested with many tens of thousands of users. It was less buggy
-but also less featureful, lacking many standard IRC functions due to my shift of focus to
-a reliable core.
-
-* [__juno-mesh__](https://github.com/cooper/juno-mesh) (juno4): It was recommended to me
-by [Andrew Sorensen](http://andrewsorensen.net) (AndrewX192) that I should implement
-mesh server linking. It seemed that it would be easy to implement, so I forked juno3 to
-create juno-mesh. In addition to mesh linking, it introduced several new commands and a
-new permission system with a method by which additional statuses/prefixes can be added.
-
-* [__juno5__](https://github.com/cooper/yiria/tree/f0d3e8f31062faa894ae1d8db3c0796630b2ee42):
-It turned out that mesh linking required more code and effort than intended and introduced
-countless bugs that I didn't want to bother correcting. I knew that if I started from
-scratch again, it would never reach the completeness of the previous generation. Therefore,
-juno5 was born as yet another fork that removes the mesh capability while preserving the 
-other new features that were introduced in juno-mesh. 
-
-* [__kedler__](https://github.com/cooper/yiria/tree/4fec4b52841eaca3a43003df8f979ac098bb367d) (juno6): 
-Named after a Haitian computer technician, kedler was a continuation of juno5. Its main goal was
-to implement the missing standard IRC functions that had never been implemented in the
-third juno generation. kedler reintroduced hostname resolving, a long-broken feature that
-had not worked properly since juno2. It also reintroduced channel access, this time in the
-form of a module. kedler featured new APIs and improvements to the linking protocol.
-
-* [__vulpia__](https://github.com/cooper/yiria/tree/001b766439ed8423e8eda1c41dd578c899cd7946) (juno7):
-Romanian for a female wolf, vulpia was named after the alias of a dear friend,
-[Ruin](https://soundcloud.com/ruuuuuuuuuuuuin). It included several improvements, making
-the IRCd more extensible than ever before. The
-[Evented::API::Engine](https://github.com/cooper/evented-api-engine) replaced the former
-[API Engine](https://github.com/cooper/api-engine), allowing modules to react to any
-event that occurs within juno. vulpia completed the relocation of JELP
-(the linking protocol) to a module, opening the doors for additional linking protocols
-in the future. Additionally, it established the Account module, allowing users to better
-manage accounts and channels.
-
-* [__kylie__](https://github.com/cooper/yiria/tree/4512ebcd3b526781662ca9f3588df285ed1290da) (juno8):
-Named after the adored [Kyle](http://mac-mini.org) (mac-mini), kylie introduced several
-previously-missing core components including
-[ident](http://en.wikipedia.org/wiki/Ident_protocol) support and channel modes: limit,
-secret, and key. APIs for [IRCv3](http://ircv3.org) extensions were added, leading to
-[SASL](http://ircv3.org/extensions/sasl-3.1),
-[multi-prefix](http://ircv3.org/extensions/multi-prefix-3.1), and
-[message tag](http://ircv3.org/specification/message-tags-3.2) support. An improved IRC
-parameter parser allowed drastic code cleanup and improved efficiency. A new event-driven
-command API made user commands more extensible than ever before. The migration of all
-non-modular packages into modules significantly improved the stability and reloadability
-of the IRCd.
-
-* [__agnie__](https://github.com/cooper/yiria/tree/2a50d41ea3274ad8d157c029976c53cc51bca27a) (juno9):
-Named after the beautiful and talented [Agnes](http://agnes.mac-mini.org), agnie
-introduced lots of new functionality: the ability to
-[manage oper flags](https://github.com/cooper/yiria/blob/master/modules/Grant.module/Grant.pm)
-from IRC, much-improved
-[account management](https://github.com/cooper/yiria/tree/master/modules/Account.module),
-and
-[command aliases](https://github.com/cooper/yiria/blob/master/modules/Alias.module/Alias.pm)
-to name a few. It opened a new door of possibility by adding partial
-[TS6 protocol](https://github.com/atheme/charybdis/blob/master/doc/technical/ts6.txt) support, and
-it even supports [atheme](https://github.com/atheme/atheme) now to some extent. New
-channel modes include invite exception (+I), free invite (+g), channel forward (+F),
-oper only channel (+O), and mute ban (+Z); also, the
-[TopicAdditions](https://github.com/cooper/yiria/blob/master/modules/Channel/TopicAdditions.module/TopicAdditions.pm)
-module added convenient commands to prepend or append the topic. Some missing commands
-were added: ADMIN, TIME, and USERHOST; and several commands that previously did not work
-remotely now do. agnie introduced a
-[new mechanism](https://github.com/cooper/yiria/tree/master/modules/Ban/Ban.module/Ban.pm)
-for storing and enforcing bans (functionality missing since juno2), followed by
-[K-Line](https://github.com/cooper/yiria/blob/master/modules/Ban/Kline.module/Kline.pm)
-and
-[D-Line](https://github.com/cooper/yiria/blob/master/modules/Ban/Dline.module/Dline.pm)
-support in the form of modules. In addition to the existing RELOAD command, agnie
-includes new ways to manage servers remotely, including
-[repository](https://github.com/cooper/yiria/blob/master/modules/Git.module/Git.pm)
-and
-[configuration](https://github.com/cooper/yiria/blob/master/modules/Configuration/Set.module/Set.pm)
-management directly from IRC. And, as always, there were lots of efficiency improvements.
-
-* [__yiria__](https://github.com/cooper/yiria) (juno10):
-yiria is a continuation of agnie and is the current version under active development.
 
 # Installation and operation
 
@@ -368,21 +260,155 @@ To upgrade an existing repository, run the following commands:
 git pull origin master
 git submodule update --init
 ```
-  
+
 **OR**
-  
+
 Use the `UPDATE` command (provided by the Git module) to update the current repository.
-  
+
 **THEN**
-  
+
 Assuming the Reload module is loaded on your server, use the `RELOAD` command to
 upgrade the server without restarting. Because there are no stable releases, the
 possibility for this to fail is definitely there. Perhaps one day we will have stable
 releases that are known to upgrade without error.
 
+# History
+
+juno-ircd was born a fork of [pIRCd](http://pircd.sourceforge.net) (the Perl IRC daemon)
+but has since been rewritten (multiple times) from the ground up.
+
+* [__pIRCd__](http://pircd.sourceforge.net):
+Born in the 20th century and written by Jay Kominek, pIRCd is a very buggy,
+poorly-coded, feature-lacking (well, compared to those now) IRC server. During its time,
+it was one of only a number of IRCds featuring SSL support. Having been abandoned in 2002,
+pIRCd is ancient history.
+
+* __pIRCd2__:
+A PHP novice, I was convinced by someone to learn Perl. I discovered pIRCd
+and spent hours trying to change something without breaking it. pIRCd2 allowed you to use
+the dollar sign ($) in nicknames, adding support for users such as
+[Ke$ha](https://twitter.com/KeshaRose). Truly revolutionary to IRC as a whole.
+
+* [__juno-ircd__](https://github.com/cooper/juno1) (juno1):
+A fork of pIRCd2, juno-ircd introduced a handful of new features:
+five prefixes (~&@%+), CAP and multi-prefix support, channel link mode (+L), internal
+logging channel (inspired by InspIRCd), network administrator support and the
+corresponding NA:line, temporary oper-override mode (+O), channel mute mode (+Z, inspired
+by charybdis +q), KLINE command for adding K:lines from IRC, an almost-but-never-fully
+working buggy linking protocol, and a network name (NETWORK in RPL_ISUPPORT) option.
+juno-ircd's name was chosen by [Autumn](https://github.com/lacp) after the Roman goddess
+[Juno](http://en.wikipedia.org/wiki/Juno_(mythology)).
+Unfortunately it introduced dozens of new bugs along with its features, and it
+included some of the ugliest code in all of Perl history.
+An example of the attention juno-ircd received from the [Atheme](http://atheme.net)
+community:
+
+```
+[04:15pm] -Global- [Network Notice] Alice (nenolod) - We will be upgrading to "juno-ircd" in 5 seconds.
+```
+
+* [__juno__](https://github.com/cooper/juno2) (juno2):
+At some point, some [IRC bullies](http://stop-irc-bullying.eu) made me
+realize how horrific juno-ircd was. I decided to dramatically announce that I would no
+longer be developing the project, but I could not resist. I started from scratch, dropping
+the '-ircd' from the name. juno was actually quite complete and surprisingly reliable.
+Unlike pIRCd and its derivatives, it introduced an interface for modules which later
+became a separate project, [API Engine](https://github.com/cooper/api-engine). It
+brought forth more new features than can be mentioned, namely: host cloaking, server
+notices, channel access mode (+A), GRANT command, D:line, lots more. juno unfortunately
+was completely incapable of server linkage.
+
+* [__juno3__](https://github.com/cooper/juno3):
+It occurred to me one day that an IRC server incapable of linking is somewhat
+impractical (as if one written in Perl were not impractical enough already). I decided to
+put the past behind and say goodbye to juno2. Another complete rewrite, juno3's showcase
+improvement was a dazzling linking protocol. It was even more extensible than ever before
+with greatly improved module interfaces. juno3 was also the first version to make use of
+[IO::Async](http://search.cpan.org/perldoc/IO::Async), exponentially boosting its speed
+efficiency. Although it required more memory resources than juno2, it was prepared to
+take on a massive load, tested with many tens of thousands of users. It was less buggy
+but also less featureful, lacking many standard IRC functions due to my shift of focus to
+a reliable core.
+
+* [__juno-mesh__](https://github.com/cooper/juno-mesh) (juno4): It was recommended to me
+by [Andrew Sorensen](http://andrewsorensen.net) (AndrewX192) that I should implement
+mesh server linking. It seemed that it would be easy to implement, so I forked juno3 to
+create juno-mesh. In addition to mesh linking, it introduced several new commands and a
+new permission system with a method by which additional statuses/prefixes can be added.
+
+* [__juno5__](https://github.com/cooper/yiria/tree/f0d3e8f31062faa894ae1d8db3c0796630b2ee42):
+It turned out that mesh linking required more code and effort than intended and introduced
+countless bugs that I didn't want to bother correcting. I knew that if I started from
+scratch again, it would never reach the completeness of the previous generation. Therefore,
+juno5 was born as yet another fork that removes the mesh capability while preserving the
+other new features that were introduced in juno-mesh.
+
+* [__kedler__](https://github.com/cooper/yiria/tree/4fec4b52841eaca3a43003df8f979ac098bb367d) (juno6):
+Named after a Haitian computer technician, kedler was a continuation of juno5. Its main goal was
+to implement the missing standard IRC functions that had never been implemented in the
+third juno generation. kedler reintroduced hostname resolving, a long-broken feature that
+had not worked properly since juno2. It also reintroduced channel access, this time in the
+form of a module. kedler featured new APIs and improvements to the linking protocol.
+
+* [__vulpia__](https://github.com/cooper/yiria/tree/001b766439ed8423e8eda1c41dd578c899cd7946) (juno7):
+Romanian for a female wolf, vulpia was named after the alias of a dear friend,
+[Ruin](https://soundcloud.com/ruuuuuuuuuuuuin). It included several improvements, making
+the IRCd more extensible than ever before. The
+[Evented::API::Engine](https://github.com/cooper/evented-api-engine) replaced the former
+[API Engine](https://github.com/cooper/api-engine), allowing modules to react to any
+event that occurs within juno. vulpia completed the relocation of JELP
+(the linking protocol) to a module, opening the doors for additional linking protocols
+in the future. Additionally, it established the Account module, allowing users to better
+manage accounts and channels.
+
+* [__kylie__](https://github.com/cooper/yiria/tree/4512ebcd3b526781662ca9f3588df285ed1290da) (juno8):
+Named after the adored [Kyle](http://mac-mini.org) (mac-mini), kylie introduced several
+previously-missing core components including
+[ident](http://en.wikipedia.org/wiki/Ident_protocol) support and channel modes: limit,
+secret, and key. APIs for [IRCv3](http://ircv3.org) extensions were added, leading to
+[SASL](http://ircv3.org/extensions/sasl-3.1),
+[multi-prefix](http://ircv3.org/extensions/multi-prefix-3.1), and
+[message tag](http://ircv3.org/specification/message-tags-3.2) support. An improved IRC
+parameter parser allowed drastic code cleanup and improved efficiency. A new event-driven
+command API made user commands more extensible than ever before. The migration of all
+non-modular packages into modules significantly improved the stability and reloadability
+of the IRCd.
+
+* [__agnie__](https://github.com/cooper/yiria/tree/2a50d41ea3274ad8d157c029976c53cc51bca27a) (juno9):
+Named after the beautiful and talented [Agnes](http://agnes.mac-mini.org), agnie
+introduced lots of new functionality: the ability to
+[manage oper flags](https://github.com/cooper/yiria/blob/master/modules/Grant.module/Grant.pm)
+from IRC, much-improved
+[account management](https://github.com/cooper/yiria/tree/master/modules/Account.module),
+and
+[command aliases](https://github.com/cooper/yiria/blob/master/modules/Alias.module/Alias.pm)
+to name a few. It opened a new door of possibility by adding partial
+[TS6 protocol](https://github.com/atheme/charybdis/blob/master/doc/technical/ts6.txt) support, and
+it even supports [atheme](https://github.com/atheme/atheme) now to some extent. New
+channel modes include invite exception (+I), free invite (+g), channel forward (+F),
+oper only channel (+O), and mute ban (+Z); also, the
+[TopicAdditions](https://github.com/cooper/yiria/blob/master/modules/Channel/TopicAdditions.module/TopicAdditions.pm)
+module added convenient commands to prepend or append the topic. Some missing commands
+were added: ADMIN, TIME, and USERHOST; and several commands that previously did not work
+remotely now do. agnie introduced a
+[new mechanism](https://github.com/cooper/yiria/tree/master/modules/Ban/Ban.module/Ban.pm)
+for storing and enforcing bans (functionality missing since juno2), followed by
+[K-Line](https://github.com/cooper/yiria/blob/master/modules/Ban/Kline.module/Kline.pm)
+and
+[D-Line](https://github.com/cooper/yiria/blob/master/modules/Ban/Dline.module/Dline.pm)
+support in the form of modules. In addition to the existing RELOAD command, agnie
+includes new ways to manage servers remotely, including
+[repository](https://github.com/cooper/yiria/blob/master/modules/Git.module/Git.pm)
+and
+[configuration](https://github.com/cooper/yiria/blob/master/modules/Configuration/Set.module/Set.pm)
+management directly from IRC. And, as always, there were lots of efficiency improvements.
+
+* [__yiria__](https://github.com/cooper/yiria) (juno10):
+yiria is a continuation of agnie and is the current version under active development.
+
 # Information
 
-Here you will find contacts, licensing, development information, etc. 
+Here you will find contacts, licensing, development information, etc.
 
 ## Getting help
 
@@ -415,9 +441,7 @@ Mitchell Cooper, mitchell@notroll.net
 
 I use Unix-like systems, and much of my work is designed specifically for such.
 ~~I would be surprised yet pleased if someone got this software working on Windows.~~
-It seems as though it works decently on Windows now. If the
-Xcode project isn't a good enough indication, I currently use OS X to develop this software.
-I don't think it's appropriate for Perl, but I have not yet found a great OS X editor.
+Actually, it seems to work on Windows now. Somewhat.
 
 juno-ircd was my first project in Perl — ever.
 Most of my creations in Perl are related to IRC in some way, but I have other projects as
