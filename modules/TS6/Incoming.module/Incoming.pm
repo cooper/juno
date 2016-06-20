@@ -1001,7 +1001,7 @@ sub wallops {
     # is it a server or a user? this determines whether it is oper-only.
     my $source_serv = $source->isa('server');
 
-    $pool->fire_wallops($source, $message, $source_serv);
+    $pool->fire_wallops_local($source, $message, $source_serv);
 
     #=== Forward ===#
     $msg->forward(wallops => $source, $message);
