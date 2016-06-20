@@ -192,8 +192,9 @@ sub init {
     &add_join_callbacks;
     &add_whois_callbacks;
 
-    #  Add away-notify capability.
+    # capabilities that idk where else to put! :^)
     $mod->register_capability('away-notify');
+    $mod->register_capability('chghost');
 
     return 1;
 }
