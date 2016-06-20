@@ -227,11 +227,14 @@ sub uid {
     # the location is not necessarily the same as the user's server.
 
     # uid collision?
-    if ($pool->lookup_user($ref->{uid})) {
-        # can't tolerate this.
-        # the server is either not a juno server or is bugged/mentally unstable.
-        L("duplicate UID $$ref{uid}; dropping $$server{name}");
-        $server->{conn}->done('UID collision') if exists $server->{conn};
+    if (my $other = $pool->lookup_user($ref->{uid})) {
+        notice(user_identifier_taken =>
+            $server->{name},
+            @$ref{'nick', 'ident', 'host', 'uid'},
+            $other->notice_info
+        );
+        $server->conn->done('UID collision') if $server->conn;
+        return;
     }
 
     # nick collision?

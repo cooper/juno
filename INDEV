@@ -3019,3 +3019,5 @@ CHANGES:
         51. add a utils function for checking duplicate servers.
             it is now used by both linking protocols.
             remove ghost users on ircd upgrade.
+
+        52. fixed an issue where servers disconnected due to UID collisions would leave behind ghost users.

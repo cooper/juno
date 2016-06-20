@@ -209,11 +209,14 @@ sub euid {
     $u{uid}  = uid_from_ts6($u{ts6_uid});       # convert to juno UID
 
     # uid collision?
-    if ($pool->lookup_user($u{uid})) {
-        # can't tolerate this.
-        # the server is bugged/mentally unstable.
-        L("duplicate UID $u{uid}; dropping $$server{name}");
+    if (my $other = $pool->lookup_user($u{uid})) {
+        notice(user_identifier_taken =>
+            $server->{name},
+            @u{'nick', 'ident', 'host', 'uid'},
+            $other->notice_info
+        );
         $server->conn->done('UID collision') if $server->conn;
+        return;
     }
 
     # nick collision!
