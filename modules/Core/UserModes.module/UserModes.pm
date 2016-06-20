@@ -22,6 +22,7 @@ my %umodes = (
     ircop     => \&umode_ircop,
     ssl       => \&umode_never,
     invisible => \&umode_normal,
+    wallops   => \&umode_normal,
     service   => \&umode_never
 );
 
@@ -41,12 +42,12 @@ sub init {
 sub umode_ircop {
     my ($user, $state) = @_;
     return if $state; # /never/ allow setting ircop
-    
+
     # but always allow them to unset it.
     L("removing all flags from $$user{nick}");
     $user->{flags} = [];
     delete $user->{oper};
-    
+
     return 1;
 }
 
