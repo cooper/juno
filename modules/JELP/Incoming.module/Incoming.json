@@ -9,5 +9,5 @@
    "description" : "basic set of JELP command handlers",
    "name" : "JELP::Incoming",
    "package" : "M::JELP::Incoming",
-   "version" : "17.83"
+   "version" : "17.93"
 }

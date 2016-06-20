@@ -202,9 +202,9 @@ sub ready {
         my $name = $connection->{name};
 
         # check if the server is linked already.
-        if ($pool->lookup_server($connection->{sid}) || $pool->lookup_server_name($connection->{name})) {
+        if (my $err = utils::check_new_server($connection->{sid}, $connection->{name}, $me->{name})) {
             notice(connection_invalid => $connection->{ip}, 'Server exists');
-            $connection->done('Server exists');
+            $connection->done($err);
             return;
         }
 

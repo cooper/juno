@@ -3015,3 +3015,7 @@ CHANGES:
         49. added CHGHOST support for TS6.
 
     5. added support for alphanumeric SIDs in TS6.
+
+        51. add a utils function for checking duplicate servers.
+            it is now used by both linking protocols.
+            remove ghost users on ircd upgrade.

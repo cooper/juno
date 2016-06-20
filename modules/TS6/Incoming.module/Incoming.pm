@@ -152,9 +152,9 @@ sub sid {
     @s{ qw(name desc ts6_sid sid) } = ($s_name, $desc, $sid, sid_from_ts6($sid));
 
     # do not allow SID or server name collisions.
-    if ($pool->lookup_server($s{sid}) || $pool->lookup_server_name($s{name})) {
-        L("duplicate SID $s{sid} or server name $s{name}; dropping $$server{name}");
-        $server->conn->done('attempted to introduce existing server');
+
+    if (my $err = utils::check_new_server($s{sid}, $s{name}, $server->{name})) {
+        $server->conn->done($err);
         return;
     }
 

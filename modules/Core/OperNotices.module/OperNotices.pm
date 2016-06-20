@@ -41,6 +41,8 @@ our %oper_notices = (
     server_connect_cancel   => '%s (%s@%s) canceled auto connect for %s',
     server_connect_fail     => 'Can\'t connect to %s: %s',
     server_connect_success  => 'Connection established to %s',
+    server_reintroduced     => '%s attempted to introduce %s which already exists',
+    server_identifier_taken => '%s attempted to introduce %s as SID %d, which is already taken by %s',
 
     perl_warning            => '%s',
     exception               => '%s',

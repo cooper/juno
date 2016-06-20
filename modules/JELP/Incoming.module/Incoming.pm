@@ -199,10 +199,9 @@ sub sid {
     }
 
     # do not allow SID or server name collisions
-    if ($pool->lookup_server($ref->{sid}) || $pool->lookup_server_name($ref->{name})) {
-        L("duplicate SID $$ref{sid} or server name $$ref{name}; dropping $$server{name}");
-        $server->{conn}->done('attempted to introduce existing server');
-        return
+    if (my $err = utils::check_new_server($ref->{sid}, $ref->{name}, $server->{name})) {
+        $server->conn->done($err);
+        return;
     }
 
     # create a new server

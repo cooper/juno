@@ -397,10 +397,18 @@ sub misc_upgrades {
         $server->{link_type} //= 'jelp';
     }
 
-    # local users
+    # local users need a last_command time.
     foreach my $user ($pool->local_users) {
         next unless $user->{conn};
         $user->{conn}{last_command} ||= time;
+    }
+
+    # check for ghosts on nonexistent servers.
+    foreach my $user ($pool->all_users) {
+        next if !$user->{server};
+        next if $pool->lookup_server($user->{server}{sid});
+        if ($user->conn) { $user->conn->done('Ghost')   }
+                    else { $user->quit('Ghost')         }
     }
 
 }
