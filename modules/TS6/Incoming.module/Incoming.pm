@@ -1023,7 +1023,7 @@ sub wallops {
 #
 sub chghost {
     my ($server, $msg, $source, $user, $new_host) = @_;
-    $user->get_host_changed($new_host);
+    $user->get_mask_changed($new_host);
 
     #=== Forward ===#
     $msg->forward(chghost => $source, $user, $new_host);
