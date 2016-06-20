@@ -3013,3 +3013,5 @@ CHANGES:
         48. added "changing hosts" reconnect emulation like charybdis.
 
         49. added CHGHOST support for TS6.
+
+    5. added support for alphanumeric SIDs in TS6.
