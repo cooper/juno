@@ -228,7 +228,7 @@ sub server_ready {
     return unless $server->{link_type} eq 'ts6';
 
     # search for required CAPABs.
-    foreach my $need (qw(EUID SAVE TB ENCAP QS)) {
+    foreach my $need (qw(EUID TB ENCAP QS)) {
         next if $server->has_cap($need);
         $server->conn->done("Missing required CAPABs ($need)");
         return;
