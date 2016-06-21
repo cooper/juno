@@ -151,7 +151,8 @@ sub sid_from_ts6 {
     if ($sid =~ m/[A-Z]/) {
         $sid = join '', map { sprintf '%03d', ord } split //, $sid;
     }
-    return ($sid + 0) || 0;
+    $sid =~ s/^0+//;
+    return length $sid ? $sid : 0;
 }
 
 # TS6 UID -> juno UID
