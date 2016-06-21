@@ -149,9 +149,10 @@ sub server_from_ts6 {
 sub sid_from_ts6 {
     my $sid = shift;
     if ($sid =~ m/[A-Z]/) {
-        return join('', map { sprintf '%03d', ord } split //, $sid) + 0;
+        $sid = join '', map { sprintf '%03d', ord } split //, $sid;
     }
-    return $sid + 0;
+    $sid =~ s/^0+//;
+    return $sid;
 }
 
 # TS6 UID -> juno UID
