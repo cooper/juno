@@ -3024,3 +3024,5 @@ CHANGES:
 
         53. major work on nick collisions in TS6.
             JELP now uses nickTS for resolving nick collisions.
+
+        54. drop link to servers lacking required TS6 capabilities.

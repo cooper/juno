@@ -227,6 +227,13 @@ sub server_ready {
     my $server = shift->server or return;
     return unless $server->{link_type} eq 'ts6';
 
+    # search for required CAPABs.
+    foreach my $need (qw(EUID SAVE TB ENCAP QS)) {
+        next if $server->has_cap($need);
+        $server->conn->done("Missing required CAPABs ($need)");
+        return;
+    }
+
     # apply modes.
     M::TS6::Utils::register_modes($server);
 
