@@ -628,6 +628,22 @@ sub get_mask_changed {
     return 1;
 }
 
+# locally handle a user save.
+# this works for remote users.
+sub save_locally {
+    my $user = shift;
+    my $uid  = $user->{uid};
+    my $old_nick = $user->{nick};
+
+    # notify the user, tell his buddies, and change his nick.
+    $user->numeric(RPL_SAVENICK => $uid) if $user->is_local;
+    $user->send_to_channels("NICK $uid");
+    $user->change_nick($uid, 100);
+
+    notice(user_saved => $user->notice_info, $old_nick);
+    return 1;
+}
+
 # CAP shortcuts.
 sub has_cap    { &safe or return; shift->conn->has_cap(@_)    }
 sub add_cap    { &safe or return; shift->conn->add_cap(@_)    }

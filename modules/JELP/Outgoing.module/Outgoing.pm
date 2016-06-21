@@ -167,7 +167,7 @@ sub uid {
     my ($to_server, $user) = @_;
     my $cmd = sprintf(
         'UID %s %d %s %s %s %s %s %s :%s',
-        $user->{uid}, $user->{time}, $user->mode_string,
+        $user->{uid}, ($user->{nick_time} // $user->{time}), $user->mode_string,
         $user->{nick}, $user->{ident}, $user->{host},
         $user->{cloak}, $user->{ip}, $user->{real}
     );

@@ -242,22 +242,29 @@ sub uid {
     if ($used) {
         L("nick collision! $$ref{nick}");
 
-        # I lose.
+        # new, remote user loses.
         if ($ref->{time} > $used->{time}) {
+            # TODO: add something like TS6 SAVE to force servers to switch to UID
             $ref->{nick} = $ref->{uid};
         }
 
-        # you lose.
+        # local user loses.
         elsif ($ref->{time} < $used->{time}) {
+            # TODO: send a NICK message to linked servers, except for this one
             $used->send_to_channels("NICK $$used{uid}");
             $used->change_nick($used->{uid}, time);
         }
 
-        # we both lose.
+        # both lose.
         else {
+
+            # TODO: add something like TS6 SAVE to force servers to switch to UID
             $ref->{nick} = $ref->{uid};
+
+            # TODO: add something like TS6 SAVE to force servers to switch to UID
             $used->send_to_channels("NICK $$used{uid}");
             $used->change_nick($used->{uid}, time);
+
         }
     }
 

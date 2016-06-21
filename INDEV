@@ -3021,3 +3021,6 @@ CHANGES:
             remove ghost users on ircd upgrade.
 
         52. fixed an issue where servers disconnected due to UID collisions would leave behind ghost users.
+
+        53. major work on nick collisions in TS6.
+            JELP now uses nickTS for resolving nick collisions.

@@ -34,6 +34,7 @@ our %user_numerics = (
     RPL_MAP              => ['015', ':%s- %s: %d users (%d%%)'                                            ],
     RPL_MAP2             => ['015', ':- Total of %d users on %d servers, average %d users per server'     ],
     RPL_MAPEND           => ['017', ':End of MAP'                                                         ],
+    RPL_SAVENICK         => ['043', '%s :Nick collision, forcing nick change to your unique ID'           ],
     # 3 digits           => [#############################################################################],
     RPL_UMODEIS          => [221, '%s'                                                                    ],
     RPL_STATSCONN        => [250, ':Highest connection count: %d (%d clients) (%d connections received)'  ],

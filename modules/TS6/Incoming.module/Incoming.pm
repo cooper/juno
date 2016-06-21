@@ -208,11 +208,14 @@ sub euid {
     $u{host} = $u{cloak} if $u{host} eq '*';    # host equal to visible
     $u{uid}  = uid_from_ts6($u{ts6_uid});       # convert to juno UID
 
-    # uid collision?
+    # create a temporary user which will be used only for outgoing commands.
+    my $new_usr_temp = user->new(%u);
+
+    # uid collision!
     if (my $other = $pool->lookup_user($u{uid})) {
         notice(user_identifier_taken =>
             $server->{name},
-            @u{'nick', 'ident', 'host', 'uid'},
+            $new_usr_temp->notice_info, $u{uid},
             $other->notice_info
         );
         $server->conn->done('UID collision') if $server->conn;
@@ -222,14 +225,56 @@ sub euid {
     # nick collision!
     my $used = $pool->lookup_user_nick($u{nick});
     if ($used) {
-        # TODO: this.
-        return; # don't actually return
+        my ($save_old, $save_new);
+
+        # the new user steals the nick.
+        if ($used->{nick_time} > $u{nick_time}) {
+            $save_old = 1;
+        }
+
+        # the existing user keeps the nick.
+        elsif ($used->{nick_time} < $u{nick_time}) {
+            $save_new = 1;
+        }
+
+        # they both lose the nick.
+        else {
+            $save_old = 1;
+            $save_new = 1;
+        }
+
+        # if we can't save the new user, kill him.
+        if ($save_new && !$server->has_cap('save')) {
+            $server->fire_command(kill => $me, $new_usr_temp, 'Nick collision');
+            return;
+        }
+
+        # note: SAVE is always sent with the existing nickTS.
+        # if the provided TS is not the current nickTS, SAVE is ignored.
+        # Upon handling a valid SAVE, however, the nickTS becomes 100.
+
+        # send out a SAVE for the existing user
+        # and broadcast a local nickchange to his UID.
+        if ($save_old) {
+            $server->fire_command(save_user => $me, $used);
+            $used->save_locally;
+        }
+
+        # send out a SAVE for the new user
+        # and change his nick to his TS6 UID locally.
+        if ($save_new) {
+            $server->fire_command(save_user => $me, $new_usr_temp);
+            my $old_nick  = $u{nick};
+            $u{nick}      = $u{uid};
+            $u{nick_time} = 100;
+            notice(user_saved => $new_usr_temp->notice_info, $old_nick);
+        }
+
     }
 
     # create a new user with the given modes.
     my $user = $pool->new_user(%u);
     $user->handle_mode_string($mode_str, 1);
-
 
     # === Forward ===
     #

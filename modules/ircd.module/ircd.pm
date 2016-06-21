@@ -403,8 +403,12 @@ sub misc_upgrades {
         $user->{conn}{last_command} ||= time;
     }
 
-    # check for ghosts on nonexistent servers.
     foreach my $user ($pool->all_users) {
+
+        # nickTS otherwise equals connectTS.
+        $user->{nick_time} //= $user->{time};
+
+        # check for ghosts on nonexistent servers.
         next if !$user->{server};
         next if $pool->lookup_server($user->{server}{sid});
         if ($user->conn) { $user->conn->done('Ghost')   }

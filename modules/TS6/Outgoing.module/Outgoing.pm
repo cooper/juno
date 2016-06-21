@@ -50,6 +50,7 @@ our %ts6_outgoing_commands = (
      topicburst     => \&tb,
      wallops        => \&wallops,
      chghost        => \&chghost,
+     save_user      => \&save,
    # num            => \&num,
    # links          => \&links,
    # whois          => \&whois
@@ -567,6 +568,30 @@ sub chghost {
     my ($to_server, $source, $user, $new_host) = @_;
     my ($source_id, $user_id) = (ts6_id($source), ts6_id($user));
     ":$source_id CHGHOST $user_id :$new_host"
+}
+
+# SAVE
+#
+# capab:        SAVE
+# source:       server
+# propagation:  broadcast
+# parameters:   target uid, TS
+#
+sub save {
+    my ($to_server, $source_serv, $user) = @_;
+    my $sid = ts6_id($source_serv);
+    my $uid = ts6_id($user);
+
+    # if the server does not support SAVE, send out a NICK message
+    if (!$to_server->has_cap('save')) {
+        my $fake_user = user->new(%$user,
+            nick      => $uid,
+            nick_time => 0
+        );
+        return nick($to_server, $fake_user);
+    }
+
+    ":$sid SAVE $uid $$user{nick_time}"
 }
 
 $mod
