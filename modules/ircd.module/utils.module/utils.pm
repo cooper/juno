@@ -372,7 +372,8 @@ sub check_new_server {
 
     # SID taken?
     if (my $other = $pool->lookup_server($sid)) {
-        notice(server_identifier_taken => $name, $sid, $other->{name});
+        #* *** Notice: Server identifier taken: mad.is.annoying attempted to introduce 902 as SID 0, which is already taken by
+        notice(server_identifier_taken => $origin, $name, $sid, $other->{name});
         return 'SID already exists';
     }
 
