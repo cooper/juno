@@ -272,8 +272,8 @@ sub early_reply {
 # end a connection. this must be foolproof.
 sub done {
     my ($connection, $reason) = @_;
+    return if $connection->{goodbye};
     L("Closing connection from $$connection{ip}: $reason");
-
 
     # a user or server is associated with the connection.
     if ($connection->{type}) {
