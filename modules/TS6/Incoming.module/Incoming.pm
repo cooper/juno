@@ -1097,7 +1097,8 @@ sub chghost {
 sub squit {
     my ($server, $msg, $s_serv, $t_serv, $comment) = @_;
 
-    # $s_serv will either be a server object or undef if there was no source.
+    # the provided $s_serv will either be a server object or
+    # undef if there was no source. fall back to $server.
     $s_serv ||= $server;
 
     # if the target server is me or the source server, close the link.

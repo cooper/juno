@@ -21,6 +21,7 @@ use 5.010;
 
 use Scalar::Util  qw(blessed looks_like_number);
 use M::TS6::Utils qw(obj_from_ts6);
+use utils qw(notice);
 
 our ($api, $mod, $pool);
 my $PARAM_BAD = $message::PARAM_BAD;
@@ -124,7 +125,13 @@ sub _handle_command {
     if (my $params = $event->callback_data('parameters')) {
         # $msg->{_event} = $event;
         @params = $msg->parse_params($params);
-        return if defined $params[0] && $params[0] eq $message::PARAM_BAD;
+        if (defined $params[0] && $params[0] eq $message::PARAM_BAD) {
+            notice(server_protocol_warning =>
+                $server->name, $server->sid,
+                "provided invalid parameters for ts6 command ".$msg->command
+            );
+            return;
+        }
     }
 
     # call actual callback.
