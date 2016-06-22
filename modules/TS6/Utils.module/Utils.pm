@@ -158,7 +158,7 @@ sub sid_from_ts6 {
 # e.g. 000AAAAAA -> 0a
 sub uid_from_ts6 {
     my $uid = shift;
-    my ($sid, $id) = ($uid =~ m/^([0-9A-Z]{3})([A-Z]{6})$/);
+    my ($sid, $id) = ($uid =~ m/^([0-9A-Z]{3})([0-9A-Z]{6})$/);
     return sid_from_ts6($sid).uid_u_from_ts6($id);
 }
 
