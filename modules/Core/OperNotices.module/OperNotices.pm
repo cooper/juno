@@ -40,7 +40,7 @@ our %oper_notices = (
 
     # servers
     new_server              => '%s (%d) ircd %s, proto %s [%s] parent: %s',
-    server_closing          => 'Received SQUIT for %s (%s) from %s; dropping link',
+    server_closing          => 'Received SQUIT from %s (%s); dropping link (%s)',
     server_quit             => '%s (%d) quit from parent %s (%s)',
     server_burst            => '%s (%s) is bursting information',
     server_endburst         => '%s (%s) finished burst, %d seconds elapsed',

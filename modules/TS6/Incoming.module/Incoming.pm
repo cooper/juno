@@ -1098,18 +1098,18 @@ sub squit {
     my ($server, $msg, $s_serv, $t_serv, $comment) = @_;
 
     # the provided $s_serv will either be a server object or
-    # undef if there was no source. fall back to $server.
-    $s_serv ||= $server;
+    # undef if there was no source.
 
     # if the target server is me or the source server, close the link.
-    if (($t_serv == $s_serv || $t_serv == $me) && $t_serv->conn) {
-        notice(server_closing => $t_serv->name, $t_serv->id, $s_serv->name);
-        $t_serv->conn->done($comment);
+    if (!$s_serv && $t_serv == $me) {
+        notice(server_closing => $server->name, $server->id, $comment);
+        $server->conn->done($comment);
     }
 
     # can't squit self without a direct connection.
     elsif ($t_serv == $me) {
         notice(
+            server_protocol_error =>
             $s_serv->name, $s_serv->id,
             'attempted to SQUIT the local server '.$me->{name}
         );
@@ -1117,7 +1117,7 @@ sub squit {
         return;
     }
 
-    # otherwise, we can simply quit the server.
+    # otherwise, we can simply quit the target server.
     else {
         $t_serv->quit($comment);
     }
