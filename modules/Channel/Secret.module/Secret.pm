@@ -22,25 +22,32 @@ use 5.010;
 our ($api, $mod, $pool);
 
 sub init {
-    
+
     # register secret mode block.
     $mod->register_channel_mode_block(
         name => 'secret',
         code => \&M::Core::ChannelModes::cmode_normal
     ) or return;
-    
+
     # Hook on the show_in_list event to prevent secret channels frm showing in list
     $pool->on('channel.show_in_list' => \&on_show_in_list, with_eo => 1, name => 'show.list');
-    
+
     return 1;
 }
 
 sub on_show_in_list {
     my ($channel, $event, $user) = @_;
+
+    # if it's not secret, show it.
     return unless $channel->is_mode('secret');
-    return unless !$channel->has_user($user);
+
+    # if the user asking has super powers, show it.
+    return if $user->has_flag('see_secret');
+
+    # if it is secret, but this guy's in there, show it.
+    return if $channel->has_user($user);
+
     $event->stop;
 }
 
 $mod
-

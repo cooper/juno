@@ -71,6 +71,9 @@ sub init {
 sub send_burst {
     my ($server, $event) = @_;
 
+    # SVINFO is always at the start of the burst I think.
+    $server->sendfrom($me->id, "SVINFO 6 6 0 ".time());
+
     # servers.
     my ($do, %done);
     $done{$server} = $done{$me} = 1;

@@ -662,8 +662,16 @@ sub add_whois_callbacks {
 
     # list of channels.
     my $channels_list = sub {
-        my $quser     = shift;
-        my @channels  = @{ delete $channels{$quser} || [] };
+        my ($quser, $ruser) = @_;
+        my @all_chans = @{ delete $channels{$quser} || [] };
+        my @channels;
+
+        # show it? assuming same logic as /LIST.
+        foreach my $channel (@all_chans) {
+            next if $channel->fire_event(show_in_list => $ruser)->stopper;
+            push @channels, $channel;
+        }
+
         return "@channels";
     };
 

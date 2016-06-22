@@ -3034,4 +3034,8 @@ CHANGES:
             use ENCAP CHGHOST on servers not supporting EUID.
             add oper notices server_closing and server_protocol_error.
 
-        57. added oper notices: server_protocol_warning, user_mode_unknown, channel_mode_unknown.
+        57. version skipped.
+
+        58. added oper notices: server_protocol_warning, user_mode_unknown, channel_mode_unknown.
+            added TS6 SVINFO.
+            fixed issue where secret channels were shown to non-opers in WHOIS.
