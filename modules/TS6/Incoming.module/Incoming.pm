@@ -1105,12 +1105,6 @@ sub squit {
 
     # otherwise, we can simply quit the server.
     else {
-        notice(server_quit =>
-            $t_serv->{name},
-            $t_serv->{sid},
-            $t_serv->{parent}{name},
-            $comment
-        );
         $t_serv->quit($comment);
     }
 
