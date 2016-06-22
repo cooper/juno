@@ -653,7 +653,7 @@ sub add_whois_callbacks {
         foreach my $channel ($quser->channels) {
             my $e = $channel->fire_event(show_in_whois => $quser, $ruser);
             next if $e->stopper;
-            push @channels, $channel->name;
+            push @channels, $channel;
         }
 
         $channels{$quser} = \@channels;
@@ -664,15 +664,15 @@ sub add_whois_callbacks {
     my $channels_list = sub {
         my ($quser, $ruser) = @_;
         my @all_chans = @{ delete $channels{$quser} || [] };
-        my @channels;
+        my @show_chans;
 
         # show it? assuming same logic as /LIST.
         foreach my $channel (@all_chans) {
             next if $channel->fire_event(show_in_list => $ruser)->stopper;
-            push @channels, $channel;
+            push @show_chans, $channel;
         }
 
-        return "@channels";
+        return join ' ', map $_->{name}, @show_chans;
     };
 
     # server information.
