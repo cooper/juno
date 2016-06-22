@@ -116,7 +116,10 @@ sub handle_mode_string {
         else {
             my $name = $user->{server}->umode_name($letter);
             if (!defined $name) {
-                L("unknown mode $letter!");
+                notice(user_mode_unknown =>
+                    $letter, $user->notice_info,
+                    $user->{server}{name}, $user->{server}{sid}
+                );
                 next;
             }
 

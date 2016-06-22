@@ -20,10 +20,12 @@ our ($api, $mod, $me);
 
 our %oper_notices = (
 
+    # connections
     new_connection          => '%s (%d)',
     connection_terminated   => '%s (%s): %s',
     connection_invalid      => '%s: %s',
 
+    # users
     new_user                => '%s (%s@%s) [%s] on %s',
     user_quit               => '%s (%s@%s) [%s] from %s (%s)',
     user_opered             => '%s (%s@%s) gained flags on %s: %s',
@@ -35,6 +37,7 @@ our %oper_notices = (
     user_identifier_taken   => '%s introduced %s (%s@%s) with UID %s, which is already taken by %s (%s@%s)',
     user_saved              => '%s (%s@%s) was spared in the midst of a nick collision (was %s)',
 
+    # servers
     new_server              => '%s (%d) ircd %s, proto %s [%s] parent: %s',
     server_closing          => 'Received SQUIT for %s (%s) from %s; dropping link',
     server_quit             => '%s (%d) quit from parent %s (%s)',
@@ -46,11 +49,16 @@ our %oper_notices = (
     server_connect_success  => 'Connection established to %s',
     server_reintroduced     => '%s attempted to introduce %s which already exists',
     server_identifier_taken => '%s attempted to introduce %s as SID %d, which is already taken by %s',
+    server_protocol_warning => '%s (%s) %s',
     server_protocol_error   => '%s (%s) %s; dropping link',
 
+    # modes
+    user_mode_unknown       => 'Attempted to set user mode +%s on %s (%s@%s), but this mode is not defined on %s (%s); ignored',
+    channel_mode_unknown    => 'Attempted to set channel mode +%s on %s, but this mode is not defined on %s (%s); ignored',
+
+    # miscellaneous
     perl_warning            => '%s',
     exception               => '%s',
-    server_warning          => '%s',
     rehash                  => '%s (%s@%s) is rehashing the server',
     rehash_fail             => 'Configuration error: %s',
     rehash_success          => 'Server configuration reloaded successfully'

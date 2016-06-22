@@ -63,7 +63,7 @@ sub unset_mode {
     my ($channel, $name) = @_;
     return unless $channel->is_mode($name);
     delete $channel->{modes}{$name};
-    L("$$channel{name} -$name");    
+    L("$$channel{name} -$name");
     return 1;
 }
 
@@ -94,7 +94,7 @@ sub list_elements {
 # adds something to a list mode.
 sub add_to_list {
     my ($channel, $name, $parameter, %opts) = @_;
-    
+
     # first item. wow.
     $channel->{modes}{$name} = {
         time => time,
@@ -108,7 +108,7 @@ sub add_to_list {
     L("$$channel{name}: adding $parameter to $name list");
     my $array = [$parameter, \%opts];
     push @{ $channel->{modes}{$name}{list} }, $array;
-    
+
     return 1;
 }
 
@@ -119,7 +119,7 @@ sub remove_from_list {
 
     my @new = grep { $_->[0] ne $what } @{ $channel->{modes}{$name}{list} };
     $channel->{modes}{$name}{list} = \@new;
-    
+
     L("$$channel{name}: removing $what from $name list");
     return 1;
 }
@@ -128,20 +128,20 @@ sub remove_from_list {
 sub cjoin {
     my ($channel, $user, $time) = @_;
     return if $channel->has_user($user);
-    
+
     # the channel TS will change
     # if the join time is older than the channel time.
     if ($time < $channel->{time}) {
         $channel->set_time($time);
     }
-    
+
     # add the user to the channel.
     push @{ $channel->{users} }, $user;
-    
+
     # note: as of 5.91, after-join (user_joined) event is fired in
     # mine.pm:           for locals
     # core_scommands.pm: for nonlocals.
- 
+
     notice(user_join => $user->notice_info, $channel->name);
     return $channel->{time};
 }
@@ -159,13 +159,13 @@ sub remove {
     # remove the user.
     my @new = grep { $_ != $user } $channel->users;
     $channel->{users} = \@new;
-    
+
     # delete the channel if this is the last user
     if (!scalar $channel->users) {
         $pool->delete_channel($channel);
         $channel->delete_all_events();
     }
-    
+
     return 1;
 }
 
@@ -229,15 +229,16 @@ sub handle_mode_string {
             $state = $letter eq '+';
             next;
         }
-        
+
         # unknown mode?
         my $name = $server->cmode_name($letter);
         my $type = $server->cmode_type($name);
         if (!defined $name) {
-            L("unknown mode $letter!");
+            notice(channel_mode_unknown =>
+                $letter, $channel->name, $server->name, $server->id);
             next;
         }
-        
+
         # these are returned by ->cmode_takes_parameter: NOT mode types
         #     1 = always takes param
         #     2 = takes param, but valid if there isn't,
@@ -268,14 +269,14 @@ sub handle_mode_string {
             params  => $parameters,     # the parameters for the resulting mode string
             force   => $force,          # true if permissions should be ignored
             proto   => $over_protocol,  # true if IDs used rather than nicks/names
-            
+
             # source can set simple modes.
             has_basic_status => $force || $source->isa('server') ? 1
                                 : $channel->user_has_basic_status($source),
-                                
+
             # a function to look up a user by nickname or UID.
             user_lookup => $over_protocol || sub { $pool->lookup_user_nick(@_) }
-                           
+
         });
 
         # block says to send ERR_CHANOPRIVSNEEDED.
@@ -285,7 +286,7 @@ sub handle_mode_string {
 
         # block returned false; cancel.
         next if !$win;
-        
+
         # if it requires a parameter but the param count before handling
         # the mode is the same as after, something didn't work.
         # for example, a mode handler might not be present if a module isn't loaded.
@@ -300,14 +301,14 @@ sub handle_mode_string {
             my $do = $state ? 'set_mode' : 'unset_mode';
             $channel->$do($name);
         }
-        
+
         # it is a mode with a parameter. set it.
         # does not include lists, status modes, key mode.
         elsif ($type == 1 || $type == 2) {
             $channel->set_mode($name, $parameter) if  $state;
             $channel->unset_mode($name)           if !$state;
         }
-        
+
         # sign change.
         if ($state && !$plus) {
             ($plus, $minus) = (1, 0);
@@ -317,7 +318,7 @@ sub handle_mode_string {
             ($plus, $minus) = (0, 1);
             $str .= '-';
         }
-        
+
         $str .= $letter;
     }
 
@@ -336,7 +337,7 @@ sub handle_mode_string {
             push @user_params,   $param;
             push @server_params, $param;
         }
-        
+
     }
 
     my $user_string   = join ' ', $str, @user_params;
@@ -353,7 +354,7 @@ sub _mode_string       {
     my ($show_hidden, $channel, $server) = @_;
     my (@modes, @params);
     my @set_modes = sort keys %{ $channel->{modes} };
-    
+
     # "normal types" generally means the ones that show in MODES.
     # does not include lists, status, etc.
     my %normal_types = (
@@ -362,7 +363,7 @@ sub _mode_string       {
         2 => 1,                 # parameter_set always included
         5 => $show_hidden       # key only if included showing hidden
     );
-    
+
     # add all the modes for each of these types.
     foreach my $name (@set_modes) {
         next unless $normal_types{ $server->cmode_type($name) };
@@ -393,16 +394,16 @@ sub mode_string_all {
     foreach my $name (@set_modes) {
         my $letter = $server->cmode_letter($name);
         my $type   = $server->cmode_type($name);
-        
+
         # if it takes 0 or 1 parameters, add 1 mode letter.
         push @modes, $letter if $zero_or_one{$type};
-        
+
         # exactly one parameter; add it.
         if ($exactly_one{$type}) {
             push @user_params,   $channel->{modes}{$name}{parameter};
             push @server_params, $channel->{modes}{$name}{parameter};
         }
-        
+
         # list modes. add each item.
         elsif ($type == 3) {
             foreach my $thing ($channel->list_elements($name)) {
@@ -411,7 +412,7 @@ sub mode_string_all {
                 push @server_params, $thing;
             }
         }
-        
+
         # status modes. add each nick/uid.
         elsif ($type == 4 && !$no_status) {
             foreach my $user ($channel->list_elements($name)) {
@@ -420,9 +421,9 @@ sub mode_string_all {
                 push @server_params, $user->{uid};
             }
         }
-        
+
     }
-    
+
     # make +modes params strings.
     my $user_string   = '+'.join(' ', join('', @modes), @user_params);
     my $server_string = '+'.join(' ', join('', @modes), @server_params);
@@ -510,7 +511,7 @@ sub users { @{ shift->{users} } }
 # handle a join for a local user.
 sub localjoin {
     my ($channel, $user, $time) = @_;
-    
+
     # do actual join, then tell the members.
     $channel->cjoin($user, $time);
     $channel->sendfrom_all($user->full, "JOIN $$channel{name}");
@@ -518,8 +519,8 @@ sub localjoin {
     # send topic and names.
     $user->handle("TOPIC $$channel{name}") if $channel->topic;
     names($channel, $user);
-    
-    $channel->fire_event(user_joined => $user);    
+
+    $channel->fire_event(user_joined => $user);
     return $channel->{time};
 }
 
@@ -540,7 +541,7 @@ sub names {
         my $prefixes = $user->has_cap('multi-prefix') ? 'prefixes' : 'prefix';
         $str[$curr] .= $channel->$prefixes($usr).$usr->{nick}.q( );
         $curr++ if length $str[$curr] > 500;
-        
+
     }
     $user->numeric(RPL_NAMEREPLY  => '=', $channel->name, $_) foreach @str;
     $user->numeric(RPL_ENDOFNAMES =>      $channel->name    ) unless $no_endof;
@@ -608,7 +609,7 @@ sub take_lower_time {
         $channel->sendfrom_all($me->{name}, "MODE $$channel{name} $u_str");
         $channel->handle_mode_string($me, $me, $s_str, 1, 1);
     }
-    
+
     notice_all($channel, "New channel time: ".scalar(localtime $time)." (set back $amount seconds)");
     return $channel->{time};
 }
@@ -653,17 +654,17 @@ sub _do_mode_string {
         $perspective == $me ? $user_result :
         $perspective->convert_cmode_string($me, $user_result);
     $channel->sendfrom_all($source->full, "MODE $$channel{name} $local_ustr");
-    
+
     # stop here if it's not a local user or this server.
     return if $local_only || !$source->is_local;
-    
+
     # the source is our user or this server, so tell other servers.
     # ($source, $channel, $time, $perspective, $server_modestr)
     $pool->fire_command_all(cmode =>
         $source, $channel, $channel->{time},
         $perspective, $server_result
     );
-    
+
 }
 
 # handle a privmsg. send it to our local users and other servers.
@@ -675,17 +676,17 @@ sub handle_privmsgnotice {
     my $user   = $source->isa('user')   ? $source : undef;
     my $server = $source->isa('server') ? $source : undef;
     $command   = uc $command;
-    
+
     # it's a user.
     if ($user && !$force) {
         my $lccommand = lc $command;
-        
+
         # can_message, can_notice, can_privmsg.
         return if $user->fire_events_together(
             [  can_message     => $channel, $message, $lccommand ],
             [ "can_$lccommand" => $channel, $message           ]
         )->stopper;
-        
+
     }
 
     # tell local users.
@@ -695,23 +696,23 @@ sub handle_privmsgnotice {
     my %sent;
     foreach my $usr ($channel->users) {
         last if $dont_forward;
-        
+
         # local users already know.
         next if $usr->is_local;
-        
+
         # the source user is reached through this user's server,
         # or the source is the server we know the user from.
         next if $user   && $usr->{location} == $user->{location};
         next if $server && $usr->{location}{sid} == $server->{sid};
-        
+
         # already sent to this server.
         next if $sent{ $usr->{location} };
-        
+
         $usr->{location}->fire_command(privmsgnotice => $command, $source, $channel, $message);
         $sent{ $usr->{location} } = 1;
 
     }
-    
+
     # fire event.
     $channel->fire_event($command => $source, $message);
 
@@ -721,7 +722,7 @@ sub handle_privmsgnotice {
 # handle a part. send it to local users.
 sub handle_part {
     my ($channel, $user, $reason) = @_;
-    
+
     # remove the user and tell the local channel users
     my $ureason = defined $reason ? " :$reason" : '';
     $channel->sendfrom_all($user->full, "PART $$channel{name}$ureason");
@@ -734,19 +735,19 @@ sub handle_part {
 # handle a kick. send it to local users.
 sub user_get_kicked {
     my ($channel, $user, $source, $reason) = @_;
-    
+
     # fallback reason to source.
     $reason //= $source->name;
-    
+
     # tell the local users of the channel.
     $channel->sendfrom_all($source->full, "KICK $$channel{name} $$user{nick} :$reason");
-    
+
     notice(user_part =>
         $user->notice_info,
         $channel->name,
         "Kicked by $$source{nick}: $reason"
     ) if $source->isa('user');
-    
+
     return $channel->remove_user($user);
 }
 

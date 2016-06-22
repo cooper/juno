@@ -38,7 +38,10 @@ sub init {
         if ($connection->server) {
             my ($command, $name) = ($msg->command, $connection->server->name);
             my $proto = $connection->server->{link_type};
-            notice(server_warning => "unknown $proto command $command from $name!");
+            notice(server_protocol_warning =>
+                $name, $connection->server->id,
+                "sent $command which is unknown by $proto; ignored"
+            );
             return;
         }
 
