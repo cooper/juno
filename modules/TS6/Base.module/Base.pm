@@ -160,7 +160,7 @@ sub _forward_handler {
 # option user:   ensure it's a user
 sub _param_source {
     my ($msg, undef, $params, $opts) = @_;
-    my $source = obj_from_ts6($msg->source);
+    my $source = obj_from_ts6($msg->{source});
 
     # if the source isn't there, return PARAM_BAD unless it was optional.
     undef $source if !$source || !blessed $source;
