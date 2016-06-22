@@ -531,10 +531,10 @@ sub handle_connect {
         read_all       => 0,
         read_len       => POSIX::BUFSIZ(),
         on_read        => sub { &handle_data },
-        on_read_eof    => sub { $conn->done('Connection closed');   $stream->close_now },
-        on_write_eof   => sub { $conn->done('Connection closed');   $stream->close_now },
-        on_read_error  => sub { $conn->done('Read error: ' .$_[1]); $stream->close_now },
-        on_write_error => sub { $conn->done('Write error: '.$_[1]); $stream->close_now }
+        on_read_eof    => sub { $stream->close_now; $conn->done('Connection closed')    },
+        on_write_eof   => sub { $stream->close_now; $conn->done('Connection closed')    },
+        on_read_error  => sub { $stream->close_now; $conn->done('Read error: ' .$_[1])  },
+        on_write_error => sub { $stream->close_now; $conn->done('Write error: '.$_[1])  }
     );
 
     configure_stream($stream);
