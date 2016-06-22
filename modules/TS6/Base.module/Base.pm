@@ -127,7 +127,7 @@ sub _handle_command {
         @params = $msg->parse_params($params);
         if (defined $params[0] && $params[0] eq $message::PARAM_BAD) {
             notice(server_protocol_warning =>
-                $server->name, $server->sid,
+                $server->name, $server->id,
                 "provided invalid parameters for ts6 command ".$msg->command
             );
             return;
