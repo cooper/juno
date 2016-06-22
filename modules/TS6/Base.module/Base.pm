@@ -29,14 +29,14 @@ my $props     = $Evented::Object::props;
 sub init {
     $mod->register_module_method('register_ts6_command'         ) or return;
     $mod->register_module_method('register_outgoing_ts6_command') or return;
-    
+
     # module events.
     $api->on('module.unload' => \&unload_module, with_eo => 1) or return;
     $api->on('module.init'   => \&module_init,
         name    => '%ts6_outgoing_commands',
         with_eo => 1
     ) or return;
-    
+
     return 1;
 }
 
@@ -54,10 +54,10 @@ sub register_ts6_command {
         L("TS6 command $opts{name} does not have '$what' option");
         return;
     }
-    
+
     my $command = uc $opts{name};
     my $e_name  = "server.ts6_message_$command";
-    
+
     # attach the event.
     $pool->on($e_name => \&_handle_command,
         priority => 0, # registration commands are 500 priority
@@ -69,7 +69,7 @@ sub register_ts6_command {
         parameters => $opts{parameters} // $opts{params},
         cb_code    => $opts{code}
     });
-    
+
 #    # this callback forwards to other servers.
 #    $pool->on($e_name => \&_forward_handler,
 #        priority => 0,
@@ -78,7 +78,7 @@ sub register_ts6_command {
 #        name     => "ts6.$command.forward",
 #        data     => { forward => $opts{forward} }
 #    ) if $opts{forward};
-    
+
     $mod->list_store_add('ts6_commands', $command);
 }
 
@@ -126,11 +126,11 @@ sub _handle_command {
         @params = $msg->parse_params($params);
         return if defined $params[0] && $params[0] eq $message::PARAM_BAD;
     }
-    
+
     # call actual callback.
     $event->{$props}{data}{allow_fantasy} = $event->callback_data('fantasy');
     $event->callback_data('cb_code')->($server, $msg, @params);
-    
+
 }
 
 sub _forward_handler {
@@ -144,7 +144,7 @@ sub _forward_handler {
     # forward = 2 means don't do it even if THAT server is bursting.
     #
     return if $forward == 2 && $server->{is_burst};
-    
+
     $server->send_children($msg->data);
 }
 
@@ -153,10 +153,24 @@ sub _forward_handler {
 # option user:   ensure it's a user
 sub _param_source {
     my ($msg, undef, $params, $opts) = @_;
-    my $source = obj_from_ts6($msg->{source}) or return $PARAM_BAD;
-    return $PARAM_BAD unless blessed $source;
-    if ($opts->{server}) { $source->isa('server') or return $PARAM_BAD }
-    if ($opts->{user})   { $source->isa('user')   or return $PARAM_BAD }
+    my $source = obj_from_ts6($msg->{source});
+
+    # if the source isn't there, return PARAM_BAD unless it was optional.
+    undef $source if !$source || !blessed $source;
+    if (!$source) {
+        return push @$params, undef if $opts->{opt};
+        return $PARAM_BAD;
+    }
+
+    # if the source is present and of the wrong type, bad param.
+    if ($opts->{server}) {
+        return $PARAM_BAD if $source && !$source->isa('server');
+    }
+    if ($opts->{user}) {
+        return $PARAM_BAD if $source && !$source->isa('user');
+    }
+
+    # note that $source might be undef here, if it was optional.
     push @$params, $source;
 }
 
@@ -179,7 +193,7 @@ sub _param_user {
 # channel: match a channel name.
 sub _param_channel {
     my ($msg, $param, $params, $opts) = @_;
-    my $channel = $pool->lookup_channel((split ',', $param)[0]) or return $PARAM_BAD;    
+    my $channel = $pool->lookup_channel((split ',', $param)[0]) or return $PARAM_BAD;
     push @$params, $channel;
 }
 
@@ -205,21 +219,20 @@ sub unload_module {
 # a module is being initialized.
 sub module_init {
     my $mod = shift;
-    
+
     my %commands = $mod->get_symbol('%ts6_outgoing_commands');
     $mod->register_outgoing_ts6_command(
         name => $_,
         code => $commands{$_}
     ) or return foreach keys %commands;
-    
+
     %commands = $mod->get_symbol('%ts6_incoming_commands');
     $mod->register_ts6_command(
         name => $_,
         %{ $commands{$_} }
     ) or return foreach keys %commands;
-    
+
     return 1;
 }
 
 $mod
-

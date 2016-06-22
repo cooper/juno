@@ -3042,3 +3042,10 @@ CHANGES:
 
         59. added definitions for all spec-standard TS6 user modes.
             added oper notice user_deopered.
+
+    6. fixed an issue where server parameter in client WHOIS was ignored when the hopcount was >1.
+        fixed wrong nickname in oper notice user_saved.
+        properly handle sourceless TS6 SQUIT.
+
+        61. added definitions for all spec-standard TS6 channel modes.
+            added incoming and outgoing handlers for TS6 WHOIS command.

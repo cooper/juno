@@ -122,10 +122,15 @@ our %ts6_incoming_commands = (
         code   => \&chghost
     },
     SQUIT => {
-                  # :sid SQUIT     sid    :reason
-        params => '-source(server) server :rest',
+                  # :sid SQUIT         sid    :reason
+        params => '-source(server|opt) server :rest',
         code   => \&squit
-    }
+    },
+    # WHOIS => {
+    #               # :uid WHOIS   sid    uid
+    #     params => '-source(user) server user',
+    #     code   => \&whois
+    # }
 );
 
 # SID
@@ -270,7 +275,7 @@ sub euid {
         if ($save_new) {
             $server->fire_command(save_user => $me, $new_usr_temp);
             my $old_nick  = $u{nick};
-            $u{nick}      = $u{uid};
+            $u{nick}      = $new_usr_temp->{nick} = $u{uid};
             $u{nick_time} = 100;
             notice(user_saved => $new_usr_temp->notice_info, $old_nick);
         }
@@ -1092,6 +1097,9 @@ sub chghost {
 sub squit {
     my ($server, $msg, $s_serv, $t_serv, $comment) = @_;
 
+    # $s_serv will either be a server object or undef if there was no source.
+    $s_serv ||= $server;
+
     # if the target server is me or the source server, close the link.
     if (($t_serv == $s_serv || $t_serv == $me) && $t_serv->conn) {
         notice(server_closing => $t_serv->name, $t_serv->id, $s_serv->name);
@@ -1118,5 +1126,13 @@ sub squit {
 
     return 1;
 }
+#
+# # WHOIS
+# # source: user
+# # parameters: hunted, target nick
+# #
+# sub whois {
+#
+# }
 
 $mod

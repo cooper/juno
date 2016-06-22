@@ -53,7 +53,7 @@ our %ts6_outgoing_commands = (
      save_user      => \&save,
    # num            => \&num,
    # links          => \&links,
-   # whois          => \&whois
+    #  whois          => \&whois
 );
 
 sub init {
@@ -604,5 +604,13 @@ sub save {
 
     ":$sid SAVE $uid $$user{nick_time}"
 }
+
+# # WHOIS
+# # source: user
+# # parameters: hunted, target nick
+# #
+# sub whois {
+#
+# }
 
 $mod
