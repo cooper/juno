@@ -1104,6 +1104,7 @@ sub squit {
     if (!$s_serv && $t_serv == $me) {
         notice(server_closing => $server->name, $server->id, $comment);
         $server->conn->done($comment);
+        $t_serv = $server; # forward SQUIT with their UID, not ours
     }
 
     # can't squit self without a direct connection.
@@ -1114,7 +1115,7 @@ sub squit {
             'attempted to SQUIT the local server '.$me->{name}
         );
         $server->conn->done("Attempted to SQUIT $$me{name}");
-        return;
+        return; # don't forward
     }
 
     # otherwise, we can simply quit the target server.
