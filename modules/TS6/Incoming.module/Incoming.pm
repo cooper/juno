@@ -123,7 +123,7 @@ our %ts6_incoming_commands = (
     },
     SQUIT => {
                   # :sid SQUIT         sid    :reason
-        params => '-source(server|opt) server :rest',
+        params => '-source(server,opt) server :rest',
         code   => \&squit
     },
     # WHOIS => {

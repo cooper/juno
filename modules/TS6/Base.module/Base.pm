@@ -161,20 +161,19 @@ sub _forward_handler {
 sub _param_source {
     my ($msg, undef, $params, $opts) = @_;
     my $source = obj_from_ts6($msg->source);
-print "source: $source\n";
+
     # if the source isn't there, return PARAM_BAD unless it was optional.
     undef $source if !$source || !blessed $source;
     return $PARAM_BAD if !$source && !$opts->{opt};
-print "past 1\n";
+
     # if the source is present and of the wrong type, bad param.
     if ($opts->{server}) {
         return $PARAM_BAD if $source && !$source->isa('server');
     }
-print "past 2\n";
     if ($opts->{user}) {
         return $PARAM_BAD if $source && !$source->isa('user');
     }
-print "past 3\n";
+
     # note that $source might be undef here, if it was optional.
     push @$params, $source;
 }
