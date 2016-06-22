@@ -16,14 +16,26 @@ use warnings;
 use strict;
 use 5.010;
 
+use utils qw(notice);
+
 our ($api, $mod, $me);
 
 my %umodes = (
-    ircop     => \&umode_ircop,
-    ssl       => \&umode_never,
-    invisible => \&umode_normal,
-    wallops   => \&umode_normal,
-    service   => \&umode_never
+
+    # settable by any user
+    invisible   => \&umode_normal,
+    wallops     => \&umode_normal,
+    deaf        => \&umode_normal,
+
+    # requires the power of a greater being
+    admin       => \&umode_never,
+    ssl         => \&umode_never,
+    service     => \&umode_never,
+    registered  => \&umode_never,
+
+    # special rules
+    ircop       => \&umode_ircop
+
 );
 
 sub init {
@@ -43,8 +55,8 @@ sub umode_ircop {
     my ($user, $state) = @_;
     return if $state; # /never/ allow setting ircop
 
-    # but always allow them to unset it.
-    L("removing all flags from $$user{nick}");
+    # but always allow unsetting
+    notice(user_deopered => $user->notice_info);
     $user->{flags} = [];
     delete $user->{oper};
 

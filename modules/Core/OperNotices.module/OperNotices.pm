@@ -29,6 +29,7 @@ our %oper_notices = (
     new_user                => '%s (%s@%s) [%s] on %s',
     user_quit               => '%s (%s@%s) [%s] from %s (%s)',
     user_opered             => '%s (%s@%s) gained flags on %s: %s',
+    user_deopered           => '%s (%s@%s) is no longer an IRC operator',
     user_killed             => '%s (%s@%s) killed by %s (%s)',
     user_nick_change        => '%s (%s@%s) is now known as %s',
     user_join               => '%s (%s@%s) joined %s',

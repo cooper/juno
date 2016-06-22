@@ -3039,3 +3039,6 @@ CHANGES:
         58. added oper notices: server_protocol_warning, user_mode_unknown, channel_mode_unknown.
             added TS6 SVINFO.
             fixed issue where secret channels were shown to non-opers in WHOIS.
+
+        59. added definitions for all spec-standard TS6 user modes.
+            added oper notice user_deopered.
