@@ -355,10 +355,10 @@ sub cmode_string_difference {
 
 sub is_local { shift == $me }
 
-sub DESTROY {
-    my $server = shift;
-    L("$server destroyed");
-}
+# sub DESTROY {
+#     my $server = shift;
+#     L("$server destroyed");
+# }
 
 sub children {
     my $server = shift;

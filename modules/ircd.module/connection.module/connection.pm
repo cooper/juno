@@ -240,6 +240,7 @@ sub ready {
 sub send {
     my ($connection, @msg) = @_;
     return unless $connection->{stream};
+    return unless $connection->{stream}->write_handle;
     return if $connection->{goodbye};
     @msg = grep { defined } @msg;
     $connection->{stream}->write("$_\r\n") foreach @msg;
@@ -297,7 +298,8 @@ sub done {
 
     # will close it WHEN the buffer is empty
     # (if the stream still exists).
-    $connection->{stream}->close_when_empty if $connection->{stream};
+    $connection->{stream}->close_when_empty
+        if $connection->{stream} && $connection->{stream}->write_handle;
 
     # destroy these references, just in case.
     delete $connection->{type}{conn};
@@ -454,9 +456,9 @@ sub server {
     return $type;
 }
 
-sub DESTROY {
-    my $connection = shift;
-    L("$connection destroyed");
-}
+# sub DESTROY {
+#     my $connection = shift;
+#     L("$connection destroyed");
+# }
 
 $mod

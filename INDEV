@@ -3026,3 +3026,6 @@ CHANGES:
             JELP now uses nickTS for resolving nick collisions.
 
         54. drop link to servers lacking required TS6 capabilities.
+
+        55. added extra checks on read/write errors before attempting to dump the remainder of a connection buffer.
+            fixed an issue where account names set by external services were not included in TS6 EUID.

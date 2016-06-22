@@ -259,15 +259,14 @@ sub hops_to {
     return $server1->hops_to($server2);
 }
 
-sub DESTROY {
-    my $user = shift;
-    L("$user destroyed");
-}
+# sub DESTROY {
+#     my $user = shift;
+#     L("$user destroyed");
+# }
 
 sub id            { shift->{uid}  }
 sub name          { shift->{nick} }
 sub conn          { shift->{conn} }
-sub account       { my $act = shift->{account}; blessed $act ? $act : undef }
 
 ############
 ### MINE ###

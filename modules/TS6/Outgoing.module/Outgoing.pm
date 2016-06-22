@@ -172,7 +172,8 @@ sub euid {
     ts6_id($user),                                  # UID
     $user->{cloak} eq $user->{host} ?               # real hostname
         '*' : $user->{host},                        #   (* if equal to visible)
-    $user->account ? $user->account->name : '*',    # account name
+    $user->{account} ?                              # account name
+        $user->{account}{name} : '*',               #   (* if not logged in)
     $user->{real}
 }
 
