@@ -157,10 +157,7 @@ sub _param_source {
 
     # if the source isn't there, return PARAM_BAD unless it was optional.
     undef $source if !$source || !blessed $source;
-    if (!$source) {
-        return push @$params, undef if $opts->{opt};
-        return $PARAM_BAD;
-    }
+    return $PARAM_BAD if !$source && !$opts->{opt};
 
     # if the source is present and of the wrong type, bad param.
     if ($opts->{server}) {
