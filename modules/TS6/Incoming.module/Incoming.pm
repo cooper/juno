@@ -1080,4 +1080,44 @@ sub chghost {
     return 1;
 }
 
+# SQUIT
+#
+# parameters:   target server, comment
+#
+sub squit {
+    my ($server, $msg, $s_serv, $t_serv, $comment) = @_;
+
+    # if the target server is me or the source server, close the link.
+    if (($t_serv == $s_serv || $t_serv == $me) && $t_serv->conn) {
+        notice(server_closing => $t_serv->name, $t_serv->id, $s_serv->name);
+        $t_serv->conn->done($comment);
+    }
+
+    # can't squit self without a direct connection.
+    elsif ($t_serv == $me) {
+        notice(
+            $s_serv->name, $s_serv->id,
+            'attempted to SQUIT the local server '.$me->{name}
+        );
+        $server->conn->done("Attempted to SQUIT $$me{name}");
+        return;
+    }
+
+    # otherwise, we can simply quit the server.
+    else {
+        notice(server_quit =>
+            $t_serv->{name},
+            $t_serv->{sid},
+            $t_serv->{parent}{name},
+            $comment
+        );
+        $t_serv->quit($comment);
+    }
+
+    #=== Forward ===#
+    $msg->forward(quit => $t_serv, $comment);
+
+    return 1;
+}
+
 $mod

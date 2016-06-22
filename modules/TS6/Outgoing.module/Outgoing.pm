@@ -568,7 +568,14 @@ sub wallops {
 sub chghost {
     my ($to_server, $source, $user, $new_host) = @_;
     my ($source_id, $user_id) = (ts6_id($source), ts6_id($user));
-    ":$source_id CHGHOST $user_id :$new_host"
+
+    # no EUID support, so use the old ENCAP CHGHOST.
+    if (!$to_server->has_cap('euid')) {
+        # :<SID> ENCAP * CHGHOST <UID> <VHOST>
+        return ":$source_id ENCAP * CHGHOST $user_id $new_host"
+    }
+
+    ":$source_id CHGHOST $user_id $new_host"
 }
 
 # SAVE

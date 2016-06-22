@@ -3029,3 +3029,7 @@ CHANGES:
 
         55. added extra checks on read/write errors before attempting to dump the remainder of a connection buffer.
             fixed an issue where account names set by external services were not included in TS6 EUID.
+
+        56. fix TS6 SQUIT handling.
+            use ENCAP CHGHOST on servers not supporting EUID.
+            add oper notices server_closing and server_protocol_error.

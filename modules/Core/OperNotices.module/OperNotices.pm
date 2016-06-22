@@ -36,7 +36,8 @@ our %oper_notices = (
     user_saved              => '%s (%s@%s) was spared in the midst of a nick collision (was %s)',
 
     new_server              => '%s (%d) ircd %s, proto %s [%s] parent: %s',
-    server_quit             => '%s (%d) parent %s (%s)',
+    server_closing          => 'Received SQUIT for %s (%s) from %s; dropping link',
+    server_quit             => '%s (%d) quit from parent %s (%s)',
     server_burst            => '%s (%s) is bursting information',
     server_endburst         => '%s (%s) finished burst, %d seconds elapsed',
     server_connect          => '%s (%s) on port %d (Attempt %d)',
@@ -45,6 +46,7 @@ our %oper_notices = (
     server_connect_success  => 'Connection established to %s',
     server_reintroduced     => '%s attempted to introduce %s which already exists',
     server_identifier_taken => '%s attempted to introduce %s as SID %d, which is already taken by %s',
+    server_protocol_error   => '%s (%s) %s; dropping link',
 
     perl_warning            => '%s',
     exception               => '%s',
