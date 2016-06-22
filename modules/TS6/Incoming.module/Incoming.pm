@@ -120,6 +120,11 @@ our %ts6_incoming_commands = (
                   # :source CHGHOST uid   newhost
         params => '-source          user  *',
         code   => \&chghost
+    },
+    SQUIT => {
+                  # :sid SQUIT     sid    :reason
+        params => '-source(server) server :rest',
+        code   => \&squit
     }
 );
 
