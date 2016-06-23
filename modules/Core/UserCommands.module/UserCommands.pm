@@ -761,7 +761,7 @@ sub whois {
     # this does not apply to me; forward it.
     # no reason to forward it if the target location isn't the user's location.
     if ($server != $me && $server->{location} == $quser->{location}) {
-        $server->{location}->fire_command(whois => $user, $quser, $server);
+        $msg->forward_to($server, whois => $user, $quser, $server);
         return 1;
     }
 

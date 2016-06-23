@@ -1205,7 +1205,7 @@ sub whois {
     }
 
     #=== Forward ===#
-    $msg->forward(whois => $s_user, $t_user, $loc);
+    $msg->forward_to($t_user, whois => $s_user, $t_user, $loc);
 
     return 1;
 }
