@@ -1160,8 +1160,17 @@ sub whois {
         return $s_user->handle_unsafe("WHOIS $query");
     }
 
+    # if we're forwarding, actually look up the user.
+    my $t_user = $pool->lookup_user_nick($query);
+    if (!$t_user) {
+        notice(server_protocol_warning =>
+            $server->name, $server->id,
+            "sent a remote WHOIS query with an unknown nick; cannot forward"
+        );
+        return;
+    }
+
     #=== Forward ===#
-    my $t_user = $pool->lookup_user_nick($query) or return;
     $msg->forward(whois => $s_user, $t_user, $loc);
 
     return 1;
