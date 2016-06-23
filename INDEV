@@ -3050,3 +3050,4 @@ CHANGES:
         61. added definitions for all spec-standard TS6 channel modes.
 
         62. added incoming and outgoing handlers for TS6 WHOIS command.
+            added support for outgoing numerics in TS6.

@@ -51,7 +51,7 @@ our %ts6_outgoing_commands = (
      wallops        => \&wallops,
      chghost        => \&chghost,
      save_user      => \&save,
-   # num            => \&num,
+     num            => \&num,
    # links          => \&links,
      whois          => \&whois
 );
@@ -614,6 +614,13 @@ sub whois {
     my $uid1 = ts6_id($whoiser_user);
     my $tsid = ts6_id($target_server);
     ":$uid1 WHOIS $tsid :$$queried_user{nick}"
+}
+
+# remote numerics
+sub num {
+    my ($to_server, $server, $t_user, $num, $message) = @_;
+    my ($sid, $uid) = (ts6_id($server), ts6_id($t_user));
+    ":$sid $num $uid $message"
 }
 
 $mod
