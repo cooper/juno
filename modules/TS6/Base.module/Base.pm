@@ -38,6 +38,14 @@ sub init {
         with_eo => 1
     ) or return;
 
+    # ok so this hooks onto raw incoming TS6 data to handle numerics.
+    $pool->on('server.ts6_message' =>
+        \&_handle_numeric_maybe,
+        name     => 'ts6.numerics',
+        with_eo  => 1,
+        priority => 100  # do before server.ts6_message_*
+    );
+
     return 1;
 }
 
@@ -114,11 +122,6 @@ sub register_outgoing_ts6_command {
 
 sub _handle_command {
     my ($server, $event, $msg) = @_;
-    $event->cancel('ERR_UNKNOWNCOMMAND');
-
-    # TS6 param handlers and lookup method.
-    $msg->{source_lookup_method} = \&obj_from_ts6;
-    $msg->{param_package} = __PACKAGE__;
 
     # figure parameters.
     my @params;
@@ -138,6 +141,23 @@ sub _handle_command {
     $event->{$props}{data}{allow_fantasy} = $event->callback_data('fantasy');
     $event->callback_data('cb_code')->($server, $msg, @params);
 
+}
+
+# this is called before the above.
+sub _handle_numeric_maybe {
+    my ($server, $event, $msg) = @_;
+    $event->cancel('ERR_UNKNOWNCOMMAND');
+
+    # TS6 param handlers and lookup method.
+    $msg->{source_lookup_method} = \&obj_from_ts6;
+    $msg->{param_package} = __PACKAGE__;
+
+    # check for numeric
+    return 1 if $msg->command !~ m/^\d+$/;
+    my $code = M::TS6::Incoming->can('handle_numeric') or return;
+    $code->($server, $msg);
+
+    return 1;
 }
 
 sub _forward_handler {

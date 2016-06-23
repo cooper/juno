@@ -136,6 +136,11 @@ our %ts6_incoming_commands = (
     }
 );
 
+sub handle_numeric {
+    my ($server, $msg) = @_;
+    print "handle_numeric() for $server: $msg\n";
+}
+
 # SID
 #
 # source:       server

@@ -12,5 +12,5 @@
    "description" : "programming interface for TS6",
    "name" : "TS6::Base",
    "package" : "M::TS6::Base",
-   "version" : "1.7"
+   "version" : "1.8"
 }

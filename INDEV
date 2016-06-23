@@ -3051,3 +3051,5 @@ CHANGES:
 
         62. added incoming and outgoing handlers for TS6 WHOIS command.
             added support for outgoing numerics in TS6.
+
+        63. added support for incoming numerics in TS6.
