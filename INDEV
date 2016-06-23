@@ -3053,3 +3053,5 @@ CHANGES:
             added support for outgoing numerics in TS6.
 
         63. added support for incoming numerics in TS6.
+
+        64. fixed an issue where mode translation left stray parameters when omitting modes unknown to the destination server.

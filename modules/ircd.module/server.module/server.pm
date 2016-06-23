@@ -167,9 +167,16 @@ sub convert_cmode_string {
         }
 
         # translate the letter.
-        my $new  = $server2->cmode_letter($name) or next;
-        $string .= $new;
+        my $new  = $server2->cmode_letter($name);
 
+        # the second server does not know this mode.
+        # remove the parameter if it has one.
+        if (!length $new) {
+            shift @m if $server1->cmode_takes_parameter($name, $state);
+            next;
+        }
+
+        $string .= $new;
     }
 
     my $newstring = join ' ', $string, @m;

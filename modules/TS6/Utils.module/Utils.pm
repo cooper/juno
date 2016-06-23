@@ -208,7 +208,6 @@ sub register_modes {
     %modes = $conf->hash_of_block([ 'ts6_prefixes', $server->{ts6_ircd} ]);
     foreach my $name (keys %modes) {
         my ($letter, $pfx, $lvl) = @{ $modes{$name} };
-        #$server->add_cmode($name, $letter, 4);
         $server->{ts6_prefixes}{$pfx} = [ $letter, $lvl ];
     }
 
