@@ -19,7 +19,10 @@ use warnings;
 use strict;
 use 5.010;
 
-use M::TS6::Utils qw(uid_from_ts6 user_from_ts6 mode_from_prefix_ts6 sid_from_ts6);
+use M::TS6::Utils qw(
+    uid_from_ts6 user_from_ts6 mode_from_prefix_ts6
+    sid_from_ts6 obj_from_ts6
+);
 use utils qw(channel_str_to_list notice);
 
 our ($api, $mod, $pool, $me);
@@ -126,11 +129,11 @@ our %ts6_incoming_commands = (
         params => '-source(server,opt) server :rest',
         code   => \&squit
     },
-    # WHOIS => {
-    #               # :uid WHOIS   sid    uid
-    #     params => '-source(user) server user',
-    #     code   => \&whois
-    # }
+    WHOIS => {
+                  # :uid WHOIS   sid|uid    :query(e.g. nickname)
+        params => '-source(user) *          :rest',
+        code   => \&whois
+    }
 );
 
 # SID
@@ -1128,13 +1131,40 @@ sub squit {
 
     return 1;
 }
+
+# WHOIS
+# source: user
+# parameters: hunted, target nick
 #
-# # WHOIS
-# # source: user
-# # parameters: hunted, target nick
-# #
-# sub whois {
-#
-# }
+sub whois {
+    my ($server, $msg, $s_user, $target, $query) = @_;
+    # $s_user is the user doing the query
+    # $target ought to be a string SID or UID
+    # $query is the raw query itself, such as a nickname
+
+    $target = obj_from_ts6($target);
+    if (!$target) {
+        notice(server_protocol_warning =>
+            $server->name, $server->id,
+            "provided invalid target server in remote WHOIS"
+        );
+        return;
+    }
+
+    # this could be a user or server object.
+    # either way, forward this onto physical location.
+    my $loc = $target->{location};
+
+    # it's me!
+    if ($loc == $me) {
+        return $s_user->handle_unsafe("WHOIS $query");
+    }
+
+    #=== Forward ===#
+    my $t_user = $pool->lookup_user_nick($query) or return;
+    $msg->forward(whois => $s_user, $t_user, $loc);
+
+    return 1;
+}
 
 $mod
