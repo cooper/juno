@@ -9,5 +9,5 @@
    "description" : "basic set of TS6 command handlers",
    "name" : "TS6::Incoming",
    "package" : "M::TS6::Incoming",
-   "version" : "12.1"
+   "version" : "12.4"
 }

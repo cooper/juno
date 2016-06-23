@@ -138,7 +138,36 @@ our %ts6_incoming_commands = (
 
 sub handle_numeric {
     my ($server, $msg) = @_;
-    print "handle_numeric() for $server: $msg\n";
+    my @args = $msg->params;
+    my $num  = $msg->command;
+
+    # find the source.
+    my $source_serv = obj_from_ts6($msg->{source});
+    if (!$source_serv || !$source_serv->isa('server')) {
+        return;
+    }
+
+    # find the user.
+    my $user = obj_from_ts6(shift @args);
+    if (!$user || !$user->isa('user')) {
+        return;
+    }
+
+    # create the message
+    $args[$#args] = ':'.$args[$#args] if index($args[$#args], ' ') != -1;
+    my $message = join ' ', @args;
+
+    # local user.
+    if ($user->is_local) {
+        $user->sendfrom($source_serv->full, "$num $$user{nick} $message");
+    }
+
+    # === Forward ===
+    else {
+        $msg->forward_to($user, num => $source_serv, $user, $num, $message);
+    }
+
+    return 1;
 }
 
 # SID
