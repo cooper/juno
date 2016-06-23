@@ -3048,4 +3048,5 @@ CHANGES:
         properly handle sourceless TS6 SQUIT.
 
         61. added definitions for all spec-standard TS6 channel modes.
-            added incoming and outgoing handlers for TS6 WHOIS command.
+
+        62. added incoming and outgoing handlers for TS6 WHOIS command.
