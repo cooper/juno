@@ -312,7 +312,7 @@ sub configure_stream {
 
 sub listen_addr_port {
     my ($addr, $port, $ssl) = @_;
-    my $ipv6 = $addr =~ m/:/;
+    my $ipv6 = Net::IP::ip_is_ipv6($addr);
     my ($p_addr, $p_port) = ($ipv6 ? "[$addr]" : $addr, $ssl ? "+$port" : $port);
     my $l_key = lc "$p_addr:$p_port";
 
@@ -466,6 +466,7 @@ sub load_dependencies {
         [ 'IO::Async::Timer::Countdown',   0.60 ],
 
         [ 'IO::Socket::IP',                0.25 ],
+        [ 'Net::IP',                       1.26 ],
 
         [ 'Evented::Object',               5.50 ],
         [ 'Evented::Object::Collection',   5.50 ],

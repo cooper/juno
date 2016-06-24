@@ -1,13 +1,13 @@
 {
-   "package" : "M::Ban::Dline",
-   "name" : "Ban::Dline",
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
    "depends" : {
       "modules" : "Ban"
    },
-   "version" : "0.5",
    "description" : "ban connections from server by IP",
-   "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
-   }
+   "name" : "Ban::Dline",
+   "package" : "M::Ban::Dline",
+   "version" : "0.6"
 }

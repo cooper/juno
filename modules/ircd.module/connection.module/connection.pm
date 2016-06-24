@@ -18,6 +18,7 @@ use 5.010;
 use parent 'Evented::Object';
 
 use Socket::GetAddrInfo;
+use Net::IP qw(ip_get_embedded_ipv4);
 use Scalar::Util qw(weaken blessed looks_like_number);
 use utils qw(conf v notice);
 
@@ -55,8 +56,13 @@ sub new {
     my ($class, $stream) = @_;
     print "stream : $stream\n";
     return unless $stream && $stream->{write_handle};
-    my $ip = utils::safe_ip($stream->{write_handle}->peerhost);
 
+    # check the IP.
+    my $ip = $stream->{write_handle}->peerhost;
+    $ip = ip_get_embedded_ipv4($ip) || $ip;
+    $ip = utils::safe_ip($ip);
+
+    # create the connection object.
     bless my $connection = {
         stream        => $stream,
         ip            => $ip,

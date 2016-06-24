@@ -182,7 +182,7 @@ example on a Debian-based distribution. Also install a few Perl modules from the
 
 ```bash
 sudo apt-get install build-essential # or similar
-cpanm --sudo IO::Async IO::Socket::IP Socket::GetAddrInfo JSON JSON::XS DBD::SQLite
+cpanm --sudo IO::Async IO::Socket::IP Net::IP Socket::GetAddrInfo JSON JSON::XS DBD::SQLite
 ```
 
 After you've installed the appropriate Perl packages, clone the repository:

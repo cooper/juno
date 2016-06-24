@@ -3070,3 +3070,5 @@ CHANGES:
             this is necessary for adding private channel support, #34.
             fixed incorrect name of numeric 353 RPL_NAMREPLY.
             fixed warning caused by trying to unset away when not away.
+
+        69. new dependency Net::IP. #33

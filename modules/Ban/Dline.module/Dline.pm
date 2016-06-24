@@ -35,16 +35,17 @@ sub init {
 
 sub _match {
     my $str = shift;
-    
+
     # does it match a user?
     if (my $user = $pool->lookup_user_nick($str)) {
         return $user->{ip};
     }
-    
-    # TODO: check if valid IP
-    
+
+
     return $str;
 }
+
+# TODO: check if valid IP with Net::IP
 
 sub conn_matches {
     my ($conn, $ban) = @_;
@@ -52,4 +53,3 @@ sub conn_matches {
 }
 
 $mod
-
