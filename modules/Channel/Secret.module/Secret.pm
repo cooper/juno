@@ -29,13 +29,21 @@ sub init {
         code => \&M::Core::ChannelModes::cmode_normal
     ) or return;
 
-    # Hook on the show_in_list event to prevent secret channels frm showing in list
-    $pool->on('channel.show_in_list' => \&on_show_in_list, with_eo => 1, name => 'show.list');
+    # Hook on the show_in_list and show_in_whois events to prevent secret
+    # channels from showing in list or WHOIS
+    $pool->on('channel.show_in_list' => \&show_in_things,
+        with_eo => 1,
+        name => 'channel.secret.show_in_list'
+    );
+    $pool->on('channel.show_in_whois' => \&show_in_things,
+        with_eo => 1,
+        name => 'channel.secret.show_in_whois'
+    );
 
     return 1;
 }
 
-sub on_show_in_list {
+sub show_in_things {
     my ($channel, $event, $user) = @_;
 
     # if it's not secret, show it.

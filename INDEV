@@ -3065,3 +3065,8 @@ CHANGES:
         67. report the repository version in UPDATE.
             made Git notices less confusing.
             update Evented::API::Engine.
+
+        68. show_in_list also affected WHOIS, but now show_in_whois is separate.
+            this is necessary for adding private channel support, #34.
+            fixed incorrect name of numeric 353 RPL_NAMREPLY.
+            fixed warning caused by trying to unset away when not away.

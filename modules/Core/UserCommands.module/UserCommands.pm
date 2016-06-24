@@ -669,7 +669,7 @@ sub add_whois_callbacks {
 
         # show it? assuming same logic as /LIST.
         foreach my $channel (@all_chans) {
-            next if $channel->fire_event(show_in_list => $ruser)->stopper;
+            next if $channel->fire_event(show_in_whois => $ruser)->stopper;
             push @show_chans, $channel;
         }
 

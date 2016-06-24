@@ -216,6 +216,7 @@ sub set_away {
 # return from away.
 sub unset_away {
     my $user = shift;
+    return if !defined $user->{away};
     L("$$user{nick} has returned from being away: $$user{away}");
     delete $user->{away};
 }

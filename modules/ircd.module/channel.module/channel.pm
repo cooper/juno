@@ -524,7 +524,7 @@ sub localjoin {
     return $channel->{time};
 }
 
-# send NAMES. FIXME: why is this here?
+# send NAMES.
 sub names {
     my ($channel, $user, $no_endof) = @_;
     my @str;
@@ -543,7 +543,7 @@ sub names {
         $curr++ if length $str[$curr] > 500;
 
     }
-    $user->numeric(RPL_NAMEREPLY  => '=', $channel->name, $_) foreach @str;
+    $user->numeric(RPL_NAMREPLY   => '=', $channel->name, $_) foreach @str;
     $user->numeric(RPL_ENDOFNAMES =>      $channel->name    ) unless $no_endof;
 }
 

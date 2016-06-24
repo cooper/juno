@@ -2639,7 +2639,7 @@ RFC 2812          Internet Relay Chat: Client Protocol        April 2000
            returned.  The exception to this is when a NAMES
            message is sent with no parameters and all visible
            channels and contents are sent back in a series of
-           RPL_NAMEREPLY messages with a RPL_ENDOFNAMES to mark
+           RPL_NAMREPLY messages with a RPL_ENDOFNAMES to mark
            the end.
 
        364    RPL_LINKS
