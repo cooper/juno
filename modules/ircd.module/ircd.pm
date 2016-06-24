@@ -3,7 +3,6 @@
 # @name:            "ircd"
 # @package:         "ircd"
 # @description:     "main IRCd module"
-# @version:         $ircd::VERSION || $main::VERSION
 # @no_bless:        1
 # @preserve_sym:    1
 #
@@ -31,6 +30,7 @@ sub init {
     $mod->load_submodule('utils') or return;
     utils->import(qw|conf fatal v trim notice gnotice ref_to_list|);
     $VERSION = get_version();
+    $mod->{version} = $VERSION;
 
     &set_variables;         # set default global variables.
     &boot;                  # boot if we haven't already.
