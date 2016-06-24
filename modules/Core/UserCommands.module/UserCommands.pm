@@ -289,13 +289,14 @@ You are free to modify and redistribute it under the terms of
 the three-clause "New" BSD license (see LICENSE in source.)
 
 $NAME wouldn't be here if it weren't for the people who have
-contributed time, effort, love, and care to the project.
+contributed time, effort, care, and love to the project.
 
 \2Developers\2
     Mitchell Cooper, \"cooper\" <mitchell\@notroll.net> https://github.com/cooper
+    Hakkin Lain, \"Hakkin\" <hakkin\@notroll.net> https://github.com/Hakkin
+    James Lu, \"GL\" <GLolol\@overdrivenetworks.com> https://github.com/GLolol
     Kyle Paranoid, \"mac-mini\" <mac-mini\@mac-mini.org> https://github.com/mac-mini
     Daniel Leining, \"daniel\" <daniel\@the-beach.co> https://github.com/blasphemy
-    Hakkin Lain, \"Hakkin\" <hakkin\@notroll.net> https://github.com/hakkin
     Matthew Carey, \"swarley\" <matthew.b.carey\@gmail.com> https://github.com/swarley
     Alyx Wolcott, \"alyx\" <contact\@alyxw.me> https://github.com/alyx
     Carl Harris, \"Kitty\" <kitty\@xdk2.net> https://github.com/xKitty
