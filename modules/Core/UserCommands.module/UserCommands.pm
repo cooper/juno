@@ -282,7 +282,7 @@ sub info {
 
 \2***\2 this is \2$LNAME\2 $NAME version \2$VERSION ***\2
 
-Copyright (c) 2010-14, the $NAME developers
+Copyright (c) 2010-16, the $NAME developers
 
 This program is free software.
 You are free to modify and redistribute it under the terms of

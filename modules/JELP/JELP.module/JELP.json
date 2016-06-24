@@ -1,6 +1,4 @@
 {
-   "description" : "juno extensible linking protocol",
-   "package" : "M::JELP",
    "author" : {
       "name" : "Mitchell Cooper",
       "website" : "https://github.com/cooper"
@@ -12,6 +10,8 @@
          "JELP::Registration"
       ]
    },
+   "description" : "juno extensible linking protocol",
    "name" : "JELP",
-   "version" : "7.84"
+   "package" : "M::JELP",
+   "version" : "7.94"
 }

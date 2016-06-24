@@ -1,4 +1,4 @@
-# Copyright (c) 2010-14, Mitchell Cooper
+# Copyright (c) 2010-16, Mitchell Cooper
 #
 # @name:            "JELP::Outgoing"
 # @package:         "M::JELP::Outgoing"

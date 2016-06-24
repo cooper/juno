@@ -26,6 +26,7 @@ my %umodes = (
     invisible   => \&umode_normal,
     wallops     => \&umode_normal,
     deaf        => \&umode_normal,
+    bot         => \&umode_normal,
 
     # requires the power of a greater being
     admin       => \&umode_never,

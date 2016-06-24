@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# Copyright (c) 2010-14, Mitchell Cooper
+# Copyright (c) 2010-16, Mitchell Cooper
 use warnings; use strict; use 5.010;
 foreach ([qw(__WARN__ WARNING)], [qw(TERM terminate )], [qw(KILL terminate)],
          [qw(INT    terminate)], [qw(PIPE signalpipe)], [qw(HUP  signalhup)]) {

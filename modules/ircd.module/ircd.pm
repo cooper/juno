@@ -211,7 +211,7 @@ sub set_variables {
         SNAME   => 'juno',          # short ircd name
         LNAME   => 'juno-ircd',     # long ircd name
         VERSION => $VERSION,        # combination of these 3 in VERSION command
-        PROTO   => '6.1',
+        PROTO   => $VERSION
     );
 
     # defaults; only set if not existing already.
