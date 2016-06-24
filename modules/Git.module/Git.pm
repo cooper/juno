@@ -29,7 +29,7 @@ our %user_commands = (update => {
 
 our %oper_notices = (
     update_fail => 'update to %s git reposity by %s (%s@%s) failed',
-    update      => '%s git repository updated successfully by %s (%s@%s)'
+    update      => '%s git repository updated to version %s successfully by %s (%s@%s)'
 );
 
 sub init {
@@ -135,7 +135,7 @@ sub git_submodule_succeeded {
         close $fh;
     }
     $user->server_notice(update => "$$me{name} git repository updated successfully (now at $version)");
-    gnotice(update => $me->name, $user->notice_info);
+    gnotice(update => $me->name, $version, $user->notice_info);
 }
 
 # handle Evented API Engine manifest conflicts
