@@ -3056,5 +3056,8 @@ CHANGES:
 
         64. fixed an issue where mode translation left stray parameters when omitting modes unknown to the destination server.
 
-        65. do not floor opers with quit messages on server disconnect.
+        65. do not flood opers with quit messages on server disconnect.
             added user_kick notice instead of pretending to be a part.
+
+        66. this should fix some of the JSON manifest issues with UPDATE.
+            update Evented::API::Engine.
