@@ -28,100 +28,96 @@ our %user_commands = (update => {
 });
 
 our %oper_notices = (
-    update         => '%s (%s@%s) is updating %s',
     update_fail    => 'update to %s by %s (%s@%s) failed',
     update_success => '%s updated successfully by %s (%s@%s)'
 );
 
 sub init {
-    
+
     # allow UPDATE to work remotely.
     $mod->register_global_command(name => 'update') or return;
-    
+
     return 1;
 }
 
 sub ucmd_update {
     my ($user, $event, $server_mask_maybe) = @_;
-    
-    
+
+
     if (length $server_mask_maybe) {
         my @servers = $pool->lookup_server_mask($server_mask_maybe);
-        
+
         # no priv.
         if (!$user->has_flag('gupdate')) {
             $user->numeric(ERR_NOPRIVILEGES => 'gupdate');
             return;
         }
-        
+
         # no matches.
         if (!@servers) {
             $user->numeric(ERR_NOSUCHSERVER => $server_mask_maybe);
             return;
         }
-        
+
         # wow there are matches.
         my %done;
         foreach my $serv (@servers) {
-            
+
             # already did this one!
             next if $done{$serv};
             $done{$serv} = 1;
-            
+
             # if it's $me, skip.
             # if there is no connection (whether direct or not),
             # uh, I don't know what to do at this point!
             next if $serv->is_local;
             next unless $serv->{location};
-            
+
             # pass it on :)
-            $user->server_notice(update => "Sending update command to $$serv{name}")
-                if $user->is_local;
             $serv->{location}->fire_command_data(update => $user, "\$$$serv{sid}");
-            
+
         }
-        
+
         # if $me is done, just keep going.
         return 1 unless $done{$me};
-        
+
     }
-    
+
     $user->server_notice(update => "Updating $$me{name}");
-    gnotice(update => $user->notice_info, $me->name);
-    
+
     # git pull
     command([ 'git', 'pull' ], undef,
-    
+
         # success
         sub {
             git_pull_succeeded($user, $event);
         },
-        
+
         # error
         sub {
             my $error = shift;
             my @lines = split /\n/, $error;
             $user->server_notice(update => "$$me{name} pull failed: $_") foreach @lines;
             gnotice(update_fail => $me->name, $user->notice_info);
-            
+
             # handle Evented API Engine manifest conflicts
             deal_with_manifest($user, $event) if index($error, '.json') != -1;
-            
+
         }
     );
 }
 
 sub git_pull_succeeded {
     my ($user, $event) = @_;
-    
+
     # git submodule update --init
     command(['git', 'submodule', 'update', '--init'], undef,
-    
+
         # success
         sub {
             git_submodule_succeeded($user, $event);
         },
-        
+
         # error
         sub {
             my @lines = split /\n/, shift;
@@ -133,23 +129,28 @@ sub git_pull_succeeded {
 
 sub git_submodule_succeeded {
     my ($user, $event) = @_;
-    $user->server_notice(update => "$$me{name} updated successfully");
+    my $version = 'an unknown version';
+    if (open my $fh, '<', "$::run_dir/VERSION") {
+        $version = trim(<$fh>);
+        close $fh;
+    }
+    $user->server_notice(update => "$$me{name} updated successfully (repository is now at $version)");
     gnotice(update_success => $me->name, $user->notice_info);
 }
 
 # handle Evented API Engine manifest conflicts
 sub deal_with_manifest {
     my ($user, $event) = @_;
-    
+
     # if this server is in developer mode, we can't do much about it.
     return if $api->{developer};
-    
+
     # otherwise, dispose of the manifests for git to replace.
     # then retry from the beginning.
     command('rm $(find . | grep \'\.json\' | xargs)', undef, sub {
         ucmd_update($user, $event, $me->{name});
     });
-    
+
 }
 
 sub command {
@@ -158,7 +159,7 @@ sub command {
     my $error_msg    = '';
     my $process      = IO::Async::Process->new(
         command => $command,
-    
+
         # call stdout callback for each line
         stdout => {
             on_read => sub {
@@ -169,7 +170,7 @@ sub command {
                 }
             }
         },
-    
+
         # add stderr to error message
         stderr => {
             on_read => sub {
@@ -180,17 +181,17 @@ sub command {
                 }
             }
         },
-    
+
         on_finish => sub {
             my ($self, $exitcode) = @_;
-            
+
             # error
             if ($exitcode) {
                 L("Exception: $command_name: $error_msg");
                 $error_cb->($error_msg) if $error_cb;
                 return;
             }
-            
+
             L("Finished: $command_name");
             $finish_cb->() if $finish_cb;
         }

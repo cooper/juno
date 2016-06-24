@@ -3061,3 +3061,5 @@ CHANGES:
 
         66. this should fix some of the JSON manifest issues with UPDATE.
             update Evented::API::Engine.
+
+        67. report the repository version in UPDATE.
