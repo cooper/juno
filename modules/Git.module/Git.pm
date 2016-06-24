@@ -16,7 +16,7 @@ use strict;
 use 5.010;
 
 use IO::Async::Process;
-use utils qw(col gnotice);
+use utils qw(col gnotice trim);
 
 our ($api, $mod, $pool, $me);
 
