@@ -1129,12 +1129,7 @@ sub kick {
     $reason //= $user->{nick};
 
     # tell the local users of the channel.
-    # TODO: move some of this logic to channel.pm and make user_kick notice.
-    notice(user_part => $t_user->notice_info, $channel->name, "Kicked by $$user{nick}: $reason");
-    $channel->sendfrom_all($user->full, "KICK $$channel{name} $$t_user{nick} :$reason");
-
-    # remove the user from the channel.
-    $channel->remove_user($t_user);
+    $channel->user_get_kicked($t_user, $user, $reason);
 
     # tell the other servers.
     $pool->fire_command_all(kick => $user, $channel, $t_user, $reason);

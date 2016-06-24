@@ -742,10 +742,11 @@ sub user_get_kicked {
     # tell the local users of the channel.
     $channel->sendfrom_all($source->full, "KICK $$channel{name} $$user{nick} :$reason");
 
-    notice(user_part =>
+    notice(user_kick =>
         $user->notice_info,
         $channel->name,
-        "Kicked by $$source{nick}: $reason"
+        $source->name,
+        $reason
     ) if $source->isa('user');
 
     return $channel->remove_user($user);

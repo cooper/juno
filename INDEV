@@ -3055,3 +3055,6 @@ CHANGES:
         63. added support for incoming numerics in TS6.
 
         64. fixed an issue where mode translation left stray parameters when omitting modes unknown to the destination server.
+
+        65. do not floor opers with quit messages on server disconnect.
+            added user_kick notice instead of pretending to be a part.

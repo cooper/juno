@@ -74,8 +74,10 @@ sub unset_mode {
 # handle a user quit.
 # this does not close a connection; use $user->conn->done() for that.
 sub quit {
-    my ($user, $reason) = @_;
-    notice(user_quit => $user->notice_info, $user->{real}, $user->{server}{name}, $reason);
+    my ($user, $reason, $quiet) = @_;
+    notice(user_quit =>
+        $user->notice_info, $user->{real}, $user->{server}{name}, $reason)
+        unless $quiet;
 
     # send to all users in common channels as well as including himself.
     $user->send_to_channels("QUIT :$reason");

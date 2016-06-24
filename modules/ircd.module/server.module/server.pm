@@ -46,16 +46,21 @@ sub new {
 
 # handle a server quit.
 # does not close a connection; use $server->conn->done() for that.
+#
+# $reason = the actual reason to log and show to opers
+# $why = the reason to send in user quit messages
+# $quiet = do not send out notices
+#
 sub quit {
-    my ($server, $reason, $why) = @_;
+    my ($server, $reason, $why, $quiet) = @_;
     $why //= "$$server{parent}{name} $$server{name}";
 
     notice(server_quit =>
         $server->{name},
         $server->{sid},
         $server->{parent}{name},
-        $why
-    );
+        $reason
+    ) unless $quiet;
 
     # all children must be disposed of.
     foreach my $serv ($server->children) {
@@ -66,7 +71,7 @@ sub quit {
     # delete all of the server's users.
     my @users = $server->all_users;
     foreach my $user (@users) {
-        $user->quit($why);
+        $user->quit($why, 1);
     }
 
     $pool->delete_server($server) if $server->{pool};
