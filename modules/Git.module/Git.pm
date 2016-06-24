@@ -28,8 +28,8 @@ our %user_commands = (update => {
 });
 
 our %oper_notices = (
-    update_fail    => 'update to %s by %s (%s@%s) failed',
-    update_success => '%s updated successfully by %s (%s@%s)'
+    update_fail => 'update to %s git reposity by %s (%s@%s) failed',
+    update      => '%s git repository updated successfully by %s (%s@%s)'
 );
 
 sub init {
@@ -83,7 +83,7 @@ sub ucmd_update {
 
     }
 
-    $user->server_notice(update => "Updating $$me{name}");
+    $user->server_notice(update => "Updating $$me{name} git repository");
 
     # git pull
     command([ 'git', 'pull' ], undef,
@@ -134,8 +134,8 @@ sub git_submodule_succeeded {
         $version = trim(<$fh>);
         close $fh;
     }
-    $user->server_notice(update => "$$me{name} updated successfully (repository is now at $version)");
-    gnotice(update_success => $me->name, $user->notice_info);
+    $user->server_notice(update => "$$me{name} git repository updated successfully (now at $version)");
+    gnotice(update => $me->name, $user->notice_info);
 }
 
 # handle Evented API Engine manifest conflicts
