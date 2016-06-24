@@ -3064,4 +3064,4 @@ CHANGES:
 
         67. report the repository version in UPDATE.
             made Git notices less confusing.
-            
+            update Evented::API::Engine.
