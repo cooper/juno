@@ -203,7 +203,7 @@ sub sjoin {
 
     # if the mode perspective is not the server we're sending to, convert.
     $mode_str = $mode_serv->convert_cmode_string($server, $mode_str)
-      if $mode_serv != $server;
+        if $mode_serv != $server;
 
     # create @UID +UID etc. strings.
     my @member_str;
@@ -304,11 +304,14 @@ sub nick {
 #
 sub tmode {
     my ($server, $source, $channel, $time, $perspective, $mode_str) = @_; # why $time?
+    my $str = $perspective->convert_cmode_string($server, $mode_str, 1);
+    return if !length $str || $str eq '+';
+
     sprintf ":%s TMODE %d %s %s",
     ts6_id($source),
     $time,
     $channel->{name},
-    $perspective->convert_cmode_string($server, $mode_str, 1)
+    $str
 }
 
 # BMASK

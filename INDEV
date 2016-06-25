@@ -3097,3 +3097,6 @@ CHANGES:
             added names_character which allows modules to change the '=' char in NAMREPLYs.
             Channel::Secret now hides users in private or secret channels from NAMES. #34
             Channel::Secret now appropriately sets the NAMREPLY character to '@' or '*' for secret and private channels respectively.
+
+        74. fixed an issue where ->convert_cmode_string() did not consider extra +/-.
+            fixed an issue where TS6 TMODE was sent out with no modes if none were translatable.
