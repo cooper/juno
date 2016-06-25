@@ -142,9 +142,9 @@ sub cmode_type {
 
 # change 1 server's mode string to another server's.
 sub convert_cmode_string {
-    my ($server1, $server2, $modestr, $over_protocol) = @_;
+    my ($server1, $server2, $mode_str, $over_protocol) = @_;
     my $string = '';
-    my @m      = split /\s+/, $modestr;
+    my @m      = split /\s+/, $mode_str;
     my $modes  = shift @m;
     my $curr_p = -1;
     my $state  = 1;
@@ -192,9 +192,14 @@ sub convert_cmode_string {
         $string .= $new;
     }
 
-    my $newstring = join ' ', grep(length, $string, @m);
-    L("converted $modestr ($$server1{name}) to $newstring ($$server2{name})");
-    return $newstring;
+    # if we have nothing but a sign, return an empty string.
+    return '' if length $string == 1;
+
+    # join mode string and parameters
+    my $new_string = join ' ', grep(length, $string, @m);
+
+    L("$mode_str ($$server1{name}) -> $new_string ($$server2{name})");
+    return $new_string;
 }
 
 # true if the mode takes a parameter in this state.

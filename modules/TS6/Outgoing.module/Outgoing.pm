@@ -304,8 +304,10 @@ sub nick {
 #
 sub tmode {
     my ($server, $source, $channel, $time, $perspective, $mode_str) = @_; # why $time?
+
+    # convert to TS6
     my $str = $perspective->convert_cmode_string($server, $mode_str, 1);
-    return if !length $str || $str eq '+';
+    return if !length $str;
 
     sprintf ":%s TMODE %d %s %s",
     ts6_id($source),
