@@ -22,7 +22,7 @@ use overload
     '0+'     => sub { shift     },
     bool     => sub { 1         };
 
-use utils qw(v notice col conf irc_time);
+use utils qw(v notice col conf irc_time cut_to_limit);
 use List::Util   'first';
 use Scalar::Util 'blessed';
 
