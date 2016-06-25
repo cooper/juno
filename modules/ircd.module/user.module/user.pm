@@ -692,7 +692,7 @@ sub do_away {
 
 # handles a JOIN 0 or like locally for both local and remote users.
 sub do_part_all {
-    my $user = @_;
+    my $user = shift;
     my @channels = $user->channels;
     $_->handle_part($user, 1) foreach @channels;
     notice(user_part_all =>
