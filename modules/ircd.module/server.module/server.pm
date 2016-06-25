@@ -143,7 +143,7 @@ sub cmode_type {
 # change 1 server's mode string to another server's.
 sub convert_cmode_string {
     my ($server1, $server2, $modestr, $over_protocol) = @_;
-    my $string = '+';
+    my $string = '';
     my @m      = split /\s+/, $modestr;
     my $modes  = shift @m;
     my $curr_p = -1;
@@ -153,7 +153,7 @@ sub convert_cmode_string {
         # state change.
         if ($letter eq '+' || $letter eq '-') {
             my $new  = $letter eq '+';
-            $string .= $letter unless $state == $new;
+            $string .= $letter if !length $string || $state != $new;
             $state   = $new;
             next;
         }
