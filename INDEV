@@ -3103,3 +3103,4 @@ CHANGES:
 
         75. add ->convert_umode_string().
             add TS6 outgoing command MODE, used only for user mode changes. #40
+            fixed problem where ->convert_cmode_string() and ->convert_umode_string() would spit out +- with no modes between.

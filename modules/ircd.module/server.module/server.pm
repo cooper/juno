@@ -107,16 +107,20 @@ sub umode_letter {
 # convert umodes
 sub convert_umode_string {
     my ($server1, $server2, $mode_str) = @_;
-    my $string = '';
-    my $modes  = (split /\s+/, $mode_str, 2)[0];
-    my $state  = 1;
+
+    my $string = '';                                # new (+/-)modes
+    my $modes  = (split /\s+/, $mode_str, 2)[0];    # old (+/-)modes
+    my $state  = 1;                                 # current state
+    my $since_state;                                # changes since state change
+
     foreach my $letter (split //, $modes) {
 
         # state change.
         if ($letter eq '+' || $letter eq '-') {
             my $new  = $letter eq '+';
-            $string .= $letter if !length $string || $state != $new;
+            $string .= $letter if $since_state && (!length $string || $state != $new);
             $state   = $new;
+            undef $since_state;
             next;
         }
 
@@ -128,6 +132,7 @@ sub convert_umode_string {
         next if !length $new;
 
         $string .= $new;
+        $since_state++;
     }
 
     # if we have nothing but a sign, return an empty string.
@@ -179,18 +184,22 @@ sub cmode_type {
 # convert cmodes and their parameters
 sub convert_cmode_string {
     my ($server1, $server2, $mode_str, $over_protocol) = @_;
-    my $string = '';
-    my @m      = split /\s+/, $mode_str;
-    my $modes  = shift @m;
-    my $curr_p = -1;
-    my $state  = 1;
+
+    my $string = '';                        # new (+/-)modes
+    my @m      = split /\s+/, $mode_str;    # old mode string parts
+    my $modes  = shift @m;                  # old (+/-)modes
+    my $curr_p = -1;                        # current parameter index
+    my $state  = 1;                         # current state
+    my $since_state;                        # changes since state change
+
     foreach my $letter (split //, $modes) {
 
         # state change.
         if ($letter eq '+' || $letter eq '-') {
             my $new  = $letter eq '+';
-            $string .= $letter if !length $string || $state != $new;
+            $string .= $letter if $since_state && (!length $string || $state != $new);
             $state   = $new;
+            undef $since_state;
             next;
         }
 
@@ -226,6 +235,7 @@ sub convert_cmode_string {
         }
 
         $string .= $new;
+        $since_state++;
     }
 
     # if we have nothing but a sign, return an empty string.
