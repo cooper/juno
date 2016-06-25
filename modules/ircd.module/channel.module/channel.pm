@@ -555,13 +555,13 @@ sub names {
     }
 
     # fire an event which allows modules to change the character.
-    my $c = \'=';
-    $channel->fire_event(names_character => $c);
+    my $c = '=';
+    $channel->fire_event(names_character => \$c);
 
     # send out the NAMREPLYs, if any. if no users matched, none will be sent.
     # then, send out ENDOFNAMES unless told not to by the caller.
-    $user->numeric(RPL_NAMREPLY   => $$c, $channel->name, $_) foreach @str;
-    $user->numeric(RPL_ENDOFNAMES =>      $channel->name    ) unless $no_endof;
+    $user->numeric(RPL_NAMREPLY   => $c, $channel->name, $_) foreach @str;
+    $user->numeric(RPL_ENDOFNAMES =>     $channel->name    ) unless $no_endof;
 
 }
 
