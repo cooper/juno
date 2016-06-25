@@ -3087,3 +3087,5 @@ CHANGES:
             added outgoing part_all for JELP (PARTALL).
             added handler for TS6 JOIN 0.
             added handler for JELP PARTALL.
+
+        72. working on adding channel private (+p) to the Channel::Secret module. #34

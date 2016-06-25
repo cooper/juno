@@ -29,8 +29,8 @@
     Channel::Invite             # Channel invitation support (INVITE, +i, +I)
     Channel::Key                # Channel key support (+k)
     Channel::Limit              # Channel user limit support (+l)
-    Channel::Secret             # Secret channel support (+s)
-    Channel::OperOnly           #       Oper-only channel support (+O)
+    Channel::Secret             # Secret/private channel support (+s/+p)
+    Channel::OperOnly           # Oper-only channel support (+O)
     Channel::Forward            # Channel forward support (+f)
     Channel::Mute               # Channel mute/quiet ban (+Z)
     Channel::TopicAdditions     # commands to prepend or append topic
