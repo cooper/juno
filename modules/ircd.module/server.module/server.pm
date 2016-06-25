@@ -146,7 +146,7 @@ sub convert_cmode_string {
     my $string = '';
     my @m      = split /\s+/, $modestr;
     my $modes  = shift @m;
-    my $curr_p = 0;
+    my $curr_p = -1;
     my $state  = 1;
     foreach my $letter (split //, $modes) {
 
@@ -157,7 +157,13 @@ sub convert_cmode_string {
             next;
         }
 
+        # find the mode.
         my $name = $server1->cmode_name($letter) or next;
+
+        # this mode takes a parameter.
+        $curr_p++ if $server1->cmode_takes_parameter($name, $state);
+
+        # if over protocol, some parameter translate might be necessary.
         if ($over_protocol) {
 
             # if it's a status mode, translate the UID maybe.
@@ -165,9 +171,6 @@ sub convert_cmode_string {
                 my $user    = $server1->uid_to_user($m[$curr_p]);
                 $m[$curr_p] = $server2->user_to_uid($user) if $user;
             }
-
-            # this one takes a parameter.
-            $curr_p++ if $server1->cmode_takes_parameter($name, $state);
 
         }
 
