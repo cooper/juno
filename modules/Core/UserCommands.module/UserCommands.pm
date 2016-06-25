@@ -492,7 +492,7 @@ sub _cjoin {
     # part all channels.
     if ($given eq '0') {
         $user->do_part_all();
-        $pool->fire_command(part_all => $user);
+        $pool->fire_command_all(part_all => $user);
         return 1;
     }
 
