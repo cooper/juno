@@ -3079,3 +3079,11 @@ CHANGES:
         added ->do_away() method which handles an away locally, even for remote users.
         this fixes an issue where away messages set remotely were unlimited in length.
         it also fixes #38 where away-notify only worked for local users.
+
+        71. add user ->do_part_all() to handle JOIN 0 locally, even for remote users.
+            the client JOIN 0 handler now fires a part_all outgoing command. closes #37.
+            added oper notice user_part_all to eliminate flooding on JOIN 0.
+            added outgoing part_all for TS6 (JOIN 0).
+            added outgoing part_all for JELP (PARTALL).
+            added handler for TS6 JOIN 0.
+            added handler for JELP PARTALL.

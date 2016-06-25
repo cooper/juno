@@ -719,15 +719,19 @@ sub handle_privmsgnotice {
     return 1;
 }
 
-# handle a part. send it to local users.
+# handle a part locally for both local and remote users.
 sub handle_part {
-    my ($channel, $user, $reason) = @_;
+    my ($channel, $user, $reason, $quiet) = @_;
 
     # remove the user and tell the local channel users
-    my $ureason = defined $reason ? " :$reason" : '';
+    my $ureason = length $reason ? " :$reason" : '';
     $channel->sendfrom_all($user->full, "PART $$channel{name}$ureason");
     $channel->remove($user);
-    notice(user_part => $user->notice_info, $channel->name, $reason // 'no reason');
+
+    # tell opers unless it's quiet
+    notice(user_part =>
+        $user->notice_info, $channel->name, $reason // 'no reason')
+        unless $quiet;
 
     return 1;
 }

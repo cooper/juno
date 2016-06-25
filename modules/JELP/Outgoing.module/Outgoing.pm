@@ -48,6 +48,7 @@ my %ocommands = (
     snotice         => \&snotice,
     version         => \&version,
     login           => \&login,
+    part_all        => \&partall,
 
     # JELP-specific
 
@@ -247,6 +248,12 @@ sub _join {
     map ":$$user{uid} JOIN $$_{name} $time", @channels;
 }
 
+
+# part all channels
+sub partall {
+    my ($to_server, $user) = @_;
+    ":$$user{uid} PARTALL"
+}
 
 # add oper flags
 sub oper {

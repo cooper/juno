@@ -690,6 +690,16 @@ sub do_away {
     return 2; # means unset
 }
 
+# handles a JOIN 0 or like locally for both local and remote users.
+sub do_part_all {
+    my $user = @_;
+    my @channels = $user->channels;
+    $_->handle_part($user, 1) foreach @channels;
+    notice(user_part_all =>
+        $user->notice_info, join(' ', map $_->{name}, @channels));
+    return 1;
+}
+
 # CAP shortcuts.
 sub has_cap    { &safe or return; shift->conn->has_cap(@_)    }
 sub add_cap    { &safe or return; shift->conn->add_cap(@_)    }

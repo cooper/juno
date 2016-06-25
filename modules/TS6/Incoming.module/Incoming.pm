@@ -693,8 +693,7 @@ sub _join {
 
     # JOIN 0 - part all channels.
     if ($ts eq '0' && !length $ch_name) {
-        # TODO: this is not done!
-        # p.s. it's not done well for JELP either
+        $user->do_part_all();
         $msg->forward(part_all => $user);
         return 1;
     }

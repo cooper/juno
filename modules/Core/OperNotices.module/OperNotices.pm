@@ -34,6 +34,7 @@ our %oper_notices = (
     user_nick_change        => '%s (%s@%s) is now known as %s',
     user_join               => '%s (%s@%s) joined %s',
     user_part               => '%s (%s@%s) parted %s (%s)',
+    user_part_all           => '%s (%s@%s) parted all channels: %s',
     user_kick               => '%s (%s@%s) was kicked from %s by %s (%s)',
     user_mask_change        => '%s switched from (%s@%s) to (%s@%s)',
     user_identifier_taken   => '%s introduced %s (%s@%s) with UID %s, which is already taken by %s (%s@%s)',

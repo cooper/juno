@@ -491,7 +491,8 @@ sub _cjoin {
 
     # part all channels.
     if ($given eq '0') {
-        $user->handle_unsafe("PART $_") foreach map { $_->name } $user->channels;
+        $user->do_part_all();
+        $pool->fire_command(part_all => $user);
         return 1;
     }
 

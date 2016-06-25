@@ -156,6 +156,11 @@ my %scommands = (
     PING => {
         params => 'any',
         code   => \&ping
+    },
+    PARTALL => {
+                  # :uid PARTALL
+        params => '-source(user)',
+        code   => \&partall
     }
 );
 
@@ -887,6 +892,16 @@ sub login {
 sub ping {
     my ($server, $msg, $given) = @_;
     $server->sendme("PONG $$me{name} :$given");
+}
+
+sub partall {
+    my ($server, $msg, $user) = @_;
+    $user->do_part_all();
+
+    # === Forward ===
+    $msg->forward(part_all => $user);
+
+    return 1;
 }
 
 $mod

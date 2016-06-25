@@ -53,7 +53,8 @@ our %ts6_outgoing_commands = (
      save_user      => \&save,
      num            => \&num,
    # links          => \&links,
-     whois          => \&whois
+     whois          => \&whois,
+     part_all       => \&join_zero
 );
 
 sub init {
@@ -231,11 +232,6 @@ sub sjoin_burst {
 
 # JOIN
 #
-# 1.
-# source:       user
-# parameters:   '0' (one ASCII zero)
-# propagation:  broadcast
-#
 # 2.
 # source:       user
 # parameters:   channelTS, channel, '+' (a plus sign)
@@ -263,6 +259,19 @@ sub _join {
             $channel->{name};
     }
     return @lines;
+}
+
+# JOIN
+#
+# 1.
+# source:       user
+# parameters:   '0' (one ASCII zero)
+# propagation:  broadcast
+#
+sub join_zero {
+    my ($to_server, $user) = @_;
+    my $id = ts6_id($user);
+    ":$id JOIN 0"
 }
 
 # NICK
