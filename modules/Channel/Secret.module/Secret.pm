@@ -26,7 +26,7 @@ our ($api, $mod, $pool);
 
 sub init {
 
-    # register secret mode block
+    # register mode blocks
     $mod->register_channel_mode_block(
         name => 'secret',
         code => \&M::Core::ChannelModes::cmode_normal
@@ -34,7 +34,7 @@ sub init {
 
     # register private mode block
     $mod->register_channel_mode_block(
-        name => 'secret',
+        name => 'private',
         code => \&M::Core::ChannelModes::cmode_normal
     ) or return;
 
