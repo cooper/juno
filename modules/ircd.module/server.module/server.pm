@@ -161,13 +161,17 @@ sub convert_cmode_string {
         my $name = $server1->cmode_name($letter) or next;
 
         # this mode takes a parameter.
-        $curr_p++ if $server1->cmode_takes_parameter($name, $state);
+        my $takes_param;
+        if ($server1->cmode_takes_parameter($name, $state)) {
+            $curr_p++;
+            $takes_param++;
+        }
 
         # if over protocol, some parameter translate might be necessary.
         if ($over_protocol) {
 
             # if it's a status mode, translate the UID maybe.
-            if ($server1->cmode_type($name) == 4 && length $m[$curr_p]) {
+            if ($server1->cmode_type($name) == 4 && $takes_param && length $m[$curr_p]) {
                 my $user    = $server1->uid_to_user($m[$curr_p]);
                 $m[$curr_p] = $server2->user_to_uid($user) if $user;
             }
@@ -180,7 +184,7 @@ sub convert_cmode_string {
         # the second server does not know this mode.
         # remove the parameter if it has one.
         if (!length $new) {
-            delete $m[$curr_p] if $server1->cmode_takes_parameter($name, $state);
+            undef $m[$curr_p] if $takes_param;
             next;
         }
 
