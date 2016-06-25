@@ -187,7 +187,7 @@ sub convert_cmode_string {
         $string .= $new;
     }
 
-    my $newstring = join ' ', grep { length } $string, @m;
+    my $newstring = join ' ', grep(length, $string, @m);
     L("converted $modestr ($$server1{name}) to $newstring ($$server2{name})");
     return $newstring;
 }
