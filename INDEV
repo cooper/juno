@@ -3072,5 +3072,7 @@ CHANGES:
             fixed warning caused by trying to unset away when not away.
 
         69. new dependency Net::IP. #33
+            fixed several issues with translation to servers lacking certain modes, particularly with channel status.
+            the new behavior is to remove and forward without the unknown modes and their parameters, if any. #7
 
-    7. 
+    7.
