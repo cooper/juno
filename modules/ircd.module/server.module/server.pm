@@ -184,7 +184,7 @@ sub convert_cmode_string {
         # the second server does not know this mode.
         # remove the parameter if it has one.
         if (!length $new) {
-            undef $m[$curr_p] if $takes_param;
+            delete $m[$curr_p] if $takes_param;
             next;
         }
 
