@@ -47,6 +47,7 @@ our %user_numerics = (
     RPL_ADMINLOC1        => [257, ':%s'                                                                   ],
     RPL_ADMINLOC2        => [258, ':%s'                                                                   ],
     RPL_ADMINEMAIL       => [259, ':%s'                                                                   ],
+    RPL_LOAD2HI          => [263, '%s :Command dropped'                                                   ],
     RPL_LOCALUSERS       => [265, '%d %d :Current local users %d, max %d'                                 ],
     RPL_GLOBALUSERS      => [266, '%d %d :Current global users %d, max %d'                                ],
     RPL_AWAY             => [301, '%s :%s'                                                                ],

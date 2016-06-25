@@ -527,24 +527,42 @@ sub localjoin {
 # send NAMES.
 sub names {
     my ($channel, $user, $no_endof) = @_;
+
+    my $in_channel = $channel->has_user($user);
+    my $prefixes   = $user->has_cap('multi-prefix') ? 'prefixes' : 'prefix';
+
     my @str;
     my $curr = 0;
     foreach my $usr ($channel->users) {
 
+        # some extension said not to show this user.
+        # the first user is the one being considered;
+        # the second is the one which initiated the NAMES.
+        next if $channel->fire_event(show_in_names => $usr, $user)->stopper;
+
         # if this user is invisible, do not show him unless the querier is in a common
         # channel or has the see_invisible flag.
         if ($usr->is_mode('invisible')) {
-            next if !$channel->has_user($user) && !$user->has_flag('see_invisible');
+            next if !$in_channel && !$user->has_flag('see_invisible');
         }
 
         # add him.
-        my $prefixes = $user->has_cap('multi-prefix') ? 'prefixes' : 'prefix';
         $str[$curr] .= $channel->$prefixes($usr).$usr->{nick}.q( );
+
+        # if the current string is over 500 chars, start a new one.
         $curr++ if length $str[$curr] > 500;
 
     }
-    $user->numeric(RPL_NAMREPLY   => '=', $channel->name, $_) foreach @str;
+
+    # fire an event which allows modules to change the character.
+    my $c = \'=';
+    $channel->fire_event(names_character => $c);
+
+    # send out the NAMREPLYs, if any. if no users matched, none will be sent.
+    # then, send out ENDOFNAMES unless told not to by the caller.
+    $user->numeric(RPL_NAMREPLY   => $$c, $channel->name, $_) foreach @str;
     $user->numeric(RPL_ENDOFNAMES =>      $channel->name    ) unless $no_endof;
+
 }
 
 # send mode information.

@@ -3089,3 +3089,11 @@ CHANGES:
             added handler for JELP PARTALL.
 
         72. working on adding channel private (+p) to the Channel::Secret module. #34
+
+        73. NAMES without a parameter is currently not supported.
+            instead of sending ERR_NEEDMOREPARAMS, use RPL_LOAD2HI and RPL_ENDOFNAMES.
+            fixed issue where show_in_whois was fired twice, each time with different arguments.
+            added show_in_names which allows modules to hide users from NAMES.
+            added names_character which allows modules to change the '=' char in NAMREPLYs.
+            Channel::Secret now hides users in private or secret channels from NAMES. #34
+            Channel::Secret now appropriately sets the NAMREPLY character to '@' or '*' for secret and private channels respectively.

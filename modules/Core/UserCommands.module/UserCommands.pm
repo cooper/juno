@@ -119,7 +119,7 @@ our %user_commands = (
         code   => \&names,
         desc   => 'view the user list of a channel',
         fntsy  => 1,
-        params => '*'
+        params => '*(opt)'
     },
     OPER => {
         code   => \&oper,
@@ -549,6 +549,14 @@ sub _cjoin {
 
 sub names {
     my ($user, $event, $given) = @_;
+
+    # we aren't currently supporting NAMES without a parameter
+    if (!defined $given) {
+        $user->numeric(RPL_LOAD2HI => 'NAMES');
+        $user->numeric(RPL_ENDOFNAMES => '*');
+        return;
+    }
+
     foreach my $chname (split ',', $given) {
         # nonexistent channels return no error,
         # and RPL_ENDOFNAMES is sent no matter what
@@ -556,6 +564,7 @@ sub names {
         $channel->names($user, 1) if $channel;
         $user->numeric(RPL_ENDOFNAMES => $channel ? $channel->name : $chname);
     }
+
     return 1;
 }
 
@@ -652,6 +661,9 @@ sub add_whois_callbacks {
     my $show_channels = sub {
         my ($quser, $ruser) = @_;
 
+        # $quser = the one being queried
+        # $ruser = the one requesting the info
+
         # some channels may be skipped using event stopper.
         my @channels;
         foreach my $channel ($quser->channels) {
@@ -668,15 +680,7 @@ sub add_whois_callbacks {
     my $channels_list = sub {
         my ($quser, $ruser) = @_;
         my @all_chans = @{ delete $channels{$quser} || [] };
-        my @show_chans;
-
-        # show it? assuming same logic as /LIST.
-        foreach my $channel (@all_chans) {
-            next if $channel->fire_event(show_in_whois => $ruser)->stopper;
-            push @show_chans, $channel;
-        }
-
-        return join ' ', map $_->{name}, @show_chans;
+        return join ' ', map $_->{name}, @all_chans;
     };
 
     # server information.

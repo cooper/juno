@@ -26,20 +26,20 @@ our ($api, $mod, $pool);
 
 sub init {
 
-    # register secret mode block.
+    # register secret mode block
     $mod->register_channel_mode_block(
         name => 'secret',
         code => \&M::Core::ChannelModes::cmode_normal
     ) or return;
 
-    # register private mode block.
+    # register private mode block
     $mod->register_channel_mode_block(
         name => 'secret',
         code => \&M::Core::ChannelModes::cmode_normal
     ) or return;
 
-    # Hook on the show_in_list and show_in_whois events to prevent secret
-    # channels from showing in list or WHOIS
+    # Hook on the show_in_list, show_in_whois, and show_in_names events to
+    # prevent secret or private channels from showing
     $pool->on('channel.show_in_list' => \&show_in_list,
         with_eo => 1,
         name => 'channel.secret.show_in_list'
@@ -47,6 +47,13 @@ sub init {
     $pool->on('channel.show_in_whois' => \&show_in_whois,
         with_eo => 1,
         name => 'channel.secret.show_in_whois'
+    );
+
+    # names_character allows us to change the "=" in NAMES to "@" or "*"
+    # for secret and private channels respectively
+    $pool->on('channel.names_character' => \&names_character,
+        with_eo => 1,
+        name => 'channel.secret.names_character'
     );
 
     return 1;
@@ -58,12 +65,12 @@ sub show_in_list {
     my ($channel, $event, $user) = @_;
 
     # if it's neither secret not private, we are not concerned with this.
-    return $SHOW_IT if
-        !$channel->is_mode('secret') && !$channel->is_mode('private');
+    return $SHOW_IT
+        if !$channel->is_mode('secret') && !$channel->is_mode('private');
 
     # if the user asking has super powers, show it.
-    return $SHOW_IT if
-        $user->has_flag('see_secret');
+    return $SHOW_IT
+        if $user->has_flag('see_secret');
 
     # if it is secret or private, but this guy's in there, show it.
     return $SHOW_IT
@@ -73,7 +80,10 @@ sub show_in_list {
 }
 
 sub show_in_whois {
-    my ($channel, $event, $user) = @_;
+    my ($channel, $event, $quser, $ruser) = @_;
+
+    # $quser = the one being queried
+    # $ruser = the one requesting the info
 
     # if it's not secret, we are not concerned with this
     # because private channels show up in WHOIS.
@@ -82,13 +92,38 @@ sub show_in_whois {
 
     # if the user asking has super powers, show it.
     return $SHOW_IT
-        if $user->has_flag('see_secret');
+        if $ruser->has_flag('see_secret');
 
-    # if it is secret, but this guy's in there, show it.
+    # if it is secret, but the one requesting it is in there, show it.
     return $SHOW_IT
-        if $channel->has_user($user);
+        if $channel->has_user($ruser);
 
     $event->stop;
+}
+
+sub show_in_names {
+    my ($channel, $event, $quser, $ruser) = @_;
+
+    # $quser = the one being queried
+    # $ruser = the one requesting the info
+
+    # if it's neither secret not private, we are not concerned with this.
+    return $SHOW_IT
+        if !$channel->is_mode('secret') && !$channel->is_mode('private');
+
+    # if it is secret or private, but this guy's in there, show it.
+    return $SHOW_IT
+        if $channel->has_user($ruser);
+
+    $event->stop;
+}
+
+# override the character in NAMES
+sub names_character {
+    my ($channel, $event, $c) = @_;
+    # $c is a string reference with the current character
+    $$c = "*" if $channel->is_mode('private');
+    $$c = "@" if $channel->is_mode('secret'); # more important than private
 }
 
 $mod
