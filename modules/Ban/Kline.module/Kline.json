@@ -1,13 +1,13 @@
 {
-   "package" : "M::Ban::Kline",
    "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
    },
-   "name" : "Ban::Kline",
    "depends" : {
       "modules" : "Ban"
    },
-   "version" : "1.1",
-   "description" : "ban users from server by hostmask"
+   "description" : "ban users from server by hostmask",
+   "name" : "Ban::Kline",
+   "package" : "M::Ban::Kline",
+   "version" : "1.2"
 }

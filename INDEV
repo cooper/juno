@@ -3100,3 +3100,6 @@ CHANGES:
 
         74. fixed an issue where ->convert_cmode_string() did not consider extra +/-.
             fixed an issue where TS6 TMODE was sent out with no modes if none were translatable.
+
+        75. add ->convert_umode_string().
+            add TS6 outgoing command MODE, used only for user mode changes. #40

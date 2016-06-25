@@ -1,4 +1,4 @@
-# Copyright (c) 2015, mitchell cooper
+# Copyright (c) 2016, Mitchell Cooper
 #
 # Created on Mitchells-MacBook-Pro.local
 # Sat Feb 14 17:58:20 EST 2015
@@ -35,16 +35,16 @@ sub init {
 
 sub _match {
     my $str = shift;
-    
+
     # does it match a user?
     if (my $user = $pool->lookup_user_nick($str)) {
         return '*@'.$user->{host};
     }
-    
+
     # user[@]host only
     my @parts  = utils::pretty_mask_parts($str);
     my $result = "$parts[1]\@$parts[2]";
-    
+
     return if $result eq '*@*';
     return $result;
 }
@@ -57,4 +57,3 @@ sub user_matches {
 }
 
 $mod
-

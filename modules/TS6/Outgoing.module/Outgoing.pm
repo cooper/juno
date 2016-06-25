@@ -1,4 +1,4 @@
-# Copyright (c) 2014, mitchellcooper
+# Copyright (c) 2016, Mitchell Cooper
 #
 # Created on Mitchells-Mac-mini.local
 # Fri Aug  8 22:47:11 EDT 2014
@@ -28,7 +28,7 @@ our %ts6_outgoing_commands = (
      new_server     => \&sid,
      new_user       => \&euid,
      nickchange     => \&nick,
-   # umode          => \&umode,
+     umode          => \&umode,
      privmsgnotice  => \&privmsgnotice,
      privmsgnotice_server_mask => \&privmsgnotice_smask,
      join           => \&_join,
@@ -635,6 +635,24 @@ sub num {
     my ($to_server, $server, $t_user, $num, $message) = @_;
     my ($sid, $uid) = (ts6_id($server), ts6_id($t_user));
     ":$sid $num $uid $message"
+}
+
+# MODE
+#
+# 1.
+# source: user
+# parameters: client, umode changes
+# propagation: broadcast
+#
+# 2.
+# source: any
+# parameters: channel, cmode changes, opt. cmode parameters...
+#
+sub umode {
+    my ($to_server, $user, $mode_str) = @_;
+    my $str = $me->convert_umode_string($to_server, $mode_str);
+    my $id = ts6_id($user);
+    ":$id MODE $str"
 }
 
 $mod

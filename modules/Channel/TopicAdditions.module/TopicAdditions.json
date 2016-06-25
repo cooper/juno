@@ -1,16 +1,16 @@
 {
-   "description" : "additional topic management commands",
    "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
    },
-   "name" : "Channel::TopicAdditions",
    "depends" : {
       "modules" : [
          "Core::UserCommands",
          "Base::UserCommands"
       ]
    },
-   "version" : "0.3",
-   "package" : "M::Channel::TopicAdditions"
+   "description" : "additional topic management commands",
+   "name" : "Channel::TopicAdditions",
+   "package" : "M::Channel::TopicAdditions",
+   "version" : "0.4"
 }

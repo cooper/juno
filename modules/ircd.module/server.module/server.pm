@@ -104,6 +104,42 @@ sub umode_letter {
     return $server->{umodes}{$name}{letter};
 }
 
+# convert umodes
+sub convert_umode_string {
+    my ($server1, $server2, $mode_str) = @_;
+    my $string = '';
+    my $modes  = (split /\s+/, $mode_str, 2)[0];
+    my $state  = 1;
+    foreach my $letter (split //, $modes) {
+
+        # state change.
+        if ($letter eq '+' || $letter eq '-') {
+            my $new  = $letter eq '+';
+            $string .= $letter if !length $string || $state != $new;
+            $state   = $new;
+            next;
+        }
+
+        # translate the letter.
+        my $name = $server1->umode_name($letter) or next;
+        my $new  = $server2->umode_letter($name);
+
+        # the second server does not know this mode.
+        next if !length $new;
+
+        $string .= $new;
+    }
+
+    # if we have nothing but a sign, return an empty string.
+    if (length $string == 1) {
+        L("$mode_str ($$server1{name}) -> nothing at all ($$server2{name})");
+        return '';
+    }
+
+    L("$mode_str ($$server1{name}) -> $string ($$server2{name})");
+    return $string;
+}
+
 # associate a letter with a cmode name.
 sub add_cmode {
     my ($server, $name, $mode, $type) = @_;
@@ -140,7 +176,7 @@ sub cmode_type {
     return $server->{cmodes}{$name}{type} // -1;
 }
 
-# change 1 server's mode string to another server's.
+# convert cmodes and their parameters
 sub convert_cmode_string {
     my ($server1, $server2, $mode_str, $over_protocol) = @_;
     my $string = '';
@@ -193,7 +229,10 @@ sub convert_cmode_string {
     }
 
     # if we have nothing but a sign, return an empty string.
-    return '' if length $string == 1;
+    if (length $string == 1) {
+        L("$mode_str ($$server1{name}) -> nothing at all ($$server2{name})");
+        return '';
+    }
 
     # join mode string and parameters
     my $new_string = join ' ', grep(length, $string, @m);

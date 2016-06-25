@@ -1,4 +1,4 @@
-# Copyright (c) 2014, mitchellcooper
+# Copyright (c) 2016, Mitchell Cooper
 #
 # Created on Mitchells-Mac-mini.local
 # Thu Jun 26 18:26:51 EDT 2014

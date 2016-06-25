@@ -12,5 +12,5 @@
    "description" : "the core set of pre-registration commands",
    "name" : "Core::RegistrationCommands",
    "package" : "M::Core::RegistrationCommands",
-   "version" : "8.2"
+   "version" : "8.3"
 }

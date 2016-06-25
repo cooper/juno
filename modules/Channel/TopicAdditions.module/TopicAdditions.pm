@@ -1,4 +1,4 @@
-# Copyright (c) 2014, mitchellcooper
+# Copyright (c) 2016, Mitchell Cooper
 #
 # Created on Mitchells-MacBook-Pro.local
 # Tue Dec 30 21:42:38 EST 2014

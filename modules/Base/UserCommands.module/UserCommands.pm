@@ -1,4 +1,4 @@
-# Copyright (c) 2014, Mitchell Cooper
+# Copyright (c) 2016, Mitchell Cooper
 #
 # @name:            "Base::UserCommands"
 # @version:         ircd->VERSION

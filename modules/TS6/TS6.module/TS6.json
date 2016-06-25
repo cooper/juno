@@ -1,12 +1,8 @@
 {
    "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
    },
-   "description" : "TS version 6 linking protocol",
-   "package" : "M::TS6",
-   "version" : "0.1",
-   "name" : "TS6",
    "depends" : {
       "modules" : [
          "TS6::Utils",
@@ -15,5 +11,9 @@
          "TS6::Outgoing",
          "TS6::Registration"
       ]
-   }
+   },
+   "description" : "TS version 6 linking protocol",
+   "name" : "TS6",
+   "package" : "M::TS6",
+   "version" : "0.2"
 }
