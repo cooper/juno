@@ -981,7 +981,7 @@ sub away {
 
     # if the reason is not present, the user has returned.
     if (!length $reason) {
-        $user->unset_away();
+        $user->do_away();
 
         # === Forward ===
         $msg->forward(return_away => $user);
@@ -990,7 +990,7 @@ sub away {
     }
 
     # otherwise, set the away reason.
-    $user->set_away($reason);
+    $user->do_away($reason);
 
     # === Forward ===
     $msg->forward(away => $user);

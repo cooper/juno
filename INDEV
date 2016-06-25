@@ -3075,4 +3075,7 @@ CHANGES:
             fixed several issues with translation to servers lacking certain modes, particularly with channel status.
             the new behavior is to remove and forward without the unknown modes and their parameters, if any. #7
 
-    7.
+    7. reflect limit:channel in RPL_ISUPPORT.
+        added ->do_away() method which handles an away locally, even for remote users.
+        this fixes an issue where away messages set remotely were unlimited in length.
+        it also fixes #38 where away-notify only worked for local users.

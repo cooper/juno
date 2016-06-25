@@ -649,6 +649,47 @@ sub save_locally {
     return 1;
 }
 
+# handles and sets an AWAY locally for both local and remote users.
+#
+# to unset, $reason should be undef or ''
+#
+# returns
+#   nothing (failed),
+#   1 (set away successfully),
+#   2 (unset away successfully)
+#
+sub do_away {
+    my ($user, $reason) = @_;
+
+    # setting
+    if (length $reason) {
+
+        # truncate it to our local limit.
+        my $reason = cut_to_limit('away', $reason);
+
+        # set away, tell the user if he's local.
+        $user->set_away($reason);
+        $user->numeric('RPL_NOWAWAY') if $user->is_local;
+
+        # let people with away-notify know he's away.
+        $user->send_to_channels_with_cap("AWAY :$reason", 'away-notify');
+
+        return 1; # means set
+    }
+
+    # unsetting
+    return unless length $user->{away};
+
+    # unset away, tell the user if he's local.
+    $user->unset_away;
+    $user->numeric('RPL_UNAWAY') if $user->is_local;
+
+    # let people with away-notify know he's back.
+    $user->send_to_channels_with_cap('AWAY', 'away-notify');
+
+    return 2; # means unset
+}
+
 # CAP shortcuts.
 sub has_cap    { &safe or return; shift->conn->has_cap(@_)    }
 sub add_cap    { &safe or return; shift->conn->add_cap(@_)    }

@@ -532,10 +532,12 @@ sub _cjoin {
 
         # tell servers that the user joined and the automatic modes were set.
         $pool->fire_command_all(join => $user, $channel, $time);
-        # why do we need $time in either of these? just use $channel->{time}
         $pool->fire_command_all(cmode => $me, $channel, $time, $me, $sstr) if $sstr;
+
         # hmm, this needs to be reconsidered since TS6 and some protocols use a channel
         # burst command (SJOIN) with both user and modes during channel creation.
+        # TODO: make a new thing like join_with_modes or create_channel
+        # or something like that.
 
         # do the actual local join.
         $channel->localjoin($user, $time);
@@ -785,52 +787,13 @@ sub ison {
     $user->numeric(RPL_ISON => "@found");
 }
 
-#sub commands {
-#    my $user = shift;
-#
-#    # get the width
-#    my $i = 0;
-#    my %commands = %{ $pool->{user_commands} };
-#    foreach my $command (keys %commands) {
-#        $i = length $command if length $command > $i
-#    }
-#
-#    $i++;
-#    $user->server_notice(commands => 'List of available commands');
-#
-#    # send a notice for each command
-#    foreach my $command (sort keys %commands) {
-#        $user->server_notice(
-#            sprintf "\2%-${i}s\2 : %-${i}s",
-#            $command,
-#            $commands{$command}{desc},
-#        );
-#    }
-#
-#    $user->server_notice(commands => 'End of command list');
-#}
-
 sub away {
     my ($user, $event, $reason) = @_;
+    my $ok = $user->do_away($reason);
 
-    # setting away.
-    if (defined $reason) {
-        my $reason = cut_to_limit('away', $reason);
-        $user->set_away($reason);
-        $pool->fire_command_all(away => $user);
-        $user->numeric('RPL_NOWAWAY');
-        # let people with away-notify know
-        $user->send_to_channels_with_cap("AWAY :$reason", 'away-notify');
-        return 1;
-    }
-
-    # unsetting.
-    return unless length $user->{away};
-    $user->unset_away;
-    $pool->fire_command_all(return_away => $user);
-    $user->numeric('RPL_UNAWAY');
-    # let people with away-notify know
-    $user->send_to_channels_with_cap('AWAY', 'away-notify');
+    # status 1 = set away, 2 = unset away
+    $pool->fire_command_all(away        => $user) if $ok && $ok == 1;
+    $pool->fire_command_all(return_away => $user) if $ok && $ok == 2;
 
     return 1;
 }

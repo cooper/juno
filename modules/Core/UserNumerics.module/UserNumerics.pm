@@ -123,10 +123,10 @@ sub rpl_isupport {
 
     my %things = (
         PREFIX      => &isp_prefix,
-        CHANTYPES   => '#',                         # TODO: only global channels supported
+        CHANTYPES   => '#',
         CHANMODES   => &isp_chanmodes,
         MODES       => 5,                           # TODO: currently unlimited
-        CHANLIMIT   => '#:100',                     # TODO: currently unlimited
+        CHANLIMIT   => '#:'.conf('limit', 'channel'),
         NICKLEN     => conf('limit', 'nick'),
         MAXLIST     => "$listmodes:1000",           # TODO: currently unlimited
         NETWORK     => conf('server', 'network') // conf('network', 'name'),

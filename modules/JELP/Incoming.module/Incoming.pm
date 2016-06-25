@@ -501,7 +501,7 @@ sub away {
     # user :rest
     # :uid AWAY  :reason
     my ($server, $msg, $user, $reason) = @_;
-    $user->set_away($reason);
+    $user->do_away($reason);
 
     # === Forward ===
     $msg->forward(away => $user);
@@ -512,7 +512,7 @@ sub return_away {
     # user dummy
     # :uid RETURN
     my ($server, $msg, $user) = @_;
-    $user->unset_away();
+    $user->do_away();
 
     # === Forward ===
     $msg->forward(return_away => $user);
