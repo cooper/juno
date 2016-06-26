@@ -236,11 +236,18 @@ sub sjoin {
     } @member_str;
 }
 
-# for bursting, send SJOIN with all simple modes and all users if none specified.
+# for bursting, send SJOIN with all simple modes.
 sub sjoin_burst {
     my ($server, $channel, $serv, @members) = @_;
     my $mode_str = $channel->mode_string_hidden($server);
-    return sjoin($server, $channel, $serv, $mode_str, $server, @members);
+    return sjoin(
+        $server,        # destination server
+        $channel,       # channel
+        $serv,          # source server
+        $mode_str,      # mode string
+        $serv,          # mode perspective (in TS 6, same as source)
+        @members        # members
+    );
 }
 
 # JOIN

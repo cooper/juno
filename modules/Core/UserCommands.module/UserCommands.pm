@@ -532,7 +532,6 @@ sub _cjoin {
         }
 
         # tell servers that the user joined and the automatic modes were set.
-        $pool->fire_command_all(cmode => $me, $channel, $time, $me, $sstr) if $sstr;
         if ($sstr) {
             $pool->fire_command_all(join_with_modes =>
                 $channel, $me, $sstr, $me, $user);
