@@ -133,6 +133,11 @@ our %ts6_incoming_commands = (
                   # :uid WHOIS   sid|uid    :query(e.g. nickname)
         params => '-source(user) *          :rest',
         code   => \&whois
+    },
+    MODE => {
+                  # :source MODE uid|channel +modes params
+        params => '-source @rest',
+        code   => \&mode
     }
 );
 
@@ -664,8 +669,8 @@ sub tmode {
     #
     #   mode changes will be propagated only if the TS was good.
     #
-    #   JELP:   JOIN, CMODE
-    #   TS6:    SJOIN
+    #   JELP:   CMODE
+    #   TS6:    TMODE
     #
     # $source, $channel, $time, $perspective, $mode_str
     # the perspective is $me because it was converted.
@@ -1205,6 +1210,82 @@ sub whois {
 
     #=== Forward ===#
     $msg->forward_to($t_user, whois => $s_user, $t_user, $loc);
+
+    return 1;
+}
+
+# MODE
+#
+# 1.
+# source:       user
+# parameters:   client, umode changes
+# propagation:  broadcast
+#
+# Propagates a user mode change. The client parameter must refer to the same user
+# as the source.
+#
+# Not all umodes are propagated to other servers.
+#
+# 2.
+# source:       any
+# parameters:   channel, cmode changes, opt. cmode parameters...
+#
+# Propagates a channel mode change.
+#
+# This is deprecated because the channelTS is not included. If it is received,
+# it should be propagated as TMODE.
+#
+sub mode {
+    my ($server, $msg, $source, $target_str, $mode_str, @params) = @_;
+
+    # if it's a channel, this is the deprecated form.
+    # it will be forwarded on with the channelTS as TMODE.
+    my $target = $pool->lookup_channel($target_str);
+    if ($target && $target->isa('channel')) {
+
+        # the $mode_str actually does not include parameters yet
+        $mode_str = join ' ', $mode_str, @params;
+
+        # convert the mode string to this server.
+        # this is not necessary for translating the modes, but it is
+        # instead used because it will convert TS6 UIDs to juno UIDs.
+        #
+        # then, do the mode string from the perspective of this server.
+        #
+        $mode_str = $server->convert_cmode_string($me, $mode_str, 1);
+        $target->do_mode_string_local($me, $source, $mode_str, 1, 1);
+
+        # === Forward ===
+        #
+        #   mode changes will be propagated only if the TS was good.
+        #
+        #   JELP:   CMODE
+        #   TS6:    TMODE
+        #
+        # $source, $channel, $time, $perspective, $mode_str
+        # the perspective is $me because it was converted.
+        #
+        $msg->forward(cmode => $source, $target, $target->{time}, $me, $mode_str);
+
+        return 1;
+    }
+
+    # if it's a user, make sure the source matches.
+    # remember that $source may not even be a user.
+    $target = user_from_ts6($target_str) or return;
+    if ($source != $target) {
+        notice(server_protocol_warning =>
+            $server->name, $server->id,
+            'sent MODE message with nonmatching source (' .
+            $source->name.') and target ('.$target->name.')');
+        return;
+    }
+
+    # handle the changes.
+    $target->do_mode_string_local($mode_str, 1);
+
+    # === Forward ===
+    $msg->forward(umode => $target, $mode_str);
 
     return 1;
 }
