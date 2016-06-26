@@ -253,7 +253,7 @@ sub send {
     return if $connection->{goodbye};
     @msg = grep { defined } @msg;
     $connection->{stream}->write("$_\r\n") foreach @msg;
-printf "GET(%s): %s\n", $connection->type ? $connection->type->name : 'unregistered', $_ foreach @msg;
+printf "SEND(%s): %s\n", $connection->type ? $connection->type->name : 'unregistered', $_ foreach @msg;
 }
 
 # send data with a source
