@@ -118,8 +118,9 @@ sub convert_umode_string {
         # state change.
         if ($letter eq '+' || $letter eq '-') {
             my $new  = $letter eq '+';
-            $string .= $letter if !length $string || ($since_state && $state != $new);
+            $string .= $letter if !length $string || $state != $new;
             $state   = $new;
+            substr($string, 0, 1) = '' if !$since_state;
             undef $since_state;
             next;
         }
@@ -197,8 +198,9 @@ sub convert_cmode_string {
         # state change.
         if ($letter eq '+' || $letter eq '-') {
             my $new  = $letter eq '+';
-            $string .= $letter if !length $string || ($since_state && $state != $new);
+            $string .= $letter if !length $string || $state != $new;
             $state   = $new;
+            substr($string, 0, 1) = '' if !$since_state;
             undef $since_state;
             next;
         }
