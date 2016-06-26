@@ -136,10 +136,10 @@ sub convert_umode_string {
         $since_state++;
     }
 
-    # if we have nothing but a sign, return an empty string.
+    # if we have nothing but a sign, return +.
     if (length $string == 1) {
         L("$mode_str ($$server1{name}) -> nothing at all ($$server2{name})");
-        return '';
+        return '+';
     }
 
     L("$mode_str ($$server1{name}) -> $string ($$server2{name})");
@@ -240,10 +240,10 @@ sub convert_cmode_string {
         $since_state++;
     }
 
-    # if we have nothing but a sign, return an empty string.
+    # if we have nothing but a sign, return +.
     if (length $string == 1) {
         L("$mode_str ($$server1{name}) -> nothing at all ($$server2{name})");
-        return '';
+        return '+';
     }
 
     # join mode string and parameters
