@@ -202,8 +202,12 @@ sub sjoin {
     my ($server, $channel, $serv, $mode_str, $mode_serv, @members) = @_;
 
     # if the mode perspective is not the server we're sending to, convert.
-    $mode_str = $mode_serv->convert_cmode_string($server, $mode_str)
-        if $mode_serv != $server;
+    $mode_str = $mode_serv->convert_cmode_string(
+        $server,    # the destination server, the one we're converting to
+        $mode_str,  # the raw mode string in the perpsective of $mode_serv
+        1,          # indicates that this is over a server protocol
+        1           # skip status modes (TS 6 sends them as prefixes)
+    ) if $mode_serv != $server;
 
     # create @UID +UID etc. strings.
     my @member_str = '';

@@ -3117,3 +3117,6 @@ CHANGES:
             fixed an issue where a separate BMASK was sent for every ban. closes #42
             @GLolol suggested to try limiting SJOINs to 15 arguments. #41
             use join_with_modes for channel creation.
+
+    8. ->convert_cmode_string() now has an option to strip the string of status modes.
+        this is used for SJOIN in TS6, fixing a bug with mode propagation on channel creation.

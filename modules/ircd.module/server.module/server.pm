@@ -184,7 +184,7 @@ sub cmode_type {
 
 # convert cmodes and their parameters
 sub convert_cmode_string {
-    my ($server1, $server2, $mode_str, $over_protocol) = @_;
+    my ($server1, $server2, $mode_str, $over_protocol, $skip_status) = @_;
 
     my $string = '+';                       # new (+/-)modes
     my @m      = split /\s+/, $mode_str;    # old mode string parts
@@ -215,11 +215,18 @@ sub convert_cmode_string {
             $takes_param++;
         }
 
+        # skip this mode maybe if $skip_status.
+        my $is_status = $server1->cmode_type($name) == 4;
+        if ($skip_status && $is_status) {
+            delete $m[$curr_p];
+            next;
+        }
+
         # if over protocol, some parameter translate might be necessary.
         if ($over_protocol) {
 
             # if it's a status mode, translate the UID maybe.
-            if ($server1->cmode_type($name) == 4 && $takes_param && length $m[$curr_p]) {
+            if ($is_status && length $m[$curr_p]) {
                 my $user    = $server1->uid_to_user($m[$curr_p]);
                 $m[$curr_p] = $server2->user_to_uid($user) if $user;
             }
