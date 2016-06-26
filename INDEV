@@ -3109,3 +3109,6 @@ CHANGES:
             this is used for umodes but also supports the deprecated form for cmodes and forwards them as TMODE.
 
         77. TS6 SJOIN can now span several messages instead being sent as one enormous one. closes #13
+
+        78. do not send out all users for TS6 SJOIN or JELP CUM when none are provided.
+            this fixes an issue where TS6 SJOIN with no users would be forwarded with all users.

@@ -445,7 +445,7 @@ sub sjoin {
     #   regardless of whether they were present or absent
     #   in this particular SJOIN message.
     #
-    #   all users will be sent with their current statuses,
+    #   users will be sent with their current statuses,
     #   if any apply, also without regard to this message.
     #
     #   JELP:   CUM

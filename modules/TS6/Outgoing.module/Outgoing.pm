@@ -111,7 +111,7 @@ sub send_burst {
 
     # channels.
     foreach my $channel ($pool->channels) {
-        $server->fire_command(channel_burst => $channel, $me);
+        $server->fire_command(channel_burst => $channel, $me, $channel->users);
     }
 
 }
@@ -237,7 +237,6 @@ sub sjoin {
 sub sjoin_burst {
     my ($server, $channel, $serv, @members) = @_;
     my $mode_str = $channel->mode_string_hidden($server);
-    @members = $channel->users if !@members;
     return sjoin($server, $channel, $serv, $mode_str, $server, @members);
 }
 

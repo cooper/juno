@@ -146,7 +146,7 @@ sub send_burst {
 
     # channels, using compact CUM
     foreach my $channel ($pool->channels) {
-        $server->fire_command(channel_burst => $channel, $me);
+        $server->fire_command(channel_burst => $channel, $me, $channel->users);
     }
 
 }
@@ -324,8 +324,7 @@ sub skill {
 # channel user membership (channel burst)
 sub cum {
     my ($server, $channel, $serv, @members) = @_;
-    $serv  ||= $me;
-    @members = $channel->users if !@members;
+    $serv ||= $me;
 
     # make +modes params string without status modes.
     # modes are from the perspective of the source server.
