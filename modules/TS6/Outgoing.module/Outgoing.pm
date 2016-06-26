@@ -221,13 +221,15 @@ sub sjoin {
         $member_str[$str_i] .= "$pfx$uid ";
     }
 
-    return map { chop; # remove the last space
-        sprintf ":%s SJOIN %d %s %s :%s",
-        ts6_id($serv),                      # SID of the source server
-        $channel->{time},                   # channel time
-        $channel->{name},                   # channel name
-        $mode_str,                          # includes +ntk, excludes +ovbI, etc.
-        $_
+    return map {
+        chop; # remove the last space
+        sprintf(":%s SJOIN %d %s %s :%s",
+            ts6_id($serv),          # SID of the source server
+            $channel->{time},       # channel time
+            $channel->{name},       # channel name
+            $mode_str,              # includes +ntk, excludes +ovbI, etc.
+            $_                      # the member string
+        )
     } @member_str;
 }
 
