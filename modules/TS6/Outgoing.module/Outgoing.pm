@@ -219,7 +219,6 @@ sub sjoin {
         }
 
         $member_str[$str_i] .= "$pfx$uid ";
-        push @member_str, "$pfx$uid";
     }
 
     return map { chop $_; # remove the last space
