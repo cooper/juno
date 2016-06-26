@@ -554,7 +554,11 @@ sub privmsgnotice {
 
         # it cannot be a server source.
         if ($source->isa('server')) {
-            L('As per spec, "$$" complex PRIVMSG not permitted with server as a source');
+            notice(server_protocol_warning =>
+                $server->name, $server->id,
+                "sent PRIVMSG with a '\$\$' broadcast target, but this is ".
+                "only permitted from user sources according to TS6 spec"
+            );
             return;
         }
 

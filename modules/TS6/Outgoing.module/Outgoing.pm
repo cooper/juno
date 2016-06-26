@@ -208,17 +208,20 @@ sub sjoin {
     # create @UID +UID etc. strings.
     my @member_str = '';
     my $str_i = 0;
+    my $uids_this_line = 0;
     foreach my $user (@members) {
         my $pfx = ts6_prefixes($server, $channel->user_get_levels($user));
         my $uid = ts6_id($user);
 
         # this SJOIN is getting too long.
-        if ((length($member_str[$str_i]) || 0) > 500) {
+        if ((length($member_str[$str_i]) || 0) > 500 || $uids_this_line > 12) {
             $str_i++;
             $member_str[$str_i] = '';
+            $uids_this_line = 0;
         }
 
         $member_str[$str_i] .= "$pfx$uid ";
+        $uids_this_line++;
     }
 
     return map {
