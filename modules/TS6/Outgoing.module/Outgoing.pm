@@ -371,7 +371,10 @@ sub bmask {
         }
 
         # push the final line
-        chop $str && push @lines, $str if length $str;
+        if (length $str && $str ne $base) {
+            chop $str;
+            push @lines, $str;
+        }
 
     }
     return @lines;
