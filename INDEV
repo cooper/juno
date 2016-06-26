@@ -3112,3 +3112,6 @@ CHANGES:
 
         78. do not send out all users for TS6 SJOIN or JELP CUM when none are provided.
             this fixes an issue where TS6 SJOIN with no users would be forwarded with all users.
+
+        79. fixed an issue where TB and TOPICBURST were propagated even when the topic was unchanged. closes #43
+            fixed an issue where a separate BMASK was sent for every ban. closes #42

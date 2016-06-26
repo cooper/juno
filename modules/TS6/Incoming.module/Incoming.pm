@@ -1051,9 +1051,17 @@ sub tb {
     # :sid TB           channel topic_ts setby :topic
     my ($server, $msg, $s_serv, $channel, $topic_ts, $setby, $topic) = @_;
 
-    # the topic TS we have is older than the new one; ignore.
-    if ($channel->{topic} && $channel->{topic}{time} < $topic_ts) {
-        return;
+    # we have a topic btw.
+    if ($channel->{topic}) {
+
+        # our topicTS is older.
+        return if $channel->{topic}{time} < $topic_ts;
+
+        # the topics are the same.
+        return if
+            $channel->{topic}{topic} eq $topic &&
+            $channel->{topic}{setby} eq $setby;
+
     }
 
     # tell users.
@@ -1064,6 +1072,7 @@ sub tb {
 
     # set it.
     if (length $topic) {
+
         $channel->{topic} = {
             setby  => $setby,
             time   => $topic_ts,

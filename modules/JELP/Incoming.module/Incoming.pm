@@ -736,13 +736,26 @@ sub topic {
 }
 
 sub topicburst {
-    # source      channel ts   any   ts   :rest
+    # source            channel ts   any   ts   :rest
     # :sid   TOPICBURST channel ts   setby time :topic
-    my ($server, $msg, $s_serv, $channel, $ts, $setby, $time, $topic) = @_;
+    my ($server, $msg, $s_serv, $channel, $ts, $setby, $topic_ts, $topic) = @_;
 
     if ($channel->take_lower_time($ts) != $ts) {
         # bad channel time
-        return
+        return;
+    }
+
+    # we have a topic btw.
+    if ($channel->{topic}) {
+
+        # our topicTS is older.
+        return if $channel->{topic}{time} < $topic_ts;
+
+        # the topics are the same.
+        return if
+            $channel->{topic}{topic} eq $topic &&
+            $channel->{topic}{setby} eq $setby;
+
     }
 
     # tell users.
@@ -755,7 +768,7 @@ sub topicburst {
     if (length $topic) {
         $channel->{topic} = {
             setby  => $setby,
-            time   => $time,
+            time   => $topic_ts,
             topic  => $topic,
             source => $server->{sid} # source = SID of server location where topic set
         };

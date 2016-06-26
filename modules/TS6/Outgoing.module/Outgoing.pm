@@ -337,18 +337,42 @@ sub tmode {
 sub bmask {
     my ($server, $channel) = @_;
     my @lines;
+
     foreach my $mode_name (keys %{ $server->{cmodes} }) {
+
+        # ignore status modes in bmask
         next unless $server->cmode_type($mode_name) == 3;
+
+        # find the items and the mode letter
         my @items  = $channel->list_elements($mode_name);
         my $letter = $server->cmode_letter($mode_name);
-        push @lines, sprintf(
-            ':%s BMASK %d %s %s %s',
+
+        # construct multiple messages if necessary
+        my $base = my $str = sprintf(':%s BMASK %d %s %s ',
             ts6_id($me),
             $channel->{time},
             $channel->{name},
-            $letter,
-            $_
-        ) foreach @items;
+            $letter
+        );
+
+        # with each item
+        while (length(my $item = shift @items)) {
+
+            # this line is full; start a new one
+            if (length $str >= 500 && @items) {
+                chop $str;
+                push @lines, $str;
+                $str = $base;
+            }
+
+            # add the item
+            $str .= "$item ";
+
+        }
+
+        # push the final line
+        chop $str && push @lines, $str if length $str;
+
     }
     return @lines;
 }
