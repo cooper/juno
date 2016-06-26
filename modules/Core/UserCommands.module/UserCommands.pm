@@ -532,13 +532,14 @@ sub _cjoin {
         }
 
         # tell servers that the user joined and the automatic modes were set.
-        $pool->fire_command_all(join => $user, $channel, $time);
         $pool->fire_command_all(cmode => $me, $channel, $time, $me, $sstr) if $sstr;
-
-        # hmm, this needs to be reconsidered since TS6 and some protocols use a channel
-        # burst command (SJOIN) with both user and modes during channel creation.
-        # TODO: make a new thing like join_with_modes or create_channel
-        # or something like that.
+        if ($sstr) {
+            $pool->fire_command_all(join_with_modes =>
+                $channel, $me, $sstr, $me, $user);
+        }
+        else {
+            $pool->fire_command_all(join => $user, $channel, $time);
+        }
 
         # do the actual local join.
         $channel->localjoin($user, $time);

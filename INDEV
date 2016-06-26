@@ -3116,3 +3116,4 @@ CHANGES:
         79. fixed an issue where TB and TOPICBURST were propagated even when the topic was unchanged. closes #43
             fixed an issue where a separate BMASK was sent for every ban. closes #42
             @GLolol suggested to try limiting SJOINs to 15 arguments. #41
+            use join_with_modes for channel creation.
