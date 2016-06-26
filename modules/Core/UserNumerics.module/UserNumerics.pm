@@ -120,7 +120,7 @@ our %user_numerics = (
 sub rpl_isupport {
     my $user = shift;
     my $listmodes = join '', sort map { $_->{letter} }
-      grep { $_->{type} // -1 == 3 } values %{ $me->{cmodes} };
+      grep { ($_->{type} // -1) == 3 } values %{ $me->{cmodes} };
 
     my %things = (
         PREFIX      => &isp_prefix,

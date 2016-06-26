@@ -3121,3 +3121,4 @@ CHANGES:
     8. ->convert_cmode_string() now has an option to strip the string of status modes.
         this is used for SJOIN in TS6, fixing a bug with mode propagation on channel creation.
         fixed issue where channel forward parameter was improperly pushed when unsetting.
+        fixed issue where status modes were appearing in MAXLIST in RPL_ISUPPORT.
