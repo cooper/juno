@@ -652,7 +652,7 @@ sub umode {
     my ($to_server, $user, $mode_str) = @_;
     my $str = $me->convert_umode_string($to_server, $mode_str);
     my $id = ts6_id($user);
-    ":$id MODE $str"
+    ":$id MODE $id $str"
 }
 
 $mod
