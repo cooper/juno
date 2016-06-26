@@ -206,20 +206,30 @@ sub sjoin {
         if $mode_serv != $server;
 
     # create @UID +UID etc. strings.
-    my @member_str;
+    my @member_str = '';
+    my $str_i = 0;
     foreach my $user (@members) {
         my $pfx = ts6_prefixes($server, $channel->user_get_levels($user));
         my $uid = ts6_id($user);
+
+        # this SJOIN is getting too long.
+        if ((length($member_str[$str_i]) || 0) > 500) {
+            $str_i++;
+            $member_str[$str_i] = '';
+        }
+
+        $member_str[$str_i] .= "$pfx$uid ";
         push @member_str, "$pfx$uid";
     }
 
-    # TODO: probably should split this into several SJOINs?
-    sprintf ":%s SJOIN %d %s %s :%s",
-    ts6_id($serv),                      # SID of the source server
-    $channel->{time},                   # channel time
-    $channel->{name},                   # channel name
-    $mode_str,                          # includes +ntk, excludes +ovbI, etc.
-    "@member_str"
+    return map { chop $_; # remove the last space
+        sprintf ":%s SJOIN %d %s %s :%s",
+        ts6_id($serv),                      # SID of the source server
+        $channel->{time},                   # channel time
+        $channel->{name},                   # channel name
+        $mode_str,                          # includes +ntk, excludes +ovbI, etc.
+        $_
+    } @member_str;
 }
 
 # for bursting, send SJOIN with all simple modes and all users if none specified.

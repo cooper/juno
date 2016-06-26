@@ -3107,3 +3107,5 @@ CHANGES:
 
         76. added TS6 incoming MODE handler. #40
             this is used for umodes but also supports the deprecated form for cmodes and forwards them as TMODE.
+
+        77. TS6 SJOIN can now span several messages instead being sent as one enormous one. closes #13
