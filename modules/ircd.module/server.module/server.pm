@@ -108,7 +108,7 @@ sub umode_letter {
 sub convert_umode_string {
     my ($server1, $server2, $mode_str) = @_;
 
-    my $string = '';                                # new (+/-)modes
+    my $string = '+';                               # new (+/-)modes
     my $modes  = (split /\s+/, $mode_str, 2)[0];    # old (+/-)modes
     my $state  = 1;                                 # current state
     my $since_state;                                # changes since state change
@@ -117,7 +117,7 @@ sub convert_umode_string {
 
         # state change.
         if ($letter eq '+' || $letter eq '-') {
-            chop $string if length $string && !$since_state;
+            chop $string if !$since_state;
             my $new  = $letter eq '+';
             $string .= $letter if !length $string || $state != $new;
             $state   = $new;
@@ -186,7 +186,7 @@ sub cmode_type {
 sub convert_cmode_string {
     my ($server1, $server2, $mode_str, $over_protocol) = @_;
 
-    my $string = '';                        # new (+/-)modes
+    my $string = '+';                       # new (+/-)modes
     my @m      = split /\s+/, $mode_str;    # old mode string parts
     my $modes  = shift @m;                  # old (+/-)modes
     my $curr_p = -1;                        # current parameter index
@@ -197,7 +197,7 @@ sub convert_cmode_string {
 
         # state change.
         if ($letter eq '+' || $letter eq '-') {
-            chop $string if length $string && !$since_state;
+            chop $string if !$since_state;
             my $new  = $letter eq '+';
             $string .= $letter if !length $string || $state != $new;
             $state   = $new;
