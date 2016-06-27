@@ -20,9 +20,10 @@ use strict;
 use 5.010;
 
 use M::TS6::Utils qw(
-    uid_from_ts6 user_from_ts6 mode_from_prefix_ts6
-    sid_from_ts6 obj_from_ts6
+    user_from_ts6   server_from_ts6     obj_from_ts6
+    uid_from_ts6    sid_from_ts6        mode_from_prefix_ts6
 );
+
 use utils qw(channel_str_to_list notice);
 
 our ($api, $mod, $pool, $me);
@@ -97,8 +98,8 @@ our %ts6_incoming_commands = (
         code    => \&ping
     },
     PONG => {
-                   # :sid PONG      server.name dest_sid
-        params  => '-source(server) *           server(opt)',
+                   # :sid PONG      server.name dest_sid|dest_name
+        params  => '-source(server) *           *(opt)',
         code    => \&pong
     },
     AWAY => {
@@ -970,7 +971,7 @@ sub ping {
 # ts6-protocol.txt:714
 #
 sub pong {
-    my ($server, $msg, $source_serv, $origin_name, $dest_serv) = @_;
+    my ($server, $msg, $source_serv, $origin_name, $dest_serv_str) = @_;
 
     # the first pong indicates the end of a burst.
     if ($source_serv->{is_burst}) {
@@ -987,6 +988,12 @@ sub pong {
 
         return 1;
     }
+
+    # so apparently some things (e.g. atheme) use a server name destination
+    my $dest_serv =
+        server_from_ts6($dest_serv_str) ||
+        $pool->lookup_server_name($dest_serv_str)
+        if length $dest_serv_str;
 
     # is there a destination other than me?
     if ($dest_serv && $dest_serv != $me) {
