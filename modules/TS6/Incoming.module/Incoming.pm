@@ -351,46 +351,66 @@ sub euid {
 #
 sub sjoin {
     my $nicklist = pop;
-    my ($server, $msg, $serv, $ts, $ch_name, $mode_str, @mode_params) = @_;
+    my ($server, $msg, $source_serv, $ts, $ch_name, $mode_str, @mode_params) = @_;
+
+    # UPDATE CHANNEL TIME
+    #=================================
 
     # maybe we have a channel by this name, otherwise create one.
     my $channel = $pool->lookup_or_create_channel($ch_name, $ts);
 
-    # store mode string before any possible changes.
-    my @after_params;       # params after changes.
-    my $after_modestr = ''; # mode string after changes.
-    my $old_modestr   = $channel->mode_string_hidden($serv, 1); # all but status and lists
-    my $old_s_modestr = $channel->mode_string_status($serv);    # status only
-
     # take the new time if it's less recent.
+    # note that modes are not handled here (the second arg says not to)
+    # because they are handled manually in a prettier way for SJOIN.
     my $old_time = $channel->{time};
     my $new_time = $channel->take_lower_time($ts, 1);
 
+    # CONVERT MODES
+    #=================================
+
+    # store mode string before any possible changes.
+    # this now includes status modes as well,
+    # which were previously handled separately.
+    my $old_mode_str = $channel->mode_string_all($me);
+
+    # the incoming mode string must be converted to the perspective of this
+    # server. this is necessary in case our own modes are unset.
+    $mode_str = $server->convert_cmode_string($me, $mode_str, 1);
+
+    # $old_mode_str and $mode_str are now both in the perspective of $me.
+
     # their TS is either older or the same.
     #
-    # 1. wipe out our old modes. (already done by ->take_lower_time())
+    # 1. wipe out our old modes.
     # 2. accept all new modes.
     # 3. propagate all simple modes (not just the difference).
     #
+    # The interpretation depends on the channelTS and the current TS of the channel.
+    # If either is 0, set the channel's TS to 0 and accept all modes. Otherwise, if
+    # the incoming channelTS is greater (newer), ignore the incoming simple modes
+    # and statuses and join and propagate just the users. If the incoming channelTS
+    # is lower (older), wipe all modes and change the TS, notifying local users of
+    # this but not servers (invites may be cleared). In the latter case, kick on
+    # split riding may happen: if the key (+k) differs or the incoming simple modes
+    # include +i, kick all local users, sending KICK messages to servers.
+    #
     (my $accept_new_modes)++ if $new_time == $ts;
+    my $clear_old_modes = $new_time < $old_time;
 
+    # HANDLE USERS
+    #====================
 
-    # handle the nick list.
-    #
-    # add users to channel.
-    # determine prefix mode string.
-    #
     my ($uids_modes, @uids, @good_users) = '';
     foreach my $str (split /\s+/, $nicklist) {
         my ($prefixes, $uid) = ($str =~ m/^(\W*)([0-9A-Z]+)$/) or next;
         my $user     = user_from_ts6($uid) or next;
         my @prefixes = split //, $prefixes;
 
-        # this user does not physically belong to this server.
+        # this user does not physically belong to this server; ignore.
         next if $user->{location} != $server;
-        push @good_users, $user;
 
-        # join the new users.
+        # join the new user.
+        push @good_users, $user;
         unless ($channel->has_user($user)) {
             $channel->cjoin($user, $channel->{time});
             $channel->sendfrom_all($user->full, "JOIN $$channel{name}");
@@ -401,44 +421,43 @@ sub sjoin {
         next unless length $prefixes && $accept_new_modes;
 
         # determine the modes and add them to the mode string / parameters.
-        my $modes    = join '', map { mode_from_prefix_ts6($server, $_) } @prefixes;
+        my $modes = $server->convert_cmode_string(
+            $me,
+            join('', map mode_from_prefix_ts6($server, $_), @prefixes),
+            1
+        );
         $uids_modes .= $modes;
         push @uids, $user->{uid} for 1 .. length $modes;
 
     }
 
-    # combine this with the other modes in the message.
-    my $command_modestr = join(' ', '+'.$mode_str.$uids_modes, @mode_params, @uids);
+    # ACCEPT AND RESET MODES
+    #=================================
 
     # okay, now we're ready to apply the modes.
     if ($accept_new_modes) {
 
-        # determine the difference between
-        my $difference = $serv->cmode_string_difference(
-            $old_modestr,       # $old_modestr     (all former simple modes)
-            $command_modestr,   # $command_modestr (all new modes including status)
-            1,                  # $combine_lists   (all list modes will be accepted)
-            1                   # $remove_none     (no modes will be unset)
+        # combine status modes with the other modes in the message.
+        # $mode_str, $uids_modes, @mode_params, @uids
+        # are in the perspective of $serv.
+        my $command_mode_str = join(' ',
+            '+'.$mode_str.$uids_modes,
+            @mode_params,
+            @uids
         );
 
-        # the command time took over, so we need to remove our current status modes.
-        if ($new_time < $old_time) {
-            substr($old_s_modestr, 0, 1) = '-';
-
-            # separate each string into modes and params.
-            my ($s_modes, @s_params) = split ' ', $old_s_modestr;
-            my ($d_modes, @d_params) = split ' ', $difference;
-
-            # combine.
-            $s_modes  //= '';
-            $d_modes  //= '';
-            $difference = join(' ', join('', $d_modes, $s_modes), @d_params, @s_params);
-
-        }
+        # determine the difference between
+        my $difference = $me->cmode_string_difference(
+            $old_mode_str,      # all former modes
+            $command_mode_str,  # all new modes including status
+            1,                  # all list modes will be accepted
+            $clear_old_modes    # unset modes missing from new modes?
+        );
 
         # handle the mode string locally.
         # note: do not supply a $over_protocol sub. this generated string uses juno UIDs.
-        $channel->do_mode_string_local($serv, $serv, $difference, 1, 1) if $difference;
+        $channel->do_mode_string_local($me, $source_serv, $difference, 1, 1)
+            if $difference;
 
     }
 
@@ -455,7 +474,7 @@ sub sjoin {
     #   TS6:    SJOIN
     #
     if ($server->{is_burst}) {
-        $msg->forward(channel_burst => $channel, $serv, @good_users);
+        $msg->forward(channel_burst => $channel, $source_serv, @good_users);
         return 1;
     }
 
@@ -474,9 +493,9 @@ sub sjoin {
     $mode_str = '+' unless $accept_new_modes;
     $msg->forward(join_with_modes =>
         $channel,       # $channel   = channel object
-        $serv,          # $serv      = server source of the message
+        $source_serv,   # $serv      = server source of the message
         $mode_str,      # $mode_str  = mode string being sent
-        $serv,          # $mode_serv = server object for mode perspective
+        $source_serv,   # $mode_serv = server object for mode perspective
         @good_users     # @members   = channel members (user objects)
     );
 
@@ -667,9 +686,14 @@ sub tmode {
     # this is not necessary for translating the modes, but it is
     # instead used because it will convert TS6 UIDs to juno UIDs.
     #
-    # then, do the mode string from the perspective of this server.
-    #
     $mode_str = $server->convert_cmode_string($me, $mode_str, 1);
+
+    # filter out modes that are unchanged.
+    # the third arg has no effect here; the fourth indicates to unset nothing.
+    my $old_mode_str = $channel->mode_string_all($me);
+    $mode_str = $me->cmode_string_difference($old_mode_str, $mode_str, 1, 1);
+
+    # then, do the mode string from the perspective of this server.
     $channel->do_mode_string_local($me, $source, $mode_str, 1, 1);
 
     # === Forward ===

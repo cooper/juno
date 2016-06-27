@@ -631,8 +631,6 @@ sub cum {
     );
 
     # store mode string before any possible changes.
-    my @after_params;       # params after changes.
-    my $after_modestr = ''; # mode string after changes.
     my $old_modestr   = $channel->mode_string_all($serv, 1); # all but status
     my $old_s_modestr = $channel->mode_string_status($serv); # status only
 

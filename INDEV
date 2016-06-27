@@ -3124,3 +3124,6 @@ CHANGES:
         fixed issue where status modes were appearing in MAXLIST in RPL_ISUPPORT.
 
         81. fix TS6 remote PING/PONG. #55
+
+        82. overhaul of TS6 SJOIN handler. hope it works!
+            this ought to fix some issues with mode acceptance.
