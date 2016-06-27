@@ -992,7 +992,7 @@ sub pong {
     if ($dest_serv && $dest_serv != $me) {
 
         # === Forward ===
-        $msg->foward_to($dest_serv, pong => $source_serv, $dest_serv);
+        $msg->forward_to($dest_serv, pong => $source_serv, $dest_serv);
 
     }
     else {
