@@ -93,8 +93,8 @@ our %ts6_incoming_commands = (
     },
     PING => {
         code    => \&ping,
-                   # :sid PING      server.name dest_sid
-        params  => '-source(server) *           server(opt)'
+                   # :sid PING          server.name dest_sid
+        params  => '-source(server,opt) *           server(opt)'
     },
     PONG => {
         code    => \&pong,
@@ -950,7 +950,7 @@ sub ping {
 
     # no destination or destination is me.
     # I get to reply to this with a PONG.
-    if ($dest_serv == $me || !$dest_serv) {
+    if (!$source_serv || !$dest_serv || $dest_serv == $me) {
         $server->fire_command(pong => $me, $server);
         return 1;
     }
