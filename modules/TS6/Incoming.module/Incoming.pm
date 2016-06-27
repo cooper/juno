@@ -688,11 +688,6 @@ sub tmode {
     #
     $mode_str = $server->convert_cmode_string($me, $mode_str, 1);
 
-    # filter out modes that are unchanged.
-    # the third arg has no effect here; the fourth indicates to unset nothing.
-    my $old_mode_str = $channel->mode_string_all($me);
-    $mode_str = $me->cmode_string_difference($old_mode_str, $mode_str, 1, 1);
-
     # then, do the mode string from the perspective of this server.
     $channel->do_mode_string_local($me, $source, $mode_str, 1, 1);
 
