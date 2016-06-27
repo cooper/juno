@@ -423,7 +423,7 @@ sub sjoin {
         # determine the modes and add them to the mode string / parameters.
         my $modes = $server->convert_cmode_string(
             $me,
-            join('', map mode_from_prefix_ts6($server, $_), @prefixes),
+            '+'.join('', map mode_from_prefix_ts6($server, $_), @prefixes),
             1
         );
         $uids_modes .= $modes;
@@ -451,7 +451,7 @@ sub sjoin {
             $old_mode_str,      # all former modes
             $command_mode_str,  # all new modes including status
             1,                  # all list modes will be accepted
-            $clear_old_modes    # unset modes missing from new modes?
+            !$clear_old_modes   # unset modes missing from new modes?
         );
 
         # handle the mode string locally.
