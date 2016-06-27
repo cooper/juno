@@ -92,13 +92,14 @@ our %ts6_incoming_commands = (
         code    => \&nick
     },
     PING => {
-        code    => \&ping,
                    # :sid PING          server.name dest_sid
-        params  => '-source(server,opt) *           server(opt)'
+        params  => '-source(server,opt) *           server(opt)',
+        code    => \&ping
     },
     PONG => {
-        code    => \&pong,
-        params  => ':rest(opt)'
+                   # :sid PONG      server.name dest_sid
+        params  => '-source(server) *           server(opt)',
+        code    => \&pong
     },
     AWAY => {
                    # :uid AWAY    :reason
@@ -969,19 +970,33 @@ sub ping {
 # ts6-protocol.txt:714
 #
 sub pong {
-    my ($server, $msg, $dest) = @_;
+    my ($server, $msg, $source_serv, $origin_name, $dest_serv) = @_;
 
     # the first pong indicates the end of a burst.
-    if ($server->{is_burst}) {
-        my $time    = delete $server->{is_burst};
+    if ($source_serv->{is_burst}) {
+        my $time    = delete $source_serv->{is_burst};
         my $elapsed = time - $time;
-        $server->{sent_burst} = time;
+        $source_serv->{sent_burst} = time;
 
-        L("end of burst from $$server{name}");
-        notice(server_endburst => $server->{name}, $server->{sid}, $elapsed);
+        L("end of burst from $$source_serv{name}");
+        notice(server_endburst =>
+            $source_serv->{name}, $source_serv->{sid}, $elapsed);
 
         # === Forward ===
-        $msg->forward(endburst => $server, time);
+        $msg->forward(endburst => $source_serv, time);
+
+        return 1;
+    }
+
+    # is there a destination other than me?
+    if ($dest_serv && $dest_serv != $me) {
+
+        # === Forward ===
+        $msg->foward_to($dest_serv, pong => $source_serv, $dest_serv);
+
+    }
+    else {
+        # this pong is for us
     }
 
     return 1;
