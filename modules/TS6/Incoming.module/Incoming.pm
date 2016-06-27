@@ -93,8 +93,8 @@ our %ts6_incoming_commands = (
         code    => \&nick
     },
     PING => {
-                   # :sid PING          server.name dest_sid
-        params  => '-source(server,opt) *           server(opt)',
+                   # :sid PING          server.name dest_sid|dest_name
+        params  => '-source(server,opt) *           *(opt)',
         code    => \&ping
     },
     PONG => {
@@ -948,7 +948,13 @@ sub nick {
 # ts6-protocol.txt:700
 #
 sub ping {
-    my ($server, $msg, $source_serv, $origin_name, $dest_serv) = @_;
+    my ($server, $msg, $source_serv, $origin_name, $dest_serv_str) = @_;
+
+    # so apparently some things (e.g. atheme) use a server name destination
+    my $dest_serv =
+        server_from_ts6($dest_serv_str) ||
+        $pool->lookup_server_name($dest_serv_str)
+        if length $dest_serv_str;
 
     # no destination or destination is me.
     # I get to reply to this with a PONG.
