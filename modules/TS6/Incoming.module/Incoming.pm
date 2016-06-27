@@ -400,7 +400,7 @@ sub sjoin {
     # HANDLE USERS
     #====================
 
-    my ($uids_modes, @uids, @good_users) = '';
+    my ($uids_modes, @uids, @good_users) = '+';
     foreach my $str (split /\s+/, $nicklist) {
         my ($prefixes, $uid) = ($str =~ m/^(\W*)([0-9A-Z]+)$/) or next;
         my $user     = user_from_ts6($uid) or next;
@@ -420,12 +420,8 @@ sub sjoin {
         # no prefixes or not accepting the prefixes.
         next unless length $prefixes && $accept_new_modes;
 
-        # determine the modes and add them to the mode string / parameters.
-        my $modes = $server->convert_cmode_string(
-            $me,
-            '+'.join('', map mode_from_prefix_ts6($server, $_), @prefixes),
-            1
-        );
+        # add the modes (these are in the perspective of $server)
+        my $modes = join '', map mode_from_prefix_ts6($server, $_), @prefixes;
         $uids_modes .= $modes;
         push @uids, $user->{uid} for 1 .. length $modes;
 
@@ -437,9 +433,14 @@ sub sjoin {
     # okay, now we're ready to apply the modes.
     if ($accept_new_modes) {
 
+        # $uids_modes are currently in the perspective of the TS 6 server.
+        # note that this does not provide parameters; they are already in the
+        # perspective of the current server (i.e., in JELP format).
+        $uids_modes = $server->convert_cmode_string($me, $uids_modes, 1);
+
         # combine status modes with the other modes in the message.
         # $mode_str, $uids_modes, @mode_params, @uids
-        # are in the perspective of $serv.
+        # are now all in the perspective of $serv.
         my $command_mode_str = join(' ',
             '+'.$mode_str.$uids_modes,
             @mode_params,
@@ -455,7 +456,8 @@ sub sjoin {
         );
 
         # handle the mode string locally.
-        # note: do not supply a $over_protocol sub. this generated string uses juno UIDs.
+        # note: do not supply a $over_protocol sub because
+        # this generated string uses juno UIDs.
         $channel->do_mode_string_local($me, $source_serv, $difference, 1, 1)
             if $difference;
 
