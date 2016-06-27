@@ -93,7 +93,8 @@ our %ts6_incoming_commands = (
     },
     PING => {
         code    => \&ping,
-        params  => ':rest(opt)'
+                   # :sid PING      server.name dest_sid
+        params  => '-source(server) *           server(opt)'
     },
     PONG => {
         code    => \&pong,
@@ -945,8 +946,18 @@ sub nick {
 # ts6-protocol.txt:700
 #
 sub ping {
-    my ($server, $msg, $dest) = @_;
-    $server->fire_command(pong => $me, $dest);
+    my ($server, $msg, $source_serv, $origin_name, $dest_serv) = @_;
+
+    # no destination or destination is me.
+    # I get to reply to this with a PONG.
+    if ($dest_serv == $me || !$dest_serv) {
+        $server->fire_command(pong => $me, $server);
+        return 1;
+    }
+
+    # otherwise, forward it on.
+    $msg->forward_to($dest_serv, ping => $source_serv, $dest_serv);
+
     return 1;
 }
 

@@ -46,6 +46,7 @@ our %ts6_outgoing_commands = (
    # connect        => \&sconnect,
      kick           => \&kick,
      login          => \&login,
+     ping           => \&ping,
      pong           => \&pong,
      topicburst     => \&tb,
      wallops        => \&wallops,
@@ -565,6 +566,26 @@ sub login {
     ":$id ENCAP * LOGIN $acctname"
 }
 
+# PING
+#
+# source:       any
+# parameters:   origin, opt. destination server
+#
+# ts6-protocol.txt:700
+#
+sub ping {
+    my ($to_server, $source_serv, $dest_serv) = @_;
+    my $sid1 = ts6_id($source_serv);
+
+    # destination can be left out
+    if (!$dest_serv) {
+        return ":$sid1 PING $$source_serv{name}";
+    }
+
+    my $sid2 = ts6_id($dest_serv);
+    ":$sid1 PING $$source_serv{name} $sid2"
+}
+
 # PONG
 #
 # source:       server
@@ -573,10 +594,10 @@ sub login {
 # ts6-protocol.txt:714
 #
 sub pong {
-    my ($to_server, $source_serv, $dest) = @_;
-    my $id = ts6_id($source_serv);
-    $dest ||= $to_server->id;
-    ":$id PONG $$source_serv{name} $dest"
+    my ($to_server, $source_serv, $dest_serv) = @_;
+    my $sid1 = ts6_id($source_serv);
+    my $sid2 = ts6_id($dest_serv);
+    ":$sid1 PONG $$source_serv{name} $sid2"
 }
 
 # AWAY
