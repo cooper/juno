@@ -3132,3 +3132,6 @@ CHANGES:
             this will use CUM for JELP channel creation and SJOIN for TS6. #52
 
         84. CUM command overhaul. works more like SJOIN now.
+
+        85. because CUM and SJOIN are now always used for channel creation, join_with_modes has been removed. closes #52.
+        this also fixes an issue where SJOIN was not propagated properly to JELP servers outside of burst.

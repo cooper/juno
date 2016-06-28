@@ -39,7 +39,6 @@ our %ts6_outgoing_commands = (
      topic          => \&topic,
      cmode          => \&tmode,
      channel_burst  => [ \&sjoin_burst, \&bmask, \&tb ],
-     join_with_modes => \&sjoin,
    # acm            => \&acm,
    # aum            => \&aum,
      kill           => \&skill,
@@ -189,8 +188,6 @@ sub euid {
 # parameters:   channelTS, channel, simple modes, opt. mode parameters..., nicklist
 #
 # ts6-protocol.txt:821
-#
-# join_with_modes:
 #
 # $server    = server object we're sending to
 # $channel   = channel object

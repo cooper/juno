@@ -35,7 +35,6 @@ my %ocommands = (
     topic           => \&topic,
     cmode           => \&cmode,
     channel_burst   => [ \&cum, \&topicburst ],             # cum
-    join_with_modes => \&join_with_modes,
     kill            => \&skill,
     connect         => \&sconnect,
     kick            => \&kick,
@@ -416,31 +415,6 @@ sub burst {
 sub endburst {
     my ($to_server, $serv, $time) = @_;
     ":$$serv{sid} ENDBURST $time"
-}
-
-# join_with_modes:
-#
-# $server    = server object we're sending to
-# $channel   = channel object
-# $serv      = server source of the message
-# $mode_str  = mode string being sent
-# $mode_serv = server object for mode perspective
-# @members   = channel members (user objects)
-#
-sub join_with_modes {
-    my ($server, $channel, $serv, $mode_str, $mode_serv, @members) = @_;
-    my (@joins, $cmode);
-
-    # add a JOIN for each user.
-    push @joins, join($_, $channel, $channel->{time}) foreach @members;
-
-    # if we're sending modes, add the CMODE.
-    # $source, $channel, $time, $perspective, $modestr
-    if ($mode_str ne '+') {
-        $cmode = cmode($serv, $channel, $channel->{time}, $mode_serv, $mode_str);
-    }
-
-    return (@joins, $cmode);
 }
 
 sub admin {
