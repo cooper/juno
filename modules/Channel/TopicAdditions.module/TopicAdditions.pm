@@ -44,10 +44,8 @@ sub cmd_prepend {
 
 sub cmd_append {
     my ($user, $event, $channel, $new) = @_;
-    my ($user, $event, $channel, $new) = @_;
     $new = "$$channel{topic}{topic} | $new" if $channel->{topic};
     return $user->handle_unsafe("TOPIC $$channel{name} :$new");
 }
 
 $mod
-

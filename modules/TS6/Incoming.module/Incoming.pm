@@ -171,6 +171,16 @@ our %ts6_incoming_commands = (
                   # :sid|uid   VERSION  sid
         params => '-source     -command server',
         code   => \&generic_hunted
+    },
+    LUSERS => {
+                # :sid|uid LUSERS   server_mask sid
+        params => '-source          *           server',
+        code   => \&lusers
+    },
+    LINKS => {
+                # :uid LINKS     sid        server_mask
+        params => '-source(user) server     *',
+        code   => \&links
     }
 );
 
@@ -1402,18 +1412,55 @@ sub mode {
 sub generic_hunted {
     my ($server, $msg, $source, $command, $t_server) = @_;
 
+    # VERSION supports a server source, but I don't know what to do about that.
+    $source->isa('user') or return;
+
     # if the target server is not me, forward it.
     if ($t_server != $me) {
         $msg->forward_to($t_server, lc $command => $source, $t_server);
         return 1;
     }
 
+    # otherwise, handle it locally.
+    return $source->handle_unsafe($command);
 
+}
+
+# LUSERS
+#
+# source:       user
+# parameters:   server mask, hunted
+#
+sub lusers {
+    my ($server, $msg, $user, undef, $t_server) = @_;
+
+    # if the target server is not me, forward it.
+    if ($t_server != $me) {
+        $msg->forward_to($t_server, lusers => $user, $t_server);
+        return 1;
+    }
 
     # otherwise, handle it locally.
-    $source->isa('user') or return;
-    my $my_sid = $me->id;
-    $source->handle_unsafe("$command \$$my_sid");
+    return $user->handle_unsafe("LUSERS");
+
+}
+
+# LINKS
+#
+# source:       user
+# parameters:   hunted, server mask
+#
+sub links {
+    my ($server, $msg, $user, $t_server, $server_mask) = @_;
+
+    # if the target server is not me, forward it.
+    if ($t_server != $me) {
+        $msg->forward_to($t_server, links => $user, $t_server, $server_mask);
+        return 1;
+    }
+
+    # otherwise, handle it locally.
+    return $user->handle_unsafe("LINKS * $server_mask");
 
 }
 

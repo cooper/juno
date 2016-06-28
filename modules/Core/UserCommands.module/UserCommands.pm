@@ -971,6 +971,7 @@ sub topic {
 }
 
 sub lusers {
+    # TODO: does not support remote
     my $user = shift;
     my @actual_users = $pool->actual_users;
 
@@ -1244,9 +1245,7 @@ sub links {
 
     # if it's not the local server, pass this on.
     if (!$server->is_local) {
-        $server->{location}->fire_command(links =>
-            $user, $server, $serv_mask, $query_mask
-        );
+        $server->{location}->fire_command(links => $user, $server, $query_mask);
         return 1;
     }
 

@@ -3144,3 +3144,6 @@ CHANGES:
             per TS6 spec, numerics with an initial digit of zero (those which are delivered during the connection process) are handled as though it were one.
 
         88. added several TS6 remote requests: ADMIN, INFO, MOTD, TIME, and VERSION.
+
+        89. added more TS6 remote requests: LINKS, LUSERS.
+            in the JELP LINKS command, the server_mask parameter is now deprecated and is always propagated as '*'.

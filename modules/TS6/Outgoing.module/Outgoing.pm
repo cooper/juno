@@ -52,14 +52,15 @@ our %ts6_outgoing_commands = (
      chghost        => \&chghost,
      save_user      => \&save,
      num            => \&num,
-   # links          => \&links,
+     links          => \&links,
      whois          => \&whois,
      part_all       => \&join_zero,
      admin          => \&admin,
      time           => \&_time,
      info           => \&info,
      motd           => \&motd,
-     version        => \&version
+     version        => \&version,
+     lusers         => \&lusers
 );
 
 sub init {
@@ -519,7 +520,7 @@ sub kick {
     my ($to_server, $source, $channel, $target, $reason) = @_;
     my $sourceid = ts6_id($source);
     my $targetid = ts6_id($target);
-    my $reason = length $reason ? " :$reason" : '';
+    $reason = length $reason ? " :$reason" : '';
     return ":$sourceid KICK $$channel{name} $targetid$reason";
 }
 
@@ -752,6 +753,13 @@ sub generic_hunted {
     my $uid = ts6_id($source);
     my $sid = ts6_id($t_server);
     ":$uid $command $sid"
+}
+
+sub links  {
+    my ($to_server, $user, $t_server, $query_mask) = @_;
+    my $uid = ts6_id($user);
+    my $sid = ts6_id($t_server);
+    ":$uid LINKS $sid $query_mask"
 }
 
 $mod

@@ -401,8 +401,8 @@ sub num {
 }
 
 sub links {
-    my ($to_server, $user, $t_server, $server_mask, $query_mask) = @_;
-    "\@for=$$t_server{sid} :$$user{uid} LINKS $server_mask $query_mask"
+    my ($to_server, $user, $t_server, $query_mask) = @_;
+    "\@for=$$t_server{sid} :$$user{uid} LINKS * $query_mask"
 }
 
 sub burst {

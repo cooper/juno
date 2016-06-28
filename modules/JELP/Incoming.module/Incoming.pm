@@ -872,9 +872,7 @@ sub links {
     }
 
     # === Forward ===
-    $msg->forward_to($t_server, links =>
-        $user, $t_server, $serv_mask, $query_mask
-    );
+    $msg->forward_to($t_server, $user, $t_server, $query_mask);
 
     return 1;
 }
