@@ -663,7 +663,7 @@ sub sjoin {
 
     # determine the user mode string.
     my ($uids_modes, @uids, @good_users) = '+';
-    USER: foreach my $str (split /,/, $nicklist) {
+    USER: foreach my $str (split /\s+/, $nicklist) {
 
         # find the user and modes
         my ($uid, $modes) = split /!/, $str;
