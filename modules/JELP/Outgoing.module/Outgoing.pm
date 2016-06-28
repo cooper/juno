@@ -48,6 +48,7 @@ my %ocommands = (
     version         => \&version,
     login           => \&login,
     part_all        => \&partall,
+    invite          => \&invite,
 
     # JELP-specific
 
@@ -446,6 +447,12 @@ sub login {
     my ($to_server, $user, @items) = @_;
     my $items = join ',', @items;
     ":$$user{uid} LOGIN $items"
+}
+
+sub invite {
+    my ($to_server, $user, $t_user, $ch_name) = @_;
+    $ch_name = $ch_name->{name} if ref $ch_name;
+    ":$$user{uid} INVITE $$t_user{uid} $ch_name"
 }
 
 $mod

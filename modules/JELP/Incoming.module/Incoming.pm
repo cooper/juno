@@ -161,6 +161,11 @@ my %scommands = (
                   # :uid PARTALL
         params => '-source(user)',
         code   => \&partall
+    },
+    INVITE => {
+                  # :uid INVITE  uid  ch_name
+        params => '-source(user) user any',
+        code   => \&invite
     }
 );
 
@@ -938,6 +943,23 @@ sub partall {
 
     # === Forward ===
     $msg->forward(part_all => $user);
+
+    return 1;
+}
+
+sub invite {
+    # :uid INVITE target ch_name
+    my ($server, $msg, $user, $t_user, $ch_name) = @_;
+
+    # local user.
+    if ($t_user->is_local) {
+        $t_user->get_invited_by($user, $ch_name);
+        return 1;
+    }
+
+    # === Forward ===
+    # forward on to next hop.
+    $msg->forward_to($t_user, invite => $user, $t_user, $ch_name);
 
     return 1;
 }

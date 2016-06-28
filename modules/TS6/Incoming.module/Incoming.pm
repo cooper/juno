@@ -181,6 +181,11 @@ our %ts6_incoming_commands = (
                 # :uid LINKS     sid        server_mask
         params => '-source(user) server     *',
         code   => \&links
+    },
+    INVITE => {
+                  # :uid INVITE  uid  channel channelTS
+        params => '-source(user) user channel ts',
+        code   => \&invite
     }
 );
 
@@ -1417,6 +1422,8 @@ sub generic_hunted {
 
     # if the target server is not me, forward it.
     if ($t_server != $me) {
+        # this line is for when I search the codebase to change something:
+        # admin => info => motd => time => version =>
         $msg->forward_to($t_server, lc $command => $source, $t_server);
         return 1;
     }
@@ -1462,6 +1469,31 @@ sub links {
     # otherwise, handle it locally.
     return $user->handle_unsafe("LINKS * $server_mask");
 
+}
+
+# INVITE
+#
+# source:       user
+# parameters:   target user, channel, opt. channelTS
+# propagation:  one-to-one
+#
+sub invite {
+    my ($server, $msg, $user, $t_user, $channel, $time) = @_;
+
+    # if the timestamp is newer than what we have, drop the message.
+    return if $channel->{time} < $time;
+
+    # this user belongs to me.
+    if ($t_user->is_local) {
+        $user->get_invited_by($t_user, $channel);
+        return 1;
+    }
+
+    #=== Forward ===#
+    # forward on to next hop.
+    $msg->forward_to($t_user, invite => $user, $t_user, $channel);
+
+    return 1;
 }
 
 $mod

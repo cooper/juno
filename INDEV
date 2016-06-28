@@ -3143,7 +3143,12 @@ CHANGES:
         87. add TS6 OPERWALL support.
             per TS6 spec, numerics with an initial digit of zero (those which are delivered during the connection process) are handled as though it were one.
 
-        88. added several TS6 remote requests: ADMIN, INFO, MOTD, TIME, and VERSION.
+        88. added several TS6 remote requests: ADMIN, INFO, MOTD, TIME, and VERSION. #57
 
-        89. added more TS6 remote requests: LINKS, LUSERS.
+        89. added more TS6 remote requests: LINKS, LUSERS. #57
             in the JELP LINKS command, the server_mask parameter is now deprecated and is always propagated as '*'.
+
+    9. the Channel::Invite module no longer depends on JELP.
+        moved JELP logic out of the module and into JELP::Incoming and JELP::Outgoing.
+        added TS6 handlers for INVITE.
+        because TS6 does not support INVITE to nonexistent channels, those messages are not forwarded to TS6 servers.

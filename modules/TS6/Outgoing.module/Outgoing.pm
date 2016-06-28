@@ -60,7 +60,8 @@ our %ts6_outgoing_commands = (
      info           => \&info,
      motd           => \&motd,
      version        => \&version,
-     lusers         => \&lusers
+     lusers         => \&lusers,
+     invite         => \&invite
 );
 
 sub init {
@@ -755,11 +756,41 @@ sub generic_hunted {
     ":$uid $command $sid"
 }
 
+# LINKS
+#
+# source:       user
+# parameters:   hunted, server mask
+#
 sub links  {
     my ($to_server, $user, $t_server, $query_mask) = @_;
     my $uid = ts6_id($user);
     my $sid = ts6_id($t_server);
     ":$uid LINKS $sid $query_mask"
+}
+
+# INVITE
+#
+# source:       user
+# parameters:   target user, channel, opt. channelTS
+# propagation:  one-to-one
+#
+sub invite {
+    my ($to_server, $user, $t_user, $ch_name) = @_;
+
+    # in JELP, the channel does not have to exist.
+    # this is why the channel name is used here.
+    # in TS6, invitations to nonexistent channels are not supported.
+    my $channel = $pool->lookup_channel($ch_name);
+    if (!$channel) {
+        L("$$to_server{name} does not support invitations to nonexistent ".
+          "channels; INVITE message dropped");
+        return;
+    }
+
+    my $uid1 = ts6_id($user);
+    my $uid2 = ts6_id($t_user);
+
+    ":$uid1 INVITE $uid2 $$channel{name} $$channel{time}"
 }
 
 $mod

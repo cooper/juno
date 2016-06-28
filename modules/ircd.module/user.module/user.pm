@@ -563,8 +563,10 @@ sub get_invited_by {
     my ($user, $i_user, $ch_name) = @_;
     return unless $user->is_local;
 
-    # it's an object.
-    if (ref(my $channel = $ch_name)) {
+    # the channel exists.
+    my $channel = $ch_name if ref $ch_name;
+    $channel  ||= $pool->lookup_channel($ch_name);
+    if ($channel) {
         $ch_name = $channel->name;
 
         # user is already in channel.
