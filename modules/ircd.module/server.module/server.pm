@@ -313,7 +313,7 @@ sub cmode_takes_parameter {
 # if $combine_lists is true:
 #
 # all list modes are preserved; none are ever
-# removed. when two servers link and  the channel
+# removed. when two servers link and the channel
 # time is valid on both, the final list will be the
 # combination of both lists. has no effect if
 # $remove_none is true.

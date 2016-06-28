@@ -624,11 +624,8 @@ sub cum {
     # :sid   CUM   channel time users :modestr
     my ($server, $msg, $serv, $chname, $ts, $userstr, $modestr) = @_;
 
-    # we cannot assume that this a new channel
-    my $channel = $pool->lookup_channel($chname) || $pool->new_channel(
-        name => $chname,
-        time => $ts
-    );
+    # find or create the channel.
+    my $channel = $pool->lookup_or_create_channel($chname, $ts);
 
     # store mode string before any possible changes.
     my $old_modestr   = $channel->mode_string_all($serv, 1); # all but status
