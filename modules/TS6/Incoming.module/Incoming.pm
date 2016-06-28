@@ -146,6 +146,31 @@ our %ts6_incoming_commands = (
                   # :source MODE uid|channel +modes params
         params => '-source @rest',
         code   => \&mode
+    },
+    ADMIN => {
+                  # :uid         ADMIN    sid
+        params => '-source(user) -command server',
+        code   => \&generic_hunted
+    },
+    INFO => {
+                  # :uid         INFO     sid
+        params => '-source(user) -command server',
+        code   => \&generic_hunted
+    },
+    MOTD => {
+                  # :uid         MOTD     sid
+        params => '-source(user) -command server',
+        code   => \&generic_hunted
+    },
+    TIME => {
+                  # :uid         TIME     sid
+        params => '-source(user) -command server',
+        code   => \&generic_hunted
+    },
+    VERSION => {
+                  # :sid|uid   VERSION  sid
+        params => '-source     -command server',
+        code   => \&generic_hunted
     }
 );
 
@@ -1182,7 +1207,6 @@ sub wallops {
 # parameters: message
 # propagation: broadcast
 #
-# Sends a message to operators (with umode +z set).
 sub operwall {
     my ($server, $msg, $user, $message) = @_;
 
@@ -1368,6 +1392,29 @@ sub mode {
     $msg->forward(umode => $target, $mode_str);
 
     return 1;
+}
+
+# ADMIN, INFO, MOTD, TIME, VERSION
+#
+# source:       user
+# parameters:   hunted
+#
+sub generic_hunted {
+    my ($server, $msg, $source, $command, $t_server) = @_;
+
+    # if the target server is not me, forward it.
+    if ($t_server != $me) {
+        $msg->forward_to($t_server, lc $command => $source, $t_server);
+        return 1;
+    }
+
+
+
+    # otherwise, handle it locally.
+    $source->isa('user') or return;
+    my $my_sid = $me->id;
+    $source->handle_unsafe("$command \$$my_sid");
+
 }
 
 $mod

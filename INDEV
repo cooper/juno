@@ -3142,3 +3142,5 @@ CHANGES:
 
         87. add TS6 OPERWALL support.
             per TS6 spec, numerics with an initial digit of zero (those which are delivered during the connection process) are handled as though it were one.
+
+        88. added several TS6 remote requests: ADMIN, INFO, MOTD, TIME, and VERSION.

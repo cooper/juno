@@ -54,7 +54,12 @@ our %ts6_outgoing_commands = (
      num            => \&num,
    # links          => \&links,
      whois          => \&whois,
-     part_all       => \&join_zero
+     part_all       => \&join_zero,
+     admin          => \&admin,
+     time           => \&_time,
+     info           => \&info,
+     motd           => \&motd,
+     version        => \&version
 );
 
 sub init {
@@ -703,7 +708,7 @@ sub whois {
     my ($to_server, $whoiser_user, $queried_user, $target_server) = @_;
     my $uid1 = ts6_id($whoiser_user);
     my $tsid = ts6_id($target_server);
-    ":$uid1 WHOIS $tsid :$$queried_user{nick}"
+    ":$uid1 WHOIS $tsid $$queried_user{nick}"
 }
 
 # remote numerics
@@ -729,6 +734,24 @@ sub umode {
     my $str = $me->convert_umode_string($to_server, $mode_str);
     my $id = ts6_id($user);
     ":$id MODE $id $str"
+}
+
+# ADMIN, INFO, MOTD, TIME, VERSION
+#
+# source:       user
+# parameters:   hunted
+#
+sub admin   { generic_hunted('ADMIN',    @_) }
+sub info    { generic_hunted('INFO',     @_) }
+sub motd    { generic_hunted('MOTD',     @_) }
+sub _time   { generic_hunted('TIME',     @_) }
+sub version { generic_hunted('VERSION',  @_) }
+
+sub generic_hunted {
+    my ($command, $to_server, $source, $t_server) = (uc shift, @_);
+    my $uid = ts6_id($source);
+    my $sid = ts6_id($t_server);
+    ":$uid $command $sid"
 }
 
 $mod

@@ -276,6 +276,7 @@ sub nick {
 }
 
 sub info {
+    # TODO: does not support remote
     my ($LNAME, $NAME, $VERSION) = (v('LNAME'), v('NAME'), v('VERSION'));
     my $user = shift;
     my $info = <<"END";
