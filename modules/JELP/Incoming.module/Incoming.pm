@@ -120,10 +120,10 @@ my %scommands = (
         params  => '-source(server) @rest',
         code    => \&acm
     },
-    CUM => {
-                   # :sid CUM       ch_name time user_list :mode_string
+    SJOIN => {
+                   # :sid SJOIN     ch_name time user_list :mode_string
         params  => '-source(server) any     ts   any       :rest',
-        code    => \&cum
+        code    => \&sjoin
     },
     KICK => {
                    # :src KICK channel uid  :reason
@@ -618,11 +618,12 @@ sub acm {
     return 1;
 }
 
-# channel user membership, compact CUM
-sub cum {
-    # server any     ts   any   :rest
-    # :sid   CUM   channel time users :modestr
-    my ($server, $msg, $source_serv, $ch_name, $ts, $nicklist, $mode_str) = @_;
+# channel burst
+sub sjoin {
+    # server         any     ts   any   :rest
+    # :sid   SJOIN   channel time users :modestr
+    my $nicklist = pop;
+    my ($server, $msg, $source_serv, $ch_name, $ts, $mode_str_modes, @mode_params) = @_;
 
     # maybe we have a channel by this name, otherwise create one.
     my $channel = $pool->lookup_or_create_channel($ch_name, $ts);
@@ -649,6 +650,7 @@ sub cum {
     # to ensure that all current modes known to this server are unset if the
     # provided TS is older than our existing channelTS.
     #
+    my $mode_str = join ' ', $mode_str_modes, @mode_params;
     $mode_str = $source_serv->convert_cmode_string($me, $mode_str, 1);
 
     # $old_mode_str and $mode_str are now both in the perspective of $me.
@@ -662,9 +664,6 @@ sub cum {
     # determine the user mode string.
     my ($uids_modes, @uids, @good_users) = '+';
     USER: foreach my $str (split /,/, $nicklist) {
-
-        # empty nicklist
-        last if $nicklist eq '-';
 
         # find the user and modes
         my ($uid, $modes) = split /!/, $str;
@@ -703,7 +702,6 @@ sub cum {
         # combine status modes with the other modes in the message.
         # $mode_str, $uids_modes, @mode_params, @uids
         # are now all in the perspective of $serv.
-        my ($mode_str_modes, @mode_params) = split /\s+/, $mode_str;
         my $command_mode_str = join(' ',
             '+'.$mode_str_modes.$uids_modes,
             @mode_params,

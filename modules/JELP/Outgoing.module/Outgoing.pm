@@ -34,7 +34,7 @@ my %ocommands = (
     part            => \&part,
     topic           => \&topic,
     cmode           => \&cmode,
-    channel_burst   => [ \&cum, \&topicburst ],             # cum
+    channel_burst   => [ \&sjoin, \&topicburst ],
     kill            => \&skill,
     connect         => \&sconnect,
     kick            => \&kick,
@@ -320,8 +320,8 @@ sub skill {
     ":$id KILL $tid :$reason"
 }
 
-# channel user membership (channel burst)
-sub cum {
+# channel burst
+sub sjoin {
     my ($server, $channel, $serv, @members) = @_;
     $serv ||= $me;
 
@@ -348,10 +348,8 @@ sub cum {
         push @userstrs, $str;
     }
 
-    # note: use "-" if no users present
-    my $userstr = @userstrs ? join ',', @userstrs : '-';
-    ":$$serv{sid} CUM $$channel{name} $$channel{time} $userstr :$modestr"
-
+    my $userstr = join ' ', @userstrs;
+    ":$$serv{sid} SJOIN $$channel{name} $$channel{time} $modestr :$userstr"
 }
 
 # add cmodes
