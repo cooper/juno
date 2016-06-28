@@ -640,10 +640,17 @@ sub return_away {
 # ts6-protocol.txt:1140
 #
 sub wallops {
-    my ($to_server, $source, $message) = @_;
+    my ($to_server, $source, $message, $oper_only) = @_;
     my $id = ts6_id($source);
+
+    # if it's oper only and the source is not a server, use OPERWALL.
+    if ($oper_only && $source->isa('user')) {
+        return ":$id OPERWALL :$message";
+    }
+
     ":$id WALLOPS :$message"
 }
+
 # CHGHOST
 #
 # charybdis TS6

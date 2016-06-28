@@ -122,6 +122,11 @@ our %ts6_incoming_commands = (
         params => '-source          :rest',
         code   => \&wallops
     },
+    OPERWALL => {
+                  # :uid OPERWALL  :message
+        params => '-source(user)   :rest',
+        code   => \&operwall
+    },
     CHGHOST => {
                   # :source CHGHOST uid   newhost
         params => '-source          user  *',
@@ -148,6 +153,14 @@ sub handle_numeric {
     my ($server, $msg) = @_;
     my @args = $msg->params;
     my $num  = $msg->command;
+
+    # from ts6-protocol.txt:
+    # If the first digit is 0 (indicating a reply about the local connection), it
+    # should be changed to 1 before propagation or sending to a user.
+    my $first = \substr($num, 0, 1);
+    if ($$first eq '0') {
+        $$first = '1';
+    }
 
     # find the source.
     my $source_serv = obj_from_ts6($msg->{source});
@@ -1154,12 +1167,29 @@ sub wallops {
     my ($server, $msg, $source, $message) = @_;
 
     # is it a server or a user? this determines whether it is oper-only.
-    my $source_serv = $source->isa('server');
+    my $oper_only = $source->isa('server');
 
-    $pool->fire_wallops_local($source, $message, $source_serv);
+    $pool->fire_wallops_local($source, $message, $oper_only);
 
     #=== Forward ===#
-    $msg->forward(wallops => $source, $message);
+    $msg->forward(wallops => $source, $message, $oper_only);
+
+    return 1;
+}
+
+# OPERWALL
+# source: user
+# parameters: message
+# propagation: broadcast
+#
+# Sends a message to operators (with umode +z set).
+sub operwall {
+    my ($server, $msg, $user, $message) = @_;
+
+    $pool->fire_wallops_local($user, $message, 1);
+
+    #=== Forward ===#
+    $msg->forward(wallops => $user, $message, 1);
 
     return 1;
 }
