@@ -351,7 +351,7 @@ sub euid {
 #
 sub sjoin {
     my $nicklist = pop;
-    my ($server, $msg, $source_serv, $ts, $ch_name, $mode_str, @mode_params) = @_;
+    my ($server, $msg, $source_serv, $ts, $ch_name, $mode_str_modes, @mode_params) = @_;
 
     # UPDATE CHANNEL TIME
     #=================================
@@ -375,6 +375,7 @@ sub sjoin {
 
     # the incoming mode string must be converted to the perspective of this
     # server. this is necessary in case our own modes are unset.
+    my $mode_str = join ' ', $mode_str_modes, @mode_params;
     $mode_str = $server->convert_cmode_string($me, $mode_str, 1);
 
     # $old_mode_str and $mode_str are now both in the perspective of $me.
@@ -442,7 +443,7 @@ sub sjoin {
         # $mode_str, $uids_modes, @mode_params, @uids
         # are now all in the perspective of $serv.
         my $command_mode_str = join(' ',
-            '+'.$mode_str.$uids_modes,
+            '+'.$mode_str_modes.$uids_modes,
             @mode_params,
             @uids
         );

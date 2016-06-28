@@ -622,78 +622,112 @@ sub acm {
 sub cum {
     # server any     ts   any   :rest
     # :sid   CUM   channel time users :modestr
-    my ($server, $msg, $serv, $chname, $ts, $userstr, $modestr) = @_;
+    my ($server, $msg, $source_serv, $ch_name, $ts, $nicklist, $mode_str) = @_;
 
-    # find or create the channel.
-    my $channel = $pool->lookup_or_create_channel($chname, $ts);
-
-    # store mode string before any possible changes.
-    my $old_modestr   = $channel->mode_string_all($serv, 1); # all but status
-    my $old_s_modestr = $channel->mode_string_status($serv); # status only
+    # maybe we have a channel by this name, otherwise create one.
+    my $channel = $pool->lookup_or_create_channel($ch_name, $ts);
 
     # take the new time if it's less recent.
+    # note that modes are not handled here (the second arg says not to)
+    # because they are handled manually in a prettier way for CUM.
     my $old_time = $channel->{time};
     my $new_time = $channel->take_lower_time($ts, 1);
-    my @good_users;
+
+    # CONVERT MODES
+    #=================================
+
+    # store mode string before any possible changes.
+    # this now includes status modes as well,
+    # which were previously handled separately.
+    my $old_mode_str = $channel->mode_string_all($me);
+
+    # the incoming mode string must be converted to the perspective of this
+    # server. this is necessary because everything needs to be in the same
+    # perspective for one unified mode handle.
+    #
+    # we use this server's perspective rather than the source server's
+    # to ensure that all current modes known to this server are unset if the
+    # provided TS is older than our existing channelTS.
+    #
+    $mode_str = $source_serv->convert_cmode_string($me, $mode_str, 1);
+
+    # $old_mode_str and $mode_str are now both in the perspective of $me.
+
+    (my $accept_new_modes)++ if $new_time == $ts;
+    my $clear_old_modes = $new_time < $old_time;
+
+    # HANDLE USERS
+    #====================
 
     # determine the user mode string.
-    my ($uids_modes, @uids) = '';
-    USER: foreach my $str (split /,/, $userstr) {
-        last if $userstr eq '-';
+    my ($uids_modes, @uids, @good_users) = '+';
+    USER: foreach my $str (split /,/, $nicklist) {
+
+        # empty nicklist
+        last if $nicklist eq '-';
+
+        # find the user and modes
         my ($uid, $modes) = split /!/, $str;
         my $user = $pool->lookup_user($uid) or next USER;
         push @good_users, $user;
 
-        # join the new users
+        # this user does not physically belong to this server; ignore.
+        next if $user->{location} != $server;
+
+        # join the new user
         unless ($channel->has_user($user)) {
             $channel->cjoin($user, $channel->{time});
             $channel->sendfrom_all($user->full, "JOIN $$channel{name}");
             $channel->fire_event(user_joined => $user);
         }
 
-        next USER unless $modes;      # the mode part is obviously optional..
-        next USER if $new_time != $ts; # the time battle was lost.
-        next USER if $user->is_local; # we know modes for local user already.
+        # no prefixes or not accepting the prefixes.
+        next unless length $modes && $accept_new_modes;
 
         $uids_modes .= $modes;
         push @uids, $uid for 1 .. length $modes;
 
     }
 
-    # combine this with the other modes.
-    my ($other_modes, @other_params) = split ' ', $modestr;
-    my $command_modestr = join(' ', '+'.$other_modes.$uids_modes, @other_params, @uids);
+    # ACCEPT AND RESET MODES
+    #=================================
 
-    # the channel time is the same as in the command, so new modes are valid.
-    if ($new_time == $ts) {
+    # okay, now we're ready to apply the modes.
+    if ($accept_new_modes) {
+
+        # $uids_modes are currently in the perspective of the source server.
+        # note that this does not provide parameters; they are already in the
+        # perspective of the current server (i.e., in JELP format).
+        $uids_modes = $source_serv->convert_cmode_string($me, $uids_modes, 1);
+
+        # combine status modes with the other modes in the message.
+        # $mode_str, $uids_modes, @mode_params, @uids
+        # are now all in the perspective of $serv.
+        my ($mode_str_modes, @mode_params) = split /\s+/, $mode_str;
+        my $command_mode_str = join(' ',
+            '+'.$mode_str_modes.$uids_modes,
+            @mode_params,
+            @uids
+        );
 
         # determine the difference between
-        # $old_modestr     (all former modes except status)
-        # $command_modestr (all new modes including status)
-        my $difference = $serv->cmode_string_difference($old_modestr, $command_modestr, 1);
-
-        # the command time took over, so we need to remove our current status modes.
-        if ($new_time < $old_time) {
-            substr($old_s_modestr, 0, 1) = '-';
-
-            # separate each string into modes and params.
-            my ($s_modes, @s_params) = split ' ', $old_s_modestr;
-            my ($d_modes, @d_params) = split ' ', $difference;
-
-            # combine.
-            $s_modes  //= '';
-            $d_modes  //= '';
-            $difference = join(' ', join('', $d_modes, $s_modes), @d_params, @s_params);
-
-        }
+        my $difference = $me->cmode_string_difference(
+            $old_mode_str,      # all former modes
+            $command_mode_str,  # all new modes including statuses
+            0,                  # combine ban lists? no longer used in JELP
+            !$clear_old_modes   # do not remove modes missing from $old_mode_str
+        );
 
         # handle the mode string locally.
-        $channel->do_mode_string_local($serv, $serv, $difference, 1, 1) if $difference;
+        # note: do not supply a $over_protocol sub because
+        # this generated string uses juno UIDs.
+        $channel->do_mode_string_local($me, $source_serv, $difference, 1, 1)
+            if $difference;
 
     }
 
     # === Forward ===
-    $msg->forward(channel_burst => $channel, $serv, @good_users);
+    $msg->forward(channel_burst => $channel, $source_serv, @good_users);
 
     return 1;
 }

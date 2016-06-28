@@ -3130,3 +3130,5 @@ CHANGES:
 
         83. use channel_burst for channel creation.
             this will use CUM for JELP channel creation and SJOIN for TS6. #52
+
+        84. CUM command overhaul. works more like SJOIN now.
