@@ -425,11 +425,13 @@ sub sjoin {
     # this now includes status modes as well,
     # which were previously handled separately.
     my $old_mode_str = $channel->mode_string_all($me);
+    print "OLD MODE STRING (\$me): $old_mode_str\n";
 
     # the incoming mode string must be converted to the perspective of this
     # server. this is necessary in case our own modes are unset.
     my $mode_str = join ' ', $mode_str_modes, @mode_params;
     $mode_str = $server->convert_cmode_string($me, $mode_str, 1);
+    print "INCOMING MODE STRING (\$me): $mode_str\n";
 
     # $old_mode_str and $mode_str are now both in the perspective of $me.
 
@@ -450,6 +452,10 @@ sub sjoin {
     #
     (my $accept_new_modes)++ if $new_time == $ts;
     my $clear_old_modes = $new_time < $old_time;
+    print "ACCEPTING NEW MODES\n"           if $accept_new_modes;
+    print "NOT ACCEPTING NEW MODES\n"       if !$accept_new_modes;
+    print "CLEARING OLD MODES\n"            if $clear_old_modes;
+    print "NOT CLEARING OLD MODES\n"        if !$clear_old_modes;
 
     # HANDLE USERS
     #====================
@@ -491,23 +497,23 @@ sub sjoin {
         # note that this does not provide parameters; they are already in the
         # perspective of the current server (i.e., in JELP format).
         $uids_modes = $server->convert_cmode_string($me, $uids_modes, 1);
+        print "GENERATED UID MODE STRING (\$me): $uids_modes\n";
 
         # combine status modes with the other modes in the message.
-        # $mode_str, $uids_modes, @mode_params, @uids
-        # are now all in the perspective of $serv.
-        my $command_mode_str = join(' ',
-            '+'.$mode_str_modes.$uids_modes,
-            @mode_params,
-            @uids
-        );
+        # note that all of these mode strings are in the perspective of $me.
+        my $uid_str = join ' ', $uids_modes, @uids;
+        my $command_mode_str = $me->combine_cmode_strings($mode_str, $uid_str);
+        print "COMBINED MODE STRING (\$me): $command_mode_str\n";
 
-        # determine the difference between
+        # determine the difference between the old mode string and the new one.
+        # note that ->cmode_string_difference() ONLY supports positive +modes.
         my $difference = $me->cmode_string_difference(
             $old_mode_str,      # all former modes
             $command_mode_str,  # all new modes including statuses
             0,                  # combine ban lists? not used in TS6
             !$clear_old_modes   # do not remove modes missing from $old_mode_str
         );
+        print "DIFFERENCE (\$me): $difference\n";
 
         # handle the mode string locally.
         # note: do not supply a $over_protocol sub because

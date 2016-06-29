@@ -260,6 +260,25 @@ sub convert_cmode_string {
     return $new_string;
 }
 
+# combine two mode strings, filtering repeats
+# both mode strings must be POSITIVE; this does not support sign changes
+sub combine_cmode_strings {
+    my ($server, $mode_str_1, $mode_str_2) = @_;
+
+    # separate into +modes and @params
+    my ($modes_1, @params_1) = split /\s+/, $mode_str_1;
+    my ($modes_2, @params_2) = split /\s+/, $mode_str_2;
+
+    # now join them
+    my $new = join ' ', $modes_1.$modes_2, @params_1, @params_2;
+
+    # call ->cmode_string_difference() with an old modestring of +.
+    # this will remove duplicates and extraneous signs.
+    $new = $server->cmode_string_difference('+', $new, 0, 1);
+
+    return $new;
+}
+
 # true if the mode takes a parameter in this state.
 #
 # returns:
@@ -281,7 +300,6 @@ sub cmode_takes_parameter {
     return $params{ $server->{cmodes}{$name}{type} };
 }
 
-#
 # takes a channel mode string and compares
 # it with another, returning the difference.
 # basically, for example,
@@ -303,8 +321,9 @@ sub cmode_takes_parameter {
 # parameters exist for a mode type intended to
 # have only a single parameter such as +l.
 #
-# both mode strings should only be +modes and have
-# no - states because CUM only shows current modes.
+# both mode strings MUST be in the positive (+) state;
+# this method does NOT track signs because it only
+# is capable of comparing two POSITIVE mode strings.
 #
 # also, it will not work correctly if multiple
 # instances of the same parameter are in either
