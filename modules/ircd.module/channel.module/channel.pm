@@ -469,7 +469,7 @@ sub user_is {
 # greater than voice (halfop, op, admin, owner)
 sub user_has_basic_status {
     my ($channel, $user) = @_;
-    return $channel->user_get_highest_level($user) >= 0;
+    return $channel->user_get_highest_level($user) >= -1;
 }
 
 # get the highest level of a user

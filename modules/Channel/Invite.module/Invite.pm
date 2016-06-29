@@ -123,49 +123,8 @@ sub add_invite_callbacks {
         delete $user->{invite_pending}{ lc $channel->name };
     }, name => 'invite.clear');
 
-    # ON INVITE,
-    # first, user must be in the channel if it exists.
-    $pool->on('user.can_invite' => sub {
-        my ($event, $t_user, $ch_name, $channel) = @_;
-        my $user = $event->object;
-
-        # channel does not exist.
-        if (!$channel) {
-
-            # invite is OK if it does not have to exist.
-            return 1 if !conf('channels', 'invite_must_exist');
-
-            # invite_must_exist says to end it here.
-            $event->stop;
-            $user->numeric(ERR_NOSUCHCHANNEL => $channel->name);
-            return;
-
-        }
-
-        # user is there.
-        return 1 if $channel->has_user($user);
-
-        # channel exists, and user is not there.
-        $event->stop;
-        $user->numeric(ERR_NOTONCHANNEL => $ch_name);
-
-    }, name => 'source.in.channel', priority => 30);
-
-    # second, target can't be in the channel already.
-    $pool->on('user.can_invite' => sub {
-        my ($event, $t_user, $ch_name, $channel) = @_;
-        my $user = $event->object;
-        return unless $channel;
-
-        # target is not in there.
-        return 1 unless $channel->has_user($t_user);
-
-        # target is in there already.
-        $event->stop;
-        $user->numeric(ERR_USERONCHANNEL => $t_user->{nick}, $ch_name);
-
-    }, name => 'target.in.channel', priority => 20);
-
+    # ARE WE GOING TO ALLOW THIS INVITE?
+    #
     # Does the channel exist?
     #   - No. Is channels:invite_must_exist enabled?
     #       - No. Invite is OK
@@ -183,6 +142,52 @@ sub add_invite_callbacks {
     #                       - No. Is channels:only_ops_invite enabled?
     #                           - No. Invite is OK
     #                           - Yes. ERR_CHANOPRIVSNEEDED
+    my $INVITE_OK = 1;
+
+    # first, user must be in the channel if it exists.
+    $pool->on('user.can_invite' => sub {
+        my ($event, $t_user, $ch_name, $channel) = @_;
+        my $user = $event->object;
+
+        # channel does not exist.
+        if (!$channel) {
+
+            # invite is OK if it does not have to exist.
+            return $INVITE_OK
+                if !conf('channels', 'invite_must_exist');
+
+            # invite_must_exist says to end it here.
+            $event->stop;
+            $user->numeric(ERR_NOSUCHCHANNEL => $channel->name);
+            return;
+
+        }
+
+        # user is there.
+        return $INVITE_OK
+            if $channel->has_user($user);
+
+        # channel exists, and user is not there.
+        $event->stop;
+        $user->numeric(ERR_NOTONCHANNEL => $ch_name);
+
+    }, name => 'source.in.channel', priority => 30);
+
+    # second, target can't be in the channel already.
+    $pool->on('user.can_invite' => sub {
+        my ($event, $t_user, $ch_name, $channel) = @_;
+        my $user = $event->object;
+        return unless $channel;
+
+        # target is not in there.
+        return $INVITE_OK
+            unless $channel->has_user($t_user);
+
+        # target is in there already.
+        $event->stop;
+        $user->numeric(ERR_USERONCHANNEL => $t_user->{nick}, $ch_name);
+
+    }, name => 'target.in.channel', priority => 20);
 
     # finally, user must have basic status if it's invite only.
     $pool->on('user.can_invite' => sub {
@@ -191,15 +196,18 @@ sub add_invite_callbacks {
         return unless $channel;
 
         # if the user is op: +i, +g, and only_ops_invite do not apply.
-        return 1 if $channel->user_has_basic_status($user);
+        return $INVITE_OK
+            if $channel->user_has_basic_status($user);
 
         # if free_invite is set, anyone can invite.
-        return 1 if $channel->is_mode('free_invite');
+        return $INVITE_OK
+            if $channel->is_mode('free_invite');
 
         # if the channel is -i, anyone can invite,
         # unless the only_ops_invite option is enabled.
         if (!$channel->is_mode('invite_only')) {
-            return 1 unless conf('channels', 'only_ops_invite');
+            return $INVITE_OK
+                unless conf('channels', 'only_ops_invite');
         }
 
         # permission denied.

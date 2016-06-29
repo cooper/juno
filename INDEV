@@ -3160,3 +3160,5 @@ CHANGES:
             fixed an exception in WHOIS which occurred when deciding whether or not to include secret (+s) channels.
             removed deprecated "core module version" from the VERSION command.
             the core module version was actually that of Core::UserCommands, specifically the version at which it was last modified, which is meaningless.
+
+        93. fixed an issue where halfops were powerless. closes #64.
