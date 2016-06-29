@@ -497,11 +497,11 @@ sub sjoin {
         # note that this does not provide parameters; they are already in the
         # perspective of the current server (i.e., in JELP format).
         $uids_modes = $server->convert_cmode_string($me, $uids_modes, 1);
-        print "GENERATED UID MODE STRING (\$me): $uids_modes\n";
-
-        # combine status modes with the other modes in the message.
-        # note that all of these mode strings are in the perspective of $me.
         my $uid_str = join ' ', $uids_modes, @uids;
+        print "GENERATED UID MODE STRING (\$me): $uid_str\n";
+
+        # combine status modes with the other modes in the message,
+        # now that $mode_str and $uid_str are both in the perspective of $me.
         my $command_mode_str = $me->combine_cmode_strings($mode_str, $uid_str);
         print "COMBINED MODE STRING (\$me): $command_mode_str\n";
 

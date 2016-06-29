@@ -121,8 +121,8 @@ my %scommands = (
         code    => \&acm
     },
     SJOIN => {
-                   # :sid SJOIN     ch_name time user_list :mode_string
-        params  => '-source(server) any     ts   any       :rest',
+                   # :sid SJOIN     ch_name time modes... :user_list
+        params  => '-source(server) any     ts   @rest',
         code    => \&sjoin
     },
     KICK => {
@@ -703,17 +703,14 @@ sub sjoin {
         # note that this does not provide parameters; they are already in the
         # perspective of the current server (i.e., in JELP format).
         $uids_modes = $source_serv->convert_cmode_string($me, $uids_modes, 1);
+        my $uid_str = join ' ', $uids_modes, @uids;
 
-        # combine status modes with the other modes in the message.
-        # $mode_str, $uids_modes, @mode_params, @uids
-        # are now all in the perspective of $serv.
-        my $command_mode_str = join(' ',
-            '+'.$mode_str_modes.$uids_modes,
-            @mode_params,
-            @uids
-        );
+        # combine status modes with the other modes in the message,
+        # now that $mode_str and $uid_str are both in the perspective of $me.
+        my $command_mode_str = $me->combine_cmode_strings($mode_str, $uid_str);
 
-        # determine the difference between
+        # determine the difference between the old mode string and the new one.
+        # note that ->cmode_string_difference() ONLY supports positive +modes.
         my $difference = $me->cmode_string_difference(
             $old_mode_str,      # all former modes
             $command_mode_str,  # all new modes including statuses
