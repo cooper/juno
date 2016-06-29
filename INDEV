@@ -3152,3 +3152,6 @@ CHANGES:
         moved JELP logic out of the module and into JELP::Incoming and JELP::Outgoing.
         added TS6 handlers for INVITE.
         because TS6 does not support INVITE to nonexistent channels, those messages are not forwarded to TS6 servers.
+
+        91. added channels:only_ops_invite option to limit INVITE command to chanops unless free_invite is enabled.
+            added channels:invite_must_exist option to limit INVITE command to existing channels, contrary to RFC 1459.

@@ -69,7 +69,9 @@
 
 [ channels ]
 
-    automodes = '+ntqo +user +user'             # set these modes as users enter channel
+    automodes           = '+ntqo +user +user'   # set these modes as users enter channel
+    invite_must_exist   = off                   # restrict INVITE to existing channels
+    only_ops_invite     = off                   # restrict INVITE to chanops
 
 
 # IPv4 listen

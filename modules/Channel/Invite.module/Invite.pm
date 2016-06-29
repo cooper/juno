@@ -24,6 +24,7 @@ our %user_commands = (INVITE => {
     params => 'user any'
 });
 
+# TODO: clean this up. the event callbacks are quite ugly
 # TODO: invite should override bans, etc!
 
 sub init {
@@ -125,13 +126,27 @@ sub add_invite_callbacks {
     $pool->on('user.can_invite' => sub {
         my ($event, $t_user, $ch_name, $channel) = @_;
         my $user = $event->object;
-        return unless $channel;
 
-        # user's not there.
+        # channel does not exist.
+        if (!$channel) {
+
+            # invite is OK if it does not have to exist.
+            return 1 if !conf('channels', 'invite_must_exist');
+
+            # invite_must_exist says to end it here.
+            $event->stop;
+            $user->numeric(ERR_NOSUCHCHANNEL => $channel->name);
+            return;
+
+        }
+
+        # user is there.
         return 1 if $channel->has_user($user);
 
+        # channel exists, and user is not there.
         $event->stop;
         $user->numeric(ERR_NOTONCHANNEL => $ch_name);
+
     }, name => 'source.in.channel', priority => 30);
 
     # second, target can't be in the channel already.
@@ -140,12 +155,32 @@ sub add_invite_callbacks {
         my $user = $event->object;
         return unless $channel;
 
-        # target is in there.
+        # target is not in there.
         return 1 unless $channel->has_user($t_user);
 
+        # target is in there already.
         $event->stop;
         $user->numeric(ERR_USERONCHANNEL => $t_user->{nick}, $ch_name);
+
     }, name => 'target.in.channel', priority => 20);
+
+    # Does the channel exist?
+    #   - No. Is channels:invite_must_exist enabled?
+    #       - No. Invite is OK
+    #       - Yes. ERR_NOSUCHCHANNEL
+    #   - Yes. Is the inviter in the channel?
+    #       - No. ERR_NOTONCHANNEL
+    #       - Yes. Is the invitee in the channel already?
+    #           - Yes. ERR_USERONCHANNEL
+    #           - No. Is the inviter an op in the channel?
+    #               - Yes. Invite is OK
+    #               - No. Is free invite (+g) enabled?
+    #                   - Yes. Invite is OK
+    #                   - No. Is invite only (+i) enabled?
+    #                       - Yes. ERR_CHANOPRIVSNEEDED
+    #                       - No. Is channels:only_ops_invite enabled?
+    #                           - No. Invite is OK
+    #                           - Yes. ERR_CHANOPRIVSNEEDED
 
     # finally, user must have basic status if it's invite only.
     $pool->on('user.can_invite' => sub {
@@ -153,13 +188,22 @@ sub add_invite_callbacks {
         my $user = $event->object;
         return unless $channel;
 
-        # channel's not invite only, the user has basic status, or the channel
-        # is free invite.
-        return 1 unless $channel->is_mode('invite_only');
-        return 1 if ($channel->user_has_basic_status($user) || $channel->is_mode('free_invite'));
+        # if the user is op: +i, +g, and only_ops_invite do not apply.
+        return 1 if $channel->user_has_basic_status($user);
 
+        # if free_invite is set, anyone can invite.
+        return 1 if $channel->is_mode('free_invite');
+
+        # if the channel is -i, anyone can invite,
+        # unless the only_ops_invite option is enabled.
+        if (!$channel->is_mode('invite_only')) {
+            return 1 unless conf('channels', 'only_ops_invite');
+        }
+
+        # permission denied.
         $event->stop;
         $user->numeric(ERR_CHANOPRIVSNEEDED => $ch_name);
+
     }, name => 'has.basic.status', priority => 10);
 
     # ON JOIN,
