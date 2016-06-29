@@ -17,6 +17,8 @@ use 5.010;
 
 our ($api, $mod, $me, $pool);
 
+use utils qw(conf);
+
 # INVITE user command.
 our %user_commands = (INVITE => {
     code   => \&ucmd_invite,
@@ -222,7 +224,8 @@ sub add_invite_callbacks {
         return if $channel->list_matches('invite_except', $user);
 
         # sorry, not invited, no exception.
-        $user->numeric(ERR_INVITEONLYCHAN => $channel->name) unless $event->{silent_errors};
+        $user->numeric(ERR_INVITEONLYCHAN => $channel->name)
+            unless $event->{silent_errors};
         $event->stop('not_invited');
 
     }, name => 'has.invite', priority => 20);
