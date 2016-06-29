@@ -723,10 +723,12 @@ sub add_whois_callbacks {
             my ($ruser, $event, $quser) = @_;
 
             # conditional sub.
-            $conditional_sub->($quser) or return if $conditional_sub;
+            $conditional_sub->($quser, $ruser) or return
+                if $conditional_sub;
 
             # argument sub.
-            my @args = $argument_sub->($quser, $ruser) if $argument_sub;
+            my @args = $argument_sub->($quser, $ruser)
+                if $argument_sub;
 
             $ruser->numeric($constant => $quser->{nick}, @args);
         }, name => $constant, priority => $p, with_eo => 1);
@@ -1165,12 +1167,11 @@ sub version {
     }
 
     $user->numeric(RPL_VERSION =>
-        v('SNAME').q(-).v('NAME'),
-        $ircd::VERSION,
-        $server->{name},
-        $::VERSION,
-        $ircd::VERSION,
-        $VERSION
+        v('SNAME').q(-).v('NAME'),  # ircd name and major version name
+        $ircd::VERSION,             # current version
+        $server->{name},            # server name
+        $::VERSION,                 # version at start
+        $ircd::VERSION              # current version
     );
     $user->numeric('RPL_ISUPPORT') if $server->is_local;
 }

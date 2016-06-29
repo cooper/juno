@@ -3155,3 +3155,8 @@ CHANGES:
 
         91. added channels:only_ops_invite option to limit INVITE command to chanops unless free_invite is enabled.
             added channels:invite_must_exist option to limit INVITE command to existing channels, contrary to RFC 1459.
+
+        92. for the show_in_whois event, provide the user initiating the query as the second argument.
+            fixed an exception in WHOIS which occurred when deciding whether or not to include secret (+s) channels.
+            removed deprecated "core module version" from the VERSION command.
+            the core module version was actually that of Core::UserCommands, specifically the version at which it was last modified, which is meaningless.
