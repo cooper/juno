@@ -333,8 +333,8 @@ sub sjoin {
     # fetch the prefixes for each user.
     my (%prefixes, @userstrs);
     foreach my $name (keys %{ $channel->{modes} }) {
-        next if $me->cmode_type($name) != 4;
-        my $letter = $me->cmode_letter($name);
+        next if $serv->cmode_type($name) != 4;
+        my $letter = $serv->cmode_letter($name);
         ($prefixes{$_} //= '') .= $letter foreach $channel->list_elements($name);
     }
 
