@@ -532,7 +532,7 @@ sub sjoin {
     #   users will be sent with their current statuses,
     #   if any apply, also without regard to this message.
     #
-    #   JELP:   CUM
+    #   JELP:   SJOIN
     #   TS6:    SJOIN
     #
     $msg->forward(channel_burst => $channel, $source_serv, @good_users);

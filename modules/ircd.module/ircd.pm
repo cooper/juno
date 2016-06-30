@@ -15,7 +15,7 @@ use warnings;
 use strict;
 use 5.010;
 use Module::Loaded qw(is_loaded);
-use Scalar::Util   qw(weaken blessed);
+use Scalar::Util   qw(weaken blessed openhandle);
 
 our ($api, $mod, $me, $pool, $loop, $conf, $boot, $timer, $VERSION);
 our (%channel_mode_prefixes, %listeners, %listen_protocol);
@@ -40,6 +40,7 @@ sub init {
     &setup_inc;             # add things to @INC.
     &load_dependencies;     # load or reload all dependency packages.
     &setup_config;          # parse the configuration.
+    &setup_logging;         # open the logging handle.
     &load_optionals;        # load or reload optional packages.
 
     # create the server before the server module is loaded.
@@ -164,6 +165,30 @@ sub setup_config {
     $api->{developer} = conf('server', 'developer');
 
     return 1;
+}
+
+sub setup_logging {
+
+    # close the old filehandle.
+    close $::log_fh if $::log_fh && openhandle($::log_fh);
+    my $logfile = conf('file', 'log');
+    return if !length $logfile;
+
+    # open the filehandle.
+    open $::log_fh, '>>', $logfile or return;
+    $::log_fh->autoflush(1);
+
+    # register the callback.
+    $api->delete_callback('log', 'log.to.file');
+    $api->on(log => sub {
+        my (undef, $line) = @_;
+
+        # write to file maybe.
+        if ($::log_fh && openhandle($::log_fh)) {
+            print $::log_fh "$line\n";
+        }
+
+    }, name => 'log.to.file');
 }
 
 sub setup_modes {
@@ -845,10 +870,16 @@ sub _L {
         $line = shift;
     }
 
+    # determine the source of the message.
    (my $sub  = shift // $caller->[3]) =~ s/(.+)::(.+)/$2/;
     my $info = $sub && $sub ne '(eval)' ? "$sub()" : $caller->[0];
+    $line = "$info: $line";
+
+    # this will call the log_sub which is an anonymous subroutine in
+    # the main package which literally just calls say() and nothing else.
     return unless $obj->can('_log');
-    $obj->_log("$info: $line");
+    $obj->_log($line);
+
 }
 
 $mod

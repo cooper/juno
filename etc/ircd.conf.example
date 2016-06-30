@@ -61,6 +61,7 @@
 [ file ]
 
     motd = 'etc/ircd.motd.example'
+    log  = 'var/log/ircd.log'
 
 [ users ]
 

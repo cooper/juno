@@ -28,4 +28,5 @@ dev/
 *~
 *.old
 db/*.db
+var/log/*.log
 PRIVATE_INFORMATION
