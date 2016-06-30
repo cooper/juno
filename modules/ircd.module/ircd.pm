@@ -538,9 +538,11 @@ sub signalpipe { }
 
 # handle warning
 sub WARNING {
+    my $warn = shift;
+    chomp $warn;
     ircd->can('notice') && $::notice_warnings ?
-    notice(perl_warning => shift)             :
-    L(shift);
+    notice(perl_warning => $warn)             :
+    L($warn);
 }
 
 #####################
