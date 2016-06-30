@@ -331,7 +331,7 @@ sub notice {
 
     # log it.
     return if !$api || !ircd->can('_L');
-    my $obj = $api->package_to_module($caller[0]) or return;
+    my $obj = $api->package_to_module($caller[0]) || $ircd::mod or return;
     ircd::_L($obj, \@caller, "$key: $str");
 
     return $str;
@@ -339,7 +339,7 @@ sub notice {
 
 # send a notice that propagates.
 sub gnotice {
-    return unless pool->can('fire_oper_notice') && $::pool;
+    return unless pool->can('fire_command_all') && $::pool;
     my $flag = shift;
     my $message = notice([caller 1], $flag, @_);
     $::pool->fire_command_all(snotice => $flag, $message);
