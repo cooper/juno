@@ -3166,3 +3166,4 @@ CHANGES:
         94. improve logging.
 
         95. fixed issues with SJOIN mode perspective. closes #65 and #66.
+            updated Evented::Database.

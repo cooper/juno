@@ -424,7 +424,7 @@ sub sjoin {
     # store mode string before any possible changes.
     # this now includes status modes as well,
     # which were previously handled separately.
-    my $old_mode_str = $channel->mode_string_all($me);
+    my (undef, $old_mode_str) = $channel->mode_string_all($me);
 
     # the incoming mode string must be converted to the perspective of this
     # server. this is necessary in case our own modes are unset.

@@ -328,7 +328,7 @@ sub sjoin {
 
     # make +modes params string without status modes.
     # modes are from the perspective of the source server.
-    my $modestr = $channel->mode_string_all($serv, 1);
+    my (undef, $modestr) = $channel->mode_string_all($serv, 1);
 
     # fetch the prefixes for each user.
     my (%prefixes, @userstrs);
