@@ -3164,3 +3164,5 @@ CHANGES:
         93. fixed an issue where halfops were powerless. closes #64.
 
         94. improve logging.
+
+        95. fixed issues with SJOIN mode perspective. closes #65 and #66.
