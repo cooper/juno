@@ -294,6 +294,7 @@ contributed time, effort, care, and love to the project.
 
 \2Developers\2
     Mitchell Cooper, \"cooper\" <mitchell\@notroll.net> https://github.com/cooper
+    Matt Barksdale, \"matthew\" <matt\@arinity.org> https://github.com/mattwb65
     Hakkin Lain, \"Hakkin\" <hakkin\@notroll.net> https://github.com/Hakkin
     James Lu, \"GL\" <GLolol\@overdrivenetworks.com> https://github.com/GLolol
     Kyle Paranoid, \"mac-mini\" <mac-mini\@mac-mini.org> https://github.com/mac-mini
