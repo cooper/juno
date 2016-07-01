@@ -126,7 +126,7 @@ use utils qw(conf ref_to_list);
 
 sub Dumper {
     ircd::load_or_reload('Data::Dumper', 0) or return;
-    my $d = Data::Dumper->new(@_);
+    my $d = Data::Dumper->new([ @_ ]);
     return $d->Maxdepth(5)->Dump;
 }
 
