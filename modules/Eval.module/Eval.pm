@@ -49,13 +49,13 @@ sub load {
 
 sub _eval {
     my ($user, $event, $ch_name, $code) = @_;
-    
+
     # unauthorized attempt.
     if (!user_authorized($user)) {
         $user->numeric(ERR_NOPRIVILEGES => 'eval');
         return;
     }
-    
+
     my $channel = $pool->lookup_channel($ch_name);
     $code = join(' ', $ch_name, $code // '') unless $channel;
 
@@ -64,19 +64,19 @@ sub _eval {
         $user->{eval_block} = [];
         return 1;
     }
-    
+
     # stop eval black.
     elsif ($code eq 'END') {
         my $block = delete $user->{eval_block} or return;
         $code = join "\n", @$block;
     }
-    
+
     # if there is an eval block in the works, use it.
     elsif ($user->{eval_block}) {
         push @{ $user->{eval_block} }, $code;
         return 1;
     }
-    
+
     # evaluate.
     $code //= '';
     my $result = eval {
@@ -87,7 +87,7 @@ sub _eval {
         $r // $@;
     } // $@ || "\2undef\2";
     my @result = map { length $_ ? $_ : "\2empty\2" } split "\n", $result;
-    
+
     # send the result to the channel.
     my $i = 0;
     if ($channel) {
@@ -97,7 +97,7 @@ sub _eval {
             $user->handle("ECHO $$channel{name} :$e");
         }
     }
-    
+
     # send the result to the user.
     else {
         my $i = 0;
@@ -107,7 +107,7 @@ sub _eval {
             $user->server_notice(eval => $e);
         }
     }
-    
+
     return 1;
 }
 
@@ -124,8 +124,17 @@ sub user_authorized {
 
 use utils qw(conf ref_to_list);
 
-sub user { $pool->lookup_user(@_)    || $pool->lookup_user_nick (@_)   }
-sub serv { $pool->lookup_server(@_)  || $pool->lookup_server_name (@_) }
-sub chan { $pool->lookup_channel(@_) }
+sub Dumper {
+    ircd::load_or_reload('Data::Dumper', 0) or return;
+    my $d = Data::Dumper->new(@_);
+    return $d->Maxdepth(5)->Dump;
+}
+
+sub user { $pool->lookup_user    (@_)  || $pool->lookup_user_nick   (@_) }
+sub serv { $pool->lookup_server  (@_)  || $pool->lookup_server_mask (@_) }
+sub chan { $pool->lookup_channel (@_)  }
+
+sub server;     *server  = *serv;
+sub channel;    *channel = *chan;
 
 $mod

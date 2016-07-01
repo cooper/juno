@@ -3167,3 +3167,5 @@ CHANGES:
 
         95. fixed issues with SJOIN mode perspective. closes #65 and #66.
             updated Evented::Database.
+
+        96. improved Eval convenience functions.
