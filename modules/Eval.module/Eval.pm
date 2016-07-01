@@ -22,6 +22,8 @@ use 5.010;
 our ($api, $mod, $me, $pool, $conf);
 my %allowed;
 
+our $depth = 1;
+
 our %user_commands = (EVAL => {
     code    => \&_eval,
     desc    => 'evaluate Perl code',
@@ -127,7 +129,7 @@ use utils qw(conf ref_to_list);
 sub Dumper {
     ircd::load_or_reload('Data::Dumper', 0) or return;
     my $d = Data::Dumper->new([ @_ ]);
-    return $d->Maxdepth(5)->Dump;
+    return $d->Maxdepth($depth)->Dump;
 }
 
 sub user { $pool->lookup_user    (@_)  || $pool->lookup_user_nick   (@_) }

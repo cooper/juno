@@ -3169,3 +3169,5 @@ CHANGES:
             updated Evented::Database.
 
         96. improved Eval convenience functions.
+
+        97. fixed an issue where fantasy commands worked for any user command.
