@@ -109,7 +109,7 @@ and replaceable, and it should be possible for more to be added with ease.
 ```
 
 * __Modularity__: By responding to events, modules add new features and functionality to
-the IRCd. Without them, juno is made up of a mere sixty lines of Perl code. Everything else
+the IRCd. Without them, juno is made up of a mere thirty lines of Perl code. Everything else
 is within a module. Modules communicate and work together to create a single functioning
 body whose parts can be added, removed, and modified. This functionality is provided by
 the [Evented::API::Engine](https://github.com/cooper/evented-api-engine), a class which
