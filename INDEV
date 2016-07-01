@@ -3172,3 +3172,4 @@ CHANGES:
 
         97. fixed an issue where fantasy commands worked for any user command.
             removed old user handler registration code from pool.pm, unused for years.
+            updated Evented::Configuration.

@@ -501,7 +501,7 @@ sub load_dependencies {
         [ 'Evented::API::Module',          3.94 ],
         [ 'Evented::API::Hax',             3.94 ],
 
-        [ 'Evented::Configuration',        3.90 ],
+        [ 'Evented::Configuration',        3.93 ],
 
         [ 'Evented::Database',             1.10 ],
         [ 'Evented::Database::Rows',       1.10 ],
