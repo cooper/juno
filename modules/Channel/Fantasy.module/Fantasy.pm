@@ -36,8 +36,11 @@ sub init {
 sub local_message {
     my ($event, $msg) = @_;
 
-    # fantasy is allowed, or this wasn't a fantasy command. allow it.
-    return 1 if !$event->data('is_fantasy') || $event->data('fantasy_allowed');
+    # this was not a fantasy command.
+    return 1 if !$event->data('is_fantasy');
+
+    # fantasy commands are permitted.
+    return 1 if $event->data('allow_fantasy');
 
     # otherwise, stop the execution of the command.
     $event->stop('Fantasy not permitted for this command');
@@ -65,7 +68,10 @@ sub local_privmsg {
     return if defined $second_p && substr($second_p, 0, 1) eq '!';
 
     # handle the command.
-    return $user->handle_with_opts("$cmd $$channel{name} $args", is_fantasy => 1);
+    return $user->handle_with_opts(
+        "$cmd $$channel{name} $args",
+        is_fantasy => 1
+    );
 
 }
 

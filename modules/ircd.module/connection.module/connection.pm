@@ -104,6 +104,7 @@ printf "GET(%s): %s\n", $connection->type ? $connection->type->name : 'unregiste
     # connection events.
     my @events = (
 
+    # TODO: check if anything still uses these; then remove
     #   .---------------.
     #   | legacy events |
     #   '---------------'

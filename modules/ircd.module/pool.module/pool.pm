@@ -390,53 +390,6 @@ sub delete_channel {
 
 sub channels { values %{ shift->{channels} } }
 
-#############################
-### USER COMMAND HANDLERS ###
-#############################
-
-# register command handlers
-sub register_user_handler {
-    my ($pool, $source, $command) = (shift, shift, uc shift);
-
-    # does it already exist?
-    if ($pool->{user_commands}{$command}) {
-        L("attempted to register $command which already exists");
-        return;
-    }
-
-    my ($params, $ref, $desc, $fantasy) = @_;
-
-    # ensure that it is CODE
-    if (ref $ref ne 'CODE') {
-        L("not a CODE reference for $command");
-        return;
-    }
-
-    # success
-    $pool->{user_commands}{$command} = {
-        code    => $ref,
-        params  => $params,
-        source  => $source,
-        desc    => $desc,
-        fantasy => $fantasy
-    };
-
-    #L("$source registered $command: $desc");
-    return 1;
-}
-
-# unregister handler
-sub delete_user_handler {
-    my ($pool, $command) = (shift, uc shift);
-    #L("deleting handler $command");
-    delete $pool->{user_commands}{$command};
-}
-
-sub user_handlers {
-    my ($pool, $command) = (shift, uc shift);
-    return $pool->{user_commands}{$command} // ();
-}
-
 #####################
 ### USER NUMERICS ###
 #####################
