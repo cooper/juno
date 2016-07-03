@@ -74,7 +74,7 @@ sub cmode_forward {
 
     # setting.
     else {
-    
+
         # sanity checking
         $mode->{param} = cols(cut_to_limit('forward', $mode->{param}));
 
@@ -118,6 +118,8 @@ sub on_user_join_failed {
     my ($user, $event, $channel) = @_;
     return unless $channel->is_mode('forward');
     my $f_ch_name = $channel->mode_parameter('forward');
+
+    # FIXME: wouldn't hurt to double-check that the channel name is valid here
 
     # We need the channel object, unfortunately it is not always the case that
     # we are being forwarded to a channel that already exists.

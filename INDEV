@@ -3174,3 +3174,6 @@ CHANGES:
             removed old user handler registration code from pool.pm, unused for years.
             updated Evented::Configuration.
             updated Evented::Database. closes #68.
+
+        98. fixed incorrect CASEMAPPING in RPL_ISUPPORT. thx @GLolol.
+            renamed repository to "juno."

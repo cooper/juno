@@ -133,7 +133,7 @@ sub rpl_isupport {
         NETWORK     => conf('server', 'network') // conf('network', 'name'),
         EXCEPTS     => $me->cmode_letter('except'),
         INVEX       => $me->cmode_letter('invite_except'),
-        CASEMAPPING => 'rfc1459',
+        CASEMAPPING => 'ascii',
         TOPICLEN    => conf('limit', 'topic'),
         KICKLEN     => conf('limit', 'kickmsg'),
         CHANNELLEN  => conf('limit', 'channelname'),
