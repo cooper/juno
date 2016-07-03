@@ -3181,3 +3181,5 @@ CHANGES:
         99. fixed #74 where the forward channel could be the same as the original one.
             removed old, unsued 'do_not_set' mode block options.
             added some extra santity checks to Forward module.
+
+    10. juno-ircd version 11 is being branded as janet.

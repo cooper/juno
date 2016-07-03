@@ -41,15 +41,15 @@ splash() {
 VER=$(cat VERSION)
 echo "
 ##########################################################################
-#      _                                     _                        _   
-#     ( )                                   (_)                      | |  
-#      _     _   _     _ __      ___         _     _ __    ___     __| |  
-#     | |   | | | |   | '_ \    / _ \       | |   | '__/  / __|   / _\` | 
-#     | |   | |_| |   | | | |  | (_) |  ==  | |   | |    | (__   | (_| |  
-#     | |    \__,_|   |_| |_|   \___/       |_|   |_|     \___|   \__,_|  
-#    _/ |                                                                 
-#   |__/   version $VER          https://github.com/cooper/yiria
-#                                                                         
+#      _                                     _                        _
+#     ( )                                   (_)                      | |
+#      _     _   _     _ __      ___         _     _ __    ___     __| |
+#     | |   | | | |   | '_ \    / _ \       | |   | '__/  / __|   / _\` |
+#     | |   | |_| |   | | | |  | (_) |  ==  | |   | |    | (__   | (_| |
+#     | |    \__,_|   |_| |_|   \___/       |_|   |_|     \___|   \__,_|
+#    _/ |
+#   |__/   version $VER          https://github.com/cooper/juno
+#
 ##########################################################################
 "
 }
@@ -133,11 +133,11 @@ main() {
         forever)
             forever
             ;;
-            
+
         foreverd)
             forever_nofork
             ;;
-            
+
         debug)
             debug
             ;;
@@ -175,22 +175,22 @@ main() {
             SSLDIR=$DIR/etc/ssl
             mkdir -p $SSLDIR
             openssl req -x509 -nodes -newkey rsa:2048 -keyout $SSLDIR/key.pem -out $SSLDIR/cert.pem
-            echo "Use the 'sslport' key in listener configuration blocks" 
+            echo "Use the 'sslport' key in listener configuration blocks"
             echo "Enjoy using SSL"
             ;;
 
         lines)
             $DIR/bin/lines
             ;;
-            
+
         dev)
             case "$2" in
-            
+
                 makemodule)
                     mkdir -p $DIR/modules/${3}.module
                     file=$DIR/modules/${3}.module/$(basename $3).pm
                     touch $file
-                    
+
                     comments="# Copyright (c) $(date +%Y), ${USER:-$(whoami)}
 #
 # Created on $(hostname)
@@ -219,7 +219,7 @@ sub init {
 "
                     echo "$comments" >> $file
                 ;;
-                
+
                 pullsubs)
                     oldpwd=$(pwd)
                     for MOD in $(ls $DIR/lib)
@@ -230,7 +230,7 @@ sub init {
                         cd $oldpwd
                     done
                 ;;
-                
+
                 runlocal)
                     perl -I$DIR/../evented-object/lib -I$DIR/../evented-configuration/lib   \
                          -I$DIR/../evented-database/lib  -I$DIR/../evented-api-engine/lib   \
@@ -239,38 +239,38 @@ sub init {
                          -MEvented::API::Engine -MEvented::Properties                       \
                          $DIR/bin/ircd $DIR NOFORK
                 ;;
-                
+
                 commit)
-                
+
                     # get commit message
                     file=$DIR/commit.tmp
                     editor=${EDITOR:-nano}
                     $editor $file
                     message=$(cat $file)
                     rm $file
-                    
+
                     # increment version
                     oldversion=$(cat $DIR/VERSION)
                     newversion=$(echo print $oldversion + 0.01 | perl)
                     echo "VERSION: $oldversion -> $newversion"
                     echo $newversion > $DIR/VERSION
-                    
+
                     # add to changelog
                     printf "\n$newversion: $message\n" >> $DIR/INDEV
-                    
+
                     # commit
                     git add --all .
                     git commit -m "$newversion: $message"
-                    
+
                 ;;
-                    
+
                 *)
                     showdevusage
                 ;;
-                
+
             esac
         ;;
-            
+
 
         *)
             showusage
