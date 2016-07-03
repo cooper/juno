@@ -12,5 +12,5 @@
    "description" : "the core set of channel modes",
    "name" : "Core::ChannelModes",
    "package" : "M::Core::ChannelModes",
-   "version" : "9.86"
+   "version" : "10.99"
 }

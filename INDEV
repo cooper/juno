@@ -3177,3 +3177,7 @@ CHANGES:
 
         98. fixed incorrect CASEMAPPING in RPL_ISUPPORT. thx @GLolol.
             renamed repository to "juno."
+
+        99. fixed #74 where the forward channel could be the same as the original one.
+            removed old, unsued 'do_not_set' mode block options.
+            added some extra santity checks to Forward module.

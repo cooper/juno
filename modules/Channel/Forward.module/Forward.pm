@@ -80,7 +80,6 @@ sub cmode_forward {
 
         # no length, don't set
         if (!length $mode->{param}) {
-            $mode->{do_not_set} = 1;
             return;
         }
 
@@ -89,8 +88,19 @@ sub cmode_forward {
         # to be forwarded to can forward.
         my $f_channel = $pool->lookup_channel($mode->{param});
         my $source = $mode->{source};
-        $source->numeric(ERR_NOSUCHCHANNEL => $mode->{param}) and return
-            if (!$f_channel && $source->isa('user'));
+
+        # channel does not exist.
+        if (!$f_channel) {
+            $source->numeric(ERR_NOSUCHCHANNEL => $mode->{param})
+                if $source->isa('user');
+            return;
+        }
+
+        # forwarding to the same channel.
+        if ($f_channel == $channel) {
+            # TODO: add a numeric?
+            return;
+        }
 
         # is the channel free forward or is the user opped?
         if (!$source->isa('user') || $f_channel->is_mode('free_forward')
@@ -119,7 +129,12 @@ sub on_user_join_failed {
     return unless $channel->is_mode('forward');
     my $f_ch_name = $channel->mode_parameter('forward');
 
-    # FIXME: wouldn't hurt to double-check that the channel name is valid here
+    # this was already checked once, but this is just in case it was
+    # set by a pseudoserver or something and is invalid.
+    if (!utils::validchan($f_ch_name)) {
+        L("Invalid forward channel name for $$channel{name}: $f_ch_name");
+        return;
+    }
 
     # We need the channel object, unfortunately it is not always the case that
     # we are being forwarded to a channel that already exists.

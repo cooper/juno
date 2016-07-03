@@ -1,5 +1,8 @@
 {
-   "version" : "1.7",
+   "author" : {
+      "name" : "Matthew Barksdale",
+      "website" : "https://github.com/mattwb65"
+   },
    "depends" : {
       "modules" : [
          "Base::ChannelModes",
@@ -8,9 +11,6 @@
    },
    "description" : "adds channel key mode",
    "name" : "Channel::Key",
-   "author" : {
-      "website" : "https://github.com/mattwb65",
-      "name" : "Matthew Barksdale"
-   },
-   "package" : "M::Channel::Key"
+   "package" : "M::Channel::Key",
+   "version" : "1.8"
 }

@@ -33,13 +33,13 @@ sub init {
     # register status channel modes.
     register_statuses($_) or return foreach
         sort { $b <=> $a } keys %ircd::channel_mode_prefixes;
-    
+
     # add multi-prefix capability.
     $mod->register_capability('multi-prefix');
 
     # add channel message restrictions.
     add_message_restrictions();
-    
+
     return 1;
 }
 
@@ -54,7 +54,7 @@ sub register_statuses {
     $mod->register_channel_mode_block( name => $name, code => sub {
         my ($channel, $mode) = @_;
         my $source = $mode->{source};
-        
+
         # find the target.
         my $t_user = $mode->{user_lookup}($mode->{param});
 
@@ -85,7 +85,7 @@ sub register_statuses {
 
                 return 1;
             };
-            
+
             my $check2 = sub {
 
                 # the source's highest status is not enough.
@@ -99,7 +99,7 @@ sub register_statuses {
                 $mode->{send_no_privs} = 1;
                 return;
             }
-            
+
         }
 
         # [USER RESPONSE, SERVER RESPONSE]
@@ -108,9 +108,9 @@ sub register_statuses {
         # add or remove from the list.
         my $do = $mode->{state} ? 'add_to_list' : 'remove_from_list';
         $channel->$do($name, $t_user);
-        
+
         return 1;
-        
+
     }) or return;
 
     return 1
@@ -148,7 +148,7 @@ sub _cmode_banlike {
 
     # view list.
     if (!length $mode->{param} && $mode->{source}->isa('user')) {
-        
+
         # send each list item.
         my $name   = uc($reply).q(LIST);
         my $letter = $me->cmode_letter($list);
@@ -159,10 +159,10 @@ sub _cmode_banlike {
             $_->[1]{setby},
             $_->[1]{time}
         ) foreach $channel->list_elements($list, 1);
-        
+
         # end of list.
         $mode->{source}->numeric("RPL_ENDOF$name" => $channel->name);
-        
+
         return;
     }
 
@@ -171,11 +171,10 @@ sub _cmode_banlike {
         $mode->{send_no_privs} = 1;
         return;
     }
-    
+
     # remove prefixing colon.
     $mode->{param} = cols($mode->{param});
     if (!length $mode->{param}) {
-        $mode->{do_not_set} = 1;
         return;
     }
 
@@ -191,7 +190,7 @@ sub _cmode_banlike {
     else {
         $channel->remove_from_list($list, $mode->{param});
     }
-    
+
     return 1;
 }
 
@@ -200,29 +199,29 @@ sub add_message_restrictions {
     # not in channel and no external messages?
     $pool->on('user.can_message' => sub {
         my ($user, $event, $channel, $message, $type) = @_;
-        
+
         # not internal only, or user is in channel.
         return unless $channel->is_mode('no_ext');
         return if $channel->has_user($user);
-        
+
         # no external messages.
         $user->numeric(ERR_CANNOTSENDTOCHAN => $channel->name, 'No external messages');
         $event->stop('no_ext');
-        
+
     }, name => 'no.external.messages', with_eo => 1, priority => 30);
-    
+
     # moderation and no voice?
     $pool->on('user.can_message' => sub {
         my ($user, $event, $channel, $message, $type) = @_;
-        
+
         # not moderated, or the user has proper status.
         return unless $channel->is_mode('moderated');
         return if $channel->user_get_highest_level($user) >= -2;
-        
+
         # no external messages.
         $user->numeric(ERR_CANNOTSENDTOCHAN => $channel->name, 'Channel is moderated');
         $event->stop('moderated');
-        
+
     }, name => 'moderated', with_eo => 1, priority => 20);
 
     # banned and no voice?
@@ -238,7 +237,7 @@ sub add_message_restrictions {
         $event->stop('banned');
 
     }, name => 'stop.banned.users', with_eo => 1, priority => 10);
-    
+
 }
 
 $mod

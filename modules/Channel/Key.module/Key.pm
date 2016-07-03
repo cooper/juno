@@ -24,13 +24,13 @@ use utils qw(cut_to_limit cols);
 our ($api, $mod, $pool);
 
 sub init {
-    
+
     # register key mode block.
     $mod->register_channel_mode_block(
         name => 'key',
         code => \&cmode_key
     ) or return;
-    
+
     # register ERR_BADCHANNELKEY
     $mod->register_user_numeric(
         name   => shift @$_,
@@ -40,44 +40,43 @@ sub init {
         [ ERR_BADCHANNELKEY => 481, '%s :Invalid channel key' ],
         [ ERR_KEYSET        => 467, '%s :Channel key already set' ]
     );
-    
+
     # Hook on the can_join event to prevent joining a channel without valid key
     $pool->on('user.can_join' => \&on_user_can_join, with_eo => 1, name => 'has.key');
-    
+
     return 1;
 }
 
 sub cmode_key {
     my ($channel, $mode) = @_;
     $mode->{has_basic_status} or return;
-    
+
     # if we're unsetting...
     if (!$mode->{setting}) {
         return unless $channel->is_mode('key');
-        
+
         # if we unset without a parameter (the key),
         # we need to push the current key to params
         push @{ $mode->{params} }, $channel->mode_parameter('key')
             if !defined $mode->{param};
-        
+
         $channel->unset_mode('key');
     }
-    
+
     # setting.
     else {
-    
+
         # sanity checking
         $mode->{param} = cols(cut_to_limit('key', $mode->{param}));
-        
+
         # no length; don't set.
         if (!length $mode->{param}) {
-            $mode->{do_not_set} = 1;
             return;
         }
-        
+
         $channel->set_mode('key', $mode->{param});
     }
-    
+
     return 1;
 }
 
@@ -90,4 +89,3 @@ sub on_user_can_join {
 }
 
 $mod
-
