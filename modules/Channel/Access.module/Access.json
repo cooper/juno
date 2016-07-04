@@ -13,5 +13,5 @@
    "description" : "implements channel access mode",
    "name" : "Channel::Access",
    "package" : "M::Channel::Access",
-   "version" : "4"
+   "version" : "4.6"
 }

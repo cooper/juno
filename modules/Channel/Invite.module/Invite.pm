@@ -26,6 +26,13 @@ our %user_commands = (INVITE => {
     params => 'user any'
 });
 
+our %user_numerics = (
+    RPL_INVITING        => [ 341, '%s %s'                           ],
+    RPL_INVITELIST      => [ 346, '%s %s'                           ],
+    RPL_ENDOFINVITELIST => [ 347, '%s :End of channel invite list'  ],
+    ERR_INVITEONLYCHAN  => [ 472, '%s :You must be invited'         ]
+);
+
 # TODO: clean this up. the event callbacks are quite ugly
 # TODO: invite should override bans, etc!
 
@@ -45,18 +52,6 @@ sub init {
     $mod->register_channel_mode_block(
         name => 'invite_except',
         code => sub { $ccm->can('cmode_banlike')->('invite_except', 'invite', @_) }
-    );
-
-    # invite numerics.
-    $mod->register_user_numeric(
-        name    => shift @$_,
-        number  => shift @$_,
-        format  => shift @$_
-    ) or return foreach (
-        [ RPL_INVITING        => 341, '%s %s'                          ],
-        [ RPL_INVITELIST      => 346, '%s %s'                          ],
-        [ RPL_ENDOFINVITELIST => 347, '%s :End of channel invite list' ],
-        [ ERR_INVITEONLYCHAN  => 472, '%s :You must be invited'        ]
     );
 
     # event callbacks.

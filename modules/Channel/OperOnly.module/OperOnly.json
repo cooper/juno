@@ -1,16 +1,16 @@
 {
+   "author" : {
+      "name" : "Matthew Barksdale",
+      "website" : "https://github.com/mattwb65"
+   },
    "depends" : {
       "modules" : [
          "Base::ChannelModes",
          "Base::UserNumerics"
       ]
    },
-   "author" : {
-      "website" : "https://github.com/mattwb65",
-      "name" : "Matthew Barksdale"
-   },
    "description" : "adds oper only mode",
    "name" : "Channel::OperOnly",
-   "version" : "1.2",
-   "package" : "M::Channel::OperOnly"
+   "package" : "M::Channel::OperOnly",
+   "version" : "1.3"
 }

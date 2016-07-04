@@ -12,5 +12,5 @@
    "description" : "adds channel mute ban",
    "name" : "Channel::Mute",
    "package" : "M::Channel::Mute",
-   "version" : "0.8"
+   "version" : "0.9"
 }

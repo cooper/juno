@@ -24,6 +24,10 @@ use utils qw(cut_to_limit cols);
 our ($api, $mod, $pool);
 my $cjoin;
 
+our %user_numerics = (
+    ERR_LINKCHAN => [ 470, '%s %s :Forwarding to another channel' ]
+);
+
 sub init {
 
     # register forward mode block.
@@ -36,13 +40,6 @@ sub init {
     $mod->register_channel_mode_block(
         name => 'free_forward',
         code => \&M::Core::ChannelModes::cmode_normal
-    ) or return;
-
-    # register ERR_LINKCHAN
-    $mod->register_user_numeric(
-        name   => 'ERR_LINKCHAN',
-        number => 470,
-        format => '%s %s :Forwarding to another channel'
     ) or return;
 
     # Hook on the can_join and join_failed events to forward users if needed.

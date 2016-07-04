@@ -21,24 +21,21 @@ use 5.010;
 
 our ($api, $mod, $pool);
 
+our %user_numerics = (
+    ERR_OPERONLY => [ 520, '%s :Channel is IRC Operator only' ]
+);
+
 sub init {
-    
+
     # register oper only mode block.
     $mod->register_channel_mode_block(
         name => 'oper_only',
         code => \&cmode_operonly
     ) or return;
-    
-    # register ERR_OPERONLY
-    $mod->register_user_numeric(
-        name   => 'ERR_OPERONLY',
-        number => 520,
-        format => '%s :Channel is IRC Operator only'
-    ) or return;
-    
+
     # Hook on the can_join event to prevent joining a channel that is oper only
     $pool->on('user.can_join' => \&on_user_can_join, with_eo => 1, name => 'is.oper.only');
-    
+
     return 1;
 }
 
@@ -61,4 +58,3 @@ sub on_user_can_join {
 
 
 $mod
-

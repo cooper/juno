@@ -23,19 +23,16 @@ use Scalar::Util 'looks_like_number';
 our ($api, $mod, $pool);
 my $MAX = ~0 >> 1;
 
+our %user_numerics = (
+    ERR_CHANNELISFULL => [ 471, '%s :Channel is full' ]
+);
+
 sub init {
 
     # register limit mode block.
     $mod->register_channel_mode_block(
         name => 'limit',
         code => \&cmode_limit
-    ) or return;
-
-    # register ERR_CHANNELISFULL
-    $mod->register_user_numeric(
-        name   => 'ERR_CHANNELISFULL',
-        number => 471,
-        format => '%s :Channel is full'
     ) or return;
 
     # Hook on the can_join event to prevent joining a channel that is full
@@ -57,7 +54,7 @@ sub cmode_limit {
     # determine the value.
     $mode->{param} = int $mode->{param};
     $mode->{param} = $MAX if $mode->{param} > $MAX;
-    
+
     # it's negative or nan.
     return if $mode->{param} <= 0;
     return if $mode->{param} eq 'nan';

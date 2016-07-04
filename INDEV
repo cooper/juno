@@ -3188,3 +3188,6 @@ CHANGES:
 
         01. fixed #67 where MODE <channel access mode> with no parameter did not show the access list.
             fixed an issue where the mode letter was sometimes omitted from numerics for banlike channel lists.
+
+        02. replaced all instances of the ->register_user_numeric() API with the newer %user_numerics method.
+            removed smart matching from the Access module. #54.

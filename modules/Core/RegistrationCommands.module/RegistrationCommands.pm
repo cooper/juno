@@ -22,12 +22,11 @@ use utils qw(col keys_values);
 
 our ($api, $mod, $pool, $me);
 
+our %user_numerics = (
+    ERR_INVALIDCAPCMD => [ 410, '%s :Invalid CAP subcommand' ]
+);
+
 sub init {
-    $mod->register_user_numeric(
-        name   => 'ERR_INVALIDCAPCMD',
-        number => 410,
-        format => '%s :Invalid CAP subcommand'
-    );
 
     $mod->register_registration_command(
         keys_values([qw/name code parameters after_reg/], $_)

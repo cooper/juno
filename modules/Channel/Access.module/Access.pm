@@ -35,20 +35,13 @@ our %user_commands = (
     }
 );
 
-sub init {
+our %user_numerics = (
+                           # (channel, mode, mask, banner, ban time)
+    RPL_ACCESSLIST      => [ 910, '%s %s %s %s %d'                      ],
+    RPL_ENDOFACCESSLIST => [ 911, '%s %s :End of channel access list'   ]
+);
 
-    # add numerics.
-    $mod->register_user_numeric(
-        name   => 'RPL_ACCESSLIST',
-        number => '910',
-        format => '%s %s %s %s %d'
-                  # (channel, mode, mask, banner, ban time)
-    ) and
-    $mod->register_user_numeric(
-        name   => 'RPL_ENDOFACCESSLIST',
-        number => '911',
-        format => '%s %s :End of channel access list'
-    ) or return;
+sub init {
 
     # borrow banlike mode base.
     my $ccm  = $api->get_module('Core::ChannelModes') or return;
@@ -99,23 +92,23 @@ sub cmd_down {
     return 1;
 }
 
+my $access_banlike = sub {
+    my $at_underscore = shift;
+    $banlike->(
+        $at_underscore,
+        list      => 'access',  # name of the list mode
+        reply     => 'access',  # reply numerics to send
+        show_mode => 1          # show the mode letter in replies
+    );
+};
+
 # access mode handler.
 sub cmode_access {
     my ($channel, $mode) = @_; # do not modify @_ because it is used below.
 
-    my $done = sub {
-        my $at_underscore = shift;
-        $banlike->(
-            $at_underscore,
-            list      => 'access',  # name of the list mode
-            reply     => 'access',  # reply numerics to send
-            show_mode => 1          # show the mode letter in replies
-        );
-    };
-
     # view access list.
     if (!defined $mode->{param} && $mode->{source}->isa('user') && $mode->{state}) {
-        return $done->(\@_);
+        return $access_banlike->(\@_);
     }
 
     # for setting and unsetting -
@@ -160,7 +153,7 @@ sub cmode_access {
     $mode->{param} = "$final_status:$mask";
 
     # use banlike handler.
-    return $done->(\@_);
+    return $access_banlike->(\@_);
 
 }
 
@@ -222,20 +215,24 @@ sub on_user_joined {
     # (other than op which will be granted below.)
     # this prevents things like +qohv or +hv, etc.
     @letters = grep { $levels{$_} >= $highest } @letters;
+    my %has_letter = map { $_ => 1 } @letters;
 
     # if they have >0 status, give o as well.
     my ($op, $give_op) = $me->cmode_letter('op');
-    if (!$channel->user_is($user, 'op') and not $op ~~ @letters) {
+    if (!$channel->user_is($user, 'op') && !$has_letter{$op}) {
         foreach my $level (keys %ircd::channel_mode_prefixes) {
             my ($letter, $symbol, $name) = @{ $ircd::channel_mode_prefixes{$level} };
-            $give_op = 1, last if $letter ~~ @letters && $level > 0;
+            $give_op = 1, last if $has_letter{$letter} && $level > 0;
         }
-        push @letters, $op if $give_op;
+        if ($give_op) {
+            push @letters, $op;
+            $has_letter{$op} = 1;
+        }
     }
 
     # create mode string.
     my $letters = join '', @letters;
-    my $uids    = (q( ).$user->{uid}) x length $letters;
+    my $uids    = (' '.$user->{uid}) x length $letters;
     my $sstr    = "+$letters$uids";
 
     # handle it locally (this sends to other servers too).
