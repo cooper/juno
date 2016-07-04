@@ -142,26 +142,36 @@ sub cmode_banlike {
     _cmode_banlike($list, $reply, undef, @_);
 }
 
+# for banlike modes.
 # not to be used directly.
+#
+# $list             the name used internally  (e.g. mute)
+# $reply            the name used in numerics (e.g. QUIET)
+# $show_letter      whether to show the letter in the RPL_ENDOF*
+# $channel          channel object
+# $mode             mode fire info
+#
 sub _cmode_banlike {
     my ($list, $reply, $show_letter, $channel, $mode) = @_;
 
     # view list.
     if (!length $mode->{param} && $mode->{source}->isa('user')) {
 
+        # consider the numeric reply names and whether to send the mode letter.
+        my $name = uc($reply)."LIST";
+        my @channel_letter = $channel->name;
+        push @channel_letter, $me->cmode_letter($list) if $show_letter;
+
         # send each list item.
-        my $name   = uc($reply).q(LIST);
-        my $letter = $me->cmode_letter($list);
-        my @channel_w_letter = $show_letter ? ($channel->name, $letter) : $channel->name;
         $mode->{source}->numeric("RPL_$name" =>
-            @channel_w_letter,
+            @channel_letter,
             $_->[0],
             $_->[1]{setby},
             $_->[1]{time}
         ) foreach $channel->list_elements($list, 1);
 
         # end of list.
-        $mode->{source}->numeric("RPL_ENDOF$name" => $channel->name);
+        $mode->{source}->numeric("RPL_ENDOF$name" => @channel_letter);
 
         return;
     }
@@ -181,7 +191,7 @@ sub _cmode_banlike {
     # setting.
     if ($mode->{state}) {
         $channel->add_to_list($list, $mode->{param},
-            setby => $mode->{source}->name,
+            setby => $mode->{source}->full,
             time  => time
         );
     }

@@ -34,7 +34,7 @@ sub init {
     $mod->register_user_numeric(
         name   => 'RPL_ENDOFQUIETLIST',
         number => 729,
-        format => '%s :End of Channel Quiet List'
+        format => '%s %s :End of channel mute list'
     ) or return;
 
     # register block.
@@ -49,9 +49,14 @@ sub init {
     $pool->on('user.can_message' => sub {
         my ($user, $event, $channel, $message, $type) = @_;
 
-        # not muted, or the user has overriding status.
+
+        # has voice.
         return if $channel->user_get_highest_level($user) >= -2;
+
+        # not muted.
         return unless $channel->list_matches('mute', $user);
+
+        # has an exception.
         return if $channel->list_matches('except', $user);
 
         $user->numeric(ERR_CANNOTSENDTOCHAN => $channel->name, "You're muted");

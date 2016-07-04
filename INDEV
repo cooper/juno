@@ -3182,4 +3182,9 @@ CHANGES:
             removed old, unsued 'do_not_set' mode block options.
             added some extra santity checks to Forward module.
 
-    10. juno-ircd version 11 is being branded as janet.
+11. juno-ircd version 11 is being branded as janet.
+
+    0. rebranding.
+
+        01. fixed #67 where MODE <channel access mode> with no parameter did not show the access list.
+            fixed an issue where the mode letter was sometimes omitted from numerics for banlike channel lists.
