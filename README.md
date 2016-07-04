@@ -517,7 +517,7 @@ and
 [configuration](https://github.com/cooper/juno/blob/master/modules/Configuration/Set.module/Set.pm)
 management directly from IRC.
 
-* [__yiria__](https://github.com/cooper/juno) (juno10):
+* [__yiria__](https://github.com/cooper/juno/tree/juno10-yiria) (juno10):
 An acronym for our slogan (**Y**es, **I**t **R**eally **I**s **A**\n IRC
 daemon), yiria's primary goal was to complete the implementation of the
 [TS6 protocol](https://github.com/charybdis-ircd/charybdis/blob/master/doc/technical/ts6-protocol.txt).
