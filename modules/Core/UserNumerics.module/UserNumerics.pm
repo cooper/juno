@@ -113,6 +113,9 @@ our %user_numerics = (
     ERR_NOOPERHOST       => [491, ':No oper blocks for your host'                                         ],
     ERR_USERSDONTMATCH   => [502, ':Can\'t change mode for other users'                                   ],
     RPL_WHOISSECURE      => [671, '%s :is using a secure connection'                                      ],
+    RPL_LOGGEDIN         => [900, '%s %s :You are now logged in as %s'                                    ],
+    RPL_LOGGEDOUT        => [901, '%s :You are now logged out'                                            ],
+    ERR_NICKLOCKED       => [902, ':You must use a nick assigned to you'                                  ],
                             ###############################################################################
 );
 

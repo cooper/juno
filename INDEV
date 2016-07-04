@@ -3194,4 +3194,7 @@ CHANGES:
 
         03. replaced all instances of ->register_channel_mode_block() API with the new %channel_modes method.
             moved common mode logic from Core::ChannelModes to Base::ChannelModes.
-            updated modules to use the new API and depend on Base:: instead of Core::. Closes #75.
+            updated modules to use the new API and depend on Base:: instead of Core::. closes #75.
+
+        04. partially reimplemented SASL for external service packages.
+            this is not complete. #9.

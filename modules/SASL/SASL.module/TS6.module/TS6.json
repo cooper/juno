@@ -1,0 +1,10 @@
+{
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
+   "description" : "TS6 SASL implementation",
+   "name" : "SASL::TS6",
+   "package" : "M::SASL::TS6",
+   "version" : "0.3"
+}

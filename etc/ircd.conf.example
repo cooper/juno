@@ -37,6 +37,7 @@
     Ban::Dline                  # server/user IP ban (D-Line/Z-Line)
     Ban::Kline                  # user hostmask ban (K-Line)
 
+
 [ limit ]
 
     # the maximum number of:
@@ -58,10 +59,12 @@
     away        = 100                           # away messages
     key         = 50                            # channel keys
 
+
 [ file ]
 
     motd = 'etc/ircd.motd.example'
     log  = 'var/log/ircd.log'
+
 
 [ users ]
 
@@ -74,6 +77,10 @@
     invite_must_exist   = off                   # restrict INVITE to existing channels
     only_ops_invite     = off                   # restrict INVITE to chanops
 
+
+[ services ]
+
+    saslserv = 'SaslServ'                       # nickname of SASL service
 
 # IPv4 listen
 

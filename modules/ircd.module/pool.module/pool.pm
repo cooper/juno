@@ -136,6 +136,7 @@ sub new_server {
 # find a server.
 sub lookup_server {
     my ($pool, $sid) = @_;
+    length $sid or return;
     return $pool->{servers}{$sid};
 }
 
@@ -239,6 +240,26 @@ sub new_user {
 # find a user.
 sub lookup_user {
     my ($pool, $uid) = @_;
+    my $user_maybe = $pool->{users}{$uid};
+    blessed $user_maybe && $user_maybe->isa('user') or return;
+    return $user_maybe;
+}
+
+# reserve a UID to an unregistered connection.
+sub reserve_uid {
+    my ($pool, $uid, $obj) = @_;
+
+    # UIDs are usually strong references, but because this is
+    # being stored temporarily and will be overwritten after registration,
+    # we are weakening it here. That way it will be disposed of if the
+    # connection is closed prematurely.
+    weaken($pool->{users}{$uid} = $obj);
+
+}
+
+# check if a UID is in use, either by a user or an unregistered connection.
+sub uid_in_use {
+    my ($pool, $uid) = @_;
     return $pool->{users}{$uid};
 }
 
@@ -250,18 +271,21 @@ sub lookup_user_nick {
     return $user_maybe;
 }
 
+# reserve a nickname to an unregistered connection.
 sub reserve_nick {
     my ($pool, $nick, $obj) = @_;
     weaken($pool->{nicks}{ lc $nick } = $obj);
     return 1;
 }
 
+# release a nickname from an unregistered connection.
 sub release_nick {
     my ($pool, $nick) = @_;
     return if $pool->lookup_user_nick($nick);
     delete $pool->{nicks}{ lc $nick };
 }
 
+# check if a nickname is in use, either by a user or an unregistered connection.
 sub nick_in_use {
     my ($pool, $nick) = @_;
     return $pool->{nicks}{ lc $nick };
