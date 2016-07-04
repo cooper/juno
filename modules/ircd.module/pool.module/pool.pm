@@ -240,6 +240,7 @@ sub new_user {
 # find a user.
 sub lookup_user {
     my ($pool, $uid) = @_;
+    length $uid or return;
     my $user_maybe = $pool->{users}{$uid};
     blessed $user_maybe && $user_maybe->isa('user') or return;
     return $user_maybe;
