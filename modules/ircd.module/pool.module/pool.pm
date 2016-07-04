@@ -335,7 +335,7 @@ sub change_user_nick {
 sub local_users  {   grep  { $_->is_local && !$_->{fake}    } shift->all_users  }
 sub actual_users {   grep  { !$_->{fake}                    } shift->all_users  }
 sub global_users {   grep  { !$_->{fake_local}              } shift->all_users  }
-sub all_users    { values %{ shift->{users}                 }                   }
+sub all_users    {   grep  { $_->isa('user') }       values %{ shift->{users} } }
 
 ################
 ### CHANNELS ###
