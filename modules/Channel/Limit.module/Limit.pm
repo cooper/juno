@@ -23,20 +23,23 @@ use Scalar::Util 'looks_like_number';
 our ($api, $mod, $pool);
 my $MAX = ~0 >> 1;
 
+# numerics
 our %user_numerics = (
     ERR_CHANNELISFULL => [ 471, '%s :Channel is full' ]
 );
 
+# channel mode block
+our %channel_modes = (
+    limit => { code => \&cmode_limit }
+);
+
 sub init {
 
-    # register limit mode block.
-    $mod->register_channel_mode_block(
-        name => 'limit',
-        code => \&cmode_limit
-    ) or return;
-
     # Hook on the can_join event to prevent joining a channel that is full
-    $pool->on('user.can_join' => \&on_user_can_join, with_eo => 1, name => 'has.limit');
+    $pool->on('user.can_join' => \&on_user_can_join,
+        with_eo => 1,
+        name    => 'has.limit'
+    );
 
     return 1;
 }

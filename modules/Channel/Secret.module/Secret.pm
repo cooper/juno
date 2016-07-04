@@ -8,7 +8,7 @@
 # @package:         'M::Channel::Secret'
 # @description:     'allows a channel to be marked secret or private'
 #
-# @depends.modules: ['Base::ChannelModes', 'Core::ChannelModes']
+# @depends.modules: ['Base::ChannelModes']
 #
 # @author.name:     'Matthew Barksdale'
 # @author.website:  'https://github.com/mattwb65'
@@ -24,19 +24,13 @@ our ($api, $mod, $pool);
 # TODO: once KNOCKing is implemented, make sure it's not permitted
 # for channels with +p set (ERR_CANNOTSENDTOCHAN) but is for +s
 
+# channel mode blocks
+our %channel_modes = (
+    secret  => { type => 'normal' },
+    private => { type => 'normal' }
+);
+
 sub init {
-
-    # register mode blocks
-    $mod->register_channel_mode_block(
-        name => 'secret',
-        code => \&M::Core::ChannelModes::cmode_normal
-    ) or return;
-
-    # register private mode block
-    $mod->register_channel_mode_block(
-        name => 'private',
-        code => \&M::Core::ChannelModes::cmode_normal
-    ) or return;
 
     # Hook on the show_in_list, show_in_whois, and show_in_names events to
     # prevent secret or private channels from showing

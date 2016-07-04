@@ -28,19 +28,12 @@ our %user_numerics = (
     ERR_LINKCHAN => [ 470, '%s %s :Forwarding to another channel' ]
 );
 
+our %channel_modes = (
+    forward      => { code => \&cmode_forward   },
+    free_forward => { type => 'normal'          }
+);
+
 sub init {
-
-    # register forward mode block.
-    $mod->register_channel_mode_block(
-        name => 'forward',
-        code => \&cmode_forward
-    ) or return;
-
-    # register free forward mode block
-    $mod->register_channel_mode_block(
-        name => 'free_forward',
-        code => \&M::Core::ChannelModes::cmode_normal
-    ) or return;
 
     # Hook on the can_join and join_failed events to forward users if needed.
     $pool->on('user.can_join' => \&on_user_can_join,

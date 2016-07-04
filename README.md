@@ -518,8 +518,8 @@ and
 management directly from IRC.
 
 * [__yiria__](https://github.com/cooper/juno/tree/juno10-yiria) (juno10):
-An acronym for our slogan (**Y**es, **I**t **R**eally **I**s **A**\n IRC
-daemon), yiria's primary goal was to complete the implementation of the
+An acronym for our slogan (Yes. It really is an IRC daemon.), yiria's primary
+goal was to complete the implementation of the
 [TS6 protocol](https://github.com/charybdis-ircd/charybdis/blob/master/doc/technical/ts6-protocol.txt).
 Doing so while retaining support for the Juno Extensible Linking
 Protocol (JELP) involved efficient TS6<->JELP command conversion and vigorous

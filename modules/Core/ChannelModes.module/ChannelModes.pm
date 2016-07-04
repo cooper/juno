@@ -16,16 +16,27 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils 'cols';
-
 our ($api, $mod, $me, $pool);
 
 our %channel_modes = (
-    no_ext        => \&cmode_normal,
-    protect_topic => \&cmode_normal,
-    moderated     => \&cmode_normal,
-    ban           => sub { cmode_banlike('ban',    'ban',    @_) },
-    except        => sub { cmode_banlike('except', 'except', @_) },
+
+    # simple modes
+    no_ext        => { type => 'normal' },
+    protect_topic => { type => 'normal' },
+    moderated     => { type => 'normal' },
+
+    # banlike modes
+    ban => {
+        type  => 'banlike',
+        list  => 'ban',
+        reply => 'ban'
+    },
+    except => {
+        type  => 'banlike',
+        list  => 'except',
+        reply => 'except'
+    }
+
 );
 
 sub init {
@@ -114,94 +125,6 @@ sub register_statuses {
     }) or return;
 
     return 1
-}
-
-#################
-# CHANNEL MODES #
-#################
-
-sub cmode_normal {
-    my ($channel, $mode) = @_;
-    return $mode->{has_basic_status};
-}
-
-# new extended version.
-sub cmode_banlike_ext {
-    my ($at_underscore, %opts) = @_;
-    _cmode_banlike(
-        $opts{list},
-        $opts{reply},
-        $opts{show_mode},
-        @$at_underscore
-    );
-}
-
-# compatibility wrapper.
-sub cmode_banlike {
-    my ($list, $reply) = (shift, shift);
-    _cmode_banlike($list, $reply, undef, @_);
-}
-
-# for banlike modes.
-# not to be used directly.
-#
-# $list             the name used internally  (e.g. mute)
-# $reply            the name used in numerics (e.g. QUIET)
-# $show_letter      whether to show the letter in the RPL_ENDOF*
-# $channel          channel object
-# $mode             mode fire info
-#
-sub _cmode_banlike {
-    my ($list, $reply, $show_letter, $channel, $mode) = @_;
-
-    # view list.
-    if (!length $mode->{param} && $mode->{source}->isa('user')) {
-
-        # consider the numeric reply names and whether to send the mode letter.
-        my $name = uc($reply)."LIST";
-        my @channel_letter = $channel->name;
-        push @channel_letter, $me->cmode_letter($list) if $show_letter;
-
-        # send each list item.
-        $mode->{source}->numeric("RPL_$name" =>
-            @channel_letter,
-            $_->[0],
-            $_->[1]{setby},
-            $_->[1]{time}
-        ) foreach $channel->list_elements($list, 1);
-
-        # end of list.
-        $mode->{source}->numeric("RPL_ENDOF$name" => @channel_letter);
-
-        return;
-    }
-
-    # needs privs.
-    if (!$mode->{has_basic_status}) {
-        $mode->{send_no_privs} = 1;
-        return;
-    }
-
-    # remove prefixing colon.
-    $mode->{param} = cols($mode->{param});
-    if (!length $mode->{param}) {
-        return;
-    }
-
-    # setting.
-    if ($mode->{state}) {
-        $channel->add_to_list($list, $mode->{param},
-            setby => $mode->{source}->full,
-            time  => time
-        );
-    }
-
-    # unsetting.
-    else {
-        $channel->remove_from_list($list, $mode->{param});
-    }
-
-    return 1;
 }
 
 sub add_message_restrictions {

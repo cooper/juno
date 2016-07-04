@@ -4,7 +4,7 @@
 # @package:         "M::Channel::Access"
 # @description:     "implements channel access mode"
 #
-# @depends.modules: ['Core::ChannelModes', 'Base::UserCommands', 'Base::UserNumerics']
+# @depends.modules: ['Base::ChannelModes', 'Base::UserCommands', 'Base::UserNumerics']
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"
@@ -44,8 +44,8 @@ our %user_numerics = (
 sub init {
 
     # borrow banlike mode base.
-    my $ccm  = $api->get_module('Core::ChannelModes') or return;
-    $banlike = $ccm->can('cmode_banlike_ext')         or return;
+    my $bcm  = $api->get_module('Base::ChannelModes') or return;
+    $banlike = $bcm->can('cmode_banlike')             or return;
 
     # register access mode block.
     $mod->register_channel_mode_block(
@@ -95,7 +95,7 @@ sub cmd_down {
 my $access_banlike = sub {
     my $at_underscore = shift;
     $banlike->(
-        $at_underscore,
+        @$at_underscore,
         list      => 'access',  # name of the list mode
         reply     => 'access',  # reply numerics to send
         show_mode => 1          # show the mode letter in replies

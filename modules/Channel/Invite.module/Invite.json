@@ -6,12 +6,12 @@
    "depends" : {
       "modules" : [
          "Base::UserCommands",
-         "Core::ChannelModes",
+         "Base::ChannelModes",
          "Base::UserNumerics"
       ]
    },
    "description" : "channel invitations",
    "name" : "Channel::Invite",
    "package" : "M::Channel::Invite",
-   "version" : "3.7"
+   "version" : "3.8"
 }

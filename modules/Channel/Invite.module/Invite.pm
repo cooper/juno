@@ -4,7 +4,7 @@
 # @package:         "M::Channel::Invite"
 # @description:     "channel invitations"
 #
-# @depends.modules: [qw(Base::UserCommands Core::ChannelModes Base::UserNumerics)]
+# @depends.modules: ['Base::UserCommands', 'Base::ChannelModes', 'Base::UserNumerics']
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"
@@ -19,13 +19,14 @@ our ($api, $mod, $me, $pool);
 
 use utils qw(conf);
 
-# INVITE user command.
+# INVITE user command
 our %user_commands = (INVITE => {
     code   => \&ucmd_invite,
     desc   => 'invite a user to a channel',
     params => 'user any'
 });
 
+# numerics
 our %user_numerics = (
     RPL_INVITING        => [ 341, '%s %s'                           ],
     RPL_INVITELIST      => [ 346, '%s %s'                           ],
@@ -33,30 +34,22 @@ our %user_numerics = (
     ERR_INVITEONLYCHAN  => [ 472, '%s :You must be invited'         ]
 );
 
+# channel mode blocks
+our %channel_modes = (
+    invite_only     => { type => 'normal' },
+    free_invite     => { type => 'normal' },
+    invite_except   => {
+        type    => 'banlike',
+        list    => 'invite_except',
+        reply   => 'invite'
+    }
+);
+
 # TODO: clean this up. the event callbacks are quite ugly
 # TODO: invite should override bans, etc!
 
 sub init {
-
-    # modes.
-    my $ccm = $api->get_module('Core::ChannelModes') or return;
-
-    $mod->register_channel_mode_block(
-        name => 'invite_only',
-        code => $ccm->can('cmode_normal')
-    );
-    $mod->register_channel_mode_block(
-        name => 'free_invite',
-        code => $ccm->can('cmode_normal')
-    );
-    $mod->register_channel_mode_block(
-        name => 'invite_except',
-        code => sub { $ccm->can('cmode_banlike')->('invite_except', 'invite', @_) }
-    );
-
-    # event callbacks.
     &add_invite_callbacks;
-
     return 1;
 }
 

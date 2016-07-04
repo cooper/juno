@@ -462,7 +462,7 @@ sub mode_string_status {
 sub user_is {
     my ($channel, $user, $what) = @_;
     return 1 if $channel->list_has($what, $user);
-    return
+    return;
 }
 
 # returns true value only if the passed user has status
@@ -476,12 +476,14 @@ sub user_has_basic_status {
 # [letter, symbol, name]
 sub user_get_highest_level {
     my ($channel, $user) = @_;
+    return -inf if !$channel->has_user($user);
     return ($channel->user_get_levels($user))[0] // -inf;
 }
 
 # get all the levels of a user
 sub user_get_levels {
     my ($channel, $user) = @_;
+    return if !$channel->has_user($user);
     my @levels;
     foreach my $level (sort { $b <=> $a } keys %ircd::channel_mode_prefixes) {
         my ($letter, $symbol, $name) = @{ $ircd::channel_mode_prefixes{$level} };

@@ -3191,3 +3191,7 @@ CHANGES:
 
         02. replaced all instances of the ->register_user_numeric() API with the newer %user_numerics method.
             removed smart matching from the Access module. #54.
+
+        03. replaced all instances of ->register_channel_mode_block() API with the new %channel_modes method.
+            moved common mode logic from Core::ChannelModes to Base::ChannelModes.
+            updated modules to use the new API and depend on Base:: instead of Core::. Closes #75.

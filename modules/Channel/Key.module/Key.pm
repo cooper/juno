@@ -23,18 +23,18 @@ use utils qw(cut_to_limit cols);
 
 our ($api, $mod, $pool);
 
+# user numerics
 our %user_numerics = (
     ERR_BADCHANNELKEY => [ 481, '%s :Invalid channel key'       ],
     ERR_KEYSET        => [ 467, '%s :Channel key already set'   ]
 );
 
-sub init {
+# channel mode block
+our %channel_modes => (
+    key => { code => \&cmode_key }
+);
 
-    # register key mode block.
-    $mod->register_channel_mode_block(
-        name => 'key',
-        code => \&cmode_key
-    ) or return;
+sub init {
 
     # Hook on the can_join event to prevent joining a channel without valid key
     $pool->on('user.can_join' => \&on_user_can_join, with_eo => 1, name => 'has.key');
