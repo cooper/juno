@@ -6,5 +6,5 @@
    "description" : "TS6 SASL implementation",
    "name" : "SASL::TS6",
    "package" : "M::SASL::TS6",
-   "version" : "1.4"
+   "version" : "1.6"
 }

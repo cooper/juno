@@ -72,6 +72,16 @@ sub cap_ls {
     my ($connection, $event, @args) = @_;
     my @flags = $pool->capabilities;
 
+    # IRCv3.2. force cap-notify
+    if ($args[0] && $args[0] eq '302') {
+        $connection->{cap_version} = '302';
+        $connection->add_cap('cap-notify');
+
+        # if the 302 version is provided, cap-notify becomes sticky.
+        $connection->{cap_sticky}{'cap-notify'} = 1;
+
+    }
+
     # first LS - postpone registration.
     if (!$connection->{cap_suspend}) {
         $connection->{cap_suspend} = 1;
@@ -105,19 +115,25 @@ sub cap_req {
         my ($m, $flag) = ($item =~ m/^([-]?)(.+)$/);
         next unless length $flag;
 
-        # requesting to remove it.
-        if ($m eq '-') {
-            push @remove, $flag;
-        }
-
         # no such flag.
         if (!$pool->has_cap($flag)) {
             $nak = 1;
             last;
         }
 
-        # it was removed.
-        next if $m eq '-';
+        # requesting to remove it.
+        if ($m eq '-') {
+
+            # attempted to remove a sticky flag.
+            if ($pool->has_cap($flag)->{sticky} ||
+              $connection->{cap_sticky}{$flag}) {
+                $nak = 1;
+                last;
+            }
+
+            push @remove, $flag;
+            next;
+        }
 
         # adding.
         push @add, $flag;
@@ -134,15 +150,6 @@ sub cap_req {
     $connection->add_cap(@add);
     $connection->remove_cap(@remove);
     $connection->early_reply(CAP => "$cmd :@args");
-}
-
-# CAP CLEAR: remove all active capabilities from a client.
-sub cap_clear {
-    my ($connection, $event, @args) = @_;
-    my @flags = @{ $connection->{cap_flags} || [] };
-    $connection->remove_cap(@flags);
-    @flags = map { "-$_" } @flags;
-    $connection->early_reply(CAP => "ACK :@flags");
 }
 
 # CAP END: capability negotiation complete.

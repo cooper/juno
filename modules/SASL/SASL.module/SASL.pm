@@ -38,7 +38,7 @@ our %user_numerics = (
 sub init {
 
     # sasl capability
-    $mod->register_capability('sasl');
+    $mod->register_capability('sasl', sticky => 1);
 
     # AUTHENTICATE command
     # TODO: once reauthentication is possible,
@@ -54,8 +54,9 @@ sub init {
         with_eo => 1
     );
 
-    # load SASL::TS6 when TS6::Base is loaded
-    $mod->add_companion_submodule('TS6::Base', 'TS6');
+    # protocol submodules
+    $mod->add_companion_submodule('TS6::Base',  'TS6');
+    $mod->add_companion_submodule('JELP::Base', 'JELP');
 
     return 1;
 }

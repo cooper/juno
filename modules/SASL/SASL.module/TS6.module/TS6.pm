@@ -18,7 +18,6 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils qw(keys_values conf);
 use M::TS6::Utils qw(ts6_uid ts6_id uid_from_ts6);
 
 our ($api, $mod, $pool, $me);
@@ -118,10 +117,10 @@ sub encap_sasl {
         return 1;
     }
 
-    # find SaslServ using the PROVIDED UID. we do NOT have to check here that
-    # it's a service, only that it exists and that the source server is its owner.
+    # find SaslServ using the PROVIDED UID.
     my $saslserv = $pool->lookup_user($agent_uid);
-    if (!$saslserv || $saslserv->{server} != $source_serv) {
+    if (!$saslserv || $saslserv->{server} != $source_serv ||
+      !$saslserv->is_mode('service')) {
         L("could not find SASL agent OR server/UID mistatch");
         return;
     }
@@ -263,8 +262,8 @@ sub out_sasl_h {
         $to_server,         # server we're sending to
         $source_serv,       # source server
         $target_mask,       # server mask target
-        $temp_uid,          # the connection's temporary UID
-        $saslserv_uid,      # UID of SASL service
+        $source_uid,        # juno UID source (might be unregistered)
+        $target_uid,        # juno UID target
         $temp_host,         # the connection's temporary host
         $temp_ip            # the connection's temporary IP
     ) = @_;
@@ -272,8 +271,8 @@ sub out_sasl_h {
     return sprintf ':%s ENCAP %s SASL %s %s H %s %s',
     ts6_id($source_serv),
     $target_mask,
-    ts6_uid($temp_uid),     # convert UID to TS6
-    ts6_uid($saslserv_uid), # convert UID to TS6
+    ts6_uid($source_uid),   # convert UID to TS6
+    ts6_uid($target_uid),   # convert UID to TS6
     $temp_host,
     $temp_ip;
 }
@@ -283,16 +282,16 @@ sub out_sasl_s {
         $to_server,         # server we're sending to
         $source_serv,       # source server
         $target_mask,       # server mask target
-        $temp_uid,          # the connection's temporary UID
-        $saslserv_uid,      # UID of SASL service
+        $source_uid,        # juno UID source (might be unregistered)
+        $target_uid,        # juno UID target
         $auth_method        # authentication method; e.g. PLAIN
     ) = @_;
 
     return sprintf ':%s ENCAP %s SASL %s %s S %s',
     ts6_id($source_serv),
     $target_mask,
-    ts6_uid($temp_uid),     # convert UID to TS6
-    ts6_uid($saslserv_uid), # convert UID to TS6
+    ts6_uid($source_uid),   # convert UID to TS6
+    ts6_uid($target_uid),   # convert UID to TS6
     $auth_method;
 }
 
@@ -301,16 +300,16 @@ sub out_sasl_c {
         $to_server,         # server we're sending to
         $source_serv,       # source server
         $target_mask,       # server mask target
-        $temp_uid,          # the connection's temporary UID
-        $saslserv_uid,      # UID of SASL service
+        $source_uid,        # juno UID source (might be unregistered)
+        $target_uid,        # juno UID target
         $client_data        # base64 encoded data
     ) = @_;
 
     return sprintf ':%s ENCAP %s SASL %s %s C %s',
     ts6_id($source_serv),
     $target_mask,
-    ts6_uid($temp_uid),     # convert UID to TS6
-    ts6_uid($saslserv_uid), # convert UID to TS6
+    ts6_uid($source_uid),   # convert UID to TS6
+    ts6_uid($target_uid),   # convert UID to TS6
     $client_data;
 }
 
@@ -319,17 +318,17 @@ sub out_sasl_d {
         $to_server,         # server we're sending to
         $source_serv,       # source server
         $target_mask,       # server mask target
-        $temp_uid,          # the connection's temporary UID
-        $saslserv_uid,      # UID of SASL service
+        $source_uid,        # juno UID source (might be unregistered)
+        $target_uid,        # juno UID target
         $done_mode          # 'A' (aborted), 'F' (failed), or 'S' (succeeded)
     ) = @_;
 
     return sprintf ':%s ENCAP %s SASL %s %s D %s',
     ts6_id($source_serv),
     $target_mask,
-    ts6_uid($temp_uid),     # convert UID to TS6
-    ts6_uid($saslserv_uid),
-    $done_mode; # convert UID to TS6
+    ts6_uid($source_uid),   # convert UID to TS6
+    ts6_uid($target_uid),   # convrert UID to TS6
+    $done_mode;
 }
 
 sub out_svslogin {
@@ -337,7 +336,7 @@ sub out_svslogin {
         $to_server,     # server we're sending to
         $source_serv,   # source server
         $target_mask,   # server mask target
-        $temp_uid,      # the connection's temporary UID
+        $source_uid,    # juno UID source (might be unregistered)
         $nick,          # nickname or '*'
         $ident,         # ident or '*'
         $cloak,         # visible host or '*'
@@ -346,7 +345,7 @@ sub out_svslogin {
     return sprintf ':%s ENCAP %s SVSLOGIN %s %s %s %s %s',
     ts6_id($source_serv),
     $target_mask,
-    ts6_uid($temp_uid),
+    ts6_uid($source_uid),   # convert UID to TS6
     $nick,
     $ident,
     $cloak,

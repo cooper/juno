@@ -1,0 +1,10 @@
+{
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
+   "description" : "JELP SASL implementation",
+   "name" : "SASL::JELP",
+   "package" : "M::SASL::JELP",
+   "version" : "0.1"
+}
