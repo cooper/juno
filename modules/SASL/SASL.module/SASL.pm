@@ -170,11 +170,12 @@ sub abort_sasl {
 
     # tell the agent that the user aborted the exchange.
     my $saslserv_serv = $saslserv->{location};
-    $saslserv_serv->fire_command(sasl_aborted =>
+    $saslserv_serv->fire_command(sasl_done =>
         $me,                        # source server
         $saslserv_serv->name,       # server mask target
         $connection->{uid},         # the connection's temporary UID
-        $saslserv->{uid}            # UID of SASL service
+        $saslserv->{uid},           # UID of SASL service
+        'A'                         # for abort
     );
 
 }

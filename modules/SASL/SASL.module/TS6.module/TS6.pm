@@ -25,8 +25,8 @@ our ($api, $mod, $pool, $me);
 
 our %ts6_incoming_commands = (
     ENCAP_SASL => {
-                  # :sid ENCAP     serv_mask  SASL agent_uid target_uid mode data
-        params => '-source(server) *          *    *         *          *    *',
+                  # :sid ENCAP     serv_mask  SASL agent_uid target_uid mode data  ip
+        params => '-source(server) *          *    *         *          *    *     *(opt)',
         code   => \&encap_sasl
     },
     ENCAP_SVSLOGIN => {
@@ -40,7 +40,7 @@ our %ts6_outgoing_commands = (
     sasl_host_info      => \&out_sasl_h,    # sent to agent for client info
     sasl_initiate       => \&out_sasl_s,    # sent to agent to initiate auth
     sasl_client_data    => \&out_sasl_c,    # sent to agent with data
-    sasl_aborted        => \&out_sasl_d,    # sent to agent when aborted
+    sasl_done           => \&out_sasl_d,    # sent to agent when aborted
     sasl_conn_info      => \&out_svslogin   # forwarding services-set user fields
 );
 
@@ -50,16 +50,23 @@ our %ts6_outgoing_commands = (
 
 sub encap_sasl {
     my ($server, $msg,
+
         $source_serv,   # the source server is the services server.
         $serv_mask,     # the server mask. it must be our server name ONLY.
         undef,          # 'SASL'
         $agent_uid,     # the UID of the SASL service
         $target_uid,    # the UID of the target
-        $mode,          # 'C' (client data) or 'D' (done, abort)
-        $data           # base64-encoded data (with 'C') OR (with 'D'):
+
+        $mode,          # one of:
+                        # 'C' (client data),    'D' (done, abort),
+                        # 'H' (host info),      'M' (mechanisms)
+
+        $data,          # base64-encoded data (with 'C') OR (with 'D'):
                         #   'A'     aborted
                         #   'F'     failed to authenticate
                         #   'S'     successfully authenticated
+
+        $ip             # IP address - only used for mode 'H'
     ) = @_;
 
     $msg->{encap_forwarded} = 1;
@@ -71,8 +78,44 @@ sub encap_sasl {
     # propagate the message and do nothing else. only SASL agents are permitted
     # to respond to broadcast ('*') messages.
     if (lc $serv_mask ne lc $me->name) {
-        # TODO: $msg->forward_to_mask().
-        return;
+        my @common = (
+            $source_serv,       # source server
+            $serv_mask,         # server mask target
+            $agent_uid,         # the connection's temporary UID
+            $target_uid         # UID of SASL service (these are swapped here)
+        );
+
+        # client data
+        if ($mode eq 'C') {
+            $msg->forward_to_mask($serv_mask, sasl_client_data =>
+                @common,
+                $data       # base64 encoded client data
+            );
+        }
+
+        # done
+        elsif ($mode eq 'D') {
+            $msg->forward_to_mask($serv_mask, sasl_done =>
+                @common,
+                $data       # done mode
+            );
+        }
+
+        # host info
+        elsif ($mode eq 'H') {
+            $msg->forward_to_mask($serv_mask, sasl_host_info =>
+                @common,
+                $data,      # hostname
+                $ip // '0'  # IP address
+            );
+        }
+
+        # don't know
+        else {
+            L("SASL $mode not known; not forwarded to $serv_mask");
+        }
+
+        return 1;
     }
 
     # find SaslServ using the PROVIDED UID. we do NOT have to check here that
@@ -277,14 +320,16 @@ sub out_sasl_d {
         $source_serv,       # source server
         $target_mask,       # server mask target
         $temp_uid,          # the connection's temporary UID
-        $saslserv_uid       # UID of SASL service
+        $saslserv_uid,      # UID of SASL service
+        $done_mode          # 'A' (aborted), 'F' (failed), or 'S' (succeeded)
     ) = @_;
 
-    return sprintf ':%s ENCAP %s SASL %s %s D A',
+    return sprintf ':%s ENCAP %s SASL %s %s D %s',
     ts6_id($source_serv),
     $target_mask,
     ts6_uid($temp_uid),     # convert UID to TS6
-    ts6_uid($saslserv_uid); # convert UID to TS6
+    ts6_uid($saslserv_uid),
+    $done_mode; # convert UID to TS6
 }
 
 sub out_svslogin {
