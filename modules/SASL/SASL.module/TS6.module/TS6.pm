@@ -216,13 +216,13 @@ sub encap_svslogin {
     # send the logged in/out numerics now.
     if ($act_name) {
         $conn->numeric(RPL_LOGGEDIN =>
-            $conn->{nick}.'!'.$conn->{ident}.'@'.$conn->{cloak},
+            $conn->{nick}.'!'.$conn->{ident}.'@'.($conn->{cloak} // $conn->{host}),
             $act_name, $act_name
         );
     }
     else {
         $conn->numeric(RPL_LOGGEDOUT =>
-            $conn->{nick}.'!'.$conn->{ident}.'@'.$conn->{cloak}
+            $conn->{nick}.'!'.$conn->{ident}.'@'.($conn->{cloak} // $conn->{host})
         );
     }
 
