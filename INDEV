@@ -3205,3 +3205,6 @@ CHANGES:
             added outgoing commands su_login and su_logout, as well as the respective TS6/JELP handlers.
             more work on SASL propagation. #9.
             added message ->forward_to_mask() method which forwards the message to all servers matching a mask.
+
+        06. finished new ENCAP handling. closes #29.
+            more work on SASL in TS6.

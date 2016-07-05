@@ -72,7 +72,7 @@ sub rcmd_authenticate {
     }
 
     # already authenticated successfully.
-    if ($connection->{sasl}) {
+    if ($connection->{sasl_complete}) {
         $connection->numeric('ERR_SASLALREADY');
         return;
     }
@@ -150,12 +150,5 @@ sub find_saslserv {
     my $saslserv = conf('services', 'saslserv');
     return $pool->lookup_user_nick($saslserv);
 }
-
-# # user.initially_propagated event
-# sub user_propagated {
-#     my ($user, $event) = @_;
-#     my $act = delete $user->{sasl_account} or return;
-#     $act->login_user($user);
-# }
 
 $mod

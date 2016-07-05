@@ -835,7 +835,7 @@ sub encap {
     # otherwise, forward as-is to TS6 servers.
     L("ENCAP $encap_cmd is not known by this server; forwarding as-is");
     $msg->{command} = 'ENCAP';
-    my %done;
+    my %done = ($me => 1);
 
     # find servers matching the mask.
     foreach my $serv ($pool->lookup_server_mask($serv_mask)) {
@@ -845,7 +845,7 @@ sub encap {
         $done{$location} = 1;                       # remember sent/checked
 
         next if $location == $server;               # this is the origin
-        next if $location->{link_type} ne 'ts6';    # not a TS6 server
+        next if ($location->{link_type} // '') ne 'ts6';    # not a TS6 server
 
         # OK, send it as-is.
         $location->send($msg->data);
