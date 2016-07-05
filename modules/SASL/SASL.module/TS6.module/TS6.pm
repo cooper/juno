@@ -18,6 +18,7 @@ use warnings;
 use strict;
 use 5.010;
 
+use utils qw(keys_values conf);
 use M::TS6::Utils qw(ts6_uid ts6_id uid_from_ts6);
 
 our ($api, $mod, $pool, $me);
@@ -180,6 +181,8 @@ sub encap_svslogin {
         # $msg->{encap_forwarded} = 1;
         return;
     }
+
+    # FIXME: SVSLOGIN is only permitted from services.
 
     # find the target connection.
     #
