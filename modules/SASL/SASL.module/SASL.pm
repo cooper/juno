@@ -179,6 +179,59 @@ sub abort_sasl {
 
 }
 
+# update user mask. * = unchanged
+sub update_user_info {
+    my ($conn, $nick, $ident, $cloak) = @_;
+
+    # TODO: if the nickname is already in use, kill it. use ->nick_in_use()?
+
+    # which things are we updating?
+    my $update_nick  = length $nick  && $nick  ne '*' && utils::validnick($nick);
+    my $update_ident = length $ident && $ident ne '*' && utils::validident($ident);
+    my $update_cloak = length $cloak && $cloak ne '*' && 1; # TODO: validhost()
+
+    # registered user.
+    my $user = $conn->{type};
+    if ($user && $user->isa('user')) {
+        # TODO: this, for SASL reauthentication
+        return;
+    }
+
+    # non-registered connection.
+    $conn->{nick}  = $nick  if $update_nick;
+    $conn->{ident} = $ident if $update_ident;
+    $conn->{cloak} = $cloak if $update_cloak;
+
+    return 1;
+}
+
+# update the account name. none = logout
+sub update_account {
+    my ($conn, $act_name) = @_;
+    my $cloak = $conn->{cloak} // $conn->{host};
+
+    # TODO: for SASL reauthentication, update $user->{account}
+
+    # log in
+    if ($act_name) {
+        $conn->{sasl_account} = $act_name;
+        $conn->numeric(RPL_LOGGEDIN =>
+            $conn->{nick}.'!'.$conn->{ident}.'@'.$cloak,
+            $act_name, $act_name
+        );
+    }
+
+    # log out
+    else {
+        delete $conn->{sasl_account};
+        $conn->numeric(RPL_LOGGEDOUT =>
+            $conn->{nick}.'!'.$conn->{ident}.'@'.$cloak
+        );
+    }
+
+    return 1;
+}
+
 # we've already sent RPL_LOGGEDIN at this point.
 sub on_user_propagated {
     my ($user, $event) = @_;

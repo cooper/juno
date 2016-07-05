@@ -37,15 +37,12 @@ our %ts6_incoming_commands = (
 );
 
 our %ts6_outgoing_commands = (
-    sasl_host_info      => \&out_sasl_h,
-    sasl_initiate       => \&out_sasl_s,
-    sasl_client_data    => \&out_sasl_c,
-    sasl_aborted        => \&out_sasl_d
+    sasl_host_info      => \&out_sasl_h,    # sent to agent for client info
+    sasl_initiate       => \&out_sasl_s,    # sent to agent to initiate auth
+    sasl_client_data    => \&out_sasl_c,    # sent to agent with data
+    sasl_aborted        => \&out_sasl_d,    # sent to agent when aborted
+    sasl_conn_info      => \&out_svslogin   # forwarding services-set user fields
 );
-
-sub init {
-    return 1;
-}
 
 #########################
 ### INCOMING COMMANDS ###
@@ -66,6 +63,7 @@ sub encap_sasl {
     ) = @_;
 
     $msg->{encap_forwarded} = 1;
+
     $agent_uid  = uid_from_ts6($agent_uid);
     $target_uid = uid_from_ts6($target_uid);
 
@@ -73,8 +71,7 @@ sub encap_sasl {
     # propagate the message and do nothing else. only SASL agents are permitted
     # to respond to broadcast ('*') messages.
     if (lc $serv_mask ne lc $me->name) {
-        # TODO: custom forward
-        # $msg->forward_to_mask()
+        # TODO: $msg->forward_to_mask().
         return;
     }
 
@@ -177,9 +174,11 @@ sub encap_svslogin {
     # propagate the message and do nothing else. only SASL agents are permitted
     # to respond to broadcast ('*') messages.
     if (lc $serv_mask ne lc $me->name) {
-        # TODO: custom forward
-        # $msg->forward_to_mask()
-        return;
+        $msg->forward_to_mask($serv_mask, sasl_conn_info =>
+            $source_serv, $serv_mask, $target_uid,
+            $nick, $ident, $cloak, $act_name
+        );
+        return 1;
     }
 
     # FIXME: SVSLOGIN is only permitted from services. check that.
@@ -187,44 +186,26 @@ sub encap_svslogin {
     # find the target connection.
     #
     # note that the target MAY OR MAY NOT be registered as a user.
-    # we are only concerned with the actual connection here.
-    #
-    # TODO: I guess actually if the user is registered, update all this
-    # info the correct way... then send SIGNON.
-    # this is for IRCv3.2 reauthentication
     #
     my $conn = $pool->uid_in_use($target_uid);
-    return if $conn && $conn->isa('user');          # FIXME: not yet implemented
+    return if $conn && $conn->isa('user');          # TODO: not yet implemented
     if (!$conn) {
         L("could not find target connection");
         return;
     }
 
-    # OK, update all the stuff on $conn...
-    # FIXME: don't assume that these are all valid!
-    my %stuff = keys_values(
-        [ qw(nick ident cloak sasl_account) ],
-        [ $nick, $ident, $cloak, $act_name  ]
-    );
-    foreach my $key (keys %stuff) {
-        my $value = $stuff{$key};
-        next if $value eq '*';
-        $conn->{$key} = $value;
+    # update nick, ident, visual host.
+    if (!M::SASL::update_user_info($conn, $nick, $ident, $cloak)) {
+        L("failed to update user info");
+        return;
     }
 
-    # TODO: if the nickname is already in use, kill it. use ->nick_in_use().
+    # TODO: for reauthentication, send SIGNON if registered
 
-    # send the logged in/out numerics now.
-    if ($act_name) {
-        $conn->numeric(RPL_LOGGEDIN =>
-            $conn->{nick}.'!'.$conn->{ident}.'@'.($conn->{cloak} // $conn->{host}),
-            $act_name, $act_name
-        );
-    }
-    else {
-        $conn->numeric(RPL_LOGGEDOUT =>
-            $conn->{nick}.'!'.$conn->{ident}.'@'.($conn->{cloak} // $conn->{host})
-        );
+    # update the account.
+    if (!M::SASL::update_account($conn, $act_name || undef)) {
+        L("failed to update account");
+        return;
     }
 
     return 1;
@@ -296,7 +277,7 @@ sub out_sasl_d {
         $source_serv,       # source server
         $target_mask,       # server mask target
         $temp_uid,          # the connection's temporary UID
-        $saslserv_uid,      # UID of SASL service
+        $saslserv_uid       # UID of SASL service
     ) = @_;
 
     return sprintf ':%s ENCAP %s SASL %s %s D A',
@@ -304,6 +285,27 @@ sub out_sasl_d {
     $target_mask,
     ts6_uid($temp_uid),     # convert UID to TS6
     ts6_uid($saslserv_uid); # convert UID to TS6
+}
+
+sub out_svslogin {
+    my (
+        $to_server,     # server we're sending to
+        $source_serv,   # source server
+        $target_mask,   # server mask target
+        $temp_uid,      # the connection's temporary UID
+        $nick,          # nickname or '*'
+        $ident,         # ident or '*'
+        $cloak,         # visible host or '*'
+        $act_name       # account name or '*'
+    ) = @_;
+    return sprintf ':%s ENCAP %s SVSLOGIN %s %s %s %s %s',
+    ts6_id($source_serv),
+    $target_mask,
+    ts6_uid($temp_uid),
+    $nick,
+    $ident,
+    $cloak,
+    $act_name;
 }
 
 $mod
