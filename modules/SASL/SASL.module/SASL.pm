@@ -1,3 +1,4 @@
+# Copyright (c) 2016, Mitchell Cooper
 # Copyright (c) 2014, matthew
 #
 # Created on mattbook
@@ -40,6 +41,8 @@ sub init {
     $mod->register_capability('sasl');
 
     # AUTHENTICATE command
+    # TODO: once reauthentication is possible,
+    # this command must be available post-registration
     $mod->register_registration_command(
         name       => 'AUTHENTICATE',
         code       => \&rcmd_authenticate,
@@ -64,6 +67,13 @@ sub rcmd_authenticate {
     # if the connection does not have the sasl capability, drop the message.
     return if !$connection->has_cap('sasl');
 
+    # already authenticated successfully.
+    # TODO: when reauthentication is possible, don't do this.
+    if ($connection->{sasl_complete}) {
+        $connection->numeric('ERR_SASLALREADY');
+        return;
+    }
+
     # if the arg is >400, do not process.
     if (length $arg > 400) {
         $connection->numeric('ERR_SASLTOOLONG');
@@ -72,18 +82,13 @@ sub rcmd_authenticate {
 
     # aborted!
     if ($arg eq '*') {
-        $connection->numeric('ERR_SASLABORTED');
-        return;
-    }
-
-    # already authenticated successfully.
-    if ($connection->{sasl_complete}) {
-        $connection->numeric('ERR_SASLALREADY');
+        abort_sasl($connection);
         return;
     }
 
     # SaslServ not found or is not a service
-    my $saslserv = find_saslserv();
+    my $saslserv = conf('services', 'saslserv');
+    $saslserv = $pool->lookup_user_nick($saslserv);
     if (!$saslserv || !$saslserv->is_mode('service') || $saslserv->is_local) {
         $connection->numeric('ERR_SASLABORTED');
         return;
@@ -133,7 +138,9 @@ sub rcmd_authenticate {
     # the client has an agent. this is the AUTHENTICATE <base64>.
     # send out SASL C.
     elsif (length $arg) {
-        $agent->{location}->fire_command(sasl_client_data =>
+        $saslserv = $agent;
+        $saslserv_serv = $saslserv->{location};
+        $saslserv_serv->fire_command(sasl_client_data =>
             $me,                        # source server
             $saslserv_serv->name,       # server mask target
             $connection->{uid},         # the connection's temporary UID
@@ -151,9 +158,25 @@ sub rcmd_authenticate {
     return 1;
 }
 
-sub find_saslserv {
-    my $saslserv = conf('services', 'saslserv');
-    return $pool->lookup_user_nick($saslserv);
+# the client has aborted authentication
+sub abort_sasl {
+    my $connection = shift;
+
+    # tell the user it's over.
+    $connection->numeric('ERR_SASLABORTED');
+
+    # find the SASL agent.
+    my $saslserv = $pool->lookup_user($connection->{sasl_agent}) or return;
+
+    # tell the agent that the user aborted the exchange.
+    my $saslserv_serv = $saslserv->{location};
+    $saslserv_serv->fire_command(sasl_aborted =>
+        $me,                        # source server
+        $saslserv_serv->name,       # server mask target
+        $connection->{uid},         # the connection's temporary UID
+        $saslserv->{uid}            # UID of SASL service
+    );
+
 }
 
 # we've already sent RPL_LOGGEDIN at this point.

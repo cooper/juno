@@ -39,7 +39,8 @@ our %ts6_incoming_commands = (
 our %ts6_outgoing_commands = (
     sasl_host_info      => \&out_sasl_h,
     sasl_initiate       => \&out_sasl_s,
-    sasl_client_data    => \&out_sasl_c
+    sasl_client_data    => \&out_sasl_c,
+    sasl_aborted        => \&out_sasl_d
 );
 
 sub init {
@@ -51,7 +52,7 @@ sub init {
 #########################
 
 sub encap_sasl {
-    my ($server,$msg,
+    my ($server, $msg,
         $source_serv,   # the source server is the services server.
         $serv_mask,     # the server mask. it must be our server name ONLY.
         undef,          # 'SASL'
@@ -178,19 +179,19 @@ sub encap_svslogin {
     if (lc $serv_mask ne lc $me->name) {
         # TODO: custom forward
         # $msg->forward_to_mask()
-        # $msg->{encap_forwarded} = 1;
         return;
     }
 
-    # FIXME: SVSLOGIN is only permitted from services.
+    # FIXME: SVSLOGIN is only permitted from services. check that.
 
     # find the target connection.
     #
     # note that the target MAY OR MAY NOT be registered as a user.
     # we are only concerned with the actual connection here.
     #
-    # FIXME: I guess actually if the user is registered, update all this
-    # info the correct way... then send SIGNON
+    # TODO: I guess actually if the user is registered, update all this
+    # info the correct way... then send SIGNON.
+    # this is for IRCv3.2 reauthentication
     #
     my $conn = $pool->uid_in_use($target_uid);
     return if $conn && $conn->isa('user');          # FIXME: not yet implemented
@@ -289,5 +290,20 @@ sub out_sasl_c {
     $client_data;
 }
 
+sub out_sasl_d {
+    my (
+        $to_server,         # server we're sending to
+        $source_serv,       # source server
+        $target_mask,       # server mask target
+        $temp_uid,          # the connection's temporary UID
+        $saslserv_uid,      # UID of SASL service
+    ) = @_;
+
+    return sprintf ':%s ENCAP %s SASL %s %s D A',
+    ts6_id($source_serv),
+    $target_mask,
+    ts6_uid($temp_uid),     # convert UID to TS6
+    ts6_uid($saslserv_uid); # convert UID to TS6
+}
 
 $mod

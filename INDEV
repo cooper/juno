@@ -3212,3 +3212,4 @@ CHANGES:
         07. added TS6 ENCAP SVSLOGIN. SIGNON not yet implemented.
             this mostly completes the SASL implementation for TS6. it's fully functional but needs additional sanity checks. #9.
             SASL still needs to be implemented in JELP.
+            send out SASL D A when the client aborts the authentication process.
