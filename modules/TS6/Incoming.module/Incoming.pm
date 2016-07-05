@@ -193,7 +193,7 @@ our %ts6_incoming_commands = (
         code   => \&login
     },
     ENCAP_SU => {
-                  # :sid SU        serv_mask  SU  uid    account_name
+                  # :sid ENCAP     serv_mask  SU  uid    account_name
         params => '-source(server) *          *   user   *(opt)',
         code   => \&su
     }

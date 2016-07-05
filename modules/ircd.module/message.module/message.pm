@@ -522,7 +522,7 @@ sub forward_to_mask {
         # don't send to the server we got it from.
         next if $_ == $server;
 
-        $amnt++ if $_->fire_command($e_name => @_);
+        $amnt++ if $_->fire_command($e_name => @args);
     }
 
     return $amnt;
