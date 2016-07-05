@@ -90,7 +90,7 @@ sub rcmd_authenticate {
     my $saslserv = conf('services', 'saslserv');
     $saslserv = $pool->lookup_user_nick($saslserv);
     if (!$saslserv || !$saslserv->is_mode('service') || $saslserv->is_local) {
-        $connection->numeric('ERR_SASLABORTED');
+        abort_sasl($connection);
         return;
     }
 
@@ -151,7 +151,7 @@ sub rcmd_authenticate {
 
     # not sure what to do with this.
     else {
-        $connection->numeric('ERR_SASLABORTED');
+        abort_sasl($connection);
         return;
     }
 
@@ -161,6 +161,7 @@ sub rcmd_authenticate {
 # the client has aborted authentication
 sub abort_sasl {
     my $connection = shift;
+    return if $connection->{sasl_complete};
 
     # tell the user it's over.
     $connection->numeric('ERR_SASLABORTED');

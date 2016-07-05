@@ -1,16 +1,16 @@
 {
-   "version" : "6.1",
-   "name" : "Modules",
    "author" : {
-      "website" : "https://github.com/cooper",
-      "name" : "Mitchell Cooper"
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
    },
-   "description" : "manage modules from IRC",
    "depends" : {
       "modules" : [
          "Base::UserCommands",
          "Base::OperNotices"
       ]
    },
-   "package" : "M::Modules"
+   "description" : "manage modules from IRC",
+   "name" : "Modules",
+   "package" : "M::Modules",
+   "version" : "6.2"
 }

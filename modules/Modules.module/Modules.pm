@@ -43,7 +43,7 @@ our %user_commands = (
 );
 
 sub init {
-    
+
     # oper notices.
     $mod->register_oper_notice(
         name   => shift @$_,
@@ -53,7 +53,7 @@ sub init {
         [ module_unload  => '%s (%s@%s) unloaded %s'    ],
         [ module_reload  => '%s (%s@%s) reloaded %s'    ]
     );
-    
+
     return 1;
 }
 
@@ -64,65 +64,65 @@ sub display_module {
     my $say = sub {
         $user->server_notice(q(  ).('    ' x $indent).($_ // '')) foreach @_;
     };
-    
+
     $say->(undef, sprintf "\2%s\2 %s", $module->name, $module->{version});
     $indent++;
     $say->(ucfirst $module->{description}) if $module->{description};
-    
+
     # say the items of each array store.
     my @array_stores = grep {
         ref $module->retrieve($_) eq 'ARRAY' or
         ref $module->retrieve($_) eq 'HASH'
     } keys %{ $module->{store} };
-    
+
     foreach my $store (@array_stores) {
         next if $store eq 'managed_events';
-        (my $pretty = ucfirst lc $store) =~ s/_/ /g;
+        (my $pretty = uc $store) =~ s/_/ /g;
         $say->($pretty);
-        
+
         # fetch the items. for a hash, use keys.
         my @items = ref $module->{store}{$store} eq 'HASH' ?
             keys %{ $module->{store}{$store} }             :
             $module->list_store_items($store);
         @items = sort @items;
-        
+
         # while we remove each item.
         my @lines   = '';
         my $current = 0;
         while (my $item = shift @items) {
-        
+
             # if the length of the line will be over 50, no.
             if (length "$lines[$current], $item" > 50) {
                 $current++;
                 $lines[$current] //= '';
                 redo;
             }
-            
+
             $lines[$current] .= ", $item";
         }
         $indent++;
             $say->($_) foreach map { substr $_, 2, length() - 2 } @lines;
         $indent--;
     }
-    
+
     # display submodules intended.
     display_module($user, $_) foreach @{ $module->{submodules} || [] };
-    
+
     $indent--;
 }
 
 sub modules {
     my ($user, $event, $query) = (shift, shift, shift // '*');
     $user->server_notice('modules', 'Loaded IRCd modules');
-    
+
     # find matching modules.
     my @matches =
         sort { $a->name cmp $b->name       }
-        grep { irc_match($_->name, $query) }     
+        grep { irc_match($_->name, $query) }
         grep { !$_->{parent}               }
             @{ $api->{loaded}              };
     display_module($user, $_) foreach @matches;
-    
+
     $user->server_notice('   ') if @matches;
     $user->server_notice('modules', 'End of modules list');
     return 1;
@@ -169,7 +169,7 @@ sub modunload {
     $user->server_notice(modunload => 'Module unloaded successfully.');
     notice(module_unload => $user->notice_info, $result);
     return 1;
-    
+
 }
 
 sub modreload {
