@@ -46,7 +46,8 @@ my %ocommands = (
     time            => \&_time,
     snotice         => \&snotice,
     version         => \&version,
-    login           => \&login,
+    login           => \&login,     # TODO: logout
+    su_login        => \&su_login,  # TODO: logout
     part_all        => \&partall,
     invite          => \&invite,
 
@@ -439,6 +440,11 @@ sub snotice {
 sub version {
     my ($to_server, $user, $t_server) = @_;
     ":$$user{uid} VERSION \$$$t_server{sid}"
+}
+
+sub su_login {
+    my ($to_server, $source_serv, $user, $actname) = @_;
+    return login($to_server, $user, $actname);
 }
 
 # :uid LOGIN accountname,others,...

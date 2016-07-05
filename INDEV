@@ -3198,3 +3198,10 @@ CHANGES:
 
         04. partially reimplemented SASL for external service packages.
             this is not complete. #9.
+
+        05. encapsulated commands in TS6 are no longer hard-coded.
+            the new master ENCAP handler fires virtual commands in the form of ENCAP_*. #29.
+            updated LOGIN and SU handlers appropriately.
+            added outgoing commands su_login and su_logout, as well as the respective TS6/JELP handlers.
+            more work on SASL propagation. #9.
+            added message ->forward_to_mask() method which forwards the message to all servers matching a mask.

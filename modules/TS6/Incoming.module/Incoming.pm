@@ -186,6 +186,16 @@ our %ts6_incoming_commands = (
                   # :uid INVITE  uid  channel channelTS
         params => '-source(user) user channel ts',
         code   => \&invite
+    },
+    ENCAP_LOGIN => {
+                  # :uid ENCAP   serv_mask  LOGIN    account_name
+        params => '-source(user) *          *        *',
+        code   => \&login
+    },
+    ENCAP_SU => {
+                  # :sid SU        serv_mask  SU  uid    account_name
+        params => '-source(server) *          *   user   *(opt)',
+        code   => \&su
     }
 );
 
@@ -789,50 +799,57 @@ sub _join {
 # ts6-protocol.txt:253
 #
 sub encap {
-    my ($server, $msg, $source, $serv_mask, $cmd, @rest) = @_;
+    my ($server, $msg, $source, $serv_mask, $encap_cmd, @rest) = @_;
 
-    my (%done, $doing_me);
+    # ENCAP
+    #
+    # This master handler fires virtual commands which manually ->forward().
+    # If no handler exists, this one will forward the message to TS6 servers
+    # exactly as it was received. Unfortunately it is impossible to send
+    # unknown ENCAP commands to indirectly-connected TS6 servers with servers
+    # linked via other protocols in between them.
+    #
+    # SEE ISSUE #29 for details.
+    #
+
+    # create a fake ENCAP_* command.
+    my $cmd = uc 'ENCAP_'.$encap_cmd;
+    $msg->{command} = $cmd;
+
+    # fire the virtual command.
+    my $fire = $server->prepare_together(
+        [ "ts6_message"      => $msg ],
+        [ "ts6_message_$cmd" => $msg ]
+    )->fire('safe');
+
+    # an exception occurred in the virtual command handler.
+    if (my $e = $fire->exception) {
+        my $stopper = $fire->stopper;
+        notice(exception => "Error in $cmd from $stopper: $e");
+        return;
+    }
+
+    # if a TS6 command handler manually forwarded this, we're done.
+    return 1 if $msg->{encap_forwarded};
+
+    # otherwise, forward as-is to TS6 servers.
+    L("ENCAP $encap_cmd is not known by this server; forwarding as-is");
+    $msg->{command} = 'ENCAP';
+    my %done;
+
+    # find servers matching the mask.
     foreach my $serv ($pool->lookup_server_mask($serv_mask)) {
-        my $location = $serv->{location} || $serv; # for $me, location = nil
+        my $location = $serv->{location} || $serv;  # for $me, location = nil
 
-        # already did or the server is connected via the source server
-        next if $done{$server};
-        next if $location == $server;
+        next if $done{$location};                   # already did this location
+        $done{$location} = 1;                       # remember sent/checked
 
-        # if the server is me
-        if ($serv == $me) {
-            $doing_me = 1;
-            next;
-        }
+        next if $location == $server;               # this is the origin
+        next if $location->{link_type} ne 'ts6';    # not a TS6 server
 
-        # === Forward ===
-        #
-        # TODO: !!! this will have to actually break down
-        # what the commands are and fire the appropriate outgoing
-        # handlers, since other protocols do not have ENCAP
-        #
+        # OK, send it as-is.
+        $location->send($msg->data);
 
-        $done{$location} = 1;
-    }
-
-    return 1 unless $doing_me;
-
-    # TODO: make a better way to handle ENCAP stuff
-    if ($cmd eq 'LOGIN') {
-        # source: user
-        # parameters: account name
-        return login($server, $msg, $source, @rest);
-    }
-    if ($cmd eq 'SU') {
-        # source: services server
-        # parameters: user, new login name
-        my $user = $pool->lookup_user(uid_from_ts6($rest[0])) or return;
-        if (!length $rest[1]) {
-            delete $user->{account};
-            L("TS6 logout $$user{nick}");
-            return 1;
-        }
-        return login($server, $msg, $user, $rest[1]);
     }
 
     return 1;
@@ -847,9 +864,50 @@ sub encap {
 # ts6-protocol.txt:505
 #
 sub login {
-    my ($server, $msg, $user, $act_name) = @_;
+    my ($server, $msg, $user, $serv_mask, undef, $act_name) = @_;
+    $msg->{encap_forwarded} = 1;
+
+    # login.
     L("TS6 login $$user{nick} as $act_name");
     $user->{account} = { name => $act_name };
+
+    #=== Forward ===#
+    $msg->forward_to_mask($serv_mask, login => $user, $act_name);
+
+    return 1;
+}
+
+# SU
+#
+# encap only
+# encap target: *
+# source:       services server
+# parameters:   target user, new login name (optional)
+#
+sub su {
+    my ($server, $msg, $source_serv, $serv_mask, undef, $user, $act_name) = @_;
+    $msg->{encap_forwarded} = 1;
+
+    # no account name = logout.
+    if (!length $act_name) {
+        delete $user->{account};
+        L("TS6 logout $$user{nick}");
+
+        #=== Forward ===#
+        $msg->forward_to_mask($serv_mask, su_logout => $source_serv, $user);
+
+        return 1;
+    }
+
+    # login.
+    L("TS6 login $$user{nick} as $act_name");
+    $user->{account} = { name => $act_name };
+
+    #=== Forward ===#
+    $msg->forward_to_mask($serv_mask, su_login =>
+        $source_serv, $user, $act_name
+    );
+
     return 1;
 }
 

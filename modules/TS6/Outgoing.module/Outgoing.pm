@@ -61,7 +61,9 @@ our %ts6_outgoing_commands = (
      motd           => \&motd,
      version        => \&version,
      lusers         => \&lusers,
-     invite         => \&invite
+     invite         => \&invite,
+     su_login       => \&su_login,
+     su_logout      => \&su_logout
 );
 
 sub init {
@@ -568,6 +570,34 @@ sub login {
     my ($to_server, $user, $acctname) = @_;
     my $id = ts6_id($user);
     ":$id ENCAP * LOGIN $acctname"
+}
+
+# SU
+#
+# encap only
+# encap target: *
+# source:       services server
+# parameters:   target user, new login name (optional)
+#
+sub su_login {
+    my ($to_server, $source_serv, $user, $acctname) = @_;
+    my $sid = ts6_id($source_serv);
+    my $uid = ts6_id($user);
+    ":$sid ENCAP * SU $uid $acctname"
+}
+
+# SU
+#
+# encap only
+# encap target: *
+# source:       services server
+# parameters:   target user, new login name (optional)
+#
+sub su_logout {
+    my ($to_server, $source_serv, $user) = @_;
+    my $sid = ts6_id($source_serv);
+    my $uid = ts6_id($user);
+    ":$sid ENCAP * SU $uid"
 }
 
 # PING
