@@ -6,11 +6,12 @@
    "depends" : {
       "modules" : [
          "Base::Capabilities",
-         "Base::RegistrationCommands"
+         "Base::RegistrationCommands",
+         "Base::UserNumerics"
       ]
    },
    "description" : "Provides SASL authentication",
    "name" : "SASL",
    "package" : "M::SASL",
-   "version" : "2.1"
+   "version" : "2.2"
 }

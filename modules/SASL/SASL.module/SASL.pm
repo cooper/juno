@@ -8,7 +8,7 @@
 # @package:         'M::SASL'
 # @description:     'Provides SASL authentication'
 #
-# @depends.modules:  ['Base::Capabilities', 'Base::RegistrationCommands']
+# @depends.modules:  ['Base::Capabilities', 'Base::RegistrationCommands', 'Base::UserNumerics']
 #
 # @author.name:     'Matthew Barksdale'
 # @author.website:  'https://github.com/mattwb65'
