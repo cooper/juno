@@ -27,6 +27,11 @@ our %ts6_incoming_commands = (
                   # :sid ENCAP     serv_mask  SASL agent_uid target_uid mode data
         params => '-source(server) *          *    *         *          *    *',
         code   => \&encap_sasl
+    },
+    ENCAP_SVSLOGIN => {
+                  # :sid ENCAP     serv_mask SVSLOGIN target_uid nick ident cloak act_name
+        params => '-source(server) *         *        *          *    *     *     *',
+        code   => \&encap_svslogin
     }
 );
 
@@ -50,7 +55,7 @@ sub encap_sasl {
         $serv_mask,     # the server mask. it must be our server name ONLY.
         undef,          # 'SASL'
         $agent_uid,     # the UID of the SASL service
-        $target_uid,    # the UID of the unregistered connection target
+        $target_uid,    # the UID of the target
         $mode,          # 'C' (client data) or 'D' (done, abort)
         $data           # base64-encoded data (with 'C') OR (with 'D'):
                         #   'A'     aborted
@@ -58,7 +63,7 @@ sub encap_sasl {
                         #   'S'     successfully authenticated
     ) = @_;
 
-    # convert UIDs.
+    $msg->{encap_forwarded} = 1;
     $agent_uid  = uid_from_ts6($agent_uid);
     $target_uid = uid_from_ts6($target_uid);
 
@@ -68,7 +73,6 @@ sub encap_sasl {
     if (lc $serv_mask ne lc $me->name) {
         # TODO: custom forward
         # $msg->forward_to_mask()
-        # $msg->{encap_forwarded} = 1;
         return;
     }
 
@@ -82,6 +86,10 @@ sub encap_sasl {
 
     # find the target connection. ensure that its sasl_agent is the one
     # specified in this command ($saslserv).
+    #
+    # note that the target MAY OR MAY NOT be registered as a user.
+    # we are only concerned with the actual connection here.
+    #
     my $conn = $pool->uid_in_use($target_uid);
     $conn = $conn->conn if $conn && $conn->isa('user');
     $conn->{sasl_agent} //= $saslserv->id;
@@ -143,6 +151,76 @@ sub encap_sasl {
     else {
         L("unknown SASL mode $mode");
         return;
+    }
+
+    return 1;
+}
+
+sub encap_svslogin {
+    my ($server, $msg,
+        $source_serv,   # the source server is the services server
+        $serv_mask,     # the server mask. it must be our server name ONLY
+        undef,          # 'SVSLOGIN'
+        $target_uid,    # the UID of the target
+        $nick,          # new nick  or '*' if unchanged
+        $ident,         # new ident or '*' if unchanged
+        $cloak,         # new cloak or '*' if unchanged
+        $act_name,      # the account name or '0' to log out
+    ) = @_;
+
+    $msg->{encap_forwarded} = 1;
+    $target_uid = uid_from_ts6($target_uid);
+
+    # if the server mask is not exactly equal to this server's name,
+    # propagate the message and do nothing else. only SASL agents are permitted
+    # to respond to broadcast ('*') messages.
+    if (lc $serv_mask ne lc $me->name) {
+        # TODO: custom forward
+        # $msg->forward_to_mask()
+        # $msg->{encap_forwarded} = 1;
+        return;
+    }
+
+    # find the target connection.
+    #
+    # note that the target MAY OR MAY NOT be registered as a user.
+    # we are only concerned with the actual connection here.
+    #
+    # FIXME: I guess actually if the user is registered, update all this
+    # info the correct way... then send SIGNON
+    #
+    my $conn = $pool->uid_in_use($target_uid);
+    return if $conn && $conn->isa('user');          # FIXME: not yet implemented
+    if (!$conn) {
+        L("could not find target connection");
+        return;
+    }
+
+    # OK, update all the stuff on $conn...
+    # FIXME: don't assume that these are all valid!
+    my %stuff = keys_values(
+        [ qw(nick ident cloak sasl_account) ],
+        [ $nick, $ident, $cloak, $act_name  ]
+    );
+    foreach my $key (keys %stuff) {
+        my $value = $stuff{$key};
+        next if $value eq '*';
+        $conn->{$key} = $value;
+    }
+
+    # TODO: if the nickname is already in use, kill it. use ->nick_in_use().
+
+    # send the logged in/out numerics now.
+    if ($act_name) {
+        $conn->numeric(RPL_LOGGEDIN =>
+            $conn->{nick}.'!'.$conn->{ident}.'@'.$conn->{cloak},
+            $act_name, $act_name
+        );
+    }
+    else {
+        $conn->numeric(RPL_LOGGEDOUT =>
+            $conn->{nick}.'!'.$conn->{ident}.'@'.$conn->{cloak}
+        );
     }
 
     return 1;

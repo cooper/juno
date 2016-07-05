@@ -46,6 +46,11 @@ sub init {
         paramaters => 1
     ) or return;
 
+    # log the user in once registered
+    $pool->on('user.initially_propagated' => \&on_user_propagated,
+        with_eo => 1
+    );
+
     # load SASL::TS6 when TS6::Base is loaded
     $mod->add_companion_submodule('TS6::Base', 'TS6');
 
@@ -149,6 +154,14 @@ sub rcmd_authenticate {
 sub find_saslserv {
     my $saslserv = conf('services', 'saslserv');
     return $pool->lookup_user_nick($saslserv);
+}
+
+# we've already sent RPL_LOGGEDIN at this point.
+sub on_user_propagated {
+    my ($user, $event) = @_;
+    my $act_name = delete $user->{sasl_account} or return;
+    L("SASL login $$user{nick} as $act_name");
+    $user->{account} = { name => $act_name };
 }
 
 $mod
