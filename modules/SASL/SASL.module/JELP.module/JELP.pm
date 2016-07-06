@@ -80,7 +80,7 @@ sub saslhost {
     return 1 if lc $serv_mask eq lc $me->name;
 
     #=== Forward ===#
-    $msg->forward_to_mask($serv_mask, sasl_client_data => @_[2..7]);
+    $msg->forward_to_mask($serv_mask, sasl_host_info => @_[2..7]);
 
     return 1;
 }
@@ -192,7 +192,7 @@ sub saslset {
     #=== Forward ===#
     # it has to be me.
     if (lc $serv_mask ne lc $me->name) {
-        $msg->forward_to_mask($serv_mask, sasl_done => @_[2..8]);
+        $msg->forward_to_mask($serv_mask, sasl_conn_info => @_[2..8]);
         return 1;
     }
 
