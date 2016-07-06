@@ -622,7 +622,7 @@ sub register_outgoing_handler {
 # delete an outgoing server command.
 sub delete_outgoing_handler {
     my ($pool, $command, $proto) = (shift, uc shift, shift);
-    #L("deleting handler $command");
+    L("deleting outgoing $proto command $command");
     delete $pool->{outgoing_commands}{$proto}{$command};
 }
 

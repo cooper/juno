@@ -13,5 +13,5 @@
    "description" : "reload the entire IRCd in one command",
    "name" : "Reload",
    "package" : "M::Reload",
-   "version" : "5"
+   "version" : "5.2"
 }

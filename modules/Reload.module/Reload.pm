@@ -26,45 +26,45 @@ our %user_commands = (RELOAD => {
 });
 
 sub init {
-    
+
     # allow RELOAD to work remotely.
     $mod->register_global_command(name => 'reload');
-    
+
     # notices.
     $mod->register_oper_notice(
         name   => 'reload',
         format => '%s %s by %s (%s@%s)'
     ) or return;
-    
+
     return 1;
 }
 
 sub cmd_reload {
     my ($user, $event, @rest) = @_;
     my $verbose;
-    
+
     # verbose.
     if (defined $rest[0] && $rest[0] eq '-v') {
         $verbose = 1;
         shift @rest;
     }
-    
+
     # server parameter?
     if (my $server_mask_maybe = shift @rest) {
         my @servers = $pool->lookup_server_mask($server_mask_maybe);
-        
+
         # no priv.
         if (!$user->has_flag('greload')) {
             $user->numeric(ERR_NOPRIVILEGES => 'greload');
             return;
         }
-        
+
         # no matches.
         if (!@servers) {
             $user->numeric(ERR_NOSUCHSERVER => $server_mask_maybe);
             return;
         }
-        
+
         # wow there are matches.
         my %done;
         foreach my $serv (@servers) {
@@ -72,25 +72,25 @@ sub cmd_reload {
             # already did this one!
             next if $done{$serv};
             $done{$serv} = 1;
-            
+
             # if it's $me, skip.
             # if there is no connection (whether direct or not),
             # uh, I don't know what to do at this point!
             next if $serv->is_local;
             next unless $serv->{location};
-            
+
             # pass it on :)
             $user->server_notice(reload => "Sending reload command to $$serv{name}")
                 if $user->is_local;
             $serv->{location}->fire_command_data(reload => $user, "\$$$serv{sid}");
-            
+
         }
-        
+
         # if $me is done, wow, just keep going.
         return 1 unless $done{$me};
-        
+
     }
-    
+
     my $old_v = $ircd::VERSION;
     $user->server_notice(reload => "Reloading IRCd $old_v on $$me{name}");
 
@@ -100,10 +100,13 @@ sub cmd_reload {
         name      => 'cmd.reload',
         permanent => 1 # we will remove it manually afterward
     ) if $verbose;
-    
+
     # redefine Evented::Object before anything else.
-    do $_ foreach grep { /^Evented\/Object/ } keys %INC;
-    
+    {
+        no warnings 'redefine';
+        do $_ foreach grep { /^Evented\/Object/ } keys %INC;
+    }
+
     # determine modules loaded beforehand.
     my @mods_loaded = @{ $api->{loaded} };
     my $num = scalar @mods_loaded;
@@ -111,43 +114,48 @@ sub cmd_reload {
     # put bases last.
     my $ircd = $api->get_module('ircd');
     my (@not_bases, @bases);
-    foreach my $module (@mods_loaded) { 
+    foreach my $module (@mods_loaded) {
 
         # ignore ircd, unloaded modules, and submodules.
         next if $module == $ircd;
         next if $module->{UNLOADED};
         next if $module->{parent};
-        
+
         my $is_base = $module->name =~ m/Base/;
         push @not_bases, $module if !$is_base;
         push @bases,     $module if  $is_base;
     }
-    
+
     # reload ircd first, non-bases, then bases.
+    #
+    # 1. ircd       --  do the actual server upgrade
+    # 2. non-bases  --  reload normal modules, allowing bases to react
+    # 3. bases      --  reload bases, now that module.* events have been fired
+    #
     $api->reload_module($ircd, @not_bases, @bases);
     my $new_v = ircd->VERSION;
-    
+
     # module summary.
     $user->server_notice('- Module summary');
     my $reloaded = 0;
     foreach my $old_m (@mods_loaded) {
         my $new_m = $api->get_module($old_m->name);
-        
+
         # not loaded.
         if (!$new_m) {
             $user->server_notice("    - Not loaded: $$old_m{name}{full}");
             next;
         }
-        
+
         # version change.
         if ($new_m->{version} > $old_m->{version}) {
             $user->server_notice("    - Upgraded: $$new_m{name}{full} ($$old_m{version} -> $$new_m{version})");
             next;
         }
-        
+
         $reloaded++;
     }
-    
+
     # find new modules.
     NEW: foreach my $new_m (@{ $api->{loaded} }) {
         foreach my $old_m (@mods_loaded) {
@@ -155,9 +163,9 @@ sub cmd_reload {
         }
         $user->server_notice("    - Loaded: $$new_m{name}{full}");
     }
-    
+
     $user->server_notice("    - $reloaded modules reloaded and not upgraded");
-    
+
     # difference in version.
     my $info;
     if ($new_v != $old_v) {

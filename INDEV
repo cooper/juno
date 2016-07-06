@@ -3221,6 +3221,9 @@ CHANGES:
             cap-notify is sticky only when IRCv3.2 is used but not for IRCv3.1.
 
         09. added %jelp_outgoing_commands and %jelp_incoming_commands APIs.
-            added JELP SASL implementation. #9.
+            added JELP SASL implementation. closes #9.
             added sasl_mechanisms (SASL M) forwarding in TS6.
             fixed an issue where SASL initiation was sent with the wrong target server when used remotely.
+
+    1. disabled redefine warnings when reloading Evented::Object with the RELOAD command. #20.
+        made ->delete_outgoing_handler() verbose because it seems to be not called somehow.
