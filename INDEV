@@ -3247,3 +3247,7 @@ CHANGES:
             added channel method ->sendfrom_all_cap().
             updated JELP/TS6 SJOIN handlers to use new channel join methods. #76.
             send AWAY to users with away-notify when an away user joins a channel. closes #86.
+
+        15. message tag support was based on an old draft specification. it was updated to the current IRCv3.2 spec.
+            added channel method ->destroy_maybe(), which fires a new event can_destroy. #47.
+            in JELP/TS6 SJOIN, call ->destroy_maybe(), which will immediately delete channels bursted with no users.

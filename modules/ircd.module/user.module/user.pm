@@ -619,6 +619,11 @@ sub get_mask_changed {
             next if $done{$usr};
 
             # QUIT and JOIN.
+            #
+            # consider: things like extended-join, away-notify are not dealt
+            # with here. we're pretty much assuming that if a client has those
+            # capabilities, it should also have chghost...
+            #
             $usr->sendfrom($user->full, "QUIT :Changing hosts");
             $usr->sendfrom($user->full, "JOIN $$channel{name}");
 

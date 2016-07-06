@@ -627,7 +627,7 @@ sub sjoin {
     my ($server, $msg, $source_serv, $ch_name, $ts, $mode_str_modes, @mode_params) = @_;
 
     # maybe we have a channel by this name, otherwise create one.
-    my $channel = $pool->lookup_or_create_channel($ch_name, $ts);
+    my ($channel, $new) = $pool->lookup_or_create_channel($ch_name, $ts);
 
     # take the new time if it's less recent.
     # note that modes are not handled here (the second arg says not to)
@@ -717,6 +717,9 @@ sub sjoin {
             if $difference;
 
     }
+
+    # delete the channel if no users
+    $channel->destroy_maybe if $new;
 
     # === Forward ===
     $msg->forward(channel_burst => $channel, $source_serv, @good_users);

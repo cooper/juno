@@ -59,7 +59,8 @@ sub parse {
                 # does it have a value?
                 my $i = index $tag, '=';
                 if ($i != -1) {
-                    $tags{ substr $tag, 0, $i - 1 } = substr $tag, ++$i, length $tag;
+                    $tags{ substr $tag, 0, $i - 1 } =
+                        _parse_value(substr $tag, ++$i, length $tag);
                     next TAG;
                 }
 
@@ -90,7 +91,7 @@ sub parse {
 
         # this is for :rest.
         # TODO: I would like to do this without splitting again...
-        $msg->{_rest}[$word_n] = col((split /\s+/, $msg->data, $word_i + 1)[$word_i])
+        $msg->{_rest}[$word_n] = col((split m/\s+/, $msg->data, $word_i + 1)[$word_i])
             if $word_n >= 0;
 
         # sentinel-prefixed final parameter.
@@ -113,6 +114,46 @@ sub parse {
     return $msg;
 }
 
+# message tag escapes
+my %escapes = (
+    ':'  => ';',    # \: = semicolon - yes, this is intentional
+    's'  => ' ',    # \s = space
+    '\\' => '\\',   # \\ = slash
+    'r'  => "\r",   # \r = CR
+    'n'  => "\n"    # \n = LF
+);
+
+# parse message tag values
+sub _parse_value {
+    my ($value, $escaped) = '';
+    for my $char (split //, shift) {
+        if ($escaped) {
+            $value .= $escapes{$char} // $char;
+            undef $escaped;
+            next;
+        }
+        if ($char eq '\\') {
+            $escaped++;
+            next;
+        }
+        $value .= $char;
+    }
+    return $value;
+}
+
+# escape message tag values
+sub _escape_value {
+    my ($value, $escaped) = '';
+    for my $char (split //, shift) {
+        if (my $e = $escapes{$char}) {
+            $value .= "\\$e";
+            next;
+        }
+        $value .= $char;
+    }
+    return $value;
+}
+
 sub data {
     my $msg = shift;
     return $msg->{data} if length $msg->{data};
@@ -121,7 +162,7 @@ sub data {
     # message tags.
     my ($t, $tagstr, @tags) = (0, '@', keys %{ $msg->tags });
     foreach my $tag (@tags) {
-        my $value = $msg->tag($tag);
+        my $value = _escape_value($msg->tag($tag));
         $tagstr .= $value eq $TRUE ? $tag : "$tag=$value";
         $tagstr .= ';' unless $t == $#tags;
         $t++;
@@ -162,6 +203,7 @@ sub params  { @{ shift->{params} }      }
 sub param   { shift->{params}[shift]    }
 sub event   { shift->{_event}           }
 
+# TODO: these
 sub source_nick  { ... }
 sub source_ident { ... }
 sub source_host  { ... }

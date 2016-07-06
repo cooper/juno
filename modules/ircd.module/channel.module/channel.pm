@@ -154,11 +154,8 @@ sub remove {
     my @new = grep { $_ != $user } $channel->users;
     $channel->{users} = \@new;
 
-    # delete the channel if this is the last user
-    if (!scalar $channel->users) {
-        $pool->delete_channel($channel);
-        $channel->delete_all_events();
-    }
+    # delete the channel if this is the last user.
+    $channel->maybe_destroy();
 
     return 1;
 }
@@ -494,6 +491,23 @@ sub topic {
       length $channel->{topic}{topic};
     delete $channel->{topic};
     return;
+}
+
+# destroy the channel maybe
+sub maybe_destroy {
+    my $channel = shift;
+
+    # an event said not to destroy the channel.
+    return if $channel->fire_event('can_destroy')->stopper;
+
+    # there are still users in here!
+    return if $channel->users;
+
+    # delete the channel from the pool, purge events
+    $pool->delete_channel($channel);
+    $channel->delete_all_events();
+
+    return 1;
 }
 
 sub id    { shift->{name}       }
