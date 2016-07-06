@@ -708,7 +708,7 @@ sub do_login {
     $user->{account} = { name => $act_name };
 
     # tell this user
-    $user->numeric(RPL_LOGGEDIN => $user->full, $act_name)
+    $user->numeric(RPL_LOGGEDIN => $user->full, $act_name, $act_name)
         if $user->is_local && !$no_num;
 
     # tell users with account-notify
