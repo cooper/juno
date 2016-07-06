@@ -767,7 +767,7 @@ sub do_join {
 
     # for each user in the channel, send a JOIN message.
     my $act_name = $user->{account} ? $user->{account}{name} : '*';
-    $channel->sendfrom_all($user->full,
+    $channel->sendfrom_all_cap($user->full,
         "JOIN $$channel{name} $act_name :$$user{real}",     # IRCv3.1
         "JOIN $$channel{name}",                             # RFC1459
         undef,
