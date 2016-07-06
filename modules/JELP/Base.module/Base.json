@@ -5,11 +5,10 @@
    },
    "depends" : {
       "modules" : [
-         "API::Methods",
-         "ircd::message"
+         "API::Methods"
       ]
    },
    "name" : "JELP::Base",
    "package" : "M::JELP::Base",
-   "version" : "13.63"
+   "version" : "13.73"
 }

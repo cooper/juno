@@ -3,7 +3,7 @@
 # @name:            "JELP::Base"
 # @package:         "M::JELP::Base"
 #
-# @depends.modules: ['API::Methods', 'ircd::message']
+# @depends.modules: ['API::Methods']
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"
@@ -113,7 +113,7 @@ sub register_outgoing_command {
         next if exists $opts{$what};
         $opts{name} ||= 'unknown';
         L("outgoing JELP command $opts{name} does not have '$what' option");
-        return
+        return;
     }
 
     # register to juno
