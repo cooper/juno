@@ -195,16 +195,27 @@ sub abort_sasl {
 sub update_user_info {
     my ($conn, $nick, $ident, $cloak) = @_;
 
-    # TODO: if the nickname is already in use, kill it. use ->nick_in_use()?
-
     # which things are we updating?
     my $update_nick  = length $nick  && $nick  ne '*' && utils::validnick($nick);
     my $update_ident = length $ident && $ident ne '*' && utils::validident($ident);
     my $update_cloak = length $cloak && $cloak ne '*' && 1; # TODO: validhost()
 
+    # look for an existing user/conn by this nick.
+    # TODO: for reauth, check if $existing == the user OR the conn
+    my $existing = $pool->nick_in_use($nick); # could be a user
+    if ($update_nick && $existing && $existing != $conn) {
+        my $is_conn = $existing->isa('connection');
+
+        # for connections, just drop them.
+        $existing->done('Overriden') if $is_conn;
+
+        # for users, kill locally or remotely.
+        do_user_kill($existing, 'Nickname regained by services');
+
+    }
+
     # registered user.
-    my $user = $conn->{type};
-    if ($user && $user->isa('user')) {
+    if (my $user = $conn->user) {
         # TODO: this, for SASL reauthentication
         return;
     }
@@ -242,6 +253,25 @@ sub update_account {
     }
 
     return 1;
+}
+
+sub do_user_kill {
+    my ($user, $source, $reason) = @_;
+
+    # local user, use ->get_killed_by()
+    if ($user->is_local) {
+        $user->get_killed_by($source, $reason);
+    }
+
+    # remote user, use ->quit()
+    else {
+        my $name = $source->name;
+        $user->quit("Killed ($name ($reason))");
+    }
+
+    # tell others
+    $pool->fire_command_all(kill => $source, $user, $reason);
+
 }
 
 # we've already sent RPL_LOGGEDIN at this point.

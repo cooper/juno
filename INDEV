@@ -3227,3 +3227,6 @@ CHANGES:
 
     1. disabled redefine warnings when reloading Evented::Object with the RELOAD command. #20.
         made ->delete_outgoing_handler() verbose because it seems to be not called somehow.
+
+        11. SASL.pm now appropriately handles nick collisions. closes #82.
+            fixed an issue where numbers LUSERS global count included unregistered connections with reserved nicks.
