@@ -3230,3 +3230,6 @@ CHANGES:
 
         11. SASL.pm now appropriately handles nick collisions. closes #82.
             fixed an issue where numbers LUSERS global count included unregistered connections with reserved nicks.
+
+        12. added ->do_login(), ->do_logout(), and IRCv3 account-nofity support. closes #81.
+            added oper notices: user_logged_in, user_logged_out.

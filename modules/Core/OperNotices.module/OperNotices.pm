@@ -39,6 +39,8 @@ our %oper_notices = (
     user_mask_change        => '%s switched from (%s@%s) to (%s@%s)',
     user_identifier_taken   => '%s introduced %s (%s@%s) with UID %s, which is already taken by %s (%s@%s)',
     user_saved              => '%s (%s@%s) was spared in the midst of a nick collision (was %s)',
+    user_logged_in          => '%s (%s@%s) is now logged in as %s',
+    user_logged_out         => '%s (%s@%s) logged out (was %s)',
 
     # servers
     new_server              => '%s (%d) ircd %s, proto %s [%s] parent: %s',

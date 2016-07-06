@@ -702,6 +702,29 @@ sub do_part_all {
     return 1;
 }
 
+# handles an account login locally for both local and remote users.
+sub do_login {
+    my ($user, $act_name) = @_;
+    $user->{account} = { name => $act_name };
+
+    # tell users with account-notify
+    $user->send_to_channels_with_cap("ACCOUNT $act_name", 'account-notify');
+
+    notice(user_logged_in => $user->notice_info, $act_name);
+    return 1;
+}
+
+sub do_logout {
+    my $user = shift;
+    my $old = delete $user->{account} or return;
+
+    # tell users with account-notify
+    $user->send_to_channels_with_cap('ACCOUNT *', 'account-notify');
+
+    notice(user_logged_out => $user->notice_info, $old->{name});
+    return 1;
+}
+
 # CAP shortcuts.
 sub has_cap    { &safe or return; shift->conn->has_cap(@_)    }
 sub add_cap    { &safe or return; shift->conn->add_cap(@_)    }

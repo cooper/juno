@@ -920,8 +920,7 @@ sub login {
     # consider: if other items are present, should we ignore this entirely here?
 
     my @items = split /,/, $str;
-    $user->{account} ||= {};
-    $user->{account}{name} = $items[0];
+    $user->do_login($items[0]);
 
     # === Forward ===
     $msg->forward(login => $user, @items);

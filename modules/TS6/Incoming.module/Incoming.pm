@@ -869,7 +869,7 @@ sub login {
 
     # login.
     L("TS6 login $$user{nick} as $act_name");
-    $user->{account} = { name => $act_name };
+    $user->do_login($act_name);
 
     #=== Forward ===#
     $msg->forward_to_mask($serv_mask, login => $user, $act_name);
@@ -890,8 +890,8 @@ sub su {
 
     # no account name = logout.
     if (!length $act_name) {
-        delete $user->{account};
         L("TS6 logout $$user{nick}");
+        $user->do_logout();
 
         #=== Forward ===#
         $msg->forward_to_mask($serv_mask, su_logout => $source_serv, $user);
@@ -901,7 +901,7 @@ sub su {
 
     # login.
     L("TS6 login $$user{nick} as $act_name");
-    $user->{account} = { name => $act_name };
+    $user->do_login($act_name);
 
     #=== Forward ===#
     $msg->forward_to_mask($serv_mask, su_login =>

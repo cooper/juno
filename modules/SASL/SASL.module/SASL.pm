@@ -280,7 +280,7 @@ sub on_user_propagated {
     my ($user, $event) = @_;
     my $act_name = delete $user->{sasl_account} or return;
     L("SASL login $$user{nick} as $act_name");
-    $user->{account} = { name => $act_name };
+    $user->do_login($act_name);
 }
 
 $mod
