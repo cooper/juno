@@ -143,9 +143,10 @@ sub _parse_value {
 
 # escape message tag values
 sub _escape_value {
-    my ($value, $escaped) = '';
+    my $value = '';
+    my %r_escapes = reverse %escapes;
     for my $char (split //, shift) {
-        if (my $e = $escapes{$char}) {
+        if (my $e = $r_escapes{$char}) {
             $value .= "\\$e";
             next;
         }
