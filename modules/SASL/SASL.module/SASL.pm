@@ -210,7 +210,7 @@ sub update_user_info {
         $existing->done('Overriden') if $is_conn;
 
         # for users, kill locally or remotely.
-        do_user_kill($existing, 'Nickname regained by services');
+        do_user_kill($existing, 'Nickname regained by services') if !$is_conn;
 
     }
 
@@ -257,6 +257,7 @@ sub update_account {
 
 sub do_user_kill {
     my ($user, $source, $reason) = @_;
+    $user->isa('user') or return;
 
     # local user, use ->get_killed_by()
     if ($user->is_local) {
