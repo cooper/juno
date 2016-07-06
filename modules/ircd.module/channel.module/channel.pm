@@ -581,11 +581,11 @@ sub sendfrom_all_cap {
 
         # sorry, don't have it
         if (!$user->has_cap($cap)) {
-            $user->send($alternative) if length $alternative;
+            $user->sendfrom($who, $alternative) if length $alternative;
             next;
         }
 
-        $user->send($what);
+        $user->sendfrom($who, $what);
     }
     return 1;
 }
@@ -759,12 +759,6 @@ sub do_join {
     return if $already && !$allow_already;
     $channel->add($user) unless $already;
 
-    # if local, send topic and names.
-    if ($user->is_local) {
-        $user->handle("TOPIC $$channel{name}") if $channel->topic;
-        names($channel, $user);
-    }
-
     # for each user in the channel, send a JOIN message.
     my $act_name = $user->{account} ? $user->{account}{name} : '*';
     $channel->sendfrom_all_cap($user->full,
@@ -773,6 +767,12 @@ sub do_join {
         undef,
         'extended-join'
     );
+
+    # if local, send topic and names.
+    if ($user->is_local) {
+        $user->handle("TOPIC $$channel{name}") if $channel->topic;
+        names($channel, $user);
+    }
 
     # fire after join event.
     $channel->fire_event(user_joined => $user);
