@@ -704,8 +704,12 @@ sub do_part_all {
 
 # handles an account login locally for both local and remote users.
 sub do_login {
-    my ($user, $act_name) = @_;
+    my ($user, $act_name, $no_num) = @_;
     $user->{account} = { name => $act_name };
+
+    # tell this user
+    $user->numeric(RPL_LOGGEDIN => $user->full, $act_name)
+        if $user->is_local && !$no_num;
 
     # tell users with account-notify
     $user->send_to_channels_with_cap("ACCOUNT $act_name", 'account-notify');
@@ -715,8 +719,12 @@ sub do_login {
 }
 
 sub do_logout {
-    my $user = shift;
+    my ($user, $no_num) = @_;
     my $old = delete $user->{account} or return;
+
+    # tell this user
+    $user->numeric(RPL_LOGGEDOUT => $user->full)
+        if $user->is_local && !$no_num;
 
     # tell users with account-notify
     $user->send_to_channels_with_cap('ACCOUNT *', 'account-notify');
