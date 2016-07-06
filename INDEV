@@ -3246,3 +3246,4 @@ CHANGES:
         14. added IRCv3 extended-join support.
             added channel method ->sendfrom_all_cap().
             updated JELP/TS6 SJOIN handlers to use new channel join methods. #76.
+            send AWAY to users with away-notify when an away user joins a channel. closes #86.

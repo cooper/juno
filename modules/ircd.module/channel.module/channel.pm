@@ -761,12 +761,22 @@ sub do_join {
 
     # for each user in the channel, send a JOIN message.
     my $act_name = $user->{account} ? $user->{account}{name} : '*';
-    $channel->sendfrom_all_cap($user->full,
+    $channel->sendfrom_all_cap(
+        $user->full,
         "JOIN $$channel{name} $act_name :$$user{real}",     # IRCv3.1
         "JOIN $$channel{name}",                             # RFC1459
         undef,
         'extended-join'
     );
+
+    # tell the users who care whether this person is away.
+    $channel->sendfrom_all_cap(
+        $user->full,
+        "AWAY :$$user{away}",   # IRCv3.1
+        undef,                  # no alternative
+        $user,                  # don't send to the user himself
+        'away-notify'
+    ) if $user->{away};
 
     # if local, send topic and names.
     if ($user->is_local) {
