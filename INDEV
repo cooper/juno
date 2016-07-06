@@ -3223,3 +3223,4 @@ CHANGES:
         09. added %jelp_outgoing_commands and %jelp_incoming_commands APIs.
             added JELP SASL implementation. #9.
             added sasl_mechanisms (SASL M) forwarding in TS6.
+            fixed an issue where SASL initiation was sent with the wrong target server when used remotely.

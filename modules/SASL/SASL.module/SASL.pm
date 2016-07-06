@@ -107,7 +107,9 @@ sub rcmd_authenticate {
 
     # this client has no agent.
     # send out SASL S and SASL H.
-    my $saslserv_serv = $saslserv->{location};
+    my $saslserv_serv = $saslserv->{server};
+    my $saslserv_loc  = $saslserv->{location};
+
     if (!$agent) {
 
         # shared between SASL S and SASL H.
@@ -119,14 +121,14 @@ sub rcmd_authenticate {
         );
 
         # send SASL H.
-        $saslserv_serv->fire_command(sasl_host_info =>
+        $saslserv_loc->fire_command(sasl_host_info =>
             @common,                    # common parameters
             $connection->{host},        # connection host
             $connection->{ip}           # connection IP address
         );
 
         # send SASL S.
-        $saslserv_serv->fire_command(sasl_initiate =>
+        $saslserv_loc->fire_command(sasl_initiate =>
             @common,                    # common parameters
             $arg                        # authentication method; e.g. PLAIN
         );
@@ -139,15 +141,21 @@ sub rcmd_authenticate {
     # the client has an agent. this is the AUTHENTICATE <base64>.
     # send out SASL C.
     elsif (length $arg) {
+
+        # update this info
         $saslserv = $agent;
-        $saslserv_serv = $saslserv->{location};
-        $saslserv_serv->fire_command(sasl_client_data =>
+        $saslserv_serv = $saslserv->{server};
+        $saslserv_loc  = $saslserv->{location};
+
+        # send data
+        $saslserv_loc->fire_command(sasl_client_data =>
             $me,                        # source server
             $saslserv_serv->name,       # server mask target
             $connection->{uid},         # the connection's temporary UID
             $saslserv->{uid},           # UID of SASL service
             $arg                        # base64 encoded client data
         );
+
     }
 
     # not sure what to do with this.
@@ -171,8 +179,9 @@ sub abort_sasl {
     my $saslserv = $pool->lookup_user($connection->{sasl_agent}) or return;
 
     # tell the agent that the user aborted the exchange.
-    my $saslserv_serv = $saslserv->{location};
-    $saslserv_serv->fire_command(sasl_done =>
+    my $saslserv_serv = $saslserv->{server};
+    my $saslserv_loc  = $saslserv->{location};
+    $saslserv_loc->fire_command(sasl_done =>
         $me,                        # source server
         $saslserv_serv->name,       # server mask target
         $connection->{uid},         # the connection's temporary UID
