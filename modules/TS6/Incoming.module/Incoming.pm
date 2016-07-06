@@ -475,11 +475,7 @@ sub sjoin {
 
         # join the new user.
         push @good_users, $user;
-        unless ($channel->has_user($user)) {
-            $channel->add($user);
-            $channel->sendfrom_all($user->full, "JOIN $$channel{name}");
-            $channel->fire_event(user_joined => $user);
-        }
+        $channel->do_join($user);
 
         # no prefixes or not accepting the prefixes.
         next unless length $prefixes && $accept_new_modes;

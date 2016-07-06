@@ -669,17 +669,13 @@ sub sjoin {
         # find the user and modes
         my ($uid, $modes) = split /!/, $str;
         my $user = $pool->lookup_user($uid) or next USER;
-        push @good_users, $user;
 
         # this user does not physically belong to this server; ignore.
         next if $user->{location} != $server;
 
         # join the new user
-        unless ($channel->has_user($user)) {
-            $channel->add($user, $channel->{time});
-            $channel->sendfrom_all($user->full, "JOIN $$channel{name}");
-            $channel->fire_event(user_joined => $user);
-        }
+        push @good_users, $user;
+        $channel->do_join($user);
 
         # no prefixes or not accepting the prefixes.
         next unless length $modes && $accept_new_modes;

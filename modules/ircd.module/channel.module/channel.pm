@@ -571,6 +571,25 @@ sub sendfrom_all {
     return send_all($channel, ":$who $what", $ignore);
 }
 
+# send to members with a capability.
+# $alternative = send this if the user doesn't have the cap
+sub sendfrom_all_cap {
+    my ($channel, $who, $what, $alternative, $ignore, $cap) = @_;
+    foreach my $user ($channel->users) {
+        next unless $user->is_local;
+        next if $ignore && $ignore == $user;
+
+        # sorry, don't have it
+        if (!$user->has_cap($cap)) {
+            $user->send($alternative) if length $alternative;
+            next;
+        }
+
+        $user->send($what);
+    }
+    return 1;
+}
+
 # send a notice to all the local members.
 sub notice_all {
     my ($channel, $what, $ignore) = @_;
@@ -747,7 +766,13 @@ sub do_join {
     }
 
     # for each user in the channel, send a JOIN message.
-    $channel->sendfrom_all($user->full, "JOIN $$channel{name}");
+    my $act_name = $user->{account} ? $user->{account}{name} : '*';
+    $channel->sendfrom_all($user->full,
+        "JOIN $$channel{name} $act_name :$$user{real}",     # IRCv3.1
+        "JOIN $$channel{name}",                             # RFC1459
+        undef,
+        'extended-join'
+    );
 
     # fire after join event.
     $channel->fire_event(user_joined => $user);

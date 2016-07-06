@@ -3242,3 +3242,7 @@ CHANGES:
             new method $channel->attempt_local_join() allows modules to attempt joins.
             updated Channel::Forward to use the new method.
             removed $channel->localjoin() because the new ->do_join() and ->attempt_local_join() do it all.
+
+        14. added IRCv3 extended-join support.
+            added channel method ->sendfrom_all_cap().
+            updated JELP/TS6 SJOIN handlers to use new channel join methods. #76.

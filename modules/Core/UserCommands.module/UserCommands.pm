@@ -197,6 +197,7 @@ sub init {
     $mod->register_capability('away-notify');
     $mod->register_capability('chghost');
     $mod->register_capability('account-notify');
+    $mod->register_capability('extended-join');
 
     return 1;
 }
