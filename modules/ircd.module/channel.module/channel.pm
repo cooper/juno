@@ -155,7 +155,7 @@ sub remove {
     $channel->{users} = \@new;
 
     # delete the channel if this is the last user.
-    $channel->maybe_destroy();
+    $channel->destroy_maybe();
 
     return 1;
 }
@@ -494,7 +494,7 @@ sub topic {
 }
 
 # destroy the channel maybe
-sub maybe_destroy {
+sub destroy_maybe {
     my $channel = shift;
 
     # an event said not to destroy the channel.
