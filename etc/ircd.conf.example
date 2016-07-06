@@ -34,6 +34,7 @@
     Channel::Forward            # Channel forward support (+f)
     Channel::Mute               # Channel mute/quiet ban (+Z)
     Channel::TopicAdditions     # commands to prepend or append topic
+    Channel::Permanent          # mode to preserve empty channels (+P)
     Ban::Dline                  # server/user IP ban (D-Line/Z-Line)
     Ban::Kline                  # user hostmask ban (K-Line)
 

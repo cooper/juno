@@ -1,0 +1,15 @@
+{
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
+   "depends" : {
+      "modules" : [
+         "Base::ChannelModes"
+      ]
+   },
+   "description" : "adds permanent channel support",
+   "name" : "Channel::Permanent",
+   "package" : "M::Channel::Permanent",
+   "version" : "0.4"
+}

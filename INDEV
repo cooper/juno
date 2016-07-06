@@ -3251,3 +3251,5 @@ CHANGES:
         15. message tag support was based on an old draft specification. it was updated to the current IRCv3.2 spec.
             added channel method ->destroy_maybe(), which fires a new event can_destroy. #47.
             in JELP/TS6 SJOIN, call ->destroy_maybe(), which will immediately delete channels bursted with no users.
+
+        16. added Channel::Permanent, which provides permanent channel mode (+P). closes #47.
