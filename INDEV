@@ -3233,3 +3233,12 @@ CHANGES:
 
         12. added ->do_login(), ->do_logout(), and IRCv3 account-nofity support. closes #81.
             added oper notices: user_logged_in, user_logged_out.
+
+        13. unified the channel joining logic into two simple methods. closes #76.
+            renamed $channel->cjoin() to ->add(), which corresponds with ->remove().
+            removed the time argument from ->add(), as it is no longer used since the additional of ->take_lower_time().
+            renamed $channel->handle_part() to ->do_part(), which corresponds with user.pm method naming.
+            new method $channel->do_join() combines several repetitive procedures.
+            new method $channel->attempt_local_join() allows modules to attempt joins.
+            updated Channel::Forward to use the new method.
+            removed $channel->localjoin() because the new ->do_join() and ->attempt_local_join() do it all.

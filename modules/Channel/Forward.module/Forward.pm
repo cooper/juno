@@ -8,7 +8,7 @@
 # @package:         'M::Channel::Forward'
 # @description:     'adds channel forwarding abilities'
 #
-# @depends.modules: ['Base::ChannelModes', 'Base::UserNumerics', 'Core::UserCommands']
+# @depends.modules: ['Base::ChannelModes', 'Base::UserNumerics']
 #
 # @author.name:     'Matthew Barksdale'
 # @author.website:  'https://github.com/mattwb65'
@@ -22,7 +22,6 @@ use 5.010;
 use utils qw(cut_to_limit cols);
 
 our ($api, $mod, $pool);
-my $cjoin;
 
 our %user_numerics = (
     ERR_LINKCHAN => [ 470, '%s %s :Forwarding to another channel' ]
@@ -44,10 +43,6 @@ sub init {
         with_eo => 1,
         name    => 'join.failed'
     );
-
-    # grab cjoin from UserCommands.
-    my $ucmds = $api->get_module('Core::UserCommands') or return;
-       $cjoin = $ucmds->can('_cjoin')                  or return;
 
     return 1;
 }
@@ -145,7 +140,7 @@ sub on_user_join_failed {
     }
 
     # We can join
-    $cjoin->(1, $user, undef, $f_chan->name);
+    $f_chan->attempt_local_join($user, $new, undef, 1);
 
 }
 

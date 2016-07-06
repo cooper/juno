@@ -469,15 +469,11 @@ sub _join {
     my ($server, $msg, $user, $chname, $time) = @_;
     my ($channel, $new) = $pool->lookup_or_create_channel($chname, $time);
 
-    # take lower time if necessary, and add the user to the channel.
+    # take lower time if necessary.
     $channel->take_lower_time($time) unless $new;
-    $channel->cjoin($user, $time)    unless $channel->has_user($user);
 
-    # for each user in the channel, send a JOIN message.
-    $channel->sendfrom_all($user->full, "JOIN $$channel{name}");
-
-    # fire after join event.
-    $channel->fire_event(user_joined => $user);
+    # do the join.
+    $channel->do_join($user);
 
     # === Forward ===
     $msg->forward(join => $user, $channel, $channel->{time});
@@ -569,7 +565,7 @@ sub part {
     }
 
     # remove the user and tell others
-    $channel->handle_part($user, $reason);
+    $channel->do_part($user, $reason);
 
     # === Forward ===
     $msg->forward(part => $user, $channel, $reason);
@@ -680,7 +676,7 @@ sub sjoin {
 
         # join the new user
         unless ($channel->has_user($user)) {
-            $channel->cjoin($user, $channel->{time});
+            $channel->add($user, $channel->{time});
             $channel->sendfrom_all($user->full, "JOIN $$channel{name}");
             $channel->fire_event(user_joined => $user);
         }

@@ -696,7 +696,7 @@ sub do_away {
 sub do_part_all {
     my $user = shift;
     my @channels = $user->channels;
-    $_->handle_part($user, undef, 1) foreach @channels;
+    $_->do_part($user, undef, 1) foreach @channels;
     notice(user_part_all =>
         $user->notice_info, join(' ', map $_->{name}, @channels));
     return 1;

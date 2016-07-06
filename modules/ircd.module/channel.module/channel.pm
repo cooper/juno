@@ -125,15 +125,9 @@ sub remove_from_list {
 }
 
 # user joins channel
-sub cjoin {
-    my ($channel, $user, $time) = @_;
+sub add {
+    my ($channel, $user) = @_;
     return if $channel->has_user($user);
-
-    # the channel TS will change
-    # if the join time is older than the channel time.
-    if ($time < $channel->{time}) {
-        $channel->set_time($time);
-    }
 
     # add the user to the channel.
     push @{ $channel->{users} }, $user;
@@ -510,25 +504,10 @@ sub users { @{ shift->{users} } }
 ### MINE ###
 ############
 
-# handle a join for a local user.
-sub localjoin {
-    my ($channel, $user, $time) = @_;
-
-    # do actual join, then tell the members.
-    $channel->cjoin($user, $time);
-    $channel->sendfrom_all($user->full, "JOIN $$channel{name}");
-
-    # send topic and names.
-    $user->handle("TOPIC $$channel{name}") if $channel->topic;
-    names($channel, $user);
-
-    $channel->fire_event(user_joined => $user);
-    return $channel->{time};
-}
-
 # send NAMES.
 sub names {
     my ($channel, $user, $no_endof) = @_;
+    $user->is_local or return;
 
     my $in_channel = $channel->has_user($user);
     my $prefixes   = $user->has_cap('multi-prefix') ? 'prefixes' : 'prefix';
@@ -739,8 +718,108 @@ sub handle_privmsgnotice {
     return 1;
 }
 
+# ->do_join()
+# see issue #76 for background information
+#
+# 1. joins a user to the channel with ->add().
+# 2. sends JOIN message to local users in common channels.
+# 3. fires the user_joined event.
+#
+# note that this method is permitted for both local and remote users.
+# it DOES NOT send join messages to servers; it is up to the server
+# protocol implementation to do so with ->forward().
+#
+# $allow_already = do not consider whether the user is already in the channel.
+# this is useful for local channel creation.
+#
+sub do_join {
+    my ($channel, $user, $allow_already) = @_;
+    my $already = $channel->has_user($user);
+
+    # add the user.
+    return if $already && !$allow_already;
+    $channel->add($user) unless $already;
+
+    # if local, send topic and names.
+    if ($user->is_local) {
+        $user->handle("TOPIC $$channel{name}") if $channel->topic;
+        names($channel, $user);
+    }
+
+    # for each user in the channel, send a JOIN message.
+    $channel->sendfrom_all($user->full, "JOIN $$channel{name}");
+
+    # fire after join event.
+    $channel->fire_event(user_joined => $user);
+
+}
+
+# ->attempt_local_join()
+# see issue #76 for background information
+#
+# this is essentially a JOIN command handler - it checks that a local user can
+# join a channel, deals with channel creation, set automodes, and more.
+#
+# this method CANNOT be used on remote users. note that this method MAY
+# send out join and/or channel burst messages to servers.
+#
+# $new      = whether it's a new channel; this will deal with automodes
+# $key      = provided channel key, if any. does nothing when $force
+# $force    = do not check if the user is actually allowed to join
+#
+sub attempt_local_join {
+    my ($channel, $user, $new, $key, $force) = @_;
+    return unless $user->is_local;
+
+    # if we're not forcing the join, check that the user is permitted to join.
+    unless ($force) {
+
+        # fire the event and delete the callbacks.
+        my $event = $user->fire(can_join => $channel, $key);
+
+        # event was stopped; can't join.
+        if ($event->stopper) {
+            $user->fire(join_failed => $channel, $event->stop, $event->stopper);
+            return;
+        }
+
+    }
+
+    # new channel. do automodes and whatnot.
+    if ($new) {
+        $channel->add($user); # early join
+        my $str = conf('channels', 'automodes') || '';
+        $str =~ s/\+user/$$user{uid}/g;
+
+        # we're using ->handle_mode_string() because ->do_mode_string()
+        # does only two other things:
+        #
+        # 1. sends the mode change to other servers
+        # (we're doing that below with channel_burst)
+        #
+        # 2. sends the mode change to other users
+        # (at this point, no one is in the new channel yet)
+        #
+        $channel->handle_mode_string($me, $me, $str, 1, 1);
+
+    }
+
+    # tell other servers
+    if ($new) {
+        $pool->fire_command_all(channel_burst => $channel, $me, $user);
+    }
+    else {
+        $pool->fire_command_all(join => $user, $channel, $channel->{time});
+    }
+
+    # do the actual join. the $new means to allow the ->do_join() even though
+    # the user might already be in there from the previous ->add().
+    return $channel->do_join($user, $new);
+
+}
+
 # handle a part locally for both local and remote users.
-sub handle_part {
+sub do_part {
     my ($channel, $user, $reason, $quiet) = @_;
 
     # remove the user and tell the local channel users

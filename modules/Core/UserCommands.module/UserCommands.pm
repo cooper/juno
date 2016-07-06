@@ -131,7 +131,7 @@ our %user_commands = (
         desc   => 'view a list of servers connected to the network'
     },
     JOIN => {
-        code   => \&cjoin,
+        code   => \&_join,
         desc   => 'join a channel',
         params => '* *(opt)'
     },
@@ -489,9 +489,8 @@ sub add_join_callbacks {
 
 }
 
-sub  cjoin { _cjoin(undef, @_) }
-sub _cjoin {
-    my ($force, $user, $event, $given, $channel_key) = @_;
+sub _join {
+    my ($user, $event, $given, $channel_key) = @_;
 
     # part all channels.
     if ($given eq '0') {
@@ -500,6 +499,7 @@ sub _cjoin {
         return 1;
     }
 
+    # comma-separated list.
     foreach my $chname (split ',', $given) {
 
         # make sure it's a valid name.
@@ -510,43 +510,10 @@ sub _cjoin {
 
         # if the channel exists, just join.
         my ($channel, $new) = $pool->lookup_or_create_channel($chname);
-        my $time = $channel->{time};
-
-        unless ($force) {
-
-            # fire the event and delete the callbacks.
-            my $event = $user->fire(can_join => $channel, $channel_key);
-
-            # event was stopped; can't join.
-            if ($event->stopper) {
-                $user->fire(join_failed => $channel, $event->stop, $event->stopper);
-                return;
-            }
-
-        }
-
-        # new channel. join internally (without telling the user) & set auto modes.
-        # note: we can't use do_mode_string() here because CMODE must come after JOIN.
-        my $sstr;
-        if ($new) {
-            $channel->cjoin($user, $time); # early join
-            my $str = conf('channels', 'automodes') || '';
-            $str =~ s/\+user/$$user{uid}/g;
-            (undef, $sstr) = $channel->handle_mode_string($me, $me, $str, 1, 1);
-        }
-
-        # tell servers that the user joined and the automatic modes were set.
-        if ($sstr) {
-            $pool->fire_command_all(channel_burst => $channel, $me, $user);
-        }
-        else {
-            $pool->fire_command_all(join => $user, $channel, $time);
-        }
-
-        # do the actual local join.
-        $channel->localjoin($user, $time);
+        $channel->attempt_local_join($user, $new, $channel_key);
 
     }
+
     return 1;
 }
 
@@ -818,7 +785,7 @@ sub part {
     my ($user, $event, $channel, $reason) = @_;
 
     # tell channel's users and servers.
-    $channel->handle_part($user, $reason);
+    $channel->do_part($user, $reason);
     $pool->fire_command_all(part => $user, $channel, $reason);
 
     return 1;

@@ -6,12 +6,11 @@
    "depends" : {
       "modules" : [
          "Base::ChannelModes",
-         "Base::UserNumerics",
-         "Core::UserCommands"
+         "Base::UserNumerics"
       ]
    },
    "description" : "adds channel forwarding abilities",
    "name" : "Channel::Forward",
    "package" : "M::Channel::Forward",
-   "version" : "2.2"
+   "version" : "2.6"
 }
