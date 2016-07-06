@@ -40,6 +40,7 @@ our %ts6_outgoing_commands = (
     sasl_initiate       => \&out_sasl_s,    # sent to agent to initiate auth
     sasl_client_data    => \&out_sasl_c,    # sent to agent with data
     sasl_done           => \&out_sasl_d,    # sent to agent when aborted
+    sasl_mechanisms     => \&out_sasl_m,    # request mechanisms
     sasl_conn_info      => \&out_svslogin   # forwarding services-set user fields
 );
 
@@ -84,8 +85,16 @@ sub encap_sasl {
             $target_uid         # UID of SASL service (these are swapped here)
         );
 
+        # start
+        if ($mode eq 'S') {
+            $msg->forward_to_mask($serv_mask, sasl_initiate =>
+                @common,
+                $data       # authentication method
+            );
+        }
+
         # client data
-        if ($mode eq 'C') {
+        elsif ($mode eq 'C') {
             $msg->forward_to_mask($serv_mask, sasl_client_data =>
                 @common,
                 $data       # base64 encoded client data
@@ -106,6 +115,14 @@ sub encap_sasl {
                 @common,
                 $data,      # hostname
                 $ip // '0'  # IP address
+            );
+        }
+
+        # mechanisms
+        elsif ($mode eq 'M') {
+            $msg->forward_to_mask($serv_mask, sasl_mechanisms =>
+                @common,
+                $data       # mechanisms
             );
         }
 
@@ -329,6 +346,24 @@ sub out_sasl_d {
     ts6_uid($source_uid),   # convert UID to TS6
     ts6_uid($target_uid),   # convrert UID to TS6
     $done_mode;
+}
+
+sub out_sasl_m {
+    my (
+        $to_server,         # server we're sending to
+        $source_serv,       # source server
+        $target_mask,       # server mask target
+        $source_uid,        # juno UID source (might be unregistered)
+        $target_uid,        # juno UID target
+        $mechs
+    ) = @_;
+
+    return sprintf ':%s ENCAP %s SASL %s %s M :%s',
+    ts6_id($source_serv),
+    $target_mask,
+    ts6_uid($source_uid),   # convert UID to TS6
+    ts6_uid($target_uid),
+    $mechs;   # convrert UID to TS6
 }
 
 sub out_svslogin {

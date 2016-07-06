@@ -3219,3 +3219,7 @@ CHANGES:
             added support for sticky capabilities, updated SASL accordingly.
             added cap-notify capability and version parameter to CAP LS.
             cap-notify is sticky only when IRCv3.2 is used but not for IRCv3.1.
+
+        09. added %jelp_outgoing_commands and %jelp_incoming_commands APIs.
+            added JELP SASL implementation. #9.
+            added sasl_mechanisms (SASL M) forwarding in TS6.
