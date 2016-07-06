@@ -196,6 +196,7 @@ sub init {
     $mod->register_capability('cap-notify');
     $mod->register_capability('away-notify');
     $mod->register_capability('chghost');
+    $mod->register_capability('account-notify');
 
     return 1;
 }
