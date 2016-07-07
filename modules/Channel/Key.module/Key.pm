@@ -30,7 +30,7 @@ our %user_numerics = (
 );
 
 # channel mode block
-our %channel_modes => (
+our %channel_modes = (
     key => { code => \&cmode_key }
 );
 

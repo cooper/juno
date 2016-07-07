@@ -3258,3 +3258,4 @@ CHANGES:
 
         17. FIXED TEH BROKED LOLCATZ MODYOOL.  KTHX.
             added users:chghost_quit option.
+            fixed broken Channel::Key.
