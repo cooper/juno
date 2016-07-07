@@ -3253,3 +3253,5 @@ CHANGES:
             in JELP/TS6 SJOIN, call ->destroy_maybe(), which will immediately delete channels bursted with no users.
 
         16. added Channel::Permanent, which provides permanent channel mode (+P). closes #47.
+            added private (+p) and permanent (+P) channel modes to atheme protocol module.
+            use +q for owner and +Z for mute in atheme mod, such that it is consistent with juno's default config.

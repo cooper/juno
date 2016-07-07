@@ -3,7 +3,7 @@
  * Copyright (c) 2005-2008 Atheme Development Group
  * Copyright (c) 2008-2010 ShadowIRCd Development Group
  * Copyright (c) 2013 PonyChat Development Group
- * Copyright (c) 2015 Mitchell Cooper
+ * Copyright (c) 2016 Mitchell Cooper
  *
  * Rights to this code are documented in LICENSE.
  *
@@ -21,7 +21,7 @@
 #define   CMODE_FINVITE         0x00008000   /*  hyperion    +g     free invite             */
 
 #define   CMODE_EXLIMIT         0x00010000   /*  charybdis   +L     unlimited +beI etc.     */
-/*        CMODE_PERM            0x00020000       charybdis   +P     permanent               */
+#define   CMODE_PERM            0x00020000   /*  charybdis   +P     permanent               */
 #define   CMODE_FTARGET         0x00040000   /*  charybdis   +F     free forward target     */
 /*        CMODE_DISFWD          0x00080000       charybdis   +Q     disable forwarding      */
 
@@ -71,18 +71,18 @@ ircd_t juno = {
     .uses_halfops       = true,
     .uses_p10           = false,
     .uses_vhost         = false,
-    .oper_only_modes    = CMODE_OPERONLY,
-        /* | CMODE_EXLIMIT | CMODE_PERM | CMODE_IMMUNE | CMODE_ADMINONLY */
+    .oper_only_modes    = CMODE_OPERONLY | CMODE_PERM,
+        /* | CMODE_EXLIMIT | CMODE_IMMUNE | CMODE_ADMINONLY */
     .owner_mode         = CSTATUS_OWNER,
     .protect_mode       = CSTATUS_PROTECT,
     .halfops_mode       = CSTATUS_HALFOP,
-    .owner_mchar        = "+y",
+    .owner_mchar        = "+q",
     .protect_mchar      = "+a",
     .halfops_mchar      = "+h",
     .type               = PROTOCOL_JUNO,
     .perm_mode          = 0,                    /* CMODE_PERM */
     .oimmune_mode       = 0,                    /* CMODE_IMMUNE */
-    .ban_like_modes     = "AbeIq",
+    .ban_like_modes     = "AbeIZ",
     .except_mchar       = 'e',
     .invex_mchar        = 'I',
     .flags              = IRCD_CIDR_BANS | IRCD_HOLDNICK
@@ -92,7 +92,7 @@ struct cmode_ juno_mode_list[] = {
     { 'i', CMODE_INVITE         },      /* invite only                              */
     { 'm', CMODE_MOD            },      /* moderated                                */
     { 'n', CMODE_NOEXT          },      /* block external messages                  */
- /* { 'p', CMODE_PRIV           }, */   /* private                                  */
+    { 'p', CMODE_PRIV           },      /* private                                  */
     { 's', CMODE_SEC            },      /* secret                                   */
     { 't', CMODE_TOPIC          },      /* only ops can set the topic               */
  /* { 'c', CMODE_NOCOLOR        },      /* block color codes                        */
@@ -100,7 +100,7 @@ struct cmode_ juno_mode_list[] = {
  /* { 'z', CMODE_OPMOD          },      /* ops can see rejected messages            */
     { 'g', CMODE_FINVITE        },      /* free invite, non-ops can invite          */
  /* { 'L', CMODE_EXLIMIT        },      /* unlimited ban-type mode entries          */
- /* { 'P', CMODE_PERM           },      /* permanent                                */
+    { 'P', CMODE_PERM           },      /* permanent                                */
     { 'F', CMODE_FTARGET        },      /* free target, non-ops can forward here    */
  /* { 'Q', CMODE_DISFWD         },      /* disable channel forwarding               */
  /* { 'M', CMODE_IMMUNE         },      /* */
@@ -127,7 +127,7 @@ struct extmode juno_ignore_mode_list[] = {
 };
 
 struct cmode_ juno_status_mode_list[] = {
-    { 'y', CSTATUS_OWNER        },
+    { 'q', CSTATUS_OWNER        },
     { 'a', CSTATUS_PROTECT      },
     { 'o', CSTATUS_OP           },
     { 'h', CSTATUS_HALFOP       },
@@ -163,26 +163,26 @@ static bool check_forward(const char *value, channel_t *c, mychan_t *mc, user_t 
     channel_t *target_c;
     mychan_t *target_mc;
     chanuser_t *target_cu;
-    
+
     /* check channel validity */
     if (!VALID_GLOBAL_CHANNEL_PFX(value) || strlen(value) > 50)
         return false;
-    
+
     if (u == NULL && mu == NULL)
         return true;
-    
+
     /* can't find channel */
     target_c = channel_find(value);
     target_mc = MYCHAN_FROM(target_c);
     if (target_c == NULL && target_mc == NULL)
         return false;
-    
+
     /* target channel exists and has free forward (+F) */
     if (target_c != NULL && target_c->modes & CMODE_FTARGET)
         return true;
     if (target_mc != NULL && target_mc->mlock_on & CMODE_FTARGET)
         return true;
-    
+
     /* the source is a user */
     if (u != NULL)
     {
@@ -190,16 +190,16 @@ static bool check_forward(const char *value, channel_t *c, mychan_t *mc, user_t 
         target_cu = chanuser_find(target_c, u);
         if (target_cu != NULL && target_cu->modes & CSTATUS_OP)
             return true;
-        
+
         /* user has set privs in target channel */
         if (chanacs_user_flags(target_mc, u) & CA_SET)
             return true;
-        
+
     }
     else if (mu != NULL)
         if (chanacs_entity_has_flag(target_mc, entity(mu), CA_SET))
             return true;
-    
+
     return false;
 }
 
