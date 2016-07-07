@@ -48,7 +48,7 @@ sub ucmd_update {
         my @servers = $pool->lookup_server_mask($server_mask_maybe);
 
         # no priv.
-        if (!$user->has_flag('gupdate')) {
+        if (!$user->has_flag('ggit')) {
             $user->numeric(ERR_NOPRIVILEGES => 'gupdate');
             return;
         }

@@ -65,7 +65,7 @@ our ($table, %ban_types, %timers);
 
 sub init {
     $table = $conf->table('bans') or return;
-    
+
     # create or update the table.
     my @format = (
         id          => 'TEXT',
@@ -80,15 +80,15 @@ sub init {
         reason      => 'TEXT'
     );
     $table->create_or_alter(@format);
-    
+
     # ban API.
     $mod->register_module_method('register_ban_type') or return;
     $api->on('module.unload' => \&unload_module, with_eo => 1) or return;
-    
+
     # add protocol submodules.
     $mod->add_companion_submodule('JELP::Base', 'JELP');
     $mod->add_companion_submodule('TS6::Base',  'TS6');
-    
+
     add_enforcement_events();
     activate_ban(%$_) foreach get_all_bans();
     return 1;
@@ -101,28 +101,28 @@ sub init {
 # activate a ban timer
 sub activate_ban {
     my %ban = @_;
-    
+
     # it's permanent
     return if !$ban{expires};
-    
+
     # it has already expired
     if ($ban{expires} <= time) {
         expire_ban(%ban);
         return;
     }
-    
+
     # create a timer
     my $timer = $timers{ $ban{id} } ||= IO::Async::Timer::Absolute->new(
         time      => $ban{expires},
         on_expire => sub { expire_ban(%ban) }
     );
-    
+
     # start timer
     if (!$timer->is_running) {
         $timer->start;
         $::loop->add($timer);
     }
-    
+
 }
 
 # deactivate a ban timer
@@ -130,14 +130,14 @@ sub activate_ban {
 # but with deleted => 1
 sub expire_ban {
     my %ban = @_;
-    
+
     # dispose of the timer
     if (my $timer = $timers{ $ban{id} }) {
         $timer->stop;
         $timer->remove_from_parent;
         delete $timers{ $ban{id} };
     }
-    
+
     # remove from database
     delete_ban_by_id($ban{id});
 
@@ -205,7 +205,7 @@ sub delete_ban_by_id {
 sub register_ban_type {
     my ($_mod, $event, %opts) = @_;
     my $type_name = lc $opts{name} or return;
-    
+
     # register add command.
     my $command1 = $opts{add_cmd};
     if (length $command1) {
@@ -218,7 +218,7 @@ sub register_ban_type {
                                             # duration match :reason
         );
     }
-    
+
     # register delete command.
     my $command2 = $opts{del_cmd};
     if (length $command2) {
@@ -230,7 +230,7 @@ sub register_ban_type {
             parameters  => "-oper($type_name) *" # ban ID | match
         );
     }
-    
+
     # oper notices.
     $_mod->register_oper_notice(
         name   => $type_name,
@@ -244,13 +244,13 @@ sub register_ban_type {
         name   => "${type_name}_expire",
         format => 'Ban for %s expired'
     );
-    
+
     # store this type.
     $ban_types{$type_name} = {
         %opts,
         name => $type_name
     };
-    
+
     L("$type_name registered");
     $_mod->list_store_add(ban_types => $type_name);
 }
@@ -269,14 +269,14 @@ sub register_ban {
         aserver     => $me->name,
         %opts
     );
-    
+
     add_or_update_ban(%ban);
     enforce_ban(%ban);
     activate_ban(%ban);
-    
+
     # forward it
     $pool->fire_command_all(baninfo => \%ban);
-    
+
     return %ban;
 }
 
@@ -289,29 +289,29 @@ sub handle_add_command {
     my ($type_name, $command, $user, $event, $duration, $match, $reason) = @_;
     my $type = $ban_types{$type_name} or return;
     $reason //= '';
-    
+
     # check that the duration is numeric
     my $seconds = string_to_seconds($duration);
     if (!defined $seconds) {
         $user->server_notice($command => 'Invalid duration format');
         return;
     }
-    
+
     # check if matcher is valid
     $match = $type->{match_code}->($match);
     if (!defined $match) {
         $user->server_notice($command => 'Invalid ban format');
         return;
     }
-    
+
     # check if the ban exists already
     if (ban_by_match($match)) {
         $user->server_notice($command => "Ban for $match exists already");
         return;
     }
-    
+
     # TODO: check if it matches too many people
-    
+
     # register the ban
     my %ban = register_ban($type_name,
         match       => $match,
@@ -319,13 +319,13 @@ sub handle_add_command {
         duration    => $seconds,
         auser       => $user->full
     );
-    
+
     # notices
     my $when   = $ban{expires}  ? localtime $ban{expires}  : 'never';
     my $after  = $ban{duration} ? "$ban{duration}s" : 'permanent';
     my $notice = gnotice($type_name => $match, $user->notice_info, $when, $after);
     $user->server_notice($command  => $notice);
-    
+
     return 1;
 }
 
@@ -333,7 +333,7 @@ sub handle_add_command {
 sub handle_del_command {
     my ($type_name, $command, $user, $event, $match) = @_;
     my $type = $ban_types{$type_name} or return;
-    
+
     # find the ban
     my %ban = ban_by_id($match);
     if (!%ban) { %ban = ban_by_match($match) }
@@ -341,7 +341,7 @@ sub handle_del_command {
         $user->server_notice($command => 'No ban matches');
         return;
     }
-    
+
     # delete it
     delete_ban_by_id($ban{id});
     expire_ban(%ban, deleted => 1);
@@ -350,7 +350,7 @@ sub handle_del_command {
     # notices
     my $notice = gnotice("${type_name}_delete" => $ban{match}, $user->notice_info);
     $user->server_notice($command => $notice);
-    
+
     return 1;
 }
 
@@ -369,7 +369,7 @@ sub delete_ban_type {
 our %user_commands = (BANS => {
     code   => \&ucmd_bans,
     desc   => 'list user or server bans',
-    params => '-oper(listbans)'
+    params => '-oper(list_bans)'
 });
 
 sub ucmd_bans {
@@ -386,7 +386,7 @@ sub ucmd_bans {
 ###################
 
 sub add_enforcement_events {
-    
+
     # new connection
     $pool->on('connection.new' => sub {
         my $conn = shift;
@@ -397,13 +397,13 @@ sub add_enforcement_events {
         with_eo => 1,
         after   => [ 'resolve.hostname', 'check.ident' ]
     );
-    
+
     # new local user
     $pool->on('connection.user_ready' => sub {
         my ($event, $user) = @_;
         enforce_all_on_user($user);
     }, name => 'ban.enforce.user');
-    
+
 }
 
 # Enforce all bans on a single entity
@@ -437,11 +437,11 @@ sub enforce_all_on_conn {
 sub enforce_ban {
     my %ban = @_;
     my $type = $ban_types{ $ban{type} } or return;
-    
+
     # user ban
     if ($type->{class} eq 'user') { return enforce_ban_on_users(%ban) }
     if ($type->{class} eq 'conn') { return enforce_ban_on_conns(%ban) }
-    
+
     return;
 }
 
@@ -455,7 +455,7 @@ sub enforce_ban_on_conns {
         my $affected = enforce_ban_on_conn(\%ban, $conn);
         push @affected, $conn if $affected;
     }
-    
+
     return @affected;
 }
 
@@ -464,11 +464,11 @@ sub enforce_ban_on_conn {
     my ($ban, $conn) = @_;
     my $type = $ban_types{ $ban->{type} } or return;
     return unless $type->{conn_code}->($conn, $ban);
-    
+
     # like "Banned" or "Banned: because"
     my $reason = $type->{reason};
     $reason .= ": $$ban{reason}" if length $ban->{reason};
-    
+
     $conn->done($reason);
     return 1;
 }
@@ -478,12 +478,12 @@ sub enforce_ban_on_users {
     my %ban = @_;
     my $type = $ban_types{ $ban{type} } or return;
     my @affected;
-    
+
     foreach my $user ($pool->local_users) {
         my $affected = enforce_ban_on_user(\%ban, $user);
         push @affected, $user if $affected;
     }
-    
+
     return @affected;
 }
 
@@ -492,15 +492,14 @@ sub enforce_ban_on_user {
     my ($ban, $user) = @_;
     my $type = $ban_types{ $ban->{type} } or return;
     return unless $type->{user_code}->($user, $ban);
-    
+
     # like "Banned" or "Banned: because"
     my $reason = $type->{reason};
     $reason .= ": $$ban{reason}" if length $ban->{reason};
-    
+
     return unless $user->conn;
     $user->conn->done($reason);
     return 1;
 }
 
 $mod
-
