@@ -3259,3 +3259,6 @@ CHANGES:
         17. FIXED TEH BROKED LOLCATZ MODYOOL.  KTHX.
             added users:chghost_quit option.
             fixed broken Channel::Key.
+
+        18. fixed #87 where prefixes were not included in RPL_WHOISCHANNELS.
+            cleaned up WHOIS callbacks. it was quite ugly.

@@ -625,8 +625,6 @@ sub oper {
 
 sub add_whois_callbacks {
 
-    # DISCUSS: could we use state for these, or will that break reloading?
-
     # whether to show RPL_WHOISCHANNELS.
     my %channels;
     my $show_channels = sub {
@@ -638,8 +636,14 @@ sub add_whois_callbacks {
         # some channels may be skipped using event stopper.
         my @channels;
         foreach my $channel ($quser->channels) {
+
+            # don't show channels for services
+            next if $quser->is_mode('service');
+
+            # some callback said not to include this channel
             my $e = $channel->fire_event(show_in_whois => $quser, $ruser);
             next if $e->stopper;
+
             push @channels, $channel;
         }
 
@@ -647,49 +651,87 @@ sub add_whois_callbacks {
         return scalar @channels;
     };
 
-    # list of channels.
-    my $channels_list = sub {
-        my ($quser, $ruser) = @_;
-        my @all_chans = @{ delete $channels{$quser} || [] };
-        return join ' ', map $_->{name}, @all_chans;
-    };
+    my ($p, $ALWAYS_SHOW) = 1000;
+    my @whois_replies = (
 
-    # server information.
-    my $server_info = sub {
-        my $server  = shift->{server};
-        return @$server{ qw(name desc ) };
-    };
+        # Mask info.
+        RPL_WHOISUSER =>
+            $ALWAYS_SHOW,
+            sub { @{ +shift }{ qw(ident cloak real) } },
 
-    # seconds idle.
-    my $seconds_idle = sub {
-        my $user = shift;
-        my $idle = time - ($user->{conn}{last_command} || 0);
-        return ($idle, $user->{time});
-    };
+        # Channels. See above for exclusions.
+        RPL_WHOISCHANNELS =>
+            $show_channels,
+            sub {
+                my ($quser, $ruser) = @_;
+                my @all_chans = @{ delete $channels{$quser} || [] };
+                return join ' ', map {
+                    $_->prefixes($quser).$_->{name}
+                } @all_chans;
+            },
 
-    # IRC operator info.
-    my $irc_operator = sub {
-        my $user = shift;
-        return $user->is_mode('service') ? 'a network service'      :
-               $user->is_mode('admin')   ? 'a server administrator' :
-               'an IRC operator'                                    ;
-    };
+        # Server the user is on.
+        RPL_WHOISSERVER =>
+            $ALWAYS_SHOW,
+            sub {
+                my $server  = shift->{server};
+                return @$server{ qw(name desc ) };
+            },
 
-    # too bad this is >90 width.
-    my $p = 1000;
-    foreach (
-    [ undef,                           'RPL_WHOISUSER',     sub { @{+shift}{qw(ident cloak real)}   } ],
-    [ $show_channels,                  'RPL_WHOISCHANNELS', $channels_list                            ],
-    [ undef,                           'RPL_WHOISSERVER',   $server_info                              ],
-    [ sub { shift->is_mode('ssl')   }, 'RPL_WHOISSECURE'                                              ],
-    [ sub { shift->is_mode('ircop') }, 'RPL_WHOISOPERATOR', $irc_operator                             ],
-    [ sub { length shift->{away}    }, 'RPL_AWAY',          sub { shift->{away}                     } ],
-    [ sub { shift->mode_string      }, 'RPL_WHOISMODES',    sub { shift->mode_string                } ],
-    [ undef,                           'RPL_WHOISHOST',     sub { @{+shift}{qw(host ip)}            } ],
-    [ sub { shift->is_local         }, 'RPL_WHOISIDLE',     $seconds_idle                             ],
-    [ sub { shift->{account}        }, 'RPL_WHOISACCOUNT',  sub { shift->{account}{name}            } ],
-    [ undef,                           'RPL_ENDOFWHOIS'                                               ]) {
-        my ($conditional_sub, $constant, $argument_sub) = @$_; $p -= 5;
+        # User is using a secure connection.
+        RPL_WHOISSECURE =>
+             sub { shift->is_mode('ssl') },
+             undef,
+
+        # User is an IRC operator.
+        RPL_WHOISOPERATOR =>
+            sub { shift->is_mode('ircop') },
+            sub {
+                my $user = shift;
+                return $user->is_mode('service') ? 'a network service'      :
+                       $user->is_mode('admin')   ? 'a server administrator' :
+                       'an IRC operator'                                    ;
+            },
+
+        # User is away.
+        RPL_AWAY =>
+            sub { length shift->{away} },
+            sub { shift->{away} },
+
+        # User modes.
+        RPL_WHOISMODES =>
+            sub { shift->mode_string },
+            sub { shift->mode_string },
+
+        # Real host. See issue #72.
+        RPL_WHOISHOST =>
+            $ALWAYS_SHOW,
+            sub { @{ +shift }{ qw(host ip) } },
+
+        # Idle time. Local only.
+        RPL_WHOISIDLE =>
+            sub { shift->is_local },
+            sub {
+                my $user = shift;
+                my $idle = time - ($user->{conn}{last_command} || 0);
+                return ($idle, $user->{time});
+            },
+
+        # Account name.
+        RPL_WHOISACCOUNT =>
+            sub { shift->{account} },
+            sub { shift->{account}{name} },
+
+        # END OF WHOIS.
+        RPL_ENDOFWHOIS =>
+            $ALWAYS_SHOW,
+            undef
+
+    );
+
+    # add each callback
+    while (my ($constant, $conditional_sub, $argument_sub) =
+    splice @whois_replies, 0, 3) { $p -= 5;
         $pool->on('user.whois_query' => sub {
             my ($ruser, $event, $quser) = @_;
 
