@@ -607,6 +607,9 @@ sub get_mask_changed {
     # for clients not supporting CHGHOST, we have to emulate a reconnect.
     foreach my $channel ($user->channels) {
 
+        # this was explicitly disabled.
+        last if !conf('users', 'chghost_quit');
+
         # determine status mode letters, if any.
         my @levels = $channel->user_get_levels($user); # already sorted
         my $letters = join '',

@@ -69,8 +69,8 @@
 
 [ users ]
 
-    automodes = '+i'                            # set these modes on users at connect
-
+    automodes       = '+i'                      # set these modes on users at connect
+    chghost_quit    = on                        # quit and rejoin on host change
 
 [ channels ]
 

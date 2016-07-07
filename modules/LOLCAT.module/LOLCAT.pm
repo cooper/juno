@@ -1,4 +1,4 @@
-# Copyright (c) 2012-14, Mitchell Cooper
+# Copyright (c) 2012-16, Mitchell Cooper
 #
 # @name:            "LOLCAT"
 # @package:         "M::LOLCAT"
@@ -15,21 +15,21 @@ use warnings;
 use strict;
 use 5.010;
 
-use Acme::LOLCAT;
+use Acme::LOLCAT qw(translate);
 use utils qw(col);
 
 our ($api, $mod, $pool);
 
 our %user_commands = (LOLCAT => {
     desc   => 'SPEEK LIEK A LOLCATZ!',
-    params => 'channel *',
+    params => 'channel :rest',
     code   => \&lolcat,
     fntsy  => 1
 });
 
 sub lolcat {
     my ($user, $event, $channel, $msg) = @_;
-    my $cmd = ':'.$user->full." PRIVMSG $$channel{name} :$msg";
+    $msg = translate($msg);
     $user->handle("ECHO $$channel{name} :$msg");
 }
 
