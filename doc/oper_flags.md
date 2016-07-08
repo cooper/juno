@@ -20,6 +20,10 @@ Reload the local server configuration or remote servers (g)lobally.
 
 See invisible (+i) users where they would otherwise be hidden.
 
+### see_hosts
+
+Show users' hostnames and IP addresses in WHOIS.
+
 ### see_secret
 
 See secret and private channels where they would otherwise be hidden.

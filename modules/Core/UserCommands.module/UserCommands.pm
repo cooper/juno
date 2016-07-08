@@ -705,7 +705,11 @@ sub add_whois_callbacks {
 
         # Real host. See issue #72.
         RPL_WHOISHOST =>
-            $ALWAYS_SHOW,
+            sub {
+                my ($quser, $ruser) = @_;
+                return 1 if $quser == $ruser; # always show to himself
+                return $ruser->has_flag('see_hosts');
+            },
             sub { @{ +shift }{ qw(host ip) } },
 
         # Idle time. Local only.

@@ -270,9 +270,25 @@ sub handle_mode_string {
 
         });
 
-        # block says to send ERR_CHANOPRIVSNEEDED.
-        if ($moderef->{send_no_privs} && $source->isa('user') && $source->is_local) {
-            $source->numeric(ERR_CHANOPRIVSNEEDED => $channel->name);
+        # Determining whether to send ERR_CHANOPRIVSNEEDED
+        #
+        # Source is a local user?
+        #   No..................................... DO NOT SEND
+        #   Yes. Mode block set send_no_privs?
+        #       Yes................................ SEND
+        #       No. Mode block returned true?
+        #           Yes............................ DO NOT SEND
+        #           No. User has +h or higher?
+        #               Yes........................ DO NOT SEND
+        #               No. Mode block set hide_no_privs?
+        #                   Yes.................... DO NOT SEND
+        #                   No..................... SEND
+        #
+        if ($source->isa('user') && $source->is_local) {
+            my $no_status = !$win && !$moderef->{has_basic_status}
+                && !$moderef->{hide_no_privs};
+            my $yes = $moderef->{send_no_privs} || $no_status;
+            $source->numeric(ERR_CHANOPRIVSNEEDED => $channel->name) if $yes;
         }
 
         # block returned false; cancel.

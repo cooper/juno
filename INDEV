@@ -3261,4 +3261,9 @@ CHANGES:
             fixed broken Channel::Key.
 
         18. fixed #87 where prefixes were not included in RPL_WHOISCHANNELS.
+            hide RPL_WHOISCHANNELS for services (+S).
             cleaned up WHOIS callbacks. it was quite ugly.
+
+        19. fixed an issue where attempting to set certain channel modes without op did not send ERR_CHANOPRIVSNEEDED.
+            the mode block firing system now does a better job of guessing when it is appropriate to send it.
+            hide RPL_WHOISHOST for users without see_hosts flag. closes #72.

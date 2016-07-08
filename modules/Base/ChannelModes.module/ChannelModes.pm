@@ -92,7 +92,7 @@ sub _cmode_banlike {
         # end of list.
         $mode->{source}->numeric("RPL_ENDOF$name" => @channel_letter);
 
-        return;
+        return 1;
     }
 
     # needs privs.

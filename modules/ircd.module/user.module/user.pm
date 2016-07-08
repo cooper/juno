@@ -627,7 +627,7 @@ sub get_mask_changed {
             # with here. we're pretty much assuming that if a client has those
             # capabilities, it should also have chghost...
             #
-            $usr->sendfrom($user->full, "QUIT :Changing hosts");
+            $usr->sendfrom($user->full, "QUIT :Changing host");
             $usr->sendfrom($user->full, "JOIN $$channel{name}");
 
             # MODE for statuses.
