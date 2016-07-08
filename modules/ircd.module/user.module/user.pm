@@ -444,59 +444,79 @@ sub new_connection {
     return $user->{init_complete} = 1;
 }
 
-# send to all members of channels in common with a user but only once.
-# note: the source user does not need to be local.
-# also, the source user will receive the message as well if local.
+# $user->send_to_channels($message, %opts)
+#
+# send to all members of channels in common with a user.
+# the source user does not need to be local.
+#
+# the source user will receive the message as well if he's local,
+# regardless of whether he has joined any channels.
+#
+# returns the hashref of users affected.
+#
 sub send_to_channels {
-    my ($user, $message) = @_;
-    sendfrom_to_many($user->full, $message, $user,
-        map { $_->users } $user->channels);
-    return 1;
+    my ($user, $message, %opts) = @_;
+    return sendfrom_to_many_with_opts(
+        $user->full,
+        $message,
+        \%opts,
+        $user, map { $_->users } $user->channels
+    );
 }
 
-# send to all members of channels with an enabled cap in common with a user but only once
-# note: the source user does not need to be local.
-# also, the source user will receive the message as well if local.
-sub send_to_channels_with_cap {
-    my ($user, $message, $cap, $self) = @_;
-    sendfrom_to_cap($user->full, $message, $cap, $self,
-        map { $_->users } $user->channels);
-    return 1;
-}
-
-# class function:
+# user::sendfrom_to_many($from, $message, @users)
+#
 # send to a number of users but only once per user.
 # returns the hashref of users affected.
-# user::sendfrom_to_many($from, $message, @users)
+#
 sub sendfrom_to_many {
     my ($from, $message, @users) = @_;
-    my %done;
-    foreach my $user (@users) {
-        next if !$user->is_local;
-        next if $done{$user};
-        $user->sendfrom($from, $message);
-        $done{$user} = 1;
-    }
-    return \%done;
+    return sendfrom_to_many_with_opts(
+        $from,
+        $message,
+        undef,
+        @users
+    );
 }
 
+# user::sendfrom_to_many($from, $message, \%opts, @users)
+#
+# Extended version of sendfrom_to_many() with additional options:
+#
+#       ignore          skip a specific user that may be in @users
+#       no_self         skip the source user if he's in @users
+#       cap             skip users without the specified capability
+#       alternative     if 'cap' is provided, this is an alternative message
+#
+sub sendfrom_to_many_with_opts {
+    my ($from, $message, $opts, @users) = @_;
+    my %opts = %{ $opts && ref $opts eq 'HASH' ? $opts : {} };
 
-# class function:
-# send to a number of users that have a cap.
-# returns the hashref of users affected.
-# user::sendfrom_to_cap($from, $message, $cap, $self, @users)
-sub sendfrom_to_cap {
-    my ($from, $message, $cap, $self, @users) = @_;
-    my %done;
+    # consider each provided user
+    my %sent_to;
     foreach my $user (@users) {
+        my $this_message = $message;
+
+        # not a local user or already sent to
         next if !$user->is_local;
-        next if $done{$user};
-        next if !$self && $from eq $user->full;
-        next if !$user->has_cap($cap);
-        $user->sendfrom($from, $message);
-        $done{$user} = 1;
+        next if $sent_to{$user};
+
+        # told to ignore this person or not to send to self
+        next if defined $opts{ignore} && $user == $opts{ignore};
+        next if $opts{no_self} && $user->full eq $from;
+
+        # lacks the required cap. if there's an alternative, use that.
+        # otherwise, skip over this person.
+        if (defined $opts{cap} && !$user->has_cap($opts{cap})) {
+            next unless defined $opts{alternative};
+            $this_message = $opts{alternative};
+        }
+
+        $user->sendfrom($from, $this_message);
+        $sent_to{$user}++;
     }
-    return \%done;
+
+    return \%sent_to;
 }
 
 # handle a mode string, send to the local user, send to other servers.
@@ -587,22 +607,28 @@ sub get_mask_changed {
     my ($user, $new_ident, $new_host) = @_;
     my $old_ident = $user->{ident};
     my $old_host  = $user->{cloak};
+
+    # nothing has changed.
     return if $old_host eq $new_host && $old_ident eq $new_ident;;
 
     # set the stuff.
     $user->{ident} = $new_ident;
     $user->{cloak} = $new_host;
 
+    # tell the user his host has changed
+    if ($new_host ne $old_host && $user->is_local) {
+        $user->numeric(RPL_HOSTHIDDEN => $new_host);
+    }
+
     # send CHGHOST to those who support it.
-    # ($from, $message, $cap, $self, @users)
-    my %done = %{ sendfrom_to_cap($user->full,
+    my %sent_to = %{ $user->send_to_channels(
         "CHGHOST $new_ident $new_host",
-        'chghost', 1, $user, map($_->users, $user->channels)
+        cap     => 'chghost',
+        no_self => 1
     ) };
 
-    # even if $user does not support CHGHOST, say he does. otherwise,
-    # he'll receive a QUIT message from himself if he's local.
-    $done{$user} = 1;
+    # don't tell the user that he has quit.
+    $sent_to{$user}++;
 
     # for clients not supporting CHGHOST, we have to emulate a reconnect.
     foreach my $channel ($user->channels) {
@@ -618,8 +644,10 @@ sub get_mask_changed {
 
         # send commands to users we didn't already do above.
         foreach my $usr ($channel->users) {
+
+            # not local or already sent to
             next if !$usr->is_local;
-            next if $done{$usr};
+            next if $sent_to{$usr};
 
             # QUIT and JOIN.
             #
@@ -634,7 +662,7 @@ sub get_mask_changed {
             $usr->sendfrom($me->full, "MODE $$channel{name} +$letters")
                 if length $letters;
 
-            $done{$usr} = 1;
+            $sent_to{$usr}++;
         }
     }
 
@@ -682,7 +710,10 @@ sub do_away {
         $user->numeric('RPL_NOWAWAY') if $user->is_local;
 
         # let people with away-notify know he's away.
-        $user->send_to_channels_with_cap("AWAY :$reason", 'away-notify');
+        $user->send_to_channels("AWAY :$reason",
+            cap     => 'away-notify',
+            no_self => 1
+        );
 
         return 1; # means set
     }
@@ -695,7 +726,10 @@ sub do_away {
     $user->numeric('RPL_UNAWAY') if $user->is_local;
 
     # let people with away-notify know he's back.
-    $user->send_to_channels_with_cap('AWAY', 'away-notify');
+    $user->send_to_channels('AWAY',
+        cap     => 'away-notify',
+        no_self => 1
+    );
 
     return 2; # means unset
 }
@@ -720,7 +754,10 @@ sub do_login {
         if $user->is_local && !$no_num;
 
     # tell users with account-notify
-    $user->send_to_channels_with_cap("ACCOUNT $act_name", 'account-notify');
+    $user->send_to_channels("ACCOUNT $act_name",
+        cap     => 'account-notify',
+        no_self => 1
+    );
 
     notice(user_logged_in => $user->notice_info, $act_name);
     return 1;
@@ -735,7 +772,10 @@ sub do_logout {
         if $user->is_local && !$no_num;
 
     # tell users with account-notify
-    $user->send_to_channels_with_cap('ACCOUNT *', 'account-notify');
+    $user->send_to_channels('ACCOUNT *',
+        cap     => 'account-notify',
+        no_self => 1
+    );
 
     notice(user_logged_out => $user->notice_info, $old->{name});
     return 1;

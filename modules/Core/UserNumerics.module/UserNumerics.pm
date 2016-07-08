@@ -92,6 +92,7 @@ our %user_numerics = (
     RPL_YOUREOPER        => [381, ':You are now an IRC operator'                                          ],
     RPL_REHASHING        => [382, '%s :Rehashing server configuration file'                               ],
     RPL_TIME             => [391, \&rpl_time                                                              ],
+    RPL_HOSTHIDDEN       => [396, '%s :is now your hidden host'                                           ],
     ERR_NOSUCHNICK       => [401, '%s :No such nick/channel'                                              ],
     ERR_NOSUCHSERVER     => [402, '%s :No such server'                                                    ],
     ERR_NOSUCHCHANNEL    => [403, '%s :No such channel'                                                   ],

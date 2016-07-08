@@ -588,8 +588,11 @@ sub modes {
 sub send_all {
     my ($channel, $what, $ignore) = @_;
     foreach my $user ($channel->users) {
+
+        # not local or ignored
         next unless $user->is_local;
         next if defined $ignore && $ignore == $user;
+
         $user->send($what);
     }
     return 1;
@@ -606,6 +609,8 @@ sub sendfrom_all {
 sub sendfrom_all_cap {
     my ($channel, $who, $what, $alternative, $ignore, $cap) = @_;
     foreach my $user ($channel->users) {
+
+        # not local or ignored
         next unless $user->is_local;
         next if $ignore && $ignore == $user;
 

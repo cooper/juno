@@ -3267,3 +3267,8 @@ CHANGES:
         19. fixed an issue where attempting to set certain channel modes without op did not send ERR_CHANOPRIVSNEEDED.
             the mode block firing system now does a better job of guessing when it is appropriate to send it.
             hide RPL_WHOISHOST for users without see_hosts flag. closes #72.
+
+    2.  combined several sendfrom_to_many()-based functions to a single sendfrom_to_many_with_opts().
+        removed user::sendfrom_to_cap() function.
+        removed $user->send_to_channels_with_cap() method.
+        fixed an issue where CHGHOST was incorrectly sent to the client changing hosts instead of RPL_HOSTHIDDEN.
