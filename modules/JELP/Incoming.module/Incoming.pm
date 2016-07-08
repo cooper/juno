@@ -814,7 +814,7 @@ sub skill {
 
     # local; destroy connection.
     if ($tuser->is_local) {
-        $tuser->get_killed_by($source, $reason);
+        $tuser->loc_get_killed_by($source, $reason);
     }
 
     # not local; just dispose of it.
@@ -944,7 +944,7 @@ sub invite {
 
     # local user.
     if ($t_user->is_local) {
-        $t_user->get_invited_by($user, $ch_name);
+        $t_user->loc_get_invited_by($user, $ch_name);
         return 1;
     }
 

@@ -124,7 +124,7 @@ printf "GET(%s): %s\n", $connection->type ? $connection->type->name : 'unregiste
 
     # user events.
     if (my $user = $connection->user) {
-        push @events, $user->events_for_message($msg);
+        push @events, $user->_events_for_message($msg);
         $connection->{last_command} = time unless $cmd eq 'PING' || $cmd eq 'PONG';
     }
 
@@ -242,7 +242,7 @@ sub ready {
     }
 
     $connection->fire_event(ready_done => $connection->{type});
-    $connection->{type}->new_connection if $connection->user;
+    $connection->{type}->_new_connection if $connection->user;
     return $connection->{ready} = 1;
 }
 

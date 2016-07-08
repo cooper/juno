@@ -28,6 +28,10 @@ use Scalar::Util 'blessed';
 
 our ($api, $mod, $pool, $me);
 
+#########################
+### LOW-LEVEL METHODS ###
+################################################################################
+
 # create a new user.
 sub new {
     my ($class, %opts) = @_;
@@ -38,6 +42,9 @@ sub new {
     }, $class;
 }
 
+#=============#
+#=== Modes ===#
+#=============#
 
 # user has a mode enabled.
 sub is_mode {
@@ -69,33 +76,6 @@ sub unset_mode {
     @{ $user->{modes} } = grep { $_ ne $name } @{ $user->{modes} };
 
     return 1;
-}
-
-# handle a user quit.
-# this does not close a connection; use $user->conn->done() for that.
-sub quit {
-    my ($user, $reason, $quiet) = @_;
-    notice(user_quit =>
-        $user->notice_info, $user->{real}, $user->{server}{name}, $reason)
-        unless $quiet;
-
-    # send to all users in common channels as well as including himself.
-    $user->send_to_channels("QUIT :$reason");
-
-    # remove from all channels.
-    $_->remove($user) foreach $user->channels;
-
-    $pool->delete_user($user) if $user->{pool};
-    $user->delete_all_events();
-}
-
-# low-level nick change.
-sub change_nick {
-    my ($user, $newnick, $time) = @_;
-    $pool->change_user_nick($user, $newnick) or return;
-    notice(user_nick_change => $user->notice_info, $newnick);
-    $user->{nick} = $newnick;
-    $user->{nick_time} = $time if $time;
 }
 
 # handle a mode string and convert the mode letters to their mode
@@ -167,6 +147,20 @@ sub mode_string {
     } @{ $user->{modes} });
 }
 
+#=============#
+#=== Flags ===#
+#=============#
+
+# has oper flag.
+sub has_flag {
+    my ($user, $flag) = @_;
+    foreach (@{ $user->{flags} }) {
+        return 1 if $_ eq $flag;
+        return 1 if $_ eq 'all';
+    }
+    return;
+}
+
 # add oper flags.
 sub add_flags {
     my $user  = shift;
@@ -196,14 +190,38 @@ sub remove_flags {
     return @removed;
 }
 
-# has oper flag.
-sub has_flag {
-    my ($user, $flag) = @_;
-    foreach (@{ $user->{flags} }) {
-        return 1 if $_ eq $flag;
-        return 1 if $_ eq 'all';
+# has a notice flag
+sub has_notice {
+    my ($user, $flag) = (shift, lc shift);
+    return unless $user->{notice_flags};
+    foreach my $f (@{ $user->{notice_flags} }) {
+        return 1 if $f eq 'all';
+        return 1 if $f eq $flag;
     }
+
     return;
+}
+
+# add a notice flag
+sub add_notices {
+    my ($user, @flags) = (shift, map { lc } @_);
+    foreach my $flag (@flags) {
+        next if $user->has_notice($flag);
+        push @{ $user->{notice_flags} ||= [] }, $flag;
+    }
+}
+
+#===============#
+#=== Actions ===#
+#===============#
+
+# low-level nick change.
+sub change_nick {
+    my ($user, $newnick, $time) = @_;
+    $pool->change_user_nick($user, $newnick) or return;
+    notice(user_nick_change => $user->notice_info, $newnick);
+    $user->{nick} = $newnick;
+    $user->{nick_time} = $time if $time;
 }
 
 # set away msg.
@@ -220,6 +238,28 @@ sub unset_away {
     L("$$user{nick} has returned from being away: $$user{away}");
     delete $user->{away};
 }
+
+# handle a user quit.
+# this does not close a connection; use $user->conn->done() for that.
+sub quit {
+    my ($user, $reason, $quiet) = @_;
+    notice(user_quit =>
+        $user->notice_info, $user->{real}, $user->{server}{name}, $reason)
+        unless $quiet;
+
+    # send to all users in common channels as well as himself.
+    $user->send_to_channels("QUIT :$reason");
+
+    # remove from all channels.
+    $_->remove($user) foreach $user->channels;
+
+    $pool->delete_user($user) if $user->{pool};
+    $user->delete_all_events();
+}
+
+#==================#
+#=== Properties ===#
+#==================#
 
 # channels. I need to make this more efficient eventually.
 sub channels {
@@ -258,92 +298,20 @@ sub notice_info {
     return ($user->{nick}, $user->{ident}, $user->{host});
 }
 
-# hops to another user.
+# hops to another server or user.
 sub hops_to {
     my ($server1, $target) = (shift->{server}, shift);
     my $server2 = $target->{server} || $target;
     return $server1->hops_to($server2);
 }
 
-# sub DESTROY {
-#     my $user = shift;
-#     L("$user destroyed");
-# }
+sub id            { shift->{uid}    }
+sub name          { shift->{nick}   }
+sub server        { shift->{server} }
 
-sub id            { shift->{uid}  }
-sub name          { shift->{nick} }
-sub conn          { shift->{conn} }
-
-############
-### MINE ###
-############
-
-# check for local user
-sub safe {
-    my $user = $_[0];
-    if (!$user->is_local) {
-        my $sub = (caller 1)[3];
-        L("Attempted to call ->${sub}() on nonlocal user");
-        return;
-    }
-    return unless $user->conn;
-    return @_;
-}
-
-# handle incoming data.
-sub handle        { _handle_with_opts(undef, @_[0,1]) }
-sub handle_unsafe { _handle_with_opts(1,     @_[0,1]) }
-
-# returns the events for an incoming message.
-sub events_for_message {
-    my ($user, $msg) = @_;
-    my $cmd = $msg->command;
-    return (
-        [ $user,  message       => $msg ],
-        [ $user, "message_$cmd" => $msg ]
-    );
-}
-
-# handle data (new method) with options.
-sub  handle_with_opts        { _handle_with_opts(undef, @_) }
-sub _handle_with_opts_unsafe { _handle_with_opts(1,     @_) }
-sub _handle_with_opts        {
-    my ($allow_nonlocal, $user, $line, %opts) = @_;
-
-    # nonlocal user on ->handle() or some other safe method.
-    return if !$allow_nonlocal && !$user->is_local;
-
-    my $msg = blessed $line ? $line : message->new(data => $line);
-
-    # fire commands with options.
-    my @events = $user->events_for_message($msg);
-    $user->prepare(@events)->fire('safe', data => \%opts);
-
-}
-
-# send data to a local user.
-sub send {
-    &safe or return;
-    my $user = shift;
-    if (!$user->{conn}) {
-        my $sub = (caller 1)[3];
-        L("can't send data to a nonlocal or disconnected user! $$user{nick}");
-        return;
-    }
-    $user->{conn}->send(@_);
-}
-
-# send data with a source.
-sub sendfrom {
-    my ($user, $source) = (shift, shift);
-    $user->send(map { ":$source $_" } @_);
-}
-
-# send data with this server as the source.
-sub sendme {
-    my $user = shift;
-    $user->sendfrom($me->{name}, @_);
-}
+##########################
+### HIGH-LEVEL METHODS ###
+################################################################################
 
 # a notice from server.
 # revision: supports nonlocal users as well now.
@@ -370,7 +338,7 @@ sub server_notice {
 
 }
 
-# send a numeric to a local user.
+# send a numeric to a local or remote user.
 sub numeric {
     my ($user, $const, @response) = (shift, shift);
 
@@ -407,196 +375,11 @@ sub numeric {
 
 }
 
-# send welcomes
-sub new_connection {
-    &safe or return;
-    my $user = shift;
-
-    # set modes.
-    # note: we don't use do_mode_string() because we wait until afterward to send MODE.
-    $user->handle_mode_string(conf qw/users automodes/);
-    $user->set_mode('ssl') if $user->conn->{listener}{ssl};
-
-    # tell other servers
-    $pool->fire_command_all(new_user => $user);
-    $user->fire_event('initially_propagated');
-
-    # send numerics.
-    my $network = conf('server', 'network') // conf('network', 'name');
-    $user->numeric(RPL_WELCOME  => $network, $user->{nick}, $user->{ident}, $user->{host});
-    $user->numeric(RPL_YOURHOST => $me->{name}, v('NAME').q(-).v('VERSION'));
-    $user->numeric(RPL_CREATED  => irc_time(v('START')));
-    $user->numeric(RPL_MYINFO   =>
-        $me->{name},
-        v('SNAME').q(-).v('NAME').q(-).v('VERSION'),
-        $pool->user_mode_string,
-        $pool->channel_mode_string
-    );
-    $user->numeric('RPL_ISUPPORT');
-
-    # LUSERS and MOTD
-    $user->handle('LUSERS');
-    $user->handle('MOTD');
-
-    # send mode string
-    $user->sendfrom($user->{nick}, "MODE $$user{nick} :".$user->mode_string);
-
-    return $user->{init_complete} = 1;
-}
-
-# $user->send_to_channels($message, %opts)
-#
-# send to all members of channels in common with a user.
-# the source user does not need to be local.
-#
-# the source user will receive the message as well if he's local,
-# regardless of whether he has joined any channels.
-#
-# returns the hashref of users affected.
-#
-sub send_to_channels {
-    my ($user, $message, %opts) = @_;
-    return sendfrom_to_many_with_opts(
-        $user->full,
-        $message,
-        \%opts,
-        $user, map { $_->users } $user->channels
-    );
-}
-
-# user::sendfrom_to_many($from, $message, @users)
-#
-# send to a number of users but only once per user.
-# returns the hashref of users affected.
-#
-sub sendfrom_to_many {
-    my ($from, $message, @users) = @_;
-    return sendfrom_to_many_with_opts(
-        $from,
-        $message,
-        undef,
-        @users
-    );
-}
-
-# user::sendfrom_to_many($from, $message, \%opts, @users)
-#
-# Extended version of sendfrom_to_many() with additional options:
-#
-#       ignore          skip a specific user that may be in @users
-#       no_self         skip the source user if he's in @users
-#       cap             skip users without the specified capability
-#       alternative     if 'cap' is provided, this is an alternative message
-#
-sub sendfrom_to_many_with_opts {
-    my ($from, $message, $opts, @users) = @_;
-    my %opts = %{ $opts && ref $opts eq 'HASH' ? $opts : {} };
-
-    # consider each provided user
-    my %sent_to;
-    foreach my $user (@users) {
-        my $this_message = $message;
-
-        # not a local user or already sent to
-        next if !$user->is_local;
-        next if $sent_to{$user};
-
-        # told to ignore this person or not to send to self
-        next if defined $opts{ignore} && $user == $opts{ignore};
-        next if $opts{no_self} && $user->full eq $from;
-
-        # lacks the required cap. if there's an alternative, use that.
-        # otherwise, skip over this person.
-        if (defined $opts{cap} && !$user->has_cap($opts{cap})) {
-            next unless defined $opts{alternative};
-            $this_message = $opts{alternative};
-        }
-
-        $user->sendfrom($from, $this_message);
-        $sent_to{$user}++;
-    }
-
-    return \%sent_to;
-}
-
-# handle a mode string, send to the local user, send to other servers.
-sub do_mode_string { _do_mode_string(undef, undef, @_) }
-
-# same as do_mode_string() except it does not send to other servers.
-sub do_mode_string_local { _do_mode_string(1, undef, @_) }
-
-# same as do_mode_string() except it works on remote users.
-sub do_mode_string_unsafe { _do_mode_string(undef, 1, @_) }
-
-sub _do_mode_string {
-    my ($local_only, $unsafe, $user, $modestr, $force) = @_;
-
-    # handle.
-    my $result = $user->handle_mode_string($modestr, $force) or return;
-
-    return if !$user->is_local && !$unsafe;                 # remote not allowed
-    return if $user->is_local  && !$user->{init_complete};  # local user not done registering
-
-    # tell the user himself and other servers.
-    $user->sendfrom($user->{nick}, "MODE $$user{nick} :$result");
-    $pool->fire_command_all(umode => $user, $result) unless $local_only;
-
-}
-
-# has a notice flag
-sub has_notice {
-    my ($user, $flag) = (shift, lc shift);
-    return unless $user->{notice_flags};
-    foreach my $f (@{ $user->{notice_flags} }) {
-        return 1 if $f eq 'all';
-        return 1 if $f eq $flag;
-    }
-
-    return;
-}
-
-# add a notice flag
-sub add_notices {
-    my ($user, @flags) = (shift, map { lc } @_);
-    foreach my $flag (@flags) {
-        next if $user->has_notice($flag);
-        push @{ $user->{notice_flags} ||= [] }, $flag;
-    }
-}
-
-# handle a kill on a local user.
-sub get_killed_by {
-    my ($user, $murderer, $reason) = @_;
-    return unless $user->is_local;
-    if (!ref $reason) {
-        my $name = $murderer->name;
-        $reason = \ "$name ($reason)";
-    }
-    $user->{conn}{killed} = 1;
-    $user->{conn}->done("Killed ($$reason)");
-    notice(user_killed => $user->notice_info, $murderer->full, $$reason);
-}
-
-# handle an invite for a local user.
-# $channel might be an object or a channel name.
-sub get_invited_by {
-    my ($user, $i_user, $ch_name) = @_;
-    return unless $user->is_local;
-
-    # the channel exists.
-    my $channel = $ch_name if ref $ch_name;
-    $channel  ||= $pool->lookup_channel($ch_name);
-    if ($channel) {
-        $ch_name = $channel->name;
-
-        # user is already in channel.
-        return if $channel->has_user($user);
-
-    }
-
-    $user->{invite_pending}{ lc $ch_name } = 1;
-    $user->sendfrom($i_user->full, "INVITE $$user{nick} $ch_name");
-}
+# handle incoming data or emulate it.
+# these work both locally and remotely.
+# see ->handle() and ->handle_with_opts() for local-only versions.
+sub handle_unsafe           { _handle_with_opts(1,     @_[0,1]) }
+sub handle_with_opts_unsafe { _handle_with_opts(1,     @_)      }
 
 # handle a ident or cloak change.
 #
@@ -672,7 +455,7 @@ sub get_mask_changed {
 }
 
 # locally handle a user save.
-# this works for remote users.
+# despite the name, this works for remote users.
 sub save_locally {
     my $user = shift;
     my $uid  = $user->{uid};
@@ -763,6 +546,7 @@ sub do_login {
     return 1;
 }
 
+# handles an account logout locally for both local and remote users.
 sub do_logout {
     my ($user, $no_num) = @_;
     my $old = delete $user->{account} or return;
@@ -781,9 +565,266 @@ sub do_logout {
     return 1;
 }
 
+# handle a mode string, send to the local user, send to other servers.
+sub do_mode_string { _do_mode_string(undef, undef, @_) }
+
+# same as do_mode_string() except it does not send to other servers.
+sub do_mode_string_local { _do_mode_string(1, undef, @_) }
+
+# same as do_mode_string() except it works on remote users.
+sub do_mode_string_unsafe { _do_mode_string(undef, 1, @_) }
+
+# $user->send_to_channels($message, %opts)
+#
+# send to all members of channels in common with a user.
+# the source user does not need to be local.
+#
+# the source user will receive the message as well if he's local,
+# regardless of whether he has joined any channels.
+#
+# returns the hashref of users affected.
+#
+sub send_to_channels {
+    my ($user, $message, %opts) = @_;
+    return sendfrom_to_many_with_opts(
+        $user->full,
+        $message,
+        \%opts,
+        $user, map { $_->users } $user->channels
+    );
+}
+
+##########################
+### LOCAL-ONLY METHODS ###
+################################################################################
+
+# handle incoming data.
+sub handle                  { _handle_with_opts(undef, @_[0,1]) }
+sub handle_with_opts        { _handle_with_opts(undef, @_)      }
+
+# send data to a local user.
+sub send {
+    &_safe or return;
+    my $user = shift;
+    if (!$user->{conn}) {
+        my $sub = (caller 1)[3];
+        L("can't send data to a nonlocal or disconnected user! $$user{nick}");
+        return;
+    }
+    $user->{conn}->send(@_);
+}
+
+# send data with a source.
+sub sendfrom {
+    my ($user, $source) = (shift, shift);
+    $user->send(map { ":$source $_" } @_);
+}
+
+# send data with this server as the source.
+sub sendme {
+    my $user = shift;
+    $user->sendfrom($me->{name}, @_);
+}
+
+# handle a kill on a local user.
+sub loc_get_killed_by {
+    my ($user, $murderer, $reason) = @_;
+    return unless $user->is_local;
+    if (!ref $reason) {
+        my $name = $murderer->name;
+        $reason = \ "$name ($reason)";
+    }
+    $user->{conn}{killed} = 1;
+    $user->{conn}->done("Killed ($$reason)");
+    notice(user_killed => $user->notice_info, $murderer->full, $$reason);
+}
+
+# handle an invite for a local user.
+# $channel might be an object or a channel name.
+sub loc_get_invited_by {
+    my ($user, $i_user, $ch_name) = @_;
+    return unless $user->is_local;
+
+    # the channel exists.
+    my $channel = $ch_name if ref $ch_name;
+    $channel  ||= $pool->lookup_channel($ch_name);
+    if ($channel) {
+        $ch_name = $channel->name;
+
+        # user is already in channel.
+        return if $channel->has_user($user);
+
+    }
+
+    $user->{invite_pending}{ lc $ch_name } = 1;
+    $user->sendfrom($i_user->full, "INVITE $$user{nick} $ch_name");
+}
+
 # CAP shortcuts.
-sub has_cap    { &safe or return; shift->conn->has_cap(@_)    }
-sub add_cap    { &safe or return; shift->conn->add_cap(@_)    }
-sub remove_cap { &safe or return; shift->conn->remove_cap(@_) }
+sub has_cap    { &_safe or return; shift->conn->has_cap(@_)    }
+sub add_cap    { &_safe or return; shift->conn->add_cap(@_)    }
+sub remove_cap { &_safe or return; shift->conn->remove_cap(@_) }
+
+sub conn       { shift->{conn} }
+
+############################
+### PROCEDURAL FUNCTIONS ###
+################################################################################
+
+# user::sendfrom_to_many($from, $message, @users)
+#
+# send to a number of users but only once per user.
+# returns the hashref of users affected.
+#
+sub sendfrom_to_many {
+    my ($from, $message, @users) = @_;
+    return sendfrom_to_many_with_opts(
+        $from,
+        $message,
+        undef,
+        @users
+    );
+}
+
+# user::sendfrom_to_many($from, $message, \%opts, @users)
+#
+# Extended version of sendfrom_to_many() with additional options:
+#
+#       ignore          skip a specific user that may be in @users
+#       no_self         skip the source user if he's in @users
+#       cap             skip users without the specified capability
+#       alternative     if 'cap' is provided, this is an alternative message
+#
+sub sendfrom_to_many_with_opts {
+    my ($from, $message, $opts, @users) = @_;
+    my %opts = %{ $opts && ref $opts eq 'HASH' ? $opts : {} };
+
+    # consider each provided user
+    my %sent_to;
+    foreach my $user (@users) {
+        my $this_message = $message;
+
+        # not a local user or already sent to
+        next if !$user->is_local;
+        next if $sent_to{$user};
+
+        # told to ignore this person or not to send to self
+        next if defined $opts{ignore} && $user == $opts{ignore};
+        next if $opts{no_self} && $user->full eq $from;
+
+        # lacks the required cap. if there's an alternative, use that.
+        # otherwise, skip over this person.
+        if (defined $opts{cap} && !$user->has_cap($opts{cap})) {
+            next unless defined $opts{alternative};
+            $this_message = $opts{alternative};
+        }
+
+        $user->sendfrom($from, $this_message);
+        $sent_to{$user}++;
+    }
+
+    return \%sent_to;
+}
+
+#########################
+### INTERNAL USE ONLY ###
+################################################################################
+
+# check for local user
+sub _safe {
+    my $user = $_[0];
+    if (!$user->is_local) {
+        my $sub = (caller 1)[3];
+        L("Attempted to call ->${sub}() on nonlocal user");
+        return;
+    }
+    return unless $user->conn;
+    return @_;
+}
+
+# send welcomes
+sub _new_connection {
+    &_safe or return;
+    my $user = shift;
+
+    # set modes.
+    # note: we don't use do_mode_string() because we wait until afterward to send MODE.
+    $user->handle_mode_string(conf qw/users automodes/);
+    $user->set_mode('ssl') if $user->conn->{listener}{ssl};
+
+    # tell other servers
+    $pool->fire_command_all(new_user => $user);
+    $user->fire_event('initially_propagated');
+
+    # send numerics.
+    my $network = conf('server', 'network') // conf('network', 'name');
+    $user->numeric(RPL_WELCOME  => $network, $user->{nick}, $user->{ident}, $user->{host});
+    $user->numeric(RPL_YOURHOST => $me->{name}, v('NAME').q(-).v('VERSION'));
+    $user->numeric(RPL_CREATED  => irc_time(v('START')));
+    $user->numeric(RPL_MYINFO   =>
+        $me->{name},
+        v('SNAME').q(-).v('NAME').q(-).v('VERSION'),
+        $pool->user_mode_string,
+        $pool->channel_mode_string
+    );
+    $user->numeric('RPL_ISUPPORT');
+
+    # LUSERS and MOTD
+    $user->handle('LUSERS');
+    $user->handle('MOTD');
+
+    # send mode string
+    $user->sendfrom($user->{nick}, "MODE $$user{nick} :".$user->mode_string);
+
+    return $user->{init_complete} = 1;
+}
+
+sub _handle_with_opts       {
+    my ($allow_nonlocal, $user, $line, %opts) = @_;
+
+    # nonlocal user on ->handle() or some other safe method.
+    return if !$allow_nonlocal && !$user->is_local;
+
+    my $msg = blessed $line ? $line : message->new(data => $line);
+
+    # fire commands with options.
+    my @events = $user->_events_for_message($msg);
+    $user->prepare(@events)->fire('safe', data => \%opts);
+
+}
+
+# returns the events for an incoming message.
+sub _events_for_message {
+    my ($user, $msg) = @_;
+    my $cmd = $msg->command;
+    return (
+        [ $user,  message       => $msg ],
+        [ $user, "message_$cmd" => $msg ]
+    );
+}
+
+# handle mode string, notify user if local, tell other servers.
+#
+# $no_prop = do not propagate the mode change
+# $unsafe  = propagate even if the user is remote
+#
+sub _do_mode_string {
+    my ($no_prop, $unsafe, $user, $modestr, $force) = @_;
+
+    # handle it, regardless if local or remote.
+    my $result = $user->handle_mode_string($modestr, $force) or return;
+
+    return if !$user->is_local && !$unsafe;                 # remote not allowed
+    return if $user->is_local  && !$user->{init_complete};  # local user not done registering
+
+    # tell the user himself..
+    $user->sendfrom($user->{nick}, "MODE $$user{nick} :$result")
+        if $user->is_local;
+
+    # tell other servers.
+    $pool->fire_command_all(umode => $user, $result)
+        unless $no_prop;
+
+}
 
 $mod

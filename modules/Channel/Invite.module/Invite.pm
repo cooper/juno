@@ -86,7 +86,7 @@ sub ucmd_invite {
 
     # local user.
     if ($t_user->is_local) {
-        $t_user->get_invited_by($user, $channel || $ch_name);
+        $t_user->loc_get_invited_by($user, $channel || $ch_name);
     }
 
     # remote user.

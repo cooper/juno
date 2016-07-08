@@ -1061,7 +1061,7 @@ sub ukill {
         }
 
         # rip in peace.
-        $tuser->get_killed_by($user, $reason);
+        $tuser->loc_get_killed_by($user, $reason);
         $pool->fire_command_all(kill => $user, $tuser, $reason);
 
     }

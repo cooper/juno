@@ -3,12 +3,12 @@
 The `ircd::user` submodule of [ircd](ircd.md) provides the `user` package whose instances
 represent IRC users, both local and remote.
 
-## Methods
+## Low-level methods
 
 ### user->new(%opts)
 
-Creates a new object. This class method should almost never be used directly; you should
-probably look at [pool](pool.md)'s `->new_user()` method instead.
+Creates a new user object. This class method should almost never be used directly;
+you should probably look at [pool](pool.md)'s `->new_user()` method instead.
 
 ```perl
 my $user = $pool->new_user(
@@ -21,6 +21,12 @@ my $user = $pool->new_user(
 ```
 
 * __%opts__: a hash of constructor options.
+
+### $user->is_mode($mode_name)
+
+Returns true if the user has the supplied mode set.
+
+* __$mode_name__: the name of the mode being tested.
 
 ### $user->set_mode($mode_name)
 
@@ -38,34 +44,6 @@ for ways to achieve that.
 
 * __$mode_name__: the name of the mode being unset.
 
-### $user->is_mode($mode_name)
-
-Returns true if the user has the supplied mode set.
-
-* __$mode_name__: the name of the mode being tested.
-
-### $user->quit($reason)
-
-The lowest level of user quitting for both local and remote users. This should not be used
-to terminate a connection or to remove a user from the network but instead only to handle
-such situations. To terminate the connection of a local user, you should use the
-`->done()` method of the user's associated [connection](connection.md) object, which will
-in turn call this method after dropping the connection.  
-
-All event callbacks will be deleted as this method prepares the user object for disposal.
-
-* __$reason__: the reason for quitting; e.g. `~ Off to milk the cow!`.
-
-### $user->change_nick($new_nick)
-
-The lowest level of user nickname changing. This method does not notify any users of the
-change. There is currently no method for safely changing nicknames; so `->change_nick()`
-should not be used directly at this time.  
-
-Returns the new nickname if successful otherwise `undef`.
-
-* __$new_nick__: the nickname to replace the current nickname.
-
 ### $user->handle_mode_string($mode_string, $force)
 
 The lowest level of mode string handling. This method does not notify other users or
@@ -81,6 +59,12 @@ Returns a mode string of changes that occurred such as `+ix`.
 ### $user->mode_string
 
 Returns a string of all the modes set on the user; e.g. `+iox`.
+
+### $user->has_flag($flag)
+
+Returns true if the user has the specified oper flag enabled.
+
+* __$flag__: the name of the flag being tested; e.g. `kill`.
 
 ### $user->add_flags(@flags)
 
@@ -100,11 +84,28 @@ directly at this time.
 
 * __@flags__: a list of oper flags to remove.
 
-### $user->has_flag($flag)
+### $user->has_notice($flag)
 
-Returns true if the user has the specified oper flag enabled.
+Returns true if the user has the supplied oper notice flag enabled.
 
-* __$flag__: the name of the flag being tested; e.g. `kill`.
+* __$flag__: the oper notice flag being tested.
+
+### $user->add_notices(@flags)
+
+Adds any of the supplied oper notice flags that the user does not already have. Oper
+notices are not propagated across servers.
+
+* __@flags__: a list of oper notice flags to enable.
+
+### $user->change_nick($new_nick)
+
+The lowest level of user nickname changing. This method does not notify any users of the
+change. There is currently no method for safely changing nicknames; so `->change_nick()`
+should not be used directly at this time.  
+
+Returns the new nickname if successful otherwise `undef`.
+
+* __$new_nick__: the nickname to replace the current nickname.
 
 ### $user->set_away($reason)
 
@@ -115,12 +116,28 @@ at this time.
 
 * __$reason__: the comment for why the user is away.
 
-### $user->unset_away
+### $user->unset_away()
 
 The lowest level of marking a user as here. This method does not notify any other users
 or servers; it only handles the actual setting upon the user object. There is currently no
 method for safely setting a user as here, so `->unset_away()` should not be used directly
 at this time.
+
+### $user->quit($reason)
+
+The lowest level of user quitting for both local and remote users. This should not be used
+to terminate a connection or to remove a user from the network but instead only to handle
+such situations. To terminate the connection of a local user, you should use the
+`->done()` method of the user's associated [connection](connection.md) object, which will
+in turn call this method after dropping the connection.  
+
+All event callbacks will be deleted as this method prepares the user object for disposal.
+
+* __$reason__: the reason for quitting; e.g. `~ Off to milk the cow!`.
+
+### $user->channels
+
+Returns the complete list of channel objects the user is a member of.
 
 ### $user->is_local
 
@@ -147,7 +164,109 @@ user, completely ignoring any host or cloak.
 Returns a list of the user's nick, ident, and actual host in that order. Useful for oper
 notices where these three items are commonly displayed.
 
-## Mine methods
+### $user->hops_to($target)
+
+Returns the number of hops to a server or to another user.
+
+* __$target__: either a user or server object. if it's a user, the result is the
+same as calling with `$target->server`.
+
+### $user->id
+
+Returns the internal identifier associated with the user.
+This is unique globally.
+
+### $user->name
+
+Returns the user's nickname.
+
+### $user->server
+
+Returns the server object that this user belongs to, regardless of whether the
+server is directly linked to the local one.
+
+## High-level methods
+
+### $user->server_notice(optional $info, $message)
+
+Send a notice to the user from the local server. This method works on both local
+and remote users.
+
+* __$info__: _optional_, a brief description of the notice which will be formatted in an
+appealing way; e.g. 'kill' for a kill command result.
+* __$message__: the notice message to send to the user.
+
+### $user->numeric($const, @args)
+
+Send a numeric reply to the user from the local server. This method works on
+both local and remote users. The string is formatted locally so that remote
+servers do not have to understand the numeric.
+
+* __$const__: the string name of the numeric reply.
+* __@args__: _optional_ (depending on the numeric), a list of arguments for the user
+numeric handler.
+
+### $user->handle_unsafe($data)
+
+Emulates that the user sent a piece of data to the local server. It is called
+unsafe because it assumes that the command handler(s) are capable of dealing
+with emulated data from remote users.
+
+Works exactly like `->handle()` except it will not return fail if the user is not
+connected directly to the local server.
+
+* __$data__: one or more _complete_ lines of data, including any possible trailing
+newlines or carriage returns.
+
+### $user->handle_with_opts_unsafe
+
+### $user->get_mask_changed
+
+### $user->save_locally
+
+### $user->do_away
+
+### $user->do_part_all
+
+### $user->do_login
+
+### $user->do_logout
+
+### $user->do_mode_string($mode_string, $force)
+
+Handles a mode string with `->handle_mode_string()`. If the user is local, a MODE message
+will notify the user with the result of any changes. The mode message will then be
+forwarded and handled on child servers.
+
+* __$mode_string__: the mode string to be handled; e.g. `+iox`.
+* __$force__: if true, failure of user mode blocks will be ignored, forcing the changes.
+
+### $user->do_mode_string_local($mode_string, $force)
+
+Handles a mode string with `->handle_mode_string()`. If the user is local, a MODE message
+will notify the user with the result of any changes. Unlike `->do_mode_string()`, the
+mode message will only be handled locally and will NOT be forwarded to remote servers.
+
+* __$mode_string__: the mode string to be handled; e.g. `+iox`.
+* __$force__: if true, failure of user mode blocks will be ignored, forcing the changes.
+
+### $user->do_mode_string_unsafe
+
+### $user->send_to_channels($line, %opts)
+
+Sends data with the user as the source to all local users who have one or more channels in
+common with the user, including himself.
+
+```perl
+$user->send_to_channels('NICK steve');
+# sends :nick!user@host NICK steve to all users in a common channel with him
+```
+
+* __$line__: a line of data WITHOUT a suffixing newline and carriage return.
+* __%opts__: a hash of options to pass to the underlying
+`sendfrom_to_many_with_opts()` function.
+
+## Local-only methods
 
 ### $user->handle($data)
 
@@ -162,13 +281,7 @@ user may be dangerous but can be achieved instead with `->handle_unsafe()`.
 * __$data__: one or more _complete_ lines of data, including any possible trailing
 newlines or carriage returns.
 
-### $user->handle_unsafe($data)
-
-Works exactly like `->handle()` except it will not return fail if the user is not
-connected directly to the local server.
-
-* __$data__: one or more _complete_ lines of data, including any possible trailing
-newlines or carriage returns.
+### $user->handle_with_opts
 
 ### $user->send($line)
 
@@ -219,103 +332,42 @@ $user->server_notice('Hi!');
 
 * __$line__: a line of data WITHOUT a suffixing newline and carriage return.
 
-### $user->server_notice(optional $info, $message)
-
-Send a notice to the user from the local server.  
-This method works on both local and remote users.
-
-* __$info__: _optional_, a brief description of the notice which will be formatted in an
-appealing way; e.g. 'kill' for a kill command result.
-* __$message__: the notice message to send to the user.
-
-### $user->numeric($const, @args)
-
-* __$const__: the string name of the numeric reply.
-* __@args__: _optional_ (depending on the numeric), a list of arguments for the user
-numeric handler.
-
-### $user->new_connection
-
-Sends initial information upon user registration. Not for public use.
-
-### $user->send_to_channels($line)
-
-Sends data with the user as the source to all local users who have one or more channels in
-common with the user, including himself.
-
-```perl
-$user->send_to_channels('NICK steve');
-# sends :nick!user@host NICK steve to all users in a common channel with him
-```
-
-* __$line__: a line of data WITHOUT a suffixing newline and carriage return.
-
-### $user->do_mode_string($mode_string, $force)
-
-Handles a mode string with `->handle_mode_string()`. If the user is local, a MODE message
-will notify the user with the result of any changes. The mode message will then be
-forwarded and handled on child servers.
-
-* __$mode_string__: the mode string to be handled; e.g. `+iox`.
-* __$force__: if true, failure of user mode blocks will be ignored, forcing the changes.
-
-### $user->do_mode_string_local($mode_string, $force)
-
-Handles a mode string with `->handle_mode_string()`. If the user is local, a MODE message
-will notify the user with the result of any changes. Contrary to `->do_mode_string()`, the
-mode message will only be handled locally and will not be forwarded to child servers.
-
-* __$mode_string__: the mode string to be handled; e.g. `+iox`.
-* __$force__: if true, failure of user mode blocks will be ignored, forcing the changes.
-
-### $user->add_notices(@flags)
-
-Adds any of the supplied oper notice flags that the user does not already have. Oper
-notices are not propagated across servers.
-
-* __@flags__: a list of oper notice flags to enable.
-
-### $user->has_notice($flag)
-
-Returns true if the user has the supplied oper notice flag enabled.
-
-* __$flag__: the oper notice flag being tested.
-
-### $user->get_killed_by($murderer, $reason)
-
-Handles a kill on a local level. If the user is not local, this method returns `undef` and
-fails. Otherwise, the user will be removed from the server, the message will be forwarded
-to child servers, and those in a common channel with him will be notified.
+### $user->loc_get_killed_by($murderer, $reason)
 
 * __$murderer__: the user committing the action.
 * __$reason__: the comment for why the user was killed.
 
-### $user->get_invited_by($inviter, $ch_or_name)
+### $user->loc_get_invited_by($inviter, $ch_or_name)
 
 Handles an invitation for a local user. If the user is not local or is already in the
 channel, this method returns `undef` and fails. Otherwise, an INVITE message will be sent
-to the user, and the invitation will be recorded.  
+to the user, and the invitation will be recorded locally.  
 
 This method accepts either a channel name or a channel object. This is due to the fact
-that users may be invited to channels which are not (yet) existent.
+that users may be invited to channels which are not yet existent
+(unless `channels:invite_must_exist` is enabled).
 
-* __$inviter__: the user committing the invitation.
+* __$inviter__: the user offering the invitation.
 * __$ch_or_name__: a channel object or channel name string to which the user was invited.
 
+### $user->has_cap
+
+### $user->add_cap
+
+### $user->remove_cap
+
+### $user->conn
+
+Returns the connection object associated with the user.
+
 ## Procedural functions
-
-Procedural functions typically involve multiple users and are called as follows:
-
-```perl
-user::function(@args)
-```
 
 ### sendfrom_to_many($from, $line, @users)
 
 Sends a piece of data to several users at once from the specified source. Even if any user
 occurs multiple times in the list, the message will only be sent once to each user.  
 
-Note: A variant of this function exists for sending to 
+Note: A variant of this function exists for sending to
 
 ```perl
 user::sendfrom_to_many($user->full, 'NICK steve', @users, $user);
@@ -326,6 +378,8 @@ user::sendfrom_to_many($user->full, 'NICK steve', @users, $user);
 * __$from__: the source string of the message.
 * __$line__: a line of data WITHOUT a suffixing newline and carriage return.
 * __@users__: a list of users to send the data to.
+
+### sendfrom_to_many_with_opts
 
 ## Events
 
@@ -406,5 +460,3 @@ If the channel exists, the inviter must be in the channel.
 
 #### (20) target.in.channel
 #### (10) has.basic.status
-
-## Keys

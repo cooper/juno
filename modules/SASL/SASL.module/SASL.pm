@@ -259,9 +259,9 @@ sub do_user_kill {
     my ($user, $source, $reason) = @_;
     $user->isa('user') or return;
 
-    # local user, use ->get_killed_by()
+    # local user, use ->loc_get_killed_by()
     if ($user->is_local) {
-        $user->get_killed_by($source, $reason);
+        $user->loc_get_killed_by($source, $reason);
     }
 
     # remote user, use ->quit()
