@@ -3276,3 +3276,6 @@ CHANGES:
         21. cleaned up user.pm, updated user docs.
             renamed ->get_killed_by() to ->loc_get_killed_by().
             rename ->get_invited_by() to ->loc_get_invited_by().
+
+        22. added utils valid_ipv4(), looks_like_ipv6(), and embedded_ipv4().
+            Net::IP's validation was too generic for IRC; it is no longer a dependency.

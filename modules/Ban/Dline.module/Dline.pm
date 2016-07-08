@@ -45,7 +45,7 @@ sub _match {
     return $str;
 }
 
-# TODO: check if valid IP with Net::IP
+# TODO: check if valid IP
 
 sub conn_matches {
     my ($conn, $ban) = @_;

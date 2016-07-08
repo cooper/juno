@@ -386,6 +386,46 @@ sub check_new_server {
     return;
 }
 
+# if the provided address is IPv4 already, returns it.
+# if it's IPv6, checks for an embeded IPv6 address and
+# returns either that or the unaltered IPv6 address.
+sub embedded_ipv4 {
+    my $ipvq = shift;
+    my $ipv4 = (split /:/, $ipvq)[-1] or return $ipvq;
+    return $ipv4 if valid_ipv4($ipv4);
+    return $ipvq;
+}
+
+# check if IP address string looks like ipv6.
+# fancy, right?
+sub looks_like_ipv6 {
+    my $ip = shift;
+    return $ip =~ m/:/;
+}
+
+# check if an IP address string is valid IPv4.
+sub valid_ipv4 {
+    my $ip = shift;
+
+    # only digits and dots allowed
+    return unless $ip =~ m/^[\d\.]+$/;
+
+    # quads
+    my $n = () = $ip =~ /\./g;
+    return if $n != 3;
+
+    # must not have empty sections, start or end with dot
+    return if $ip =~ m/(^\.)|\.\.|(\.$)/;
+
+    # check each quad
+    foreach (split /\./, $ip) {
+        return if $_ < 0;
+        return if $_ > 256;
+    }
+
+    return 1;
+}
+
 sub import {
     my $this_package = shift;
     my $package = caller;
