@@ -31,7 +31,10 @@ Returns true if the user has the supplied mode set.
 ### $user->set_mode($mode_name)
 
 The lowest level of mode setting on a user. This method does not tell anyone about the
-change; see `->handle_mode_string()`, `->do_mode_string()`, and `->do_mode_string_local()`
+change; see
+[`->handle_mode_string()`](#user-handle_mode_stringmode_string-force),
+[`->do_mode_string()`](#user-do_mode_stringmode_string-force), and
+[`->do_mode_string_local()`](#user-do_mode_string_localmode_string-force)
 for ways to achieve that.
 
 * __$mode_name__: the name of the mode being set.
@@ -39,7 +42,10 @@ for ways to achieve that.
 ### $user->unset_mode($mode_name)
 
 The lowest level of mode unsetting on a user. This method does not tell anyone about the
-change; see `->handle_mode_string()`, `->do_mode_string()`, and `->do_mode_string_local()`
+change; see
+[`->handle_mode_string()`](#user-handle_mode_stringmode_string-force),
+[`->do_mode_string()`](#user-do_mode_stringmode_string-force), and
+[`->do_mode_string_local()`](#user-do_mode_string_localmode_string-force)
 for ways to achieve that.
 
 * __$mode_name__: the name of the mode being unset.
@@ -47,8 +53,12 @@ for ways to achieve that.
 ### $user->handle_mode_string($mode_string, $force)
 
 The lowest level of mode string handling. This method does not notify other users or
-servers of the change. It only calls `->set_mode()` and `->unset_mode()` after firing
-any possible user mode blocks. See `->do_mode_string()` and `->do_mode_string_local()` for
+servers of the change. It only calls
+[`->set_mode()`](#user-set_modemode_name) and
+[`->unset_mode()`](#user-unset_modemode_name) after firing
+any possible user mode blocks. See
+[`->do_mode_string()`](#user-do_mode_stringmode_string-force) and
+[`->do_mode_string_local()`](#user-do_mode_string_localmode_string-force) for
 the different ways to handle mode strings at a higher level.  
 
 Returns a mode string of changes that occurred such as `+ix`.
@@ -151,8 +161,8 @@ or the actual hostname.
 ### $user->fullreal
 
 Returns a string of `nick!ident@host` where host is always the actual hostname, ignoring
-any possible cloak or artificial host. Most of the time, `->full` is favored over this
-method if the return value may be exposed to other users.
+any possible cloak or artificial host. Most of the time, [`->full`](#user-full)
+is favored over this method if the return value may be exposed to other users.
 
 ### $user->fullip
 
@@ -212,16 +222,16 @@ Emulates that the user sent a piece of data to the local server. It is called
 unsafe because it assumes that the command handler(s) are capable of dealing
 with emulated data from remote users.
 
-Works exactly like `->handle()` except it will not return fail if the user is not
-connected directly to the local server.
+Works exactly like [`->handle()`](#user-handledata) except it will not return
+fail if the user is not connected directly to the local server.
 
 * __$data__: one or more _complete_ lines of data, including any possible trailing
 newlines or carriage returns.
 
 ### $user->handle_with_opts_unsafe($data, %opts)
 
-Same as `->handle_unsafe()`, except that the provided options will be passed to
-the underlying call.
+Same as [`->handle_unsafe()`](#user-handle_unsafedata), except that the provided
+options will be passed to the underlying call.
 
 * __$data__: one or more _complete_ lines of data, including any possible trailing
 newlines or carriage returns.
@@ -252,7 +262,9 @@ will adopt his UID as his nickname.
 ### $user->do_away($reason)
 
 Processes an away or return for both local and remote users. Calls
-`->set_away()` or `->unset_away()`, depending on whether the reason is
+[`->set_away()`](#user-set_awayreason) or
+[`->unset_away()`](#user-unset_away),
+depending on whether the reason is
 provided. If the user is local, he receives a numeric notification.
 
 Other local clients may be notified by an AWAY message if they have the
@@ -292,7 +304,9 @@ capability.
 
 ### $user->do_mode_string($mode_string, $force)
 
-Handles a mode string with `->handle_mode_string()`. If the user is local, a MODE message
+Handles a mode string with
+[`->handle_mode_string()`](#user-handle_mode_stringmode_string-force).
+If the user is local, a MODE message
 will notify the user with the result of any changes. The mode message will then be
 forwarded and handled on child servers.
 
@@ -302,10 +316,12 @@ forcing the changes.
 
 ### $user->do_mode_string_local($mode_string, $force)
 
-Handles a mode string with `->handle_mode_string()`. If the user is local, a MODE message
+Handles a mode string with
+[`->handle_mode_string()`](#user-handle_mode_stringmode_string-force).
+If the user is local, a MODE message
 will notify the user with the result of any changes.
 
-Unlike `->do_mode_string()`, the
+Unlike [`->do_mode_string()`](#user-do_mode_stringmode_string-force), the
 mode message will only be handled locally and will NOT be forwarded to remote servers.
 
 * __$mode_string__: the mode string to be handled; e.g. `+iox`.
@@ -314,11 +330,14 @@ forcing the changes.
 
 ### $user->do_mode_string_unsafe($mode_string, $force)
 
-Handles a mode string with `->handle_mode_string()`. If the user is local, a MODE message
+Handles a mode string with
+[`->handle_mode_string()`](#user-handle_mode_stringmode_string-force).
+If the user is local, a MODE message
 will notify the user with the result of any changes. The mode message will then be
 forwarded and handled on child servers, regardless of whether the user is local.
 
-Unlike `->do_mode_string()`, linked servers will be notified of the change even if the
+Unlike [`->do_mode_string()`](#user-do_mode_stringmode_string-force),
+linked servers will be notified of the change even if the
 user is remote. The result is that the local server forces a mode change on a remote
 user. That is why this is called unsafe and should be used with caution.
 
@@ -353,15 +372,16 @@ to the user.
 
 This method returns undef and raises a warning if $user does not belong to the local
 server or does not have an associated connection object. Handling data from a remote
-user may be dangerous but can be achieved instead with `->handle_unsafe()`.
+user may be dangerous but can be achieved instead with
+[`->handle_unsafe()`](#user-handle_unsafedata).
 
 * __$data__: one or more _complete_ lines of data, including any possible trailing
 newlines or carriage returns.
 
 ### $user->handle_with_opts($data, %opts)
 
-Same as `->handle()`, except that the provided options will be passed to
-the underlying call.
+Same as [`->handle()`](#user-handledata), except that the provided options will
+be passed to the underlying call.
 
 * __$data__: one or more _complete_ lines of data, including any possible trailing
 newlines or carriage returns.
@@ -373,7 +393,9 @@ Sends a line of data to the user.
 
 This method returns undef and raises a warning if $user does not belong to the local
 server or does not have an associated connection object. However, some other sending
-methods work on remote users such as `->numeric()` and `->server_notice()`.
+methods work on remote users such as
+[`->numeric()`](#user-numericconst-args) and
+[`->server_notice()`](#user-server_noticeinfo-message).
 
 * __$line__: a line of data WITHOUT a suffixing newline and carriage return.
 
@@ -382,9 +404,10 @@ methods work on remote users such as `->numeric()` and `->server_notice()`.
 Sends a line of data from a source. This is just a convenience method to avoid ugly
 concatenation all over the place where it could otherwise be avoided.  
 
-The supplied source should not be an object but instead a string. Typically the `->full`
-method of either a user or server will be used. For users, this is `nick!ident@host` where
-host is either a cloak or the real host. For a server, its name is used.
+The supplied source should not be an object but instead a string. Typically the
+[`->full`](#user-full) method of either a user or server will be used. For users,
+this is `nick!ident@host` where host is either a cloak or the real host. For a
+server, its name is used.
 
 ```perl
 # where $ouser is some other user.
@@ -481,7 +504,8 @@ user::sendfrom_to_many($user->full, 'NICK steve', @users, $user);
 
 ### sendfrom_to_many_with_opts($from, $line, \%opts, @users)
 
-Same as `sendfrom_to_many()`, except that additional features may be used
+Same as [`sendfrom_to_many()`](#sendfrom_to_manyfrom-line-users),
+except that additional features may be used
 through the added options argument.
 
 * __$from__: the source string of the message.
