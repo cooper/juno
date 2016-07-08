@@ -399,6 +399,7 @@ sub get_mask_changed {
     $user->{cloak} = $new_host;
 
     # tell the user his host has changed
+    # consider: send even when $new_host eq $user->{host} ?
     if ($new_host ne $old_host && $user->is_local) {
         $user->numeric(RPL_HOSTHIDDEN => $new_host);
     }

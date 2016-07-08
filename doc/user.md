@@ -54,7 +54,7 @@ the different ways to handle mode strings at a higher level.
 Returns a mode string of changes that occurred such as `+ix`.
 
 * __$mode_string__: the mode string to be handled; e.g. `+iox`.
-* __$force__: if true, failure of user mode blocks will be ignored, forcing the changes.
+* __$force__: _optional_, if true, failure of user mode blocks will be ignored, forcing the changes.
 
 ### $user->mode_string
 
@@ -187,7 +187,7 @@ server is directly linked to the local one.
 
 ## High-level methods
 
-### $user->server_notice(optional $info, $message)
+### $user->server_notice($info, $message)
 
 Send a notice to the user from the local server. This method works on both local
 and remote users.
@@ -218,19 +218,77 @@ connected directly to the local server.
 * __$data__: one or more _complete_ lines of data, including any possible trailing
 newlines or carriage returns.
 
-### $user->handle_with_opts_unsafe
+### $user->handle_with_opts_unsafe($data, %opts)
 
-### $user->get_mask_changed
+Same as `->handle_unsafe()`, except that the provided options will be passed to
+the underlying call.
+
+* __$data__: one or more _complete_ lines of data, including any possible trailing
+newlines or carriage returns.
+* __%opts__: _optional_, a hash of options to pass to the underlying function call.
+
+### $user->get_mask_changed($new_ident, $new_host)
+
+Handles an ident or cloak change. This method updates the user fields and
+notifies local clients when necessary. If neither the ident nor the cloak has
+changed, the call does nothing.
+
+Clients with the [`chghost`](http://ircv3.net/specs/extensions/chghost-3.2.html)
+capability will receive a CHGHOST command. Others will receive a quit and
+rejoin emulation, unless `users:chghost_quit` is explicitly disabled.
+
+* __$new_ident__: the new ident. if unchanged, the current ident MUST be passed.
+* __$new_host__: the new cloak. if unchanged, the current cloak MUST be passed.
 
 ### $user->save_locally
 
-### $user->do_away
+Deals with a user who was saved from a nick collisions on a local level.
+Changes the user's nickname to his unique identifier.
 
-### $user->do_part_all
+This method works under the presumption that remote servers have been notified
+(such as through a SAVE, NICK, or similar message) that the user was saved and
+will adopt his UID as his nickname.
 
-### $user->do_login
+### $user->do_away($reason)
 
-### $user->do_logout
+Processes an away or return for both local and remote users. Calls
+`->set_away()` or `->unset_away()`, depending on whether the reason is
+provided. If the user is local, he receives a numeric notification.
+
+Other local clients may be notified by an AWAY message if they have the
+[`away-notify`](http://ircv3.net/specs/extensions/away-notify-3.1.html)
+capability.
+
+* __$reason__: _optional_, the away comment. if undefined or empty string,
+the user is considered to have returned from being away.
+
+### $user->do_part_all()
+
+Parts the user from all channels, notifying local clients. This is typically
+initiated by a `JOIN 0` command.
+
+### $user->do_login($act_name, $no_num)
+
+Logs the user into the given account name. If the user is local, he receives a
+numeric notification.
+
+Other local clients may be notified by an ACCOUNT message if they have the
+[`account-notify`](http://ircv3.net/specs/extensions/account-notify-3.1.html)
+capability.
+
+* __$act_name__: the name of the account.
+* __$no_num__: _optional_, if provided, the user will not receive a numeric
+reply. this is useful if the reply was already sent before calling this method,
+such as during SASL authentication.
+
+### $user->do_logout()
+
+Logs the user out from their current account. If they are not logged in, the
+method does nothing. If the user is local, he receives a numeric notification.
+
+Other local clients may be notified by an ACCOUNT message if they have the
+[`account-notify`](http://ircv3.net/specs/extensions/account-notify-3.1.html)
+capability.
 
 ### $user->do_mode_string($mode_string, $force)
 
@@ -239,23 +297,42 @@ will notify the user with the result of any changes. The mode message will then 
 forwarded and handled on child servers.
 
 * __$mode_string__: the mode string to be handled; e.g. `+iox`.
-* __$force__: if true, failure of user mode blocks will be ignored, forcing the changes.
+* __$force__: _optional_, if true, failure of user mode blocks will be ignored,
+forcing the changes.
 
 ### $user->do_mode_string_local($mode_string, $force)
 
 Handles a mode string with `->handle_mode_string()`. If the user is local, a MODE message
-will notify the user with the result of any changes. Unlike `->do_mode_string()`, the
+will notify the user with the result of any changes.
+
+Unlike `->do_mode_string()`, the
 mode message will only be handled locally and will NOT be forwarded to remote servers.
 
 * __$mode_string__: the mode string to be handled; e.g. `+iox`.
-* __$force__: if true, failure of user mode blocks will be ignored, forcing the changes.
+* __$force__: _optional_, if true, failure of user mode blocks will be ignored,
+forcing the changes.
 
-### $user->do_mode_string_unsafe
+### $user->do_mode_string_unsafe($mode_string, $force)
+
+Handles a mode string with `->handle_mode_string()`. If the user is local, a MODE message
+will notify the user with the result of any changes. The mode message will then be
+forwarded and handled on child servers, regardless of whether the user is local.
+
+Unlike `->do_mode_string()`, linked servers will be notified of the change even if the
+user is remote. The result is that the local server forces a mode change on a remote
+user. That is why this is called unsafe and should be used with caution.
+
+* __$mode_string__: the mode string to be handled; e.g. `+iox`.
+* __$force__: _optional_, if true, failure of user mode blocks will be ignored,
+forcing the changes.
 
 ### $user->send_to_channels($line, %opts)
 
 Sends data with the user as the source to all local users who have one or more channels in
-common with the user, including himself.
+common with the user.
+
+The user himself will also receive the message, regardless of whether he has joined
+any channels.
 
 ```perl
 $user->send_to_channels('NICK steve');
@@ -263,7 +340,7 @@ $user->send_to_channels('NICK steve');
 ```
 
 * __$line__: a line of data WITHOUT a suffixing newline and carriage return.
-* __%opts__: a hash of options to pass to the underlying
+* __%opts__: _optional_, a hash of options to pass to the underlying
 `sendfrom_to_many_with_opts()` function.
 
 ## Local-only methods
@@ -281,7 +358,14 @@ user may be dangerous but can be achieved instead with `->handle_unsafe()`.
 * __$data__: one or more _complete_ lines of data, including any possible trailing
 newlines or carriage returns.
 
-### $user->handle_with_opts
+### $user->handle_with_opts($data, %opts)
+
+Same as `->handle()`, except that the provided options will be passed to
+the underlying call.
+
+* __$data__: one or more _complete_ lines of data, including any possible trailing
+newlines or carriage returns.
+* __%opts__: _optional_, a hash of options to pass to the underlying function call.
 
 ### $user->send($line)
 
@@ -300,7 +384,7 @@ concatenation all over the place where it could otherwise be avoided.
 
 The supplied source should not be an object but instead a string. Typically the `->full`
 method of either a user or server will be used. For users, this is `nick!ident@host` where
-host is either a cloak or the real host. For a server, the server name is used.
+host is either a cloak or the real host. For a server, its name is used.
 
 ```perl
 # where $ouser is some other user.
@@ -334,6 +418,10 @@ $user->server_notice('Hi!');
 
 ### $user->loc_get_killed_by($murderer, $reason)
 
+Handles a kill on a local level. If the user is not local, this method returns `undef` and
+fails. Otherwise, the user will be removed from the server, the message will be forwarded
+to child servers, and those in a common channel with him will be notified.
+
 * __$murderer__: the user committing the action.
 * __$reason__: the comment for why the user was killed.
 
@@ -350,11 +438,23 @@ that users may be invited to channels which are not yet existent
 * __$inviter__: the user offering the invitation.
 * __$ch_or_name__: a channel object or channel name string to which the user was invited.
 
-### $user->has_cap
+### $user->has_cap($flag)
 
-### $user->add_cap
+Returns true if the user has a particular client capability enabled.
 
-### $user->remove_cap
+* __$flag__: the name of the capability.
+
+### $user->add_cap($flag)
+
+Enables a client capability.
+
+* __$flag__: the name of the capability.
+
+### $user->remove_cap($flag)
+
+Disables a client capability.
+
+* __$flag__: the name of the capability.
 
 ### $user->conn
 
@@ -379,7 +479,30 @@ user::sendfrom_to_many($user->full, 'NICK steve', @users, $user);
 * __$line__: a line of data WITHOUT a suffixing newline and carriage return.
 * __@users__: a list of users to send the data to.
 
-### sendfrom_to_many_with_opts
+### sendfrom_to_many_with_opts($from, $line, \%opts, @users)
+
+Same as `sendfrom_to_many()`, except that additional features may be used
+through the added options argument.
+
+* __$from__: the source string of the message.
+* __$line__: a line of data WITHOUT a suffixing newline and carriage return.
+* __\%opts__: _optional_, a hash reference of options.
+* __@users__: a list of users to send the data to.
+
+#### Supported options
+
+* __ignore__: _optional_, a user object to ignore. if it is found in the
+provided list of users, it is skipped. the user will receive no data.
+* __no_self__: _optional_, if true, the user identified by the mask `$from` will
+be ignored. the user will be skipped and will receive no data. this is
+particularly useful for messages intended to notify other local clients about
+the user's changes but which are not necessary to send to the user himself due
+to other numeric replies.
+* __cap__: _optional_, a client capability. if provided, the message will only
+be sent to users with this capability enabled.
+* __alternative__: _optional_, if the `cap` option was provided, this option
+defines an alternative line of data to send to users without the specified
+capability. without `cap`, this option has no effect.
 
 ## Events
 
@@ -400,63 +523,19 @@ This event is fired by the [Core::UserCommands](mod/Core/UserCommands.md) module
 
 * __$channel__: the channel the user is attempting to join.
 
-#### (30) in.channel
-
-Checks if the user is in the channel already. If so, the event fire is stopped.
-
-#### (20) has.invite
-
-Checks if the channel is invite only. Then, the event fire is stopped if the user has not
-been invited to the channel.  
-
-This callback belongs to the [Invite](mod/Invite.md) module.
-
-#### (10) is.banned
-
-Checks if the user is banned from the channel. Unless there is an exception that matches
-the user, the event fire is stopped.
-
-### account_registered($act)
-
-Fired after a local user registers an account. Understand that this is not a reliable
-event for tracking all account registrations, as it is not fired when remote users
-register accounts. This is due to the fact that accounts are sometimes registered without
-a user present at all, especially within account negotiation during server burst.  
-
-This event is fired by the [Account](mod/Account.md) module.
-
-* __$act__: a hash reference representing the account information entry.
-
-### account_logged_in($act)
-
-Fired after either a local or remote user logs into an account.  
-
-This event is fired by the [Account](mod/Account.md) module.
-
-* __$act__: a hash reference representing the account information entry.
-
-### account_logged_out($act)
-
-Fired after either a local or remote user logs out of an account.  
-
-This event is fired by the [Account](mod/Account.md) module.
-
-* __$act__: a hash reference representing the account information entry.
-
-### can_invite
+### can_invite($t_user, $ch_name, $channel)
 
 Fired before a local user invites someone to a channel. Callbacks of this event typically
 run checks to see if the user can invite, stopping the event fire if not. For instance,
 one such callback checks if the target user is already in the channel.  
 
-This event is never fired for remote users, as it is the responsibility of each server
+This event is never fired on remote users, as it is the responsibility of each server
 to determine whether its own users should be able to invite.  
 
 This event is fired by the [Invite](mod/Invite.md) module.
 
-#### (30) source.in.channel
-
-If the channel exists, the inviter must be in the channel.
-
-#### (20) target.in.channel
-#### (10) has.basic.status
+* __$t_user__: the local or remote user that we are sending an invitation to.
+* __$ch_name__: the name of the channel `$t_user` is being invited to. this is
+necessary because we allow invitations to nonexistent channels
+(unless `channels:invite_must_exist` is enabled).
+* __$channel__: the channel object or `undef` if it does not yet exist.
