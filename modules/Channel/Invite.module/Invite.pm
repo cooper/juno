@@ -130,7 +130,7 @@ sub add_invite_callbacks {
     #                       - No. Is channels:only_ops_invite enabled?
     #                           - No. Invite is OK
     #                           - Yes. ERR_CHANOPRIVSNEEDED
-    my $INVITE_OK = 1;
+    my $INVITE_OK = my $JOIN_OK = 1;
 
     # first, user must be in the channel if it exists.
     $pool->on('user.can_invite' => sub {
@@ -211,13 +211,16 @@ sub add_invite_callbacks {
         my $user = $event->object;
 
         # channel is not invite-only.
-        return unless $channel->is_mode('invite_only');
+        return $JOIN_OK
+            unless $channel->is_mode('invite_only');
 
         # user has been invited.
-        return if $user->{invite_pending}{ lc $channel->name };
+        return $JOIN_OK
+            if $user->{invite_pending}{ lc $channel->name };
 
         # user matches the exception list.
-        return if $channel->list_matches('invite_except', $user);
+        return $JOIN_OK
+            if $channel->list_matches('invite_except', $user);
 
         # sorry, not invited, no exception.
         $user->numeric(ERR_INVITEONLYCHAN => $channel->name)

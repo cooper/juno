@@ -449,13 +449,17 @@ sub smap {
 }
 
 sub add_join_callbacks {
+    my $JOIN_OK;
 
     # check if user is in channel already.
     $pool->on('user.can_join' => sub {
         my ($event, $channel) = @_;
         my $user = $event->object;
 
-        $event->stop('in_channel') if $channel->has_user($user);
+        # already in the channel
+        $event->stop('in_channel')
+            if $channel->has_user($user);
+
     }, name => 'in.channel', priority => 30);
 
     # check if the user has reached his limit.
@@ -464,7 +468,8 @@ sub add_join_callbacks {
         my $user = $event->object;
 
         # hasn't reached the limit.
-        return unless $user->channels >= conf('limit', 'channel');
+        return $JOIN_OK
+            unless $user->channels >= conf('limit', 'channel');
 
         # limit reached.
         $user->numeric(ERR_TOOMANYCHANNELS => $channel->name);
