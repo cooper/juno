@@ -1068,18 +1068,15 @@ sub rehash {
 
     }
 
+
     gnotice(rehash => $user->notice_info);
+
+    # only send notices if they don't have rehash_success or rehash_fail.
+    # this has to be done manually because the rehash notices are in ircd.pm.
 
     # rehash.
     $user->numeric(RPL_REHASHING => $ircd::conf->{conffile});
-    if (ircd::rehash()) {
-        $user->server_notice(rehash => 'Configuration loaded successfully');
-        return 1;
-    }
-
-    # error.
-    $user->server_notice(rehash => 'There was an error parsing the configuration');
-    return;
+    ircd::rehash($user);
 
 }
 

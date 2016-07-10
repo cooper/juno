@@ -715,9 +715,14 @@ sub terminate {
 # rehash the server.
 sub rehash {
 
+    # if a user is passed, use him for the notices.
+    my $user_maybe = shift;
+    my @arg = $user_maybe
+        if blessed $user_maybe && $user_maybe->isa('user');
+
     # rehash
     eval { &setup_config } or
-        notice(rehash_fail => $@ || $!)
+        gnotice(@arg, rehash_fail => $@ || $!)
         and return;
 
     # set up other stuff
@@ -725,7 +730,7 @@ sub rehash {
     add_internal_user_modes();
     add_internal_channel_modes();
 
-    notice('rehash_success');
+    gnotice(@arg, 'rehash_success');
     return 1;
 }
 

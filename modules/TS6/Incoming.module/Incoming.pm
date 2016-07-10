@@ -1559,8 +1559,7 @@ sub rehash {
     # rehash if the mask matches me.
     my @servers = $pool->lookup_server_mask($serv_mask) or return;
     if ($servers[0] == $me) {
-        gnotice(rehash => $user->notice_info);
-        ircd::rehash();
+        ircd::rehash($user);
     }
 
     #=== Forward ===#
