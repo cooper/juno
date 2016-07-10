@@ -177,7 +177,11 @@ sub _forward_handler {
 sub _param_source {
     my ($msg, undef, $params, $opts) = @_;
     my $source = _lookup_source($msg->{source}) or return $PARAM_BAD;
-    return $PARAM_BAD unless blessed $source;
+
+    # if the source isn't there, return PARAM_BAD unless it was optional.
+    undef $source if !$source || !blessed $source;
+    return $PARAM_BAD if !$source && !$opts->{opt};
+
     if ($opts->{server}) { $source->isa('server') or return $PARAM_BAD }
     if ($opts->{user})   { $source->isa('user')   or return $PARAM_BAD }
     push @$params, $source;
@@ -187,20 +191,35 @@ sub _param_source {
 sub _param_server {
     my ($msg, $param, $params, $opts) = @_;
     my $server = $pool->lookup_server($param) or return $PARAM_BAD;
+
+    # if the server isn't there, return PARAM_BAD unless it was optional.
+    undef $server if !$server || !blessed $server;
+    return $PARAM_BAD if !$server && !$opts->{opt};
+
     push @$params, $server;
 }
 
 # user: match a UID.
 sub _param_user {
     my ($msg, $param, $params, $opts) = @_;
-    my $user = $pool->lookup_user($param) or return $PARAM_BAD;
+    my $user = $pool->lookup_user($param);
+
+    # if the user isn't there, return PARAM_BAD unless it was optional.
+    undef $user if !$user || !blessed $user;
+    return $PARAM_BAD if !$user && !$opts->{opt};
+
     push @$params, $user;
 }
 
 # channel: match a channel name.
 sub _param_channel {
     my ($msg, $param, $params, $opts) = @_;
-    my $channel = $pool->lookup_channel((split ',', $param)[0]) or return $PARAM_BAD;
+    my $channel = $pool->lookup_channel((split ',', $param)[0]);
+
+    # if the channel isn't there, return PARAM_BAD unless it was optional.
+    undef $channel if !$channel || !blessed $channel;
+    return $PARAM_BAD if !$channel && !$opts->{opt};
+
     push @$params, $channel;
 }
 

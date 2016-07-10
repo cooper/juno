@@ -3283,3 +3283,6 @@ CHANGES:
         23. notice() and gnotice() utilities now can optionally take an argument for the user which initiated the notice.
             this eliminates repetitive notices. closes #24.
             updated several modules to use the new arguments.
+            the parameter matcher parser now keeps track of the key order.
+            it is now possible for message tag parameters (the -tag.NAME matchers) to be marked as optional.
+            fixed an issue where the recent changes to gnotice() didn't work well with ->handle_unsafe() on remote users.

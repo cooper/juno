@@ -261,6 +261,7 @@ sub parse_params {
     # parse argument type attributes and required parameters.
     my $required_parameters = 0; # number of parameters that will be checked
     my @match_attr;              # matcher attributes (i.e. opt)
+    my @match_attr_keys;         # matcher attribute keys in order
     my $i = -1;
     foreach (@parameters) { $i++;
 
@@ -268,20 +269,24 @@ sub parse_params {
         if (/(.+)\((.+)\)/) {
             $parameters[$i] = $1;
             my $attributes = {};
+            my @keys;
 
             # get the values of each attribute.
             foreach (split ',', $2) {
                 my $attr = trim($_);
                 my ($name, $val) = split ':', $attr, 2;
                 $attributes->{$name} = defined $val ? $val : 1;
+                push @keys, $name;
             }
 
-            $match_attr[$i] = $attributes;
+            $match_attr[$i]      = $attributes;
+            $match_attr_keys[$i] = \@keys;
         }
 
         # no attribute list, no attributes.
         else {
-            $match_attr[$i] = {};
+            $match_attr[$i]      = {};
+            $match_attr_keys[$i] = [];
         }
 
         # unless there is an 'opt' (optional) attribute
@@ -347,15 +352,20 @@ sub parse_params {
         # parameter as a certain type.
         elsif ($type =~ m/^tag\.(\w+)$/) {
             $param = $msg->tag($1);
-            return $PARAM_BAD if not defined $param;
-            my @parts = keys %{ $match_attr[$match_i] };
+            my $attrs = $match_attr[$match_i];
+            my @parts = @{ $match_attr_keys[$match_i] };
+
+            # it is not there and not optional.
+            if (!$attrs->{opt} && !defined $param) {
+                return $PARAM_BAD;
+            }
 
             # it has a type.
             if (@parts) {
-                $type       = shift @parts;
+                $type       = shift @parts; delete $attrs->{$type};
                 $param_code = $package->can("_param_$type") ||
                               __PACKAGE__->can("_any_$type");
-                my $res     = $param_code->($msg, $param, \@final, \@parts);
+                my $res     = $param_code->($msg, $param, \@final, $attrs);
                 return $PARAM_BAD if $res && $res eq $PARAM_BAD;
             }
 

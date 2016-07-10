@@ -144,8 +144,8 @@ my %scommands = (
         params  => '-tag.for(server) -source(user)  user',
         code    => \&whois
     },
-    SNOTICE => {  # :sid SNOTICE   flag  :message
-        params => '-source(server) any   :rest',
+    SNOTICE => {  # @from_user=uid          :sid SNOTICE    flag  :message
+        params => '-tag.from_user(user,opt) -source(server) any   :rest',
         code   => \&snotice
     },
     LOGIN => {
@@ -889,7 +889,7 @@ sub whois {
 }
 
 sub snotice {
-    my ($server, $msg, $s_serv, $notice, $message) = @_;
+    my ($server, $msg, $from_user, $s_serv, $notice, $message) = @_;
     (my $pretty = ucfirst $notice) =~ s/_/ /g;
 
     # send to users with this notice flag.
@@ -897,11 +897,12 @@ sub snotice {
         next unless blessed $user; # during destruction.
         next unless $user->is_mode('ircop');
         next unless $user->has_notice($notice);
+        next if $from_user && $user == $from_user;
         $user->server_notice($s_serv, 'Notice', "$pretty: $message");
     }
 
     # === Forward ===
-    $msg->forward(snotice => $notice, $message);
+    $msg->forward(snotice => $notice, $message, $from_user);
 
     return 1;
 }

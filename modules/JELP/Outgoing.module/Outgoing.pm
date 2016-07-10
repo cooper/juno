@@ -433,8 +433,12 @@ sub _time {
 }
 
 sub snotice {
-    my ($to_server, $flag, $message) = @_;
-    ":$$me{sid} SNOTICE $flag :$message"
+    my ($to_server, $flag, $message, $from_user) = @_;
+    my $text = ":$$me{sid} SNOTICE $flag :$message";
+    if ($from_user) {
+        $text = "\@from_user=$$from_user{uid} $text";
+    }
+    return $text;
 }
 
 sub version {

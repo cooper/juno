@@ -355,7 +355,7 @@ sub gnotice {
     $flag = shift;
 
     my $message = notice([caller 1], $to_user, $flag, @_);
-    $::pool->fire_command_all(snotice => $flag, $message);
+    $::pool->fire_command_all(snotice => $flag, $message, $to_user);
     return $message;
 }
 
