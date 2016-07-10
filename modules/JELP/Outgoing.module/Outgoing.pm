@@ -50,6 +50,7 @@ my %ocommands = (
     su_login        => \&su_login,  # TODO: logout
     part_all        => \&partall,
     invite          => \&invite,
+    ircd_rehash     => \&rehash,
 
     # JELP-specific
 
@@ -478,6 +479,13 @@ sub update {
     my ($to_server, $user, @servers) = @_;
     my $sids = join '', map '$'.$_->id, @servers;
     ":$$user{uid} UPDATE $sids"
+}
+
+sub rehash {
+    # $serv_mask and $type are not used in JELP
+    my ($to_server, $user, $serv_mask, $type, @servers) = @_;
+    my $sids = join '', map '$'.$_->id, @servers;
+    ":$$user{uid} REHASH $sids"
 }
 
 $mod

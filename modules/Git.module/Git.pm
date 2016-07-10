@@ -65,10 +65,10 @@ sub ucmd_update {
             \@servers,
             ircd_update => $user, $server::protocol::INJECT_SERVERS
         ) if @servers;
-        my %done = $matched ? %$matched : ();
+        my %matched = $matched ? %$matched : ();
 
         # if $me is not in %done, we're not reloading locally.
-        return 1 if !$done{$me};
+        return 1 if !$matched{$me};
 
     }
 

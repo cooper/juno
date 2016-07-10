@@ -196,6 +196,11 @@ our %ts6_incoming_commands = (
                   # :sid ENCAP     serv_mask  SU  uid    account_name
         params => '-source(server) *          *   user   *(opt)',
         code   => \&su
+    },
+    ENCAP_REHASH => {
+                  # :sid ENCAP     serv_mask REHASH type
+        params => '-source(server) *         *      *(opt)',
+        code   => \&rehash
     }
 );
 
@@ -1543,6 +1548,25 @@ sub invite {
     #=== Forward ===#
     # forward on to next hop.
     $msg->forward_to($t_user, invite => $user, $t_user, $channel);
+
+    return 1;
+}
+
+sub rehash {
+    my ($server, $msg, $user, $serv_mask, undef, $type) = @_;
+    $msg->{encap_forwarded} = 1;
+
+    # rehash if the mask matches me.
+    my @servers = $pool->lookup_server_mask($serv_mask) or return;
+    if ($servers[0] == $me) {
+        gnotice(rehash => $user->notice_info);
+        ircd::rehash();
+    }
+
+    #=== Forward ===#
+    $msg->forward_to_mask($serv_mask,
+        ircd_rehash => $user, $serv_mask, $type, @servers
+    );
 
     return 1;
 }

@@ -63,7 +63,8 @@ our %ts6_outgoing_commands = (
      lusers         => \&lusers,
      invite         => \&invite,
      su_login       => \&su_login,
-     su_logout      => \&su_logout
+     su_logout      => \&su_logout,
+     ircd_rehash     => \&rehash
 );
 
 sub init {
@@ -821,6 +822,33 @@ sub invite {
     my $uid2 = ts6_id($t_user);
 
     ":$uid1 INVITE $uid2 $$channel{name} $$channel{time}"
+}
+
+# REHASH
+#
+# charybdis TS6
+# encap only
+# source:       user
+# parameters:   opt. rehash type
+#
+sub rehash {
+    my ($to_server, $user, $serv_mask, $type, @servers) = @_;
+
+    # server masks with $ are juno-specific and therefore not useful.
+    undef $serv_mask if $serv_mask =~ m/\$/;
+
+    my $uid = ts6_id($user);
+    $type = length $type ? " :$type" : '';
+
+    # if we have a mask, we can use it for encap propagation.
+    if (length $serv_mask) {
+        return ":$uid ENCAP $serv_mask REHASH$type";
+    }
+
+    # otherwise, we have to send a separate REHASH for each server.
+    return map {
+        sprintf ':%s ENCAP %s REHASH%s', $uid, ts6_id($_), $type
+    } @servers;
 }
 
 $mod

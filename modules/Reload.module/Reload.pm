@@ -70,10 +70,10 @@ sub cmd_reload {
             \@servers,
             ircd_reload => $user, $rest[1], $server::protocol::INJECT_SERVERS
         ) if @servers;
-        my %done = $matched ? %$matched : ();
+        my %matched = $matched ? %$matched : ();
 
         # if $me is not in %done, we're not reloading locally.
-        return 1 if !$matched->{$me};
+        return 1 if !$matched{$me};
 
     }
 

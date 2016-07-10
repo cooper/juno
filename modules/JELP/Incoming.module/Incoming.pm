@@ -179,7 +179,7 @@ sub init {
 
     # global user commands
     $mod->register_global_command(name => $_) || return foreach qw(
-        version time admin motd
+        version time admin motd rehash
     );
 
     undef %scommands;
@@ -846,6 +846,13 @@ sub kick {
 # server user any :rest
 sub num {
     my ($server, $msg, $source, $user, $num, $message) = @_;
+
+    # If the first digit is 0 (indicating a reply about the local connection), it
+    # should be changed to 1 before propagation or sending to a user.
+    my $first = \substr($num, 0, 1);
+    if ($$first eq '0') {
+        $$first = '1';
+    }
 
     # local user.
     if ($user->is_local) {

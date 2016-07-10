@@ -34,7 +34,7 @@ our %user_commands = (
     REHASH => {
         code   => \&rehash,
         desc   => 'reload the server configuration',
-        params => '-oper(rehash)'
+        params => '-oper(rehash) *(opt)'
     },
     KILL => {
         code   => \&ukill,
@@ -1037,8 +1037,38 @@ sub lusers {
 }
 
 sub rehash {
-    my $user = shift;
-    notice(rehash => $user->notice_info);
+    my ($user, $event, $server_mask_maybe) = @_;
+
+    # server mask parameter
+    if (length $server_mask_maybe) {
+        my @servers = $pool->lookup_server_mask($server_mask_maybe);
+
+        # no priv.
+        if (!$user->has_flag('grehash')) {
+            $user->numeric(ERR_NOPRIVILEGES => 'grehash');
+            return;
+        }
+
+        # no matches.
+        if (!@servers) {
+            $user->numeric(ERR_NOSUCHSERVER => $server_mask_maybe);
+            return;
+        }
+
+        # use forward_global_command() to send it out.
+        my $matched = server::protocol::forward_global_command(
+            \@servers, ircd_rehash =>
+            $user, $server_mask_maybe, undef,
+            $server::protocol::INJECT_SERVERS
+        ) if @servers;
+        my %matched = $matched ? %$matched : ();
+
+        # if $me is not in %done, we're not rehashing locally.
+        return 1 if !$matched{$me};
+
+    }
+
+    gnotice(rehash => $user->notice_info);
 
     # rehash.
     $user->numeric(RPL_REHASHING => $ircd::conf->{conffile});

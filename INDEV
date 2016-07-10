@@ -3299,3 +3299,7 @@ CHANGES:
         26. new ircd submodule ircd::server::protocol intends to clean up ircd::utils by housing common server protocol logic.
             new forward_global_command() utility eliminates code repretition in the propagation of JELP global commands.
             JELP global commands (ones which use ->handle_unsafe()) can now take multiple parameters.
+
+        27. REHASH now optionally takes a server parameter.
+            REHASH is now implemented in TS6 and JELP. closes #57.
+            JELP numerics starting with 0 are now handled appropriately. closes #92.
