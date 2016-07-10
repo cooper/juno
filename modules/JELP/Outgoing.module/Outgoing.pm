@@ -56,7 +56,9 @@ my %ocommands = (
     acm             => \&acm,
     aum             => \&aum,
     burst           => \&burst,
-    endburst        => \&endburst
+    endburst        => \&endburst,
+    ircd_update     => \&update,
+    ircd_reload     => \&reload
 
 );
 
@@ -463,6 +465,18 @@ sub invite {
     my ($to_server, $user, $t_user, $ch_name) = @_;
     $ch_name = $ch_name->{name} if ref $ch_name;
     ":$$user{uid} INVITE $$t_user{uid} $ch_name"
+}
+
+sub reload {
+    my ($to_server, $user, @servers) = @_;
+    my $sids = join '', map '$'.$_->id, @servers;
+    ":$$user{uid} RELOAD $sids"
+}
+
+sub update {
+    my ($to_server, $user, @servers) = @_;
+    my $sids = join '', map '$'.$_->id, @servers;
+    ":$$user{uid} UPDATE $sids"
 }
 
 $mod

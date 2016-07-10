@@ -3286,3 +3286,7 @@ CHANGES:
             the parameter matcher parser now keeps track of the key order.
             it is now possible for message tag parameters (the -tag.NAME matchers) to be marked as optional.
             fixed an issue where the recent changes to gnotice() didn't work well with ->handle_unsafe() on remote users.
+
+        24. $pool->lookup_server_mask() can now take multiple SIDs in the $SID format.
+            ->fire_command_data() is now deprecated and will be removed.
+            update RELOAD and UPDATE command propagation to use the new method. closes #19.

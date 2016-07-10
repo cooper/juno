@@ -44,12 +44,13 @@ sub ucmd_update {
     my ($user, $event, $server_mask_maybe) = @_;
 
 
+    # server parameter?
     if (length $server_mask_maybe) {
         my @servers = $pool->lookup_server_mask($server_mask_maybe);
 
         # no priv.
         if (!$user->has_flag('ggit')) {
-            $user->numeric(ERR_NOPRIVILEGES => 'gupdate');
+            $user->numeric(ERR_NOPRIVILEGES => 'ggit');
             return;
         }
 
@@ -60,7 +61,7 @@ sub ucmd_update {
         }
 
         # wow there are matches.
-        my %done;
+        my (%done, %send_to, @send_locations) = @_;
         foreach my $serv (@servers) {
 
             # already did this one!
@@ -73,13 +74,23 @@ sub ucmd_update {
             next if $serv->is_local;
             next unless $serv->{location};
 
-            # pass it on :)
-            $serv->{location}->fire_command_data(update => $user, "\$$$serv{sid}");
+            # add to the list of servers to send to this location.
+            push @send_locations, $serv->{location};
+            push @{ $send_to{ $serv->{location} } ||= [] }, $serv;
 
         }
 
-        # if $me is done, just keep going.
-        return 1 unless $done{$me};
+        # for each location, send the RELOAD command with the matching servers.
+        my %loc_done;
+        foreach my $location (@send_locations) {
+            next if $loc_done{$location};
+            my $their_servers = $send_to{$location} or next;
+            $location->fire_command(ircd_update => $user, @$their_servers);
+            $loc_done{$location}++;
+        }
+
+        # if $me is not in %done, we're not reloading locally.
+        return 1 if !$done{$me};
 
     }
 

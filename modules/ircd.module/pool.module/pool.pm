@@ -155,15 +155,28 @@ sub lookup_server_name {
 # find any number of servers by mask.
 sub lookup_server_mask {
     my ($pool, $mask) = @_;
+    my (@matches, %done);
 
-    # $sid format
-    if ($mask =~ m/^\$(\d+)$/) {
-        return $pool->lookup_server($1);
+    # find servers by $sid
+    while ($mask =~ s/^\$(\d+)//) {
+        my $server = $pool->lookup_server($1);
+        next if $done{$server};
+
+        # if we are returning a single server and if
+        # the local server matches, return it.
+        return $server if !wantarray && $server->is_local;
+
+        # otherwise, just add to the list.
+        push @matches, $server if $server;
+        $done{$server}++;
+
     }
 
-    my @matches;
+    # find servers by mask
     foreach my $server (sort { $a->{name} cmp $b->{name} } $pool->servers) {
+        last if !length $mask;
         next unless utils::irc_match($server->{name}, $mask);
+        next if $done{$server};
 
         # if we are returning a single server and if
         # the local server matches, return it.
@@ -171,8 +184,10 @@ sub lookup_server_mask {
 
         # otherwise, just add to the list.
         push @matches, $server;
+        $done{$server}++;
 
     }
+
     return wantarray ? @matches : $matches[0];
 }
 
