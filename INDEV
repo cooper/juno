@@ -3290,3 +3290,8 @@ CHANGES:
         24. $pool->lookup_server_mask() can now take multiple SIDs in the $SID format.
             ->fire_command_data() is now deprecated and will be removed.
             update RELOAD and UPDATE command propagation to use the new method. closes #19.
+
+        25. the RELOAD command now generates only one server notice per server by default.
+            RELOAD now has flags 'v' and 'd' for verbose and debug.
+            $ircd::disable_warnings can be set to temporarily disable all warnings.
+            this is now used when redefining Evented::Object to prevent flooding opers. closes #20.

@@ -18,7 +18,7 @@ use Module::Loaded qw(is_loaded);
 use Scalar::Util   qw(weaken blessed openhandle);
 
 our ($api, $mod, $me, $pool, $loop, $conf, $boot, $timer, $VERSION);
-our (%channel_mode_prefixes, %listeners, %listen_protocol);
+our (%channel_mode_prefixes, %listeners, %listen_protocol, $disable_warnings);
 
 ######################
 ### INITIALIZATION ###
@@ -538,6 +538,7 @@ sub signalpipe { }
 # handle warning
 sub WARNING {
     my $warn = shift;
+    return if $disable_warnings;
     chomp $warn;
     ircd->can('notice') && $::notice_warnings ?
     notice(perl_warning => $warn)             :

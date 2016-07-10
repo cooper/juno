@@ -41,12 +41,12 @@ sub init {
 
 sub cmd_reload {
     my ($user, $event, @rest) = @_;
-    my $verbose;
+    my ($verbose, $debug_verbose);
 
-    # verbose.
-    if (defined $rest[0] && $rest[0] eq '-v') {
-        $verbose = 1;
-        shift @rest;
+    # the second arg might be verbosity flags
+    if (length $rest[1]) {
+        $verbose++                      if $rest[1] =~ m/v/;
+        $verbose++, $debug_verbose++    if $rest[1] =~ m/d/;
     }
 
     # server parameter?
@@ -100,20 +100,22 @@ sub cmd_reload {
     }
 
     my $old_v = $ircd::VERSION;
-    $user->server_notice(reload => "Reloading IRCd $old_v on $$me{name}");
+    my $prefix = $user->is_local ? '' : "[$$me{name}] ";
 
-    # log to user if verbose.
+    # log to user if debug.
     my $cb;
-    $cb = $::api->on(log => sub { $user->server_notice("- $_[1]") },
+    $cb = $::api->on(log => sub { $user->server_notice("$prefix- $_[1]") },
         name      => 'cmd.reload',
         permanent => 1 # we will remove it manually afterward
-    ) if $verbose;
+    ) if $debug_verbose;
 
     # redefine Evented::Object before anything else.
+    $ircd::disable_warnings++;
     {
         no warnings 'redefine';
         do $_ foreach grep { /^Evented\/Object/ } keys %INC;
     }
+    $ircd::disable_warnings--;
 
     # determine modules loaded beforehand.
     my @mods_loaded = @{ $api->{loaded} };
@@ -143,21 +145,27 @@ sub cmd_reload {
     $api->reload_module($ircd, @not_bases, @bases);
     my $new_v = ircd->VERSION;
 
+
     # module summary.
-    $user->server_notice('- Module summary');
+    $user->server_notice("$prefix- Module summary") if $verbose;
     my $reloaded = 0;
     foreach my $old_m (@mods_loaded) {
         my $new_m = $api->get_module($old_m->name);
 
         # not loaded.
         if (!$new_m) {
-            $user->server_notice("    - Not loaded: $$old_m{name}{full}");
+            $user->server_notice(
+                "$prefix    - NOT LOADED: $$old_m{name}{full}"
+            );
             next;
         }
 
         # version change.
         if ($new_m->{version} > $old_m->{version}) {
-            $user->server_notice("    - Upgraded: $$new_m{name}{full} ($$old_m{version} -> $$new_m{version})");
+            $user->server_notice(
+                "$prefix    - Upgraded: $$new_m{name}{full} ".
+                "($$old_m{version} -> $$new_m{version})"
+            ) if $verbose;
             next;
         }
 
@@ -169,10 +177,14 @@ sub cmd_reload {
         foreach my $old_m (@mods_loaded) {
             next NEW if $old_m->name eq $new_m->name;
         }
-        $user->server_notice("    - Loaded: $$new_m{name}{full}");
+        $user->server_notice(
+            "$prefix    - Loaded: $$new_m{name}{full}"
+        ) if $verbose;
     }
 
-    $user->server_notice("    - $reloaded modules reloaded and not upgraded");
+    $user->server_notice(
+        "$prefix    - $reloaded modules reloaded and not upgraded"
+    ) if $verbose;
 
     # difference in version.
     my $info;

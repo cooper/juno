@@ -94,8 +94,6 @@ sub ucmd_update {
 
     }
 
-    $user->server_notice(update => "Updating $$me{name} git repository");
-
     # git pull
     command([ 'git', 'pull' ], undef,
 
