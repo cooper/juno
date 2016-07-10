@@ -47,7 +47,7 @@ sub grant {
     # add the flags.
     @flags = simplify(@flags);
     @flags = $t_user->add_flags(@flags);
-    
+
     # no new flags.
     if (!@flags) {
         $user->server_notice(grant => 'User already has those flags');
@@ -63,14 +63,13 @@ sub grant {
 
     # tell other servers about the flags.
     $pool->fire_command_all(oper => $t_user, @flags);
- 
+
     # note: these will come from the server the GRANT command is issued on.
     my @all = ref_to_list($t_user->{flags});
     $t_user->server_notice("You now have flags: @all") if @all;
     $t_user->numeric('RPL_YOUREOPER') unless $already_irc_cop;
-    
-    notice(grant => $user->{nick}, $t_user->{nick}, "@flags");
-    $user->server_notice(grant => "$$t_user{nick} was granted: @flags");
+
+    notice($user, grant => "$$t_user{nick} was granted: @flags");
     return 1;
 }
 
@@ -88,13 +87,13 @@ sub ungrant {
     # remove the flags.
     @flags = simplify(@flags);
     @flags = $t_user->remove_flags(@flags) unless $unopered;
-    
+
     # none removed.
     if (!@flags && !$unopered) {
         $user->server_notice(grant => "User doesn't have any of those flags");
         return;
     }
-    
+
     # all removed but not unopered.
     # show this little reminder.
     if (!@{ $t_user->{flags} } && !$unopered) {
@@ -103,21 +102,20 @@ sub ungrant {
 
     # tell other servers about the flags.
     $pool->fire_command_all(oper => $t_user, map { "-$_" } @flags);
- 
+
     # note: these will come from the server the GRANT command is issued on.
     my @all = ref_to_list($t_user->{flags});
-    
+
     # for notices
     if (!@all) {
         @all   = '(no flags)';
         @flags = '(all flags)';
     }
-    
+
     # notices
     $t_user->server_notice("You now have flags: @all");
-    notice(ungrant => $user->{nick}, $t_user->{nick}, "@flags");
-    $user->server_notice(ungrant => "$$t_user{nick} was revoked of: @flags");
-    
+    notice($user, ungrant => $user->{nick}, $t_user->{nick}, "@flags");
+
     return 1;
 }
 

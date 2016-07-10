@@ -12,5 +12,5 @@
    "description" : "git repository management",
    "name" : "Git",
    "package" : "M::Git",
-   "version" : "2.2"
+   "version" : "2.3"
 }

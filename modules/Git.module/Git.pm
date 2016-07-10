@@ -97,8 +97,9 @@ sub ucmd_update {
         sub {
             my $error = shift;
             my @lines = split /\n/, $error;
-            $user->server_notice(update => "$$me{name} pull failed: $_") foreach @lines;
-            gnotice(update_fail => $me->name, $user->notice_info);
+            $user->server_notice(update => "[$$me{name}] Errors (pull): $_")
+            foreach @lines;
+            gnotice($user, update_fail => $me->name, $user->notice_info);
 
             # handle Evented API Engine manifest conflicts
             deal_with_manifest($user, $event) if index($error, '.json') != -1;
@@ -121,7 +122,8 @@ sub git_pull_succeeded {
         # error
         sub {
             my @lines = split /\n/, shift;
-            $user->server_notice(update => "$$me{name} submodule failed: $_") foreach @lines;
+            $user->server_notice(update => "[$$me{name}] Errors (submodule): $_")
+                foreach @lines;
             gnotice(update_fail => $me->name, $user->notice_info);
         }
     );
@@ -134,8 +136,7 @@ sub git_submodule_succeeded {
         $version = trim(<$fh>);
         close $fh;
     }
-    $user->server_notice(update => "$$me{name} git repository updated successfully (now at $version)");
-    gnotice(update => $me->name, $version, $user->notice_info);
+    gnotice($user, update => $me->name, $version, $user->notice_info);
 }
 
 # handle Evented API Engine manifest conflicts

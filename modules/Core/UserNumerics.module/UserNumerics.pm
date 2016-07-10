@@ -21,11 +21,12 @@ use utils qw(conf v);
 our ($api, $mod, $me, $pool);
 
 our %user_numerics = (
-                            ###############################################################################
-                            #                              core numerics list                             #
-                            #                              ------------------                             #
-                            #      these are internal numerics that will be registered to user::mine.     #
-                            ###############################################################################
+                          #################################################################################
+                          ###============================= IRC Numerics List ===========================###
+                          #################################################################################
+                          # [                                                                             ],
+                          # [============================= DIRECT CONNECTION =============================],
+                          # [                                                                             ],
     RPL_WELCOME          => ['001', 'Welcome to the %s IRC Network %s!%s@%s'                              ],
     RPL_YOURHOST         => ['002', ':Your host is %s, running version %s'                                ],
     RPL_CREATED          => ['003', ':This server was created %s'                                         ],
@@ -35,7 +36,9 @@ our %user_numerics = (
     RPL_MAP2             => ['015', ':- Total of %d users on %d servers, average %d users per server'     ],
     RPL_MAPEND           => ['017', ':End of MAP'                                                         ],
     RPL_SAVENICK         => ['043', '%s :Nick collision, forcing nick change to your unique ID'           ],
-    # 3 digits           => [#############################################################################],
+                          # [                                                                             ],
+                          # [============================== NORMAL REPLIES ===============================],
+                          # [                                                                             ],
     RPL_UMODEIS          => [221, '%s'                                                                    ],
     RPL_STATSCONN        => [250, ':Highest connection count: %d (%d clients) (%d connections received)'  ],
     RPL_LUSERCLIENT      => [251, ':There are %d users and %d invisible on %d servers'                    ],
@@ -93,6 +96,9 @@ our %user_numerics = (
     RPL_REHASHING        => [382, '%s :Rehashing server configuration file'                               ],
     RPL_TIME             => [391, \&rpl_time                                                              ],
     RPL_HOSTHIDDEN       => [396, '%s :is now your hidden host'                                           ],
+                          # [                                                                             ],
+                          # [============================== ERROR REPLIES ================================],
+                          # [                                                                             ],
     ERR_NOSUCHNICK       => [401, '%s :No such nick/channel'                                              ],
     ERR_NOSUCHSERVER     => [402, '%s :No such server'                                                    ],
     ERR_NOSUCHCHANNEL    => [403, '%s :No such channel'                                                   ],
@@ -113,10 +119,14 @@ our %user_numerics = (
     ERR_CHANOPRIVSNEEDED => [482, '%s :You do not have the required status to perform this action'        ],
     ERR_NOOPERHOST       => [491, ':No oper blocks for your host'                                         ],
     ERR_USERSDONTMATCH   => [502, ':Can\'t change mode for other users'                                   ],
+                          # [                                                                             ],
+                          # [================================ EXTENSIONS =================================],
+                          # [                                                                             ],
     RPL_WHOISSECURE      => [671, '%s :is using a secure connection'                                      ],
     RPL_LOGGEDIN         => [900, '%s %s :You are now logged in as %s'                                    ],
     RPL_LOGGEDOUT        => [901, '%s :You are now logged out'                                            ],
     ERR_NICKLOCKED       => [902, ':You must use a nick assigned to you'                                  ],
+                          # [                                                                             ],
                             ###############################################################################
 );
 

@@ -494,7 +494,7 @@ sub delete_notice {
 
 # send out a notice.
 sub fire_oper_notice {
-    my ($pool, $notice, $amnt) = (shift, lc shift, 0);
+    my ($pool, $to_user, $notice, $amnt) = (shift, shift, lc shift, 0);
     my $message = $pool->{oper_notices}{$notice} or return;
 
     # code reference.
@@ -509,13 +509,24 @@ sub fire_oper_notice {
 
     (my $pretty = ucfirst $notice) =~ s/_/ /g;
 
+    # send to the user which initiated this, if any.
+    # it doesn't matter if he has the flag or not.
+    $to_user->server_notice($pretty => $message)
+        if $to_user;
+
     # send to users with this notice flag.
+    my $server_notice = ucfirst($pretty).': '.$message;
     foreach my $user ($pool->actual_users) {
-        next unless blessed $user; # during destruction.
+        next unless blessed $user;
+
+        # not an IRC Cop or does not have this notice flag.
         next unless $user->is_mode('ircop');
         next unless $user->has_notice($notice);
 
-        $user->server_notice('Notice', ucfirst($pretty).': '.$message);
+        # this user intiated the notice; we already notified him.
+        next if $to_user && $user == $to_user;
+
+        $user->server_notice('Notice', $server_notice);
         $amnt++;
     }
 

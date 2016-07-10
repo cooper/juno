@@ -325,6 +325,11 @@ sub notice {
     return unless pool->can('fire_oper_notice') && $::pool;
     my @caller = ref $_[0] eq 'ARRAY' ? @{+shift} : caller 1;
 
+    # if the first arg is not a user object, inject undef.
+    if ($_[0] && (!blessed $_[0] || !$_[0]->isa('user'))) {
+        unshift @_, undef;
+    }
+
     # fire it.
     my ($amnt, $key, $str) = $::pool->fire_oper_notice(@_);
     return if !$key || !$str;
@@ -340,8 +345,16 @@ sub notice {
 # send a notice that propagates.
 sub gnotice {
     return unless pool->can('fire_command_all') && $::pool;
-    my $flag = shift;
-    my $message = notice([caller 1], $flag, @_);
+
+    # first arg might be a user.
+    my ($to_user, $flag);
+    my $first = $_[0];
+    if ($first && blessed $first && $first->isa('user')) {
+        $to_user = shift;
+    }
+    $flag = shift;
+
+    my $message = notice([caller 1], $to_user, $flag, @_);
     $::pool->fire_command_all(snotice => $flag, $message);
     return $message;
 }

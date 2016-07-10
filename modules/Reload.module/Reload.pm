@@ -177,8 +177,7 @@ sub cmd_reload {
     }
 
     $::api->delete_callback('log', $cb->{name}) if $verbose;
-    $user->server_notice(reload => "$$me{name} $info");
-    gnotice(reload => $me->name, $info, $user->notice_info);
+    gnotice($user, reload => $me->name, $info, $user->notice_info);
     return 1;
 }
 

@@ -3279,3 +3279,7 @@ CHANGES:
 
         22. added utils valid_ipv4(), looks_like_ipv6(), and embedded_ipv4().
             Net::IP's validation was too generic for IRC; it is no longer a dependency.
+
+        23. notice() and gnotice() utilities now can optionally take an argument for the user which initiated the notice.
+            this eliminates repetitive notices. closes #24.
+            updated several modules to use the new arguments.

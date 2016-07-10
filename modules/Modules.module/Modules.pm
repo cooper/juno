@@ -144,8 +144,7 @@ sub modload {
     }
 
     # success.
-    $user->server_notice(modload => 'Module loaded successfully.');
-    notice(module_load => $user->notice_info, $result->name, $result->VERSION);
+    notice($user, module_load => $user->notice_info, $result->name, $result->VERSION);
     return 1;
 
 }
@@ -166,8 +165,7 @@ sub modunload {
     }
 
     # success.
-    $user->server_notice(modunload => 'Module unloaded successfully.');
-    notice(module_unload => $user->notice_info, $result);
+    notice($user, module_unload => $user->notice_info, $result);
     return 1;
 
 }
@@ -188,8 +186,7 @@ sub modreload {
     }
 
     # success.
-    $user->server_notice(modreload => 'Module reloaded successfully.');
-    notice(module_reload => $user->notice_info, $mod_name);
+    notice($user, module_reload => $user->notice_info, $mod_name);
     return 1;
 
 }

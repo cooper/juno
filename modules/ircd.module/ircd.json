@@ -3,10 +3,10 @@
       "name" : "Mitchell Cooper",
       "website" : "https://github.com/cooper"
    },
-   "description" : "manage IRC objects",
-   "name" : "ircd::pool",
+   "description" : "main IRCd module",
+   "name" : "ircd",
    "no_bless" : 1,
-   "package" : "pool",
+   "package" : "ircd",
    "preserve_sym" : 1,
-   "version" : "11.23"
+   "version" : "0.1"
 }
