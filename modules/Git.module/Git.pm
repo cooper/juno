@@ -61,7 +61,7 @@ sub ucmd_update {
         }
 
         # wow there are matches.
-        my (%done, %send_to, @send_locations) = @_;
+        my (%done, %send_to, @send_locations);
         foreach my $serv (@servers) {
 
             # already did this one!
