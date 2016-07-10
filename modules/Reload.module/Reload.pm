@@ -65,37 +65,15 @@ sub cmd_reload {
             return;
         }
 
-        # wow there are matches.
-        my (%done, %send_to, @send_locations);
-        foreach my $serv (@servers) {
-
-            # already did this one!
-            next if $done{$serv};
-            $done{$serv} = 1;
-
-            # if it's $me, skip.
-            # if there is no connection (whether direct or not),
-            # uh, I don't know what to do at this point!
-            next if $serv->is_local;
-            next unless $serv->{location};
-
-            # add to the list of servers to send to this location.
-            push @send_locations, $serv->{location};
-            push @{ $send_to{ $serv->{location} } ||= [] }, $serv;
-
-        }
-
-        # for each location, send the RELOAD command with the matching servers.
-        my %loc_done;
-        foreach my $location (@send_locations) {
-            next if $loc_done{$location};
-            my $their_servers = $send_to{$location} or next;
-            $location->fire_command(ircd_reload => $user, @$their_servers);
-            $loc_done{$location}++;
-        }
+        # use forward_global_command() to send it out.
+        my $matched = server::protocol::forward_global_command(
+            \@servers,
+            ircd_reload => $user, $rest[1], $server::protocol::INJECT_SERVERS
+        ) if @servers;
+        my %done = $matched ? %$matched : ();
 
         # if $me is not in %done, we're not reloading locally.
-        return 1 if !$done{$me};
+        return 1 if !$matched->{$me};
 
     }
 

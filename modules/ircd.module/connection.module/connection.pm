@@ -210,7 +210,8 @@ sub ready {
         my $name = $connection->{name};
 
         # check if the server is linked already.
-        if (my $err = utils::check_new_server($connection->{sid}, $connection->{name}, $me->{name})) {
+        if (my $err = server::protocol::check_new_server(
+        $connection->{sid}, $connection->{name}, $me->{name})) {
             notice(connection_invalid => $connection->{ip}, 'Server exists');
             $connection->done($err);
             return;

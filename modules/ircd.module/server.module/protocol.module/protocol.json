@@ -3,10 +3,10 @@
       "name" : "Mitchell Cooper",
       "website" : "https://github.com/cooper"
    },
-   "description" : "represents a connection to the server",
-   "name" : "ircd::connection",
+   "description" : "common code for server to server protocols",
+   "name" : "ircd::server::protocol",
    "no_bless" : 1,
-   "package" : "connection",
+   "package" : "server::protocol",
    "preserve_sym" : 1,
    "version" : "11.26"
 }

@@ -23,7 +23,8 @@ use Scalar::Util qw(looks_like_number);
 our ($api, $mod, $me, $pool);
 
 sub init {
-    $mod->load_submodule('linkage') or return;
+    $mod->load_submodule('protocol') or return;
+    $mod->load_submodule('linkage')  or return;
     return 1;
 }
 

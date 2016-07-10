@@ -271,7 +271,8 @@ sub sid {
 
     # do not allow SID or server name collisions.
 
-    if (my $err = utils::check_new_server($s{sid}, $s{name}, $server->{name})) {
+    if (my $err = server::protocol::check_new_server(
+    $s{sid}, $s{name}, $server->{name})) {
         $server->conn->done($err);
         return;
     }

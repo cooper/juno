@@ -468,9 +468,10 @@ sub invite {
 }
 
 sub reload {
-    my ($to_server, $user, @servers) = @_;
+    my ($to_server, $user, $flags, @servers) = @_;
     my $sids = join '', map '$'.$_->id, @servers;
-    ":$$user{uid} RELOAD $sids"
+    $flags = length $flags ? " $flags" : '';
+    ":$$user{uid} RELOAD $sids$flags"
 }
 
 sub update {

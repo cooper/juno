@@ -371,34 +371,6 @@ sub channel_str_to_list {
     return grep defined, map $::pool->lookup_channel($_), @names;
 }
 
-# checks if a server can be created.
-sub check_new_server {
-    my $pool = $::pool or return;
-    my (
-        $sid,       # SID of new server
-        $name,      # name of new server
-        $origin     # name of the server introducing this one
-    ) = @_;
-
-    # TODO: check for bogus server name
-    # TODO: eventually check SSL, port, IP here.
-
-    # SID taken?
-    if (my $other = $pool->lookup_server($sid)) {
-        #* *** Notice: Server identifier taken: mad.is.annoying attempted to introduce 902 as SID 0, which is already taken by
-        notice(server_identifier_taken => $origin, $name, $sid, $other->{name});
-        return 'SID already exists';
-    }
-
-    # server name taken?
-    if ($pool->lookup_server_name($name)) {
-        notice(server_reintroduced => $origin, $name);
-        return 'Server exists';
-    }
-
-    return;
-}
-
 # if the provided address is IPv4 already, returns it.
 # if it's IPv6, checks for an embeded IPv6 address and
 # returns either that or the unaltered IPv6 address.
