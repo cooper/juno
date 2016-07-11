@@ -490,7 +490,8 @@ sub rehash {
 }
 
 sub save {
-    
+    my ($to_server, $source_serv, $user, $nick_time) = @_;
+    ":$$source_serv{sid} SAVE $$user{uid} $nick_time"
 }
 
 $mod

@@ -958,4 +958,19 @@ sub invite {
     return 1;
 }
 
+
+sub save {
+    my ($server, $msg, $source_serv, $t_user, $time) = @_;
+
+    # only accept the message if the nickTS is correct.
+    return if $t_user->{nick_time} != $time;
+
+    $t_user->save_locally;
+
+    #=== Forward ===#
+    $msg->forward(save_user => $source_serv, $t_user, $time);
+
+    return 1;
+}
+
 $mod
