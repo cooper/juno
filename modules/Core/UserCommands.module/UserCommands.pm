@@ -723,7 +723,7 @@ sub add_whois_callbacks {
             sub {
                 my $user = shift;
                 my $idle = time - ($user->{conn}{last_command} || 0);
-                return ($idle, $user->{create_time});
+                return ($idle, $user->{time});
             },
 
         # Account name.

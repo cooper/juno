@@ -70,7 +70,6 @@ sub new {
         ssl           => $stream->isa('IO::Async::SSLStream'),
         source        => $me->{sid},
         time          => time,
-        create_time   => time,
         last_response => time,
         last_command  => time,
         wait          => {}
