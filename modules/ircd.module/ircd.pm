@@ -431,7 +431,7 @@ sub misc_upgrades {
     foreach my $user ($pool->all_users) {
 
         # nickTS otherwise equals connectTS.
-        $user->{nick_time} //= $user->{time};
+        $user->{nick_time} //= $user->{create_time} //= $user->{time};
 
         # check for ghosts on nonexistent servers.
         next if !$user->{server};

@@ -235,7 +235,7 @@ sub uid {
     my ($server, $msg, @args) = @_;
 
     my $ref          = {};
-    $ref->{$_}       = shift @args foreach qw[server uid time modes nick ident host cloak ip real];
+    $ref->{$_}       = shift @args foreach qw[server uid time modes nick_time ident host cloak ip real];
     $ref->{source}   = $server->{sid}; # source = sid we learned about the user from
     $ref->{location} = $server;
     my $modestr      = delete $ref->{modes};
@@ -244,7 +244,6 @@ sub uid {
 
     # create a temporary user object.
     my $new_usr_temp = user->new(%$ref);
-    $new_usr_temp->{nick_time} ||= $new_usr_temp->{time};
 
     # uid collision?
     if (my $other = $pool->lookup_user($ref->{uid})) {

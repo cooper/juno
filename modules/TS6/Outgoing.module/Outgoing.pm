@@ -178,7 +178,7 @@ sub euid {
     ts6_id($user->{server}),                        # source SID
     $user->{nick},                                  # nickname
     $me->hops_to($user->{server}),                  # number of hops
-    $user->{nick_time} // $user->{time},            # last nick-change time
+    $user->{nick_time},                             # last nick-change time
     $user->mode_string($server),                    # +modes string
     $user->{ident},                                 # username (w/ ~ if needed)
     $user->{cloak},                                 # visible hostname
@@ -324,7 +324,7 @@ sub nick {
     sprintf ':%s NICK %s :%d',
     ts6_id($user),
     $user->{nick},
-    $user->{nick_time} // $user->{time}
+    $user->{nick_time}
 }
 
 # TMODE
