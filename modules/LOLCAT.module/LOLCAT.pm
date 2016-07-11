@@ -23,8 +23,7 @@ our ($api, $mod, $pool);
 our %user_commands = (LOLCAT => {
     desc   => 'SPEEK LIEK A LOLCATZ!',
     params => 'channel :rest',
-    code   => \&lolcat,
-    fntsy  => 1
+    code   => \&lolcat
 });
 
 sub lolcat {

@@ -152,7 +152,6 @@ sub _handle_command {
     }
 
     # call actual callback.
-    $event->{$props}{data}{allow_fantasy} = $event->callback_data('fantasy');
     $event->callback_data('cb_code')->($server, $msg, @params);
 
 }

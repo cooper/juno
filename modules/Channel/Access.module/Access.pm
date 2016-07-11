@@ -24,14 +24,12 @@ our %user_commands = (
     UP => {
         desc   => 'grant yourself with your access privileges',
         params => 'channel(inchan)',
-        code   => \&cmd_up,
-        fntsy  => 1
+        code   => \&cmd_up
     },
     DOWN => {
         desc   => 'remove all channel status modes',
         params => 'channel(inchan)',
-        code   => \&cmd_down,
-        fntsy  => 1
+        code   => \&cmd_down
     }
 );
 

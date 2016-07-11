@@ -781,7 +781,7 @@ sub _new_connection {
     return $user->{init_complete} = 1;
 }
 
-sub _handle_with_opts       {
+sub _handle_with_opts {
     my ($allow_nonlocal, $user, $line, %opts) = @_;
 
     # nonlocal user on ->handle() or some other safe method.
@@ -791,8 +791,17 @@ sub _handle_with_opts       {
 
     # fire commands with options.
     my @events = $user->_events_for_message($msg);
-    $user->prepare(@events)->fire('safe', data => \%opts);
+    my $fire = $user->prepare(@events)->fire('safe', data => \%opts);
 
+    # 'safe' with exception.
+    if (my $e = $fire->exception) {
+        my $stopper = $fire->stopper;
+        my $cmd = $msg->command;
+        notice(exception => "Error in ->handle($cmd) from $stopper: $e");
+        return;
+    }
+
+    return $msg;
 }
 
 # returns the events for an incoming message.

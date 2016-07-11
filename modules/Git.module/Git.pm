@@ -23,8 +23,7 @@ our ($api, $mod, $pool, $me);
 our %user_commands = (update => {
     desc   => 'update the IRCd git repository',
     params => '-oper(git) any(opt)',
-    code   => \&ucmd_update,
-    fntsy  => 1
+    code   => \&ucmd_update
 });
 
 our %oper_notices = (

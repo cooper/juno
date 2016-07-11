@@ -27,8 +27,7 @@ our $depth = 1;
 our %user_commands = (EVAL => {
     code    => \&_eval,
     desc    => 'evaluate Perl code',
-    params  => 'any(opt) :rest',
-    fntsy   => 1
+    params  => 'any(opt) :rest'
 });
 
 # consider: perhaps we should use IO::Async::File to automatically

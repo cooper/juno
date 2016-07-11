@@ -44,8 +44,7 @@ our %user_commands = (
     KICK => {
         code   => \&kick,
         desc   => 'forcibly remove a user from a channel',
-        params => 'channel(inchan) user :rest(opt)',
-        fntsy  => 1
+        params => 'channel(inchan) user :rest(opt)'
     },
     LIST => {
         code   => \&list,
@@ -54,8 +53,7 @@ our %user_commands = (
     MODELIST => {
         code   => \&modelist,
         desc   => 'view entries of a channel mode list',
-        params => 'channel(inchan) *',
-        fntsy  => 1
+        params => 'channel(inchan) *'
     },
     VERSION => {
         code   => \&version,
@@ -80,20 +78,17 @@ our %user_commands = (
     TOPIC => {
         code   => \&topic,
         desc   => 'view or set the topic of a channel',
-        params => 'channel *(opt)',
-        fntsy  => 1
+        params => 'channel *(opt)'
     },
     WHO => {
         code   => \&who,
         desc   => 'familiarize your client with users matching a pattern',
-        params => '*(opt) *(opt)',
-        fntsy  => 1
+        params => '*(opt) *(opt)'
     },
     PART => {
         code   => \&part,
         desc   => 'leave a channel',
-        params => 'channel(inchan) *(opt)',
-        fntsy  => 1
+        params => 'channel(inchan) *(opt)'
     },
     QUIT => {
         code   => \&quit,
@@ -118,7 +113,6 @@ our %user_commands = (
     NAMES => {
         code   => \&names,
         desc   => 'view the user list of a channel',
-        fntsy  => 1,
         params => '*(opt)'
     },
     OPER => {
@@ -148,7 +142,6 @@ our %user_commands = (
     MODE => {
         code   => \&mode,
         desc   => 'view or change user and channel modes',
-        fntsy  => 1,
         params => '* ...(opt)'
     },
     INFO => {

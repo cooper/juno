@@ -22,16 +22,16 @@ our ($api, $mod, $pool);
 my $props = $Evented::Object::props;
 
 sub init {
-    
+
     # register methods.
     $mod->register_module_method('register_user_command_new') or return;
-    
+
     # module events.
     $api->on('module.init' => \&module_init,
         name    => '%user_commands',
         with_eo => 1
     );
-        
+
     return 1;
 }
 
@@ -51,21 +51,20 @@ sub register_user_command_new {
         L("user command $opts{name} does not have '$what' option");
         return;
     }
-    
+
     # attach the event.
     my $command = uc $opts{name};
     $pool->on("user.message_$command" => \&_handle_command,
-        priority => 0, # registration commands are 500 priority
-        with_eo  => 1,
-        name     => $command,
+        priority    => 0, # registration commands are 500 priority
+        with_eo     => 1,
+        name        => $command,
         %opts,
-        _caller  => $mod->{package},
+        _caller     => $mod->{package},
     data => {
-        parameters => $opts{parameters},
-        cb_code    => $opts{code},
-        fantasy    => $opts{fantasy} // $opts{fntsy}
+        parameters  => $opts{parameters},
+        cb_code     => $opts{code}
     });
-    
+
     $mod->list_store_add('user_commands', $command);
     return 1;
 }
@@ -73,7 +72,7 @@ sub register_user_command_new {
 sub _handle_command {
     my ($user, $event, $msg) = @_;
     $event->cancel('ERR_UNKNOWNCOMMAND');
-    $msg->{source} = $user;    
+    $msg->{source} = $user;
 
     # figure parameters.
     my @params;
@@ -82,11 +81,10 @@ sub _handle_command {
         @params = $msg->parse_params($params);
         return if defined $params[0] && $params[0] eq $message::PARAM_BAD;
     }
-    
+
     # call actual callback.
-    $event->{$props}{data}{allow_fantasy} = $event->callback_data('fantasy');
     $event->callback_data('cb_code')->($user, $event, @params);
-    
+
 }
 
 sub module_init {

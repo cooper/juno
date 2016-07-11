@@ -13,12 +13,15 @@ use warnings;
 use strict;
 use 5.010;
 
+use utils qw(conf);
+
 our ($api, $mod, $pool);
 
 sub init {
 
     # all local commands. cancel if using fantasy and fantasy isn't allowed.
-    $pool->on('connection.message' => \&local_message,
+    $pool->on('user.message' => \&local_message,
+        with_eo  => 1,
         name     => 'fantasy.stopper',
         priority => 100     # this is higher than the normal handler priority 0
     );
@@ -33,23 +36,31 @@ sub init {
     return 1;
 }
 
+my $FANTASY_OK = 1;
+
+# called on all user messages
 sub local_message {
-    my ($event, $msg) = @_;
+    my ($user, $event, $msg) = @_;
+    return unless $user->is_local;
 
     # this was not a fantasy command.
-    return 1 if !$event->data('is_fantasy');
+    return $FANTASY_OK
+        if !$event->data('is_fantasy');
 
-    # fantasy commands are permitted.
-    return 1 if $event->data('allow_fantasy');
+    # fantasy commands are permitted by the configuration.
+    return $FANTASY_OK
+        if conf(['channels', 'fantasy'], lc $msg->command);
 
     # otherwise, stop the execution of the command.
-    $event->stop('Fantasy not permitted for this command');
+    $event->stop('fantasy_not_allowed');
     return;
 
 }
 
+# called on local PRIVMSG message
 sub local_privmsg {
     my ($user, $event, $msg) = @_;
+    return unless $user->is_local;
 
     # the PRIVMSG must have been successful.
     return unless $event->return_of('PRIVMSG');
@@ -64,6 +75,8 @@ sub local_privmsg {
 
     # prevents e.g. !privmsg !privmsg or !lolcat !kick.
     # I doubt this is needed anymore since we use message_PRIVMSG now.
+    # surely we could detect is_fantasy from the $event instead. that's how
+    # we'll do it once the prefix is customizable.
     my $second_p = (split /\s+/, $message, 2)[1];
     return if defined $second_p && substr($second_p, 0, 1) eq '!';
 

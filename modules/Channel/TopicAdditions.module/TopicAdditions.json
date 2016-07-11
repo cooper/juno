@@ -12,5 +12,5 @@
    "description" : "additional topic management commands",
    "name" : "Channel::TopicAdditions",
    "package" : "M::Channel::TopicAdditions",
-   "version" : "0.5"
+   "version" : "0.6"
 }

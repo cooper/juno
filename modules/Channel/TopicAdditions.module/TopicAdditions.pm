@@ -25,14 +25,12 @@ our %user_commands = (
     TOPICPREPEND => {
         desc   => 'add a phrase to the beginning of the topic',
         params => 'channel :rest',
-        code   => \&cmd_prepend,
-        fntsy  => 1
+        code   => \&cmd_prepend
     },
     TOPICAPPEND => {
         desc   => 'add a phrase to the end of a topic',
         params => 'channel :rest',
-        code   => \&cmd_append,
-        fntsy  => 1
+        code   => \&cmd_append
     }
 );
 
