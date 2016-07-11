@@ -1068,11 +1068,8 @@ sub rehash {
 
     }
 
-
+    # "is rehashing" -- does not specify success or failure
     gnotice(rehash => $user->notice_info);
-
-    # only send notices if they don't have rehash_success or rehash_fail.
-    # this has to be done manually because the rehash notices are in ircd.pm.
 
     # rehash.
     $user->numeric(RPL_REHASHING => $ircd::conf->{conffile});

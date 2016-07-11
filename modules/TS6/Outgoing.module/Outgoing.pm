@@ -717,9 +717,12 @@ sub chghost {
 # parameters:   target uid, TS
 #
 sub save {
-    my ($to_server, $source_serv, $user) = @_;
+    my ($to_server, $source_serv, $user, $nick_time) = @_;
     my $sid = ts6_id($source_serv);
     my $uid = ts6_id($user);
+
+    # we use a different $nick_time in case using ->forward().
+    # we want the nickTS to remain correct when propagated, not 100.
 
     # if the server does not support SAVE, send out a NICK message
     if (!$to_server->has_cap('save')) {
@@ -730,7 +733,7 @@ sub save {
         return nick($to_server, $fake_user);
     }
 
-    ":$sid SAVE $uid $$user{nick_time}"
+    ":$sid SAVE $uid $nick_time"
 }
 
 # WHOIS

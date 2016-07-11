@@ -51,6 +51,7 @@ my %ocommands = (
     part_all        => \&partall,
     invite          => \&invite,
     ircd_rehash     => \&rehash,
+    save_user       => \&save,
 
     # JELP-specific
 
@@ -486,6 +487,10 @@ sub rehash {
     my ($to_server, $user, $serv_mask, $type, @servers) = @_;
     my $sids = join '', map '$'.$_->id, @servers;
     ":$$user{uid} REHASH $sids"
+}
+
+sub save {
+    
 }
 
 $mod

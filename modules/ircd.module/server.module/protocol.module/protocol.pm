@@ -18,7 +18,7 @@ use 5.010;
 
 use utils qw(import ref_to_list);
 
-our ($api, $mod, $pool);
+our ($api, $mod, $pool, $me);
 
 # checks if a server can be created.
 sub check_new_server {
@@ -101,6 +101,95 @@ sub forward_global_command {
     }
 
     return wantarray ? (\%done, \%loc_done) : \%done;
+}
+
+# handle_nick_collision()
+#
+# positive return means return the main NICK/UID/etc. handler.
+# this works for NEW users only. do not use this for nick changes, etc.
+#
+sub handle_nick_collision {
+    my ($server, $old, $new, $use_save) = @_;
+    my ($kill_old, $kill_new);
+
+    # the new user steals the nick.
+    if ($old->{nick_time} > $new->{nick_time}) {
+        $kill_old++;
+    }
+
+    # the existing user keeps the nick.
+    elsif ($old->{nick_time} < $new->{nick_time}) {
+        $kill_new++;
+    }
+
+    # they both lose the nick.
+    else {
+        $kill_old++;
+        $kill_new++;
+    }
+
+    # ok, now we know who stays and who goes.
+    # gotta decide whether to use SAVE or KILL.
+
+    # if we can't use save, kill the appropriate users.
+    if (!$use_save) {
+
+        # if we can't save the new user, kill him.
+        if ($kill_new) {
+            $pool->fire_command_all(kill => $me, $new, 'Nick collision');
+        }
+
+        # if we can't save the old user, kill him.
+        if ($kill_old) {
+
+            # local user - handle local kill.
+            if ($old->is_local) {
+                # TODO: numeric for nick collision
+                $old->loc_get_killed_by($me, 'Nick collision');
+            }
+
+            # not local; just dispose of it.
+            else {
+                $old->quit("Killed ($$me{name} (Nick collision))");
+            }
+
+            # don't send to the server which caused the collision because it
+            # does not even know about this user yet.
+            $pool->fire_command_all(kill => $me, $old, 'Nick collision');
+
+        }
+
+        return 1; # true value = return the handler
+    }
+
+    # At this point, we can SAVE the user(s).
+    # Note that SAVE is always sent with the existing nickTS.
+    # if the provided TS is not the current nickTS, SAVE is ignored.
+    # Upon handling a valid SAVE, however, the nickTS becomes 100.
+
+
+    # Send out a SAVE for the existing user
+    # and broadcast a local nickchange to his UID.
+    if ($kill_old) {
+        $pool->fire_command_all(save_user => $me, $old, $old->{nick_time});
+        $old->save_locally;
+    }
+
+    # Send out a SAVE for the new user
+    # and change his nick to his TS6 UID locally.
+    #
+    # we ONLY send this to the server which caused the collision.
+    # all other servers will be notified when the user introduction is sent.
+    #
+    if ($kill_new) {
+        $server->fire_command(save_user => $me, $new, $new->{nick_time});
+        my $old_nick      = $new->{nick};
+        $new->{nick}      = $new->{uid};
+        $new->{nick_time} = 100;
+        notice(user_saved => $new->notice_info, $old_nick);
+    }
+
+    return; # false value = continue the handler
 }
 
 $mod

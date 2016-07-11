@@ -3303,3 +3303,7 @@ CHANGES:
         27. REHASH now optionally takes a server parameter.
             REHASH is now implemented in TS6 and JELP. closes #57.
             JELP numerics starting with 0 are now handled appropriately. closes #92.
+
+        28. both JELP and TS6 now appropriately handle situations where a nickname is already reserved for an unregistered connection.
+            JELP now has a SAVE command like TS6 which helps to ensure consistency after a nick collision.
+            the nick collision logic was very similar in each protocol and was moved to server::protocol.

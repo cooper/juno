@@ -687,6 +687,23 @@ sub fire_command_all {
     return 1;
 }
 
+# fire an outgoing server command for all servers except one.
+sub fire_command_almost_all {
+    my ($pool, $ignore, $command, @args) = (shift, shift, uc shift, @_);
+
+    # send to all children.
+    foreach ($me->children) {
+        next if $ignore && $ignore == $_;
+
+        # don't send to servers who haven't received my burst.
+        next unless $_->{i_sent_burst};
+
+        $_->fire_command($command => @args);
+    }
+
+    return 1;
+}
+
 ########################
 ### USER MODE BLOCKS ###
 ########################

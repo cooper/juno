@@ -166,6 +166,11 @@ my %scommands = (
                   # :uid INVITE  uid  ch_name
         params => '-source(user) user any',
         code   => \&invite
+    },
+    SAVE => {
+                  # :sid SAVE      uid   nickTS
+        params => '-source(server) user  ts',
+        code   => \&save
     }
 );
 
@@ -237,50 +242,39 @@ sub uid {
     # location = the server through which this server can access the user.
     # the location is not necessarily the same as the user's server.
 
+    # create a temporary user object.
+    my $new_usr_temp = user->new(%$ref);
+
     # uid collision?
     if (my $other = $pool->lookup_user($ref->{uid})) {
         notice(user_identifier_taken =>
             $server->{name},
-            @$ref{'nick', 'ident', 'host', 'uid'},
+            $new_usr_temp->notice_info, $new_usr_temp->id,
             $other->notice_info
         );
         $server->conn->done('UID collision') if $server->conn;
         return;
     }
 
-    # nick collision?
-    my $used = $pool->lookup_user_nick($ref->{nick});
+    # nick collision!
+    my $used = $pool->nick_in_use($ref->{nick});
+
+    # unregistered user. kill it.
+    if ($used && $used->isa('connection')) {
+        $used->done('Overridden');
+        undef $used;
+    }
+
+    # it's a registered user.
     if ($used) {
-        L("nick collision! $$ref{nick}");
-
-        # new, remote user loses.
-        if ($ref->{time} > $used->{time}) {
-            # TODO: add something like TS6 SAVE to force servers to switch to UID
-            $ref->{nick} = $ref->{uid};
-        }
-
-        # local user loses.
-        elsif ($ref->{time} < $used->{time}) {
-            # TODO: send a NICK message to linked servers, except for this one
-            $used->send_to_channels("NICK $$used{uid}");
-            $used->change_nick($used->{uid}, time);
-        }
-
-        # both lose.
-        else {
-
-            # TODO: add something like TS6 SAVE to force servers to switch to UID
-            $ref->{nick} = $ref->{uid};
-
-            # TODO: add something like TS6 SAVE to force servers to switch to UID
-            $used->send_to_channels("NICK $$used{uid}");
-            $used->change_nick($used->{uid}, time);
-
-        }
+        server::protocol::handle_nick_collision(
+            $server,
+            $used, $new_usr_temp, 1
+        ) and return 1;
     }
 
     # create a new user
-    my $user = $pool->new_user(%$ref);
+    my $user = $pool->new_user(%$new_usr_temp);
 
     # set modes.
     $user->handle_mode_string($modestr, 1);

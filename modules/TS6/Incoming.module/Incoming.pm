@@ -201,6 +201,11 @@ our %ts6_incoming_commands = (
                   # :sid ENCAP     serv_mask REHASH type
         params => '-source(server) *         *      *(opt)',
         code   => \&rehash
+    },
+    SAVE => {
+                  # :sid SAVE      uid   nickTS
+        params => '-source(server) user  ts',
+        code   => \&save
     }
 );
 
@@ -332,7 +337,7 @@ sub euid {
     $u{host} = $u{cloak} if $u{host} eq '*';    # host equal to visible
     $u{uid}  = uid_from_ts6($u{ts6_uid});       # convert to juno UID
 
-    # create a temporary user which will be used only for outgoing commands.
+    # create a temporary user object.
     my $new_usr_temp = user->new(%u);
 
     # uid collision!
@@ -347,57 +352,25 @@ sub euid {
     }
 
     # nick collision!
-    my $used = $pool->lookup_user_nick($u{nick});
+    my $used = $pool->nick_in_use($u{nick});
+
+    # unregistered user. kill it.
+    if ($used && $used->isa('connection')) {
+        $used->done('Overridden');
+        undef $used;
+    }
+
+    # it's a registered user.
     if ($used) {
-        my ($save_old, $save_new);
-
-        # the new user steals the nick.
-        if ($used->{nick_time} > $u{nick_time}) {
-            $save_old = 1;
-        }
-
-        # the existing user keeps the nick.
-        elsif ($used->{nick_time} < $u{nick_time}) {
-            $save_new = 1;
-        }
-
-        # they both lose the nick.
-        else {
-            $save_old = 1;
-            $save_new = 1;
-        }
-
-        # if we can't save the new user, kill him.
-        if ($save_new && !$server->has_cap('save')) {
-            $server->fire_command(kill => $me, $new_usr_temp, 'Nick collision');
-            return;
-        }
-
-        # note: SAVE is always sent with the existing nickTS.
-        # if the provided TS is not the current nickTS, SAVE is ignored.
-        # Upon handling a valid SAVE, however, the nickTS becomes 100.
-
-        # send out a SAVE for the existing user
-        # and broadcast a local nickchange to his UID.
-        if ($save_old) {
-            $server->fire_command(save_user => $me, $used);
-            $used->save_locally;
-        }
-
-        # send out a SAVE for the new user
-        # and change his nick to his TS6 UID locally.
-        if ($save_new) {
-            $server->fire_command(save_user => $me, $new_usr_temp);
-            my $old_nick  = $u{nick};
-            $u{nick}      = $new_usr_temp->{nick} = $u{uid};
-            $u{nick_time} = 100;
-            notice(user_saved => $new_usr_temp->notice_info, $old_nick);
-        }
-
+        server::protocol::handle_nick_collision(
+            $server,
+            $used, $new_usr_temp,
+            $server->has_cap('save')
+        ) and return 1;
     }
 
     # create a new user with the given modes.
-    my $user = $pool->new_user(%u);
+    my $user = $pool->new_user(%$new_usr_temp);
     $user->handle_mode_string($mode_str, 1);
 
     # === Forward ===
@@ -1552,6 +1525,13 @@ sub invite {
     return 1;
 }
 
+# REHASH
+#
+# charybdis TS6
+# encap only
+# source:       user
+# parameters:   opt. rehash type
+#
 sub rehash {
     my ($server, $msg, $user, $serv_mask, undef, $type) = @_;
     $msg->{encap_forwarded} = 1;
@@ -1566,6 +1546,27 @@ sub rehash {
     $msg->forward_to_mask($serv_mask,
         ircd_rehash => $user, $serv_mask, $type, @servers
     );
+
+    return 1;
+}
+
+# SAVE
+#
+# capab:        SAVE
+# source:       server
+# propagation:  broadcast
+# parameters:   target uid, TS
+#
+sub save {
+    my ($server, $msg, $source_serv, $t_user, $time) = @_;
+
+    # only accept the message if the nickTS is correct.
+    return if $t_user->{nick_time} != $time;
+
+    $t_user->save_locally;
+
+    #=== Forward ===#
+    $msg->forward(save_user => $source_serv, $t_user, $time);
 
     return 1;
 }
