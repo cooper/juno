@@ -38,6 +38,7 @@ sub new {
     return bless {
         modes => [],
         flags => [],
+        nick_time => time,
         %opts
     }, $class;
 }
