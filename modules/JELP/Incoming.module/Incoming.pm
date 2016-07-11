@@ -235,7 +235,8 @@ sub uid {
     my ($server, $msg, @args) = @_;
 
     my $ref          = {};
-    $ref->{$_}       = shift @args foreach qw[server uid time modes nick_time ident host cloak ip real];
+    $ref->{$_}       = shift @args foreach
+        qw[server uid nick_time modes nick ident host cloak ip real];
     $ref->{source}   = $server->{sid}; # source = sid we learned about the user from
     $ref->{location} = $server;
     my $modestr      = delete $ref->{modes};
