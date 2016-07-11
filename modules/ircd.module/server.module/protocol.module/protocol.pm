@@ -16,7 +16,7 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils qw(import ref_to_list);
+use utils qw(import ref_to_list notice gnotice);
 
 our ($api, $mod, $pool, $me);
 

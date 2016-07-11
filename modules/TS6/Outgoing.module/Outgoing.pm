@@ -728,7 +728,7 @@ sub save {
     if (!$to_server->has_cap('save')) {
         my $fake_user = user->new(%$user,
             nick      => $uid,
-            nick_time => 0
+            nick_time => 100
         );
         return nick($to_server, $fake_user);
     }
