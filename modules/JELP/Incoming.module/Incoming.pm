@@ -244,6 +244,7 @@ sub uid {
 
     # create a temporary user object.
     my $new_usr_temp = user->new(%$ref);
+    $new_usr_temp->{nick_time} ||= $new_usr_temp->{time};
 
     # uid collision?
     if (my $other = $pool->lookup_user($ref->{uid})) {
