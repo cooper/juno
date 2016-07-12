@@ -22,6 +22,7 @@ use 5.010;
 use M::TS6::Utils qw(
     user_from_ts6   server_from_ts6     obj_from_ts6
     uid_from_ts6    sid_from_ts6        mode_from_prefix_ts6
+    ts6_id
 );
 
 use utils qw(channel_str_to_list notice);
@@ -88,8 +89,8 @@ our %ts6_incoming_commands = (
         code    => \&kick
     },
     NICK => {
-                   # :uid NICK    newnick
-        params  => '-source(user) any',
+                   # :uid NICK    newnick new_nick_ts
+        params  => '-source(user) *       ts',
         code    => \&nick
     },
     PING => {
@@ -206,6 +207,11 @@ our %ts6_incoming_commands = (
                   # :sid SAVE      uid   nickTS
         params => '-source(server) user  ts',
         code   => \&save
+    },
+    ENCAP_RSFNC => {
+                  # :sid ENCAP     serv_mask RSFNC uid  new_nick new_nick_ts old_nick_ts
+        params => '-source(server) *         *     user *        ts          ts',
+        code   => \&rsfnc
     }
 );
 
@@ -1016,14 +1022,14 @@ sub kick {
 sub nick {
     # user any
     # :uid NICK  newnick
-    my ($server, $msg, $user, $newnick) = @_;
+    my ($server, $msg, $user, $newnick, $newts) = @_;
 
     # use juno uid as nick
-    $newnick = $user->{uid} if $newnick eq ts_id($user);
+    $newnick = $user->{uid} if $newnick eq ts6_id($user);
 
     # tell ppl
     $user->send_to_channels("NICK $newnick");
-    $user->change_nick($newnick, time);
+    $user->change_nick($newnick, $newts);
 
     # === Forward ===
     $msg->forward(nickchange => $user);
@@ -1580,6 +1586,66 @@ sub save {
     $msg->forward(save_user => $source_serv, $t_user, $time);
 
     return 1;
+}
+
+# RSFNC
+#
+# encap only
+# capab:        RSFNC
+# encap target: single server
+# source:       services server
+# parameters:   target user, new nickname, new nickTS, old nickTS
+#
+sub rsfnc {
+    my ($server, $msg, $source_serv, $serv_mask, undef,
+    $user, $new_nick, $new_nick_ts, $old_nick_ts) = @_;
+
+    # TODO: source_serv must be a services server
+
+    # ignore the message if the old nickTS is incorrect.
+    if ($user->{nick_time} != $old_nick_ts) {
+        return;
+    }
+
+    # check if the nick is in use.
+    my $existing = $pool->nick_in_use($new_nick);
+
+    # the nickname is already in use by an unregistered connection.
+    if ($existing && $existing->isa('connection')) {
+        $existing->done('Overriden');
+    }
+
+    # the nickname is in use by a user.
+    elsif ($existing) {
+        my $reason = 'Nickname regained by services';
+
+        # local user, use ->loc_get_killed_by()
+        if ($existing->is_local) {
+            $existing->loc_get_killed_by($source_serv, $reason);
+        }
+
+        # remote user, use ->quit()
+        else {
+            my $name = $source_serv->name;
+            $existing->quit("Killed ($name ($reason))");
+        }
+
+        # tell others
+        $pool->fire_command_all(kill => $source_serv, $existing, $reason);
+
+    }
+
+    # change the nickname.
+    $user->send_to_channels("NICK $new_nick");
+    $user->change_nick($new_nick, $new_nick_ts);
+
+    #=== Forward ===#
+    #
+    # RSFNC has a single-server target, so the nick change must be
+    # propagated to other servers as a NICK message.
+    #
+    $msg->forward(nickchange => $user);
+
 }
 
 $mod

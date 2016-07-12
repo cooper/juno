@@ -3320,3 +3320,5 @@ CHANGES:
         31. if the UID and nickname fields are the same in TS6, adopt the internal UID.
             this fixes an issue where saved users (whose nicks were changed to their UIDs) would have their TS6 UID even on juno servers after a netsplit.
             replaced various occurrences of array dereferencing on configuration values with the safer ref_to_list().
+
+        32. added TS6 ENCAP RSFNC handling. this adds support for services nickname enforcement.

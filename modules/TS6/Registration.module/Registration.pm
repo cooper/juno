@@ -78,7 +78,7 @@ sub send_registration {
         ts6_id($me)
     );
 
-    $connection->send('CAPAB :EUID ENCAP QS TB EOB EX IE SERVICES SAVE');
+    $connection->send('CAPAB :EUID ENCAP QS TB EOB EX IE SERVICES SAVE RSFNC');
 
     $connection->send(sprintf
         'SERVER %s %d :%s',
