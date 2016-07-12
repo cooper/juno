@@ -587,11 +587,19 @@ sub modes {
 # send a message to all the local members.
 sub send_all {
     my ($channel, $what, $ignore) = @_;
+
+    # $ignore can be either a user object or a codref
+    # which returns true when the user should be ignored
+    if ($ignore && !ref $ignore) {
+        my $ignore_user = $ignore;
+        $ignore = sub { shift() == $ignore_user };
+    }
+
     foreach my $user ($channel->users) {
 
         # not local or ignored
         next unless $user->is_local;
-        next if defined $ignore && $ignore == $user;
+        next if $ignore && $ignore->($user);
 
         $user->send($what);
     }
@@ -743,7 +751,12 @@ sub handle_privmsgnotice {
     }
 
     # tell local users.
-    $channel->sendfrom_all($source->full, "$command $$channel{name} :$message", $source);
+    # ignore the source as well as deaf users.
+    $channel->sendfrom_all(
+        $source->full,
+        "$command $$channel{name} :$message",
+        sub { $_[0] == $source || $_[0]->is_mode('deaf') }
+    );
 
     # then tell other servers.
     my %sent;
@@ -752,6 +765,10 @@ sub handle_privmsgnotice {
 
         # local users already know.
         next if $usr->is_local;
+
+        # deaf users don't care.
+        # if a server has all-deaf users, it will never receive the message.
+        next if $usr->is_mode('deaf');
 
         # the source user is reached through this user's server,
         # or the source is the server we know the user from.

@@ -6,5 +6,5 @@
    "description" : "channel fantasy commands",
    "name" : "Channel::Fantasy",
    "package" : "M::Channel::Fantasy",
-   "version" : "4.9"
+   "version" : "5"
 }

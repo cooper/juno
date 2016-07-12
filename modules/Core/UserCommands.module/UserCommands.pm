@@ -724,6 +724,11 @@ sub add_whois_callbacks {
             sub { shift->{account} },
             sub { shift->{account}{name} },
 
+        # Bot user mode.
+        RPL_WHOISBOT =>
+            sub { shift->is_mode('bot') },
+            undef,
+
         # END OF WHOIS.
         RPL_ENDOFWHOIS =>
             $ALWAYS_SHOW,
@@ -912,7 +917,7 @@ sub who {
 
         # weed out invisibles
         next if
-          $quser->is_mode('invisible')                   &&
+          $quser->is_mode('invisible')             &&
           !$pool->channel_in_common($user, $quser) &&
           !$user->has_flag('see_invisible');
 
@@ -922,7 +927,8 @@ sub who {
         next if ($args[2] && index($args[2], 'o') != -1 && !$quser->is_mode('ircop'));
 
         # found a match
-        $who_flags = (length $quser->{away} ? 'G' : 'H') .
+        $who_flags = (length $quser->{away}  ? 'G' : 'H') .
+                     ($quser->is_mode('bot') ? 'B' : '' ) .
                      $who_flags . ($quser->is_mode('ircop') ? '*' : q||);
         $user->numeric(RPL_WHOREPLY =>
             $match_pattern, $quser->{ident}, $quser->{host}, $quser->{server}{name},

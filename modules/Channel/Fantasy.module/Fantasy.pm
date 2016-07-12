@@ -47,9 +47,11 @@ sub local_message {
     return $FANTASY_OK
         if !$event->data('is_fantasy');
 
-    # fantasy commands are permitted by the configuration.
+    # fantasy commands are permitted by the configuration,
+    # and the client is not marked as a bot.
     return $FANTASY_OK
-        if conf(['channels', 'fantasy'], lc $msg->command);
+        if conf(['channels', 'fantasy'], lc $msg->command)
+        && !$user->is_mode('bot');
 
     # otherwise, stop the execution of the command.
     $event->stop('fantasy_not_allowed');
