@@ -688,6 +688,11 @@ sub sjoin {
     if ($accept_new_modes) {
 
         # $uids_modes are currently in the perspective of the source server.
+        #
+        # we used to only convert the mode letters and not pass the parameters
+        # to ->convert_cmode_string(), but this caused parameter mixups when the
+        # destination server did not recognize one of the status modes.
+        #
         my $uid_str = join ' ', $uids_modes, @uids;
         $uid_str = $source_serv->convert_cmode_string($me, $uid_str, 1);
 

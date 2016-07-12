@@ -473,10 +473,17 @@ sub sjoin {
     if ($accept_new_modes) {
 
         # $uids_modes are currently in the perspective of the TS 6 server.
-        # note that this does not provide parameters; they are already in the
-        # perspective of the current server (i.e., in JELP format).
-        $uids_modes = $server->convert_cmode_string($me, $uids_modes, 1);
+        #
+        # note that @uids are already in the perspective of JELP.
+        # ->convert_cmode_string() will attempt to look up TS6 UIDs for them,
+        # but it will fallback to keeping them as they are.
+        #
+        # we used to only convert the mode letters and not pass the parameters
+        # to ->convert_cmode_string(), but this caused parameter mixups when the
+        # destination server did not recognize one of the status modes.
+        #
         my $uid_str = join ' ', $uids_modes, @uids;
+        $uid_str = $source_serv->convert_cmode_string($me, $uid_str, 1);
 
         # combine status modes with the other modes in the message,
         # now that $mode_str and $uid_str are both in the perspective of $me.
