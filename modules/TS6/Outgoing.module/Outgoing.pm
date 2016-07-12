@@ -131,6 +131,18 @@ sub send_endburst {
     $server->send($server->has_cap('eb') ? '' : sprintf ':%s PONG %s %s', ts6_id($me), $me->{name}, $server->{name});
 }
 
+# ts6 nick safety
+sub safe_nick {
+    my $user = shift;
+
+    # if the nickname is the juno UID, use the ts6 uid
+    if ($user->{nick} eq $user->{uid}) {
+        return ts6_id($user);
+    }
+
+    return $user->{nick};
+}
+
 # SID
 #
 # source:       server
@@ -176,7 +188,7 @@ sub euid {
 
     sprintf ":%s EUID %s %d %d %s %s %s %s %s %s %s :%s",
     ts6_id($user->{server}),                        # source SID
-    $user->{nick},                                  # nickname
+    safe_nick($user),                               # nickname
     $me->hops_to($user->{server}),                  # number of hops
     $user->{nick_time},                             # last nick-change time
     $user->mode_string($server),                    # +modes string
@@ -323,7 +335,7 @@ sub nick {
     my ($server, $user) = @_;
     sprintf ':%s NICK %s :%d',
     ts6_id($user),
-    $user->{nick},
+    safe_nick($user),
     $user->{nick_time}
 }
 
@@ -554,8 +566,11 @@ sub skill {
     my ($to_server, $source, $tuser, $reason) = @_;
     my ($id, $tid) = (ts6_id($source), ts6_id($tuser));
     my $path = $source->isa('user') ?
-        join('!', $source->{server}->name, @$source{qw(host ident nick)}) :
-        $source->name;
+        join('!',
+            $source->{server}->name,
+            @$source{ qw(host ident) },
+            safe_nick($source)
+        ) : $source->name;
     ":$id KILL $tid :$path ($reason)"
 }
 
@@ -744,7 +759,8 @@ sub whois {
     my ($to_server, $whoiser_user, $queried_user, $target_server) = @_;
     my $uid1 = ts6_id($whoiser_user);
     my $tsid = ts6_id($target_server);
-    ":$uid1 WHOIS $tsid $$queried_user{nick}"
+    my $nick = safe_nick($queried_user);
+    ":$uid1 WHOIS $tsid $nick"
 }
 
 # remote numerics
