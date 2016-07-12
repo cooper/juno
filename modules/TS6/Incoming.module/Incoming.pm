@@ -333,9 +333,10 @@ sub euid {
     );
     my ($mode_str, undef) = (delete $u{umodes}, delete $u{ts6_dummy});
 
-    $u{time} = $u{nick_time};                   # for compatibility
-    $u{host} = $u{cloak} if $u{host} eq '*';    # host equal to visible
-    $u{uid}  = uid_from_ts6($u{ts6_uid});       # convert to juno UID
+    $u{time} = $u{nick_time};                       # for compatibility
+    $u{host} = $u{cloak} if $u{host} eq '*';        # host equal to visible
+    $u{uid}  = uid_from_ts6($u{ts6_uid});           # convert to juno UID
+    $u{nick} = $u{uid} if $u{nick} eq $u{ts6_uid};  # use juno uid as nick
 
     # create a temporary user object.
     my $new_usr_temp = user->new(%u);
@@ -1016,6 +1017,9 @@ sub nick {
     # user any
     # :uid NICK  newnick
     my ($server, $msg, $user, $newnick) = @_;
+
+    # use juno uid as nick
+    $newnick = $user->{uid} if $newnick eq ts_id($user);
 
     # tell ppl
     $user->send_to_channels("NICK $newnick");

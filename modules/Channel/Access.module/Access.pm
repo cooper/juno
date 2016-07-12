@@ -15,7 +15,7 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils qw(conf match safe_arrayref);
+use utils qw(conf match safe_arrayref ref_to_list);
 
 our ($api, $mod, $me, $pool);
 my $banlike;
@@ -72,7 +72,8 @@ sub cmd_down {
     # find user's status modes.
     my @letters;
     foreach my $level (keys %ircd::channel_mode_prefixes) {
-        my ($letter, $symbol, $name) = @{ $ircd::channel_mode_prefixes{$level} };
+        my ($letter, $symbol, $name) =
+            ref_to_list($ircd::channel_mode_prefixes{$level});
         push @letters, $letter if $channel->list_has($name, $user);
     }
 
@@ -175,7 +176,8 @@ sub on_user_joined {
     # determine levels from names.
     my %levels;
     foreach my $level (keys %ircd::channel_mode_prefixes) {
-        my ($letter, $symbol, $name) = @{ $ircd::channel_mode_prefixes{$level} };
+        my ($letter, $symbol, $name) =
+            ref_to_list($ircd::channel_mode_prefixes{$level});
         @levels{ $name, $letter } = ($level, $level);
     }
 
@@ -219,7 +221,8 @@ sub on_user_joined {
     my ($op, $give_op) = $me->cmode_letter('op');
     if (!$channel->user_is($user, 'op') && !$has_letter{$op}) {
         foreach my $level (keys %ircd::channel_mode_prefixes) {
-            my ($letter, $symbol, $name) = @{ $ircd::channel_mode_prefixes{$level} };
+            my ($letter, $symbol, $name) =
+                ref_to_list($ircd::channel_mode_prefixes{$level});
             $give_op = 1, last if $has_letter{$letter} && $level > 0;
         }
         if ($give_op) {

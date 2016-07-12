@@ -17,7 +17,7 @@ use strict;
 use feature 'switch';
 use parent 'Evented::Object';
 
-use utils qw(conf v notice match);
+use utils qw(conf v notice match ref_to_list);
 use List::Util qw(first max);
 
 our ($api, $mod, $pool, $me);
@@ -86,7 +86,7 @@ sub list_matches {
 sub list_elements {
     my ($channel, $name, $all) = @_;
     return unless $channel->{modes}{$name};
-    my @list = @{ $channel->{modes}{$name}{list} || [] };
+    my @list = ref_to_list($channel->{modes}{$name}{list});
     if ($all)  { return @list }
     return map { $_->[0]      } @list;
 }
@@ -117,7 +117,9 @@ sub remove_from_list {
     my ($channel, $name, $what) = @_;
     return unless $channel->list_has($name, $what);
 
-    my @new = grep { $_->[0] ne $what } @{ $channel->{modes}{$name}{list} };
+    my @new = grep {
+        $_->[0] ne $what
+    } ref_to_list($channel->{modes}{$name}{list});
     $channel->{modes}{$name}{list} = \@new;
 
     L("$$channel{name}: removing $what from $name list");
@@ -493,7 +495,8 @@ sub user_get_levels {
     return if !$channel->has_user($user);
     my @levels;
     foreach my $level (sort { $b <=> $a } keys %ircd::channel_mode_prefixes) {
-        my ($letter, $symbol, $name) = @{ $ircd::channel_mode_prefixes{$level} };
+        my ($letter, $symbol, $name) =
+            ref_to_list($ircd::channel_mode_prefixes{$level});
         push @levels, $level if $channel->list_has($name, $user);
     }
     return @levels;
@@ -690,7 +693,8 @@ sub prefixes {
     my ($channel, $user) = @_;
     my $prefixes = '';
     foreach my $level (sort { $b <=> $a } keys %ircd::channel_mode_prefixes) {
-        my ($letter, $symbol, $name) = @{ $ircd::channel_mode_prefixes{$level} };
+        my ($letter, $symbol, $name) =
+            ref_to_list($ircd::channel_mode_prefixes{$level});
         $prefixes .= $symbol if $channel->list_has($name, $user);
     }
     return $prefixes;

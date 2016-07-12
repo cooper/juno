@@ -1411,7 +1411,7 @@ CHANGES:
 
             January 19, 2012
 
-            6. fixed a bug where AUM was entirely retarded. it was caused by a recent code cleanup.
+            6. fixed a bug where AUM was entirely retarding. it was caused by a recent code cleanup.
 
             7. fixed a bug where users could continuously change their nickname to their UID.
 
@@ -3316,3 +3316,7 @@ CHANGES:
         Channel::Fantasy now ignores fantasy commands from clients marked as bots.
         added deaf user support (+D). closes #44.
         fixed an issue where mode parameters got mixed up in JELP SJOIN when modes were missing on some servers.
+
+        31. if the UID and nickname fields are the same in TS6, adopt the internal UID.
+            this fixes an issue where saved users (whose nicks were changed to their UIDs) would have their TS6 UID even on juno servers after a netsplit.
+            replaced various occurrences of array dereferencing on configuration values with the safer ref_to_list().
