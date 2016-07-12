@@ -825,9 +825,10 @@ sub add_internal_channel_modes {
 
     # [letter, symbol, name]
     foreach my $name ($conf->keys_of_block('prefixes')) {
-        my $p = conf('prefixes', $name);
+        my $p = conf('prefixes', $name) or next;
+        next if !ref $p || ref $p ne 'ARRAY' || @$p < 3;
         $me->add_cmode($name, $p->[0], 4);
-        $channel_mode_prefixes{$p->[2]} = [ $p->[0], $p->[1], $name ]
+        $channel_mode_prefixes{ $p->[2] } = [ $p->[0], $p->[1], $name ]
     }
 
     L("registering channel mode letters");
