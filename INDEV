@@ -3315,3 +3315,4 @@ CHANGES:
     3. added bot user mode (+B) and the corresponding WHOIS line and WHO flag.
         Channel::Fantasy now ignores fantasy commands from clients marked as bots.
         added deaf user support (+D). closes #44.
+        fixed an issue where mode parameters got mixed up in JELP SJOIN when modes were missing on some servers.
