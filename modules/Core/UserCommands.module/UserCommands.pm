@@ -1,4 +1,4 @@
-# Copyright (c) 2009-14, Mitchell Cooper
+# Copyright (c) 2009-16, Mitchell Cooper
 #
 # @name:            "Core::UserCommands"
 # @version:         ircd->VERSION
@@ -1079,39 +1079,21 @@ sub rehash {
 sub ukill {
     my ($user, $event, $tuser, $reason) = @_;
 
-    # local user.
-    if ($tuser->is_local) {
-
-        # make sure they have kill flag
-        if (!$user->has_flag('kill')) {
-            $user->numeric(ERR_NOPRIVILEGES => 'kill');
-            return;
-        }
-
-        # rip in peace.
-        $tuser->loc_get_killed_by($user, $reason);
-        $pool->fire_command_all(kill => $user, $tuser, $reason);
-
+    # make sure they have kill flag
+    if (!$user->has_flag('kill')) {
+        $user->numeric(ERR_NOPRIVILEGES => 'kill');
+        return;
     }
 
-    # tell other servers.
-    # it will be sent throughout the entire system, but only the server who the user is
-    # physically connected to will respond by removing the user. The other servers will
-    # ->quit the user when that server sends a QUIT message. Because of this, it is possible
-    # for kill messages to be ignored entirely. It all depends on the response of the server
-    # the target user is connected to.
-    else {
-
-        # make sure they have gkill flag
-        if (!$user->has_flag('gkill')) {
-            $user->numeric(ERR_NOPRIVILEGES => 'gkill');
-            return;
-        }
-
-        $pool->fire_command_all(kill => $user, $tuser, $reason);
-        my $name = $user->name;
-        $tuser->quit("Killed ($name ($reason))");
+    # make sure they have gkill flag
+    if (!$tuser->is_local && !$user->has_flag('gkill')) {
+        $user->numeric(ERR_NOPRIVILEGES => 'kill');
+        return;
     }
+
+    # kill
+    $tuser->get_killed_by($user, $reason);
+    $pool->fire_command_all(kill => $user, $tuser, $reason);
 
     $user->server_notice('kill', "$$tuser{nick} has been killed");
     return 1

@@ -108,7 +108,7 @@ my %scommands = (
     KILL => {
                    # :src KILL uid  :reason
         params  => '-source    user :rest',
-        code    => \&skill
+        code    => \&_kill
     },
     AUM => {
                    # :sid AUM       name1:letter1 name2:letter2 ...
@@ -584,7 +584,7 @@ sub aum {
     #
     # this will probably only be used for JELP
     #
-    $msg->forward(aum => $serv);
+    $msg->forward(add_umodes => $serv);
 
     return 1;
 }
@@ -610,7 +610,7 @@ sub acm {
     #
     # this will probably only be used for JELP
     #
-    $msg->forward(acm => $serv);
+    $msg->forward(add_cmodes => $serv);
 
     return 1;
 }
@@ -806,21 +806,12 @@ sub topicburst {
     return 1;
 }
 
-sub skill {
+sub _kill {
     # user  user :rest
     # :uid  KILL  uid  :reason
     my ($server, $msg, $source, $tuser, $reason) = @_;
 
-    # local; destroy connection.
-    if ($tuser->is_local) {
-        $tuser->loc_get_killed_by($source, $reason);
-    }
-
-    # not local; just dispose of it.
-    else {
-        my $name = $source->name;
-        $tuser->quit("Killed ($name ($reason))");
-    }
+    $tuser->get_killed_by($source, $reason);
 
     # === Forward ===
     $msg->forward(kill => $source, $tuser, $reason);

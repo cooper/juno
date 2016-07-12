@@ -13,5 +13,5 @@
    "description" : "Provides SASL authentication",
    "name" : "SASL",
    "package" : "M::SASL",
-   "version" : "3.7"
+   "version" : "4.2"
 }

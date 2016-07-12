@@ -17,5 +17,5 @@
    "description" : "the core components of the ircd",
    "name" : "Core",
    "package" : "M::Core",
-   "version" : "9.86"
+   "version" : "11.33"
 }

@@ -1,4 +1,4 @@
-# Copyright (c) 2009-14, Mitchell Cooper
+# Copyright (c) 2009-16, Mitchell Cooper
 #
 # @name:            "ircd::user"
 # @package:         "user"
@@ -382,6 +382,35 @@ sub numeric {
 sub handle_unsafe           { _handle_with_opts(1,     @_[0,1]) }
 sub handle_with_opts_unsafe { _handle_with_opts(1,     @_)      }
 
+# handle a kill on a local or remote user.
+# does NOT propgate.
+sub get_killed_by {
+    my ($user, $source, $reason) = @_;
+
+    # if the reason is not passed as a ref, add the name.
+    if (!ref $reason) {
+        my $name = $source->name;
+        $reason = \ "$name ($reason)";
+    }
+
+    # local user, use ->done().
+    if ($user->is_local) {
+        $user->{conn}{killed} = 1;
+        $user->{conn}->done("Killed ($$reason)");
+    }
+
+    # remote user, use ->quit().
+    else {
+        $user->quit("Killed ($$reason)");
+    }
+
+    # TODO: send KILL message to the user
+    # charybdis/3c7d6fcce7a021ea7c4948a37a32aeca072e5b10/modules/core/m_kill.c#L237
+
+    notice(user_killed => $user->notice_info, $source->full, $$reason);
+    return 1;
+}
+
 # handle a ident or cloak change.
 #
 # sends notifications to local users,
@@ -628,19 +657,6 @@ sub sendme {
     $user->sendfrom($me->{name}, @_);
 }
 
-# handle a kill on a local user.
-sub loc_get_killed_by {
-    my ($user, $murderer, $reason) = @_;
-    return unless $user->is_local;
-    if (!ref $reason) {
-        my $name = $murderer->name;
-        $reason = \ "$name ($reason)";
-    }
-    $user->{conn}{killed} = 1;
-    $user->{conn}->done("Killed ($$reason)");
-    notice(user_killed => $user->notice_info, $murderer->full, $$reason);
-}
-
 # handle an invite for a local user.
 # $channel might be an object or a channel name.
 sub loc_get_invited_by {
@@ -830,7 +846,7 @@ sub _do_mode_string {
 
     # tell the user himself..
     $user->sendfrom($user->{nick}, "MODE $$user{nick} :$result")
-        if $user->is_local;
+        if $user->is_local && length $result > 1;
 
     # tell other servers.
     $pool->fire_command_all(umode => $user, $result)

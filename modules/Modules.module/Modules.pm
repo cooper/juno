@@ -1,4 +1,4 @@
-# Copyright (c) 2009-14, Mitchell Cooper
+# Copyright (c) 2009-16, Mitchell Cooper
 #
 # @name:            "Modules"
 # @package:         "M::Modules"

@@ -1,4 +1,4 @@
-# Copyright (c) 2009-14, Mitchell Cooper
+# Copyright (c) 2009-16, Mitchell Cooper
 #
 # @name:            "ircd::channel"
 # @package:         "channel"
@@ -718,7 +718,8 @@ sub _do_mode_string {
     my $local_ustr =
         $perspective == $me ? $user_result :
         $perspective->convert_cmode_string($me, $user_result);
-    $channel->sendfrom_all($source->full, "MODE $$channel{name} $local_ustr");
+    $channel->sendfrom_all($source->full, "MODE $$channel{name} $local_ustr")
+        if length $local_ustr > 1;
 
     # stop here if it's not a local user or this server.
     return if $local_only || !$source->is_local;

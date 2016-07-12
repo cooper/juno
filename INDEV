@@ -3324,3 +3324,6 @@ CHANGES:
         32. added TS6 ENCAP RSFNC handling. this adds support for services nickname enforcement.
             fixed a bug where the TS6 NICK command would set the nickTS to the current time rather than the provided one.
             fixed bugs with propagation of UIDs as nicknames in TS6.
+
+        33. eliminated code repetition in kill handling and propagation.
+            ->loc_get_killed_by() was replaced with ->get_killed_by() which works for both local and remote users.

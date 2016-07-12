@@ -404,6 +404,23 @@ trailing newlines or carriage returns.
 * __%opts__: _optional_, a hash of options to pass to the underlying function
 call.
 
+### $user->get_killed_by($murderer, $reason)
+
+Handles a kill on a local level. The user being killed does not have to be
+local.
+
+Servers are NOT notified by this method. Local kills MUST be associated with a
+`->fire_command_all()` call, and remote kills MUST be broadcasted
+to other uplinks with `->forward()`.
+
+```perl
+my $reason = "Your behavior is not conducive to the desired environment.";
+$user->get_killed_by($other_user, $reason);
+```
+
+* __$murderer__: the user committing the action.
+* __$reason__: the comment for why the user was killed.
+
 ### $user->get_mask_changed($new_ident, $new_host)
 
 Handles an ident or cloak change. This method updates the user fields and
@@ -689,24 +706,6 @@ $user->server_notice('Hi!');
 ```
 
 * __$line__: a line of data WITHOUT a suffixing newline and carriage return.
-
-### $user->loc_get_killed_by($murderer, $reason)
-
-Handles a kill on a local level. If the user is not local, this method returns
-`undef` and fails. Otherwise, the user will be removed from the server, the
-message will be forwarded to child servers, and those in a common channel with
-him will be notified.
-
-Servers are NOT notified by this method. Kills of local origin must be forwarded
-to uplinks elsewhere.
-
-```perl
-my $reason = "Your behavior is not conducive to the desired environment.";
-$user->loc_get_killed_by($other_user, $reason);
-```
-
-* __$murderer__: the user committing the action.
-* __$reason__: the comment for why the user was killed.
 
 ### $user->loc_get_invited_by($inviter, $ch_or_name)
 

@@ -141,22 +141,8 @@ sub handle_nick_collision {
 
         # if we can't save the old user, kill him.
         if ($kill_old) {
-
-            # local user - handle local kill.
-            if ($old->is_local) {
-                # TODO: numeric for nick collision
-                $old->loc_get_killed_by($me, 'Nick collision');
-            }
-
-            # not local; just dispose of it.
-            else {
-                $old->quit("Killed ($$me{name} (Nick collision))");
-            }
-
-            # don't send to the server which caused the collision because it
-            # does not even know about this user yet.
+            $old->get_killed_by($me, 'Nick collision');
             $pool->fire_command_all(kill => $me, $old, 'Nick collision');
-
         }
 
         return 1; # true value = return the handler

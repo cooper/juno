@@ -71,7 +71,7 @@ our %ts6_incoming_commands = (
     KILL => {
                    # :src   KILL    uid     :path
         params  => '-source         user    :rest',
-        code    => \&skill
+        code    => \&_kill
     },
     PART => {
                    # :uid PART    ch_name_multi  :reason
@@ -907,7 +907,7 @@ sub su {
 #
 # ts6-protocol.txt:444
 #
-sub skill {
+sub _kill {
     # source            user  :rest
     # :source     KILL  uid   :path
     # path is the source and the reason; e.g. server!host!iuser!nick (go away)
@@ -917,16 +917,7 @@ sub skill {
     my $reason = (split / /, $path, 2)[1];
     $reason = substr $reason, 1, -1;
 
-    # local; destroy connection.
-    if ($tuser->is_local) {
-        $tuser->loc_get_killed_by($source, $reason);
-    }
-
-    # not local; just dispose of it.
-    else {
-        my $name = $source->name;
-        $tuser->quit("Killed ($name ($reason))");
-    }
+    $tuser->get_killed_by($source, $reason);
 
     # === Forward ===
     $msg->forward(kill => $source, $tuser, $reason);
@@ -1618,21 +1609,8 @@ sub rsfnc {
     # the nickname is in use by a user.
     elsif ($existing) {
         my $reason = 'Nickname regained by services';
-
-        # local user, use ->loc_get_killed_by()
-        if ($existing->is_local) {
-            $existing->loc_get_killed_by($source_serv, $reason);
-        }
-
-        # remote user, use ->quit()
-        else {
-            my $name = $source_serv->name;
-            $existing->quit("Killed ($name ($reason))");
-        }
-
-        # tell others
+        $existing->get_killed_by($source_serv, $reason);
         $pool->fire_command_all(kill => $source_serv, $existing, $reason);
-
     }
 
     # change the nickname.

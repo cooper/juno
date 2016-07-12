@@ -21,13 +21,13 @@ our ($api, $mod, $me, $pool);
 
 my %ocommands = (
     quit            => \&quit,
-    new_server      => [ \&sid, \&aum, \&acm ],             # sid / aum / acm
-    new_user        => \&uid,                               # uid
+    new_server      => [ \&sid, \&aum, \&acm ],
+    new_user        => \&uid,
     nickchange      => \&nickchange,
     umode           => \&umode,
     privmsgnotice   => \&privmsgnotice,
     privmsgnotice_server_mask => \&privmsgnotice_smask,
-    join            => \&_join,                             # sjoin
+    join            => \&_join,
     oper            => \&oper,
     away            => \&away,
     return_away     => \&return_away,
@@ -46,22 +46,18 @@ my %ocommands = (
     time            => \&_time,
     snotice         => \&snotice,
     version         => \&version,
-    login           => \&login,     # TODO: logout
-    su_login        => \&su_login,  # TODO: logout
+    login           => \&login,                             # TODO: logout
+    su_login        => \&su_login,                          # TODO: logout
     part_all        => \&partall,
     invite          => \&invite,
     ircd_rehash     => \&rehash,
     save_user       => \&save,
-
-    # JELP-specific
-
-    acm             => \&acm,
-    aum             => \&aum,
+    add_cmodes      => \&acm,
+    add_umodes      => \&aum,
     burst           => \&burst,
     endburst        => \&endburst,
     ircd_update     => \&update,
     ircd_reload     => \&reload
-
 );
 
 sub init {
@@ -103,8 +99,8 @@ sub send_burst {
     my ($do, %done);
 
     # first, send modes of this server.
-    $server->fire_command(aum => $me);
-    $server->fire_command(acm => $me);
+    $server->fire_command(add_umodes => $me);
+    $server->fire_command(add_cmodes => $me);
 
     # don't send info for this server or the server we're sending to.
     $done{$server} = $done{$me} = 1;

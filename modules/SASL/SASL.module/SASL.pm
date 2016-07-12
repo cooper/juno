@@ -204,13 +204,18 @@ sub update_user_info {
     # TODO: for reauth, check if $existing == the user OR the conn
     my $existing = $pool->nick_in_use($nick); # could be a user
     if ($update_nick && $existing && $existing != $conn) {
-        my $is_conn = $existing->isa('connection');
 
         # for connections, just drop them.
-        $existing->done('Overriden') if $is_conn;
+        if ($existing->isa('connection')) {
+            $existing->done('Overriden');
+        }
 
         # for users, kill locally or remotely.
-        do_user_kill($existing, 'Nickname regained by services') if !$is_conn;
+        else {
+            my $reason = 'Nickname regained by services';
+            $existing->get_killed_by($me, $reason);
+            $pool->fire_command_all(kill => $me, $existing, $reason);
+        }
 
     }
 
@@ -253,26 +258,6 @@ sub update_account {
     }
 
     return 1;
-}
-
-sub do_user_kill {
-    my ($user, $source, $reason) = @_;
-    $user->isa('user') or return;
-
-    # local user, use ->loc_get_killed_by()
-    if ($user->is_local) {
-        $user->loc_get_killed_by($source, $reason);
-    }
-
-    # remote user, use ->quit()
-    else {
-        my $name = $source->name;
-        $user->quit("Killed ($name ($reason))");
-    }
-
-    # tell others
-    $pool->fire_command_all(kill => $source, $user, $reason);
-
 }
 
 # we've already sent RPL_LOGGEDIN at this point.
