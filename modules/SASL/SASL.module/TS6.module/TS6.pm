@@ -18,7 +18,7 @@ use warnings;
 use strict;
 use 5.010;
 
-use M::TS6::Utils qw(ts6_uid ts6_id uid_from_ts6);
+use M::TS6::Utils qw(ts6_uid ts6_id uid_from_ts6 irc_lc);
 
 our ($api, $mod, $pool, $me);
 
@@ -77,7 +77,7 @@ sub encap_sasl {
     # if the server mask is not exactly equal to this server's name,
     # propagate the message and do nothing else. only SASL agents are permitted
     # to respond to broadcast ('*') messages.
-    if (lc $serv_mask ne lc $me->name) {
+    if (irc_lc($serv_mask) ne irc_lc($me->name)) {
         my @common = (
             $source_serv,       # source server
             $serv_mask,         # server mask target
@@ -232,7 +232,7 @@ sub encap_svslogin {
     # if the server mask is not exactly equal to this server's name,
     # propagate the message and do nothing else. only SASL agents are permitted
     # to respond to broadcast ('*') messages.
-    if (lc $serv_mask ne lc $me->name) {
+    if (irc_lc($serv_mask) ne irc_lc($me->name)) {
         $msg->forward_to_mask($serv_mask, sasl_conn_info =>
             $source_serv, $serv_mask, $target_uid,
             $nick, $ident, $cloak, $act_name

@@ -15,6 +15,8 @@ use warnings;
 use strict;
 use 5.010;
 
+use utils qw(irc_lc);
+
 our ($api, $mod, $me, $pool);
 
 use utils qw(conf);
@@ -108,7 +110,7 @@ sub add_invite_callbacks {
     # delete invitation on user join.
     $pool->on('channel.user_joined' => sub {
         my ($channel, $user) = (shift->object, shift);
-        delete $user->{invite_pending}{ lc $channel->name };
+        delete $user->{invite_pending}{ irc_lc($channel->name) };
     }, name => 'invite.clear');
 
     # ARE WE GOING TO ALLOW THIS INVITE?
@@ -216,7 +218,7 @@ sub add_invite_callbacks {
 
         # user has been invited.
         return $JOIN_OK
-            if $user->{invite_pending}{ lc $channel->name };
+            if $user->{invite_pending}{ irc_lc($channel->name) };
 
         # user matches the exception list.
         return $JOIN_OK

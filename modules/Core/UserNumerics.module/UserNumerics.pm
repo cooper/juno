@@ -35,6 +35,7 @@ our %user_numerics = (
     RPL_MAP              => ['015', ':%s- %s: %d users (%d%%)'                                            ],
     RPL_MAP2             => ['015', ':- Total of %d users on %d servers, average %d users per server'     ],
     RPL_MAPEND           => ['017', ':End of MAP'                                                         ],
+    RPL_YOURID           => ['042', '%s :your unique ID'                                                  ],
     RPL_SAVENICK         => ['043', '%s :Nick collision, forcing nick change to your unique ID'           ],
                           # [                                                                             ],
                           # [============================== NORMAL REPLIES ===============================],
@@ -137,6 +138,9 @@ sub rpl_isupport {
     my $listmodes = join '', sort map { $_->{letter} }
       grep { ($_->{type} // -1) == 3 } values %{ $me->{cmodes} };
 
+    # I want this to be extensible so that modules can add things to it.
+    # See issue #96.
+
     my %things = (
         PREFIX      => &isp_prefix,
         CHANTYPES   => '#',
@@ -147,9 +151,9 @@ sub rpl_isupport {
         MAXLIST     => "$listmodes:1000",           # TODO: currently unlimited
         NETWORK     => conf('server', 'network') // conf('network', 'name'),
         EXCEPTS     => $me->cmode_letter('except'),
-        INVEX       => $me->cmode_letter('invite_except'),
+        INVEX       => $me->cmode_letter('invite_except'),  # TODO: make the Invite module add this
         DEAF        => $me->umode_letter('deaf'),
-        CASEMAPPING => 'ascii',
+        CASEMAPPING => lc conf('server', 'casemapping'),
         TOPICLEN    => conf('limit', 'topic'),
         KICKLEN     => conf('limit', 'kickmsg'),
         CHANNELLEN  => conf('limit', 'channelname'),

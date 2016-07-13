@@ -22,7 +22,7 @@ use overload
     '0+'     => sub { shift     },
     bool     => sub { 1         };
 
-use utils qw(v notice col conf irc_time cut_to_limit);
+use utils qw(v notice col conf irc_time cut_to_limit irc_lc);
 use List::Util   'first';
 use Scalar::Util 'blessed';
 
@@ -674,7 +674,7 @@ sub loc_get_invited_by {
 
     }
 
-    $user->{invite_pending}{ lc $ch_name } = 1;
+    $user->{invite_pending}{ irc_lc($ch_name) } = 1;
     $user->sendfrom($i_user->full, "INVITE $$user{nick} $ch_name");
 }
 
@@ -786,6 +786,7 @@ sub _new_connection {
         $pool->channel_mode_string
     );
     $user->numeric('RPL_ISUPPORT');
+    $user->numeric(RPL_YOURID => $user->{uid}) if conf('users', 'notify_uid');
 
     # LUSERS and MOTD
     $user->handle('LUSERS');

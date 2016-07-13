@@ -18,6 +18,8 @@ use warnings;
 use strict;
 use 5.010;
 
+use utils qw(irc_lc);
+
 our ($api, $mod, $pool, $me);
 
 our %jelp_incoming_commands = (
@@ -77,7 +79,7 @@ sub saslhost {
     ) = @_;
 
     # we don't do anything with this.
-    return 1 if lc $serv_mask eq lc $me->name;
+    return 1 if irc_lc($serv_mask) eq irc_lc($me->name);
 
     #=== Forward ===#
     $msg->forward_to_mask($serv_mask, sasl_host_info => @_[2..7]);
@@ -95,7 +97,7 @@ sub saslstart {
     ) = @_;
 
     # we don't do anything with this.
-    return 1 if lc $serv_mask eq lc $me->name;
+    return 1 if irc_lc($serv_mask) eq irc_lc($me->name);
 
     #=== Forward ===#
     $msg->forward_to_mask($serv_mask, sasl_initiate => @_[2..6]);
@@ -114,7 +116,7 @@ sub sasldata {
 
     #=== Forward ===#
     # it has to be me.
-    if (lc $serv_mask ne lc $me->name) {
+    if (irc_lc($serv_mask) ne irc_lc($me->name)) {
         $msg->forward_to_mask($serv_mask, sasl_client_data => @_[2..6]);
         return 1;
     }
@@ -139,7 +141,7 @@ sub sasldone {
 
     #=== Forward ===#
     # it has to be me.
-    if (lc $serv_mask ne lc $me->name) {
+    if (irc_lc($serv_mask) ne irc_lc($me->name)) {
         $msg->forward_to_mask($serv_mask, sasl_done => @_[2..6]);
         return 1;
     }
@@ -191,7 +193,7 @@ sub saslset {
 
     #=== Forward ===#
     # it has to be me.
-    if (lc $serv_mask ne lc $me->name) {
+    if (irc_lc($serv_mask) ne irc_lc($me->name)) {
         $msg->forward_to_mask($serv_mask, sasl_conn_info => @_[2..8]);
         return 1;
     }
@@ -227,7 +229,7 @@ sub saslmechs {
     ) = @_;
 
     # we don't do anything with this.
-    return 1 if lc $serv_mask eq lc $me->name;
+    return 1 if irc_lc($serv_mask) eq irc_lc($me->name);
 
     #=== Forward ===#
     $msg->forward_to_mask($serv_mask, sasl_mechanisms => @_[2..6]);

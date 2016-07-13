@@ -122,6 +122,41 @@ sub validchan {
     return 1;
 }
 
+sub irc_lc {
+    my ($name, $map) = @_;
+    $map ||= conf('server', 'casemapping');
+
+    # rfc1459
+    # A-Z   -> a-z
+    # []    -> {}
+    # \     -> |
+    # ~     -> ^
+    if ($map eq 'rfc1459') {
+        $name =~ tr/A-Z[]\\~/a-z{}|^/;
+    }
+
+    # "strict" rfc1459
+    # A-Z   -> a-z
+    # []    -> {}
+    # \     -> |
+    elsif ($map eq 'strict-rfc1459') {
+        $name =~ tr/A-Z[]\\/a-z{}|/;
+    }
+
+    # unicode lc rules
+    if ($map eq 'utf8') {
+        use utf8;
+        $name = lc $name;
+    }
+
+    # default is ASCII
+    else {
+        $name =~ tr/A-Z/a-z/;
+    }
+
+    return $name;
+}
+
 # match a list.
 sub match {
     my ($what, @list) = @_;

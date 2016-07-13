@@ -19,7 +19,7 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils qw(conf irc_match notice ref_to_list);
+use utils qw(conf irc_match notice ref_to_list irc_lc);
 use M::TS6::Utils qw(ts6_id sid_from_ts6 user_from_ts6 ts6_uid);
 
 our ($api, $mod, $pool, $conf, $me);
@@ -161,7 +161,8 @@ sub rcmd_server {
 
     # if this was by our request (as in an autoconnect or /connect or something)
     # don't accept any server except the one we asked for.
-    if (length $connection->{want} && lc $connection->{want} ne lc $connection->{name}) {
+    if (length $connection->{want} &&
+    irc_lc($connection->{want}) ne irc_lc($connection->{name})) {
         $connection->done('Unexpected server');
         return;
     }

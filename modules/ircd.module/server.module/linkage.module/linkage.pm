@@ -15,7 +15,7 @@ package server::linkage;
 use warnings;
 use strict;
 
-use utils qw(conf v notice);
+use utils qw(conf v notice irc_lc);
 
 our ($api, $mod, $me, $pool, $conf);
 my $timers  = \%ircd::link_timers;
@@ -49,7 +49,7 @@ sub init {
 # returning no error does not guarantee success.
 #
 sub connect_server {
-    my ($server_name, $auto_only) = (lc shift, shift);
+    my ($server_name, $auto_only) = (irc_lc(shift), shift);
 
     # server is already registered/known.
     if ($pool->lookup_server_name($server_name)) {
@@ -200,7 +200,7 @@ sub _establish_connection {
 # by some other means.
 #
 sub cancel_connection {
-    my ($server_name, $keep_conn) = (lc shift, shift);
+    my ($server_name, $keep_conn) = (irc_lc(shift), shift);
     my $timer = delete $timers->{$server_name};
     my $ret;
     if ($timer) {
@@ -223,7 +223,7 @@ sub cancel_connection {
 #
 sub new_server {
     my $server = shift;
-    my $name   = lc $server->{name};
+    my $name   = irc_lc($server->{name});
     cancel_connection($name, 1);
 }
 

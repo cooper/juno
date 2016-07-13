@@ -8,6 +8,8 @@
     description = 'juno development server'     # server description
     sex         = 'male'                        # server gender
     id          = 0                             # server ID (must be unique and integral)
+    casemapping = 'rfc1459'                     # 'rfc1459' or 'ascii'
+                                                # you MUST use rfc1459 if using TS6
 
 
 [ api ]

@@ -3327,3 +3327,11 @@ CHANGES:
 
         33. eliminated code repetition in kill handling and propagation.
             ->loc_get_killed_by() was replaced with ->get_killed_by() which works for both local and remote users.
+
+        34. this includes part one of a two-part mass replacement of the core lc() function with the new irc_lc().
+            the new function supports a few different options for casemapping and fixes some issues with TS6 links. closes #98.
+            the new config option server:casemapping defaults to 'rfc1459', so this may cause user and channel collisions.
+            currently 'rfc1459' and 'ascii' are supported but only the former is allowed for use with TS6.
+            added RPL_LUSERUNKNOWN to LUSERS command, which displays the number of unregistered connections.
+            added users:allow_uid_nick option which, if explicitly disabled, disallows the NICK 0 command.
+            added users:notify_uid option which, if enabled, sends RPL_YOURID on connect.

@@ -15,10 +15,11 @@ package pool;
 use warnings;
 use strict;
 use 5.010;
+use utf8;
 use parent 'Evented::Object';
 
 use Scalar::Util qw(weaken blessed);
-use utils qw(v set_v notice conf ref_to_list);
+use utils qw(v set_v notice conf ref_to_list irc_lc);
 
 our ($api, $mod, $me);
 
@@ -112,7 +113,7 @@ sub new_server {
 
     # store it by ID and name.
     $pool->{servers}{ $server->{sid} } =
-    $pool->{server_names}{ lc $server->{name} } = $server;
+    $pool->{server_names}{ irc_lc($server->{name}) } = $server;
 
     # weakly reference to the pool.
     weaken($server->{pool} = $pool);
@@ -149,7 +150,7 @@ sub lookup_server_name {
         return $pool->lookup_server($1);
     }
 
-    return $pool->{server_names}{ lc $sname };
+    return $pool->{server_names}{ irc_lc($sname) };
 }
 
 # find any number of servers by mask.
@@ -198,7 +199,7 @@ sub delete_server {
     # forget it.
     delete $server->{pool};
     delete $pool->{servers}{ $server->{sid} };
-    delete $pool->{server_names}{ lc $server->{name} };
+    delete $pool->{server_names}{ irc_lc($server->{name}) };
 
     L("deleted server $$server{name}");
     return 1;
@@ -228,7 +229,7 @@ sub new_user {
 
     # store it by ID and nick.
     $pool->{users}{ $opts{uid} } =
-    $pool->{nicks}{ lc $opts{nick} } = $user;
+    $pool->{nicks}{ irc_lc($opts{nick}) } = $user;
 
     # weakly reference to the pool.
     weaken($user->{pool} = $pool);
@@ -282,7 +283,7 @@ sub uid_in_use {
 # find a user by his nick.
 sub lookup_user_nick {
     my ($pool, $nick) = @_;
-    my $user_maybe = $pool->{nicks}{ lc $nick };
+    my $user_maybe = $pool->{nicks}{ irc_lc($nick) };
     blessed $user_maybe && $user_maybe->isa('user') or return;
     return $user_maybe;
 }
@@ -290,7 +291,7 @@ sub lookup_user_nick {
 # reserve a nickname to an unregistered connection.
 sub reserve_nick {
     my ($pool, $nick, $obj) = @_;
-    weaken($pool->{nicks}{ lc $nick } = $obj);
+    weaken($pool->{nicks}{ irc_lc($nick) } = $obj);
     return 1;
 }
 
@@ -298,13 +299,13 @@ sub reserve_nick {
 sub release_nick {
     my ($pool, $nick) = @_;
     return if $pool->lookup_user_nick($nick);
-    delete $pool->{nicks}{ lc $nick };
+    delete $pool->{nicks}{ irc_lc($nick) };
 }
 
 # check if a nickname is in use, either by a user or an unregistered connection.
 sub nick_in_use {
     my ($pool, $nick) = @_;
-    return $pool->{nicks}{ lc $nick };
+    return $pool->{nicks}{ irc_lc($nick) };
 }
 
 # delete a user.
@@ -319,7 +320,7 @@ sub delete_user {
     # forget it.
     delete $user->{pool};
     delete $pool->{users}{ $user->{uid} };
-    delete $pool->{nicks}{ lc $user->{nick} };
+    delete $pool->{nicks}{ irc_lc($user->{nick}) };
 
     L("deleted user $$user{nick}");
     return 1;
@@ -337,8 +338,8 @@ sub change_user_nick {
     }
 
     # it does not exist.
-    delete $pool->{nicks}{ lc $user->{nick} };
-    $pool->{nicks}{ lc $newnick } = $user;
+    delete $pool->{nicks}{ irc_lc($user->{nick}) };
+    $pool->{nicks}{ irc_lc($newnick) } = $user;
 
     return 1;
 }
@@ -362,7 +363,7 @@ sub new_channel {
     my ($pool, %opts) = @_;
 
     # make sure it doesn't exist already.
-    if ($pool->{channels}{ lc $opts{name} }) {
+    if ($pool->{channels}{ irc_lc($opts{name}) }) {
         L("attempted to create channel that already exists: $opts{name}");
         return;
     }
@@ -370,7 +371,7 @@ sub new_channel {
     my $channel = channel->new(%opts) or return;
 
     # store it by name.
-    $pool->{channels}{ lc $opts{name} } = $channel;
+    $pool->{channels}{ irc_lc($opts{name}) } = $channel;
 
     # weakly reference to the pool.
     weaken($channel->{pool} = $pool);
@@ -385,7 +386,7 @@ sub new_channel {
 # find a channel by its name.
 sub lookup_channel {
     my ($pool, $name) = @_;
-    return $pool->{channels}{ lc $name };
+    return $pool->{channels}{ irc_lc($name) };
 }
 
 sub lookup_or_create_channel {
@@ -422,7 +423,7 @@ sub delete_channel {
 
     # forget it.
     delete $channel->{pool};
-    delete $pool->{channels}{ lc $channel->name };
+    delete $pool->{channels}{ irc_lc($channel->name) };
 
     L("deleted channel $$channel{name}");
     return 1;

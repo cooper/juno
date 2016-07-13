@@ -17,7 +17,10 @@ use strict;
 use 5.010;
 
 use Scalar::Util qw(blessed);
-use utils qw(col match cut_to_limit conf v notice gnotice simplify ref_to_list irc_match);
+use utils qw(
+    col match cut_to_limit conf v notice gnotice
+    simplify ref_to_list irc_match irc_lc
+);
 
 our ($api, $mod, $me, $pool, $conf, $VERSION);
 
@@ -237,9 +240,8 @@ sub motd {
 # change nickname
 sub nick {
     my ($user, $event, $newnick) = @_;
-    my $me = lc $user->{nick} eq lc $newnick;
 
-    if ($newnick eq '0') {
+    if ($newnick eq '0' && conf('users', 'allow_uid_nick')) {
         $newnick = $user->{uid};
     }
     else {
@@ -320,7 +322,7 @@ sub mode {
     my $modestr = join ' ', @rest;
 
     # is it the user himself?
-    if (lc $user->{nick} eq lc $t_name) {
+    if (irc_lc($user->{nick}) eq irc_lc($t_name)) {
 
         # mode change.
         if (length $modestr) {
@@ -765,7 +767,7 @@ sub whois {
     if (length $args[1]) {
         $query  = $args[1];
         $quser  = $pool->lookup_user_nick($query);
-        $server = lc $args[0] eq lc $args[1] ?
+        $server = irc_lc($args[0]) eq irc_lc($args[1]) ?
             $quser->{server} : $pool->lookup_server_mask($args[0]);
     }
 
@@ -998,6 +1000,9 @@ sub lusers {
     my $user = shift;
     my @actual_users = $pool->actual_users;
 
+    # get unknown count
+    my $unknown = scalar grep !$_->{type}, $pool->connections;
+
     # get server count
     my $servers   = scalar $pool->servers;
     my $l_servers = scalar grep { $_->{conn} } $pool->servers;
@@ -1028,6 +1033,7 @@ sub lusers {
     # send numerics
     $user->numeric(RPL_LUSERCLIENT   => $g_not_invisible, $g_invisible, $servers);
     $user->numeric(RPL_LUSEROP       => $opers);
+    $user->numeric(RPL_LUSERUNKNOWN  => $unknown);
     $user->numeric(RPL_LUSERCHANNELS => $chans);
     $user->numeric(RPL_LUSERME       => $l_users, $l_servers);
     $user->numeric(RPL_LOCALUSERS    => $l_users, $m_local, $l_users, $m_local);
@@ -1087,7 +1093,7 @@ sub ukill {
 
     # make sure they have gkill flag
     if (!$tuser->is_local && !$user->has_flag('gkill')) {
-        $user->numeric(ERR_NOPRIVILEGES => 'kill');
+        $user->numeric(ERR_NOPRIVILEGES => 'gkill');
         return;
     }
 
