@@ -124,7 +124,7 @@ sub validchan {
 
 sub irc_lc {
     my ($name, $map) = @_;
-    $map ||= conf('server', 'casemapping');
+    $map ||= $::casemapping || conf('server', 'casemapping');
 
     # rfc1459
     # A-Z   -> a-z
@@ -144,14 +144,19 @@ sub irc_lc {
     }
 
     # unicode lc rules
-    if ($map eq 'utf8') {
+    elsif ($map eq 'utf8') {
         use utf8;
         $name = lc $name;
     }
 
-    # default is ASCII
-    else {
+    # ascii lc rules
+    elsif ($map eq 'ascii') {
         $name =~ tr/A-Z/a-z/;
+    }
+
+    # default is rfc1459
+    else {
+        $name =~ tr/A-Z[]\\~/a-z{}|^/;
     }
 
     return $name;

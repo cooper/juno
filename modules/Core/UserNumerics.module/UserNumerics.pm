@@ -153,7 +153,7 @@ sub rpl_isupport {
         EXCEPTS     => $me->cmode_letter('except'),
         INVEX       => $me->cmode_letter('invite_except'),  # TODO: make the Invite module add this
         DEAF        => $me->umode_letter('deaf'),
-        CASEMAPPING => lc conf('server', 'casemapping'),
+        CASEMAPPING => $::casemapping || lc conf('server', 'casemapping'),
         TOPICLEN    => conf('limit', 'topic'),
         KICKLEN     => conf('limit', 'kickmsg'),
         CHANNELLEN  => conf('limit', 'channelname'),

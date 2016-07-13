@@ -164,6 +164,9 @@ sub setup_config {
     # developer mode?
     $api->{developer} = conf('server', 'developer');
 
+    # casemapping - only set ONCE.
+    $::casemapping ||= conf('server', 'casemapping');
+
     return 1;
 }
 
