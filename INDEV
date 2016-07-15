@@ -3340,3 +3340,6 @@ CHANGES:
             the server:casemapping option added in the previous version is now sticky such that it cannot be changed on RELOAD.
             this is because changing the casemapping in real-time can result in nickname, channel, and server name collisions.
             the default casemapping for irc_lc() is now 'rfc1459', which corresponds with default.conf.
+
+        36. fixed an issue where TS6 TB messages lacking the optional 'setby' parameter were ignored.
+            

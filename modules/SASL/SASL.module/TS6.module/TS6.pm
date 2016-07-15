@@ -18,7 +18,8 @@ use warnings;
 use strict;
 use 5.010;
 
-use M::TS6::Utils qw(ts6_uid ts6_id uid_from_ts6 irc_lc);
+use utils qw(irc_lc);
+use M::TS6::Utils qw(ts6_uid ts6_id uid_from_ts6);
 
 our ($api, $mod, $pool, $me);
 
