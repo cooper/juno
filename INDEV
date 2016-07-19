@@ -3342,4 +3342,5 @@ CHANGES:
             the default casemapping for irc_lc() is now 'rfc1459', which corresponds with default.conf.
 
         36. fixed an issue where TS6 TB messages lacking the optional 'setby' parameter were ignored.
-            
+            updated Evented::Configuration.
+            updated Evented::Database. #30.

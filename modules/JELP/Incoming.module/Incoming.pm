@@ -647,6 +647,12 @@ sub sjoin {
     # to ensure that all current modes known to this server are unset if the
     # provided TS is older than our existing channelTS.
     #
+    # note that converting the mode string to local perspective will result in
+    # a loss of modes unknown to this server. that is OK as of the time of
+    # writing because ANY ->mode_string_all() call from this server, regardless
+    # of the perspective argument, will omit modes unknown to the local server.
+    # it is currently impossible to track unknown modes. see issue #100.
+    #
     my $mode_str = join ' ', $mode_str_modes, @mode_params;
     $mode_str = $source_serv->convert_cmode_string($me, $mode_str, 1);
 

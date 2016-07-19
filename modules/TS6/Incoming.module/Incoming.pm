@@ -109,8 +109,8 @@ our %ts6_incoming_commands = (
         code    => \&away
     },
     TB => {
-                   # :sid TB        channel topic_ts setby :topic
-        params  => '-source(server) channel ts       *     :rest',
+                   # :sid TB        channel topic_ts setby    :topic
+        params  => '-source(server) channel ts       *(opt)   :rest',
         code    => \&tb
     },
     TOPIC => {
@@ -853,7 +853,7 @@ sub encap {
 #
 sub login {
     my ($server, $msg, $user, $serv_mask, undef, $act_name) = @_;
-    $msg->{encap_forwarded} = 1;
+    $msg->{encap_forwarded}++;
 
     # login.
     L("TS6 login $$user{nick} as $act_name");
@@ -874,7 +874,7 @@ sub login {
 #
 sub su {
     my ($server, $msg, $source_serv, $serv_mask, undef, $user, $act_name) = @_;
-    $msg->{encap_forwarded} = 1;
+    $msg->{encap_forwarded}++;
 
     # no account name = logout.
     if (!length $act_name) {
@@ -1178,9 +1178,15 @@ sub topic {
 # ts6-protocol.txt:916
 #
 sub tb {
-    # -source(server)   channel ts       *     :rest
-    # :sid TB           channel topic_ts setby :topic
+    # -source(server)   channel ts       *(opt) :rest
+    # :sid TB           channel topic_ts setby  :topic
     my ($server, $msg, $s_serv, $channel, $topic_ts, $setby, $topic) = @_;
+
+    # no topic. this means the setby parameter was omitted.
+    if (!defined $topic) {
+        $topic = $setby;
+        $setby = $s_serv->name;
+    }
 
     # we have a topic btw.
     if ($channel->{topic}) {
@@ -1196,14 +1202,10 @@ sub tb {
     }
 
     # tell users.
-    my $t = $channel->topic;
-    if (!$t or $t && $t->{topic} ne $topic) {
-        $channel->sendfrom_all($s_serv->full, "TOPIC $$channel{name} :$topic");
-    }
+    $channel->sendfrom_all($s_serv->full, "TOPIC $$channel{name} :$topic");
 
     # set it.
     if (length $topic) {
-
         $channel->{topic} = {
             setby  => $setby,
             time   => $topic_ts,
@@ -1255,6 +1257,7 @@ sub wallops {
 }
 
 # OPERWALL
+#
 # source: user
 # parameters: message
 # propagation: broadcast
@@ -1542,7 +1545,7 @@ sub invite {
 #
 sub rehash {
     my ($server, $msg, $user, $serv_mask, undef, $type) = @_;
-    $msg->{encap_forwarded} = 1;
+    $msg->{encap_forwarded}++;
 
     # rehash if the mask matches me.
     my @servers = $pool->lookup_server_mask($serv_mask) or return;
@@ -1592,6 +1595,8 @@ sub rsfnc {
     $user, $new_nick, $new_nick_ts, $old_nick_ts) = @_;
 
     # TODO: source_serv must be a services server
+    # TODO: don't assume the $serv_mask is me. if not, forward.
+    #$msg->{encap_forwarded}++;
 
     # ignore the message if the old nickTS is incorrect.
     if ($user->{nick_time} != $old_nick_ts) {
