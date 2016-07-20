@@ -38,13 +38,11 @@ sub update_aliases {
 
         # it was removed from the configuration
         if (!length $new_aliases{$command}) {
-            print "no length for $command\n";
             push @remove, $command;
         }
 
         # the format has changed
         elsif ($new_aliases{$command} ne $current_aliases{$command}) {
-            print "not equal for $command\n";
             push @remove, $command;
         }
 

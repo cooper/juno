@@ -19,6 +19,7 @@ use parent 'Evented::Object';
 
 use utils qw(conf v notice match ref_to_list);
 use List::Util qw(first max);
+use Scalar::Util qw(blessed);
 
 our ($api, $mod, $pool, $me);
 
@@ -354,6 +355,161 @@ sub handle_mode_string {
 
     L("end of mode handle");
     return ($user_string, $server_string);
+}
+
+sub handle_modes {
+    my ($channel, $source, $modes, $force, $over_protocol) = @_;
+    my @changes;
+
+    # $modes has to be an arrayref.
+    if (!ref $modes || ref $modes ne 'ARRAY') {
+        L("Modes are not in the proper arrayref form; mode handle aborted");
+        return;
+    }
+
+    # $modes has to have an even number of elements.
+    if (@$modes % 2) {
+        L("Odd number of elements passed; mode handle aborted");
+        return;
+    }
+
+    # if over_protocol is specified but not a code reference, fall back
+    # to JELP UID lookup function for compatibility.
+    if ($over_protocol && ref $over_protocol ne 'CODE') {
+        $over_protocol = sub { $pool->lookup_user(@_) };
+    }
+
+    # apply each mode.
+    MODE: while (my ($name, $param) = splice @$modes, 0, 2) {
+
+        # TODO: spin this off into another method to
+        # convert other objects and stuff to this server perspective ids
+        if (blessed $param) {
+            $param = $over_protocol ? $me->user_to_uid($param) : $param->name
+                if $param->isa('user');
+        }
+
+        # extract the state.
+        my $state = 1;
+        my $first = \substr($name, 0, 1);
+        if ($$first eq '-' || $$first eq '+') {
+            $state  = $$first eq '+';
+            $$first = '';
+        }
+
+        # find the mode type.
+        my $type = $me->cmode_type($name);
+        if (!defined $type || $type == -1) {
+            L("Mode '$name' is not known to this server; skipped");
+            next MODE;
+        }
+
+        # if the mode requires a parameter but one was not provided,
+        # we have no choice but to skip this.
+        #
+        # these are returned by ->cmode_takes_parameter: NOT mode types
+        #     1 = always takes param
+        #     2 = takes param, but valid if there isn't,
+        #         such as list modes like +b for viewing
+        #
+        my $takes = $me->cmode_takes_parameter($name, $state) || 0;
+        if (!defined $param && $takes == 1) {
+            L("Mode '$name' is missing a parameter; skipped");
+            next MODE;
+        }
+
+        # this is for compatibility with mode blocks that use something like:
+        # push @{ $mode->{parameters} }, ... to add a parameter to the
+        # resultant. it works by resetting the parameter list for each mode,
+        # such that it will probably never exceed a length of one.
+        my $params_before = 0;
+        my $parameters = [];
+
+        # don't allow this mode to be changed if the test fails
+        # *unless* force is provided.
+        my ($win, $moderef) = $pool->fire_channel_mode($channel, $name, {
+            channel => $channel,        # the channel
+            server  => $me,             # the server perspective
+            source  => $source,         # the source of the mode change (user or server)
+            state   => $state,          # setting or unsetting
+            setting => $state,          # to satisfy matthew
+            param   => $param,          # the parameter for this particular mode
+            params  => $parameters,     # the parameters for the resulting mode string
+            force   => $force,          # true if permissions should be ignored
+            proto   => $over_protocol,  # true if IDs used rather than nicks/names
+
+            # source can set simple modes.
+            has_basic_status => $force || $source->isa('server') ? 1
+                                : $channel->user_has_basic_status($source),
+
+            # a function to look up a user by nickname or UID.
+            user_lookup => $over_protocol || sub { $pool->lookup_user_nick(@_) }
+
+        });
+
+        # Determining whether to send ERR_CHANOPRIVSNEEDED
+        #
+        # Source is a local user?
+        #   No..................................... DO NOT SEND
+        #   Yes. Mode block set send_no_privs?
+        #       Yes................................ SEND
+        #       No. Mode block returned true?
+        #           Yes............................ DO NOT SEND
+        #           No. User has +h or higher?
+        #               Yes........................ DO NOT SEND
+        #               No. Mode block set hide_no_privs?
+        #                   Yes.................... DO NOT SEND
+        #                   No..................... SEND
+        #
+        if ($source->isa('user') && $source->is_local) {
+            my $no_status = !$win && !$moderef->{has_basic_status}
+                && !$moderef->{hide_no_privs};
+            my $yes = $moderef->{send_no_privs} || $no_status;
+            $source->numeric(ERR_CHANOPRIVSNEEDED => $channel->name) if $yes;
+        }
+
+        # block returned false; cancel the change.
+        next MODE if !$win;
+
+        # so this is the "new" way to set a parameter. rather than pushing
+        # to the parameter list, set the param key.
+        push @$parameters, $moderef->{param} if defined $moderef->{param};
+
+        # if this mode requires a parameter but the param count before handling
+        # the mode is the same as after, something didn't work.
+        # for example, a mode handler might not be present if a module isn't
+        # loaded. just ignore this mode in such a case.
+        next MODE if scalar @$parameters <= $params_before && $takes;
+
+        # the parameter is extracted in case it was modified by the mode
+        # block. the only place $param is used from hereo n is below in
+        # ->(un)set_mode() which is only called for modes of type 1 and 2.
+        $param = @$parameters[$#$parameters] if @$parameters;
+
+        # SAFE POINT:
+        # from here we can assume that the mode will be set or unset.
+        # it has passed all the tests and will certainly be applied.
+
+        # it is a "normal" type mode.
+        if ($type == 0) {
+            my $do = $state ? 'set_mode' : 'unset_mode';
+            $channel->$do($name);
+        }
+
+        # it is a mode with a simple parameter.
+        # does not include lists, status modes, key mode.
+        elsif ($type == 1 || $type == 2) {
+            $channel->set_mode($name, $param)   if  $state;
+            $channel->unset_mode($name)         if !$state;
+        }
+
+        # add it to the list of changes.
+        my $prefixed_name = ($state ? '' : '-').$name;
+        push @changes, $prefixed_name, $param;
+
+    }
+
+    return \@changes;
 }
 
 # returns a +modes string.

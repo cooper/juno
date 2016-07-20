@@ -283,22 +283,23 @@ sub combine_cmode_strings {
 # true if the mode takes a parameter in this state.
 #
 # returns:
+# undef = unknown
+#     0 = does not take parameter
 #     1 = yes, takes parameter
 #     2 = take parameter if present but still valid if not
-# undef = does not take parameter
 #
 sub cmode_takes_parameter {
     my ($server, $name, $state) = @_;
     my $keyshit = $state ? 1 : 2;
     my %params  = (
-        0 => undef,     # normal        - never
+        0 => 0,         # normal        - never
         1 => 1,         # parameter     - always
         2 => $state,    # parameter_set - when setting only
         3 => 2,         # list mode     - consume parameter if present but valid if not
         4 => 1,         # status mode   - always
         5 => $keyshit   # key mode (+k) - always when setting, only if present when unsetting
     );
-    return $params{ $server->{cmodes}{$name}{type} };
+    return $params{ $server->{cmodes}{$name}{type} || -1 };
 }
 
 # takes a channel mode string and compares
