@@ -717,6 +717,7 @@ sub terminate {
 
 # rehash the server.
 sub rehash {
+    $pool->fire('rehash_before');
 
     # if a user is passed, use him for the notices.
     my $user_maybe = shift;
@@ -724,15 +725,19 @@ sub rehash {
         if blessed $user_maybe && $user_maybe->isa('user');
 
     # rehash
-    eval { &setup_config } or
-        gnotice(@arg, rehash_fail => $@ || $!)
-        and return;
+    if (!eval { &setup_config }) {
+        $pool->fire('rehash_fail');
+        $pool->fire('rehash_after');
+        gnotice(@arg, rehash_fail => $@ || $!);
+        return;
+    }
 
     # set up other stuff
     setup_sockets();
     add_internal_user_modes();
     add_internal_channel_modes();
 
+    $pool->fire('rehash_after');
     gnotice(@arg, 'rehash_success');
     return 1;
 }

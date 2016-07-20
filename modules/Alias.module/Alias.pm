@@ -20,21 +20,61 @@ use strict;
 use 5.010;
 
 our ($api, $mod, $pool, $conf);
+my %current_aliases;
 
-# TODO: (evented configuration) this needs to use ->on_change_section() or something.
 sub init {
-    add_aliases();
+    $pool->on('rehash_after' => \&update_aliases, name => 'update.aliases');
+    return update_aliases();
+}
+
+sub update_aliases {
+    my (@remove, @keep);
+    my %new_aliases = $conf->hash_of_block('aliases');
+    $new_aliases{ uc $_ } = $new_aliases{$_} for keys %new_aliases;
+
+    # these ones were removed from the configuration or have been changed.
+    foreach my $command (keys %current_aliases) {
+        $command = uc $command;
+
+        # it was removed from the configuration
+        if (!length $new_aliases{$command}) {
+            print "no length for $command\n";
+            push @remove, $command;
+        }
+
+        # the format has changed
+        elsif ($new_aliases{$command} ne $current_aliases{$command}) {
+            print "not equal for $command\n";
+            push @remove, $command;
+        }
+
+        # otherwise it's unchanged
+        else {
+            push @keep, $command;
+        }
+
+    }
+
+    # remove missing or modified aliases.
+    delete_alias($_) foreach @remove;
+
+    # add new aliases.
+    delete @new_aliases{@keep};
+    add_alias($_, $new_aliases{$_}) foreach keys %new_aliases;
+
     return 1;
 }
 
-sub add_aliases {
-    my %aliases = $conf->hash_of_block('aliases');
-    add_alias($_, $aliases{$_}) foreach keys %aliases;
+sub delete_alias {
+    my $alias = shift;
+    $alias = uc $alias;
+    $mod->delete_user_command($alias);
+    delete $current_aliases{$alias};
 }
 
 sub add_alias {
     my ($alias, $format) = @_;
-
+    $alias = uc $alias;
     # first, generate a format string for sprintf.
 
     my $var_name = my $var_type = my $sprintf_fmt = '';
@@ -105,13 +145,17 @@ sub add_alias {
     };
 
     # attach it.
-    return $mod->register_user_command_new(
+    $mod->register_user_command_new(
         name   => $alias,
         code   => $code,
         params => $param_fmt,
         desc   => 'command alias'
-    );
+    ) or return;
 
+    # remember it.
+    $current_aliases{$alias} = $format;
+
+    return 1;
 }
 
 $mod

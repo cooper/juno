@@ -25,6 +25,7 @@ sub init {
 
     # register methods.
     $mod->register_module_method('register_user_command_new') or return;
+    $mod->register_module_method('delete_user_command')       or return;
 
     # module events.
     $api->on('module.init' => \&module_init,
@@ -67,6 +68,13 @@ sub register_user_command_new {
 
     $mod->list_store_add('user_commands', $command);
     return 1;
+}
+
+sub delete_user_command {
+    my ($mod, $event, $command) = @_;
+    $command = uc $command;
+    # ->list_store_remove...
+    $pool->delete_callback("user.message_$command", $command);
 }
 
 sub _handle_command {
