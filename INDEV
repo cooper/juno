@@ -3364,3 +3364,6 @@ CHANGES:
             new configuration option channels:client_max_mode_params limits the number of parameters per client MODE message.
             renamed channels:max_modes_per_sline to channels:max_modes_per_server_line.
             use proper TS6-formatted UIDs in the TS6 SJOIN handler. #103.
+
+        43. Configuration::Set now registers outgoing JELP commands for CONFGET and CONFSET.
+            removed the deprecated ->fire_command_data() method. closes #36.

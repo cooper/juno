@@ -23,6 +23,11 @@ use utils qw(conf);
 
 our ($api, $mod, $pool, $me, $conf);
 
+our %jelp_outgoing_commands = (
+    confget => \&confget,
+    confset => \&confset
+);
+
 our %user_commands = (
     CONFSET => {
         code    => \&cmd_confset,
@@ -45,13 +50,14 @@ our %user_commands = (
 );
 
 sub init {
-    $mod->register_global_command(name => $_) || return foreach qw(confset confget);
+    $mod->register_global_command(name => $_) || return
+        foreach qw(confset confget);
     return 1;
 }
 
 sub forwarder {
     my ($command, $user, $server_mask_maybe, $gflag, @cmd_args) = @_;
-    
+
     # if no dot in server, it's not a server.
     # it's the first argument. use the local server.
     # this might cause problems for CONFSET because of :rest
@@ -63,52 +69,50 @@ sub forwarder {
         @servers = $me;
         unshift @cmd_args, $server_mask_maybe;
     }
-    
+
     # no priv.
     if (!$user->has_flag($gflag)) {
         $user->numeric(ERR_NOPRIVILEGES => $gflag);
         return 1;
     }
-    
+
     # no matches.
     if (!@servers) {
         $user->numeric(ERR_NOSUCHSERVER => $server_mask_maybe);
         return 1;
     }
-    
+
     # wow there are matches.
     my %done;
     foreach my $serv (@servers) {
-        
+
         # already did this one!
         next if $done{$serv};
         $done{$serv} = 1;
-        
+
         # if it's $me, skip.
         # if there is no connection (whether direct or not),
         # uh, I don't know what to do at this point!
         next if $serv->is_local;
         next unless $serv->{location};
-        
+
         # pass it on :)
-        $serv->{location}->fire_command_data(
-            $command => $user, "$command $$serv{name} @cmd_args"
-        );
-        
+        $serv->{location}->fire_command(lc $command => $user, $serv, @cmd_args);
+
     }
-    
+
     # if $me is done, just keep going.
     return !$done{$me};
-    
+
 }
 
 sub cmd_confget {
     my ($user, $event, $server_mask, $location) = @_;
-    
+
     # if not for me, forward
     forwarder('CONFGET', $user, $server_mask, 'gconfget', $location)
         and return 1;
-    
+
     # find location
     $location  //= $server_mask;
     my @location = parse_location($location);
@@ -116,22 +120,22 @@ sub cmd_confget {
         $user->server_notice(confget => "Invalid location '$location'");
         return;
     }
-    
+
     # get
     my $pretty    = pretty_location(@location);
     my $value_str = encode_value(conf(@location)) // "\2undef\2";
-    
+
     my $serv_name = $user->is_local ? '' : " <$$me{name}>";
     $user->server_notice(confget => "$pretty = $value_str$serv_name");
 }
 
 sub cmd_confset {
     my ($user, $event, $server_mask, $location, $value_str) = @_;
-    
+
     # if not for me, forward
     forwarder('CONFSET', $user, $server_mask, 'gconfset', $location, ":$value_str")
         and return 1;
-    
+
     # find location
     $location  //= $server_mask;
     my @location = parse_location($location);
@@ -139,7 +143,7 @@ sub cmd_confset {
         $user->server_notice(confget => "Invalid location '$location'");
         return;
     }
-    
+
     # handle input
     my $value  = parse_value($value_str);
     if (defined $value && $value eq '_BAD_INPUT_') {
@@ -148,12 +152,12 @@ sub cmd_confset {
         );
         return;
     }
-    
+
     # store
     my $pretty = pretty_location(@location);
     $value_str = encode_value($value) // "\2undef\2";
     $conf->store(@location, $value);
-    
+
     my $serv_name = $user->is_local ? '' : " <$$me{name}>";
     $user->server_notice(confset => "Set $pretty = $value_str$serv_name");
 }
@@ -191,5 +195,14 @@ sub encode_value {
     return eval { Evented::Database::edb_encode($value) };
 }
 
-$mod
+sub out_confget {
+    my ($to_server, $user, $serv, @cmd_args) = @_;
+    ":$$user{uid} CONFGET $$serv{name} @cmd_args"
+}
 
+sub out_confset {
+    my ($to_server, $user, $serv, @cmd_args) = @_;
+    ":$$user{uid} CONFSET $$serv{name} @cmd_args"
+}
+
+$mod

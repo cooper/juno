@@ -822,21 +822,6 @@ sub fire_command {
     return $pool->fire_command($server, @_);
 }
 
-# fire "global command" or just a command with data string.
-sub fire_command_data {
-    my ($server, $command, $source, $data) = @_;
-    $command = uc $command;
-
-    # remove command from data.
-    if (length $data) {
-        $data =~ s/^\Q$command\E\s+//i;
-        $data = " :$data";
-    }
-
-    return unless $source->can('id');
-    $server->sendfrom($source->id, "$command$data");
-}
-
 # CAP shortcuts.
 sub has_cap    { my $c = shift->conn or return; $c->has_cap(@_)    }
 sub add_cap    { my $c = shift->conn or return; $c->add_cap(@_)    }
