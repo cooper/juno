@@ -3349,3 +3349,4 @@ CHANGES:
 
         38. added new channel method ->handle_modes() which is a low-level applicator of named modes. #77. #101.
             status mode blocks should now push user objects to the parameter list. the former [UID, NICK] format is deprecated.
+            rather than constantly converting between UIDs/nick and objects, mode blocks are always passed objects from now on.

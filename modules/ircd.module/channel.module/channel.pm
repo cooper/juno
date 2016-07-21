@@ -382,13 +382,6 @@ sub handle_modes {
     # apply each mode.
     MODE: while (my ($name, $param) = splice @$modes, 0, 2) {
 
-        # TODO: spin this off into another method to
-        # convert other objects and stuff to this server perspective ids
-        if (blessed $param) {
-            $param = $over_protocol ? $me->user_to_uid($param) : $param->name
-                if $param->isa('user');
-        }
-
         # extract the state.
         my $state = 1;
         my $first = \substr($name, 0, 1);
@@ -443,7 +436,14 @@ sub handle_modes {
                                 : $channel->user_has_basic_status($source),
 
             # a function to look up a user by nickname or UID.
-            user_lookup => $over_protocol || sub { $pool->lookup_user_nick(@_) }
+            # this exists only for compatibility; newer ->do_modes() and friends
+            # use user objects. note that this checks if it's already an object.
+            user_lookup => sub {
+                my $p = $_[0];
+                return $p if blessed $p && $p->isa('user');
+                return $over_protocol->(@_) if $over_protocol;
+                return $pool->lookup_user_nick(@_);
+            }
 
         });
 
