@@ -197,12 +197,12 @@ sub encode_value {
 
 sub out_confget {
     my ($to_server, $user, $serv, @cmd_args) = @_;
-    ":$$user{uid} CONFGET $$serv{name} @cmd_args"
+    ":$$user{uid} CONFGET \$$$serv{sid} @cmd_args"
 }
 
 sub out_confset {
     my ($to_server, $user, $serv, @cmd_args) = @_;
-    ":$$user{uid} CONFSET $$serv{name} @cmd_args"
+    ":$$user{uid} CONFSET \$$$serv{sid} @cmd_args"
 }
 
 $mod
