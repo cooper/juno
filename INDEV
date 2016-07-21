@@ -3350,3 +3350,6 @@ CHANGES:
         38. added new channel method ->handle_modes() which is a low-level applicator of named modes. #77. #101.
             status mode blocks should now push user objects to the parameter list. the former [UID, NICK] format is deprecated.
             rather than constantly converting between UIDs/nick and objects, mode blocks are always passed objects from now on.
+
+        39. new server method ->strings_from_cmodes() generates one or more strings based on named modes. #101.
+            new configuration options channels:max_modes_per_line and channels:max_modes_per_sline determine how many modes can fit in an outgoing MODE message.
