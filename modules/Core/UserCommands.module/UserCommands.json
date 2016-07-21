@@ -12,5 +12,5 @@
    "description" : "the core set of user commands",
    "name" : "Core::UserCommands",
    "package" : "M::Core::UserCommands",
-   "version" : "11.34"
+   "version" : "11.42"
 }

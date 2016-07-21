@@ -346,6 +346,24 @@ sub mode {
             return 1;
         }
 
+        # truncate modes.
+        my $str_modes = shift @rest;
+        my $max_modes = conf('channels', 'client_max_modes_simple');
+        if (length $str_modes > $max_modes) { # gotta be AT LEAST this long
+            my $new = '';
+            for (split //, $str_modes) {
+                next if /[^\w]/;
+                last if length $new == $max_modes;
+                $new .= $_;
+            }
+            $str_modes = $new;
+        }
+
+        # truncate parameters.
+        my $max_parameters = conf('channels', 'client_max_mode_params') - 1;
+        $max_parameters = $#rest if $#rest < $max_parameters;
+        $modestr = join ' ', $str_modes, @rest[0 .. $max_parameters];
+
         # setting.
         $channel->do_mode_string($user->{server}, $user, $modestr);
         return 1;

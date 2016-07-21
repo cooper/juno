@@ -541,7 +541,7 @@ sub strings_from_cmodes {
     my $limit =
         !$split         ? 'inf'                                     : # no limit
          $split == 1    ? conf('channels',
-            $over_protocol ? 'max_modes_per_sline' : 'max_modes_per_line'
+            $over_protocol ? 'max_modes_per_server_line' : 'max_modes_per_line'
                         )                                           : # config
          $split;    # custom amount specified as $split
 
