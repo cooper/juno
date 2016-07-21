@@ -458,7 +458,9 @@ sub cmode_string_difference {
     return join ' ', $final_str, @final_p;
 }
 
-# convert cmodes to one or more string
+# ->strings_from_cmodes()
+#
+# converts named modes to one or more mode strings.
 #
 #   $modes              changes in the form used by ->do_modes()
 #   $over_protocol      whether to spit out UIDs or nicks
@@ -607,6 +609,68 @@ sub _stringify_cmode_parameter {
     }
 
     return $param;
+}
+
+# ->cmodes_from_string()
+#
+# fetches named modes from a mode string in a certain perspective.
+#
+# $mode_str         the mode string
+# $over_protocol    true if the string has UIDs rather than nicks
+#
+# See issue #77 for the original idea.
+#
+sub cmodes_from_string {
+    my ($server, $mode_str, $over_protocol) = @_;
+    my @changes;
+
+    # split into +modes, arguments.
+    my ($parameters, $state, $str, @m) = ([], 1, '', split /\s+/, $mode_str);
+    MODE: foreach my $letter (split //, shift @m) {
+
+        # state change.
+        if ($letter eq '+' || $letter eq '-') {
+            $state = $letter eq '+';
+            next MODE;
+        }
+
+        # unknown mode?
+        my $name = $server->cmode_name($letter);
+        my $type = $server->cmode_type($name);
+        if (!defined $name || !defined $type) {
+            notice(channel_mode_unknown =>
+                $letter, 'a channel', $server->name, $server->id);
+            next MODE;
+        }
+
+        # these are returned by ->cmode_takes_parameter: NOT mode types
+        #     1 = always takes param
+        #     2 = takes param, but valid if there isn't,
+        #         such as list modes like +b for viewing
+        #
+        my ($takes, $param);
+        if ($takes = $server->cmode_takes_parameter($name, $state)) {
+            $param = shift @m;
+            if (!defined $param && $takes == 1) {
+                L("Mode '$name' is missing a parameter; skipped");
+                next MODE;
+            }
+        }
+
+        # convert nicks or UIDs to user objects.
+        if (length $param && $type == 4) {
+            my $user = $over_protocol ?
+                $server->uid_to_user($param): $pool->lookup_user_nick($param);
+            $param = $user if $user;
+        }
+
+        # add it to the list of changes.
+        my $prefixed_name = ($state ? '' : '-').$name;
+        push @changes, $prefixed_name, $param;
+
+    }
+
+    return \@changes;
 }
 
 sub is_local { shift == $me }

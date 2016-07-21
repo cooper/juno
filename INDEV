@@ -3355,4 +3355,6 @@ CHANGES:
             new configuration options channels:max_modes_per_line and channels:max_modes_per_sline determine how many modes can fit in an outgoing MODE message.
 
     4. new methods ->do_modes() and ->do_modes_local() apply named modes, notifying local users and other servers. #77. #101.
-        
+
+        41. new server method ->cmodes_from_string() extracts named modes from a mode string in a certain perspective. closes #77.
+            channel methods ->handle_mode_string(), ->do_mode_string(), and ->do_mode_string_local() are now all wrappers for the new named mode methods. #101.

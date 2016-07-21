@@ -23,6 +23,25 @@ use Scalar::Util qw(blessed);
 
 our ($api, $mod, $pool, $me);
 
+#   === Channel mode types ===
+#
+#   type            n   description                                 e.g.
+#   ----            -   -----------                                 ----
+#
+#   normal          0   never has a parameter                       +m
+#
+#   parameter       1   requires parameter when set and unset       n/a
+#
+#   parameter_set   2   requires parameter only when set            +l
+#
+#   list            3   list-type mode                              +b
+#
+#   status          4   status-type mode                            +o
+#
+#   key             5   like type 1 but visible only to members     +k
+#                       and consumes parameter when unsetting
+#                       only if present (keys are very particular!)
+
 # create a channel.
 sub new {
     my ($class, %opts) = @_;
@@ -182,181 +201,15 @@ sub set_time {
     $channel->{time} = $time;
 }
 
-# ->handle_mode_string()
+# ->handle_modes()
 #
-# handles a mode string at a low level.
-# returns the mode string or '+' if no changes were made.
+# handles named modes at a low level.
 #
-# NOTE: this is a lower-level function that only sets the modes.
-# you probably want to use ->do_mode_string(), which sends to users and servers.
+# you may want to use ->do_modes() or ->do_mode_string() instead,
+# as these are high-level methods which also notify local clients and uplinks.
 #
+# See issues #77 and #101 for background information.
 #
-#   type            n   description                                 e.g.
-#   ----            -   -----------                                 ----
-#
-#   normal          0   never has a parameter                       +m
-#
-#   parameter       1   requires parameter when set and unset       n/a
-#
-#   parameter_set   2   requires parameter only when set            +l
-#
-#   list            3   list-type mode                              +b
-#
-#   status          4   status-type mode                            +o
-#
-#   key             5   like type 1 but visible only to members     +k
-#                       and consumes parameter when unsetting
-#                       only if present (keys are very particular!)
-#
-#
-sub handle_mode_string {
-    my ($channel, $server, $source, $modestr, $force, $over_protocol) = @_;
-    L("set $modestr on $$channel{name} from $$server{name}");
-
-    # split into +modes, arguments.
-    my ($plus, $minus);
-    my ($parameters, $state, $str, @m) = ([], 1, '', split /\s+/, $modestr);
-    foreach my $letter (split //, shift @m) {
-
-        # state change.
-        if ($letter eq '+' || $letter eq '-') {
-            $state = $letter eq '+';
-            next;
-        }
-
-        # unknown mode?
-        my $name = $server->cmode_name($letter);
-        my $type = $server->cmode_type($name);
-        if (!defined $name) {
-            notice(channel_mode_unknown =>
-                $letter, $channel->name, $server->name, $server->id);
-            next;
-        }
-
-        # these are returned by ->cmode_takes_parameter: NOT mode types
-        #     1 = always takes param
-        #     2 = takes param, but valid if there isn't,
-        #         such as list modes like +b for viewing
-        #
-        my ($takes, $parameter);
-        if ($takes = $server->cmode_takes_parameter($name, $state)) {
-            $parameter = shift @m;
-            next if !defined $parameter && $takes == 1;
-        }
-
-        # if over_protocol is specified but not a code reference, fall back
-        # to JELP UID lookup function for compatibility.
-        if ($over_protocol && ref $over_protocol ne 'CODE') {
-            $over_protocol = sub { $pool->lookup_user(@_) };
-        }
-
-        # don't allow this mode to be changed if the test fails
-        # *unless* force is provided.
-        my $params_before = scalar @$parameters;
-        my ($win, $moderef) = $pool->fire_channel_mode($channel, $name, {
-            channel => $channel,        # the channel
-            server  => $server,         # the server perspective
-            source  => $source,         # the source of the mode change (user or server)
-            state   => $state,          # setting or unsetting
-            setting => $state,          # to satisfy matthew
-            param   => $parameter,      # the parameter for this particular mode
-            params  => $parameters,     # the parameters for the resulting mode string
-            force   => $force,          # true if permissions should be ignored
-            proto   => $over_protocol,  # true if IDs used rather than nicks/names
-
-            # source can set simple modes.
-            has_basic_status => $force || $source->isa('server') ? 1
-                                : $channel->user_has_basic_status($source),
-
-            # a function to look up a user by nickname or UID.
-            user_lookup => $over_protocol || sub { $pool->lookup_user_nick(@_) }
-
-        });
-
-        # Determining whether to send ERR_CHANOPRIVSNEEDED
-        #
-        # Source is a local user?
-        #   No..................................... DO NOT SEND
-        #   Yes. Mode block set send_no_privs?
-        #       Yes................................ SEND
-        #       No. Mode block returned true?
-        #           Yes............................ DO NOT SEND
-        #           No. User has +h or higher?
-        #               Yes........................ DO NOT SEND
-        #               No. Mode block set hide_no_privs?
-        #                   Yes.................... DO NOT SEND
-        #                   No..................... SEND
-        #
-        if ($source->isa('user') && $source->is_local) {
-            my $no_status = !$win && !$moderef->{has_basic_status}
-                && !$moderef->{hide_no_privs};
-            my $yes = $moderef->{send_no_privs} || $no_status;
-            $source->numeric(ERR_CHANOPRIVSNEEDED => $channel->name) if $yes;
-        }
-
-        # block returned false; cancel.
-        next if !$win;
-
-        # if it requires a parameter but the param count before handling
-        # the mode is the same as after, something didn't work.
-        # for example, a mode handler might not be present if a module isn't loaded.
-        # just ignore this mode.
-        push @$parameters, $moderef->{param} if defined $moderef->{param};
-        next if scalar @$parameters <= $params_before && $takes;
-
-        # Safe point: from here we can assume that the mode will be set or unset.
-
-        # it is a normal mode. set it.
-        if ($type == 0) {
-            my $do = $state ? 'set_mode' : 'unset_mode';
-            $channel->$do($name);
-        }
-
-        # it is a mode with a parameter. set it.
-        # does not include lists, status modes, key mode.
-        elsif ($type == 1 || $type == 2) {
-            $channel->set_mode($name, $parameter) if  $state;
-            $channel->unset_mode($name)           if !$state;
-        }
-
-        # sign change.
-        if ($state && !$plus) {
-            ($plus, $minus) = (1, 0);
-            $str .= '+';
-        }
-        elsif (!$state && !$minus) {
-            ($plus, $minus) = (0, 1);
-            $str .= '-';
-        }
-
-        $str .= $letter;
-    }
-
-    # make it change array refs to separate params for servers.
-    # [USER RESPONSE, SERVER RESPONSE]
-    my @user_params;
-    my @server_params;
-    foreach my $param (@$parameters) {
-        if (ref $param eq 'ARRAY') {
-            push @user_params,   $param->[0];
-            push @server_params, $param->[1];
-        }
-
-        # not an array ref.
-        else {
-            push @user_params,   $param;
-            push @server_params, $param;
-        }
-
-    }
-
-    my $user_string   = join ' ', $str, @user_params;
-    my $server_string = join ' ', $str, @server_params;
-
-    L("end of mode handle");
-    return ($user_string, $server_string);
-}
-
 sub handle_modes {
     my ($channel, $source, $modes, $force, $over_protocol) = @_;
     my @changes;
@@ -524,6 +377,24 @@ sub handle_modes {
     }
 
     return \@changes;
+}
+
+# ->handle_mode_string()
+#
+# handles a mode string at a low level.
+#
+# this is a low-level function that only sets the modes.
+# you probably want to use ->do_mode_string(), which sends to users and servers.
+#
+sub handle_mode_string {
+    my ($channel, $server, $source, $modestr, $force, $over_protocol) = @_;
+
+    # extract the modes.
+    my $changes = $server->cmodes_from_string($modestr, $over_protocol);
+
+    # handle the modes.
+    return $channel->handle_modes($source, $changes, $force, $over_protocol);
+
 }
 
 # returns a +modes string.
@@ -937,29 +808,11 @@ sub do_mode_string_local { _do_mode_string(1, @_) }
 sub _do_mode_string {
     my ($local_only, $channel, $perspective, $source, $modestr, $force, $protocol) = @_;
 
-    # handle the mode.
-    my ($user_result, $server_result) = $channel->handle_mode_string(
-        $perspective, $source, $modestr, $force, $protocol
-    );
-    return unless $user_result;
+    # extract the modes.
+    my $changes = $perspective->cmodes_from_string($modestr, $protocol);
 
-    # tell the channel's users.
-    my $local_ustr =
-        $perspective == $me ? $user_result :
-        $perspective->convert_cmode_string($me, $user_result);
-    $channel->sendfrom_all($source->full, "MODE $$channel{name} $local_ustr")
-        if length $local_ustr > 1;
-
-    # stop here if it's not a local user or this server.
-    return if $local_only || !$source->is_local;
-
-    # the source is our user or this server, so tell other servers.
-    # ($source, $channel, $time, $perspective, $server_modestr)
-    $pool->fire_command_all(cmode =>
-        $source, $channel, $channel->{time},
-        $perspective, $server_result
-    );
-
+    # do the modes.
+    return _do_modes($local_only, $channel, $source, $changes, $force, $protocol);
 }
 
 # handle a privmsg. send it to our local users and other servers.
