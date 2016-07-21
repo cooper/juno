@@ -469,7 +469,8 @@ sub sjoin {
         # add the modes (these are in the perspective of $server)
         my $modes = join '', map mode_from_prefix_ts6($server, $_), @prefixes;
         $uids_modes .= $modes;
-        push @uids, $user->{uid} for 1 .. length $modes;
+        my $id = ts6_id($user);
+        push @uids, $id for 1 .. length $modes;
 
     }
 
@@ -479,15 +480,15 @@ sub sjoin {
     # okay, now we're ready to apply the modes.
     if ($accept_new_modes) {
 
-        # $uids_modes are currently in the perspective of the TS 6 server.
-        #
-        # note that @uids are already in the perspective of JELP.
-        # ->convert_cmode_string() will attempt to look up TS6 UIDs for them,
-        # but it will fallback to keeping them as they are.
+        # $uids_modes and @uids are in the perspective of the TS6 server.
         #
         # we used to only convert the mode letters and not pass the parameters
         # to ->convert_cmode_string(), but this caused parameter mixups when the
         # destination server did not recognize one of the status modes.
+        #
+        # we also used to use a combination of TS6 modes ($uids_modes) and JELP
+        # UIDs (@uids) in a single ->convert_cmode_string() call, but now, since
+        # proper user object lookup is essential (#101), it's all in TS6 format.
         #
         my $uid_str = join ' ', $uids_modes, @uids;
         $uid_str = $source_serv->convert_cmode_string($me, $uid_str, 1);
