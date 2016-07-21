@@ -3358,3 +3358,4 @@ CHANGES:
 
         41. new server method ->cmodes_from_string() extracts named modes from a mode string in a certain perspective. closes #77.
             channel methods ->handle_mode_string(), ->do_mode_string(), and ->do_mode_string_local() are now all wrappers for the new named mode methods. #101.
+            fixed #102 where reusing an arrayref in ->do_modes() caused empty mode strings to be sent to uplinks.

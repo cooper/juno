@@ -488,7 +488,8 @@ sub strings_from_cmodes {
     }
 
     # add each mode to the resultant.
-    MODE: while (my ($name, $param) = splice @$modes, 0, 2) {
+    my @modes = @$modes; # explicitly make a copy
+    MODE: while (my ($name, $param) = splice @modes, 0, 2) {
 
         # extract the state.
         my $state = 1;
