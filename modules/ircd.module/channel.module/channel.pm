@@ -486,6 +486,20 @@ sub handle_modes {
         # ->(un)set_mode() which is only called for modes of type 1 and 2.
         $param = @$parameters[$#$parameters] if @$parameters;
 
+        # prior to 11.38, mode blocks could push an array reference in the form
+        # of [ USER RESPONSE, SERVER RESPONSE ] to the parameter list. this was
+        # only used for UIDs and nicknames and is now deprecated in favor of
+        # user objects.
+        if (ref $param && ref $param eq 'ARRAY') {
+            $param =
+                $me->uid_to_user($param->[1])        ||
+                $pool->lookup_user_nick($param->[0]) || $param;
+            L(
+                "Pushing an array reference to the '$name' parameter list is " .
+                "deprecated; attempted to convert to user object"
+            );
+        }
+
         # SAFE POINT:
         # from here we can assume that the mode will be set or unset.
         # it has passed all the tests and will certainly be applied.

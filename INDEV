@@ -3348,3 +3348,4 @@ CHANGES:
         37. fixed #30 where aliases were not updated on REHASH.
 
         38. added new channel method ->handle_modes() which is a low-level applicator of named modes. #77. #101.
+            status mode blocks should now push user objects to the parameter list. the former [UID, NICK] format is deprecated.

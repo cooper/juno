@@ -113,10 +113,8 @@ sub register_statuses {
 
         }
 
-        # [USER RESPONSE, SERVER RESPONSE]
-        $mode->{param} = [ $t_user->{nick}, $t_user->{uid} ];
-
         # add or remove from the list.
+        $mode->{param} = $t_user;
         my $do = $mode->{state} ? 'add_to_list' : 'remove_from_list';
         $channel->$do($name, $t_user);
 
