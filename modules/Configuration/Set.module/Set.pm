@@ -62,7 +62,7 @@ sub forwarder {
     # it's the first argument. use the local server.
     # this might cause problems for CONFSET because of :rest
     my @servers;
-    if ($server_mask_maybe =~ m/\.|\*/) {
+    if ($server_mask_maybe =~ m/[\.\*\$]/) {
         @servers = $pool->lookup_server_mask($server_mask_maybe);
     }
     else {
