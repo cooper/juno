@@ -24,8 +24,8 @@ use utils qw(conf);
 our ($api, $mod, $pool, $me, $conf);
 
 our %jelp_outgoing_commands = (
-    confget => \&confget,
-    confset => \&confset
+    confget => \&out_confget,
+    confset => \&out_confset
 );
 
 our %user_commands = (
