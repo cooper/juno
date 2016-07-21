@@ -534,7 +534,6 @@ sub strings_from_cmodes {
         $sort // $a->[1] cmp $b->[1]
     } @changes if $organize;
 
-
     # determine how much we can jam into one string.
     my $limit =
         !$split         ? 'inf'                                     : # no limit

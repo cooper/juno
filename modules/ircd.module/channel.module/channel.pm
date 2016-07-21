@@ -870,11 +870,70 @@ sub prefixes {
     return $prefixes;
 }
 
-# same as do_mode_string() except it never sends to other servers.
-sub do_mode_string_local { _do_mode_string(1, @_) }
+# handle named modes, tell our local users, and tell other servers.
+sub do_modes { _do_modes(undef, @_) }
+
+# same as ->do_modes() except it never sends to other servers.
+sub do_modes_local { _do_modes(1, @_) }
+
+# ->do_modes() and ->do_modes_local()
+#
+# See issue #101 for the planning of these methods.
+#
+#   $source             the source of the mode change
+#   $modes              named modes in an arrayref as described in issue #101
+#   $force              whether to ignore permissions
+#   $over_protocol      specifies that the modes originated on incoming s2s
+#   $organize           whether to alphabetize and put positive changes first
+#
+sub _do_modes {
+    my $local_only = shift;
+    my ($channel, $source, $modes, $force, $over_protocol, $organize) = @_;
+
+    # handle the mode.
+    # ($source, $modes, $force, $over_protocol) = @_;
+    my $changes = $channel->handle_modes(
+        $source, $modes, $force, $over_protocol
+    ) or return;
+
+    # tell the channel's users. this might be sent as multiple messages.
+    #
+    # ->strings...($modes, $over_protocol, $split, $organize, $skip_checks)
+    # $over_protocol is false here because we want nicks rather than UIDs.
+    # $split is true here because we want to send multiple messages to users.
+    #
+    foreach ($me->strings_from_cmodes($changes, undef, 1, $organize, 1)) {
+        next unless length > 1;
+        $channel->sendfrom_all($source->full, "MODE $$channel{name} $_");
+    }
+
+    # stop here if it's not a local user or this server.
+    return if $local_only || !$source->is_local;
+
+    # the source is our user or this server, so tell other servers.
+    #
+    # ->strings...($modes, $over_protocol, $split, $organize, $skip_checks)
+    # $over_protocol is true here because we want UIDs rather than nicks.
+    # $split is false because we are generating a single mode string.
+    # currently each protocol implementation has to split it when necessary.
+    #
+    # cmode => ($source, $channel, $time, $perspective, $server_modestr)
+    #
+    my $server_str = $me->strings_from_cmodes($changes, 1, undef, $organize, 1);
+    $pool->fire_command_all(cmode =>
+        $source, $channel, $channel->{time},
+        $me, $server_str
+    );
+
+    return 1;
+}
 
 # handle a mode string, tell our local users, and tell other servers.
-sub  do_mode_string { _do_mode_string(undef, @_) }
+sub do_mode_string { _do_mode_string(undef, @_) }
+
+# same as ->do_mode_string() except it never sends to other servers.
+sub do_mode_string_local { _do_mode_string(1, @_) }
+
 sub _do_mode_string {
     my ($local_only, $channel, $perspective, $source, $modestr, $force, $protocol) = @_;
 

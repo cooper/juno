@@ -3353,3 +3353,6 @@ CHANGES:
 
         39. new server method ->strings_from_cmodes() generates one or more strings based on named modes. #101.
             new configuration options channels:max_modes_per_line and channels:max_modes_per_sline determine how many modes can fit in an outgoing MODE message.
+
+    4. new methods ->do_modes() and ->do_modes_local() apply named modes, notifying local users and other servers. #77. #101.
+        
