@@ -171,6 +171,10 @@ my %scommands = (
                   # :sid SAVE      uid   nickTS
         params => '-source(server) user  ts',
         code   => \&save
+    },
+    USERINFO => {
+        params => '-source(user)',
+        code   => \&userinfo
     }
 );
 
@@ -972,6 +976,26 @@ sub save {
     $msg->forward(save_user => $source_serv, $t_user, $time);
 
     return 1;
+}
+
+# change several user fields at once
+sub userinfo {
+    my ($server, $msg, $user) = @_;
+
+    # host and/or ident changed
+    my $new_host  = $msg->tag('host');
+    my $new_ident = $msg->tag('ident');
+    if (defined $new_host || defined $new_ident) {
+        $user->get_mask_changed(
+            $new_ident // $user->{ident},
+            $new_host  // $user->{cloak}
+        );
+    }
+
+    #=== Forward ===#
+    my %fields = %{ $msg->tags || {} };
+    $msg->forward(update_user => $user, %fields);
+
 }
 
 $mod

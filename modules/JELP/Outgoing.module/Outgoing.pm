@@ -50,12 +50,14 @@ my %ocommands = (
     su_login        => \&su_login,                          # TODO: logout
     part_all        => \&partall,
     invite          => \&invite,
-    ircd_rehash     => \&rehash,
     save_user       => \&save,
+    update_user     => \&userinfo,
+    chghost         => \&chghost,
     add_cmodes      => \&acm,
     add_umodes      => \&aum,
     burst           => \&burst,
     endburst        => \&endburst,
+    ircd_rehash     => \&rehash,
     ircd_update     => \&update,
     ircd_reload     => \&reload
 );
@@ -488,6 +490,20 @@ sub rehash {
 sub save {
     my ($to_server, $source_serv, $user, $nick_time) = @_;
     ":$$source_serv{sid} SAVE $$user{uid} $nick_time"
+}
+
+sub chghost {
+    my ($to_server, $source, $user, $new_host) = @_;
+    return userinfo($to_server, $user, host => $new_host);
+}
+
+sub userinfo {
+    my ($to_server, $user, %fields) = @_;
+    message->new(
+        source  => $user->id,
+        command => 'USERINFO',
+        tags    => \%fields
+    )->data
 }
 
 $mod

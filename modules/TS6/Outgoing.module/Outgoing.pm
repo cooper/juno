@@ -51,6 +51,7 @@ our %ts6_outgoing_commands = (
      wallops        => \&wallops,
      chghost        => \&chghost,
      save_user      => \&save,
+     update_user    => \&userinfo,
      num            => \&num,
      links          => \&links,
      whois          => \&whois,
@@ -868,6 +869,18 @@ sub rehash {
     return map {
         sprintf ':%s ENCAP %s REHASH%s', $uid, ts6_id($_), $type
     } @servers;
+}
+
+# change user fields
+sub userinfo {
+    my ($to_server, $user, %fields) = @_;
+    my @lines;
+
+    # host changed
+    push @lines, chghost($to_server, $user->{server}, $user, $fields{host})
+        if length $fields{host};
+
+    return @lines;
 }
 
 $mod

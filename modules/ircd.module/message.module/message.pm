@@ -196,13 +196,13 @@ sub data {
     return "@parts";
 }
 
-sub raw_cmd {    shift->{command}       }
-sub command { uc shift->{command}       }
-sub tags    { shift->{tags}             }
-sub tag     { shift->{tags}{+shift}     }
-sub params  { @{ shift->{params} }      }
-sub param   { shift->{params}[shift]    }
-sub event   { shift->{_event}           }
+sub raw_cmd {    shift->{command}           }
+sub command { uc shift->{command}           }
+sub tags    { shift->{tags}                 }
+sub tag     { shift->{tags}{+shift}         }
+sub params  { @{ shift->{params} || [] }    }
+sub param   { shift->{params}[shift]        }
+sub event   { shift->{_event}               }
 
 # TODO: these
 sub source_nick  { ... }

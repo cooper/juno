@@ -3379,3 +3379,7 @@ CHANGES:
             this allow modules to add, remove, and modify support tokens. closes #96.
             reflect channels:client_max_mode_params in RPL_ISUPPORT.
             move INVEX token to Channel::Invite.
+
+        46. added JELP USERINFO command. this allows changing multiple user fields at once.
+            currently it supports ident and visual hosts. closes #90.
+            in TS6, forward USERINFO as CHGHOST or ENCAP CHGHOST if the host field was changed.
