@@ -26,7 +26,7 @@ our ($api, $mod, $me, $pool, $conf, $VERSION);
 
 our %user_commands = (
     CONNECT => {
-        code   => \&sconnect,
+        code   => \&_connect,
         desc   => 'connect to a server',
         params => '-oper(connect) *'
     },
@@ -861,16 +861,28 @@ sub part {
     return 1;
 }
 
-sub sconnect {
+sub _connect {
     my ($user, $event, $smask) = @_;
     my @servers = grep irc_match($_, $smask), $conf->names_of_block('connect');
+
+    # no servers match
+    if (!@servers) {
+        $user->numeric(ERR_NOSUCHSERVER => $smask);
+        return;
+    }
+
+    # connect each matching server
     foreach my $s_name (@servers) {
+
+        # an error from linkage
         if (my $e = server::linkage::connect_server($s_name)) {
             $user->server_notice(connect => "$s_name: $e");
             next;
         }
+
         $user->server_notice(connect => "Attempting to connect to $s_name");
     }
+
     return 1;
 }
 
