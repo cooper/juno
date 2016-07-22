@@ -982,6 +982,8 @@ sub save {
 sub userinfo {
     my ($server, $msg, $user) = @_;
 
+    # nick ident host nick_time account
+
     # host and/or ident changed
     my $new_host  = $msg->tag('host');
     my $new_ident = $msg->tag('ident');

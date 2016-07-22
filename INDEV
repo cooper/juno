@@ -3384,3 +3384,4 @@ CHANGES:
             currently it supports ident and visual hosts. closes #90.
             in TS6, forward USERINFO as CHGHOST or ENCAP CHGHOST if the host field was changed.
             fixed a bug where only one channel rejoin was sent per user after a quit emulation.
+            added outgoing TS6 SIGNON command. #83.

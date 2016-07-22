@@ -876,11 +876,36 @@ sub userinfo {
     my ($to_server, $user, %fields) = @_;
     my @lines;
 
+    # if we have a nickTS, use SIGNON.
+    if (length $fields{nick_time}) {
+        return signon(
+            $to_server, $user,
+            @fields{ qw(nick ident host nick_time account) }
+        );
+    }
+
     # host changed
     push @lines, chghost($to_server, $user->{server}, $user, $fields{host})
         if length $fields{host};
 
     return @lines;
+}
+
+# SIGNON
+#
+# source:       user
+# propagation:  broadcast
+# parameters:   new nickname, new username, new visible hostname,
+#               new nickTS, new login name
+#
+sub signon {
+    my ($to_server, $user, $new_nick, $new_ident, $new_host, $new_nick_time, $new_act_name) = @_;
+    sprintf ':%s SIGNON %s %s %s %s %s',
+    $new_nick       // '*',
+    $new_ident      // '*',
+    $new_host       // '*',
+    $new_nick_time  // '*',
+    $new_act_name   // '*'
 }
 
 $mod
