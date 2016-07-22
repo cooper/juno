@@ -241,6 +241,7 @@ sub set_variables {
         VERSION => $VERSION,        # combination of these 3 in VERSION command
         PROTO   => $VERSION
     );
+    $v_replace{TNAME} = $v_replace{SNAME}.'-'.$v_replace{NAME};
 
     # defaults; only set if not existing already.
     my %v_insert = (

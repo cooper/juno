@@ -3390,3 +3390,4 @@ CHANGES:
             new user event 'welcoming' is fired just before welcome messages are sent to a newly registered user.
             new user event 'initially_set_modes' is fired just after automodes are set on a newly registered user.
             the CONNECT command now sends ERR_NOSUCHSERVER instead of silently failing when no servers match the given mask. #58.
+            the server versions in RPL_YOURHOST and RPL_VERSION are consistent now.

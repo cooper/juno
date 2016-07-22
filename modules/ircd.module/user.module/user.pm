@@ -781,7 +781,7 @@ sub _new_connection {
     # send numerics.
     my $network = conf('server', 'network') // conf('network', 'name');
     $user->numeric(RPL_WELCOME  => $network, $user->{nick}, $user->{ident}, $user->{host});
-    $user->numeric(RPL_YOURHOST => $me->{name}, v('NAME').q(-).v('VERSION'));
+    $user->numeric(RPL_YOURHOST => $me->{name}, v('TNAME').q(-).v('VERSION'));
     $user->numeric(RPL_CREATED  => irc_time(v('START')));
     $user->numeric(RPL_MYINFO   =>
         $me->{name},

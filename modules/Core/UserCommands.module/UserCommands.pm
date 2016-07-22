@@ -1230,7 +1230,7 @@ sub version {
     }
 
     $user->numeric(RPL_VERSION =>
-        v('SNAME').q(-).v('NAME'),  # ircd name and major version name
+        v('TNAME'),                 # ircd name and major version name
         $ircd::VERSION,             # current version
         $server->{name},            # server name
         $::VERSION,                 # version at start
