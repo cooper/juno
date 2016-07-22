@@ -3385,3 +3385,7 @@ CHANGES:
             in TS6, forward USERINFO as CHGHOST or ENCAP CHGHOST if the host field was changed.
             fixed a bug where only one channel rejoin was sent per user after a quit emulation.
             added outgoing TS6 SIGNON command. #83.
+
+        47. fixed an issue where SASL login was done post-propagation, so the account name was missing from TS6 EUID.
+            new user event 'welcoming' is fired just before welcome messages are sent to a newly registered user.
+            new user event 'initially_set_modes' is fired just after automodes are set on a newly registered user.

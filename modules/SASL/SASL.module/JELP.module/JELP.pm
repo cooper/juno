@@ -49,7 +49,7 @@ our %jelp_incoming_commands = (
         code   => \&saslset
     },
     SASLMECHS => {
-                  # # :sid SASLDONE    serv_mask source_uid target_uid  mechs
+                  # # :sid SASLMECHS   serv_mask source_uid target_uid  mechs
         params => '-source(server)     *         *          *           *',
         code   => \&saslmechs
     }
@@ -208,7 +208,7 @@ sub saslset {
 
     # TODO: for reauthentication, need to send out some broadcast command to
     # notify other servers of several user field changes at once. this would be
-    # similar to TS6's SIGNON command.
+    # similar to TS6's SIGNON command. USERINFO will work.
 
     # update the account.
     if (!M::SASL::update_account($conn, $act_name || undef)) {

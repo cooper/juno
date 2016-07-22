@@ -50,7 +50,7 @@ sub init {
     ) or return;
 
     # log the user in once registered
-    $pool->on('user.initially_propagated' => \&on_user_propagated,
+    $pool->on('user.initially_set_modes' => \&on_user_set_modes,
         with_eo => 1
     );
 
@@ -261,7 +261,7 @@ sub update_account {
 }
 
 # we've already sent RPL_LOGGEDIN at this point.
-sub on_user_propagated {
+sub on_user_set_modes {
     my ($user, $event) = @_;
     my $act_name = delete $user->{sasl_account} or return;
     L("SASL login $$user{nick} as $act_name");
