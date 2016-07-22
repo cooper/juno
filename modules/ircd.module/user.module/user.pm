@@ -435,14 +435,14 @@ sub get_mask_changed {
     }
 
     # send CHGHOST to those who support it.
-    my %sent_to = %{ $user->send_to_channels(
+    my %sent_chghost = %{ $user->send_to_channels(
         "CHGHOST $new_ident $new_host",
         cap     => 'chghost',
         no_self => 1
     ) };
 
     # don't tell the user that he has quit.
-    $sent_to{$user}++;
+    $sent_chghost{$user}++;
 
     # for clients not supporting CHGHOST, we have to emulate a reconnect.
     foreach my $channel ($user->channels) {
@@ -457,11 +457,12 @@ sub get_mask_changed {
         $letters .= join(' ', '', ($user->{nick}) x length $letters);
 
         # send commands to users we didn't already do above.
+        my %sent_quit; # only send QUIT once, but send JOIN/MODE for each chan
         foreach my $usr ($channel->users) {
 
-            # not local or already sent to
+            # not local user or already sent CHGHOST
             next if !$usr->is_local;
-            next if $sent_to{$usr};
+            next if $sent_chghost{$usr};
 
             # QUIT and JOIN.
             #
@@ -469,14 +470,15 @@ sub get_mask_changed {
             # with here. we're pretty much assuming that if a client has those
             # capabilities, it should also have chghost...
             #
-            $usr->sendfrom($user->full, "QUIT :Changing host");
+            $usr->sendfrom($user->full, "QUIT :Changing host")
+                unless $sent_quit{$usr};
             $usr->sendfrom($user->full, "JOIN $$channel{name}");
 
             # MODE for statuses.
             $usr->sendfrom($me->full, "MODE $$channel{name} +$letters")
                 if length $letters;
 
-            $sent_to{$usr}++;
+            $sent_quit{$usr}++;
         }
     }
 
