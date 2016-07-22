@@ -3391,3 +3391,6 @@ CHANGES:
             new user event 'initially_set_modes' is fired just after automodes are set on a newly registered user.
             the CONNECT command now sends ERR_NOSUCHSERVER instead of silently failing when no servers match the given mask. #58.
             the server versions in RPL_YOURHOST and RPL_VERSION are consistent now.
+
+        48. prefixes in the configuration can now optionally take an element which specifies what weight is needed to set or unset the status.
+            if it is omitted, the user must have weight greater than or equal to what he is trying to set. closes #73.

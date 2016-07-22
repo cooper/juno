@@ -61,12 +61,19 @@ sub init {
 # status modes
 sub register_statuses {
     my $level = shift;
-    my $name  = $ircd::channel_mode_prefixes{$level}[2];
+
+    # determine the weight needed to set/unset
+    my ($name, $set_weight) = @{ $ircd::channel_mode_prefixes{$level} }[2, 3];
+    $set_weight //= $level;
+
+    # add the mode block
     $mod->register_channel_mode_block( name => $name, code => sub {
         my ($channel, $mode) = @_;
         my $source = $mode->{source};
 
         # find the target.
+        # note that, if the user does exist,
+        # $mode->{param} is probably already a user object.
         my $t_user = $mode->{user_lookup}($mode->{param});
 
         # make sure the target user exists.
@@ -78,29 +85,40 @@ sub register_statuses {
 
         # and also make sure he is on the channel
         if (!$channel->has_user($t_user)) {
-            $source->numeric(ERR_USERNOTINCHANNEL => $t_user->{nick}, $channel->name)
-                if $source->isa('user') && $source->is_local;
+            $source->numeric(ERR_USERNOTINCHANNEL =>
+                $t_user->{nick}, $channel->name
+            ) if $source->isa('user') && $source->is_local;
             return;
         }
 
+        # if we're not forcing the change, and the source user is local,
+        # check that he has the proper permissions
         if (!$mode->{force} && $source->is_local) {
+
+            # check 1: see if he has basic status and that he is not trying
+            # to set a status with greater weight than his own.
             my $check1 = sub {
 
                 # no basic status
                 return unless $channel->user_has_basic_status($source);
 
-                # he has a higher status..
-                return 1 if $mode->{state};
-                return if $channel->user_get_highest_level($source) <
-                          $channel->user_get_highest_level($t_user);
+                # the target user has a higher status.
+                # only check this if $set_weight is not provided.
+                unless (defined $set_weight) {
+                    return if $channel->user_get_highest_level($source) <
+                              $channel->user_get_highest_level($t_user);
+                }
 
                 return 1;
             };
 
+            # check 2: see that the source user has at least the specified
+            # weight which is required to set this mode.
             my $check2 = sub {
 
-                # the source's highest status is not enough.
-                return if $channel->user_get_highest_level($source) < $level;
+                # the source's highest status is not enough to set/unset.
+                my $needed = $set_weight // $level;
+                return if $channel->user_get_highest_level($source) < $needed;
 
                 return 1;
             };

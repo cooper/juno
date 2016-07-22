@@ -191,7 +191,7 @@ sub isp_core {
         FNC         => $yes,
         AWAYLEN     => conf('limit', 'away'),
         MAXTARGETS  => 1                    # FIXME: see issue #53
-      # ELIST       => $yes                 # TODO: not implemented yet
+      # ELIST       => 'flags'              # TODO: not implemented yet
     );
 
     # inject them

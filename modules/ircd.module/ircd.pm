@@ -837,7 +837,12 @@ sub add_internal_channel_modes {
         my $p = conf('prefixes', $name) or next;
         next if !ref $p || ref $p ne 'ARRAY' || @$p < 3;
         $me->add_cmode($name, $p->[0], 4);
-        $channel_mode_prefixes{ $p->[2] } = [ $p->[0], $p->[1], $name ]
+        $channel_mode_prefixes{ $p->[2] } = [
+            $p->[0],    # (0) mode letter
+            $p->[1],    # (1) nick prefix symbol
+            $name,      # (2) mode name
+            $p->[3]     # (3) weight needed to set/unset this mode
+        ];
     }
 
     L("registering channel mode letters");
