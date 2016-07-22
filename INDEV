@@ -3367,3 +3367,10 @@ CHANGES:
 
         43. Configuration::Set now registers outgoing JELP commands for CONFGET and CONFSET.
             removed the deprecated ->fire_command_data() method. closes #36.
+
+        44. new configuration option channels:max_param_length limits the length of normal mode parameters. closes #61.
+            new configuration option channels:max_ban_length limits the length of banlike mode parameters.
+            added cut_to_length() utility which truncates a string to a certain length.
+            eliminated some warnings which were produced when viewing lists of banlike modes as in "MODE #chan b" with no parameter.
+            in scalar context, ->strings_from_cmodes() now returns an empty string rather than undef when passed an empty arrayref.
+            fixed a bug where ->do_modes() would sometimes sent empty mode messages to servers.

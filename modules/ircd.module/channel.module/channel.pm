@@ -17,7 +17,7 @@ use strict;
 use feature 'switch';
 use parent 'Evented::Object';
 
-use utils qw(conf v notice match ref_to_list);
+use utils qw(conf v notice match ref_to_list cut_to_length);
 use List::Util qw(first max);
 use Scalar::Util qw(blessed);
 
@@ -212,7 +212,7 @@ sub set_time {
 #
 sub handle_modes {
     my ($channel, $source, $modes, $force, $over_protocol) = @_;
-    my @changes;
+    my (@changes, $param_length, $ban_length);
 
     # $modes has to be an arrayref.
     if (!ref $modes || ref $modes ne 'ARRAY') {
@@ -263,6 +263,27 @@ sub handle_modes {
         if (!defined $param && $takes == 1) {
             L("Mode '$name' is missing a parameter; skipped");
             next MODE;
+        }
+
+        # parameters have to have length and can't start with colons.
+        if (defined $param && (!length $param || substr($param, 0, 1) eq ':')) {
+            L("Mode '$name' has malformed parameter '$param'; skipped");
+            next MODE;
+        }
+
+        # truncate the parameter, if necessary.
+        #
+        # consider: truncating bans might be a bad idea; it could have weird
+        # results if the ban length limit is inconsistent across servers...
+        # charybdis seems to send ERR_INVALIDBAN instead.
+        #
+        if (defined $param) {
+            $param_length ||= conf('channels', 'max_param_length');
+            $ban_length   ||= conf('channels', 'max_ban_length');
+            $param = cut_to_length(
+                $type == 3 ? $ban_length : $param_length,
+                $param
+            );
         }
 
         # this is for compatibility with mode blocks that use something like:
@@ -333,6 +354,12 @@ sub handle_modes {
         # the mode is the same as after, something didn't work.
         # for example, a mode handler might not be present if a module isn't
         # loaded. just ignore this mode in such a case.
+        #
+        # this also catches banlike modes when viewing the list.
+        # they require a parameter when setting or unsetting, so even though
+        # $win is true when viewing the list, this will prevent the mode from
+        # appearing in the resultant.
+        #
         next MODE if scalar @$parameters <= $params_before && $takes;
 
         # the parameter is extracted in case it was modified by the mode
@@ -766,7 +793,10 @@ sub _do_modes {
     # ($source, $modes, $force, $over_protocol) = @_;
     my $changes = $channel->handle_modes(
         $source, $modes, $force, $over_protocol
-    ) or return;
+    );
+
+    # if nothing changed, stop here.
+    $changes && ref $changes eq 'ARRAY' && @$changes or return;
 
     # tell the channel's users. this might be sent as multiple messages.
     #
@@ -795,7 +825,7 @@ sub _do_modes {
     $pool->fire_command_all(cmode =>
         $source, $channel, $channel->{time},
         $me, $server_str
-    );
+    ) if length $server_str > 1;
 
     return 1;
 }

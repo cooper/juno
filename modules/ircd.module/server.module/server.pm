@@ -582,7 +582,7 @@ sub strings_from_cmodes {
         push @strings, $str;
     }
 
-    return $split && wantarray ? @strings : $strings[0];
+    return $split && wantarray ? @strings : $strings[0] || '';
 }
 
 sub _stringify_cmode_parameter {

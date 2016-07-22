@@ -238,6 +238,12 @@ sub safe_ip {
 # chop a string to its limit as the config says.
 sub cut_to_limit {
     my ($limit, $string) = (conf('limit', shift), shift);
+    return cut_to_length($limit, $string);
+}
+
+# chop a string to a specified limit.
+sub cut_to_length {
+    my ($limit, $string) = @_;
     return $string unless defined $limit;
     my $overflow = length($string) - $limit;
     $string = substr $string, 0, -$overflow if length $string > $limit;
