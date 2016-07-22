@@ -876,12 +876,10 @@ sub userinfo {
     my ($to_server, $user, %fields) = @_;
     my @lines;
 
-    # if we have a nickTS, use SIGNON.
-    if (length $fields{nick_time}) {
-        return signon(
-            $to_server, $user,
-            @fields{ qw(nick ident host nick_time account) }
-        );
+    # if we have all the required fields, use SIGNON.
+    my @needed = qw(nick ident host nick_time account);
+    if (scalar(grep { defined $fields{$_} } @needed) == @needed) {
+        return signon($to_server, $user, @fields{@needed});
     }
 
     # host changed
@@ -901,11 +899,11 @@ sub userinfo {
 sub signon {
     my ($to_server, $user, $new_nick, $new_ident, $new_host, $new_nick_time, $new_act_name) = @_;
     sprintf ':%s SIGNON %s %s %s %s %s',
-    $new_nick       // '*',
-    $new_ident      // '*',
-    $new_host       // '*',
-    $new_nick_time  // '*',
-    $new_act_name   // '*'
+    $new_nick,
+    $new_ident,
+    $new_host,
+    $new_nick_time,
+    $new_act_name
 }
 
 $mod
