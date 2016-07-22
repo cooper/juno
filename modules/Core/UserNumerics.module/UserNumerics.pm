@@ -132,38 +132,21 @@ our %user_numerics = (
                             ###############################################################################
 );
 
-# RPL_ISUPPORT
+sub init {
+    $me->on(supported => \&isp_core, name => 'core.supported');
+    return 1;
+}
+
+# RPL_ISUPPORT. See issue #96.
 sub rpl_isupport {
     my $user = shift;
-    my $listmodes = join '', sort map { $_->{letter} }
-      grep { ($_->{type} // -1) == 3 } values %{ $me->{cmodes} };
+    my $yes = '__ENABLE__';
 
-    # I want this to be extensible so that modules can add things to it.
-    # See issue #96.
+    # fire the event
+    my %things;
+    $me->fire(supported => \%things, $yes);
 
-    my %things = (
-        PREFIX      => &isp_prefix,
-        CHANTYPES   => '#',
-        CHANMODES   => &isp_chanmodes,
-        MODES       => 5,                           # TODO: currently unlimited
-        CHANLIMIT   => '#:'.conf('limit', 'channel'),
-        NICKLEN     => conf('limit', 'nick'),
-        MAXLIST     => "$listmodes:1000",           # TODO: currently unlimited
-        NETWORK     => conf('server', 'network') // conf('network', 'name'),
-        EXCEPTS     => $me->cmode_letter('except'),
-        INVEX       => $me->cmode_letter('invite_except'),  # TODO: make the Invite module add this
-        DEAF        => $me->umode_letter('deaf'),
-        CASEMAPPING => $::casemapping || lc conf('server', 'casemapping'),
-        TOPICLEN    => conf('limit', 'topic'),
-        KICKLEN     => conf('limit', 'kickmsg'),
-        CHANNELLEN  => conf('limit', 'channelname'),
-        RFC2812     => 'YES',
-        FNC         => 'YES',
-        AWAYLEN     => conf('limit', 'away'),
-        MAXTARGETS  => 1                            # TODO: currently unconfigurable
-      # ELIST       => 'YES'                        # TODO: not implemented yet
-    );
-
+    # spit out the result
     my ($curr, @lines) = (0, '');
     while (my ($param, $val) = each %things) {
 
@@ -176,10 +159,43 @@ sub rpl_isupport {
             $lines[$curr] = '';
         }
 
-        $lines[$curr] .= $val eq 'YES' ? "$param " : "$param=$val ";
+        $lines[$curr] .= $val eq $yes ? "$param " : "$param=$val ";
     }
 
     return map { "$_:are supported by this server" } @lines;
+}
+
+# core supported callback
+sub isp_core {
+    my ($event, $supported, $yes) = @_;
+    my $listmodes = join '', sort map { $_->{letter} }
+      grep { ($_->{type} // -1) == 3 } values %{ $me->{cmodes} };
+
+    # construct core tokens
+    my %core_supported = (
+        PREFIX      => &isp_prefix,
+        CHANTYPES   => '#',
+        CHANMODES   => &isp_chanmodes,
+        MODES       => conf('channels', 'client_max_mode_params'),
+        CHANLIMIT   => '#:'.conf('limit', 'channel'),
+        NICKLEN     => conf('limit', 'nick'),
+        MAXLIST     => "$listmodes:1000",   # TODO: currently unlimited
+        NETWORK     => conf('server', 'network') // conf('network', 'name'),
+        EXCEPTS     => $me->cmode_letter('except'),
+        DEAF        => $me->umode_letter('deaf'),
+        CASEMAPPING => $::casemapping || lc conf('server', 'casemapping'),
+        TOPICLEN    => conf('limit', 'topic'),
+        KICKLEN     => conf('limit', 'kickmsg'),
+        CHANNELLEN  => conf('limit', 'channelname'),
+        RFC2812     => $yes,
+        FNC         => $yes,
+        AWAYLEN     => conf('limit', 'away'),
+        MAXTARGETS  => 1                    # FIXME: see issue #53
+      # ELIST       => $yes                 # TODO: not implemented yet
+    );
+
+    # inject them
+    @$supported{ keys %core_supported } = values %core_supported;
 }
 
 # CHANMODES in RPL_ISUPPORT.

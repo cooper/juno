@@ -107,6 +107,12 @@ sub ucmd_invite {
 # checks during INVITE and JOIN commands.
 sub add_invite_callbacks {
 
+    # add INVEX to RPL_ISUPPORT.
+    $me->on(supported => sub {
+        my (undef, $supported) = @_;
+        $supported->{INVEX} = $me->cmode_letter('invite_except');
+    }, name => 'invex.supported');
+
     # delete invitation on user join.
     $pool->on('channel.user_joined' => sub {
         my ($channel, $user) = (shift->object, shift);

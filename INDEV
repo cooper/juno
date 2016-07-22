@@ -3374,3 +3374,8 @@ CHANGES:
             eliminated some warnings which were produced when viewing lists of banlike modes as in "MODE #chan b" with no parameter.
             in scalar context, ->strings_from_cmodes() now returns an empty string rather than undef when passed an empty arrayref.
             fixed a bug where ->do_modes() would sometimes sent empty mode messages to servers.
+
+        45. RPL_ISUPPORT is now implemented with an event on the local server.
+            this allow modules to add, remove, and modify support tokens. closes #96.
+            reflect channels:client_max_mode_params in RPL_ISUPPORT.
+            move INVEX token to Channel::Invite.
