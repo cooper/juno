@@ -1327,7 +1327,7 @@ sub squit {
         # remote server. use ->quit().
         else {
             $server->quit($reason);
-            $pool->fire_command(quit => $server, $reason, $user);
+            $pool->fire_command_all(quit => $server, $reason, $user);
         }
 
         $amnt++;
