@@ -297,7 +297,7 @@ sub uid {
 sub quit {
     # source   :rest
     # :source QUIT   :reason
-    my ($server, $msg, $source, $reason, $from) = @_;
+    my ($server, $msg, $from, $source, $reason) = @_;
 
     # can't quit local users or the local server.
     return if $source->is_local;
