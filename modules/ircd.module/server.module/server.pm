@@ -640,7 +640,8 @@ sub cmodes_from_string {
         if (!defined $name || !defined $type) {
             notice(channel_mode_unknown =>
                 ($state ? '+' : '-').$letter,
-                'a channel', $server->notice_info);
+                $server->notice_info
+            );
             next MODE;
         }
 

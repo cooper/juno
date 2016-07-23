@@ -70,11 +70,11 @@ our %ts6_outgoing_commands = (
 
 sub init {
     $pool->on('server.send_ts6_burst' => \&send_burst,
-        name    => 'core', # conflicts with JELP, but it'll never be fired with that
+        name    => 'ts6.mainburst',
         with_eo => 1
     );
     $pool->on('server.send_ts6_burst' => \&send_endburst,
-        name     => 'endburst',
+        name     => 'ts6.endburst',
         with_eo  => 1,
         priority => -1000
     );

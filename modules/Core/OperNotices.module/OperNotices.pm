@@ -61,7 +61,7 @@ our %oper_notices = (
 
     # modes
     user_mode_unknown       => 'Attempted to set %s, but this mode is not defined on %s; ignored',
-    channel_mode_unknown    => 'Attempted to set %s on %s, but this mode is not defined on %s; ignored',
+    channel_mode_unknown    => 'Attempted to set %s, but this mode is not defined on %s; ignored',
 
     # miscellaneous
     perl_warning            => '%s',

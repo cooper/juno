@@ -55,15 +55,14 @@ my %jelp_commands = (
 );
 
 sub init {
-    return if !$api->module_loaded('JELP::Base');
-    
+
     # IRCd event for burst.
     $pool->on('server.send_jelp_burst' => \&burst_bans,
         name    => 'jelp.banburst',
         after   => 'jelp.mainburst',
         with_eo => 1
     );
-    
+
     # outgoing commands.
     $mod->register_outgoing_command(
         name => $_->[0],
@@ -74,7 +73,7 @@ sub init {
         [ baninfo => \&ocmd_baninfo ],
         [ bandel  => \&ocmd_bandel  ]
     );
-    
+
     # incoming commands.
     $mod->register_jelp_command(
         name       => $_,
@@ -82,7 +81,7 @@ sub init {
         code       => $jelp_commands{$_}{code},
         forward    => $jelp_commands{$_}{forward}
     ) || return foreach keys %jelp_commands;
-    
+
     return 1;
 }
 
@@ -151,23 +150,23 @@ sub scmd_ban {
         my @parts = split /,/, $item;
         next if @parts % 2;
         my ($id, $modified) = @parts;
-        
+
         # does this ban exist?
         if (my %ban = ban_by_id($id)) {
             next if $ban{modified} == $modified;
             push @i_dk, $id if $modified > $ban{modified};
             push @u_dk, $id if $modified < $ban{modified};
         }
-        
+
         push @i_dk, $id;
         $done{$id} = 1;
     }
-    
+
     # if the server didn't mention some bans, send them out too
     push @u_dk, grep { !$done{$_} } map $_->{id}, get_all_bans();
-    
+
     # FIXME: do I need u_dk or not?
-    
+
     $server->fire_command(banidk => @i_dk) if @i_dk;
 }
 
@@ -175,21 +174,21 @@ sub scmd_ban {
 # :sid BANINFO key value key value :reason
 sub scmd_baninfo {
     my ($server, $msg, @parts) = @_;
-    
+
     # must be divisible by two.
     my $reason = pop @parts;
     return if @parts % 2;
     my %ban = @parts;
     $ban{reason} = $reason;
-    
+
     # we need an ID at the very least
     return unless defined $ban{id};
-    
+
     # update, enforce, and activate
     add_or_update_ban(%ban);
     enforce_ban(%ban);
     activate_ban(%ban);
-    
+
 }
 
 # BANIDK: request ban data

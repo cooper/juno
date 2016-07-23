@@ -199,18 +199,18 @@ sub delete_ban_by_id {
 #
 # reason        default ban reason
 #
-# note: $_mod refers to the module calling the method
+# note: $mod_ refers to the module calling the method
 # TODO: when Ban module is unloaded, delete everything registered by other modules
 #
 sub register_ban_type {
-    my ($_mod, $event, %opts) = @_;
+    my ($mod_, $event, %opts) = @_;
     my $type_name = lc $opts{name} or return;
 
     # register add command.
     my $command1 = $opts{add_cmd};
     if (length $command1) {
         $command1 = uc $command1;
-        $_mod->register_user_command_new(
+        $mod_->register_user_command_new(
             name        => $command1,
             code        => sub { handle_add_command($type_name, $command1, @_) },
             description => "add to $type_name ban list",
@@ -223,7 +223,7 @@ sub register_ban_type {
     my $command2 = $opts{del_cmd};
     if (length $command2) {
         $command2 = uc $command2;
-        $_mod->register_user_command_new(
+        $mod_->register_user_command_new(
             name        => $command2,
             code        => sub { handle_del_command($type_name, $command2, @_) },
             description => "delete from $type_name ban list",
@@ -232,15 +232,15 @@ sub register_ban_type {
     }
 
     # oper notices.
-    $_mod->register_oper_notice(
+    $mod_->register_oper_notice(
         name   => $type_name,
-        format => 'Ban for %s added by %s (%s@%s), will expire %s (%s)'
+        format => 'Ban for %s added by %s, will expire %s (%s)'
     );
-    $_mod->register_oper_notice(
+    $mod_->register_oper_notice(
         name   => "${type_name}_delete",
-        format => 'Ban for %s deleted by %s (%s@%s)'
+        format => 'Ban for %s deleted by %s'
     );
-    $_mod->register_oper_notice(
+    $mod_->register_oper_notice(
         name   => "${type_name}_expire",
         format => 'Ban for %s expired'
     );
@@ -252,7 +252,7 @@ sub register_ban_type {
     };
 
     L("$type_name registered");
-    $_mod->list_store_add(ban_types => $type_name);
+    $mod_->list_store_add(ban_types => $type_name);
 }
 
 # register a ban right now from this server
@@ -355,8 +355,8 @@ sub handle_del_command {
 }
 
 sub unload_module {
-    my $_mod = shift;
-    delete_ban_type($_) foreach $_mod->list_store_items('ban_types');
+    my $mod_ = shift;
+    delete_ban_type($_) foreach $mod_->list_store_items('ban_types');
 }
 
 sub delete_ban_type {

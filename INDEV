@@ -3421,3 +3421,5 @@ CHANGES:
 
         55. the ->notice_info() method now returns a string rather than a list, simplifying oper notices.
             ->notice_info() can now be called on servers as well, which yields the server name and SID.
+
+        56. working on implementing bans in TS6. added some outgoing commands. #32.
