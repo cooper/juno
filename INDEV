@@ -3408,3 +3408,4 @@ CHANGES:
             this is just the bare-bones. it does not have a reasonable algorithm yet.
             ->get_mask_changed() can take an optional setby argument now, which tells the user who set the cloak.
             it also now says "hostname reset" when switching back to the real host.
+            only apply the cloak if the real host is active.

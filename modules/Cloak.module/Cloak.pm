@@ -46,13 +46,17 @@ sub enable_cloak {
         return;
     }
 
-    # apply the cloak
-    $user->get_mask_changed($user->{ident}, $new_host);
+    # OK, cloaking is enabled. but it may not necessarily be applied.
     $user->{cloak_enabled} = $new_host;
 
-    # tell other servers if the user has been propagated
-    $pool->fire_command_all(chghost => $me, $user, $new_host)
-        if $user->{init_complete};
+    # apply the cloak - but only if the real host is active.
+    if ($user->{cloak} eq $user->{host}) {
+        $user->get_mask_changed($user->{ident}, $new_host);
+
+        # tell other servers if the user has been propagated
+        $pool->fire_command_all(chghost => $me, $user, $new_host)
+            if $user->{init_complete};
+    }
 
     return 1;
 }
