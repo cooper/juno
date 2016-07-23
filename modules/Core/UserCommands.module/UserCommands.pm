@@ -1331,7 +1331,6 @@ sub squit {
         }
 
         $amnt++;
-
         notice($user, squit =>
             $user->notice_info,
             $server->{name}, $server->{parent}{name}

@@ -31,8 +31,8 @@ my %scommands = (
         code    => \&uid
     },
     QUIT => {
-                   # :src QUIT :reason
-        params  => '-source    :rest',
+                   # @from=uid          :src QUIT  :reason
+        params  => '-tag.from(user,opt) -source    :rest',
         code    => \&quit
     },
     NICK => {
@@ -297,7 +297,7 @@ sub uid {
 sub quit {
     # source   :rest
     # :source QUIT   :reason
-    my ($server, $msg, $source, $reason) = @_;
+    my ($server, $msg, $source, $reason, $from) = @_;
 
     # can't quit local users or the local server.
     return if $source->is_local;
@@ -306,11 +306,10 @@ sub quit {
     if ($source->isa('server') && $source->conn) {
 
         # we might have a tag which says who it's from
-        if (length(my $from = $msg->tag('from'))) {
-            my $name = utils::global_lookup($from);
-            $name = $name ? $name->name : $from;
-            $reason = "by $name: $reason";
-        }
+        notice(squit =>
+            $from->notice_info,
+            $source->{name}, $source->{parent}{name}
+        ) if $from;
 
         # close it. this will also propagate.
         $source->conn->done($reason);
