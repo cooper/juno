@@ -314,10 +314,11 @@ sub handle_add_command {
 
     # register the ban
     my %ban = register_ban($type_name,
-        match       => $match,
-        reason      => $reason,
-        duration    => $seconds,
-        auser       => $user->full
+        match        => $match,
+        reason       => $reason,
+        duration     => $seconds,
+        auser        => $user->full,
+        _just_set_by => $user->id
     );
 
     # notices

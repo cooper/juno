@@ -113,6 +113,7 @@ sub ocmd_baninfo {
     my ($to_server, $ban) = @_;
     my $str = '';
     foreach my $key (keys %$ban) {
+        next if substr($key, 0, 1) eq '_';
         next if $key eq 'reason';
         my $value = $ban->{$key};
         next unless length $value;

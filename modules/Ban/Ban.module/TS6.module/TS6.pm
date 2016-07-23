@@ -102,6 +102,9 @@ sub ts6_ban {
     $ban{match_ts6} = $ban{type} eq 'kline' ?
         join(' ', @ban{'match_user', 'match_host'}) : $ban{match_host};
 
+    # this is a safety check for dumb things like a DLINE on someone@*
+    return if $ban{match_ts6} eq '*';
+
     return %ban;
 }
 
@@ -143,12 +146,13 @@ sub out_ban {
 
 # baninfo is the advertisement of a ban. in TS6, use ENCAP K/DLINE
 sub out_baninfo {
-    my ($to_server, $ban_, $from) = @_;
+    my ($to_server, $ban_) = @_;
     my %ban = ts6_ban(%$ban_) or return;
 
     # FIXME: LOL! ENCAP K/DLINE can only come from a user.
     # if there's no user, this is probably during burst.
-    if (!$from || !$from->isa('user')) {
+    my $from = $pool->lookup_user($ban{_just_set_by});
+    if (!$from) {
         $from = ($pool->local_users)[0];
         return if !$from;
     }
@@ -166,12 +170,13 @@ sub out_baninfo {
 
 # bandel is sent out when a ban is removed. in TS6, use ENCAP UNK/DLINE
 sub out_bandel {
-    my ($to_server, $ban_, $from) = @_;
+    my ($to_server, $ban_) = @_;
     my %ban = ts6_ban(%$ban_) or return;
 
     # FIXME: LOL! ENCAP K/DLINE can only come from a user.
     # if there's no user, this is probably during burst.
-    if (!$from || !$from->isa('user')) {
+    my $from = $pool->lookup_user($ban{_just_set_by});
+    if (!$from) {
         $from = ($pool->local_users)[0];
         return if !$from;
     }
@@ -185,7 +190,6 @@ sub out_bandel {
 ################
 ### INCOMING ###
 ################
-
 
 sub kline {
     my ($server, $msg, $user, $serv_mask, undef,

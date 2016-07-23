@@ -3426,3 +3426,4 @@ CHANGES:
             more work on TS6 bans. #32.
             moved fnv() to utils.pm.
             fixed some oper notices which were broken since the changes to ->notice_info().
+            silented annoying warnings produced by load_or_reload().

@@ -456,6 +456,7 @@ sub load_or_reload {
     (my $file = "$name.pm") =~ s/::/\//g;
 
     # it might be loaded with an appropriate version already.
+    no warnings 'numeric';
     if ((my $v = $name->VERSION // -1) >= $min_v) {
         L("$name is loaded and up-to-date ($v)");
         return 1;
