@@ -1288,7 +1288,7 @@ sub operwall {
 #
 sub chghost {
     my ($server, $msg, $source, $user, $new_host) = @_;
-    $user->get_mask_changed($user->{ident}, $new_host);
+    $user->get_mask_changed($user->{ident}, $new_host, $source->name);
 
     #=== Forward ===#
     $msg->forward(chghost => $source, $user, $new_host);

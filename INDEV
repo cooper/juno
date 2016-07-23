@@ -3403,3 +3403,8 @@ CHANGES:
         fixed a bug where SQUITs from TS6 servers were forwarded to other uplinks twice: once from the SQUIT and once from the ERROR.
         added extra checks in connection->done() to ensure that quit messages are never sent out more than once.
         made missing umode notices less spammy.
+
+        51. added Cloak module, which will provide hostname cloaking. #71.
+            this is just the bare-bones. it does not have a reasonable algorithm yet.
+            ->get_mask_changed() can take an optional setby argument now, which tells the user who set the cloak.
+            it also now says "hostname reset" when switching back to the real host.

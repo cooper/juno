@@ -1,0 +1,15 @@
+{
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
+   "depends" : {
+      "modules" : [
+         "Base::UserModes"
+      ]
+   },
+   "description" : "hostname cloaking",
+   "name" : "Cloak",
+   "package" : "M::Cloak",
+   "version" : "0.2"
+}

@@ -1008,7 +1008,8 @@ sub userinfo {
     if (defined $new_host || defined $new_ident) {
         $user->get_mask_changed(
             $new_ident // $user->{ident},
-            $new_host  // $user->{cloak}
+            $new_host  // $user->{cloak},
+            $server->name
         );
     }
 

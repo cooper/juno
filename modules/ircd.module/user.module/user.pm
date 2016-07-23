@@ -417,7 +417,7 @@ sub get_killed_by {
 # but any user (local or nonlocal) can be passed.
 #
 sub get_mask_changed {
-    my ($user, $new_ident, $new_host) = @_;
+    my ($user, $new_ident, $new_host, $set_by) = @_;
     my $old_ident = $user->{ident};
     my $old_host  = $user->{cloak};
 
@@ -428,10 +428,23 @@ sub get_mask_changed {
     $user->{ident} = $new_ident;
     $user->{cloak} = $new_host;
 
-    # tell the user his host has changed
-    # consider: send even when $new_host eq $user->{host} ?
-    if ($new_host ne $old_host && $user->is_local) {
-        $user->numeric(RPL_HOSTHIDDEN => $new_host);
+    # tell the user his host has changed.
+    # only do so if welcoming is done because otherwise it's postponed.
+    if ($new_host ne $old_host && $user->is_local && $user->{init_complete}) {
+
+        # new host might have a set by
+        if ($new_host ne $user->{host}) {
+            $user->numeric(
+                length $set_by ? 'RPL_HOSTHIDDEN_SVS' : 'RPL_HOSTHIDDEN',
+                $new_host,
+                $set_by
+            );
+        }
+
+        # reset to real host
+        else {
+            $user->numeric(RPL_HOSTHIDDEN_RST => $new_host);
+        }
     }
 
     # send CHGHOST to those who support it.
@@ -790,7 +803,9 @@ sub _new_connection {
         $pool->channel_mode_string
     );
     $user->numeric('RPL_ISUPPORT');
-    $user->numeric(RPL_YOURID => $user->{uid}) if conf('users', 'notify_uid');
+    $user->numeric(RPL_YOURID => $user->{uid})
+        if conf('users', 'notify_uid');
+
 
     # LUSERS and MOTD
     $user->handle('LUSERS');
@@ -798,6 +813,8 @@ sub _new_connection {
 
     # send mode string
     $user->sendfrom($user->{nick}, "MODE $$user{nick} :".$user->mode_string);
+    $user->numeric(RPL_HOSTHIDDEN => $user->{cloak})
+        if $user->{cloak} ne $user->{host};
 
     return $user->{init_complete} = 1;
 }

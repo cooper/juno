@@ -456,7 +456,7 @@ sub smap {
     $do->($me);
 
     my $average = int($total / scalar(keys %done) + 0.5);
-    $user->numeric(RPL_MAP2 => $total, scalar(keys %done), $average);
+    $user->numeric(RPL_MAP_TOTAL => $total, scalar(keys %done), $average);
     $user->numeric('RPL_MAPEND');
 
 }
