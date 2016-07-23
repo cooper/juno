@@ -70,7 +70,6 @@ sub disable_cloak {
 
         # apply the real host
         $user->get_mask_changed(@$user{'ident', 'host'});
-        delete $user->{cloak_enabled};
 
         # tell other servers if the user has been propagated
         $pool->fire_command_all(chghost => $me, $user, $user->{host})
@@ -78,6 +77,7 @@ sub disable_cloak {
 
     }
 
+    delete $user->{cloak_enabled};
     return 1;
 }
 
