@@ -23,13 +23,14 @@ use Scalar::Util  qw(blessed looks_like_number);
 use M::TS6::Utils qw(obj_from_ts6);
 use utils qw(notice);
 
-our ($api, $mod, $pool);
+our ($api, $mod, $pool, $me);
 my $PARAM_BAD = $message::PARAM_BAD;
 my $props     = $Evented::Object::props;
 
 sub init {
     $mod->register_module_method('register_ts6_command'         ) or return;
     $mod->register_module_method('register_outgoing_ts6_command') or return;
+    $mod->register_module_method('register_ts6_capability'      ) or return;
 
     # module events.
     $api->on('module.unload' => \&unload_module, with_eo => 1) or return;
@@ -47,6 +48,51 @@ sub init {
     );
 
     return 1;
+}
+
+########################
+### TS6 capabilities ###
+########################
+
+our %capabilities;
+
+sub register_ts6_capability {
+    my ($mod, $event, %opts) = @_;
+
+    # no name provided
+    my $cap = $opts{name};
+    if (!defined $cap) {
+        L("TS6 capability has to have a name");
+        return;
+    }
+
+    # already have it
+    $cap = uc $cap;
+    if (exists $capabilities{$cap}) {
+        L("TS6 capability '$cap' is already registered");
+        return;
+    }
+
+    # store it.
+    $capabilities{$cap} = \%opts;
+    $mod->list_store_add('ts6_capabilities', $cap);
+
+    # enable it, unless told not to.
+    $me->add_cap($cap)
+        unless $opts{dont_enable};
+
+    L("TS6 capability $cap registered");
+    return 1;
+}
+
+# returns all caps, even ones not enabled
+sub get_capabs {
+    return sort keys %capabilities;
+}
+
+# returns caps that have the required flag
+sub get_required_caps {
+    return sort grep $capabilities{$_}{required}, keys %capabilities;
 }
 
 ################################
@@ -234,8 +280,17 @@ sub _param_ts {
 
 sub unload_module {
     my ($mod, $event) = @_;
+
+    # delete outgoing commands
     $pool->delete_outgoing_handler($_, 'ts6')
         foreach $mod->list_store_items('outgoing_ts6_commands');
+
+    # delete capabilities
+    foreach my $cap ($mod->list_store_items('ts6_capabilities')) {
+        delete $capabilities{$cap};
+        $me->remove_cap($cap); # may or may not be enabled
+    }
+
     return 1;
 }
 
@@ -243,12 +298,21 @@ sub unload_module {
 sub module_init {
     my $mod = shift;
 
+    # add capabilities
+    my %capabs = $mod->get_symbol('%ts6_capabilities');
+    $mod->register_ts6_capability(
+        name => $_,
+        %{ $capabs{$_} }
+    ) or return foreach keys %capabs;
+
+    # add outgoing commands
     my %commands = $mod->get_symbol('%ts6_outgoing_commands');
     $mod->register_outgoing_ts6_command(
         name => $_,
         code => $commands{$_}
     ) or return foreach keys %commands;
 
+    # add incoming commands
     %commands = $mod->get_symbol('%ts6_incoming_commands');
     $mod->register_ts6_command(
         name => $_,

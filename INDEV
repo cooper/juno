@@ -3415,3 +3415,6 @@ CHANGES:
 
         53. in TS6, PINGs for non-TS6 servers connected through the receiving server are handled by it.
             this fixes #62 where TS6 links like charybdis never receive an end-of-burst token for remote servers.
+
+        54. TS6::Base now provides methods to add and remove server capabilities.
+            core capabilities are in TS6::Registration. closes #59.

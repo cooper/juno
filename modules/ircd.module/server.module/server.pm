@@ -824,8 +824,8 @@ sub fire_command {
 }
 
 # CAP shortcuts.
-sub has_cap    { my $c = shift->conn or return; $c->has_cap(@_)    }
-sub add_cap    { my $c = shift->conn or return; $c->add_cap(@_)    }
-sub remove_cap { my $c = shift->conn or return; $c->remove_cap(@_) }
+*has_cap = *connection::has_cap;
+*add_cap = *connection::add_cap;
+*remove_cap = *connection::remove_cap;
 
 $mod

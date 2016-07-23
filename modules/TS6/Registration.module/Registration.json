@@ -6,11 +6,12 @@
    "depends" : {
       "modules" : [
          "Base::RegistrationCommands",
-         "TS6::Utils"
+         "TS6::Utils",
+         "TS6::Base"
       ]
    },
    "description" : "registration commands for TS6 protocol",
    "name" : "TS6::Registration",
    "package" : "M::TS6::Registration",
-   "version" : "5"
+   "version" : "5.2"
 }

@@ -8,7 +8,7 @@
 # @package:         'M::TS6::Registration'
 # @description:     'registration commands for TS6 protocol'
 #
-# @depends.modules: ['Base::RegistrationCommands', 'TS6::Utils']
+# @depends.modules: ['Base::RegistrationCommands', 'TS6::Utils', 'TS6::Base']
 #
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'
@@ -23,6 +23,19 @@ use utils qw(conf irc_match notice ref_to_list irc_lc);
 use M::TS6::Utils qw(ts6_id sid_from_ts6 user_from_ts6 ts6_uid);
 
 our ($api, $mod, $pool, $conf, $me);
+
+our %ts6_capabilities = (
+    ENCAP       => { required => 1 },   # enhanced command routing
+    QS          => { required => 1 },   # quit storm
+    EX          => { required => 1 },   # ban exceptions
+    IE          => { required => 1 },   # invite exceptions
+    EUID        => { required => 0 },   # extended user introduction
+    TB          => { required => 0 },   # topic burst
+    EOB         => { required => 0 },   # end of burst token
+    SERVICES    => { required => 0 },   # umode +S and cmode +r
+    SAVE        => { required => 0 },   # resolve nick collisions without kills
+    RSFNC       => { required => 0 }    # forcenick extension
+);
 
 our %registration_commands = (
     CAPAB => {
@@ -63,22 +76,16 @@ sub init {
 sub send_registration {
     my $connection = shift;
 
-    # EUID      = extended user burst support
-    # ENCAP     = enhanced command routing support
-    # QS        = quit storm support
-    # TB        = topic burst support
-    # EOPMOD    = special rules for +z, extended topic burst support
-    # EX        = ban exception (+e) support
-    # IE        = invite exception (+I) support
-    # SERVICES  = support for +S (network service) and +r (channel registered)
-
+    # send PASS first.
     $connection->send(sprintf
         'PASS %s TS 6 :%s',
         conf(['connect', $connection->{want} // $connection->{name}], 'send_password'),
         ts6_id($me)
     );
 
-    $connection->send('CAPAB :EUID ENCAP QS TB EOB EX IE SERVICES SAVE RSFNC');
+    # send CAPAB. only advertise ones that are enabled on $me.
+    my @caps = grep $me->has_cap($_), M::TS6::Base::get_capabs();
+    $connection->send("CAPAB :@caps");
 
     $connection->send(sprintf
         'SERVER %s %d :%s',
@@ -247,7 +254,7 @@ sub connection_ready {
     return unless delete $server->{ts6_reg_pending};
 
     # search for required CAPABs.
-    foreach my $need (qw(EUID TB ENCAP QS)) {
+    foreach my $need (M::TS6::Base::get_required_caps()) {
         next if $server->has_cap($need);
         $connection->done("Missing required CAPABs ($need)");
         return;

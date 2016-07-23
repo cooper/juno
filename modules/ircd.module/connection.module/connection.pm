@@ -421,9 +421,9 @@ sub send_server_pass {
 
 # has a capability.
 sub has_cap {
-    my ($connection, $flag) = (shift, lc shift);
-    return unless $connection->{cap_flags};
-    foreach my $f (@{ $connection->{cap_flags} }) {
+    my ($obj, $flag) = (shift, lc shift);
+    return unless $obj->{cap_flags};
+    foreach my $f (@{ $obj->{cap_flags} }) {
         return 1 if $f eq $flag;
     }
     return;
@@ -431,21 +431,21 @@ sub has_cap {
 
 # add a capability.
 sub add_cap {
-    my ($connection, @flags) = (shift, map { lc } @_);
+    my ($obj, @flags) = (shift, map { lc } @_);
     foreach my $flag (@flags) {
-        next if $connection->has_cap($flag);
-        push @{ $connection->{cap_flags} ||= [] }, $flag;
+        next if $obj->has_cap($flag);
+        push @{ $obj->{cap_flags} ||= [] }, $flag;
     }
     return 1;
 }
 
 # remove a capability.
 sub remove_cap {
-    my ($connection, @flags) = (shift, map { lc } @_);
-    return unless $connection->{cap_flags};
-    my %all_flags = map { $_ => 1 } @{ $connection->{cap_flags} };
+    my ($obj, @flags) = (shift, map { lc } @_);
+    return unless $obj->{cap_flags};
+    my %all_flags = map { $_ => 1 } @{ $obj->{cap_flags} };
     delete $all_flags{$_} foreach @flags;
-    @{ $connection->{cap_flags} } = keys %all_flags;
+    @{ $obj->{cap_flags} } = keys %all_flags;
 }
 
 #############
