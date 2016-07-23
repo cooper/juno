@@ -1,0 +1,10 @@
+{
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
+   "description" : "hostname cloaking compatible with charybdis",
+   "name" : "Cloak::Charybdis",
+   "package" : "M::Cloak::Charybdis",
+   "version" : "4.3"
+}

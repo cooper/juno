@@ -18,18 +18,26 @@ use 5.010;
 
 our ($api, $mod, $pool, $me);
 
-my $cloak_func = \&cloak;
+my $cloak_func;
 
 sub init {
+
+    # add mode block
     $mod->register_user_mode_block(
         name => 'cloak',
         code => \&umode_cloak
     ) or return;
+
+    # for now, only charybdis-style is supported
+    $mod->load_submodule('Charybdis') or return;
+    $cloak_func = $mod->can('cloak');
+
     return 1;
 }
 
 sub umode_cloak {
     my ($user, $state) = @_;
+    return 1 if !$user->is_local;
     return enable_cloak($user) if $state;
     return disable_cloak($user);
 }
@@ -79,11 +87,6 @@ sub disable_cloak {
 
     delete $user->{cloak_enabled};
     return 1;
-}
-
-sub cloak {
-    my ($host, $user) = @_;
-    return crypt($host, 'secure!');
 }
 
 $mod
