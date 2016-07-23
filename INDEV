@@ -3398,3 +3398,7 @@ CHANGES:
         49. spruced up CONNECT to work as a global command.
             added JELP CONNECT command. closes #58.
             added TS6 CONNECT command.
+
+    5. SQUIT now works remotely. #93.
+        fixed a bug where SQUITs from TS6 servers were forwarded to other uplinks twice: once from the SQUIT and once from the ERROR.
+        added extra checks in connection->done() to ensure that quit messages are never sent out more than once.

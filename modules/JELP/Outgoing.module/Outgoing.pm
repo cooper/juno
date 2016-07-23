@@ -160,10 +160,15 @@ sub send_endburst {
 
 # this can take a server object, user object, or connection object.
 sub quit {
-    my ($to_server, $object, $reason) = @_;
+    my ($to_server, $object, $reason, $from) = @_;
     $object = $object->type if $object->isa('connection');
     my $id  = $object->id;
-    ":$id QUIT :$reason"
+    my $str = ":$id QUIT :$reason";
+    if ($from) {
+        my $from_id = $from->id;
+        $str = "\@from=$from_id $str"
+    }
+    $str
 }
 
 # new user

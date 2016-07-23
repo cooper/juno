@@ -510,18 +510,19 @@ sub part {
 # ts6-protocol.txt:858
 #
 sub quit {
-    my ($to_server, $object, $reason) = @_;
+    my ($to_server, $object, $reason, $from) = @_;
     $object = $object->type if $object->isa('connection');
 
     # if it's a server, SQUIT.
     if ($object->isa('server')) {
+        $from ||= $object->{parent};
         return sprintf ":%s SQUIT %s :%s",
-            ts6_id($object->{parent}),
-            ts6_id($object),
-            $reason;
+        ts6_id($from),
+        ts6_id($object),
+        $reason;
     }
 
-    my $id  = ts6_id($object);
+    my $id = ts6_id($object);
     ":$id QUIT :$reason"
 }
 

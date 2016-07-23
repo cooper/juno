@@ -71,7 +71,7 @@ our %user_commands = (
     SQUIT => {
         code   => \&squit,
         desc   => 'disconnect a server',
-        params => '-oper(squit) *'
+        params => '-oper(squit) * *(opt)'
     },
     ECHO => {
         code   => \&echo,
@@ -1282,47 +1282,64 @@ sub version {
     $user->numeric('RPL_ISUPPORT') if $server->is_local;
 }
 
+# quit a server
+# remote safe
 sub squit {
-    my ($user, $event, $server_input_name) =  @_;
-    my @servers = $pool->lookup_server_mask($server_input_name);
+    my ($user, $event, $squit_mask, $reason) =  @_;
+    $reason //= 'SQUIT command';
+
+    # find matching servers
+    my @servers = $pool->lookup_server_mask($squit_mask);
+    my $amnt = 0;
 
     # if there is a pending timer, cancel it.
-    my $canceled_some;
+    # FIXME: is this literally canceling all timers, or am I reading it wrong?
     foreach my $server_name (keys %ircd::link_timers) {
         if (server::linkage::cancel_connection($server_name)) {
             notice($user, connect_cancel => $user->notice_info, $server_name);
-            $canceled_some = 1;
+            $amnt++;
         }
     }
 
     # no connected servers match.
     if (!@servers) {
-        $user->numeric(ERR_NOSUCHSERVER => $server_input_name) unless $canceled_some;
+        $user->numeric(ERR_NOSUCHSERVER => $squit_mask) unless $amnt;
         return;
     }
 
-    my $amnt = 0;
+    # disconnect from each matching server
+    $amnt = 0;
     foreach my $server (@servers) {
 
-        # no direct connection. might be local server or a
-        # psuedoserver or a server reached through another server.
-        if (!$server->{conn}) {
-            $user->server_notice(squit =>
-                "$$server{name} is not connected directly; " .
-                "use /SQUIT $$server{name} $$server{parent}{name} to " .
-                "disconnect it from its parent"
-            ) unless $server->{fake};
+        # it's me!
+        if ($server == $me) {
+            $user->server_notice(squit => "Can\'t disconnect the local server")
+                if @servers == 1;
             next;
         }
 
+        # direct connection. use ->done().
+        if ($server->conn) {
+            $server->{conn}{dont_reconnect}++;
+            $server->{conn}->done($reason);
+        }
+
+        # remote server. use ->quit().
+        else {
+            $server->quit($reason);
+            $pool->fire_command(quit => $server, $reason, $user);
+        }
+
         $amnt++;
-        $server->{conn}->{dont_reconnect} = 1;
-        $server->{conn}->done('SQUIT command');
-        $user->server_notice(squit => "$$server{name} disconnected");
+
+        notice($user, squit =>
+            $user->notice_info,
+            $server->{name}, $server->{parent}{name}
+        );
     }
 
-    my $servers = $amnt == 1 ? 'server' : 'servers';
-    $user->server_notice(squit => "$amnt $servers disconnected");
+    my $s = $amnt == 1 ? '' : 's';
+    $user->server_notice(squit => "$amnt server$s disconnected");
     return 1;
 }
 

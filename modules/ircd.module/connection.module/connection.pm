@@ -281,10 +281,11 @@ sub early_reply {
 # end a connection. this must be foolproof.
 sub done {
     my ($connection, $reason) = @_;
+    return if $connection->{done}++;
     L("Closing connection from $$connection{ip}: $reason");
 
     # a user or server is associated with the connection.
-    if ($connection->{type}) {
+    if ($connection->{type} && !$connection->{type}{did_quit}) {
 
         # share this quit with the children.
         $pool->fire_command_all(quit => $connection, $reason)
@@ -292,6 +293,7 @@ sub done {
 
         # tell user.pm or server.pm that the connection is closed.
         $connection->{type}->quit($reason);
+        $connection->{type}{did_quit}++;
 
     }
 

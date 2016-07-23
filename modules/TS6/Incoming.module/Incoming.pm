@@ -1301,36 +1301,38 @@ sub chghost {
 # parameters:   target server, comment
 #
 sub squit {
-    my ($server, $msg, $s_serv, $t_serv, $comment) = @_;
+    my ($server, $msg, $source, $t_serv, $comment) = @_;
 
-    # the provided $s_serv will either be a server object or
-    # undef if there was no source.
+    # the provided $source will either be a user or server object
+    # or undef if there was no source.
+    my $real_source = $source;
+    $source ||= $server;
 
-    # if the target server is me or the source server, close the link.
-    if (!$s_serv && $t_serv == $me) {
+    # if the target server is the receiving server or the local link this came
+    # from, this is an announcement that the link is being closed.
+    if ($t_serv == $server || $t_serv == $me) {
+        $t_serv = $server;
+        $t_serv->conn->done($comment);
         notice(server_closing => $server->name, $server->id, $comment);
-        $server->conn->done($comment);
-        $t_serv = $server; # forward SQUIT with their UID, not ours
     }
 
-    # can't squit self without a direct connection.
-    elsif ($t_serv == $me) {
-        notice(
-            server_protocol_error =>
-            $s_serv->name, $s_serv->id,
-            'attempted to SQUIT the local server '.$me->{name}
-        );
-        $server->conn->done("Attempted to SQUIT $$me{name}");
-        return; # don't forward
+    # the target server is an uplink of this server.
+    # that means that this was a remote SQUIT.
+    elsif ($t_serv->conn) {
+        my @info = ($source->name, '<someone>', '<somewhere>');
+        @info = $source->notice_info if $source->isa('user');
+        notice(squit => @info, $t_serv->{name}, $me->name);
+        $t_serv->conn->done($comment);
     }
 
     # otherwise, we can simply quit the target server.
     else {
         $t_serv->quit($comment);
-    }
 
-    #=== Forward ===#
-    $msg->forward(quit => $t_serv, $comment);
+        #=== Forward ===#
+        $msg->forward(quit => $t_serv, $comment, $real_source);
+
+    }
 
     return 1;
 }
