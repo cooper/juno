@@ -1326,6 +1326,10 @@ sub squit {
 
         # remote server. use ->quit().
         else {
+            if (!$user->has_flag('gsquit')) {
+                $user->numeric(ERR_NOPRIVILEGES => 'gsquit');
+                next;
+            }
             $server->quit($reason);
             $pool->fire_command_all(quit => $server, $reason, $user);
         }
