@@ -16,6 +16,8 @@ use warnings;
 use strict;
 use 5.010;
 
+use utils qw(fnv);
+
 our ($api, $mod, $pool, $me);
 
 my @ip_char_table = 'g'..'z';
@@ -25,17 +27,6 @@ sub cloak {
     my ($host, $user) = @_;
     return do_host_cloak_ip($host) if $host eq $user->{ip};
     return do_host_cloak_host($host);
-}
-
-sub fnv {
-    my ($string) = @_;
-    my $h = 0x811c9dc5;
-    foreach my $c (split //, $string) {
-        $h ^= ord($c);
-        $h += ($h << 1) + ($h << 4) + ($h << 7) + ($h << 8) + ($h << 24);
-        $h &= 0xffffffff;
-    }
-    return $h;
 }
 
 sub do_host_cloak_ip {

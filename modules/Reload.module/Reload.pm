@@ -33,7 +33,7 @@ sub init {
     # notices.
     $mod->register_oper_notice(
         name   => 'reload',
-        format => '%s %s by %s (%s@%s)'
+        format => '%s %s by %s'
     ) or return;
 
     return 1;

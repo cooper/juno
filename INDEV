@@ -3423,3 +3423,6 @@ CHANGES:
             ->notice_info() can now be called on servers as well, which yields the server name and SID.
 
         56. working on implementing bans in TS6. added some outgoing commands. #32.
+            more work on TS6 bans. #32.
+            moved fnv() to utils.pm.
+            fixed some oper notices which were broken since the changes to ->notice_info().

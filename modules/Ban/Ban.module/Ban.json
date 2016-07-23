@@ -12,5 +12,5 @@
    "description" : "provides an interface for user and server banning",
    "name" : "Ban",
    "package" : "M::Ban",
-   "version" : "9.1"
+   "version" : "9.2"
 }

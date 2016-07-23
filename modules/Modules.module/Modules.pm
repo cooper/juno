@@ -49,9 +49,9 @@ sub init {
         name   => shift @$_,
         format => shift @$_
     ) or return foreach (
-        [ module_load    => '%s (%s@%s) loaded %s (%s)' ],
-        [ module_unload  => '%s (%s@%s) unloaded %s'    ],
-        [ module_reload  => '%s (%s@%s) reloaded %s'    ]
+        [ module_load    => '%s loaded %s (%s)' ],
+        [ module_unload  => '%s unloaded %s'    ],
+        [ module_reload  => '%s reloaded %s'    ]
     );
 
     return 1;

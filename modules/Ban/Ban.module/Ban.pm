@@ -345,7 +345,7 @@ sub handle_del_command {
     # delete it
     delete_ban_by_id($ban{id});
     expire_ban(%ban, deleted => 1);
-    $pool->fire_command_all(bandel => $ban{id});
+    $pool->fire_command_all(bandel => \%ban);
 
     # notices
     my $notice = gnotice("${type_name}_delete" => $ban{match}, $user->notice_info);

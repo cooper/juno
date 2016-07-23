@@ -36,11 +36,12 @@ sub init {
 sub _match {
     my $str = shift;
 
+    # TODO: don't allow non-IPs
+
     # does it match a user?
     if (my $user = $pool->lookup_user_nick($str)) {
         return $user->{ip};
     }
-
 
     return $str;
 }

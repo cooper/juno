@@ -20,6 +20,7 @@ use warnings;
 use strict;
 use 5.010;
 
+use utils qw(fnv);
 use M::TS6::Utils qw(ts6_id);
 
 M::Ban->import(qw(
@@ -30,9 +31,29 @@ M::Ban->import(qw(
 
 our ($api, $mod, $pool, $conf, $me);
 
-###########
-### TS6 ###
-###########
+our %ts6_capabilities = (
+    KLN   => { required => 0 },
+    UNKLN => { required => 0 }
+);
+
+our %ts6_outgoing_commands = (
+    ban     => \&out_ban,
+    baninfo => \&out_baninfo,
+    bandel  => \&out_bandel
+);
+
+our %ts6_incoming_commands = (
+    ENCAP_KLINE => {
+                  # :uid ENCAP    target KLINE duration ident_mask host_mask :reason
+        params => '-source(user)  *      *     *        *          *         *',
+        code   => \&kline
+    },
+    ENCAP_DLINE => {
+                  # :uid ENCAP    target DLINE duration ip_mask :reason
+        params => '-source(user)  *      *     *        *       *',
+        code   => \&dline
+    }
+);
 
 sub init {
 
@@ -45,6 +66,56 @@ sub init {
 
     return 1;
 }
+
+# takes a ban hash and returns one ready for ts6 use
+sub ts6_ban {
+    my %ban = @_;
+
+    # TS6 only supports kdlines
+    return unless $ban{type} eq 'kline' || $ban{type} eq 'dline';
+
+    # create an ID based on the fnv hash of the mask
+    $ban{id} //= fnv($ban{match});
+
+    # TS6 durations are in minutes rather than seconds, so convert this.
+    # (if it's permanent it will be zero which is the same)
+    my $duration = $ban{duration};
+    if ($duration) {
+        $duration = int($duration / 60 + 0.5);
+        $duration = 1 if $duration < 1;
+        $ban{duration} = $duration;
+    }
+
+    # add user and host if there's an @
+    if ($ban{match} =~ m/^(.*?)\@(.*)$/) {
+        $ban{match_user} = $1;
+        $ban{match_host} = $2;
+    }
+    else {
+        $ban{match_user} = '*';
+        $ban{match_host} = $ban{match};
+    }
+
+    # match_ts6 is special for using in ts6 commands.
+    # if it's a KLINE, it's match_user and match_host joined by a space.
+    # if it's a DLINE, it's the match_host.
+    $ban{match_ts6} = $ban{type} eq 'kline' ?
+        join(' ', @ban{'match_user', 'match_host'}) : $ban{match_host};
+
+    return %ban;
+}
+
+# create and register a ban
+sub create_ts6_ban {
+    my %ban = ts6_ban(@_);
+    add_or_update_ban(%ban);
+    enforce_ban(%ban);
+    activate_ban(%ban);
+}
+
+################
+### OUTGOING ###
+################
 
 # kdlines are NOT usually global and therefore are not bursted in TS6.
 # so we can't assume that the server is going to give us any info about its
@@ -72,10 +143,8 @@ sub out_ban {
 
 # baninfo is the advertisement of a ban. in TS6, use ENCAP K/DLINE
 sub out_baninfo {
-    my ($to_server, $ban, $from) = @_;
-
-    # TS6 only supports kdlines
-    return unless $ban->{type} eq 'kline' || $ban->{type} eq 'dline';
+    my ($to_server, $ban_, $from) = @_;
+    my %ban = ts6_ban(%$ban_) or return;
 
     # FIXME: LOL! ENCAP K/DLINE can only come from a user.
     # if there's no user, this is probably during burst.
@@ -84,24 +153,49 @@ sub out_baninfo {
         return if !$from;
     }
 
-    # TS6 durations are in minutes rather than seconds, so convert this.
-    # (if it's permanent it will be zero which is the same)
-    my $duration = $ban->{duration};
-    if ($duration) {
-        $duration = int($duration / 60 + 0.5);
-        $duration = 1 if $duration < 1;
-    }
-
     # charybdis will send the encap target as it is received from the oper.
     # we don't care about that though. juno bans are global.
 
     return sprintf ':%s ENCAP * %s %d %s :%s',
     ts6_id($from),
-    uc $ban->{type},
-    $duration,
-    $ban->{match},
-    $ban->{reason};
+    uc $ban{type},
+    $ban{duration} || 0,
+    $ban{match_ts6},
+    $ban{reason} // 'no reason';
 }
 
+# bandel is sent out when a ban is removed. in TS6, use ENCAP UNK/DLINE
+sub out_bandel {
+    my ($to_server, $ban_, $from) = @_;
+    my %ban = ts6_ban(%$ban_) or return;
+
+    # FIXME: LOL! ENCAP K/DLINE can only come from a user.
+    # if there's no user, this is probably during burst.
+    if (!$from || !$from->isa('user')) {
+        $from = ($pool->local_users)[0];
+        return if !$from;
+    }
+
+    return sprintf ':%s ENCAP * UN%s %s',
+    ts6_id($from),
+    uc $ban{type},
+    $ban{match_ts6};
+}
+
+################
+### INCOMING ###
+################
+
+
+sub kline {
+    my ($server, $msg, $user, $serv_mask, undef,
+    $duration, $ident_mask, $host_mask, $reason) = @_;
+
+}
+
+sub dline {
+    my ($server, $msg, $user, $serv_mask, undef,
+    $duration, $ip_mask, $reason) = @_;
+}
 
 $mod

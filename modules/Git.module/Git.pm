@@ -27,8 +27,8 @@ our %user_commands = (update => {
 });
 
 our %oper_notices = (
-    update_fail => 'update to %s git reposity by %s (%s@%s) failed',
-    update      => '%s git repository updated to version %s successfully by %s (%s@%s)'
+    update_fail => 'update to %s git reposity by %s failed',
+    update      => '%s git repository updated to version %s successfully by %s'
 );
 
 sub init {

@@ -133,7 +133,7 @@ sub ocmd_banidk {
 # BANDEL: delete a ban
 sub ocmd_bandel {
     my $to_server = shift;
-    my $str = join ' ', @_;
+    my $str = join ' ', map $_->{id}, @_;
     ":$$me{sid} BANDEL $str"
 }
 

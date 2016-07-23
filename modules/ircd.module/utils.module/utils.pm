@@ -457,6 +457,17 @@ sub valid_ipv4 {
     return 1;
 }
 
+sub fnv {
+    my ($string) = @_;
+    my $h = 0x811c9dc5;
+    foreach my $c (split //, $string) {
+        $h ^= ord($c);
+        $h += ($h << 1) + ($h << 4) + ($h << 7) + ($h << 8) + ($h << 24);
+        $h &= 0xffffffff;
+    }
+    return $h;
+}
+
 sub import {
     my $this_package = shift;
     my $package = caller;
