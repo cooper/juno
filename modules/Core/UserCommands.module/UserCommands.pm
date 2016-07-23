@@ -884,6 +884,13 @@ sub _connect {
 
         # I am not supposed to handle this. forward it on.
         if ($target_server != $me) {
+
+            # gotta have gconnect for a remote connect.
+            if (!$user->has_flag('gconnect')) {
+                $user->numeric(ERR_NOPRIVILEGES => 'gconnect');
+                return;
+            }
+
             $target_server->fire_command(
                 connect => $user, $connect_mask, $target_server);
             return 1;
