@@ -20,7 +20,7 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils qw(fnv);
+use utils qw(fnv v);
 use M::TS6::Utils qw(ts6_id);
 
 M::Ban->import(qw(
@@ -130,10 +130,49 @@ sub create_ts6_ban {
 #
 sub burst_bans {
     my ($server, $event, $time) = @_;
-    if (!$server->{bans_negotiated}) {
-        $server->fire_command(ban => get_all_bans());
-        $server->{bans_negotiated}++;
+
+    # if there are no bans, stop here
+    return 1 if $server->{bans_negotiated}++;
+    my @bans = get_all_bans() or return 1;
+
+    # create a fake user
+    my $uid = $me->{sid}.$pool->{user_i};
+    my $fake_user = $server->{ban_fake_user} = user->new(
+        uid         => $uid,
+        nick        => $uid, # safe_nick() will convert to TS6
+        ident       => v('SNAME'),
+        host        => $me->name,
+        cloak       => $me->name,
+        real        => v('LNAME').' ban agent',
+        nick_time   => time,
+        server      => $me
+    );
+    $fake_user->set_mode('invisible');
+    $fake_user->set_mode('ircop');
+
+    # send out bans
+    $server->fire_command(ban => @bans);
+
+    # delete fake user
+    $server->fire_command(quit => $fake_user, 'Bans set')
+        if $fake_user->{agent_introduced};
+    delete $server->{ban_fake_user};
+    %$fake_user = ();
+
+    return 1;
+}
+
+# retrieve the fake user for a server
+sub get_fake_user {
+    my $to_server = shift;
+    my $fake_user = $to_server->{ban_fake_user} or return;
+
+    # it hasn't been introduced
+    if (!$fake_user->{agent_introduced}++) {
+        $to_server->fire_command(new_user => $fake_user);
     }
+
+    return $fake_user;
 }
 
 # this outgoing command is used in JELP for advertising ban identifiers
@@ -149,13 +188,9 @@ sub out_baninfo {
     my ($to_server, $ban_) = @_;
     my %ban = ts6_ban(%$ban_) or return;
 
-    # FIXME: LOL! ENCAP K/DLINE can only come from a user.
     # if there's no user, this is probably during burst.
-    my $from = $pool->lookup_user($ban{_just_set_by});
-    if (!$from) {
-        $from = ($pool->local_users)[0];
-        return if !$from;
-    }
+    my $from = $pool->lookup_user($ban{_just_set_by})
+        || get_fake_user($to_server) or return;
 
     # charybdis will send the encap target as it is received from the oper.
     # we don't care about that though. juno bans are global.
@@ -173,13 +208,9 @@ sub out_bandel {
     my ($to_server, $ban_) = @_;
     my %ban = ts6_ban(%$ban_) or return;
 
-    # FIXME: LOL! ENCAP K/DLINE can only come from a user.
     # if there's no user, this is probably during burst.
-    my $from = $pool->lookup_user($ban{_just_set_by});
-    if (!$from) {
-        $from = ($pool->local_users)[0];
-        return if !$from;
-    }
+    my $from = $pool->lookup_user($ban{_just_set_by})
+        || get_fake_user($to_server) or return;
 
     return sprintf ':%s ENCAP * UN%s %s',
     ts6_id($from),

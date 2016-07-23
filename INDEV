@@ -3427,3 +3427,4 @@ CHANGES:
             moved fnv() to utils.pm.
             fixed some oper notices which were broken since the changes to ->notice_info().
             silented annoying warnings produced by load_or_reload().
+            added ridiculous experimental fake user for #32.
