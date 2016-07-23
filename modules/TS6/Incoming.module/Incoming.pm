@@ -1057,6 +1057,15 @@ sub ping {
         return 1;
     }
 
+    # the destination is another non-TS6 server connected through me.
+    # JELP PING/PONG only work on a direct connection. see issue #62.
+    # here we emulate a reply from the target server.
+    my $loc = $dest_serv->{location};
+    if ($loc && $loc->conn && $loc->{link_type} ne 'ts6') {
+        $server->fire_command(pong => $dest_serv, $server);
+        return 1;
+    }
+
     # otherwise, forward it on.
     $msg->forward_to($dest_serv, ping => $source_serv, $dest_serv);
 

@@ -3412,3 +3412,6 @@ CHANGES:
 
         52. added Cloak::Charybdis which provides a charybdis-compatible host cloaking alogorithm.
             currently it is autoloaded with Cloak because there are no other options yet. closes #71.
+
+        53. in TS6, PINGs for non-TS6 servers connected through the receiving server are handled by it.
+            this fixes #62 where TS6 links like charybdis never receive an end-of-burst token for remote servers.
