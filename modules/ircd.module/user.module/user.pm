@@ -100,9 +100,9 @@ sub handle_mode_string {
             my $name = $user->{server}->umode_name($letter);
             if (!defined $name) {
                 notice(user_mode_unknown =>
-                    $letter, $user->notice_info,
+                    ($state ? '+' : '-').$letter,
                     $user->{server}{name}, $user->{server}{sid}
-                );
+                ) unless $user->{server}{told_missing_umode}{$letter}++;
                 next;
             }
 

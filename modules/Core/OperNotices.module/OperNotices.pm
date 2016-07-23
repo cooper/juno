@@ -60,7 +60,7 @@ our %oper_notices = (
     server_protocol_error   => '%s (%s) %s; dropping link',
 
     # modes
-    user_mode_unknown       => 'Attempted to set user mode +%s on %s (%s@%s), but this mode is not defined on %s (%s); ignored',
+    user_mode_unknown       => 'Attempted to set user mode %s, but this mode is not defined on %s (%s); ignored',
     channel_mode_unknown    => 'Attempted to set channel mode +%s on %s, but this mode is not defined on %s (%s); ignored',
 
     # miscellaneous
