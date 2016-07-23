@@ -29,8 +29,8 @@ sub init {
     ) or return;
 
     # for now, only charybdis-style is supported
-    $mod->load_submodule('Charybdis') or return;
-    $cloak_func = $mod->can('cloak');
+    my $chary = $mod->load_submodule('Charybdis') or return;
+    $cloak_func = $chary->can('cloak');
 
     return 1;
 }
