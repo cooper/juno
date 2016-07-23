@@ -60,7 +60,7 @@ sub init {
     # IRCd event for burst.
     $pool->on('server.send_ts6_burst' => \&burst_bans,
         name    => 'ts6.banburst',
-        after   => 'ts6.endburst',
+        after   => 'ts6.mainburst',
         with_eo => 1
     );
 
