@@ -212,6 +212,11 @@ our %ts6_incoming_commands = (
                   # :sid ENCAP     serv_mask RSFNC uid  new_nick new_nick_ts old_nick_ts
         params => '-source(server) *         *     user *        ts          ts',
         code   => \&rsfnc
+    },
+    CONNECT => {
+                  # :sid|uid CONNECT connect_mask target_sid
+        params => '-source           *            server',
+        code   => \&_connect
     }
 );
 
@@ -1629,6 +1634,28 @@ sub rsfnc {
     # propagated to other servers as a NICK message.
     #
     $msg->forward(nickchange => $user);
+
+}
+
+# CONNECT
+#
+# source:       any
+# parameters:   server to connect to, port, hunted
+#
+sub _connect {
+    my ($server, $msg, $source, $connect_mask, $t_server) = @_;
+
+    # if the target server is not me, forward it.
+    if ($t_server != $me) {
+        $msg->forward_to($t_server,
+            connect => $source, $connect_mask, $t_server
+        );
+        return 1;
+    }
+
+    # otherwise, handle it locally.
+    $source->isa('user') or return; # FIXME: what to do when not user?
+    return $source->handle_unsafe("CONNECT $connect_mask");
 
 }
 

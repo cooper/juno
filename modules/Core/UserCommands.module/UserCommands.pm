@@ -28,7 +28,7 @@ our %user_commands = (
     CONNECT => {
         code   => \&_connect,
         desc   => 'connect to a server',
-        params => '-oper(connect) *'
+        params => '-oper(connect) * *(opt) *(opt)'
     },
     LUSERS => {
         code   => \&lusers,
@@ -861,26 +861,69 @@ sub part {
     return 1;
 }
 
+# connect to a server
+# remote-safe
 sub _connect {
-    my ($user, $event, $smask) = @_;
-    my @servers = grep irc_match($_, $smask), $conf->names_of_block('connect');
+    my ($user, $event, $connect_mask, $port_maybe, $target_mask) = @_;
+
+    # we don't support the port parameter,
+    # but we need to ignore it if it was specified.
+    if (!defined $target_mask) {
+        $target_mask = $port_maybe;
+    }
+
+    # a target server was specified, so it must handle this request.
+    if (length $target_mask) {
+        my $target_server = $pool->lookup_server_mask($target_mask);
+
+        # nothing matches.
+        if (!$target_server) {
+            $user->numeric(ERR_NOSUCHSERVER => $connect_mask);
+            return;
+        }
+
+        # I am not supposed to handle this. forward it on.
+        if ($target_server != $me) {
+            $target_server->fire_command(
+                connect => $user, $connect_mask, $target_server);
+            return 1;
+        }
+
+    }
+
+    # Safe point - we know we're handling the connect.
+
+    # find connect blocks that match
+    my @server_names = grep irc_match($_, $connect_mask),
+        $conf->names_of_block('connect');
 
     # no servers match
-    if (!@servers) {
-        $user->numeric(ERR_NOSUCHSERVER => $smask);
+    if (!@server_names) {
+
+        # it's possible this server exists but there's no local connect block
+        if (my $exists = $pool->lookup_server_mask($connect_mask)) {
+            my $s_name = $exists->name;
+            $user->server_notice(connect => "$s_name: Server exists");
+            return;
+        }
+
+        $user->numeric(ERR_NOSUCHSERVER => $connect_mask);
         return;
     }
 
-    # connect each matching server
-    foreach my $s_name (@servers) {
+    # connect to first matching server
+    foreach my $s_name (@server_names) {
 
-        # an error from linkage
+        # instant error from linkage
         if (my $e = server::linkage::connect_server($s_name)) {
             $user->server_notice(connect => "$s_name: $e");
             next;
         }
 
-        $user->server_notice(connect => "Attempting to connect to $s_name");
+        # OK, this one had no immediate error. we choose it!
+        gnotice($user, connect => $user->notice_info, $me->name, $s_name);
+        last;
+
     }
 
     return 1;
@@ -1247,8 +1290,7 @@ sub squit {
     my $canceled_some;
     foreach my $server_name (keys %ircd::link_timers) {
         if (server::linkage::cancel_connection($server_name)) {
-            $user->server_notice(squit => 'Canceled connection to '.$server_name);
-            notice(server_connect_cancel => $user->notice_info, $server_name);
+            notice($user, connect_cancel => $user->notice_info, $server_name);
             $canceled_some = 1;
         }
     }

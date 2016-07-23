@@ -42,7 +42,7 @@ our %ts6_outgoing_commands = (
    # acm            => \&acm,
    # aum            => \&aum,
      kill           => \&skill,
-   # connect        => \&sconnect,
+     connect         => \&_connect,
      kick           => \&kick,
      login          => \&login,
      ping           => \&ping,
@@ -904,6 +904,18 @@ sub signon {
     $new_host,
     $new_nick_time,
     $new_act_name
+}
+
+# CONNECT
+#
+# source:       any
+# parameters:   server to connect to, port, hunted
+#
+sub _connect {
+    my ($to_server, $source, $connect_mask, $t_server) = @_;
+    my $id  = ts6_id($source);
+    my $sid = ts6_id($t_server);
+    ":$id CONNECT $connect_mask $sid"
 }
 
 $mod

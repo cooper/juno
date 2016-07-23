@@ -36,7 +36,7 @@ my %ocommands = (
     cmode           => \&cmode,
     channel_burst   => [ \&sjoin, \&topicburst ],
     kill            => \&skill,
-    connect         => \&sconnect,
+    connect         => \&_connect,
     kick            => \&kick,
     num             => \&num,
     links           => \&links,
@@ -293,9 +293,10 @@ sub topic {
     ":$id TOPIC $$channel{name} $$channel{time} $time :$topic"
 }
 
-sub sconnect {
-    my ($to_server, $user, $server, $tname) = @_;
-    ":$$user{uid} CONNECT $$server{name} $tname"
+sub _connect {
+    my ($to_server, $source, $connect_mask, $t_server) = @_;
+    my $id = $source->id;
+    ":$id CONNECT $connect_mask \$$$t_server{sid}"
 }
 
 # $wuser   = whoiser

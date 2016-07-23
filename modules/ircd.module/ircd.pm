@@ -832,7 +832,7 @@ sub add_internal_channel_modes {
     $me->{cmodes}      = {};
     %channel_mode_prefixes = ();
 
-    # [letter, symbol, name]
+    # [letter, symbol, name, set_weight]
     foreach my $name ($conf->keys_of_block('prefixes')) {
         my $p = conf('prefixes', $name) or next;
         next if !ref $p || ref $p ne 'ARRAY' || @$p < 3;

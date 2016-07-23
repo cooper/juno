@@ -188,7 +188,7 @@ sub init {
 
     # global user commands
     $mod->register_global_command(name => $_) || return foreach qw(
-        version time admin motd rehash
+        version time admin motd rehash connect
     );
 
     undef %scommands;

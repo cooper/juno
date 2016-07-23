@@ -58,7 +58,7 @@ sub connect_server {
 
     # we're already trying to connect.
     if ($timers->{$server_name} || $futures->{$server_name}) {
-        return 'Already attempting to connect';
+        return 'Already trying to connect';
     }
 
     # does the server exist in configuration?
@@ -100,7 +100,9 @@ sub _establish_connection {
     #%s (%s) on port %d (Attempt %d)
     if ($timer) {
         my $attempt = ++$timer->{_attempt};
-        notice(server_connect => $server_name, $serv{address}, $serv{port}, $attempt);
+        notice(connect_attempt =>
+            $server_name, $serv{address}, $serv{port}, $attempt
+        );
     }
 
     # SSL?
@@ -136,13 +138,13 @@ sub _establish_connection {
         # it failed.
         if (my $e = $f->failure) {
             chomp $e;
-            notice(server_connect_fail => $server_name, length $e ? $e : 'Timeout');
+            notice(connect_fail => $server_name, length $e ? $e : 'Timeout');
             return;
         }
 
         # success!
         my $socket = $f->get;
-        notice(server_connect_success => $server_name);
+        notice(connect_success => $server_name);
 
         # if it's a stream already, it was probably SSL.
         my $stream;
@@ -240,7 +242,7 @@ sub connection_done {
     # (the connection was actually established),
     # but some error occurred before finishing registration.
     if ($timers->{$server_name}) {
-        notice(server_connect_fail => $server_name, $reason);
+        notice(connect_fail => $server_name, $reason);
         return;
     }
 

@@ -3394,3 +3394,7 @@ CHANGES:
 
         48. prefixes in the configuration can now optionally take an element which specifies what weight is needed to set or unset the status.
             if it is omitted, the user must have weight greater than or equal to what he is trying to set. closes #73.
+
+        49. spruced up CONNECT to work as a global command.
+            added JELP CONNECT command. closes #58.
+            added TS6 CONNECT command.
