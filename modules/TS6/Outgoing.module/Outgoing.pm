@@ -129,7 +129,10 @@ sub send_burst {
 
 sub send_endburst {
     my ($server, $event) = @_;
-    $server->send($server->has_cap('eb') ? '' : sprintf ':%s PONG %s %s', ts6_id($me), $me->{name}, $server->{name});
+    $server->send(
+        $server->has_cap('eb') ? '' :
+        sprintf ':%s PONG %s %s', ts6_id($me), $me->{name}, $server->{name}
+    );
 }
 
 # ts6 nick safety
