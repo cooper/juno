@@ -46,12 +46,12 @@ our %ts6_incoming_commands = (
     ENCAP_KLINE => {
                   # :uid ENCAP    target KLINE duration ident_mask host_mask :reason
         params => '-source(user)  *      *     *        *          *         *',
-        code   => \&kline
+        code   => \&encap_kline
     },
     ENCAP_DLINE => {
                   # :uid ENCAP    target DLINE duration ip_mask :reason
         params => '-source(user)  *      *     *        *       *',
-        code   => \&dline
+        code   => \encap_&dline
     }
 );
 
@@ -135,7 +135,7 @@ sub burst_bans {
     return 1 if $server->{bans_negotiated}++;
     my @bans = get_all_bans() or return 1;
 
-    # create a fake user
+    # create a fake user. ha! see issue #32.
     my $uid = $me->{sid}.$pool->{user_i};
     my $fake_user = $server->{ban_fake_user} = user->new(
         uid         => $uid,
@@ -223,15 +223,18 @@ sub out_bandel {
 ### INCOMING ###
 ################
 
-sub kline {
+sub encap_kline {
     my ($server, $msg, $user, $serv_mask, undef,
     $duration, $ident_mask, $host_mask, $reason) = @_;
-
+    # forward and/or
+    # call kline(stuff)
 }
 
-sub dline {
+sub encap_dline {
     my ($server, $msg, $user, $serv_mask, undef,
     $duration, $ip_mask, $reason) = @_;
+    # forward and/or
+    # call dline(stuff)
 }
 
 $mod
