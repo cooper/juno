@@ -134,8 +134,8 @@ our %ts6_incoming_commands = (
         code   => \&chghost
     },
     SQUIT => {
-                  # :sid SQUIT         sid    :reason
-        params => '-source(server,opt) server :rest',
+                  # :sid SQUIT     sid    :reason
+        params => '-source(opt)    server :rest',
         code   => \&squit
     },
     WHOIS => {

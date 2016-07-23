@@ -298,7 +298,25 @@ sub quit {
     # source   :rest
     # :source QUIT   :reason
     my ($server, $msg, $source, $reason) = @_;
-    return if $source == $me;
+
+    # can't quit local users or the local server.
+    return if $source->is_local;
+
+    # our uplink.
+    if ($source->isa('server') && $source->conn) {
+
+        # we might have a tag which says who it's from
+        if (length(my $from = $msg->tag('from'))) {
+            my $name = utils::global_lookup($from);
+            $name = $name ? $name->name : $from;
+            $reason = "by $name: $reason";
+        }
+
+        # close it. this will also propagate.
+        $source->conn->done($reason);
+
+        return 1;
+    }
 
     # delete the server or user
     $source->quit($reason);
@@ -306,6 +324,7 @@ sub quit {
     # === Forward ===
     $msg->forward(quit => $source, $reason);
 
+    return 1;
 }
 
 # handle a nickchange
