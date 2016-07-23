@@ -124,8 +124,7 @@ sub new_server {
     $server->fire_event('new');
 
     notice(new_server =>
-        $server->{name},
-        $server->{sid},
+        $server->notice_info,
         $server->{ircd},
         $server->{proto},
         $server->{desc},

@@ -57,9 +57,8 @@ sub quit {
     $why //= "$$server{parent}{name} $$server{name}";
 
     notice(server_quit =>
-        $server->{name},
-        $server->{sid},
-        $server->{parent}{name},
+        $server->notice_info,
+        $server->{parent}->notice_info,
         $reason
     ) unless $quiet;
 
@@ -641,7 +640,7 @@ sub cmodes_from_string {
         if (!defined $name || !defined $type) {
             notice(channel_mode_unknown =>
                 ($state ? '+' : '-').$letter,
-                'a channel', $server->name, $server->id);
+                'a channel', $server->notice_info);
             next MODE;
         }
 
@@ -821,6 +820,11 @@ sub sendfrom {
 sub fire_command {
     my $server = shift;
     return $pool->fire_command($server, @_);
+}
+
+sub notice_info {
+    my $server = shift;
+    return "$$server{name} ($$server{sid})";
 }
 
 # CAP shortcuts.

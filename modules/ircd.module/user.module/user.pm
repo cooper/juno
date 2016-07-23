@@ -296,7 +296,7 @@ sub fullip {
 # convenience for passing info to notice().
 sub notice_info {
     my $user = shift;
-    return ($user->{nick}, $user->{ident}, $user->{host});
+    return "$$user{nick} ($$user{ident}\@$$user{host})";
 }
 
 # hops to another server or user.

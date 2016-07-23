@@ -614,7 +614,7 @@ sub privmsgnotice {
         # it cannot be a server source.
         if ($source->isa('server')) {
             notice(server_protocol_warning =>
-                $server->name, $server->id,
+                $server->notice_info,
                 "sent PRIVMSG with a '\$\$' broadcast target, but this is ".
                 "only permitted from user sources according to TS6 spec"
             );
@@ -1090,7 +1090,7 @@ sub pong {
 
         L("end of burst from $$source_serv{name}");
         notice(server_endburst =>
-            $source_serv->{name}, $source_serv->{sid}, $elapsed);
+            $source_serv->notice_info, $elapsed);
 
         # === Forward ===
         $msg->forward(endburst => $source_serv, time);
@@ -1322,15 +1322,13 @@ sub squit {
     if ($t_serv == $server || $t_serv == $me) {
         $t_serv = $server;
         $t_serv->conn->done($comment);
-        notice(server_closing => $server->name, $server->id, $comment);
+        notice(server_closing => $server->notice_info, $comment);
     }
 
     # the target server is an uplink of this server.
     # that means that this was a remote SQUIT.
     elsif ($t_serv->conn) {
-        my @info = ($source->name, '<someone>', '<somewhere>');
-        @info = $source->notice_info if $source->isa('user');
-        notice(squit => @info, $t_serv->{name}, $me->name);
+        notice(squit => $source->notice_info, $t_serv->{name}, $me->name);
         $t_serv->conn->done($comment);
     }
 
@@ -1359,7 +1357,7 @@ sub whois {
     $target = obj_from_ts6($target);
     if (!$target) {
         notice(server_protocol_warning =>
-            $server->name, $server->id,
+            $server->notice_info,
             "provided invalid target server in remote WHOIS"
         );
         return;
@@ -1378,7 +1376,7 @@ sub whois {
     my $t_user = $pool->lookup_user_nick($query);
     if (!$t_user) {
         notice(server_protocol_warning =>
-            $server->name, $server->id,
+            $server->notice_info,
             "sent a remote WHOIS query with an unknown nick; cannot forward"
         );
         return;
@@ -1451,7 +1449,7 @@ sub mode {
     $target = user_from_ts6($target_str) or return;
     if ($source != $target) {
         notice(server_protocol_warning =>
-            $server->name, $server->id,
+            $server->notice_info,
             'sent MODE message with nonmatching source (' .
             $source->name.') and target ('.$target->name.')');
         return;

@@ -3418,3 +3418,6 @@ CHANGES:
 
         54. TS6::Base now provides methods to add and remove server capabilities.
             core capabilities are in TS6::Registration. closes #59.
+
+        55. the ->notice_info() method now returns a string rather than a list, simplifying oper notices.
+            ->notice_info() can now be called on servers as well, which yields the server name and SID.

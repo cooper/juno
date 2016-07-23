@@ -84,7 +84,7 @@ sub send_registration {
     );
 
     # send CAPAB. only advertise ones that are enabled on $me.
-    my @caps = grep $me->has_cap($_), M::TS6::Base::get_capabs();
+    my @caps = grep $me->has_cap($_), M::TS6::Base::get_caps();
     $connection->send("CAPAB :@caps");
 
     $connection->send(sprintf
@@ -228,7 +228,7 @@ sub rcmd_ping {
     $server->{sent_burst} = time;
 
     L("end of burst from $$server{name}");
-    notice(server_endburst => $server->{name}, $server->{sid}, $elapsed);
+    notice(server_endburst => $server->notice_info, $elapsed);
 }
 
 sub server_ready {
@@ -272,7 +272,7 @@ sub connection_ready {
     # however, it still may deny our own credentials.
     $server->{is_burst} = time;
     L("$$server{name} is bursting information");
-    notice(server_burst => $server->{name}, $server->{sid});
+    notice(server_burst => $server->notice_info);
 
 }
 
