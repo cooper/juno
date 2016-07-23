@@ -139,11 +139,10 @@ sub burst_bans {
     my $uid = $me->{sid}.$pool->{user_i};
     my $fake_user = $server->{ban_fake_user} = user->new(
         uid         => $uid,
-        nick        => $uid,            # safe_nick() will convert to TS6
+        nick        => $uid, # safe_nick() will convert to TS6
         ident       => v('SNAME'),
         host        => $me->name,
         cloak       => $me->name,
-        ip          => '0.0.0.0',
         real        => v('LNAME').' ban agent',
         nick_time   => time,
         server      => $me
