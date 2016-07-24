@@ -207,6 +207,27 @@ sub get_fake_user {
     return $fake_user;
 }
 
+# find who to send an outgoing command from
+sub find_from {
+    my ($to_server, %ban) = @_;
+
+    # if there's no user, this is probably during burst.
+    my $from = $pool->lookup_user($ban{_just_set_by})
+        || get_fake_user($to_server);
+
+    # this shouldn't happen.
+    if (!$from) {
+        notice(server_protocol_warning =>
+            $to_server->notice_info,
+            'cannot be sent ban info because no source user was specified and '.
+            'the ban agent is not available'
+        );
+        return;
+    }
+
+    return $from;
+}
+
 # this outgoing command is used in JELP for advertising ban identifiers
 # and modification times. in TS6, we use it to construct several burst commands.
 sub out_ban {
@@ -219,10 +240,7 @@ sub out_ban {
 sub out_baninfo {
     my ($to_server, $ban_) = @_;
     my %ban = ts6_ban(%$ban_) or return;
-
-    # if there's no user, this is probably during burst.
-    my $from = $pool->lookup_user($ban{_just_set_by})
-        || get_fake_user($to_server) or return;
+    my $from = find_from($to_server, %ban) or return;
 
     # charybdis will send the encap target as it is received from the oper.
     # we don't care about that though. juno bans are global.
@@ -250,10 +268,7 @@ sub out_baninfo {
 sub out_bandel {
     my ($to_server, $ban_) = @_;
     my %ban = ts6_ban(%$ban_) or return;
-
-    # if there's no user, this is probably during burst.
-    my $from = $pool->lookup_user($ban{_just_set_by})
-        || get_fake_user($to_server) or return;
+    my $from = find_from($to_server, %ban) or return;
 
     # CAP_UNKLN: :<source> UNKLINE <target> <user> <host>
     if ($ban{type} eq 'kline' && $to_server->has_cap('UNKLN')) {

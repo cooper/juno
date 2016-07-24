@@ -3451,3 +3451,5 @@ CHANGES:
         59. the Ban API now provides module methods ->register_ban_action() and ->get_ban_action().
             match code provided by ban modules such as Ban::Kline and Ban::Dline must now return a special identifier to indicate how the ban should be enforced.
             Ban provides the built-in action 'kill'; modules will add other actions in the future.
+            added some server warnings for if TS6 ban propagation is not possible due to the agent being unavailable.
+            this should fix a bug described at GLolol/PyLink#286 where the sentinel was sometimes lost in TS6 numeric handling.

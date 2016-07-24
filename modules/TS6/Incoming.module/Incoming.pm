@@ -222,7 +222,6 @@ our %ts6_incoming_commands = (
 
 sub handle_numeric {
     my ($server, $msg) = @_;
-    my @args = $msg->params;
     my $num  = $msg->command;
 
     # from ts6-protocol.txt:
@@ -240,14 +239,13 @@ sub handle_numeric {
     }
 
     # find the user.
-    my $user = obj_from_ts6(shift @args);
+    my $user = obj_from_ts6($msg->params(0));
     if (!$user || !$user->isa('user')) {
         return;
     }
 
     # create the message
-    $args[$#args] = ':'.$args[$#args] if index($args[$#args], ' ') != -1;
-    my $message = join ' ', @args;
+    my $message = $msg->parse_params(':rest');
 
     # local user.
     if ($user->is_local) {

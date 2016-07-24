@@ -133,10 +133,16 @@ my $d = sub {
 # match_code    code that takes a string input as an argument and returns a string
 #               for storage in the ban table or undef if the input was invalid
 #
+# user_code     (optional) code which determines whether a user matches a ban.
+#               if not specified, this ban type does not apply to users.
+#               it must return a ban action identifier.
+#
+# conn_code     (optional) code which determines whether a conn matches a ban.
+#               if not specified, this ban type does not apply to connections.
+#               it must return a ban action identifier.
+#
 # reason        default ban reason
 #
-# note: $mod_ refers to the module calling the method
-# TODO: when Ban module is unloaded, delete everything registered by other modules
 #
 sub register_ban_type {
     my ($mod_, $event, %opts) = @_;
@@ -195,20 +201,20 @@ sub register_ban_type {
 # registers a ban action.
 sub register_ban_action {
     my ($mod_, $event, %opts) = @_;
-say 1;
+
     # check for required info
     my $action = lc $opts{name} or return;
-say 2;
+
     # store this action.
     $ban_actions{$action} = {
         %opts,
         name => $action,
         id   => $action  # for now
     };
-say 3;
+
     L("'$action' registered");
     $mod_->list_store_add(ban_actions => $action);
-    return 1;
+    return $ban_actions{$action}{id};
 }
 
 # fetches a ban action identifier. this is used as a return type
