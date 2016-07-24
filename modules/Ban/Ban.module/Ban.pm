@@ -250,10 +250,25 @@ our %user_commands = (BANS => {
 sub ucmd_bans {
     my $user = shift;
     my @bans = get_all_bans();
-    foreach my $ban (sort { $a->{added} <=> $b->{added} } @bans) {
-        my $when = scalar localtime $ban->{expires};
-        $user->server_notice("- $$ban{id} | $$ban{match} | $when");
+
+    # no bans
+    if (!@bans) {
+        $user->server_notice(bans => 'No bans are set');
+        return;
     }
+
+    foreach my $ban (sort { $a->{added} <=> $b->{added} } @bans) {
+        my %ban = %$ban;
+        my @lines = "$ban{id} \2$ban{type}\2 $ban{match}";
+        push @lines, '      Reason: '.$ban{reason}          if length $ban{reason};
+        push @lines, '       Added: '.(scalar localtime $ban->{added});
+        push @lines, '     by user: '.$ban{auser}           if length $ban{auser};
+        push @lines, '   on server: '.$ban{aserver}         if length $ban{aserver};
+        push @lines, '    Duration: '.$ban{duration}.'s'    if $ban{duration};
+        push @lines, '     Expires: '.(scalar localtime $ban->{expires});
+        $user->server_notice("-$_") for @lines;
+    }
+    $user->server_notice(bans => 'End of BANS');
 }
 
 # if $duration is 0, the ban is permanent
