@@ -76,6 +76,9 @@ my %unordered_format = my @format = (
 #
 # _just_set_by  UID of user who set a ban. used for propagation.
 #
+# deleted       passed to expire_ban() when the ban was deleted, to
+#               prevent expiration oper notices from being sent out
+#
 sub init {
     $table = $conf->table('bans') or return;
 
@@ -94,6 +97,17 @@ sub init {
     activate_ban(%$_) foreach get_all_bans();
     return 1;
 }
+
+# time prettifiers
+my $t = sub { scalar localtime shift };
+my $d = sub {
+    my $secs = shift;
+    if ($secs >= 365*24*60*60) { return sprintf '%.1fy', $secs/(365*24*60*60) }
+    elsif ($secs >= 24*60*60)  { return sprintf '%.1fd', $secs/(24*60*60) }
+    elsif ($secs >= 60*60)     { return sprintf '%.1fh', $secs/(60*60) }
+    elsif ($secs >= 60)        { return sprintf '%.1fm', $secs/(60) }
+    return sprintf '%.1fs';
+};
 
 ###############
 ### BAN API ###
@@ -145,15 +159,15 @@ sub register_ban_type {
     # oper notices.
     $mod_->register_oper_notice(
         name   => $type_name,
-        format => 'Ban for %s added by %s, will expire %s (%s)'
+        format => 'Ban for %s added by %s, will expire %s (%s) [%s]'
     );
     $mod_->register_oper_notice(
         name   => "${type_name}_delete",
-        format => 'Ban for %s deleted by %s'
+        format => 'Ban for %s deleted by %s [%s]'
     );
     $mod_->register_oper_notice(
         name   => "${type_name}_expire",
-        format => 'Ban for %s expired'
+        format => 'Ban for %s expired after %s [%s]'
     );
 
     # store this type.
@@ -220,20 +234,24 @@ sub add_update_enforce_activate_ban {
 # notify opers of a new ban
 sub notify_new_ban {
     my ($source, %ban) = @_;
-
-    # figure out duration text
-    my $when  = $ban{expires}  ? localtime $ban{expires}  : 'never';
-    my $after = $ban{duration} ? "$ban{duration}s" : 'permanent';
-
     my @user = $source if $source->isa('user') && $source->is_local;
-    notice(@user, $ban{type} => $ban{match}, $source->notice_info, $when, $after);
+    notice(@user, $ban{type} =>
+        $ban{match}, $source->notice_info,
+        $ban{expires}  ? localtime $ban{expires}  : 'never',
+        $ban{duration} ? "$ban{duration}s"        : 'permanent',
+        length $ban{reason} ? $ban{reason}        : 'no reason'
+    );
 }
 
 # notify opers of a deleted ban
 sub notify_delete_ban {
     my ($source, %ban) = @_;
     my @user = $source if $source->isa('user') && $source->is_local;
-    notice(@user, "$ban{type}_delete" => $ban{match}, $source->notice_info);
+    notice(@user, "$ban{type}_delete" =>
+        $ban{match},
+        $source->notice_info,
+        length $ban{reason} ? $ban{reason} : 'no reason'
+    );
 }
 
 #####################
@@ -259,17 +277,6 @@ sub ucmd_bans {
         return;
     }
 
-    # time prettifiers
-    my $t = sub { scalar localtime shift };
-    my $d = sub {
-        my $secs = shift;
-        if ($secs >= 365*24*60*60) { return sprintf '%.1fy', $secs/(365*24*60*60) }
-        elsif ($secs >= 24*60*60)  { return sprintf '%.1fd', $secs/(24*60*60) }
-        elsif ($secs >= 60*60)     { return sprintf '%.1fh', $secs/(60*60) }
-        elsif ($secs >= 60)        { return sprintf '%.1fm', $secs/(60) }
-        return sprintf '%.1fs';
-    };
-
     # list all bans
     $user->server_notice(bans => 'Listing all bans');
     foreach my $ban (sort { $a->{added} <=> $b->{added} } @bans) {
@@ -280,7 +287,7 @@ sub ucmd_bans {
         push @lines, '     by user: '.$ban{auser}                   if length $ban{auser};
         push @lines, '   on server: '.$ban{aserver}                 if length $ban{aserver};
         push @lines, '    Duration: '.$d->($ban{duration})          if  $ban{duration};
-        push @lines, '    Duration: Permanent!'                     if !$ban{duration};
+        push @lines, '    Duration: Permanent'                      if !$ban{duration};
         push @lines, '   Remaining: '.$d->($ban->{expires} - time)  if $ban{expires};
         push @lines, '     Expires: '.$t->($ban->{expires})         if $ban{expires};
         $user->server_notice("- $_") for '', @lines;
@@ -312,7 +319,7 @@ sub handle_add_command {
     }
 
     # check if the ban exists already
-    if (ban_by_match($match)) {
+    if (ban_by_type_match($type, $match)) {
         $user->server_notice($command => "Ban for $match exists already");
         return;
     }
@@ -345,7 +352,7 @@ sub handle_del_command {
 
     # find the ban
     my %ban = ban_by_id($match);
-    if (!%ban) { %ban = ban_by_match($match) }
+    if (!%ban) { %ban = ban_by_type_match($type, $match) }
     if (!%ban) {
         $user->server_notice($command => 'No ban matches');
         return;
@@ -386,6 +393,12 @@ sub ban_by_id {
 # look up a ban by a matcher
 sub ban_by_match {
     my %ban = $table->row(match => shift)->select_hash;
+    return %ban;
+}
+
+# look up a ban by a matcher and type
+sub ban_by_type_match {
+    my %ban = $table->row(type => shift, match => shift)->select_hash;
     return %ban;
 }
 
@@ -449,7 +462,11 @@ sub expire_ban {
     # remove from database
     delete_ban_by_id($ban{id});
 
-    notice("$ban{type}_expire" => $ban{match}) unless $ban{deleted};
+    notice("$ban{type}_expire" =>
+        $ban{match},
+        $d->(time - $ban{added}),
+        length $ban{reason} ? $ban{reason} : 'no reason'
+    ) unless $ban{deleted};
 }
 
 ###################

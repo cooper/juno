@@ -26,7 +26,7 @@ use M::TS6::Utils qw(ts6_id);
 M::Ban->import(qw(
     notify_new_ban  notify_delete_ban
     get_all_bans    delete_ban_by_id
-    ban_by_id       ban_by_match
+    ban_by_id       ban_by_type_match
     add_update_enforce_activate_ban
 ));
 
@@ -337,11 +337,11 @@ sub dline {
 
 # find a ban for removing
 sub _find_ban {
-    my ($server, $match) = @_;
+    my ($server, $type, $match) = @_;
     my $id_maybe = $server->{sid}.'.'.fnv($match);
     my %ban = ban_by_id($id_maybe);
     return %ban if %ban;
-    %ban = ban_by_match($match);
+    %ban = ban_by_type_match($type, $match);
     return %ban if %ban;
     return;
 }
@@ -351,7 +351,7 @@ sub unkline {
     $msg->{encap_forwarded} = 1;
 
     # find and remove ban
-    my %ban = _find_ban($server, "$ident_mask\@$host_mask") or return;
+    my %ban = _find_ban($server, 'kline', "$ident_mask\@$host_mask") or return;
     delete_ban_by_id($ban{id});
 
     notify_delete_ban($user, %ban);
@@ -366,7 +366,7 @@ sub undline {
     $msg->{encap_forwarded} = 1;
 
     # find and remove ban
-    my %ban = _find_ban($server, $ip_mask) or return;
+    my %ban = _find_ban($server, 'dline', $ip_mask) or return;
     delete_ban_by_id($ban{id});
 
     notify_delete_ban($user, %ban);

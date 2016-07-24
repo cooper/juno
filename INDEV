@@ -3444,3 +3444,6 @@ CHANGES:
             added notify_new_ban() and notify_delete_ban(). ban notices are now handled locally.
             added from_user tag to JELP BANINFO and BANDEL for use in oper notices.
             made the BANS command prettier and more useful.
+            Ban removal now uses ban_by_type_match() instead of ban_by_match().
+            this ensures delete commands only match certain types, e.g. UNKLINE only removes KLINES.
+            improved oper notices for ban add, delete, and expire.
