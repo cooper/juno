@@ -352,6 +352,7 @@ sub handle_del_command {
     }
 
     # delete it
+    $ban{_just_set_by} = $user->id;
     delete_ban_by_id($ban{id});
     expire_ban(%ban, deleted => 1);
     $pool->fire_command_all(bandel => \%ban);
