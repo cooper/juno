@@ -414,7 +414,6 @@ sub add_enforcement_events {
     # new connection
     $pool->on('connection.new' => sub {
         my $conn = shift;
-        print "enforcing bans on $conn\n";
         enforce_all_on_conn($conn);
     },
         name    => 'ban.enforce.conn',
@@ -423,6 +422,7 @@ sub add_enforcement_events {
     );
 
     # new local user
+    # this is done before sending welcomes or propagating the user
     $pool->on('connection.user_ready' => sub {
         my ($event, $user) = @_;
         enforce_all_on_user($user);

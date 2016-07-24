@@ -230,6 +230,7 @@ sub ready {
         $server->{conn} = $connection;
         weaken($connection->{type}{location} = $connection->{type});
         $pool->fire_command_all(new_server => $connection->{type});
+        $server->{initially_propagated}++;
 
     }
 
@@ -289,7 +290,8 @@ sub done {
 
         # share this quit with the children.
         $pool->fire_command_all(quit => $connection, $reason)
-            unless $connection->{killed};
+            if $connection->{type}{initially_propagated} &&
+            !$connection->{killed};
 
         # tell user.pm or server.pm that the connection is closed.
         $connection->{type}->quit($reason);

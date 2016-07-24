@@ -790,6 +790,7 @@ sub _new_connection {
     # tell other servers
     $pool->fire_command_all(new_user => $user);
     $user->fire_event('initially_propagated');
+    $user->{initially_propagated}++;
 
     # send numerics.
     my $network = conf('server', 'network') // conf('network', 'name');

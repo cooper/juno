@@ -3434,3 +3434,4 @@ CHANGES:
             added support for TS6 capabilities KLN and UNKLN.
             significant clean up in Ban.
             calculate an appropriate duration to send to TS6 based on the expire time.
+            fixed an issue where QUITs were sent on ban enforcement for users not yet propagated.

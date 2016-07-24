@@ -128,7 +128,7 @@ sub ts6_ban {
 }
 
 # create and register a ban
-sub create_or_update_ts6_ban {
+sub add_update_enforce_activate_ts6_ban {
     my %ban = ts6_ban(@_) or return;
     %ban = add_update_enforce_activate_ban(%ban);
     return %ban;
@@ -272,7 +272,7 @@ sub kline {
 
     # create and activate the ban
     my $match = "$ident_mask\@$host_mask";
-    my %ban = create_or_update_ts6_ban(
+    my %ban = add_update_enforce_activate_ts6_ban(
         type         => 'kline',
         id           => $server->{sid}.'.'.fnv($match),
         match        => $match,
@@ -296,7 +296,7 @@ sub dline {
     $duration, $ip_mask, $reason) = @_;
 
     # create and activate the ban
-    my %ban = create_or_update_ts6_ban(
+    my %ban = add_update_enforce_activate_ts6_ban(
         type         => 'dline',
         id           => $server->{sid}.'.'.fnv($ip_mask),
         match        => $ip_mask,
