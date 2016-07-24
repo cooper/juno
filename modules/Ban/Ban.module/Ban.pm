@@ -411,15 +411,12 @@ sub expire_ban {
 
 sub add_enforcement_events {
 
-    # new connection
-    $pool->on('connection.new' => sub {
-        my $conn = shift;
-        enforce_all_on_conn($conn);
-    },
+    # new connection, host resolved, ident found
+    my $enforce_on_conn = sub { enforce_all_on_conn(shift) };
+    $pool->on("connection.$_" => $enforce_on_conn,
         name    => 'ban.enforce.conn',
-        with_eo => 1,
-        after   => [ 'resolve.hostname', 'check.ident' ]
-    );
+        with_eo => 1
+    ) for qw(new found_hostname found_ident);
 
     # new local user
     # this is done before sending welcomes or propagating the user

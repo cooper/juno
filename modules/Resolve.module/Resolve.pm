@@ -3,7 +3,7 @@
 # @name:            "Resolve"
 # @package:         "M::Resolve"
 # @description:     "resolve hostnames"
-# 
+#
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"
 #
@@ -33,10 +33,10 @@ sub connection_new {
 sub resolve_address {
     my $connection = shift;
     return if $connection->{goodbye};
-    
+
     # prevent connection registration from completing.
     $connection->reg_wait('resolve');
-    
+
     # peername -> human-readable hostname
     my $f = $connection->{resolve_future} = $::loop->resolver->getnameinfo(
         addr        => $connection->sock->peername,
@@ -44,14 +44,14 @@ sub resolve_address {
     );
     $f->on_done(sub { on_got_host1($connection, @_   ) });
     $f->on_fail(sub { on_error    ($connection, shift) });
-    
+
 }
 
 # got human-readable hostname
 sub on_got_host1 {
     my ($connection, $host) = @_;
     $host = safe_ip($host);
-    
+
     # temporarily store the host.
     $connection->{temp_host} = $host;
 
@@ -60,7 +60,7 @@ sub on_got_host1 {
     if ($connection->{ip} eq $host) {
         return on_error($connection, 'getnameinfo() spit out IP');
     }
-    
+
     # human readable hostname -> binary address
     my $f = $connection->{resolve_future} = $::loop->resolver->getaddrinfo(
         host        => $host,
@@ -76,7 +76,7 @@ sub on_got_host1 {
 # got binary representation of address
 sub on_got_addr {
     my ($connection, $addr) = @_;
-    
+
     # binary address -> human-readable hostname
     my $f = $connection->{resolve_future} = $::loop->resolver->getnameinfo(
         addr        => $addr->{addr},
@@ -85,25 +85,26 @@ sub on_got_addr {
     );
     $f->on_done(sub { on_got_host2($connection, @_   ) });
     $f->on_fail(sub { on_error    ($connection, shift) });
-    
+
 }
 
 # got human-readable hostname
 sub on_got_host2 {
     my ($connection, $host) = @_;
-    
+
     # they match.
     if ($connection->{temp_host} eq $host) {
         $connection->early_reply(NOTICE => ':*** Found your hostname');
         $connection->{host} = safe_ip(delete $connection->{temp_host});
+        $connection->fire('found_hostname');
         $connection->reg_continue('resolve');
         delete $connection->{resolve_future};
         return 1;
     }
-    
+
     # not the same.
     return on_error($connection, "No match ($host)");
-    
+
 }
 
 sub on_error {

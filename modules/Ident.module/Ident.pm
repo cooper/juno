@@ -32,11 +32,11 @@ sub connection_new {
     my ($connection, $event) = @_;
     return if $connection->{goodbye} || $connection->{skip_ident};
     return unless $connection->{stream}->write_handle;
-    
+
     # postpone registration.
     $connection->early_reply(NOTICE => ':*** Checking ident...');
     $connection->reg_wait('ident');
-    
+
     # create a future that attempts to connect.
     my $family_int     = $connection->{stream}->write_handle->sockdomain;
     my $family_name    = $family_int == 2 ? 'inet' : 'inet6';
@@ -48,16 +48,16 @@ sub connection_new {
             ip       => $connection->{ip}
         }
     );
-    
+
     # create a future to time out after 3 seconds.
     my $timeout_future = $::loop->timeout_future(after => 3);
-    
+
     # create a third future that will wait for whichever comes first.
     my $future = $connection->{ident_future} = Future->wait_any($connect_future, $timeout_future);
-    
+
     $future->on_ready(sub {
         delete $connection->{ident_future};
-        
+
         # connect was cancelled or failed.
         my $e = $connect_future->failure;
         if (defined $e || $connect_future->is_cancelled) {
@@ -65,11 +65,11 @@ sub connection_new {
             ident_cancel($connection, undef, $e);
             return;
         }
-        
+
         # it seems to have succeeded...
         my $socket = $connect_future->get;
         ident_request($connection, $socket);
-        
+
     });
 }
 
@@ -80,10 +80,10 @@ sub connection_user {
         $connection->{ident} = "~$ident";
         return;
     }
-    
+
     # already did a lookup or it was skipped already.
     return if $connection->{ident_checked};
-    
+
     # if the requested ident has ~, cancel ident check.
     if (substr($ident, 0, 1) eq '~') {
         (delete $connection->{ident_future})->cancel    if $connection->{ident_future};
@@ -103,7 +103,7 @@ sub connection_server {
 # initiate the request.
 sub ident_request {
     my ($connection, $socket) = @_;
-    
+
     # data and error handling.
     my $err_cb = sub { ident_cancel($connection, @_) };
     my $stream = $connection->{ident_stream} = IO::Async::Stream->new(
@@ -115,7 +115,7 @@ sub ident_request {
         on_read        => sub {}
     );
     $::loop->add($stream);
-    
+
     # create 3 futures:
     #
     # - waits for a \n.
@@ -126,16 +126,16 @@ sub ident_request {
     my $timeout_future = $::loop->timeout_future(after => 10);
     $connection->{ident_future} =
      Future->wait_any($line_future, $timeout_future)->on_ready(sub {
-        
+
         # we read a line successfully.
         if ($line_future->is_done) {
             ident_read($connection, $stream, $line_future->get);
             return;
         }
-        
+
         # it failed somehow.
         ident_cancel($connection, $stream, $line_future->failure // 'Timed out');
-        
+
     });
 
     # send the request.
@@ -143,33 +143,33 @@ sub ident_request {
     my $server_port = $connection->sock->peerport;
     my $client_port = $connection->sock->sockport; # i.e. 6667
     $stream->write("$server_port, $client_port\r\n");
-    
+
 }
 
 # read incoming data.
 sub ident_read {
     my ($connection, $stream, $line) = @_;
     chomp $line;
-    
+
     # parts of the response are separated by colons.
     my @items = map { trim($_) } split /:/, $line;
-    
+
     # if the response is not USERID, forget it.
     if (!$items[1] || !$items[3] || $items[1] ne 'USERID') {
         ident_cancel($connection, $stream, 'Response was not USERID');
         return;
     }
-    
+
     # is the ident valid?
     if (!utils::validident($items[3])) {
         ident_cancel($connection, $stream, 'Invalid ident characters');
         return;
     }
-    
+
     # success.
     $connection->{ident_success} = $items[3];
     ident_done($connection, $stream);
-    
+
 }
 
 # ident lookup failed.
@@ -198,14 +198,15 @@ sub ident_done {
         }
         $connection->early_reply(NOTICE => ':*** No ident response');
     }
-    
+
     # it was successful. set the ident.
     else {
         $connection->{ident_verified} = 1;
         $connection->{ident} = delete $connection->{ident_success};
         $connection->early_reply(NOTICE => ':*** Found your ident');
+        $connection->fire('found_ident');
     }
-    
+
     $connection->{ident_checked} = 1;
     $connection->reg_continue('ident');
 }
