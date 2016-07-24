@@ -19,7 +19,6 @@ use strict;
 use 5.010;
 
 use IO::Async::Timer::Absolute;
-use Scalar::Util 'looks_like_number';
 use utils qw(import notice string_to_seconds);
 
 our ($api, $mod, $pool, $conf, $me);

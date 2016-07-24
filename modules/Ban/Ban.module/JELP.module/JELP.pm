@@ -50,7 +50,7 @@ our %jelp_incoming_commands = (
         code    => \&in_ban
     },
     BANINFO => {
-        params   => '@rest',
+        params   => '-tag.from_user(user,opt) @rest',
         code     => \&in_baninfo
     },
     BANIDK => {
@@ -58,7 +58,7 @@ our %jelp_incoming_commands = (
         code    => \&in_banidk
     },
     BANDEL => {
-        params  => '@rest',
+        params  => '-tag.from_user(user,opt) @rest',
         code    => \&in_bandel
     }
 );
@@ -106,6 +106,9 @@ sub out_baninfo {
     my ($to_server, $ban) = @_;
     my $str = '';
 
+    # get user set by
+    my $from = $pool->lookup_user($ban->{_just_set_by});
+
     # remove bogus keys
     delete @$ban{ grep !$good_keys{$_}, keys %$ban };
 
@@ -118,7 +121,10 @@ sub out_baninfo {
     }
 
     my $reason = $ban->{reason} // '';
-    ":$$me{sid} BANINFO $str:$reason"
+
+    my $res = ":$$me{sid} BANINFO $str:$reason";
+    $res = "\@from_user=$$from{uid} $res" if $from;
+    $res;
 }
 
 # BANIDK: request ban data
@@ -132,7 +138,13 @@ sub out_banidk {
 sub out_bandel {
     my $to_server = shift;
     my $str = join ' ', map $_->{id}, @_;
-    ":$$me{sid} BANDEL $str"
+
+    # get user deleted by
+    my $from = $pool->lookup_user($_[0]{_just_set_by});
+
+    my $res = ":$$me{sid} BANDEL $str";
+    $res = "\@from_user=$$from{uid} $res" if $from;
+    $res;
 }
 
 # Incoming
@@ -172,7 +184,7 @@ sub in_ban {
 # :sid BANINFO key value key value :reason
 # TODO: add @from_user for passing to notify
 sub in_baninfo {
-    my ($server, $msg, @parts) = @_;
+    my ($server, $msg, $from, @parts) = @_;
 
     # the reason is always last
     my $reason = pop @parts;
@@ -186,7 +198,7 @@ sub in_baninfo {
 
     # validate, update, enforce, and activate
     %ban = add_update_enforce_activate_ban(%ban) or return;
-    notify_new_ban($server, %ban);
+    notify_new_ban($from || $server, %ban);
 
     #=== Forward ===#
     $msg->forward(baninfo => \%ban);
@@ -210,14 +222,14 @@ sub in_banidk {
 # BANDEL: delete a ban
 # TODO: add @from_user for passing to notify
 sub in_bandel {
-    my ($server, $msg, @ids) = @_;
+    my ($server, $msg, $from, @ids) = @_;
 
     foreach my $id (@ids) {
 
         # find and delete each ban
         my %ban = ban_by_id($id) or next;
         delete_ban_by_id($id);
-        notify_delete_ban($server, %ban);
+        notify_delete_ban($from || $server, %ban);
 
         #=== Forward ===#
         $msg->forward(bandel => \%ban);
