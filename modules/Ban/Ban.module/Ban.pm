@@ -20,7 +20,7 @@ use 5.010;
 
 use IO::Async::Timer::Absolute;
 use Scalar::Util 'looks_like_number';
-use utils qw(import notice gnotice string_to_seconds);
+use utils qw(import notice string_to_seconds);
 
 our ($api, $mod, $pool, $conf, $me);
 our ($table, %ban_types, %timers);
@@ -98,7 +98,7 @@ sub init {
 
 ###############
 ### BAN API ###
-###############
+################################################################################
 
 # register_ban_type()
 #
@@ -218,6 +218,25 @@ sub add_update_enforce_activate_ban {
     return %ban;
 }
 
+# notify opers of a new ban
+sub notify_new_ban {
+    my ($source, %ban) = @_;
+
+    # figure out duration text
+    my $when  = $ban{expires}  ? localtime $ban{expires}  : 'never';
+    my $after = $ban{duration} ? "$ban{duration}s" : 'permanent';
+
+    my @user = $source if $source->isa('user');
+    notice(@user, $ban{type} => $ban{match}, $source->notice_info, $when, $after);
+}
+
+# notify opers of a deleted ban
+sub notify_delete_ban {
+    my ($source, %ban) = @_;
+    my @user = $source if $source->isa('user');
+    notice(@user, "$ban{type}_delete" => $ban{match}, $source->notice_info);
+}
+
 #####################
 ### USER COMMANDS ###
 ################################################################################
@@ -281,11 +300,7 @@ sub handle_add_command {
         return;
     }
 
-    # notices
-    my $when  = $ban{expires}  ? localtime $ban{expires}  : 'never';
-    my $after = $ban{duration} ? "$ban{duration}s" : 'permanent';
-    gnotice($user, $type_name => $match, $user->notice_info, $when, $after);
-
+    notify_new_ban($user, %ban);
     return 1;
 }
 
@@ -308,9 +323,7 @@ sub handle_del_command {
     expire_ban(%ban, deleted => 1);
     $pool->fire_command_all(bandel => \%ban);
 
-    # notices
-    gnotice($user, "${type_name}_delete" => $ban{match}, $user->notice_info);
-
+    notify_delete_ban($user, %ban);
     return 1;
 }
 
@@ -357,7 +370,7 @@ sub delete_ban_by_id {
 
 ##############
 ### TIMERS ###
-##############
+################################################################################
 
 # activate a ban timer
 sub activate_ban {
@@ -407,7 +420,7 @@ sub expire_ban {
 
 ###################
 ### ENFORCEMENT ###
-###################
+################################################################################
 
 sub add_enforcement_events {
 
@@ -525,7 +538,7 @@ sub enforce_ban_on_user {
 
 ################
 ### DISPOSAL ###
-################
+################################################################################
 
 sub delete_ban_type {
     my $type_name = lc shift;

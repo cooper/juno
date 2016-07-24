@@ -3441,3 +3441,4 @@ CHANGES:
             Klines can now be applied directly to connections, so the kill occurs during registration when possible.
 
         58. add TS6 handlers for UNKLINE, ENCAP UNKLINE, ENCAP UNDLINE. #32.
+            added notify_new_ban() and notify_delete_ban(). ban notices are now handled locally.

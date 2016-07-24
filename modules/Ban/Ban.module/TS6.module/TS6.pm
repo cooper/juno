@@ -24,6 +24,7 @@ use utils qw(fnv v);
 use M::TS6::Utils qw(ts6_id);
 
 M::Ban->import(qw(
+    notify_new_ban  notify_delete_ban
     get_all_bans    delete_ban_by_id
     ban_by_id       ban_by_match
     add_update_enforce_activate_ban
@@ -297,6 +298,8 @@ sub kline {
         _just_set_by => $user->id
     ) or return;
 
+    notify_new_ban($user, %ban);
+
     #=== Forward ===#
     #
     # we ignore the target mask. juno bans are global, so let's pretend
@@ -321,6 +324,8 @@ sub dline {
         auser        => $user->full,
         _just_set_by => $user->id
     ) or return;
+
+    notify_new_ban($user, %ban);
 
     #=== Forward ===#
     #
@@ -349,6 +354,8 @@ sub unkline {
     my %ban = _find_ban($server, "$ident_mask\@$host_mask") or return;
     delete_ban_by_id($ban{id});
 
+    notify_delete_ban($user, %ban);
+
     #=== Forward ===#
     $msg->forward(bandel => \%ban);
 
@@ -361,6 +368,8 @@ sub undline {
     # find and remove ban
     my %ban = _find_ban($server, $ip_mask) or return;
     delete_ban_by_id($ban{id});
+
+    notify_delete_ban($user, %ban);
 
     #=== Forward ===#
     $msg->forward(bandel => \%ban);

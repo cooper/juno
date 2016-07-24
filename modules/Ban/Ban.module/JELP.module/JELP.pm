@@ -21,6 +21,7 @@ use strict;
 use 5.010;
 
 M::Ban->import(qw(
+    notify_new_ban      notify_delete_ban
     get_all_bans        ban_by_id
     delete_ban_by_id    add_update_enforce_activate_ban
 ));
@@ -169,6 +170,7 @@ sub in_ban {
 
 # BANINFO: share ban data
 # :sid BANINFO key value key value :reason
+# TODO: add @from_user for passing to notify
 sub in_baninfo {
     my ($server, $msg, @parts) = @_;
 
@@ -184,6 +186,7 @@ sub in_baninfo {
 
     # validate, update, enforce, and activate
     %ban = add_update_enforce_activate_ban(%ban) or return;
+    notify_new_ban($server, %ban);
 
     #=== Forward ===#
     $msg->forward(baninfo => \%ban);
@@ -205,6 +208,7 @@ sub in_banidk {
 }
 
 # BANDEL: delete a ban
+# TODO: add @from_user for passing to notify
 sub in_bandel {
     my ($server, $msg, @ids) = @_;
 
@@ -213,6 +217,7 @@ sub in_bandel {
         # find and delete each ban
         my %ban = ban_by_id($id) or next;
         delete_ban_by_id($id);
+        notify_delete_ban($server, %ban);
 
         #=== Forward ===#
         $msg->forward(bandel => \%ban);
