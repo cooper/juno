@@ -236,10 +236,11 @@ sub notify_new_ban {
     my ($source, %ban) = @_;
     my @user = $source if $source->isa('user') && $source->is_local;
     notice(@user, $ban{type} =>
-        $ban{match}, $source->notice_info,
-        $ban{expires}  ? localtime $ban{expires}  : 'never',
-        $ban{duration} ? "$ban{duration}s"        : 'permanent',
-        length $ban{reason} ? $ban{reason}        : 'no reason'
+        $ban{match},
+        $source->notice_info,
+        $ban{expires}  ? $t->($ban{expires})        : 'never',
+        $ban{duration} ? 'in '.$d->($ban{duration}) : 'permanent',
+        length $ban{reason} ? $ban{reason}          : 'no reason'
     );
 }
 
