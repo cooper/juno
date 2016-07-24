@@ -3437,3 +3437,5 @@ CHANGES:
             fixed an issue where QUITs were sent on ban enforcement for users not yet propagated.
             added connection events 'found_ident' and 'found_hostname' for Ban.
             Ban now enforces bans on a connection as soon as the host/ident are looked up.
+            Ban classes were removed because some ban types apply to multiple object types.
+            Klines can now be applied directly to connections, so the kill occurs during registration when possible.

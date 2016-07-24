@@ -19,6 +19,8 @@ use warnings;
 use strict;
 use 5.010;
 
+use utils qw(irc_match);
+
 our ($api, $mod, $pool);
 
 sub init {
@@ -27,8 +29,8 @@ sub init {
         add_cmd    => 'kline',          # add command
         del_cmd    => 'unkline',        # delete command
         reason     => 'K-Lined',        # reason prefix
-        class      => 'user',           # bans apply to
-        user_code  => \&user_matches,   # user matcher
+        user_code  => \&user_or_conn_matches,   # user matcher
+        conn_code  => \&user_or_conn_matches,   # connection matcher
         match_code => \&_match,         # match checker
     );
 }
@@ -49,10 +51,12 @@ sub _match {
     return $result;
 }
 
-sub user_matches {
-    my ($user, $ban) = @_;
-    return 1 if utils::irc_match($user->{ident}.'@'.$user->{host}, $ban->{match});
-    return 1 if utils::irc_match($user->{ident}.'@'.$user->{ip},   $ban->{match});
+sub user_or_conn_matches {
+    my ($user_conn, $ban) = @_;
+    my ($ident, $host, $ip) = @$user_conn{ qw(ident host ip) };
+    return unless length $ident;
+    return 1 if irc_match("$ident\@$host", $ban->{match});
+    return 1 if irc_match("$ident\@$ip",   $ban->{match});
     return;
 }
 

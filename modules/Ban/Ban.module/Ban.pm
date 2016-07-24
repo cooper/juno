@@ -435,7 +435,7 @@ sub enforce_all_on_user {
     my $user = shift;
     foreach my $ban (get_all_bans()) {
         my $type = $ban_types{ $ban->{type} };
-        next unless $type->{class} eq 'user';
+        next unless $type->{user_code};
         return 1 if enforce_ban_on_user($ban, $user);
     }
     return;
@@ -446,7 +446,7 @@ sub enforce_all_on_conn {
     my $conn = shift;
     foreach my $ban (get_all_bans()) {
         my $type = $ban_types{ $ban->{type} };
-        next unless $type->{class} eq 'conn';
+        next unless $type->{conn_code};
         return 1 if enforce_ban_on_conn($ban, $conn);
     }
     return;
@@ -459,11 +459,11 @@ sub enforce_ban {
     my %ban = @_;
     my $type = $ban_types{ $ban{type} } or return;
 
-    # user ban
-    if ($type->{class} eq 'user') { return enforce_ban_on_users(%ban) }
-    if ($type->{class} eq 'conn') { return enforce_ban_on_conns(%ban) }
+    my @a;
+    push @a, enforce_ban_on_users(%ban) if $type->{user_code};
+    push @a, enforce_ban_on_conns(%ban) if $type->{conn_code};
 
-    return;
+    return @a;
 }
 
 # enforce a ban on all connections

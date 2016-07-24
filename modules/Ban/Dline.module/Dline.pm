@@ -27,7 +27,6 @@ sub init {
         add_cmd    => 'dline',          # add command
         del_cmd    => 'undline',        # delete command
         reason     => 'D-Lined',        # reason prefix
-        class      => 'conn',           # bans apply to
         conn_code  => \&conn_matches,   # connection matcher
         match_code => \&_match,         # match checker
     );

@@ -9,5 +9,5 @@
    "description" : "ban users from server by hostmask",
    "name" : "Ban::Kline",
    "package" : "M::Ban::Kline",
-   "version" : "1.3"
+   "version" : "1.4"
 }

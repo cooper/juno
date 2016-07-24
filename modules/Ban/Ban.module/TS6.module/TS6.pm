@@ -246,7 +246,7 @@ sub out_bandel {
     # CAP_UNKLN: :<source> UNKLINE <target> <user> <host>
     if ($ban{type} eq 'kline' && $to_server->has_cap('UNKLN')) {
         return sprintf ':%s UNKLINE * %s %s',
-        ts6_id($from);
+        ts6_id($from),
         $ban{ts6_duration},
         $ban{match_user},
         $ban{match_host};
