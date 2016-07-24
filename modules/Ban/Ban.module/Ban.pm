@@ -259,21 +259,33 @@ sub ucmd_bans {
         return;
     }
 
+    # time prettifiers
+    my $t = sub { scalar localtime shift };
+    my $d = sub {
+        my $secs = shift;
+        if ($secs >= 365*24*60*60) { return sprintf '%.1fy', $secs/(365*24*60*60) }
+        elsif ($secs >= 24*60*60)  { return sprintf '%.1fd', $secs/(24*60*60) }
+        elsif ($secs >= 60*60)     { return sprintf '%.1fh', $secs/(60*60) }
+        elsif ($secs >= 60)        { return sprintf '%.1fm', $secs/(60) }
+        return sprintf '%.1fs';
+    };
+
     # list all bans
     $user->server_notice(bans => 'Listing all bans');
     foreach my $ban (sort { $a->{added} <=> $b->{added} } @bans) {
         my %ban = %$ban; my $type = uc $ban{type};
         my @lines = "\2$type\2 $ban{match} ($ban{id})";
-        push @lines, '      Reason: '.$ban{reason}       if length $ban{reason};
-        push @lines, '       Added: '.(scalar localtime $ban->{added});
-        push @lines, '     by user: '.$ban{auser}        if length $ban{auser};
-        push @lines, '   on server: '.$ban{aserver}      if length $ban{aserver};
-        push @lines, '    Duration: '.$ban{duration}     if $ban{duration};
-        push @lines, '    Duration: Permanent!'          if !$ban{duration};
-        push @lines, '   Remaining: '.($ban->{expires} - time) if $ban{expires};
-        push @lines, '     Expires: '.(scalar localtime $ban->{expires});
+        push @lines, '      Reason: '.$ban{reason}                  if length $ban{reason};
+        push @lines, '       Added: '.$t->($ban->{added})           if $ban{added};
+        push @lines, '     by user: '.$ban{auser}                   if length $ban{auser};
+        push @lines, '   on server: '.$ban{aserver}                 if length $ban{aserver};
+        push @lines, '    Duration: '.$d->($ban{duration})          if  $ban{duration};
+        push @lines, '    Duration: Permanent!'                     if !$ban{duration};
+        push @lines, '   Remaining: '.$d->($ban->{expires} - time)  if $ban{expires};
+        push @lines, '     Expires: '.$t->($ban->{expires})         if $ban{expires};
         $user->server_notice("- $_") for '', @lines;
     }
+    $user->server_notice('- ');
     $user->server_notice(bans => 'End of ban list');
 
     return 1;
@@ -312,7 +324,7 @@ sub handle_add_command {
         match        => $match,
         reason       => $reason,
         duration     => $seconds,
-        auser        => $user->full,
+        auser        => $user->fullreal,
         _just_set_by => $user->id
     );
 
