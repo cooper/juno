@@ -266,10 +266,7 @@ sub kline {
         type         => 'kline',
         match        => "$ident_mask\@$host_mask",
         reason       => $reason,
-        added        => time,
-        modified     => time,
         duration     => $duration * 60,  # convert to seconds
-        expires      => $duration ? time + $duration * 60 : 0,
         aserver      => $user->server->name,
         auser        => $user->full,
         _just_set_by => $user->id

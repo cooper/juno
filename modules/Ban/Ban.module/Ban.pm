@@ -96,97 +96,6 @@ sub init {
     return 1;
 }
 
-##############
-### TIMERS ###
-##############
-
-# activate a ban timer
-sub activate_ban {
-    my %ban = @_;
-
-    # it's permanent
-    return if !$ban{expires};
-
-    # it has already expired
-    if ($ban{expires} <= time) {
-        expire_ban(%ban);
-        return;
-    }
-
-    # create a timer
-    my $timer = $timers{ $ban{id} } ||= IO::Async::Timer::Absolute->new(
-        time      => $ban{expires},
-        on_expire => sub { expire_ban(%ban) }
-    );
-
-    # start timer
-    if (!$timer->is_running) {
-        $timer->start;
-        $::loop->add($timer);
-    }
-
-}
-
-# deactivate a ban timer
-# this is also called when a ban is deleted
-# but with deleted => 1
-sub expire_ban {
-    my %ban = @_;
-
-    # dispose of the timer
-    if (my $timer = $timers{ $ban{id} }) {
-        $timer->stop;
-        $timer->remove_from_parent;
-        delete $timers{ $ban{id} };
-    }
-
-    # remove from database
-    delete_ban_by_id($ban{id});
-
-    notice("$ban{type}_expire" => $ban{match}) unless $ban{deleted};
-}
-
-################
-### DATABASE ###
-################
-
-# return the next available ban ID
-sub get_next_id {
-    my $id = $table->meta('last_id');
-    $table->set_meta(last_id => ++$id);
-    return "$$me{sid}.$id";
-}
-
-# returns all bans as a list of hashrefs.
-sub get_all_bans {
-    $table->rows->select_hash;
-}
-
-# look up a ban by an ID
-sub ban_by_id {
-    my %ban = $table->row(id => shift)->select_hash;
-    return %ban;
-}
-
-# look up a ban by a matcher
-sub ban_by_match {
-    my %ban = $table->row(match => shift)->select_hash;
-    return %ban;
-}
-
-# insert or update a ban
-sub add_or_update_ban {
-    my %ban = @_;
-    delete @ban{ grep !$unordered_format{$_}, keys %ban };
-    $table->row(id => $ban{id})->insert_or_update(%ban);
-}
-
-# delete a ban
-sub delete_ban_by_id {
-    my $id = shift;
-    $table->row(id => $id)->delete;
-}
-
 ###############
 ### BAN API ###
 ###############
@@ -258,22 +167,38 @@ sub register_ban_type {
     $mod_->list_store_add(ban_types => $type_name);
 }
 
+########################
+### High-level stuff ###
+################################################################################
+
+sub validate_ban {
+    my %ban = @_;
+
+    # check for required keys
+    defined $ban{$_} or return for qw(id type match duration);
+
+    # inject missing keys
+    my %inject = (
+        added        => time,
+        modified     => time,
+        expires      => $ban{duration} ? time + $ban{duration} : 0
+    );
+    $ban{$_} //= $inject{$_} for keys %inject;
+
+    return %ban;
+}
+
 # register a ban right now from this server
 sub register_ban {
     my ($type_name, %opts) = @_;
-
     $opts{id} //= get_next_id();
-    my %ban = (
-        type        => $type_name,
-        id          => $opts{id},
-        added       => time,
-        modified    => time,
-        expires     => $opts{duration} ? time + $opts{duration} : 0,
-        aserver     => $me->name,
-        %opts
-    );
 
-    %ban = add_update_enforce_activate_ban(%ban) or return;
+    # validate, update, enforce, activate
+    my %ban = add_update_enforce_activate_ban(
+        type    => $type_name,
+        aserver => $me->name,
+        %opts
+    ) or return;
 
     # forward it
     $pool->fire_command_all(baninfo => \%ban);
@@ -281,27 +206,37 @@ sub register_ban {
     return %ban;
 }
 
-########################
-### High-level stuff ###
-########################
-
-sub validate_ban {
-    my %ban = @_;
-    # TODO
-    return %ban;
-}
-
 sub add_update_enforce_activate_ban {
-    my %ban = validate_ban(@_) or return;
+    my %ban = validate_ban(@_);
+    if (!%ban) {
+        L("validate_ban() failed!");
+        return;
+    }
     add_or_update_ban(%ban);
     enforce_ban(%ban);
     activate_ban(%ban);
     return %ban;
 }
 
-##############
-### EVENTS ###
-##############
+#####################
+### USER COMMANDS ###
+################################################################################
+
+# BANS user command.
+our %user_commands = (BANS => {
+    code   => \&ucmd_bans,
+    desc   => 'list user or server bans',
+    params => '-oper(list_bans)'
+});
+
+sub ucmd_bans {
+    my $user = shift;
+    my @bans = get_all_bans();
+    foreach my $ban (sort { $a->{added} <=> $b->{added} } @bans) {
+        my $when = scalar localtime $ban->{expires};
+        $user->server_notice("- $$ban{id} | $$ban{match} | $when");
+    }
+}
 
 # if $duration is 0, the ban is permanent
 sub handle_add_command {
@@ -331,7 +266,7 @@ sub handle_add_command {
 
     # TODO: check if it matches too many people
 
-    # register the ban
+    # register: validate, update, enforce, activate
     my %ban = register_ban($type_name,
         match        => $match,
         reason       => $reason,
@@ -340,11 +275,16 @@ sub handle_add_command {
         _just_set_by => $user->id
     );
 
+    # returned nothing
+    if (!%ban) {
+        $user->server_notice($command => 'Invalid ban');
+        return;
+    }
+
     # notices
-    my $when   = $ban{expires}  ? localtime $ban{expires}  : 'never';
-    my $after  = $ban{duration} ? "$ban{duration}s" : 'permanent';
-    my $notice = gnotice($type_name => $match, $user->notice_info, $when, $after);
-    $user->server_notice($command  => $notice);
+    my $when  = $ban{expires}  ? localtime $ban{expires}  : 'never';
+    my $after = $ban{duration} ? "$ban{duration}s" : 'permanent';
+    gnotice($user, $type_name => $match, $user->notice_info, $when, $after);
 
     return 1;
 }
@@ -369,37 +309,100 @@ sub handle_del_command {
     $pool->fire_command_all(bandel => \%ban);
 
     # notices
-    my $notice = gnotice("${type_name}_delete" => $ban{match}, $user->notice_info);
-    $user->server_notice($command => $notice);
+    gnotice($user, "${type_name}_delete" => $ban{match}, $user->notice_info);
 
     return 1;
 }
 
-sub unload_module {
-    my $mod_ = shift;
-    delete_ban_type($_) foreach $mod_->list_store_items('ban_types');
+################
+### DATABASE ###    Low-level bandb functions
+################################################################################
+
+# return the next available ban ID
+sub get_next_id {
+    my $id = $table->meta('last_id');
+    $table->set_meta(last_id => ++$id);
+    return "$$me{sid}.$id";
 }
 
-sub delete_ban_type {
-    my $type_name = lc shift;
-    my $type = $ban_types{$type_name} or return;
-    L("$type_name unloaded");
+# returns all bans as a list of hashrefs.
+sub get_all_bans {
+    $table->rows->select_hash;
 }
 
-# BANS user command.
-our %user_commands = (BANS => {
-    code   => \&ucmd_bans,
-    desc   => 'list user or server bans',
-    params => '-oper(list_bans)'
-});
+# look up a ban by an ID
+sub ban_by_id {
+    my %ban = $table->row(id => shift)->select_hash;
+    return %ban;
+}
 
-sub ucmd_bans {
-    my $user = shift;
-    my @bans = get_all_bans();
-    foreach my $ban (sort { $a->{added} <=> $b->{added} } @bans) {
-        my $when = scalar localtime $ban->{expires};
-        $user->server_notice("- $$ban{id} | $$ban{match} | $when");
+# look up a ban by a matcher
+sub ban_by_match {
+    my %ban = $table->row(match => shift)->select_hash;
+    return %ban;
+}
+
+# insert or update a ban
+sub add_or_update_ban {
+    my %ban = @_;
+    delete @ban{ grep !$unordered_format{$_}, keys %ban };
+    $table->row(id => $ban{id})->insert_or_update(%ban);
+}
+
+# delete a ban
+sub delete_ban_by_id {
+    my $id = shift;
+    $table->row(id => $id)->delete;
+}
+
+##############
+### TIMERS ###
+##############
+
+# activate a ban timer
+sub activate_ban {
+    my %ban = @_;
+
+    # it's permanent
+    return if !$ban{expires};
+
+    # it has already expired
+    if ($ban{expires} <= time) {
+        expire_ban(%ban);
+        return;
     }
+
+    # create a timer
+    my $timer = $timers{ $ban{id} } ||= IO::Async::Timer::Absolute->new(
+        time      => $ban{expires},
+        on_expire => sub { expire_ban(%ban) }
+    );
+
+    # start timer
+    if (!$timer->is_running) {
+        $timer->start;
+        $::loop->add($timer);
+    }
+
+}
+
+# deactivate a ban timer
+# this is also called when a ban is deleted
+# but with deleted => 1
+sub expire_ban {
+    my %ban = @_;
+
+    # dispose of the timer
+    if (my $timer = $timers{ $ban{id} }) {
+        $timer->stop;
+        $timer->remove_from_parent;
+        delete $timers{ $ban{id} };
+    }
+
+    # remove from database
+    delete_ban_by_id($ban{id});
+
+    notice("$ban{type}_expire" => $ban{match}) unless $ban{deleted};
 }
 
 ###################
@@ -521,6 +524,21 @@ sub enforce_ban_on_user {
     return unless $user->conn;
     $user->conn->done($reason);
     return 1;
+}
+
+################
+### DISPOSAL ###
+################
+
+sub delete_ban_type {
+    my $type_name = lc shift;
+    my $type = $ban_types{$type_name} or return;
+    L("$type_name unloaded");
+}
+
+sub unload_module {
+    my $mod_ = shift;
+    delete_ban_type($_) foreach $mod_->list_store_items('ban_types');
 }
 
 $mod
