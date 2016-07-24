@@ -103,24 +103,25 @@ sub out_ban {
 
 # BANINFO: share ban data
 sub out_baninfo {
-    my ($to_server, $ban) = @_;
+    my ($to_server, $ban_) = @_;
     my $str = '';
+    my %ban = %$ban_;
 
     # get user set by
-    my $from = $pool->lookup_user($ban->{_just_set_by});
+    my $from = $pool->lookup_user($ban{_just_set_by});
 
     # remove bogus keys
-    delete @$ban{ grep !$good_keys{$_}, keys %$ban };
+    delete @ban{ grep !$good_keys{$_}, keys %ban };
 
     # add each key and value
-    foreach my $key (keys %$ban) {
-        my $value = $ban->{$key};
+    foreach my $key (keys %ban) {
+        my $value = $ban{$key};
         next unless length $value;
         next if ref $value;
         $str .= "$key $value ";
     }
 
-    my $reason = $ban->{reason} // '';
+    my $reason = $ban{reason} // '';
 
     my $res = ":$$me{sid} BANINFO $str:$reason";
     $res = "\@from_user=$$from{uid} $res" if $from;
