@@ -287,6 +287,7 @@ sub encap_undline { undline(@_[0..3, 5   ]) }
 sub kline {
     my ($server, $msg, $user, $serv_mask,
     $duration, $ident_mask, $host_mask, $reason) = @_;
+    $msg->{encap_forwarded} = 1;
 
     # create and activate the ban
     my $match = "$ident_mask\@$host_mask";
@@ -312,6 +313,7 @@ sub kline {
 sub dline {
     my ($server, $msg, $user, $serv_mask,
     $duration, $ip_mask, $reason) = @_;
+    $msg->{encap_forwarded} = 1;
 
     # create and activate the ban
     my %ban = add_update_enforce_activate_ts6_ban(
@@ -346,6 +348,7 @@ sub _find_ban {
 
 sub unkline {
     my ($server, $msg, $user, $serv_mask, $ident_mask, $host_mask) = @_;
+    $msg->{encap_forwarded} = 1;
 
     # find and remove ban
     my %ban = _find_ban($server, "$ident_mask\@$host_mask") or return;
@@ -358,6 +361,7 @@ sub unkline {
 
 sub undline {
     my ($server, $msg, $user, $serv_mask, $ip_mask) = @_;
+    $msg->{encap_forwarded} = 1;
 
     # find and remove ban
     my %ban = _find_ban($server, $ip_mask) or return;
