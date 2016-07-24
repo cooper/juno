@@ -110,11 +110,6 @@ sub ts6_ban {
         $duration = $ban{expires} - time
             if $ban{expires};
 
-        # TS6 durations are in minutes rather than seconds, so convert this.
-        # (if it's permanent it will be zero which is the same)
-        $duration = int($duration / 60 + 0.5);
-        $duration = 1 if $duration < 1;
-
         $ban{ts6_duration} = $duration;
     }
     else {
@@ -296,7 +291,7 @@ sub kline {
         id           => $server->{sid}.'.'.fnv($match),
         match        => $match,
         reason       => $reason,
-        duration     => $duration * 60,  # convert to seconds
+        duration     => $duration,
         aserver      => $user->server->name,
         auser        => $user->full,
         _just_set_by => $user->id
@@ -321,7 +316,7 @@ sub dline {
         id           => $server->{sid}.'.'.fnv($ip_mask),
         match        => $ip_mask,
         reason       => $reason,
-        duration     => $duration * 60,  # convert to seconds
+        duration     => $duration,
         aserver      => $user->server->name,
         auser        => $user->full,
         _just_set_by => $user->id
