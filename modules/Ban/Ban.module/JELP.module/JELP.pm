@@ -187,7 +187,6 @@ sub scmd_baninfo {
     # update, enforce, and activate
     add_update_enforce_activate_ban(%ban);
 
-
 }
 
 # BANIDK: request ban data

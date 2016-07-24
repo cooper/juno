@@ -3430,5 +3430,5 @@ CHANGES:
             added ridiculous experimental fake user for #32.
 
         57. added incoming TS6 handlers for KLINE, ENCAP KLINE, ENCAP DLINE. #32.
-            added convenience function add_update_enforce_activate_ban to Ban.
+            added convenience function add_update_enforce_activate_ban() to Ban.
             added support for TS6 capabilities KLN and UNKLN.

@@ -25,6 +25,19 @@ use utils qw(import notice gnotice string_to_seconds);
 our ($api, $mod, $pool, $conf, $me);
 our ($table, %ban_types, %timers);
 
+my %unordered_format = my @format = (
+    id          => 'TEXT',
+    type        => 'TEXT',
+    match       => 'TEXT COLLATE NOCASE',
+    duration    => 'INTEGER',
+    added       => 'INTEGER',
+    modified    => 'INTEGER',
+    expires     => 'INTEGER',
+    aserver     => 'TEXT',
+    auser       => 'TEXT',
+    reason      => 'TEXT'
+);
+
 # specification
 # -----
 #
@@ -68,18 +81,6 @@ sub init {
     $table = $conf->table('bans') or return;
 
     # create or update the table.
-    my @format = (
-        id          => 'TEXT',
-        type        => 'TEXT',
-        match       => 'TEXT COLLATE NOCASE',
-        duration    => 'INTEGER',
-        added       => 'INTEGER',
-        modified    => 'INTEGER',
-        expires     => 'INTEGER',
-        aserver     => 'TEXT',
-        auser       => 'TEXT',
-        reason      => 'TEXT'
-    );
     $table->create_or_alter(@format);
 
     # ban API.
@@ -176,6 +177,7 @@ sub ban_by_match {
 # insert or update a ban
 sub add_or_update_ban {
     my %ban = @_;
+    delete @ban{ grep !$unordered_format{$_}, keys %ban };
     $table->row(id => $ban{id})->insert_or_update(%ban);
 }
 
