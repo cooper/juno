@@ -209,7 +209,7 @@ sub out_baninfo {
     # CAP_KLN: :<source> KLINE <target> <time> <user> <host> :<reason>
     if ($ban{type} eq 'kline' && $to_server->has_cap('KLN')) {
         return sprintf ':%s KLINE * %d %s %s :%s',
-        ts6_id($from);
+        ts6_id($from),
         $ban{duration},
         $ban{match_user},
         $ban{match_host},
@@ -262,9 +262,11 @@ sub kline {
     $duration, $ident_mask, $host_mask, $reason) = @_;
 
     # create and activate the ban
+    my $match = "$ident_mask\@$host_mask";
     my %ban = create_or_update_ts6_ban(
         type         => 'kline',
-        match        => "$ident_mask\@$host_mask",
+        id           => $server->{sid}.'.'.fnv($match),
+        match        => $match,
         reason       => $reason,
         duration     => $duration * 60,  # convert to seconds
         aserver      => $user->server->name,
@@ -287,16 +289,14 @@ sub dline {
     # create and activate the ban
     my %ban = create_or_update_ts6_ban(
         type         => 'dline',
+        id           => $server->{sid}.'.'.fnv($ip_mask),
         match        => $ip_mask,
         reason       => $reason,
-        added        => time,
-        modified     => time,
         duration     => $duration * 60,  # convert to seconds
-        expires      => $duration ? time + $duration * 60 : 0,
         aserver      => $user->server->name,
         auser        => $user->full,
         _just_set_by => $user->id
-    );
+    ) or return;
 
     #=== Forward ===#
     #
