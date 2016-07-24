@@ -246,7 +246,7 @@ sub handle_numeric {
 
     # create the message
     # force list context
-    my ($message) = $msg->parse_params(':rest');
+    my (undef, $message) = $msg->parse_params('* :rest');
 
     # local user.
     if ($user->is_local) {
