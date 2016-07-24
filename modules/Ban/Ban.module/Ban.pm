@@ -247,6 +247,8 @@ our %user_commands = (BANS => {
     params => '-oper(list_bans)'
 });
 
+# TODO: make it possible to list only dlines, only klines, etc.
+# then, make each type register an additional command which does that
 sub ucmd_bans {
     my $user = shift;
     my @bans = get_all_bans();
@@ -257,18 +259,24 @@ sub ucmd_bans {
         return;
     }
 
+    # list all bans
+    $user->server_notice(bans => 'Listing all bans');
     foreach my $ban (sort { $a->{added} <=> $b->{added} } @bans) {
-        my %ban = %$ban;
-        my @lines = "$ban{id} \2$ban{type}\2 $ban{match}";
-        push @lines, '      Reason: '.$ban{reason}          if length $ban{reason};
+        my %ban = %$ban; my $type = uc $ban{type};
+        my @lines = "\2$type\2 $ban{match} ($ban{id})";
+        push @lines, '      Reason: '.$ban{reason}       if length $ban{reason};
         push @lines, '       Added: '.(scalar localtime $ban->{added});
-        push @lines, '     by user: '.$ban{auser}           if length $ban{auser};
-        push @lines, '   on server: '.$ban{aserver}         if length $ban{aserver};
-        push @lines, '    Duration: '.$ban{duration}.'s'    if $ban{duration};
+        push @lines, '     by user: '.$ban{auser}        if length $ban{auser};
+        push @lines, '   on server: '.$ban{aserver}      if length $ban{aserver};
+        push @lines, '    Duration: '.$ban{duration}     if $ban{duration};
+        push @lines, '    Duration: Permanent!'          if !$ban{duration};
+        push @lines, '   Remaining: '.($ban->{expires} - time) if $ban{expires};
         push @lines, '     Expires: '.(scalar localtime $ban->{expires});
-        $user->server_notice("-$_") for @lines;
+        $user->server_notice("- $_") for '', @lines;
     }
-    $user->server_notice(bans => 'End of BANS');
+    $user->server_notice(bans => 'End of ban list');
+
+    return 1;
 }
 
 # if $duration is 0, the ban is permanent
