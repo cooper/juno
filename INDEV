@@ -3439,3 +3439,5 @@ CHANGES:
             Ban now enforces bans on a connection as soon as the host/ident are looked up.
             Ban classes were removed because some ban types apply to multiple object types.
             Klines can now be applied directly to connections, so the kill occurs during registration when possible.
+
+        58. add TS6 handlers for UNKLINE, ENCAP UNKLINE, ENCAP UNDLINE. #32.

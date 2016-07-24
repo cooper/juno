@@ -25,6 +25,7 @@ use M::TS6::Utils qw(ts6_id);
 
 M::Ban->import(qw(
     get_all_bans    delete_ban_by_id
+    ban_by_id       ban_by_match
     add_update_enforce_activate_ban
 ));
 
@@ -47,17 +48,31 @@ our %ts6_incoming_commands = (
         params => '-source(user)  *      *     *        *       *',
         code   => \&encap_dline
     },
+    ENCAP_UNDLINE => {
+                  # :uid ENCAP    target UNDLINE ip_mask
+        params => '-source(user)  *      *       *',
+        code   => \&encap_undline
+    },
     ENCAP_KLINE => {
                   # :<source> ENCAP <target> KLINE <time>   <user>     <host>    :<reason>
         params => '-source(user)    *        *     *        *          *         *',
         code   => \&encap_kline
+    },
+    ENCAP_UNKLINE => {
+                  # :<source> ENCAP <target> UNKLINE <user>     <host>
+        params => '-source(user)    *        *       *          *',
+        code   => \&encap_unkline
     },
     KLINE => {
                   # :<source> KLINE <target> <time> <user> <host> :<reason>
         params => '-source(user)    *        *      *      *      *',
         code   => \&kline
     },
-
+    UNKLINE => {
+                  # :<source> KLINE <target> <user> <host>
+        params => '-source(user)    *        *      *',
+        code   => \&unkline
+    },
 );
 
 sub init {
@@ -80,6 +95,7 @@ sub ts6_ban {
     return unless $ban{type} eq 'kline' || $ban{type} eq 'dline';
 
     # create an ID based on the fnv hash of the mask
+    # this is a last resort... it should already be set
     $ban{id} //= $me->{sid}.'.'.fnv($ban{match});
 
     # TS6 bans have to have a reason
@@ -263,8 +279,10 @@ sub out_bandel {
 ### INCOMING ###
 ################
 
-sub encap_kline { kline(@_[0..3, 5..8]) }
-sub encap_dline { dline(@_[0..3, 5..7]) }
+sub encap_kline   {   kline(@_[0..3, 5..8]) }
+sub encap_dline   {   dline(@_[0..3, 5..7]) }
+sub encap_unkline { unkline(@_[0..3, 5, 6]) }
+sub encap_undline { undline(@_[0..3, 5   ]) }
 
 sub kline {
     my ($server, $msg, $user, $serv_mask,
@@ -314,5 +332,41 @@ sub dline {
     #
     $msg->forward(baninfo => \%ban);
 }
+
+# find a ban for removing
+sub _find_ban {
+    my ($server, $match) = @_;
+    my $id_maybe = $server->{sid}.'.'.fnv($match);
+    my %ban = ban_by_id($id_maybe);
+    return %ban if %ban;
+    %ban = ban_by_match($match);
+    return %ban if %ban;
+    return;
+}
+
+sub unkline {
+    my ($server, $msg, $user, $serv_mask, $ident_mask, $host_mask) = @_;
+
+    # find and remove ban
+    my %ban = _find_ban($server, "$ident_mask\@$host_mask") or return;
+    delete_ban_by_id($ban{id});
+
+    #=== Forward ===#
+    $msg->forward(bandel => \%ban);
+
+}
+
+sub undline {
+    my ($server, $msg, $user, $serv_mask, $ip_mask) = @_;
+
+    # find and remove ban
+    my %ban = _find_ban($server, $ip_mask) or return;
+    delete_ban_by_id($ban{id});
+
+    #=== Forward ===#
+    $msg->forward(bandel => \%ban);
+
+}
+
 
 $mod
