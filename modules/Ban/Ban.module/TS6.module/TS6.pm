@@ -85,16 +85,25 @@ sub ts6_ban {
     # TS6 bans have to have a reason
     $ban{reason} = 'no reason' if !length $ban{reason};
 
-    # TS6 durations are in minutes rather than seconds, so convert this.
-    # (if it's permanent it will be zero which is the same)
-    my $duration = $ban{duration};
-    if ($duration) {
+    # prepare the duration for TS6
+    if ($ban{duration} || $ban{expires}) {
+        my $duration = $ban{duration} || 0;
+
+        # we can't propagate an expiration time over TS6, so we have to
+        # calculate how long the duration should be from the current time
+        $duration = $ban{expires} - time
+            if $ban{expires};
+
+        # TS6 durations are in minutes rather than seconds, so convert this.
+        # (if it's permanent it will be zero which is the same)
         $duration = int($duration / 60 + 0.5);
         $duration = 1 if $duration < 1;
-        $ban{duration_minutes} = $duration;
+
+        $ban{ts6_duration} = $duration;
     }
-    $ban{duration}         ||= 0;
-    $ban{duration_minutes} ||= 0;
+    else {
+        $ban{ts6_duration} = 0;
+    }
 
     # add user and host if there's an @
     if ($ban{match} =~ m/^(.*?)\@(.*)$/) {
