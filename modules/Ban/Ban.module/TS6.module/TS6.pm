@@ -24,8 +24,8 @@ use utils qw(fnv v);
 use M::TS6::Utils qw(ts6_id);
 
 M::Ban->import(qw(
-    get_all_bans        ban_by_id
-    delete_ban_by_id    add_update_enforce_activate_ban
+    get_all_bans    delete_ban_by_id
+    add_update_enforce_activate_ban
 ));
 
 our ($api, $mod, $pool, $conf, $me);
@@ -82,6 +82,9 @@ sub ts6_ban {
     # create an ID based on the fnv hash of the mask
     $ban{id} //= $me->{sid}.'.'.fnv($ban{match});
 
+    # TS6 bans have to have a reason
+    $ban{reason} = 'no reason' if !length $ban{reason};
+
     # TS6 durations are in minutes rather than seconds, so convert this.
     # (if it's permanent it will be zero which is the same)
     my $duration = $ban{duration};
@@ -90,10 +93,8 @@ sub ts6_ban {
         $duration = 1 if $duration < 1;
         $ban{duration_minutes} = $duration;
     }
-
     $ban{duration}         ||= 0;
     $ban{duration_minutes} ||= 0;
-    $ban{reason}           //= 'no reason';
 
     # add user and host if there's an @
     if ($ban{match} =~ m/^(.*?)\@(.*)$/) {
@@ -119,8 +120,8 @@ sub ts6_ban {
 
 # create and register a ban
 sub create_or_update_ts6_ban {
-    my %ban = ts6_ban(@_);
-    add_update_enforce_activate_ban(%ban);
+    my %ban = ts6_ban(@_) or return;
+    %ban = add_update_enforce_activate_ban(%ban);
     return %ban;
 }
 
@@ -272,7 +273,7 @@ sub kline {
         aserver      => $user->server->name,
         auser        => $user->full,
         _just_set_by => $user->id
-    );
+    ) or return;
 
     #=== Forward ===#
     #

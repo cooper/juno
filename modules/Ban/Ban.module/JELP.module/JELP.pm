@@ -31,25 +31,34 @@ our ($api, $mod, $pool, $conf, $me);
 ### JELP ###
 ############
 
-my %jelp_commands = (
+# keys that are valid for propagation.
+# note that 'reason' is not in this list because it's special.
+my %good_keys = map { $_ => 1 }
+    qw(id type match duration added modified expires auser aserver);
+
+our %jelp_outgoing_commands = (
+    ban     => \&out_ban,
+    banidk  => \&out_banidk,
+    baninfo => \&out_baninfo,
+    bandel  => \&out_bandel
+);
+
+our %jelp_commands = (
     BAN => {
         params  => '@rest',
-        code    => \&scmd_ban,
-        forward => 2 # never forward during burst
+        code    => \&in_ban
     },
     BANINFO => {
         params   => '@rest',
-        code     => \&scmd_baninfo,
-        forward  => 1
+        code     => \&in_baninfo
     },
     BANIDK => {
         params  => '@rest',
-        code    => \&scmd_banidk
+        code    => \&in_banidk
     },
     BANDEL => {
         params  => '@rest',
-        code    => \&scmd_bandel,
-        forward => 1
+        code    => \&in_bandel
     }
 );
 
@@ -61,25 +70,6 @@ sub init {
         after   => 'jelp.mainburst',
         with_eo => 1
     );
-
-    # outgoing commands.
-    $mod->register_outgoing_command(
-        name => $_->[0],
-        code => $_->[1]
-    ) || return foreach (
-        [ ban     => \&ocmd_ban     ],
-        [ banidk  => \&ocmd_banidk  ],
-        [ baninfo => \&ocmd_baninfo ],
-        [ bandel  => \&ocmd_bandel  ]
-    );
-
-    # incoming commands.
-    $mod->register_jelp_command(
-        name       => $_,
-        parameters => $jelp_commands{$_}{params},
-        code       => $jelp_commands{$_}{code},
-        forward    => $jelp_commands{$_}{forward}
-    ) || return foreach keys %jelp_commands;
 
     return 1;
 }
@@ -96,42 +86,49 @@ sub burst_bans {
 # -----
 
 # BAN: burst bans
-sub ocmd_ban {
+sub out_ban {
     my $to_server = shift;
     return unless @_;
+
+    # add IDs and modified times for each ban
     my $str = '';
     foreach my $ban (@_) {
         $str .= ' ' if $str;
         $str .= $ban->{id}.q(,).$ban->{modified};
     }
+
     ":$$me{sid} BAN $str"
 }
 
 # BANINFO: share ban data
-sub ocmd_baninfo {
+sub out_baninfo {
     my ($to_server, $ban) = @_;
     my $str = '';
+
+    # remove bogus keys
+    delete @$ban{ grep !$good_keys{$_}, keys %$ban };
+
+    # add each key and value
     foreach my $key (keys %$ban) {
-        next if substr($key, 0, 1) eq '_';
-        next if $key eq 'reason';
         my $value = $ban->{$key};
         next unless length $value;
         next if ref $value;
         $str .= "$key $value ";
     }
+
     my $reason = $ban->{reason} // '';
     ":$$me{sid} BANINFO $str:$reason"
 }
 
 # BANIDK: request ban data
-sub ocmd_banidk {
+sub out_banidk {
     my $to_server = shift;
     my $str = join ' ', @_;
     ":$$me{sid} BANIDK $str"
 }
 
-# BANDEL: delete a ban
-sub ocmd_bandel {
+# BANDEL: delete bans
+sub out_bandel {
     my $to_server = shift;
     my $str = join ' ', map $_->{id}, @_;
     ":$$me{sid} BANDEL $str"
@@ -141,7 +138,7 @@ sub ocmd_bandel {
 # -----
 
 # BAN: burst bans
-sub scmd_ban {
+sub in_ban {
     my ($server, $msg, @items) = @_;
 
     # check ban times
@@ -172,38 +169,57 @@ sub scmd_ban {
 
 # BANINFO: share ban data
 # :sid BANINFO key value key value :reason
-sub scmd_baninfo {
+sub in_baninfo {
     my ($server, $msg, @parts) = @_;
 
-    # must be divisible by two.
+    # the reason is always last
     my $reason = pop @parts;
+
+    # the rest must be divisible by two
     return if @parts % 2;
-    my %ban = @parts;
-    $ban{reason} = $reason;
+    my %ban = (@parts, reason => $reason);
 
-    # we need an ID at the very least
-    return unless defined $ban{id};
+    # ignore unknown keys
+    delete @ban{ grep !$good_keys{$_}, keys %ban };
 
-    # update, enforce, and activate
-    add_update_enforce_activate_ban(%ban);
+    # validate, update, enforce, and activate
+    %ban = add_update_enforce_activate_ban(%ban) or return;
 
+    #=== Forward ===#
+    $msg->forward(baninfo => \%ban);
+
+    return 1;
 }
 
 # BANIDK: request ban data
-sub scmd_banidk {
+sub in_banidk {
     my ($server, $msg, @ids) = @_;
+
+    # send out ban info for each requested ID
     foreach my $id (@ids) {
         my %ban = ban_by_id($id) or next;
         $server->fire_command(baninfo => \%ban);
     }
+
+    return 1;
 }
 
 # BANDEL: delete a ban
-sub scmd_bandel {
+sub in_bandel {
     my ($server, $msg, @ids) = @_;
+
     foreach my $id (@ids) {
+
+        # find and delete each ban
+        my %ban = ban_by_id($id) or next;
         delete_ban_by_id($id);
+
+        #=== Forward ===#
+        $msg->forward(bandel => \%ban);
+
     }
+
+    return 1;
 }
 
 $mod

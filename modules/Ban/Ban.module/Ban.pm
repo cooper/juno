@@ -187,13 +187,6 @@ sub delete_ban_by_id {
     $table->row(id => $id)->delete;
 }
 
-sub add_update_enforce_activate_ban {
-    my %ban = @_ or return;
-    add_or_update_ban(%ban);
-    enforce_ban(%ban);
-    activate_ban(%ban);
-}
-
 ###############
 ### BAN API ###
 ###############
@@ -280,11 +273,29 @@ sub register_ban {
         %opts
     );
 
-    add_update_enforce_activate_ban(%ban);
+    %ban = add_update_enforce_activate_ban(%ban) or return;
 
     # forward it
     $pool->fire_command_all(baninfo => \%ban);
 
+    return %ban;
+}
+
+########################
+### High-level stuff ###
+########################
+
+sub validate_ban {
+    my %ban = @_;
+    # TODO
+    return %ban;
+}
+
+sub add_update_enforce_activate_ban {
+    my %ban = validate_ban(@_) or return;
+    add_or_update_ban(%ban);
+    enforce_ban(%ban);
+    activate_ban(%ban);
     return %ban;
 }
 
