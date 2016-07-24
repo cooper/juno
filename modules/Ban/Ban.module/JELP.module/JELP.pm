@@ -43,7 +43,7 @@ our %jelp_outgoing_commands = (
     bandel  => \&out_bandel
 );
 
-our %jelp_commands = (
+our %jelp_incoming_commands = (
     BAN => {
         params  => '@rest',
         code    => \&in_ban
