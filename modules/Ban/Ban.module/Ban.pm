@@ -225,14 +225,14 @@ sub notify_new_ban {
     my $when  = $ban{expires}  ? localtime $ban{expires}  : 'never';
     my $after = $ban{duration} ? "$ban{duration}s" : 'permanent';
 
-    my @user = $source if $source->isa('user');
+    my @user = $source if $source->isa('user') && $source->is_local;
     notice(@user, $ban{type} => $ban{match}, $source->notice_info, $when, $after);
 }
 
 # notify opers of a deleted ban
 sub notify_delete_ban {
     my ($source, %ban) = @_;
-    my @user = $source if $source->isa('user');
+    my @user = $source if $source->isa('user') && $source->is_local;
     notice(@user, "$ban{type}_delete" => $ban{match}, $source->notice_info);
 }
 
