@@ -3447,3 +3447,7 @@ CHANGES:
             Ban removal now uses ban_by_type_match() instead of ban_by_match().
             this ensures delete commands only match certain types, e.g. UNKLINE only removes KLINES.
             improved oper notices for ban add, delete, and expire.
+
+        59. the Ban API now provides module methods ->register_ban_action() and ->get_ban_action().
+            match code provided by ban modules such as Ban::Kline and Ban::Dline must now return a special identifier to indicate how the ban should be enforced.
+            Ban provides the built-in action 'kill'; modules will add other actions in the future.

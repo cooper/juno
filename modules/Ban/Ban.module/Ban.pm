@@ -22,7 +22,7 @@ use IO::Async::Timer::Absolute;
 use utils qw(import notice string_to_seconds);
 
 our ($api, $mod, $pool, $conf, $me);
-our ($table, %ban_types, %timers);
+our ($table, %ban_types, %timers, %ban_actions);
 
 my %unordered_format = my @format = (
     id          => 'TEXT',
@@ -86,15 +86,26 @@ sub init {
     $table->create_or_alter(@format);
 
     # ban API.
-    $mod->register_module_method('register_ban_type') or return;
+    $mod->register_module_method('register_ban_type')   or return;
+    $mod->register_module_method('register_ban_action') or return;
+    $mod->register_module_method('get_ban_action')      or return;
     $api->on('module.unload' => \&unload_module, with_eo => 1) or return;
 
     # add protocol submodules.
     $mod->add_companion_submodule('JELP::Base', 'JELP');
     $mod->add_companion_submodule('TS6::Base',  'TS6');
 
+    # this module provides the 'kill' action.
+    register_ban_action($mod, undef,
+        name      => 'kill',
+        user_code => \&ban_action_kill,
+        conn_code => \&ban_action_kill
+    );
+
+    # initial activation
     add_enforcement_events();
     activate_ban(%$_) foreach get_all_bans();
+
     return 1;
 }
 
@@ -106,7 +117,7 @@ my $d = sub {
     elsif ($secs >= 24*60*60)  { return sprintf '%.1fd', $secs/(24*60*60) }
     elsif ($secs >= 60*60)     { return sprintf '%.1fh', $secs/(60*60) }
     elsif ($secs >= 60)        { return sprintf '%.1fm', $secs/(60) }
-    return sprintf '%.1fs';
+    return sprintf '%.1fs', $secs;
 };
 
 ###############
@@ -178,6 +189,33 @@ sub register_ban_type {
 
     L("$type_name registered");
     $mod_->list_store_add(ban_types => $type_name);
+    return 1;
+}
+
+# registers a ban action.
+sub register_ban_action {
+    my ($mod_, $event, %opts) = @_;
+say 1;
+    # check for required info
+    my $action = lc $opts{name} or return;
+say 2;
+    # store this action.
+    $ban_actions{$action} = {
+        %opts,
+        name => $action,
+        id   => $action  # for now
+    };
+say 3;
+    L("'$action' registered");
+    $mod_->list_store_add(ban_actions => $action);
+    return 1;
+}
+
+# fetches a ban action identifier. this is used as a return type
+# for enforcement functions.
+sub get_ban_action {
+    my ($mod_, $event, $action) = @_;
+    return $ban_actions{ lc $action }{id};
 }
 
 ########################
@@ -234,6 +272,7 @@ sub add_update_enforce_activate_ban {
 # notify opers of a new ban
 sub notify_new_ban {
     my ($source, %ban) = @_;
+    use Data::Dumper; say Dumper \%ban;
     my @user = $source if $source->isa('user') && $source->is_local;
     notice(@user, $ban{type} =>
         $ban{match},
@@ -548,15 +587,17 @@ sub enforce_ban_on_conns {
 # enforce a ban on a single connection
 sub enforce_ban_on_conn {
     my ($ban, $conn) = @_;
+
+    # check that the connection matches
     my $type = $ban_types{ $ban->{type} } or return;
-    return unless $type->{conn_code}->($conn, $ban);
+    my $action = $type->{conn_code}->($conn, $ban);
 
-    # like "Banned" or "Banned: because"
-    my $reason = $type->{reason};
-    $reason .= ": $$ban{reason}" if length $ban->{reason};
+    # find the action code
+    return if !$action;
+    my $enforce = $ban_actions{$action}{conn_code} or return;
 
-    $conn->done($reason);
-    return 1;
+    # do the action
+    return $enforce->($conn, $ban, $type);
 }
 
 # enforce a ban on all local users
@@ -576,15 +617,36 @@ sub enforce_ban_on_users {
 # enforce a ban on a single user
 sub enforce_ban_on_user {
     my ($ban, $user) = @_;
+
+    # check that the user matches
     my $type = $ban_types{ $ban->{type} } or return;
-    return unless $type->{user_code}->($user, $ban);
+    my $action = $type->{user_code}->($user, $ban);
+
+    # find the action code
+    return if !$action;
+    my $enforce = $ban_actions{$action}{user_code} or return;
+
+    # do the action
+    return $enforce->($user, $ban, $type);
+}
+
+############################
+### Built-in ban actions ###
+################################################################################
+
+sub ban_action_kill {
+    my ($conn_user, $ban, $type) = @_;
+
+    # find the connection
+    $conn_user = $conn_user->conn if $conn_user->can('conn');
+    $conn_user or return;
 
     # like "Banned" or "Banned: because"
     my $reason = $type->{reason};
     $reason .= ": $$ban{reason}" if length $ban->{reason};
 
-    return unless $user->conn;
-    $user->conn->done($reason);
+    # terminate it
+    $conn_user->done($reason);
     return 1;
 }
 
@@ -594,13 +656,20 @@ sub enforce_ban_on_user {
 
 sub delete_ban_type {
     my $type_name = lc shift;
-    my $type = $ban_types{$type_name} or return;
+    my $type = delete $ban_types{$type_name} or return;
     L("$type_name unloaded");
+}
+
+sub delete_ban_action {
+    my $action = lc shift;
+    delete $ban_actions{$action} or return;
+    L("$action unloaded");
 }
 
 sub unload_module {
     my $mod_ = shift;
-    delete_ban_type($_) foreach $mod_->list_store_items('ban_types');
+    delete_ban_type($_)   foreach $mod_->list_store_items('ban_types');
+    delete_ban_action($_) foreach $mod_->list_store_items('ban_actions');
 }
 
 $mod

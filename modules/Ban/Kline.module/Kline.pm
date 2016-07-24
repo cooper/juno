@@ -22,8 +22,10 @@ use 5.010;
 use utils qw(irc_match);
 
 our ($api, $mod, $pool);
+my $KILL_CONN;
 
 sub init {
+    $KILL_CONN = $mod->get_ban_action('kill');
     $mod->register_ban_type(
         name       => 'kline',          # ban type
         add_cmd    => 'kline',          # add command
@@ -55,8 +57,13 @@ sub user_or_conn_matches {
     my ($user_conn, $ban) = @_;
     my ($ident, $host, $ip) = @$user_conn{ qw(ident host ip) };
     return unless length $ident;
-    return 1 if irc_match("$ident\@$host", $ban->{match});
-    return 1 if irc_match("$ident\@$ip",   $ban->{match});
+
+    return $KILL_CONN
+        if irc_match("$ident\@$host", $ban->{match});
+
+    return $KILL_CONN
+        if irc_match("$ident\@$ip",   $ban->{match});
+
     return;
 }
 

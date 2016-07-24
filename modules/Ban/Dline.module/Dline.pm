@@ -20,8 +20,10 @@ use strict;
 use 5.010;
 
 our ($api, $mod, $pool);
+my $KILL_CONN;
 
 sub init {
+    $KILL_CONN = $mod->get_ban_action('kill');
     $mod->register_ban_type(
         name       => 'dline',          # ban type
         add_cmd    => 'dline',          # add command
@@ -45,11 +47,11 @@ sub _match {
     return $str;
 }
 
-# TODO: check if valid IP
-
 sub conn_matches {
     my ($conn, $ban) = @_;
-    return utils::irc_match($conn->{ip}, $ban->{match});
+    return $KILL_CONN
+        if utils::irc_match($conn->{ip}, $ban->{match});
+    return;
 }
 
 $mod
