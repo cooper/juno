@@ -219,7 +219,7 @@ sub out_baninfo {
     if ($ban{type} eq 'kline' && $to_server->has_cap('KLN')) {
         return sprintf ':%s KLINE * %d %s %s :%s',
         ts6_id($from),
-        $ban{duration},
+        $ban{ts6_duration},
         $ban{match_user},
         $ban{match_host},
         $ban{reason};
@@ -229,7 +229,7 @@ sub out_baninfo {
     return sprintf ':%s ENCAP * %s %d %s :%s',
     ts6_id($from),
     uc $ban{type},
-    $ban{duration},
+    $ban{ts6_duration},
     $ban{match_ts6},
     $ban{reason};
 }
@@ -247,7 +247,7 @@ sub out_bandel {
     if ($ban{type} eq 'kline' && $to_server->has_cap('UNKLN')) {
         return sprintf ':%s UNKLINE * %s %s',
         ts6_id($from);
-        $ban{duration},
+        $ban{ts6_duration},
         $ban{match_user},
         $ban{match_host};
     }
