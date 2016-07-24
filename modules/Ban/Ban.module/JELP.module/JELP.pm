@@ -21,9 +21,8 @@ use strict;
 use 5.010;
 
 M::Ban->import(qw(
-    enforce_ban         activate_ban        enforce_ban
     get_all_bans        ban_by_id
-    add_or_update_ban   delete_ban_by_id
+    delete_ban_by_id    add_update_enforce_activate_ban
 ));
 
 our ($api, $mod, $pool, $conf, $me);
@@ -186,9 +185,8 @@ sub scmd_baninfo {
     return unless defined $ban{id};
 
     # update, enforce, and activate
-    add_or_update_ban(%ban);
-    enforce_ban(%ban);
-    activate_ban(%ban);
+    add_update_enforce_activate_ban(%ban);
+
 
 }
 

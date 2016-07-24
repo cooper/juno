@@ -62,7 +62,8 @@ our ($table, %ban_types, %timers);
 #
 # reason        user-set reason for ban
 #
-
+# _just_set_by  UID of user who set a ban. used for propagation.
+#
 sub init {
     $table = $conf->table('bans') or return;
 
@@ -184,6 +185,13 @@ sub delete_ban_by_id {
     $table->row(id => $id)->delete;
 }
 
+sub add_update_enforce_activate_ban {
+    my %ban = @_ or return;
+    add_or_update_ban(%ban);
+    enforce_ban(%ban);
+    activate_ban(%ban);
+}
+
 ###############
 ### BAN API ###
 ###############
@@ -270,9 +278,7 @@ sub register_ban {
         %opts
     );
 
-    add_or_update_ban(%ban);
-    enforce_ban(%ban);
-    activate_ban(%ban);
+    add_update_enforce_activate_ban(%ban);
 
     # forward it
     $pool->fire_command_all(baninfo => \%ban);

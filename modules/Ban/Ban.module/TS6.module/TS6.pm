@@ -24,9 +24,8 @@ use utils qw(fnv v);
 use M::TS6::Utils qw(ts6_id);
 
 M::Ban->import(qw(
-    enforce_ban         activate_ban        enforce_ban
     get_all_bans        ban_by_id
-    add_or_update_ban   delete_ban_by_id
+    delete_ban_by_id    add_update_enforce_activate_ban
 ));
 
 our ($api, $mod, $pool, $conf, $me);
@@ -43,16 +42,22 @@ our %ts6_outgoing_commands = (
 );
 
 our %ts6_incoming_commands = (
-    ENCAP_KLINE => {
-                  # :uid ENCAP    target KLINE duration ident_mask host_mask :reason
-        params => '-source(user)  *      *     *        *          *         *',
-        code   => \&encap_kline
-    },
     ENCAP_DLINE => {
                   # :uid ENCAP    target DLINE duration ip_mask :reason
         params => '-source(user)  *      *     *        *       *',
-        code   => \encap_&dline
-    }
+        code   => \&encap_dline
+    },
+    ENCAP_KLINE => {
+                  # :<source> ENCAP <target> KLINE <time>   <user>     <host>    :<reason>
+        params => '-source(user)    *        *     *        *          *         *',
+        code   => \&encap_kline
+    },
+    KLINE => {
+                  # :<source> KLINE <target> <time> <user> <host> :<reason>
+        params => '-source(user)    *        *      *      *      *',
+        code   => \&kline
+    },
+
 );
 
 sub init {
@@ -83,8 +88,12 @@ sub ts6_ban {
     if ($duration) {
         $duration = int($duration / 60 + 0.5);
         $duration = 1 if $duration < 1;
-        $ban{duration} = $duration;
+        $ban{duration_minutes} = $duration;
     }
+
+    $ban{duration}         ||= 0;
+    $ban{duration_minutes} ||= 0;
+    $ban{reason}           //= 'no reason';
 
     # add user and host if there's an @
     if ($ban{match} =~ m/^(.*?)\@(.*)$/) {
@@ -109,11 +118,10 @@ sub ts6_ban {
 }
 
 # create and register a ban
-sub create_ts6_ban {
+sub create_or_update_ts6_ban {
     my %ban = ts6_ban(@_);
-    add_or_update_ban(%ban);
-    enforce_ban(%ban);
-    activate_ban(%ban);
+    add_update_enforce_activate_ban(%ban);
+    return %ban;
 }
 
 ################
@@ -150,6 +158,7 @@ sub burst_bans {
     );
     $fake_user->set_mode('invisible');
     $fake_user->set_mode('ircop');
+    $fake_user->set_mode('service');
 
     # send out bans
     $server->fire_command(ban => @bans);
@@ -196,12 +205,22 @@ sub out_baninfo {
     # charybdis will send the encap target as it is received from the oper.
     # we don't care about that though. juno bans are global.
 
+    # CAP_KLN: :<source> KLINE <target> <time> <user> <host> :<reason>
+    if ($ban{type} eq 'kline' && $to_server->has_cap('KLN')) {
+        return sprintf ':%s KLINE * %d %s %s :%s',
+        ts6_id($from);
+        $ban{duration},
+        $ban{match_user},
+        $ban{match_host},
+        $ban{reason};
+    }
+
+    # encap fallback
     return sprintf ':%s ENCAP * %s %d %s :%s',
     ts6_id($from),
     uc $ban{type},
-    $ban{duration} || 0,
-    $ban{match_ts6},
-    $ban{reason} // 'no reason';
+    $ban{duration},
+    $ban{match_ts6};
 }
 
 # bandel is sent out when a ban is removed. in TS6, use ENCAP UNK/DLINE
@@ -213,6 +232,16 @@ sub out_bandel {
     my $from = $pool->lookup_user($ban{_just_set_by})
         || get_fake_user($to_server) or return;
 
+    # CAP_UNKLN: :<source> UNKLINE <target> <user> <host>
+    if ($ban{type} eq 'kline' && $to_server->has_cap('UNKLN')) {
+        return sprintf ':%s UNKLINE * %s %s',
+        ts6_id($from);
+        $ban{duration},
+        $ban{match_user},
+        $ban{match_host};
+    }
+
+    # encap fallback
     return sprintf ':%s ENCAP * UN%s %s',
     ts6_id($from),
     uc $ban{type},
@@ -223,18 +252,59 @@ sub out_bandel {
 ### INCOMING ###
 ################
 
-sub encap_kline {
-    my ($server, $msg, $user, $serv_mask, undef,
+sub encap_kline { kline(@_[0..3, 5..8]) }
+sub encap_dline { dline(@_[0..3, 5..7]) }
+
+sub kline {
+    my ($server, $msg, $user, $serv_mask,
     $duration, $ident_mask, $host_mask, $reason) = @_;
-    # forward and/or
-    # call kline(stuff)
+
+    # create and activate the ban
+    my %ban = create_or_update_ts6_ban(
+        type         => 'kline',
+        match        => "$ident_mask\@$host_mask",
+        reason       => $reason,
+        added        => time,
+        modified     => time,
+        duration     => $duration * 60,  # convert to seconds
+        expires      => $duration ? time + $duration * 60 : 0,
+        aserver      => $user->server->name,
+        auser        => $user->full,
+        _just_set_by => $user->id
+    );
+
+    #=== Forward ===#
+    #
+    # we ignore the target mask. juno bans are global, so let's pretend
+    # this was intended to be global too.
+    #
+    $msg->forward(baninfo => \%ban);
 }
 
-sub encap_dline {
-    my ($server, $msg, $user, $serv_mask, undef,
+sub dline {
+    my ($server, $msg, $user, $serv_mask,
     $duration, $ip_mask, $reason) = @_;
-    # forward and/or
-    # call dline(stuff)
+
+    # create and activate the ban
+    my %ban = create_or_update_ts6_ban(
+        type         => 'dline',
+        match        => $ip_mask,
+        reason       => $reason,
+        added        => time,
+        modified     => time,
+        duration     => $duration * 60,  # convert to seconds
+        expires      => $duration ? time + $duration * 60 : 0,
+        aserver      => $user->server->name,
+        auser        => $user->full,
+        _just_set_by => $user->id
+    );
+
+    #=== Forward ===#
+    #
+    # we ignore the target mask. juno bans are global, so let's pretend
+    # this was intended to be global too.
+    #
+    $msg->forward(baninfo => \%ban);
 }
 
 $mod
