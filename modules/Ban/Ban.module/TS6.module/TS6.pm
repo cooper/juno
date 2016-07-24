@@ -80,7 +80,7 @@ sub ts6_ban {
     return unless $ban{type} eq 'kline' || $ban{type} eq 'dline';
 
     # create an ID based on the fnv hash of the mask
-    $ban{id} //= fnv($ban{match});
+    $ban{id} //= $me->{sid}.'.'.fnv($ban{match});
 
     # TS6 durations are in minutes rather than seconds, so convert this.
     # (if it's permanent it will be zero which is the same)
@@ -220,7 +220,8 @@ sub out_baninfo {
     ts6_id($from),
     uc $ban{type},
     $ban{duration},
-    $ban{match_ts6};
+    $ban{match_ts6},
+    $ban{reason};
 }
 
 # bandel is sent out when a ban is removed. in TS6, use ENCAP UNK/DLINE
