@@ -3458,3 +3458,5 @@ CHANGES:
         it yields a single server object in a similar manner to charybdis hunt_server().
         add USERS user command.
         added incoming and outgoing commands LUSERS and USERS in JELP and TS6. closes #106.
+
+        61. handle TS6 ENCAP GCAP.

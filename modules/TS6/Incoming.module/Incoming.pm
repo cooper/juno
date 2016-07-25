@@ -222,6 +222,11 @@ our %ts6_incoming_commands = (
                   # :sid|uid CONNECT connect_mask target_sid
         params => '-source           *            hunted',
         code   => \&_connect
+    },
+    ENCAP_GCAP => {
+                  # :sid ENCAP     serv_mask GCAP  caps
+        params => '-source(server) *         *     :rest',
+        code   => \&gcap
     }
 );
 
@@ -831,7 +836,10 @@ sub encap {
     return 1 if $msg->{encap_forwarded};
 
     # otherwise, forward as-is to TS6 servers.
-    L("ENCAP $encap_cmd is not known by this server; forwarding as-is");
+    L(
+        "ENCAP $encap_cmd is not explicitly forwarded by this server;".
+        'propagating as-is'
+    );
     $msg->{command} = 'ENCAP';
     my %done = ($me => 1);
 
@@ -1660,6 +1668,19 @@ sub _connect {
     $source->isa('user') or return; # FIXME: what to do when not user?
     return $source->handle_unsafe("CONNECT $connect_mask");
 
+}
+
+# GCAP
+#
+# encap only
+# encap target: *
+# source:       server
+# parameters:   space separated capability list
+#
+sub gcap {
+    my ($server, $msg, $source_serv, $serv_mask, undef, $caps) = @_;
+    # don't set $msg->{encap_forwared} because this is TS6-specific
+    $source_serv->add_cap(split /\s+/, $caps);
 }
 
 $mod
