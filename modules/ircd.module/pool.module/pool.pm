@@ -909,7 +909,7 @@ sub add_resv {
 }
 
 # remove a RESV.
-sub del_resv {
+sub delete_resv {
     my ($pool, $mask) = @_;
     delete $pool->{nick_reserves}{ irc_lc($mask) } or return;
     L("Unreserved nick mask '$mask'");
@@ -923,7 +923,7 @@ sub expire_resvs {
         my $exp = $pool->{nick_reserves}{$resv};
         next if $exp == -1;  # permanent
         next if $exp > time; # not expired
-        $pool->del_resv($resv);
+        $pool->delete_resv($resv);
         $amnt++;
     }
     my $s = $amnt == 1 ? '' : 's';

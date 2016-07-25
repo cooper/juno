@@ -480,6 +480,14 @@ sub delete_ban_by_id {
 # activate a ban timer
 sub activate_ban {
     my %ban = @_;
+    my $type = $ban_types{ $ban{type} } or return;
+
+    # Custom activation
+    # -----------------
+    $type->{activate_code}(\%ban) if $type->{activate_code};
+
+    # Expiration
+    # -----------------
 
     # it's permanent
     return if !$ban{expires};
@@ -509,6 +517,11 @@ sub activate_ban {
 # but with deleted => 1
 sub expire_ban {
     my %ban = @_;
+    my $type = $ban_types{ $ban{type} } or return;
+
+    # Custom activation
+    # -----------------
+    $type->{expire_code}(\%ban) if $type->{expire_code};
 
     # dispose of the timer
     if (my $timer = $timers{ $ban{id} }) {
