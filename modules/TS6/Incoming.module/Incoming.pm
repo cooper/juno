@@ -1410,7 +1410,7 @@ sub whois {
     # $query is the raw query itself, such as a nickname
 
     # forward this onto physical location.
-    my $loc = $target->{location};
+    my $loc = $target->{location} || $target;
 
     # it's me!
     if ($loc == $me) {
