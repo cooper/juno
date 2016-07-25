@@ -31,27 +31,27 @@ servers.
 juno will terminate a connection during registration if it does not receive a
 `CAPAB` message or if any of these tokens are missing from it:
 
-* ENCAP - enhanced command routing
-* QS - quit storm
-* EX - ban exceptions (+e)
-* IE - invite exceptions (+I)
+* `ENCAP` - enhanced command routing
+* `QS` - quit storm
+* `EX` - ban exceptions (+e)
+* `IE` - invite exceptions (+I)
 
 ### Supported
 
 In addition to the above, juno supports the following capabilities:
 
-* EUID - extended user introduction
-* TB - topic burst with added information
-* EOB - end of burst token
-* SERVICES - ratbox services extensions (umode +S and cmode +r)
-* SAVE - resolution of nick collisions without killing
-* RSFNC - force nick change, used for services nick enforcement
-* KLN - remote K-Lines
+* `EUID` - extended user introduction
+* `TB` - topic burst with added information
+* `EOB` - end of burst token
+* `SERVICES` - ratbox services extensions (umode +S and cmode +r)
+* `SAVE` - resolution of nick collisions without killing
+* `RSFNC` - force nick change, used for services nick enforcement
+* `KLN` - remote K-Lines
   (with [Ban](https://github.com/cooper/juno/tree/master/modules/Ban))
-* UKLN - remote removal of K-Lines
+* `UKLN` - remote removal of K-Lines
   (with [Ban](https://github.com/cooper/juno/tree/master/modules/Ban))
 
-## Mode definitions
+## Mode definitions and IRCd-specific options
 
 In juno's native linking protocol, user and channel modes are negotiated during
 the initial burst. Because this is not possible in TS6, mode definitions for
@@ -60,6 +60,22 @@ various TS-based IRCds were added to the
 It is also possible to add additional IRCd support through the main
 configuration. See issue [#110](https://github.com/cooper/juno/issues/110) for
 info about config-based IRCd support.
+
+```
+[ ircd: ratbox ]
+    nicklen = 16
+
+[ ircd_cmodes: ratbox ]
+    ban = [3, 'b']
+    except = [3, 'e']
+
+[ ircd: charybdis ]
+    extends = 'ratbox'
+    nicklen  = 32
+
+[ ircd_cmodes: charybdis ]
+    quiet = [3, 'q']
+```
 
 ## Mode translation
 
@@ -73,6 +89,19 @@ perspectives. Low-level mode handling also automatically converts UIDs and
 other variable parameters when necessary.
 See issue [#101](https://github.com/cooper/juno/issues/101) for more info.
 
+```perl
+
+# Given a TS6 mode string and a TS6 server
+my $ts6_server;
+my $some_ts6_mode_string = '+qo 000AAAABG 000AAAABG';
+
+# get the modes by their names in an arraref
+my $modes = $ts6_server->cmodes_from_string($some_ts6_mode_string);
+
+# commit the modes without translating the mode string!
+$channel->do_modes_local($source, $modes, 1, 1, 1);
+```
+
 Modes which are missing on a destination server are simply omitted from the
 resulting messages. juno used to map status modes like +q (owner) and +a (admin)
 to +o (op), but in issue [#7](https://github.com/cooper/juno/issues/7), we
@@ -81,12 +110,25 @@ security issues (such as users protected by +q or +a being kicked by users with
 only +o on a TS-based server). Both external services packages and juno's
 built-in channel access feature set +o along with any higher status mode.
 
+```
+[TS6::Outgoing] convert_cmode_string(): +qo 0a 0a (k.notroll.net) -> +o 000AAAAAA (charybdis.notroll.net)
+```
+
 ## SID, UID conversion
 
 juno's internal SIDs are 0-9 and UIDs are a-z. In TS6, SIDs can contain letters,
 and the system used for numbering UIDs differs from juno. While juno IDs have
 variable length, TS-based servers always use three characters for SIDs and nine
 characters for UIDs.
+
+```perl
+sub obj_from_ts6 {
+    my $id = shift;
+    if (length $id == 3) { return $pool->lookup_server(sid_from_ts6($id)) }
+    if (length $id == 9) { return $pool->lookup_user  (uid_from_ts6($id)) }
+    return;
+}
+```
 
 TS6 SIDs containing letters are transformed into nine-digit numeric strings
 based on the corresponding ASCII values. SIDs containing only digits are
@@ -97,10 +139,28 @@ The downfall is that juno SIDs with more than three digits are not supported
 when using TS6. This should be okay though, as long as your network includes
 less than nine hundred ninety-nine servers running juno.
 
+```perl
+sub sid_from_ts6 {
+    my $sid = shift;
+    if ($sid =~ m/[A-Z]/) {
+        return join('', map { sprintf '%03d', ord } split //, $sid) + 0;
+    }
+    return $sid + 0;
+}
+```
+
 Both juno and TS-based servers construct UIDs by mending the SID for the server
 the user is on with a string of characters that is associated with an integer.
 This makes the conversion easy: simply determine which Nth TS6 ID it is and spit
 out the Nth juno ID and vice versa.
+
+```perl
+sub uid_from_ts6 {
+    my $uid = shift;
+    my ($sid, $id) = ($uid =~ m/^([0-9A-Z]{3})([0-9A-Z]{6})$/);
+    return sid_from_ts6($sid).uid_u_from_ts6($id);
+}
+```
 
 See
 [the code](https://github.com/cooper/juno/blob/master/modules/TS6/Utils.module/Utils.pm)
