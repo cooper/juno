@@ -65,9 +65,10 @@ our %ts6_outgoing_commands = (
      lusers         => \&lusers,
      users          => \&users,
      invite         => \&invite,
+     snotice        => \&snote,
      su_login       => \&su_login,
      su_logout      => \&su_logout,
-     ircd_rehash     => \&rehash
+     ircd_rehash    => \&rehash
 );
 
 sub init {
@@ -987,6 +988,20 @@ sub lusers {
     my $uid = ts6_id($user);
     my $sid = ts6_id($t_server);
     ":$uid LUSERS * $sid"
+}
+
+# SNOTE
+#
+# charybdis TS6
+# encap only
+# source:       server
+# parameters:   snomask letter, text
+#
+sub snote {
+    my ($to_server, $server, $flag, $message, undef, $ts6_letter) = @_;
+    my $sid = ts6_id($server);
+    $ts6_letter ||= 's';
+    ":$sid ENCAP * SNOTE $ts6_letter :$message"
 }
 
 $mod

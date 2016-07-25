@@ -927,7 +927,7 @@ sub snotice {
     }
 
     # === Forward ===
-    $msg->forward(snotice => $notice, $message, $from_user);
+    $msg->forward(snotice => $s_serv, $notice, $message, $from_user);
 
     return 1;
 }

@@ -242,6 +242,11 @@ our %ts6_incoming_commands = (
                   # :uid ENCAP   serv_mask REALHOST host
         params => '-source(user) *         *        *',
         code   => \&realhost
+    },
+    ENCAP_SNOTE => {
+                  # :uid ENCAP   serv_mask SNOTE    letter :message
+        params => '-source(user) *         *        *      *',
+        code   => \&realhost
     }
 );
 
@@ -1739,6 +1744,47 @@ sub realhost {
     $msg->{encap_forwarded}++;
     $user->{host} = $host;
     $msg->forward(realhost => $user, $host);
+}
+
+# SNOTE
+#
+# charybdis TS6
+# encap only
+# source:       server
+# parameters:   snomask letter, text
+#
+my %snomask_names = (
+    b => 'bot_warning',
+    c => 'client_notice',
+    C => 'client_notice',
+    d => 'debug',
+    f => 'connection_denied',
+    F => 'remote_client_notice',
+    k => 'kill_notice',
+    n => 'user_nick_change',
+    r => 'connection_denied',
+    u => 'connection_denied',
+    W => 'whois',
+    x => 'new_server',
+    y => 'spy',
+    l => 'new_channel',
+    Z => 'operspy'
+);
+sub snote {
+    my ($server, $msg, $source_serv, undef, undef, $letter, $message) = @_;
+    my $notice = $snomask_names{$letter} || 'general';
+    $msg->{encap_forwarded}++;
+
+    # send to users with this notice flag.
+    foreach my $user ($pool->actual_users) {
+        next unless blessed $user; # during destruction.
+        next unless $user->is_mode('ircop');
+        next unless $user->has_notice($notice);
+        $user->server_notice($source_serv, Notice => $message);
+    }
+
+    # === Forward ===
+    $msg->forward(snotice => $server, $notice, $message, undef, $letter);
 }
 
 $mod
