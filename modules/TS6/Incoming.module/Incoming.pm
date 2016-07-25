@@ -244,8 +244,8 @@ our %ts6_incoming_commands = (
         code   => \&realhost
     },
     ENCAP_SNOTE => {
-                  # :uid ENCAP   serv_mask SNOTE    letter :message
-        params => '-source(user) *         *        *      *',
+                  # :sid ENCAP     serv_mask SNOTE    letter :message
+        params => '-source(server) *         *        *      *',
         code   => \&realhost
     }
 );
