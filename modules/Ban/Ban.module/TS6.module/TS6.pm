@@ -34,7 +34,8 @@ our ($api, $mod, $pool, $conf, $me);
 
 our %ts6_capabilities = (
     KLN   => { required => 0 },
-    UNKLN => { required => 0 }
+    UNKLN => { required => 0 },
+    BAN   => { required => 0 }
 );
 
 our %ts6_outgoing_commands = (
@@ -46,7 +47,7 @@ our %ts6_outgoing_commands = (
 our %ts6_incoming_commands = (
     ENCAP_DLINE => {
                   # :uid ENCAP    target DLINE duration ip_mask :reason
-        params => '-source(user)  *      *     *        *       *',
+        params => '-source(user)  *      *     *        *       :rest',
         code   => \&encap_dline
     },
     ENCAP_UNDLINE => {
@@ -56,7 +57,7 @@ our %ts6_incoming_commands = (
     },
     ENCAP_KLINE => {
                   # :<source> ENCAP <target> KLINE <time>   <user>     <host>    :<reason>
-        params => '-source(user)    *        *     *        *          *         *',
+        params => '-source(user)    *        *     *        *          *         :rest',
         code   => \&encap_kline
     },
     ENCAP_UNKLINE => {
@@ -66,7 +67,7 @@ our %ts6_incoming_commands = (
     },
     KLINE => {
                   # :<source> KLINE <target> <time> <user> <host> :<reason>
-        params => '-source(user)    *        *      *      *      *',
+        params => '-source(user)    *        *      *      *      :rest',
         code   => \&kline
     },
     UNKLINE => {
@@ -75,8 +76,8 @@ our %ts6_incoming_commands = (
         code   => \&unkline
     },
     BAN => {
-                  # :<source> BAN type user host creationTS duration lifetime oper reason
-        params => '-source        *    *    *    ts         *        *        *    *',
+                  # :source BAN type user host creationTS duration lifetime oper reason
+        params => '-source      *    *    *    ts         *        *        *    :rest',
         code   => \&ban
     },
 );
