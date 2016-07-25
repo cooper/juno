@@ -1002,7 +1002,12 @@ sub userinfo {
 
     # nick ident host nick_time account
 
-    # host and/or ident changed
+    # real host change
+    if (length(my $new_real_host = $msg->tag('real_host'))) {
+        $user->{host} = $new_real_host;
+    }
+
+    # cloak and/or ident changed
     my $new_host  = $msg->tag('host');
     my $new_ident = $msg->tag('ident');
     if (defined $new_host || defined $new_ident) {

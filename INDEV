@@ -3466,3 +3466,6 @@ CHANGES:
 
         62. added TS6 UID support. closes #105.
             fixed an issue where TS6 hopcounts were off by one.
+            added ENCAP REALHOST incoming handler. #105.
+            added 'realhost' outgoing command which forwards as either ENCAP REALHOST or USERINFO.
+            added 'real_host' field to USERINFO command.

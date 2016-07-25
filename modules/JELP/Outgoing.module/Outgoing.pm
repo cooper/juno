@@ -53,6 +53,7 @@ my %ocommands = (
     save_user       => \&save,
     update_user     => \&userinfo,
     chghost         => \&chghost,
+    realhost        => \&realhost,
     lusers          => \&lusers,
     users           => \&users,
     add_cmodes      => \&acm,
@@ -513,6 +514,11 @@ sub save {
 sub chghost {
     my ($to_server, $source, $user, $new_host) = @_;
     return userinfo($to_server, $user, host => $new_host);
+}
+
+sub realhost {
+    my ($to_server, $user, $host) = @_;
+    return userinfo($to_server, $user, real_host => $host);
 }
 
 sub userinfo {

@@ -50,6 +50,7 @@ our %ts6_outgoing_commands = (
      topicburst     => \&tb,
      wallops        => \&wallops,
      chghost        => \&chghost,
+     realhost       => \&realhost,
      save_user      => \&save,
      update_user    => \&userinfo,
      num            => \&num,
@@ -755,6 +756,20 @@ sub chghost {
     }
 
     ":$source_id CHGHOST $user_id $new_host"
+}
+
+# REALHOST
+#
+# charybdis TS6
+# encap only
+# encap target: *
+# source:       user
+# parameters:   real hostname
+#
+sub realhost {
+    my ($to_server, $user, $host) = @_;
+    my $uid = ts6_id($user);
+    ":$uid ENCAP * REALHOST $host"
 }
 
 # SAVE

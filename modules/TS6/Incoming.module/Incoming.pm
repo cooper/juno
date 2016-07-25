@@ -227,6 +227,11 @@ our %ts6_incoming_commands = (
                   # :sid ENCAP     serv_mask GCAP  caps
         params => '-source(server) *         *     :rest',
         code   => \&gcap
+    },
+    ENCAP_REALHOST => {
+                  # :uid ENCAP   serv_mask REALHOST host
+        params => '-source(user) *         *        *',
+        code   => \&realhost
     }
 );
 
@@ -1678,9 +1683,24 @@ sub _connect {
 # parameters:   space separated capability list
 #
 sub gcap {
-    my ($server, $msg, $source_serv, $serv_mask, undef, $caps) = @_;
+    my ($server, $msg, $source_serv, undef, undef, $caps) = @_;
     # don't set $msg->{encap_forwared} because this is TS6-specific
     $source_serv->add_cap(split /\s+/, $caps);
+}
+
+# REALHOST
+#
+# charybdis TS6
+# encap only
+# encap target: *
+# source:       user
+# parameters:   real hostname
+#
+sub realhost {
+    my ($server, $msg, $user, undef, undef, $host) = @_;
+    $msg->{encap_forwared}++;
+    $user->{host} = $host;
+    $msg->forward(realhost => $user, $host);
 }
 
 $mod
