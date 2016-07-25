@@ -264,14 +264,26 @@ sub register_ban {
 }
 
 sub add_update_enforce_activate_ban {
+
+    # validate it
     my %ban = validate_ban(@_);
     if (!%ban) {
         L("validate_ban() failed!");
         return;
     }
+
+    # ignore bans with older modification times
+    my %existing = ban_by_id($ban{id});
+    if ($existing{modified} && $existing{modified} > $ban{modified}) {
+        L("ignoring older ban on $ban{match}");
+        return;
+    }
+
+    # add, update, enforce, and activate it
     add_or_update_ban(%ban);
     enforce_ban(%ban);
     activate_ban(%ban);
+
     return %ban;
 }
 
