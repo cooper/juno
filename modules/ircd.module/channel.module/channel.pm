@@ -158,7 +158,8 @@ sub add {
     # mine.pm:           for locals
     # core_scommands.pm: for nonlocals.
 
-    notice(user_join => $user->notice_info, $channel->name);
+    notice(user_join => $user->notice_info, $channel->name)
+        unless $user->{location}{is_burst};
     return $channel->{time};
 }
 
