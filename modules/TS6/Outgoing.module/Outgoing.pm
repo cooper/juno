@@ -146,6 +146,14 @@ sub safe_nick {
     return $user->{nick};
 }
 
+# ts6 host safety
+sub safe_host {
+    my $host = shift;
+    my ($host, $serv) = @_;
+    $host =~ s/\//_SLASH_/g if $serv->{ts6_ircd} eq 'ratbox'; # HACK: HA!
+    return $host;
+}
+
 # SID
 #
 # source:       server
@@ -197,7 +205,7 @@ sub euid {
             $user->{nick_time},
             $user->mode_string($server),
             $user->{ident},
-            $user->{cloak},
+            safe_host($user->{cloak}, $server),
             $user->{ip},
             ts6_id($user),
             $user->{real};
@@ -207,7 +215,7 @@ sub euid {
         if ($user->{cloak} ne $user->{host}) {
             my $realhost = sprintf ':%s ENCAP * REALHOST %s',
                 ts6_id($user),
-                $user->{host};
+                safe_host($user->{host}, $server);
             push @uid_lines, $realhost;
         }
 
@@ -226,11 +234,11 @@ sub euid {
     $user->{nick_time},                             # last nick-change time
     $user->mode_string($server),                    # +modes string
     $user->{ident},                                 # username (w/ ~ if needed)
-    $user->{cloak},                                 # visible hostname
+    safe_host($user->{cloak}, $server),             # visible hostname
     $user->{ip},                                    # IP address
     ts6_id($user),                                  # UID
     $user->{cloak} eq $user->{host} ?               # real hostname
-        '*' : $user->{host},                        #   (* if equal to visible)
+        '*' : safe_host($user->{host}, $server),    #   (* if equal to visible)
     $user->{account} ?                              # account name
         $user->{account}{name} : '*',               #   (* if not logged in)
     $user->{real}
@@ -932,8 +940,10 @@ sub userinfo {
     }
 
     # host changed
-    push @lines, chghost($to_server, $user->{server}, $user, $fields{host})
-        if length $fields{host};
+    push @lines, chghost(
+        $to_server, $user->{server}, $user,
+        safe_host($fields{host}, $to_server)
+    ) if length $fields{host};
 
     return @lines;
 }

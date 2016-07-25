@@ -3475,3 +3475,5 @@ CHANGES:
             fixed an issue where the account field in TS6 EUID was not handled.
             fixed an issue where users would be logged in as '*' from EUID.
             hide new user and join notices for bursting servers.
+            add ratbox mode definitions.
+            add horrible temporary hack for fixing hosts for ratbox.
