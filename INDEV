@@ -3472,3 +3472,4 @@ CHANGES:
 
         63. added TS6 ENCAP CHGHOST incoming handler. forwards as CHGHOST, ENCAP CHGHOST, or USERINFO. #105.
             added TS6 UID command handler. forwards as EUID or UID. closes #105.
+            fixed an issue where the account field in TS6 EUID was not handled.

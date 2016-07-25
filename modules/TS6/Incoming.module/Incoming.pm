@@ -409,6 +409,13 @@ sub euid {
     my $user = $pool->new_user(%$new_usr_temp);
     $user->handle_mode_string($mode_str, 1);
 
+    # log the user in
+    my $act_name = delete $user->{account_name};
+    if (length $act_name) {
+        L("TS6 login $$user{nick} as $act_name");
+        $user->do_login($act_name);
+    }
+
     # === Forward ===
     #
     #   JELP:   UID
