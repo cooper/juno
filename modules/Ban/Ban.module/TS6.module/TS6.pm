@@ -240,20 +240,40 @@ sub out_ban {
 sub out_baninfo {
     my ($to_server, $ban_) = @_;
     my %ban = ts6_ban(%$ban_) or return;
-    my $from = find_from($to_server, %ban) or return;
 
     # charybdis will send the encap target as it is received from the oper.
     # we don't care about that though. juno bans are global.
 
-    # CAP_KLN: :<source> KLINE <target> <time> <user> <host> :<reason>
-    if ($ban{type} eq 'kline' && $to_server->has_cap('KLN')) {
-        return sprintf ':%s KLINE * %d %s %s :%s',
-        ts6_id($from),
-        $ban{ts6_duration},
-        $ban{match_user},
-        $ban{match_host},
-        $ban{reason};
+    # we might be able to use BAN or non-encap KLINE for K-Lines.
+    if ($ban{type} eq 'kline') {
+
+        # CAP BAN
+        if ($to_server->has_cap('BAN')) {
+
+            # this can come from either a user or a server
+            my $from = $pool->lookup_user($ban{_just_set_by}) || $me;
+
+            return _capab_ban($to_server, $from, \%ban);
+        }
+
+        # CAP KLN
+        if ($to_server->has_cap('KLN')) {
+
+            # KLINE can only come from a user
+            my $from = find_from($to_server, %ban) or return;
+
+            # :<source> KLINE <target> <time> <user> <host> :<reason>
+            return sprintf ':%s KLINE * %d %s %s :%s',
+            ts6_id($from),
+            $ban{ts6_duration},
+            $ban{match_user},
+            $ban{match_host},
+            $ban{reason};
+        }
     }
+
+    # at this point, we have to have a user source
+    my $from = find_from($to_server, %ban) or return;
 
     # encap fallback
     return sprintf ':%s ENCAP * %s %d %s :%s',
@@ -270,13 +290,32 @@ sub out_bandel {
     my %ban = ts6_ban(%$ban_) or return;
     my $from = find_from($to_server, %ban) or return;
 
-    # CAP_UNKLN: :<source> UNKLINE <target> <user> <host>
-    if ($ban{type} eq 'kline' && $to_server->has_cap('UNKLN')) {
-        return sprintf ':%s UNKLINE * %s %s',
-        ts6_id($from),
-        $ban{ts6_duration},
-        $ban{match_user},
-        $ban{match_host};
+    # we might be able to use BAN or non-encap UNKLINE for K-Lines.
+    if ($ban{type} eq 'kline') {
+
+        # CAP BAN
+        if ($to_server->has_cap('BAN')) {
+
+            # this can come from either a user or a server
+            my $from = $pool->lookup_user($ban{_just_set_by}) || $me;
+
+            $ban{duration} = 0; # indicates deletion
+            return _capab_ban($to_server, $from, \%ban);
+        }
+
+        # CAP UNKLN
+        if ($to_server->has_cap('UNKLN')) {
+
+            # KLINE can only come from a user
+            my $from = find_from($to_server, %ban) or return;
+
+            # CAP_UNKLN: :<source> UNKLINE <target> <user> <host>
+            return sprintf ':%s UNKLINE * %s %s',
+            ts6_id($from),
+            $ban{ts6_duration},
+            $ban{match_user},
+            $ban{match_host};
+        }
     }
 
     # encap fallback
@@ -284,6 +323,38 @@ sub out_bandel {
     ts6_id($from),
     uc $ban{type},
     $ban{match_ts6};
+}
+
+sub _capab_ban {
+    my ($to_server, $from, $ban_) = @_;
+
+    # the ban has already been validated
+    # the {duration} may be 0 if this was called by an unban func
+    my %ban = %$ban_;
+
+    # only these are supported
+    my %possible = (
+        kline => 'K',
+      # xline => 'X',
+      # resv  => 'R'
+    );
+    my $letter = $possible{ $ban{type} } or return;
+
+    # nick!user@host{server} that added it
+    # or * if this is being set by a real-time user
+    my $added_by = $ban{auser} ? "$ban{auser}\{$ban{aserver}\}" : '*';
+    $added_by = '*' if $from->isa('user');
+
+    return sprintf ':%s BAN %s %s %s %d %d %d %s :%s',
+    ts6_id($from),          # user or server
+    $letter,                # ban type
+    $ban{match_user},       # user mask or *
+    $ban{match_host},       # host mask
+    $ban{added},            # creation time
+    $ban{duration},         # REAL duration (not ts6_duration)
+    $ban{duration},         # FIXME: lifetime
+    $added_by,              # oper field
+    $ban{reason};           # reason
 }
 
 ################

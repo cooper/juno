@@ -3480,3 +3480,6 @@ CHANGES:
 
         64. add TS6 ENCAP SNOTE handler. closes #56.
             this maps each snomask letter to a generic juno flag.
+
+        65. added outgoing charybdis-style BAN command to Ban::TS6. #32.
+            the new behavior is to send out BAN, (UN)KLINE, or ENCAP (UN)KLINE.
