@@ -133,6 +133,11 @@ our %ts6_incoming_commands = (
         params => '-source          user  *',
         code   => \&chghost
     },
+    ENCAP_CHGHOST => {
+                  # :uid ENCAP   serv_mask  CHGHOST  new_host
+        params => '-source(user) *          *        *',
+        code   => \&ENCAP_CHGHOST
+    },
     SQUIT => {
                   # :sid SQUIT     sid    :reason
         params => '-source(opt)    server :rest',
@@ -1320,6 +1325,12 @@ sub chghost {
     $msg->forward(chghost => $source, $user, $new_host);
 
     return 1;
+}
+
+sub encap_chghost {
+    my ($server, $msg, $user, undef, undef, $new_host) = @_;
+    $msg->{encap_forwared}++;
+    return chghost(@_[0..2], $new_host);
 }
 
 # SQUIT
