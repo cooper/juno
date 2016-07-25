@@ -1356,7 +1356,7 @@ sub chghost {
 
 sub encap_chghost {
     my ($server, $msg, $user, undef, undef, $new_host) = @_;
-    $msg->{encap_forwared}++;
+    $msg->{encap_forwarded}++;
     return chghost(@_[0..2], $new_host);
 }
 
@@ -1722,7 +1722,7 @@ sub _connect {
 #
 sub gcap {
     my ($server, $msg, $source_serv, undef, undef, $caps) = @_;
-    # don't set $msg->{encap_forwared} because this is TS6-specific
+    # don't set $msg->{encap_forwarded} because this is TS6-specific
     $source_serv->add_cap(split /\s+/, $caps);
 }
 
@@ -1736,7 +1736,7 @@ sub gcap {
 #
 sub realhost {
     my ($server, $msg, $user, undef, undef, $host) = @_;
-    $msg->{encap_forwared}++;
+    $msg->{encap_forwarded}++;
     $user->{host} = $host;
     $msg->forward(realhost => $user, $host);
 }
