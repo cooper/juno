@@ -1,0 +1,13 @@
+{
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
+   "depends" : {
+      "modules" : "Ban"
+   },
+   "description" : "reserve nicknames matching a mask",
+   "name" : "Ban::Resv",
+   "package" : "M::Ban::Resv",
+   "version" : "0.2"
+}

@@ -290,7 +290,6 @@ sub add_update_enforce_activate_ban {
 # notify opers of a new ban
 sub notify_new_ban {
     my ($source, %ban) = @_;
-    use Data::Dumper; say Dumper \%ban;
     my @user = $source if $source->isa('user') && $source->is_local;
     notice(@user, $ban{type} =>
         $ban{match},

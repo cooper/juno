@@ -3493,3 +3493,4 @@ CHANGES:
             added low-level pool methods ->add_resv(), ->delete_resv(), and ->expire_resvs(). #112.
             utils::validnick() now checks against reserved nick masks. it can take a parameter to not to do this.
             Ban interfaces can now provide custom activate_code and expire_code.
+            added Ban::Resv which provides the RESV and UNRESV commands, as well as nick reserve expiration.
