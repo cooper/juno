@@ -1000,7 +1000,12 @@ sub lusers {
 sub snote {
     my ($to_server, $server, $flag, $message, undef, $ts6_letter) = @_;
     my $sid = ts6_id($server);
-    $ts6_letter ||= 's';
+    # no letter; this is a juno snotice
+    if (!$ts6_letter) {
+        $ts6_letter = 's';
+        (my $pretty = ucfirst $flag) =~ s/_/ /g;
+        $message = "$pretty: $message";
+    }
     ":$sid ENCAP * SNOTE $ts6_letter :$message"
 }
 
