@@ -40,6 +40,11 @@ our %ts6_incoming_commands = (
         params  => '-source(server) *    *        ts      *      *     *     *   *   *    *   :rest',
         code    => \&euid
     },
+    UID => {
+                  # :sid UID       nick hopcount nick_ts umodes ident cloak ip uid :realname
+        params => '-source(server) *    *        ts      *      *     *     *  *   :rest',
+        code   => \&uid
+    },
     SJOIN => {
                   # :sid SJOIN     ch_time ch_name mode_str mode_params... :nicklist
         params => '-source(server) ts      *       *        @rest',
@@ -412,6 +417,21 @@ sub euid {
     $msg->forward(new_user => $user);
 
     return 1;
+}
+
+# UID
+#
+# source:       server
+# propagation:  broadcast
+# parameters:   nickname, hopcount, nickTS, umodes, username, visible hostname,
+#               IP address, UID, gecos
+# propagation:  broadcast
+#
+sub uid {
+    my ($server, $msg, $source_serv, @rest) = @_;
+    # (0)nick (1)hopcount (2)nick_ts (3)umodes (4)ident (5)cloak (6)ip (7)uid (8)realname
+    #    nick ts6_dummy   nick_time  umodes    ident    cloak    ip    ts6_uid
+    return euid(@rest[0..7], '*', '*', $rest[8]);
 }
 
 # SJOIN
