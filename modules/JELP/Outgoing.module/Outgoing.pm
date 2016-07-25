@@ -523,11 +523,11 @@ sub realhost {
 
 sub userinfo {
     my ($to_server, $user, %fields) = @_;
-    message->new(
+    return message->new(
         source  => $user->id,
         command => 'USERINFO',
         tags    => \%fields
-    )->data
+    )->data;
 }
 
 $mod
