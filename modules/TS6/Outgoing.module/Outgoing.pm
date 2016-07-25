@@ -164,7 +164,7 @@ sub sid {
     sprintf ':%s SID %s %d %s :%s',
     ts6_id($serv->{parent}),
     $serv->{name},
-    $me->hops_to($serv),
+    $me->hops_to($serv) + 1,
     ts6_id($serv),
     $desc
 }
@@ -192,7 +192,7 @@ sub euid {
         my $uid = sprintf ':%s UID %s %d %ld %s %s %s %s %s :%s',
             ts6_id($user->{server}),
             safe_nick($user),
-            $me->hops_to($user->{server}),
+            $me->hops_to($user->{server}) + 1,
             $user->{nick_time},
             $user->mode_string($server),
             $user->{ident},
@@ -221,7 +221,7 @@ sub euid {
     sprintf ":%s EUID %s %d %d %s %s %s %s %s %s %s :%s",
     ts6_id($user->{server}),                        # source SID
     safe_nick($user),                               # nickname
-    $me->hops_to($user->{server}),                  # number of hops
+    $me->hops_to($user->{server}) + 1,              # number of hops
     $user->{nick_time},                             # last nick-change time
     $user->mode_string($server),                    # +modes string
     $user->{ident},                                 # username (w/ ~ if needed)

@@ -3465,3 +3465,4 @@ CHANGES:
             start TS6 burst after initial propagation. #107.
 
         62. added TS6 UID support. closes #105.
+            fixed an issue where TS6 hopcounts were off by one.
