@@ -251,6 +251,25 @@ sub _param_server {
     push @$params, $server;
 }
 
+# hunted: like charybdis hunt_server()
+# can be a UID, SID, server mask
+sub _param_hunted {
+    my ($msg, $param, $params, $opts) = @_;
+
+    # first, find either a user or a server from SID/UID
+    my $target = obj_from_ts6($param);
+    $target = $target->{server} if $target && !$target->isa('server');
+
+    # find server from mask
+    # (this will return $me if $me matches)
+    $target ||= $pool->lookup_server_mask($param);
+
+    # no matches
+    return $PARAM_BAD unless $target && $target->isa('server');
+
+    push @$params, $target;
+}
+
 # user: match a UID.
 sub _param_user {
     my ($msg, $param, $params, $opts) = @_;

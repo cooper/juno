@@ -140,7 +140,7 @@ our %ts6_incoming_commands = (
     },
     WHOIS => {
                   # :uid WHOIS   sid|uid    :query(e.g. nickname)
-        params => '-source(user) *          :rest',
+        params => '-source(user) hunted     :rest',
         code   => \&whois
     },
     MODE => {
@@ -150,27 +150,27 @@ our %ts6_incoming_commands = (
     },
     ADMIN => {
                   # :uid         ADMIN    sid
-        params => '-source(user) -command server',
+        params => '-source(user) -command hunted',
         code   => \&generic_hunted
     },
     INFO => {
                   # :uid         INFO     sid
-        params => '-source(user) -command server',
+        params => '-source(user) -command hunted',
         code   => \&generic_hunted
     },
     MOTD => {
                   # :uid         MOTD     sid
-        params => '-source(user) -command server',
+        params => '-source(user) -command hunted',
         code   => \&generic_hunted
     },
     TIME => {
                   # :uid         TIME     sid
-        params => '-source(user) -command server',
+        params => '-source(user) -command hunted',
         code   => \&generic_hunted
     },
     VERSION => {
                   # :sid|uid   VERSION  sid
-        params => '-source     -command server',
+        params => '-source     -command hunted',
         code   => \&generic_hunted
     },
     LUSERS => {
@@ -180,7 +180,7 @@ our %ts6_incoming_commands = (
     },
     LINKS => {
                 # :uid LINKS     sid        server_mask
-        params => '-source(user) server     *',
+        params => '-source(user) hunted     *',
         code   => \&links
     },
     INVITE => {
@@ -215,7 +215,7 @@ our %ts6_incoming_commands = (
     },
     CONNECT => {
                   # :sid|uid CONNECT connect_mask target_sid
-        params => '-source           *            server',
+        params => '-source           *            hunted',
         code   => \&_connect
     }
 );
@@ -1350,20 +1350,10 @@ sub squit {
 sub whois {
     my ($server, $msg, $s_user, $target, $query) = @_;
     # $s_user is the user doing the query
-    # $target ought to be a string SID or UID
+    # $target is a server object from hunted
     # $query is the raw query itself, such as a nickname
 
-    $target = obj_from_ts6($target);
-    if (!$target) {
-        notice(server_protocol_warning =>
-            $server->notice_info,
-            "provided invalid target server in remote WHOIS"
-        );
-        return;
-    }
-
-    # this could be a user or server object.
-    # either way, forward this onto physical location.
+    # forward this onto physical location.
     my $loc = $target->{location};
 
     # it's me!

@@ -3453,3 +3453,6 @@ CHANGES:
             Ban provides the built-in action 'kill'; modules will add other actions in the future.
             added some server warnings for if TS6 ban propagation is not possible due to the agent being unavailable.
             this should fix a bug described at GLolol/PyLink#286 where the sentinel was sometimes lost in TS6 numeric handling.
+
+    6. added param type 'hunted' which is now used in several commands in TS6::Incoming.
+        it yields a single server object in a similar manner to charybdis hunt_server().
