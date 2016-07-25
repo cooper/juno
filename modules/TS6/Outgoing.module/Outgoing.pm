@@ -148,9 +148,9 @@ sub safe_nick {
 
 # ts6 host safety
 sub safe_host {
-    my $host = shift;
     my ($host, $serv) = @_;
-    $host =~ s/\//_SLASH_/g if $serv->{ts6_ircd} eq 'ratbox'; # HACK: HA!
+    my $ircd = $serv->{ts6_ircd} // '';
+    $host =~ s/\//_SLASH_/g if $ircd eq 'ratbox'; # HACK: HA!
     return $host;
 }
 
