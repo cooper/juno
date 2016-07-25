@@ -10,15 +10,15 @@ There. Very good.
 
 # Introduction
 
-This is juno-ircd, an IRC server daemon written in the Perl programming
-language. Why? Perl and IRC are both neat, so why not?  
+This is juno-ircd, a seriously modern IRC server daemon written from scratch
+in the Perl programming language. Yes, for real.
 
 This software will hopefully surprise you with its functionality and novel
 features. Although no stable versions have been released throughout its six-year
 course, it usually only breaks when you try really fancy things. You are
 encouraged to cross your fingers and [give it a go](#installation).
 
-[irc.notroll.net #k](irc://irc.notroll.net/k)
+Come chat with us at [irc.notroll.net #k](irc://irc.notroll.net/k) too.
 
 ## Features
 
@@ -42,7 +42,8 @@ Plus, juno-ircd
 * Consists entirely of modules and therefore can be as minimal or as bloated as
   you're comfortable with
 * Supports the latest [IRCv3](http://ircv3.net) standards
-* Supports multiple linking protocols, including several TS6 implementations
+* Supports multiple linking protocols, including several
+  [TS6 implementations](doc/ts6.md)
   and a custom user-extensible protocol
 * Supports [Atheme](http://atheme.net),
   [PyLink](https://github.com/GLolol/PyLink) and probably other IRC services
