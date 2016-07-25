@@ -32,7 +32,11 @@ our %user_commands = (
     },
     LUSERS => {
         code   => \&lusers,
-        desc   => 'view connection count statistics'
+        desc   => 'view user statistics'
+    },
+    USERS => {
+        code   => \&users,
+        desc   => 'view user statistics'
     },
     REHASH => {
         code   => \&rehash,
@@ -1119,6 +1123,29 @@ sub lusers {
     $user->numeric(RPL_LOCALUSERS    => $l_users, $m_local, $l_users, $m_local);
     $user->numeric(RPL_GLOBALUSERS   => $g_users, $m_global, $g_users, $m_global);
     $user->numeric(RPL_STATSCONN     => $conn_max, $m_local, $conn);
+}
+
+sub users {
+    my $user = shift;
+
+    # get x users, x invisible, and total global
+    my @actual_users = $pool->actual_users;
+    my ($g_not_invisible, $g_invisible) = (0, 0);
+    foreach my $user (@actual_users) {
+        $g_invisible++, next if $user->is_mode('invisible');
+        $g_not_invisible++;
+    }
+    my $g_users = $g_not_invisible + $g_invisible;
+
+    # get local users
+    my $l_users = scalar grep { $_->is_local } @actual_users;
+
+    # get max global and max local
+    my $m_global = v('max_global_user_count');
+    my $m_local  = v('max_local_user_count');
+
+    $user->numeric(RPL_LOCALUSERS    => $l_users, $m_local, $l_users, $m_local);
+    $user->numeric(RPL_GLOBALUSERS   => $g_users, $m_global, $g_users, $m_global);
 }
 
 sub rehash {
