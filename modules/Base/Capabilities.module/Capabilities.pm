@@ -7,7 +7,6 @@
 # @name:            'Base::Capabilities'
 # @package:         'M::Base::Capabilities'
 # @description:     'provides an interface for client capabilities'
-# @version:         ircd->VERSION
 #
 # @depends.modules: 'API::Methods'
 #
@@ -44,4 +43,3 @@ sub unload_module {
 }
 
 $mod
-

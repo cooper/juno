@@ -62,7 +62,7 @@ sub cmode_key {
     else {
 
         # sanity checking
-        $mode->{param} = cols(cut_to_limit('key', $mode->{param}));
+        $mode->{param} = fix_key($mode->{param});
 
         # no length; don't set.
         if (!length $mode->{param}) {
@@ -73,6 +73,18 @@ sub cmode_key {
     }
 
     return 1;
+}
+
+# charybdis/blob/8fed90ba8a221642ae1f0fd450e8e580a79061fb/ircd/chmode.cc#L556
+sub fix_key {
+    my $in = shift;
+    my $out = '';
+    for (split //, $in) {
+        next if /[\r\n\s:,]/;
+        next if ord() < 13;
+        $out .= $_;
+    }
+    return cut_to_limit('key', $out);
 }
 
 sub on_user_can_join {

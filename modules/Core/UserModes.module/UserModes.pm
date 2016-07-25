@@ -1,7 +1,6 @@
 # Copyright (c) 2009-16, Mitchell Cooper
 #
 # @name:            "Core::UserModes"
-# @version:         ircd->VERSION
 # @package:         "M::Core::UserModes"
 # @description:     "the core set of user modes"
 #

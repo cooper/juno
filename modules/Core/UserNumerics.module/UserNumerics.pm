@@ -1,7 +1,6 @@
 # Copyright (c) 2009-16, Mitchell Cooper
 #
 # @name:            "Core::UserNumerics"
-# @version:         ircd->VERSION
 # @package:         "M::Core::UserNumerics"
 # @description:     "the core set of user numerics"
 #

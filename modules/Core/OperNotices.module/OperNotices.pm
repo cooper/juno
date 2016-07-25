@@ -1,7 +1,6 @@
 # Copyright (c) 2009-16, Mitchell Cooper
 #
 # @name:            "Core::OperNotices"
-# @version:         ircd->VERSION
 # @package:         "M::Core::OperNotices"
 # @description:     "the core set of oper notices"
 #

@@ -1,7 +1,6 @@
 # Copyright (c) 2016, Mitchell Cooper
 #
 # @name:            "Base::UserCommands"
-# @version:         ircd->VERSION
 # @package:         "M::Base::UserCommands"
 #
 # @depends.modules: "API::Methods"

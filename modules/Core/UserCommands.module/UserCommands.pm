@@ -1,7 +1,6 @@
 # Copyright (c) 2009-16, Mitchell Cooper
 #
 # @name:            "Core::UserCommands"
-# @version:         ircd->VERSION
 # @package:         "M::Core::UserCommands"
 # @description:     "the core set of user commands"
 #

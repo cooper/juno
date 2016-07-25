@@ -1,7 +1,6 @@
 # Copyright (c) 2009-16, Mitchell Cooper
 #
 # @name:            "Core::Matchers"
-# @version:         ircd->VERSION
 # @package:         "M::Core::Matchers"
 # @description:     "the core set of mask matchers"
 #
@@ -25,12 +24,12 @@ sub init {
         name => 'standard',
         code => \&standard_matcher
     ) or return;
-    
+
     $mod->register_matcher(
         name => 'oper',
         code => \&oper_matcher
     ) or return;
-    
+
     return 1;
 }
 
@@ -45,18 +44,18 @@ sub standard_matcher {
 sub oper_matcher {
     my ($event, $user, @list) = @_;
     return unless $user->is_mode('ircop');
-    
+
     foreach my $item (@list) {
-    
+
         # just check if opered.
         return $event->{matched} = 1 if $item eq '$o';
-        
+
         # match a specific oper flag.
         next unless $item =~ m/^\$o:(.+)/;
         return $event->{matched} = 1 if $user->has_flag($1);
-        
+
     }
-    
+
     return;
 }
 

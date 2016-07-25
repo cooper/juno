@@ -1,7 +1,6 @@
 # Copyright (c) 2009-16, Mitchell Cooper
 #
 # @name:            "Core"
-# @version:         ircd->VERSION
 # @package:         "M::Core"
 # @description:     "the core components of the ircd"
 #

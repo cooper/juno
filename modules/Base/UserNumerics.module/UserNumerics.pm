@@ -1,7 +1,6 @@
 # Copyright (c) 2016, Mitchell Cooper
 #
 # @name:            "Base::UserNumerics"
-# @version:         ircd->VERSION
 # @package:         "M::Base::UserNumerics"
 #
 # @depends.modules: "API::Methods"
@@ -18,19 +17,19 @@ use 5.010;
 our ($api, $mod, $pool);
 
 sub init {
-    
+
     # register methods.
     $mod->register_module_method('register_user_numeric') or return;
-    
+
     # module unload event.
     $api->on('module.unload' => \&unload_module, with_eo => 1) or return;
-    
+
     # module initialization.
     $api->on('module.init' => \&module_init,
         name    => '%user_numerics',
         with_eo => 1
     ) or return;
-    
+
     return 1;
 }
 

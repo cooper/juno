@@ -3460,3 +3460,5 @@ CHANGES:
         added incoming and outgoing commands LUSERS and USERS in JELP and TS6. closes #106.
 
         61. handle TS6 ENCAP GCAP.
+            all modules which previously depended on ircd->VERSION now use Evented::API::Engine's autoversioning.
+            improved channel key validation.

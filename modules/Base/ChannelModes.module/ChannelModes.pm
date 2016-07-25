@@ -1,7 +1,6 @@
 # Copyright (c) 2012-14, Mitchell Cooper
 #
 # @name:            "Base::ChannelModes"
-# @version:         ircd->VERSION
 # @package:         "M::Base::ChannelModes"
 #
 # @depends.modules: "API::Methods"

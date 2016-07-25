@@ -7,7 +7,6 @@
 # @name:            'Base::RegistrationCommands'
 # @package:         'M::Base::RegistrationCommands'
 # @description:     'provides an interface for client registration commands'
-# @version:         ircd->VERSION
 #
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'
@@ -30,13 +29,13 @@ sub init {
         name    => '%registration_commands',
         with_eo => 1
     );
-    
+
     return 1;
 }
 
 sub register_registration_command {
     my ($mod, $event, %opts) = @_;
-    
+
     # fallback to the name of the command for the callback name.
     $opts{cb_name} //= ($opts{proto} ? $opts{proto}.q(.) : '').$opts{name};
 
@@ -47,7 +46,7 @@ sub register_registration_command {
         L("registration command '$opts{name}' does not have '$what' option");
         return;
     }
-    
+
     # parameter check callback.
     my $command    = uc delete $opts{name};
     my $event_name = "connection.message_$command";
@@ -57,38 +56,38 @@ sub register_registration_command {
 
             # there are enough.
             return 1 if $msg->params >= $params;
-            
+
             # not enough.
             my $conn = $event->object;
             $conn->numeric(ERR_NEEDMOREPARAMS => $command);
             $event->stop;
-            
+
         },
         name     => 'parameter.check',
         priority => 1000,
         _caller  => $mod->package
     ) or return if $params;
-    
+
     # wrapper.
     my $code = sub {
         my ($conn, $event, $msg) = @_;
-        
+
         # prevent execution after registration.
         return if $conn->{type} && !$opts{after_reg};
-        
+
         # only allow a specific protocol.
         return if $opts{proto} && !$conn->possibly_protocol($opts{proto});
-        
+
         # arguments.
         my @args = $msg->params;
         unshift @args, $msg       if $opts{with_msg};
         unshift @args, $msg->data if $opts{with_data};
-        
+
         $opts{code}($conn, $event, @args);
         $event->cancel('ERR_UNKNOWNCOMMAND');
         $event->stop unless $opts{continue_handlers}; # prevent later user/server handlers.
     };
-    
+
     # attach the callback.
     my $result = $pool->on($event_name => $code,
         name     => $opts{cb_name},
@@ -97,7 +96,7 @@ sub register_registration_command {
         %opts,
         _caller  => $mod->package
     ) or return;
-    
+
     L("$command ($opts{cb_name}) registered");
     $mod->list_store_add('registration_commands', $command);
     return $result;
@@ -115,4 +114,3 @@ sub module_init {
 }
 
 $mod
-

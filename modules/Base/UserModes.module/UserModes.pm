@@ -1,7 +1,6 @@
 # Copyright (c) 2016, Mitchell Cooper
 #
 # @name:            "Base::UserModes"
-# @version:         ircd->VERSION
 # @package:         "M::Base::UserModes"
 #
 # @depends.modules: "API::Methods"
@@ -18,13 +17,13 @@ use 5.010;
 our ($api, $mod, $pool);
 
 sub init {
-    
+
     # register methods.
     $mod->register_module_method('register_user_mode_block') or return;
-    
+
     # module unload event.
     $api->on('module.unload' => \&unload_module, with_eo => 1);
-    
+
     return 1;
 }
 
@@ -56,7 +55,7 @@ sub unload_module {
     my ($mod, $event) = @_;
     $pool->delete_user_mode_block($_, $mod->name)
       foreach $mod->list_store_items('user_modes');
-    
+
     return 1;
 }
 

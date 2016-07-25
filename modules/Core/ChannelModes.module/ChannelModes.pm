@@ -1,7 +1,6 @@
 # Copyright (c) 2009-16, Mitchell Cooper
 #
 # @name:            "Core::ChannelModes"
-# @version:         ircd->VERSION
 # @package:         "M::Core::ChannelModes"
 # @description:     "the core set of channel modes"
 #
