@@ -20,7 +20,7 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils qw(fnv v);
+use utils qw(fnv v notice);
 use M::TS6::Utils qw(ts6_id);
 
 M::Ban->import(qw(
@@ -73,6 +73,11 @@ our %ts6_incoming_commands = (
                   # :<source> KLINE <target> <user> <host>
         params => '-source(user)    *        *      *',
         code   => \&unkline
+    },
+    BAN => {
+                  # :<source> BAN type user host creationTS duration lifetime oper reason
+        params => '-source        *    *    *    ts         *        *        *    *',
+        code   => \&ban
     },
 );
 
@@ -329,7 +334,7 @@ sub _capab_ban {
     my ($to_server, $from, $ban_) = @_;
 
     # the ban has already been validated
-    # the {duration} may be 0 if this was called by an unban func
+    # the {duration} may be 0 if this is an unban
     my %ban = %$ban_;
 
     # only these are supported
@@ -350,7 +355,7 @@ sub _capab_ban {
     $letter,                # ban type
     $ban{match_user},       # user mask or *
     $ban{match_host},       # host mask
-    $ban{added},            # creation time
+    $ban{modified},         # creationTS (modified time)
     $ban{duration},         # REAL duration (not ts6_duration)
     $ban{duration},         # FIXME: lifetime
     $added_by,              # oper field
@@ -433,14 +438,14 @@ sub _find_ban {
 }
 
 sub unkline {
-    my ($server, $msg, $user, $serv_mask, $ident_mask, $host_mask) = @_;
+    my ($server, $msg, $source, $serv_mask, $ident_mask, $host_mask) = @_;
     $msg->{encap_forwarded} = 1;
 
     # find and remove ban
     my %ban = _find_ban($server, 'kline', "$ident_mask\@$host_mask") or return;
     delete_ban_by_id($ban{id});
 
-    notify_delete_ban($user, %ban);
+    notify_delete_ban($source, %ban);
 
     #=== Forward ===#
     $msg->forward(bandel => \%ban);
@@ -462,5 +467,80 @@ sub undline {
 
 }
 
+# BAN
+#
+# charybdis TS6
+# capab:        BAN
+# source:       any
+# propagation:  broadcast (restricted)
+# parameters:   type, user mask, host mask, creation TS, duration, lifetime,
+#               oper, reason
+#
+# In real-time:
+# :900AAAAAB BAN K hahahah google.com 1469473716 300 300 * :bye
+#
+# During burst:
+# :900 BAN K hahahah google.com 1469473716 300 300
+# mad__!~mad@opgnrivu.rlygd.net{charybdis.notroll.net} :bye
+#
+sub ban {
+    my ($server, $msg, $source,
+        $type,          # 'K' for K-Lines, 'R' for RESVs, 'X' for X-Lines
+        $ident_mask,    # user mask or '*' if not applicable
+        $host_mask,     # host mask
+        $modified,      # the creationTS, which is the time of modification
+        $duration,      # the ban duration relative to the creationTS
+        $lifetime,      # the ban lifetime relative to creationTS
+        $oper,          # nick!user@host{server.name} or '*'
+        $reason         # ban reason
+    ) = @_;
+
+    # extract server name and oper mask
+    my ($found_server_name, $found_oper_mask);
+    if ($oper ne '*') {
+        ($found_server_name, $found_oper_mask) = ($oper =~ m/^(.*)\{(.*)\}$/);
+    }
+
+    # fallbacks for this info
+    my $source_serv = $source->isa('user') ? $source->server : $source;
+    $found_server_name ||= $source_serv->name;
+    $found_oper_mask   ||= $source->full;
+
+    # K-Line
+    if ($type eq 'K') {
+
+        # if the duration is 0, this is a deletion
+        if (!$duration) {
+            # ($server, $msg, $user, $serv_mask, $ident_mask, $host_mask)
+            return unkline(@_[0..2], '*', $ident_mask, $host_mask);
+        }
+
+        # create and activate the ban
+        my $match = "$ident_mask\@$host_mask";
+        my %ban = add_update_enforce_activate_ts6_ban(
+            type         => 'kline',
+            id           => $server->{sid}.'.'.fnv($match),
+            match        => $match,
+            reason       => $reason,
+            duration     => $duration,
+            aserver      => $found_server_name,
+            auser        => $found_oper_mask,
+            _just_set_by => $source->{uid} # or undef if it's a server
+        ) or return;
+
+        notify_new_ban($source, %ban);
+
+        #=== Forward ===#
+        $msg->forward(baninfo => \%ban);
+
+        return 1;
+    }
+
+    notice(server_protocol_warning =>
+        $server->notice_info,
+        "sent BAN message with type '$type' which is unknown"
+    ) unless $server->{told_missing_bantype}{$type}++;
+    return;
+}
 
 $mod

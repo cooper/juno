@@ -3483,3 +3483,4 @@ CHANGES:
 
         65. added outgoing charybdis-style BAN command to Ban::TS6. #32.
             the new behavior is to send out BAN, (UN)KLINE, or ENCAP (UN)KLINE.
+            added TS6 BAN handler.
