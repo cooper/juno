@@ -177,22 +177,25 @@ juno bans are global, but on TS-based servers, bans are generally local-only
 mixed juno/TS6 network secure, juno will do its best to globally propagate all
 bans.
 
-Bans are sent to TS6 servers on burst. Because ban commands only support a user
-source, a ban agent bot may be introduced to set the bans and then exit.
+Bans are sent to TS6 servers on burst. Because certain ban commands only support
+a user source, a ban agent bot may be introduced to set the bans and then exit.
 
 The duration sent to TS6 servers is variable based on the difference between the
 expiration time and the duration, since we cannot propagate an expiration time.
 The TS6 server will ignore any bans which already exist for the given mask,
-which is perfect for our purposes.
+which is perfect for our purposes. An exception to this is the newer BAN command
+which does allow propagation of expiry times and is used when available.
 
-Ban::TS6 uses KLINE and UNKLINE when the KLN and UKLN capabilities are
-available. Otherwise, it uses ENCAP KLINE and ENCAP UNKLINE. DLINEs always use
-ENCAP.
+Ban::TS6 uses the charybdis-style BAN command when possible. Alternatively KLINE
+and INCLINE may be used when the KLN and UKLN capabilities are available.
+Otherwise, it uses ENCAP KLINE and ENCAP UNKLINE. DLINEs always use ENCAP and
+therefore always require a ban agent during burst.
 
-Note that, because TS-based server bans are local-only, the TS6 server will not
-burst its own bans. However, ban commands are handled such that AKILLs
-(which have target `*`) will be effective across an entire mixed TS/juno
-network.
+Note that, because some charybdis server bans are local-only, the TS6 server may
+not burst its own bans (such as D-Lines, or even K-Lines if the BAN capability
+is not available). However, ban commands are handled such that AKILLs (which
+have target `*`) will be effective across an entire mixed charybdis/juno
+network. AKILL is considered the most reliable way to ensure global ban propagation.
 
 See issue [#32](https://github.com/cooper/juno/issues/32)
 for more information about the TS6 ban implementation.
