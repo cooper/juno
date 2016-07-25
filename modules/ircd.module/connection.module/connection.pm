@@ -230,6 +230,7 @@ sub ready {
         $server->{conn} = $connection;
         weaken($connection->{type}{location} = $connection->{type});
         $pool->fire_command_all(new_server => $connection->{type});
+        $server->fire('initially_propagated');
         $server->{initially_propagated}++;
 
     }

@@ -69,6 +69,10 @@ sub init {
         with_eo => 1,
         name    => 'ts6.ready_done'
     );
+    $pool->on('server.initially_propagated' => \&server_propagated,
+        with_eo => 1,
+        name    => 'ts6.start.burst'
+    );
     return 1;
 }
 
@@ -229,6 +233,7 @@ sub rcmd_ping {
 
     L("end of burst from $$server{name}");
     notice(server_endburst => $server->notice_info, $elapsed);
+    $pool->fire_command_all(endburst => $server, time);
 }
 
 sub server_ready {
@@ -268,12 +273,22 @@ sub connection_ready {
     # even before the initiator has verified my credentials.
     $server->send_burst if !$server->{i_sent_burst};
 
+}
+
+# after sending out SID, start the burst
+sub server_propagated {
+    my $server = shift;
+    return if $server->{link_type} ne 'ts6';
+    return if $server->{is_burst} || $server->{sent_burst};
+
     # at this point, we will say that the server is starting its burst.
     # however, it still may deny our own credentials.
     $server->{is_burst} = time;
     L("$$server{name} is bursting information");
     notice(server_burst => $server->notice_info);
 
+    # tell other servers
+    $pool->fire_command_all(burst => $server, time);
 }
 
 $mod
