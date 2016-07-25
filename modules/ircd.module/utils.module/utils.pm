@@ -94,8 +94,13 @@ sub safe_arrayref {
 
 # check if a nickname is valid.
 sub validnick {
-    my $str   = shift;
+    my ($str, $ignore_resv) = @_;
     my $limit = conf('limit', 'nick');
+
+    # check if it's reserved.
+    unless ($ignore_resv) {
+        return if $::pool && $::pool->nick_resv_matches($str);
+    }
 
     # too long, too short, or invalid characters.
     return if (

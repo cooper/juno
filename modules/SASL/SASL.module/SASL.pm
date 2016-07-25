@@ -196,7 +196,7 @@ sub update_user_info {
     my ($conn, $nick, $ident, $cloak) = @_;
 
     # which things are we updating?
-    my $update_nick  = length $nick  && $nick  ne '*' && utils::validnick($nick);
+    my $update_nick  = length $nick  && $nick  ne '*' && utils::validnick($nick, 1);
     my $update_ident = length $ident && $ident ne '*' && utils::validident($ident);
     my $update_cloak = length $cloak && $cloak ne '*' && 1; # TODO: validhost()
 

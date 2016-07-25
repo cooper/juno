@@ -889,4 +889,51 @@ sub delete_cap {
 
 sub capabilities { keys %{ shift->{capabilities} || {} } }
 
+#########################
+### NICK RESERVATIONS ###
+#########################
+
+# expiration of nick reservations is not implemented in the core. it is up to
+# the Ban module or whoever else set a resv to decide when to call
+# ->delete_resv(). However, an expire time can be provided which will remove the
+# RESV on REHASH if it is expired. This is useful in case Ban was unloaded.
+
+# add a RESV.
+# $expires is a timestamp to expire it or 0 for permanent.
+sub add_resv {
+    my ($pool, $mask, $expires) = @_;
+    return if $expires && $expires < time;
+    $pool->{nick_reserves}{ irc_lc($mask) } = $expires || -1;
+    L("Reserved nick mask '$mask'");
+    return 1;
+}
+
+# remove a RESV.
+sub del_resv {
+    my ($pool, $mask) = @_;
+    delete $pool->{nick_reserves}{ irc_lc($mask) } or return;
+    L("Unreserved nick mask '$mask'");
+}
+
+# expire RESVs on rehash.
+sub expire_resvs {
+    my $pool = shift;
+    my $amnt = 0;
+    foreach my $resv (keys %{ $pool->{nick_reserves} || {} }) {
+        my $exp = $pool->{nick_reserves}{$resv};
+        next if $exp == -1;  # permanent
+        next if $exp > time; # not expired
+        $pool->del_resv($resv);
+        $amnt++;
+    }
+    my $s = $amnt == 1 ? '' : 's';
+    L("Expired $amnt nick reserve$s") if $amnt;
+}
+
+# returns true if a nick matches any RESVs.
+sub nick_resv_matches {
+    my ($pool, $nick) = @_;
+    return utils::irc_match($nick, keys %{ $pool->{nick_reserves} || {} });
+}
+
 $mod

@@ -167,6 +167,9 @@ sub setup_config {
     # casemapping - only set ONCE.
     $::casemapping ||= conf('server', 'casemapping');
 
+    # remove expired RESVs.
+    $pool->expire_resvs() if $pool;
+
     return 1;
 }
 

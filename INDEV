@@ -3490,3 +3490,5 @@ CHANGES:
             add the notice flag prefix to outgoing TS6 messages when necessary.
 
         66. add TS6 CLUSTER capability.
+            added low-level pool methods ->add_resv(), ->del_resv(), and ->expire_resvs().
+            utils::validnick() now checks against reserved nick masks. it can take a parameter to not to do this.
