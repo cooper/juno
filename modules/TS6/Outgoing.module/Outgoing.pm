@@ -184,8 +184,38 @@ sub sid {
 sub euid {
     my ($server, $user) = @_;
 
-    if (!$server->has_cap('euid')) {
-        # TODO: use UID
+    # no EUID support; use UID
+    if (!$server->has_cap('EUID')) {
+        my @uid_lines;
+
+        # UID
+        my $uid = sprintf ':%s UID %s %d %ld %s %s %s %s %s :%s',
+            ts6_id($user->{server}),
+            safe_nick($user),
+            $me->hops_to($user->{server}),
+            $user->{nick_time},
+            $user->mode_string($server),
+            $user->{ident},
+            $user->{cloak},
+            $user->{ip},
+            ts6_id($user),
+            $user->{real};
+        push @uid_lines, $uid;
+
+        # ENCAP REALHOST
+        if ($user->{cloak} ne $user->{host}) {
+            my $realhost = sprintf ':%s ENCAP * REALHOST %s',
+                ts6_id($user),
+                $user->{host};
+            push @uid_lines, $realhost;
+        }
+
+        # ENCAP LOGIN
+        if ($user->{account}) {
+            push @uid_lines, login($server, $user, $user->{account}{name});
+        }
+
+        return @uid_lines;
     }
 
     sprintf ":%s EUID %s %d %d %s %s %s %s %s %s %s :%s",

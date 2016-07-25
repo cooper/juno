@@ -3463,3 +3463,5 @@ CHANGES:
             all modules which previously depended on ircd->VERSION now use Evented::API::Engine's autoversioning.
             improved channel key validation.
             start TS6 burst after initial propagation. #107.
+
+        62. added TS6 UID support. closes #105.
