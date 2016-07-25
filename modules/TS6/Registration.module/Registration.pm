@@ -34,7 +34,8 @@ our %ts6_capabilities = (
     EOB         => { required => 0 },   # end of burst token
     SERVICES    => { required => 0 },   # umode +S and cmode +r
     SAVE        => { required => 0 },   # resolve nick collisions without kills
-    RSFNC       => { required => 0 }    # forcenick extension
+    RSFNC       => { required => 0 },   # forcenick extension
+    CLUSTER     => { required => 0 },   # KLINE, XLINE, RESV, LOCOPS
 );
 
 our %registration_commands = (

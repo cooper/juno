@@ -3488,3 +3488,5 @@ CHANGES:
             switched TS6 ban handlers to use :rest for the reason parameter.
             add_update_enforce_activate_ban() now checks that the modification time is newer than what we have already.
             add the notice flag prefix to outgoing TS6 messages when necessary.
+
+        66. add TS6 CLUSTER capability.
