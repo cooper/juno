@@ -53,6 +53,8 @@ my %ocommands = (
     save_user       => \&save,
     update_user     => \&userinfo,
     chghost         => \&chghost,
+    lusers          => \&lusers,
+    users           => \&users,
     add_cmodes      => \&acm,
     add_umodes      => \&aum,
     burst           => \&burst,
@@ -413,6 +415,16 @@ sub num {
 sub links {
     my ($to_server, $user, $t_server, $query_mask) = @_;
     "\@for=$$t_server{sid} :$$user{uid} LINKS * $query_mask"
+}
+
+sub users {
+    my ($to_server, $user, $t_server) = @_;
+    "\@for=$$t_server{sid} :$$user{uid} USERS"
+}
+
+sub lusers {
+    my ($to_server, $user, $t_server) = @_;
+    "\@for=$$t_server{sid} :$$user{uid} LUSERS"
 }
 
 sub burst {

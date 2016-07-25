@@ -3457,3 +3457,4 @@ CHANGES:
     6. added param type 'hunted' which is now used in several commands in TS6::Incoming.
         it yields a single server object in a similar manner to charybdis hunt_server().
         add USERS user command.
+        added incoming and outgoing commands LUSERS and USERS in JELP and TS6. closes #106.

@@ -62,6 +62,7 @@ our %ts6_outgoing_commands = (
      motd           => \&motd,
      version        => \&version,
      lusers         => \&lusers,
+     users          => \&users,
      invite         => \&invite,
      su_login       => \&su_login,
      su_logout      => \&su_logout,
@@ -790,7 +791,7 @@ sub umode {
     ":$id MODE $id $str"
 }
 
-# ADMIN, INFO, MOTD, TIME, VERSION
+# ADMIN, INFO, MOTD, TIME, VERSION, USERS
 #
 # source:       user
 # parameters:   hunted
@@ -800,7 +801,9 @@ sub info    { generic_hunted('INFO',     @_) }
 sub motd    { generic_hunted('MOTD',     @_) }
 sub _time   { generic_hunted('TIME',     @_) }
 sub version { generic_hunted('VERSION',  @_) }
+sub users   { generic_hunted('USERS',    @_) }
 
+# this can only be used for commands with a user source and one hunted parameter
 sub generic_hunted {
     my ($command, $to_server, $source, $t_server) = (uc shift, @_);
     my $uid = ts6_id($source);
@@ -917,6 +920,18 @@ sub _connect {
     my $id  = ts6_id($source);
     my $sid = ts6_id($t_server);
     ":$id CONNECT $connect_mask $sid"
+}
+
+# LUSERS
+#
+# source:       user
+# parameters:   server mask, hunted
+#
+sub lusers {
+    my ($to_server, $user, $t_server) = @_;
+    my $uid = ts6_id($user);
+    my $sid = ts6_id($t_server);
+    ":$uid LUSERS * $sid"
 }
 
 $mod

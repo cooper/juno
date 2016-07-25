@@ -173,9 +173,14 @@ our %ts6_incoming_commands = (
         params => '-source     -command hunted',
         code   => \&generic_hunted
     },
+    USERS => {
+                  # :sid|uid   VERSION  sid
+        params => '-source     -command hunted',
+        code   => \&generic_hunted
+    },
     LUSERS => {
                 # :sid|uid LUSERS   server_mask sid
-        params => '-source          *           server',
+        params => '-source          *           hunted',
         code   => \&lusers
     },
     LINKS => {
@@ -1467,7 +1472,7 @@ sub generic_hunted {
     # if the target server is not me, forward it.
     if ($t_server != $me) {
         # this line is for when I search the codebase to change something:
-        # admin => info => motd => time => version =>
+        # admin => info => motd => time => version => users =>
         $msg->forward_to($t_server, lc $command => $source, $t_server);
         return 1;
     }

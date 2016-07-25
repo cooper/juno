@@ -32,10 +32,12 @@ our %user_commands = (
     },
     LUSERS => {
         code   => \&lusers,
+        params => '*(opt) server_mask(opt)',
         desc   => 'view user statistics'
     },
     USERS => {
         code   => \&users,
+        params => 'server_mask(opt)',
         desc   => 'view user statistics'
     },
     REHASH => {
@@ -1080,9 +1082,13 @@ sub topic {
 }
 
 sub lusers {
-    # TODO: does not support remote
-    my $user = shift;
-    my @actual_users = $pool->actual_users;
+    my ($user, $event, undef, $server) = @_;
+
+    # this does not apply to me; forward it.
+    if ($server && $server != $me) {
+        $server->{location}->fire_command(lusers => $user, $server);
+        return 1;
+    }
 
     # get unknown count
     my $unknown = scalar grep !$_->{type}, $pool->connections;
@@ -1092,6 +1098,7 @@ sub lusers {
     my $l_servers = scalar grep { $_->{conn} } $pool->servers;
 
     # get x users, x invisible, and total global
+    my @actual_users = $pool->actual_users;
     my ($g_not_invisible, $g_invisible) = (0, 0);
     foreach my $user (@actual_users) {
         $g_invisible++, next if $user->is_mode('invisible');
@@ -1126,7 +1133,13 @@ sub lusers {
 }
 
 sub users {
-    my $user = shift;
+    my ($user, $event, $server) = @_;
+
+    # this does not apply to me; forward it.
+    if ($server && $server != $me) {
+        $server->{location}->fire_command(users => $user, $server);
+        return 1;
+    }
 
     # get x users, x invisible, and total global
     my @actual_users = $pool->actual_users;
