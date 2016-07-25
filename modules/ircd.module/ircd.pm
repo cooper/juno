@@ -442,6 +442,10 @@ sub misc_upgrades {
         next if $pool->lookup_server($user->{server}{sid});
         if ($user->conn) { $user->conn->done('Ghost')   }
                     else { $user->quit('Ghost')         }
+
+        # account name cannot be *
+        $user->do_logout() if $user->{account} && $user->{account}{name} eq '*';
+
     }
 
 }

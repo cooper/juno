@@ -411,7 +411,7 @@ sub euid {
 
     # log the user in
     my $act_name = delete $user->{account_name};
-    if (length $act_name) {
+    if (length $act_name && $act_name ne '*') {
         L("TS6 login $$user{nick} as $act_name");
         $user->do_login($act_name);
     }
@@ -438,7 +438,7 @@ sub uid {
     my ($server, $msg, $source_serv, @rest) = @_;
     # (0)nick (1)hopcount (2)nick_ts (3)umodes (4)ident (5)cloak (6)ip (7)uid (8)realname
     #    nick ts6_dummy   nick_time  umodes    ident    cloak    ip    ts6_uid
-    return euid(@rest[0..7], '*', '*', $rest[8]);
+    return euid(@_[0..2], @rest[0..7], '*', '*', $rest[8]);
 }
 
 # SJOIN
