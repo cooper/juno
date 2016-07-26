@@ -360,7 +360,7 @@ sub out_baninfo {
         # this can come from only a server
         my $from = find_from_serv($to_server, %ban);
 
-        return ':%s ENCAP * NICKDELAY %d %s',
+        return sprintf ':%s ENCAP * NICKDELAY %d %s',
         ts6_id($from),
         $ban{ts6_duration},
         $ban{match};
