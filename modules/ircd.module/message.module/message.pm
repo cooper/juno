@@ -525,6 +525,22 @@ sub forward {
     return $amnt;
 }
 
+# forward to all servers, even the source.
+sub forward_plus_one {
+    my ($msg, $e_name, $amnt) = (shift, shift, 0);
+    my $server = $msg->{_physical_server} or return;
+
+    # send to all children.
+    foreach ($me->children) {
+
+        # don't send to servers who haven't received my burst.
+        next unless $_->{i_sent_burst};
+
+        $amnt++ if $_->fire_command($e_name => @_);
+    }
+    return $amnt;
+}
+
 # forward to specific server(s).
 sub forward_to {
     my ($msg, $target, $e_name, @args) = @_;

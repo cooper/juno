@@ -1690,9 +1690,9 @@ sub rsfnc {
     #=== Forward ===#
     #
     # RSFNC has a single-server target, so the nick change must be
-    # propagated to other servers as a NICK message.
+    # propagated as a NICK message.
     #
-    $msg->forward(nickchange => $user);
+    $msg->forward_plus_one(nickchange => $user);
 
 }
 
