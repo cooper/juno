@@ -16,9 +16,10 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils qw(import ref_to_list notice gnotice);
+use utils qw(import ref_to_list notice gnotice conf ref_to_list);
 
-our ($api, $mod, $pool, $me);
+our ($api, $mod, $pool, $me, $conf);
+our %ircd_support;
 
 # checks if a server can be created.
 sub check_new_server {
@@ -176,6 +177,32 @@ sub handle_nick_collision {
     }
 
     return; # false value = continue the handler
+}
+
+sub ircd_support_hash {
+    my $ircd = shift;
+
+    # we have it cached
+    if (my $hashref = $ircd_support{$ircd}) {
+        return ref_to_list($hashref);
+    }
+
+    # find this ircd's options
+    my %our_stuff = $conf->hash_of_block([ 'ircd', $ircd ]);
+    if (!%our_stuff) {
+        L("ircd '$ircd' is unknown; there is no definition!");
+        return;
+    }
+
+    # this IRCd extends another, so inject those options
+    my $extends = delete $our_stuff{extends};
+    if (length $extends && $extends ne $ircd) {
+        my %their_stuff = ircd_support_hash($extends);
+        %our_stuff = (%their_stuff, %our_stuff);
+    }
+
+    $ircd_support{$ircd} = \%our_stuff;
+    return %our_stuff;
 }
 
 $mod

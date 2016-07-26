@@ -742,6 +742,7 @@ sub rehash {
     }
 
     # set up other stuff
+    %server::protocol::ircd_support = ();
     setup_sockets();
     add_internal_user_modes();
     add_internal_channel_modes();
