@@ -20,6 +20,7 @@ our ($api, $mod, $pool);
 sub init {
     $mod->register_ban_type(
         name            => 'resv',           # ban type
+        hname           => 'nick reserve',   # human-readable name
         add_cmd         => 'resv',           # add command
         del_cmd         => 'unresv' ,        # delete command
         reason          => 'Reserved',       # reason prefix

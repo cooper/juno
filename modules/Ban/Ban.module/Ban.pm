@@ -176,15 +176,15 @@ sub register_ban_type {
     # oper notices.
     $mod_->register_oper_notice(
         name   => $type_name,
-        format => 'Ban for %s added by %s, will expire %s (%s) [%s]'
+        format => '%s for %s added by %s, will expire %s (%s) [%s]'
     );
     $mod_->register_oper_notice(
         name   => "${type_name}_delete",
-        format => 'Ban for %s deleted by %s [%s]'
+        format => '%s for %s deleted by %s [%s]'
     );
     $mod_->register_oper_notice(
         name   => "${type_name}_expire",
-        format => 'Ban for %s expired after %s [%s]'
+        format => '%s for %s expired after %s [%s]'
     );
 
     # store this type.
@@ -292,6 +292,7 @@ sub notify_new_ban {
     my ($source, %ban) = @_;
     my @user = $source if $source->isa('user') && $source->is_local;
     notice(@user, $ban{type} =>
+        ucfirst($ban_types{ $ban{type} }{hname} || 'ban'),
         $ban{match},
         $source->notice_info,
         $ban{expires}  ? $t->($ban{expires})        : 'never',
@@ -305,6 +306,7 @@ sub notify_delete_ban {
     my ($source, %ban) = @_;
     my @user = $source if $source->isa('user') && $source->is_local;
     notice(@user, "$ban{type}_delete" =>
+        ucfirst($ban_types{ $ban{type} }{hname} || 'ban'),
         $ban{match},
         $source->notice_info,
         length $ban{reason} ? $ban{reason} : 'no reason'
@@ -359,6 +361,7 @@ sub ucmd_bans {
 sub handle_add_command {
     my ($type_name, $command, $user, $event, $duration, $match, $reason) = @_;
     my $type = $ban_types{$type_name} or return;
+    my $what = ucfirst($type->{hname} || 'ban');
     $reason //= '';
 
     # check that the duration is numeric
@@ -371,13 +374,13 @@ sub handle_add_command {
     # check if matcher is valid
     $match = $type->{match_code}->($match);
     if (!defined $match) {
-        $user->server_notice($command => 'Invalid ban format');
+        $user->server_notice($command => "Invalid $what format");
         return;
     }
 
     # check if the ban exists already
     if (ban_by_type_match($type, $match)) {
-        $user->server_notice($command => "Ban for $match exists already");
+        $user->server_notice($command => "$what for $match exists already");
         return;
     }
 
@@ -394,7 +397,8 @@ sub handle_add_command {
 
     # returned nothing
     if (!%ban) {
-        $user->server_notice($command => 'Invalid ban');
+        $what = $type->{hname} || 'ban';
+        $user->server_notice($command => "Invalid $what");
         return;
     }
 
@@ -411,7 +415,8 @@ sub handle_del_command {
     my %ban = ban_by_id($match);
     if (!%ban) { %ban = ban_by_type_match($type, $match) }
     if (!%ban) {
-        $user->server_notice($command => 'No ban matches');
+        my $what = $type->{hname} || 'ban';
+        $user->server_notice($command => "No $what matches");
         return;
     }
 
@@ -533,6 +538,7 @@ sub expire_ban {
     delete_ban_by_id($ban{id});
 
     notice("$ban{type}_expire" =>
+        ucfirst($type->{hname} || 'ban'),
         $ban{match},
         $d->(time - $ban{added}),
         length $ban{reason} ? $ban{reason} : 'no reason'
