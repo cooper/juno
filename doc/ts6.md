@@ -45,6 +45,7 @@ In addition to the above, juno supports the following capabilities:
 * `EOB` - end of burst token
 * `SERVICES` - ratbox services extensions (umode +S and cmode +r)
 * `SAVE` - resolution of nick collisions without killing
+* `SAVETS_100` - silences warnings about nickTS inconsistency (ratbox)
 * `RSFNC` - force nick change, used for services nick enforcement
 * `BAN` - charybdis-style global ban propagation
   (with [Ban](https://github.com/cooper/juno/tree/master/modules/Ban))
