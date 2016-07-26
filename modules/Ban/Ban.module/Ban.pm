@@ -74,7 +74,7 @@ my %unordered_format = my @format = (
 #
 # reason        user-set reason for ban
 #
-# _just_set_by  UID of user who set a ban. used for propagation.
+# _just_set_by  SID/UID of who set a ban. used for propagation.
 #
 # deleted       passed to expire_ban() when the ban was deleted, to
 #               prevent expiration oper notices from being sent out

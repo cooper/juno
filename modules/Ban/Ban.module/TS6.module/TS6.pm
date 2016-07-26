@@ -180,17 +180,19 @@ sub add_update_enforce_activate_ts6_ban {
 }
 
 # create and register a ban witha user and server
-sub add_update_enforce_activate_ts6_ban_with_server_user {
-    my ($type, $server, $user, $mask, $duration, $reason) = @_;
+sub add_update_enforce_activate_ts6_ban_with_server_source {
+    my ($type, $server, $source, $mask, $duration, $reason) = @_;
     return add_update_enforce_activate_ts6_ban(
         type         => $type,
         id           => $server->{sid}.'.'.fnv($mask),
         match        => $mask,
         reason       => $reason,
         duration     => $duration,
-        aserver      => $user->server->name,
-        auser        => $user->full,
-        _just_set_by => $user->id
+        aserver      => $source->isa('user')  ?
+                        $source->server->name : $source->name,
+        auser        => $source->isa('user')  ?
+                        $source->full : $source->id.'!services@'.$source->full,
+        _just_set_by => $source->id
     );
 }
 
@@ -476,7 +478,7 @@ sub kline {
 
     # create and activate the ban
     my $match = "$ident_mask\@$host_mask";
-    my %ban = add_update_enforce_activate_ts6_ban_with_server_user(
+    my %ban = add_update_enforce_activate_ts6_ban_with_server_source(
         # ($type, $server, $user, $mask, $duration, $reason)
         'kline',
         $server, $user, $match, $duration, $reason
@@ -539,7 +541,7 @@ sub dline {
     $msg->{encap_forwarded}++;
 
     # create and activate the ban
-    my %ban = add_update_enforce_activate_ts6_ban_with_server_user(
+    my %ban = add_update_enforce_activate_ts6_ban_with_server_source(
         # ($type, $server, $user, $mask, $duration, $reason)
         'dline',
         $server, $user, $ip_mask, $duration, $reason
@@ -600,18 +602,18 @@ sub encap_unresv { unresv(@_[0..3, 5]     ) }
 #
 sub resv  { _resv(0, @_) }
 sub _resv {
-    my ($is_nickdelay, $server, $msg, $user, $serv_mask,
+    my ($is_nickdelay, $server, $msg, $source, $serv_mask,
     $duration, $nick_chan_mask, $reason) = @_;
     $msg->{encap_forwarded}++;
 
     # create and activate the ban
-    my %ban = add_update_enforce_activate_ts6_ban_with_server_user(
+    my %ban = add_update_enforce_activate_ts6_ban_with_server_source(
         # ($type, $server, $user, $mask, $duration, $reason)
         'resv',
-        $server, $user, $nick_chan_mask, $duration, $reason
+        $server, $source, $nick_chan_mask, $duration, $reason
     ) or return;
 
-    notify_new_ban($user, %ban);
+    notify_new_ban($source, %ban);
 
     #=== Forward ===#
     #
@@ -643,14 +645,14 @@ sub _resv {
 #
 sub unresv  { _unresv(0, @_) }
 sub _unresv {
-    my ($is_nickdelay, $server, $msg, $user, $serv_mask, $nick_chan_mask) = @_;
+    my ($is_nickdelay, $server, $msg, $source, $serv_mask, $nick_chan_mask) = @_;
     $msg->{encap_forwarded}++;
 
     # find and remove ban
     my %ban = _find_ban($server, 'resv', $nick_chan_mask) or return;
     delete_ban_by_id($ban{id});
 
-    notify_delete_ban($user, %ban);
+    notify_delete_ban($source, %ban);
 
     #=== Forward ===#
     #
@@ -671,7 +673,7 @@ sub _unresv {
 # parameters:   duration, nickname
 #
 sub encap_nickdelay {
-    my ($server, $msg, $user, $serv_mask, undef, $duration, $nick) = @_;
+    my ($server, $msg, $source, $serv_mask, undef, $duration, $nick) = @_;
 
     # no duration means it is a removal
     if (!$duration) {
@@ -728,7 +730,7 @@ sub ban {
         duration     => $duration,
         aserver      => $found_server_name,
         auser        => $found_oper_mask,
-        _just_set_by => $source->{uid} # or undef if it's a server
+        _just_set_by => $source->id
     );
 
     # K-Line
