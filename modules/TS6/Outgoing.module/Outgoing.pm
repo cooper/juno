@@ -150,7 +150,7 @@ sub safe_nick {
 # ts6 host safety
 sub safe_host {
     my ($host, $serv) = @_;
-    my $ircd = $serv->{ts6_ircd} // '';
+    my $ircd = $serv->{ircd_name} // '';
 
     # HACK: see issue #115
     if ($ircd eq 'ratbox') {

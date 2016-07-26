@@ -337,10 +337,10 @@ sub sid {
     # the TS6 IRCd will be considered the same as the parent server.
     # I think this will be okay because unknown modes would not be
     # forwarded anyway, and extra modes would not cause any trouble.
-    $serv->{ts6_ircd} = $source_serv->{ts6_ircd} || $server->{ts6_ircd};
+    $serv->{ircd_name} = $source_serv->{ircd_name} || $server->{ircd_name};
 
     # add mode definitions.
-    M::TS6::Utils::register_modes($serv);
+    server::protocol::ircd_register_modes($serv);
 
     # === Forward ===
     $msg->forward(new_server => $serv);

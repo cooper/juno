@@ -80,8 +80,8 @@ sub ts6_uid_u {
 # convert juno level to prefix.
 sub ts6_prefix {
     my ($server, $level) = @_;
-    foreach my $prefix (keys %{ $server->{ts6_prefixes} || {} }) {
-        my ($letter, $lvl) = ref_to_list($server->{ts6_prefixes}{$prefix});
+    foreach my $prefix (keys %{ $server->{ircd_prefixes} || {} }) {
+        my ($letter, $lvl) = ref_to_list($server->{ircd_prefixes}{$prefix});
         next unless $level == $lvl;
         return $prefix;
     }
@@ -182,35 +182,8 @@ sub uid_n_from_ts6 {
 # TS6 prefix -> mode letter
 sub mode_from_prefix_ts6 {
     my ($server, $prefix) = @_;
-    my $p = $server->{ts6_prefixes}{$prefix};
+    my $p = $server->{ircd_prefixes}{$prefix};
     return $p ? $p->[0] : '';
-}
-
-#####################
-### Miscellaneous ###
-#####################
-
-sub register_modes {
-    my $server = shift;
-
-    # user modes.
-    my %modes = $conf->hash_of_block([ 'ts6_umodes', $server->{ts6_ircd} ]);
-    $server->add_umode($_, $modes{$_}) foreach keys %modes;
-
-    # channel modes.
-    %modes = $conf->hash_of_block([ 'ts6_cmodes', $server->{ts6_ircd} ]);
-    foreach my $name (keys %modes) {
-        my ($type, $letter) = ref_to_list($modes{$name});
-        $server->add_cmode($name, $letter, $type);
-    }
-
-    # status modes.
-    %modes = $conf->hash_of_block([ 'ts6_prefixes', $server->{ts6_ircd} ]);
-    foreach my $name (keys %modes) {
-        my ($letter, $pfx, $lvl) = @{ $modes{$name} };
-        $server->{ts6_prefixes}{$pfx} = [ $letter, $lvl ];
-    }
-
 }
 
 $mod

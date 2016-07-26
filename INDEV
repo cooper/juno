@@ -3499,3 +3499,4 @@ CHANGES:
 
         67. added ircd_support_hash(), the first step for #110.
             added ircd_register_modes() which applies mode definitions in the new format to a server.
+            updated TS6 stuff to use the new ircd options.

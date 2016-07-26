@@ -213,7 +213,7 @@ sub rcmd_server {
 
     # made it.
     #$connection->fire_event(reg_server => @args); how am I going to do this?
-    $connection->{ts6_ircd}  = conf($s_conf, 'ircd') // 'charybdis';
+    $connection->{ircd_name} = conf($s_conf, 'ircd') // 'charybdis';
     $connection->{link_type} = 'ts6';
     $connection->reg_continue('id2');
 
@@ -242,7 +242,7 @@ sub server_ready {
     return unless $server->{link_type} eq 'ts6';
 
     # apply modes.
-    M::TS6::Utils::register_modes($server);
+    server::protocol::ircd_register_modes($server);
 
     # add user lookup functions.
     $server->set_functions(
