@@ -46,6 +46,8 @@ In addition to the above, juno supports the following capabilities:
 * `SERVICES` - ratbox services extensions (umode +S and cmode +r)
 * `SAVE` - resolution of nick collisions without killing
 * `RSFNC` - force nick change, used for services nick enforcement
+* `BAN` - charybdis-style global ban propagation
+  (with [Ban](https://github.com/cooper/juno/tree/master/modules/Ban))
 * `KLN` - remote K-Lines
   (with [Ban](https://github.com/cooper/juno/tree/master/modules/Ban))
 * `UKLN` - remote removal of K-Lines
@@ -248,10 +250,30 @@ Also enable `use_owner`, `use_admin`, and `use_halfop` if appropriate.
 
 Specify the `ircd = 'charybdis'` option in the `connect` block.
 
+#### Nick length
 Make sure that your configured nick length is consistent with the one you
 compiled charybdis with; otherwise, users with longer nicks will be killed
 as soon as they are propagated.
 
+#### Ban propagation
+
+You definitely want to have this enabled in your charybdis configuration:
+
+```
+use_propagated_bans = yes;
+```
+
+Also make sure that your `shared` block matches juno uplinks. As of writing, the
+one in the default configuration matches all servers:
+
+```
+shared {
+	oper = "*@*", "*";
+	flags = all, rehash;
+};
+```
+
+#### Remote oper notices
 If you want to see remote server notices from charybdis, be sure to enable
 the juno oper notice flags associated with each desired snomask letter.
 However, since juno notice flags are very verbose and fine-tunable, you can get
@@ -261,6 +283,26 @@ most information from local notices.
 
 Specify the `ircd = 'ratbox'` option in the `connect` block.
 
+#### Nick length
 Make sure that your configured nick length is consistent with the one you
 compiled charybdis with; otherwise, users with longer nicks will be killed
 as soon as they are propagated. RATBOX HAS A VERY LOW DEFAULT NICK LENGTH.
+
+#### Ban propagation
+
+Adding `cluster` and `shared` blocks to your ratbox configuration is strongly
+recommended due to the fact that it lacks the `BAN` capability.
+This will effectively make all K-Lines, nick reserves, etc. which originated
+on ratbox global, just as they would be if they were set on juno.
+
+```
+cluster {
+	name = "*";
+	flags = all;
+};
+
+shared {
+	oper = "*@*", "*";
+	flags = all;
+};
+```
