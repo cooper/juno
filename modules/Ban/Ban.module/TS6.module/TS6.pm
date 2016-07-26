@@ -677,11 +677,11 @@ sub encap_nickdelay {
 
     # no duration means it is a removal
     if (!$duration) {
-        my $reason = 'Nickname reserved by services';
-        return _unresv(1, @_[0..3], $duration, $nick, $reason);
+        return _unresv(1, @_[0..3], $nick);
     }
 
-    return _resv(1, @_[0..3], $nick);
+    my $reason = 'Nickname reserved by services';
+    return _resv(1, @_[0..3], $duration, $nick, $reason);
 }
 
 # BAN
