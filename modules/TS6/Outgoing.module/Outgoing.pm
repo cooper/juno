@@ -151,7 +151,20 @@ sub safe_nick {
 sub safe_host {
     my ($host, $serv) = @_;
     my $ircd = $serv->{ts6_ircd} // '';
-    $host =~ s/\//SLASH/g if $ircd eq 'ratbox'; # HACK: HA!
+
+    # HACK: see issue #115
+    if ($ircd eq 'ratbox') {
+        my $out = '';
+        for (split //, $host) {
+            if (/[\/]/) {
+                $out .= '.-'.ord().'.';
+                next;
+            }
+            $host .= $_;
+        }
+        $host = $out;
+    }
+
     return $host;
 }
 
