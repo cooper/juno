@@ -97,6 +97,11 @@ our %ts6_incoming_commands = (
     UNRESV => {   # :uid UNRESV   target nick_chan_mask
         params => '-source(user)  *      *',
         code   => \&unresv
+    },
+    ENCAP_NICKDELAY => {
+                  # :sid ENCAP     target NICKDELAY duration nick
+        params => '-source(server) *      *         *        *',
+        code   => \&encap_nickdelay
     }
 );
 
@@ -262,6 +267,7 @@ sub get_fake_user {
 }
 
 # find who to send an outgoing command from
+# when only a user can be used
 sub find_from {
     my ($to_server, %ban) = @_;
 
@@ -280,6 +286,21 @@ sub find_from {
     }
 
     return $from;
+}
+
+# find who to send an outgoing command. only server
+sub find_from_serv {
+    my ($to_server, %ban) = @_;
+    my $from = $pool->lookup_server($ban{_just_set_by});
+    return $from || $me;
+}
+
+# find who to send an outgoing command. any user/server
+sub find_from_any {
+    my ($to_server, %ban) = @_;
+    my $from = $pool->lookup_user($ban{_just_set_by});
+    $from  ||= $pool->lookup_server($ban{_just_set_by});
+    return $from || $me;
 }
 
 # this outgoing command is used in JELP for advertising ban identifiers
@@ -305,7 +326,7 @@ sub out_baninfo {
         if ($to_server->has_cap('BAN')) {
 
             # this can come from either a user or a server
-            my $from = $pool->lookup_user($ban{_just_set_by}) || $me;
+            my $from = find_from_any($to_server, %ban);
 
             return _capab_ban($to_server, $from, \%ban);
         }
@@ -324,6 +345,20 @@ sub out_baninfo {
             $ban{match_host},
             $ban{reason};
         }
+    }
+
+    # for reserves, it might be a NICKDELAY.
+    # NICKDELAY is certainly supported if EUID is, but even if we don't
+    # have EUID, still send this. charybdis does not forward it differently.
+    if ($ban{type} eq 'resv' && $ban{_is_nickdelay}) {
+
+        # this can come from only a server
+        my $from = find_from_serv($to_server, %ban);
+
+        return ':%s ENCAP * NICKDELAY %d %s',
+        ts6_id($from),
+        $ban{ts6_duration},
+        $ban{match};
     }
 
     # at this point, we have to have a user source
@@ -563,8 +598,10 @@ sub encap_unresv { unresv(@_[0..3, 5]     ) }
 # :<source> RESV <target> <name> :<reason>
 # :<source> ENCAP <target> RESV <time> <name> 0 :<reason>
 #
-sub resv {
-    my ($server, $msg, $user, $serv_mask, $duration, $nick_chan_mask, $reason) = @_;
+sub resv  { _resv(0, @_) }
+sub _resv {
+    my ($is_nickdelay, $server, $msg, $user, $serv_mask,
+    $duration, $nick_chan_mask, $reason) = @_;
     $msg->{encap_forwarded}++;
 
     # create and activate the ban
@@ -580,8 +617,12 @@ sub resv {
     #
     # we ignore the target mask. juno bans are global, so let's pretend
     # this was intended to be global too.
+    # the _is_nickdelay is used for TS6 outgoing.
     #
+    $ban{_is_nickdelay} = $is_nickdelay;
     $msg->forward(baninfo => \%ban);
+
+    return 1;
 }
 
 # UNRESV
@@ -600,8 +641,9 @@ sub resv {
 # :<source> UNRESV <target> <name>
 # :<source> ENCAP <target> UNRESV <name>
 #
-sub unresv {
-    my ($server, $msg, $user, $serv_mask, $nick_chan_mask) = @_;
+sub unresv  { _unresv(0, @_) }
+sub _unresv {
+    my ($is_nickdelay, $server, $msg, $user, $serv_mask, $nick_chan_mask) = @_;
     $msg->{encap_forwarded}++;
 
     # find and remove ban
@@ -611,8 +653,33 @@ sub unresv {
     notify_delete_ban($user, %ban);
 
     #=== Forward ===#
+    #
+    # the _is_nickdelay is used for TS6 outgoing.
+    #
+    $ban{_is_nickdelay} = $is_nickdelay;
     $msg->forward(bandel => \%ban);
 
+    return 1;
+}
+
+# NICKDELAY
+#
+# charybdis TS6
+# encap only
+# encap target: *
+# source:       services server
+# parameters:   duration, nickname
+#
+sub encap_nickdelay {
+    my ($server, $msg, $user, $serv_mask, undef, $duration, $nick) = @_;
+
+    # no duration means it is a removal
+    if (!$duration) {
+        my $reason = 'Nickname reserved by services';
+        return _unresv(1, @_[0..3], $duration, $nick, $reason);
+    }
+
+    return _resv(1, @_[0..3], $nick);
 }
 
 # BAN
