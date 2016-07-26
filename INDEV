@@ -3503,3 +3503,5 @@ CHANGES:
             updated IRCd definitions in default.conf to use the new format. #110.
             this also adds a generic 'all_sane_ircds' option to simplify definitions.
             added SAVETS_100 CAPAB to silence ratbox nickTS warnings.
+
+        68. partially added incoming TS6 RESV, UNRESV, ENCAP RESV, ENCAP UNRESV. #112.

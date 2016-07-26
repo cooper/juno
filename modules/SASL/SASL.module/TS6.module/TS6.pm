@@ -70,7 +70,7 @@ sub encap_sasl {
         $ip             # IP address - only used for mode 'H'
     ) = @_;
 
-    $msg->{encap_forwarded} = 1;
+    $msg->{encap_forwarded}++;
 
     $agent_uid  = uid_from_ts6($agent_uid);
     $target_uid = uid_from_ts6($target_uid);
@@ -227,7 +227,7 @@ sub encap_svslogin {
         $act_name,      # the account name or '0' to log out
     ) = @_;
 
-    $msg->{encap_forwarded} = 1;
+    $msg->{encap_forwarded}++;
     $target_uid = uid_from_ts6($target_uid);
 
     # if the server mask is not exactly equal to this server's name,

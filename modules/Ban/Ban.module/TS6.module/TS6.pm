@@ -80,7 +80,28 @@ our %ts6_incoming_commands = (
         params => '-source      *    *    *    ts         *        *        *    :rest',
         code   => \&ban
     },
+    ENCAP_RESV => {
+                  # :uid ENCAP   target RESV duration nick_chan_mask 0      :reason
+        params => '-source(user) *      *    *        *              *(opt) *',
+        code   => \&encap_resv
+    },
+    ENCAP_UNRESV => {
+                  # :uid ENCAP   target UNRESV nick_chan_mask
+        params => '-source(user) *      *      *',
+        code   => \&encap_unresv
+    },
+    RESV => {     # :uid RESV    target duration nick_chan_mask :reason
+        params => '-source(user) *      *        *              :rest',
+        code   => \&resv
+    },
+    UNRESV => {   # :uid UNRESV   target nick_chan_mask
+        params => '-source(user)  *      *',
+        code   => \&unresv
+    }
 );
+
+# TODO: handle the pipe in ban reasons to extract oper reason
+# TODO: handle CIDR
 
 sub init {
 
@@ -150,6 +171,17 @@ sub add_update_enforce_activate_ts6_ban {
     my %ban = ts6_ban(@_) or return;
     %ban = add_update_enforce_activate_ban(%ban);
     return %ban;
+}
+
+# find a ban for removing
+sub _find_ban {
+    my ($server, $type, $match) = @_;
+    my $id_maybe = $server->{sid}.'.'.fnv($match);
+    my %ban = ban_by_id($id_maybe);
+    return %ban if %ban;
+    %ban = ban_by_type_match($type, $match);
+    return %ban if %ban;
+    return;
 }
 
 ################
@@ -342,7 +374,7 @@ sub _capab_ban {
     my %possible = (
         kline => 'K',
       # xline => 'X',
-      # resv  => 'R'
+        resv  => 'R'
     );
     my $letter = $possible{ $ban{type} } or return;
 
@@ -368,14 +400,28 @@ sub _capab_ban {
 ################
 
 sub encap_kline   {   kline(@_[0..3, 5..8]) }
-sub encap_dline   {   dline(@_[0..3, 5..7]) }
 sub encap_unkline { unkline(@_[0..3, 5, 6]) }
-sub encap_undline { undline(@_[0..3, 5   ]) }
 
+# KLINE
+#
+# 1.
+# encap only
+# source:       user
+# parameters:   duration, user mask, host mask, reason
+#
+# 2.
+# capab: KLN
+# source:       user
+# parameters:   target server mask, duration, user mask, host mask, reason
+#
+# From cluster.txt: CAP_KLN:
+# :<source> KLINE <target> <time> <user> <host> :<reason>
+# :<source> ENCAP <target> KLINE <time> <user> <host> :<reason>
+#
 sub kline {
     my ($server, $msg, $user, $serv_mask,
     $duration, $ident_mask, $host_mask, $reason) = @_;
-    $msg->{encap_forwarded} = 1;
+    $msg->{encap_forwarded}++;
 
     # create and activate the ban
     my $match = "$ident_mask\@$host_mask";
@@ -400,10 +446,51 @@ sub kline {
     $msg->forward(baninfo => \%ban);
 }
 
+# UNKLINE
+#
+# 1.
+# encap only
+# source:       user
+# parameters:   user mask, host mask
+#
+# 2.
+# capab:        UNKLN
+# source:       user
+# parameters:   target server mask, user mask, host mask
+#
+# From cluster.txt: CAP_UNKLN:
+# :<source> UNKLINE <target> <user> <host>
+# :<source> ENCAP <target> UNKLINE <user> <host>
+#
+sub unkline {
+    my ($server, $msg, $source, $serv_mask, $ident_mask, $host_mask) = @_;
+    $msg->{encap_forwarded}++;
+
+    # find and remove ban
+    my %ban = _find_ban($server, 'kline', "$ident_mask\@$host_mask") or return;
+    delete_ban_by_id($ban{id});
+
+    notify_delete_ban($source, %ban);
+
+    #=== Forward ===#
+    $msg->forward(bandel => \%ban);
+
+}
+
+sub encap_dline   {   dline(@_[0..3, 5..7]) }
+sub encap_undline { undline(@_[0..3, 5   ]) }
+
+# DLINE
+#
+# charybdis TS6
+# encap only
+# source:       user
+# parameters:   duration, mask, reason
+#
 sub dline {
     my ($server, $msg, $user, $serv_mask,
     $duration, $ip_mask, $reason) = @_;
-    $msg->{encap_forwarded} = 1;
+    $msg->{encap_forwarded}++;
 
     # create and activate the ban
     my %ban = add_update_enforce_activate_ts6_ban(
@@ -427,35 +514,16 @@ sub dline {
     $msg->forward(baninfo => \%ban);
 }
 
-# find a ban for removing
-sub _find_ban {
-    my ($server, $type, $match) = @_;
-    my $id_maybe = $server->{sid}.'.'.fnv($match);
-    my %ban = ban_by_id($id_maybe);
-    return %ban if %ban;
-    %ban = ban_by_type_match($type, $match);
-    return %ban if %ban;
-    return;
-}
-
-sub unkline {
-    my ($server, $msg, $source, $serv_mask, $ident_mask, $host_mask) = @_;
-    $msg->{encap_forwarded} = 1;
-
-    # find and remove ban
-    my %ban = _find_ban($server, 'kline', "$ident_mask\@$host_mask") or return;
-    delete_ban_by_id($ban{id});
-
-    notify_delete_ban($source, %ban);
-
-    #=== Forward ===#
-    $msg->forward(bandel => \%ban);
-
-}
-
+# UNDLINE
+#
+# charybdis TS6
+# encap only
+# source:       user
+# parameters:   mask
+#
 sub undline {
     my ($server, $msg, $user, $serv_mask, $ip_mask) = @_;
-    $msg->{encap_forwarded} = 1;
+    $msg->{encap_forwarded}++;
 
     # find and remove ban
     my %ban = _find_ban($server, 'dline', $ip_mask) or return;
@@ -465,6 +533,55 @@ sub undline {
 
     #=== Forward ===#
     $msg->forward(bandel => \%ban);
+
+}
+
+# ENCAP RESV has a parameter before the reason which charybdis always sends
+# as '0', so we're just gonna ignore that and pop the reason off the back.
+sub encap_resv   {   resv(@_[0..3, 5], pop) }
+sub encap_unresv { unresv(@_[0..3, 5]     ) }
+
+# RESV
+#
+# 1.
+# encap only
+# source:       user
+# parameters:   duration, mask, reason
+#
+# 2.
+# capab:        CLUSTER
+# source:       user
+# parameters:   target server mask, duration, mask, reason
+#
+# From cluster.txt: CAP_CLUSTER:
+# :<source> RESV <target> <name> :<reason>
+# :<source> ENCAP <target> RESV <time> <name> 0 :<reason>
+#
+sub resv {
+    my ($server, $msg, $user, $serv_mask, $nick_chan_mask, $reason) = @_;
+    $msg->{encap_forwarded}++;
+
+}
+
+# UNRESV
+#
+# 1.
+# encap only
+# source:       user
+# parameters:   mask
+#
+# 2.
+# capab:        CLUSTER
+# source:       user
+# parameters:   target server mask, mask
+#
+# From cluster.txt: CAP_CLUSTER:
+# :<source> UNRESV <target> <name>
+# :<source> ENCAP <target> UNRESV <name>
+#
+sub unresv {
+    my ($server, $msg, $user, $serv_mask, $nick_chan_mask) = @_;
+    $msg->{encap_forwarded}++;
 
 }
 

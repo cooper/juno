@@ -286,7 +286,7 @@ Specify the `ircd = 'ratbox'` option in the `connect` block.
 
 #### Nick length
 Make sure that your configured nick length is consistent with the one you
-compiled charybdis with; otherwise, users with longer nicks will be killed
+compiled ratbox with; otherwise, users with longer nicks will be killed
 as soon as they are propagated. RATBOX HAS A VERY LOW DEFAULT NICK LENGTH.
 
 #### Ban propagation

@@ -180,6 +180,8 @@ sub handle_nick_collision {
     return; # false value = continue the handler
 }
 
+# fetch a hash of options from an IRCd definition in the configuration.
+# see issue #110.
 sub ircd_support_hash {
     my ($ircd, $key) = @_;
     $key ||= 'ircd';
@@ -212,6 +214,8 @@ sub ircd_support_hash {
     return %our_stuff;
 }
 
+# register modes to a server based on the IRCd definition in the configuration.
+# see issue #110.
 sub ircd_register_modes {
     my ($ircd, $server) = @_;
 
