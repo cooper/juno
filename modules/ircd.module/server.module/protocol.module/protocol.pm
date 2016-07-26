@@ -16,6 +16,7 @@ use warnings;
 use strict;
 use 5.010;
 
+use Scalar::Util qw(blessed);
 use utils qw(import ref_to_list notice gnotice conf ref_to_list);
 
 our ($api, $mod, $pool, $me, $conf);
@@ -180,29 +181,66 @@ sub handle_nick_collision {
 }
 
 sub ircd_support_hash {
-    my $ircd = shift;
+    my ($ircd, $key) = @_;
+    $key ||= 'ircd';
 
     # we have it cached
-    if (my $hashref = $ircd_support{$ircd}) {
+    if (my $hashref = $ircd_support{$ircd}{$key}) {
         return ref_to_list($hashref);
     }
 
+    # we have not gotten main ircd info yet
+    if ($key ne 'ircd' && !$ircd_support{$ircd}{ircd}) {
+        ircd_support_hash($ircd);
+    }
+
     # find this ircd's options
-    my %our_stuff = $conf->hash_of_block([ 'ircd', $ircd ]);
-    if (!%our_stuff) {
+    my %our_stuff = $conf->hash_of_block([ $key, $ircd ]);
+    if ($key eq 'ircd' && !%our_stuff) {
         L("ircd '$ircd' is unknown; there is no definition!");
         return;
     }
 
     # this IRCd extends another, so inject those options
-    my $extends = delete $our_stuff{extends};
+    my $extends = $our_stuff{extends} || $ircd_support{$ircd}{ircd}{extends};
     if (length $extends && $extends ne $ircd) {
-        my %their_stuff = ircd_support_hash($extends);
+        my %their_stuff = ircd_support_hash($extends, $key);
         %our_stuff = (%their_stuff, %our_stuff);
     }
 
-    $ircd_support{$ircd} = \%our_stuff;
+    $ircd_support{$ircd}{$key} = \%our_stuff;
     return %our_stuff;
+}
+
+sub ircd_register_modes {
+    my ($ircd, $server) = @_;
+
+    # this can be called without an ircd name
+    if (blessed $ircd) {
+        $server = $ircd;
+        $ircd = $server->{ircd_name};
+    }
+
+    # user modes.
+    my %modes = ircd_support_hash($ircd, 'ircd_umodes');
+    $server->add_umode($_, $modes{$_}) foreach keys %modes;
+
+    # channel modes.
+    %modes = ircd_support_hash($ircd, 'ircd_cmodes');
+    foreach my $name (keys %modes) {
+        my ($type, $letter) = ref_to_list($modes{$name});
+        $server->add_cmode($name, $letter, $type);
+    }
+
+    # status modes.
+    %modes = ircd_support_hash($ircd, 'ircd_prefixes');
+    foreach my $name (keys %modes) {
+        my ($letter, $pfx, $lvl) = @{ $modes{$name} };
+        $server->{ircd_prefixes}{$pfx} = [ $letter, $lvl ];
+        $server->add_cmode($name, $letter, 4);
+    }
+
+    return 1;
 }
 
 $mod

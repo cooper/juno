@@ -3497,4 +3497,5 @@ CHANGES:
             Ban interfaces can now specify an 'hname' option, which is a human-readable type name for displaying in notices.
             slightly improved the ratbox host fixation hack. #115.
 
-        67. added ircd_support(), the first step for #110.
+        67. added ircd_support_hash(), the first step for #110.
+            added ircd_register_modes() which applies mode definitions in the new format to a server.
