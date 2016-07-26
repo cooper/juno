@@ -412,6 +412,19 @@ sub out_bandel {
         }
     }
 
+    # for reserves, it might be a NICKDELAY.
+    # NICKDELAY is certainly supported if EUID is, but even if we don't
+    # have EUID, still send this. charybdis does not forward it differently.
+    if ($ban{type} eq 'resv' && $ban{_is_nickdelay}) {
+
+        # this can come from only a server
+        my $from = find_from_serv($to_server, %ban);
+
+        return sprintf ':%s ENCAP * NICKDELAY 0 %s',
+        ts6_id($from),
+        $ban{match};
+    }
+
     # encap fallback
     return sprintf ':%s ENCAP * UN%s %s',
     ts6_id($from),
