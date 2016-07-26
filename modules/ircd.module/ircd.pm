@@ -115,12 +115,11 @@ sub setup_modules {
     return if $mod->{loading};
 
     # the old way: modules key.
-    my @modules = ref_to_list(conf('api', 'modules'));
+    my %mods = $conf->hash_of_block('api');
+    my @modules = ref_to_list(delete $mods{modules});
 
     # the new way: other keys.
-    my %mods = $conf->hash_of_block('api');
     foreach my $mod_name (keys %mods) {
-        next if $mod_name eq 'modules';
         next unless $mods{$mod_name};
         push @modules, $mod_name;
     }
