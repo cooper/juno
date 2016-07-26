@@ -32,6 +32,9 @@ M::Ban->import(qw(
 
 our ($api, $mod, $pool, $conf, $me);
 
+my %ts6_supports = map { $_ => 1 }
+    qw(resv kline dline);
+
 our %ts6_capabilities = (
     KLN   => { required => 0 },
     UNKLN => { required => 0 },
@@ -126,7 +129,7 @@ sub ts6_ban {
     my %ban = @_;
 
     # TS6 only supports kdlines
-    return unless $ban{type} eq 'kline' || $ban{type} eq 'dline';
+    return unless $ts6_supports{ $ban{type} };
 
     # create an ID based on the fnv hash of the mask
     # this is a last resort... it should already be set

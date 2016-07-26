@@ -879,7 +879,7 @@ sub encap {
 
     # otherwise, forward as-is to TS6 servers.
     L(
-        "ENCAP $encap_cmd is not explicitly forwarded by this server;".
+        "ENCAP $encap_cmd is not explicitly forwarded by this server; ".
         'propagating as-is'
     );
     $msg->{command} = 'ENCAP';
