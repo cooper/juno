@@ -3506,3 +3506,5 @@ CHANGES:
 
         68. partially added incoming TS6 RESV, UNRESV, ENCAP RESV, ENCAP UNRESV. #112.
             added internal support for reserving channel names.
+            finished the handlers for TS6 RESV commands.
+            added code to handle the 'R' type ban in the BAN command.

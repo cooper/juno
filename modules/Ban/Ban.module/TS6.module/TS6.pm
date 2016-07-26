@@ -102,6 +102,7 @@ our %ts6_incoming_commands = (
 
 # TODO: handle the pipe in ban reasons to extract oper reason
 # TODO: handle CIDR
+# TODO: produce a warning if updating a ban by ID and the types differ
 
 sub init {
 
@@ -171,6 +172,21 @@ sub add_update_enforce_activate_ts6_ban {
     my %ban = ts6_ban(@_) or return;
     %ban = add_update_enforce_activate_ban(%ban);
     return %ban;
+}
+
+# create and register a ban witha user and server
+sub add_update_enforce_activate_ts6_ban_with_server_user {
+    my ($type, $server, $user, $mask, $duration, $reason) = @_;
+    return add_update_enforce_activate_ts6_ban(
+        type         => $type,
+        id           => $server->{sid}.'.'.fnv($mask),
+        match        => $mask,
+        reason       => $reason,
+        duration     => $duration,
+        aserver      => $user->server->name,
+        auser        => $user->full,
+        _just_set_by => $user->id
+    );
 }
 
 # find a ban for removing
@@ -400,7 +416,7 @@ sub _capab_ban {
 ################
 
 sub encap_kline   {   kline(@_[0..3, 5..8]) }
-sub encap_unkline { unkline(@_[0..3, 5, 6]) }
+sub encap_unkline { unkline(@_[0..3, 5..6]) }
 
 # KLINE
 #
@@ -425,15 +441,10 @@ sub kline {
 
     # create and activate the ban
     my $match = "$ident_mask\@$host_mask";
-    my %ban = add_update_enforce_activate_ts6_ban(
-        type         => 'kline',
-        id           => $server->{sid}.'.'.fnv($match),
-        match        => $match,
-        reason       => $reason,
-        duration     => $duration,
-        aserver      => $user->server->name,
-        auser        => $user->full,
-        _just_set_by => $user->id
+    my %ban = add_update_enforce_activate_ts6_ban_with_server_user(
+        # ($type, $server, $user, $mask, $duration, $reason)
+        'kline',
+        $server, $user, $match, $duration, $reason
     ) or return;
 
     notify_new_ban($user, %ban);
@@ -493,15 +504,10 @@ sub dline {
     $msg->{encap_forwarded}++;
 
     # create and activate the ban
-    my %ban = add_update_enforce_activate_ts6_ban(
-        type         => 'dline',
-        id           => $server->{sid}.'.'.fnv($ip_mask),
-        match        => $ip_mask,
-        reason       => $reason,
-        duration     => $duration,
-        aserver      => $user->server->name,
-        auser        => $user->full,
-        _just_set_by => $user->id
+    my %ban = add_update_enforce_activate_ts6_ban_with_server_user(
+        # ($type, $server, $user, $mask, $duration, $reason)
+        'dline',
+        $server, $user, $ip_mask, $duration, $reason
     ) or return;
 
     notify_new_ban($user, %ban);
@@ -558,9 +564,24 @@ sub encap_unresv { unresv(@_[0..3, 5]     ) }
 # :<source> ENCAP <target> RESV <time> <name> 0 :<reason>
 #
 sub resv {
-    my ($server, $msg, $user, $serv_mask, $nick_chan_mask, $reason) = @_;
+    my ($server, $msg, $user, $serv_mask, $duration, $nick_chan_mask, $reason) = @_;
     $msg->{encap_forwarded}++;
 
+    # create and activate the ban
+    my %ban = add_update_enforce_activate_ts6_ban_with_server_user(
+        # ($type, $server, $user, $mask, $duration, $reason)
+        'resv',
+        $server, $user, $nick_chan_mask, $duration, $reason
+    ) or return;
+
+    notify_new_ban($user, %ban);
+
+    #=== Forward ===#
+    #
+    # we ignore the target mask. juno bans are global, so let's pretend
+    # this was intended to be global too.
+    #
+    $msg->forward(baninfo => \%ban);
 }
 
 # UNRESV
@@ -582,6 +603,15 @@ sub resv {
 sub unresv {
     my ($server, $msg, $user, $serv_mask, $nick_chan_mask) = @_;
     $msg->{encap_forwarded}++;
+
+    # find and remove ban
+    my %ban = _find_ban($server, 'resv', $nick_chan_mask) or return;
+    delete_ban_by_id($ban{id});
+
+    notify_delete_ban($user, %ban);
+
+    #=== Forward ===#
+    $msg->forward(bandel => \%ban);
 
 }
 
@@ -624,6 +654,16 @@ sub ban {
     $found_server_name ||= $source_serv->name;
     $found_oper_mask   ||= $source->full;
 
+    # info used in all ban types
+    my %ban;
+    my @common = (
+        reason       => $reason,
+        duration     => $duration,
+        aserver      => $found_server_name,
+        auser        => $found_oper_mask,
+        _just_set_by => $source->{uid} # or undef if it's a server
+    );
+
     # K-Line
     if ($type eq 'K') {
 
@@ -635,30 +675,49 @@ sub ban {
 
         # create and activate the ban
         my $match = "$ident_mask\@$host_mask";
-        my %ban = add_update_enforce_activate_ts6_ban(
+        %ban = add_update_enforce_activate_ts6_ban(
+            @common,
             type         => 'kline',
             id           => $server->{sid}.'.'.fnv($match),
-            match        => $match,
-            reason       => $reason,
-            duration     => $duration,
-            aserver      => $found_server_name,
-            auser        => $found_oper_mask,
-            _just_set_by => $source->{uid} # or undef if it's a server
+            match        => $match
         ) or return;
 
-        notify_new_ban($source, %ban);
-
-        #=== Forward ===#
-        $msg->forward(baninfo => \%ban);
-
-        return 1;
     }
 
-    notice(server_protocol_warning =>
-        $server->notice_info,
-        "sent BAN message with type '$type' which is unknown"
-    ) unless $server->{told_missing_bantype}{$type}++;
-    return;
+    # reserves
+    elsif ($type eq 'R') {
+
+        # if the duration is 0, this is a deletion
+        if (!$duration) {
+            # ($server, $msg, $user, $serv_mask, $nick_chan_mask)
+            return unresv(@_[0..2], '*', $host_mask);
+        }
+
+        # create and activate the ban
+        %ban = add_update_enforce_activate_ts6_ban(
+            @common,
+            type         => 'resv',
+            id           => $server->{sid}.'.'.fnv($host_mask),
+            match        => $host_mask
+        ) or return;
+
+    }
+
+    # unknown type
+    else {
+        notice(server_protocol_warning =>
+            $server->notice_info,
+            "sent BAN message with type '$type' which is unknown"
+        ) unless $server->{told_missing_bantype}{$type}++;
+        return;
+    }
+
+    notify_new_ban($source, %ban);
+
+    #=== Forward ===#
+    $msg->forward(baninfo => \%ban);
+
+    return 1;
 }
 
 $mod
