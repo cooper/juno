@@ -139,7 +139,7 @@ length are prefixed with one or two zeros.
 
 The downfall is that juno SIDs with more than three digits are not supported
 when using TS6. This should be okay though, as long as your network includes
-less than nine hundred ninety-nine servers running juno.
+less than one thousand servers running juno.
 
 ```perl
 sub sid_from_ts6 {
