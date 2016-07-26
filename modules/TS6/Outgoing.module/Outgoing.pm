@@ -160,7 +160,7 @@ sub safe_host {
                 $out .= '.-'.ord().'.';
                 next;
             }
-            $host .= $_;
+            $out .= $_;
         }
         $host = $out;
     }
