@@ -3505,3 +3505,4 @@ CHANGES:
             added SAVETS_100 CAPAB to silence ratbox nickTS warnings.
 
         68. partially added incoming TS6 RESV, UNRESV, ENCAP RESV, ENCAP UNRESV. #112.
+            added internal support for reserving channel names.

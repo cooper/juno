@@ -889,9 +889,9 @@ sub delete_cap {
 
 sub capabilities { keys %{ shift->{capabilities} || {} } }
 
-#########################
-### NICK RESERVATIONS ###
-#########################
+###################################
+### NICK & CHANNEL RESERVATIONS ###
+###################################
 
 # expiration of nick reservations is not implemented in the core. it is up to
 # the Ban module or whoever else set a resv to decide when to call
@@ -904,7 +904,7 @@ sub add_resv {
     my ($pool, $mask, $expires) = @_;
     return if $expires && $expires < time;
     $pool->{nick_reserves}{ irc_lc($mask) } = $expires || -1;
-    L("Reserved nick mask '$mask'");
+    L("Reserved mask '$mask'");
     return 1;
 }
 
@@ -912,7 +912,7 @@ sub add_resv {
 sub delete_resv {
     my ($pool, $mask) = @_;
     delete $pool->{nick_reserves}{ irc_lc($mask) } or return;
-    L("Unreserved nick mask '$mask'");
+    L("Unreserved mask '$mask'");
 }
 
 # expire RESVs on rehash.
@@ -927,13 +927,21 @@ sub expire_resvs {
         $amnt++;
     }
     my $s = $amnt == 1 ? '' : 's';
-    L("Expired $amnt nick reserve$s") if $amnt;
+    L("Expired $amnt reserve$s") if $amnt;
 }
 
 # returns true if a nick matches any RESVs.
 sub nick_resv_matches {
     my ($pool, $nick) = @_;
-    return utils::irc_match($nick, keys %{ $pool->{nick_reserves} || {} });
+    my @resvs = keys %{ $pool->{nick_reserves} || {} };
+    @resvs = grep substr($_, 0, 1) ne '#', @resvs;
+    return utils::irc_match($nick, @resvs);
+}
+
+# returns true if a channel name is RESV'd.
+sub chan_resv {
+    my ($pool, $name) = @_;
+    return $pool->{nick_reserves}{ irc_lc($name) };
 }
 
 $mod

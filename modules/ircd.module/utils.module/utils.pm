@@ -96,6 +96,7 @@ sub safe_arrayref {
 sub validnick {
     my ($str, $ignore_resv) = @_;
     my $limit = conf('limit', 'nick');
+    length $str or return;
 
     # check if it's reserved.
     unless ($ignore_resv) {
@@ -121,9 +122,18 @@ sub validident {
 
 # check if a channel name is valid.
 sub validchan {
-    my $name = shift;
+    my ($name, $ignore_resv) = @_;
+    length $name or return;
+
+    # check if it's reserved.
+    unless ($ignore_resv) {
+        return if $::pool && $::pool->chan_resv($name);
+    }
+
+    # too long or wrong prefix
     return if length $name > conf('limit', 'channelname');
     return unless substr($name, 0, 1) eq '#';
+
     return 1;
 }
 
