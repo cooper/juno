@@ -97,7 +97,7 @@ See issue [#101](https://github.com/cooper/juno/issues/101) for more info.
 my $ts6_server;
 my $some_ts6_mode_string = '+qo 000AAAABG 000AAAABG';
 
-# get the modes by their names in an arraref
+# get the modes by their names in an arrayref
 my $modes = $ts6_server->cmodes_from_string($some_ts6_mode_string);
 
 # commit the modes without translating the mode string!
