@@ -22,8 +22,8 @@ use 5.010;
 
 M::Ban->import(qw(
     notify_new_ban      notify_delete_ban
-    get_all_bans        ban_by_id
-    delete_ban_by_id    add_update_enforce_activate_ban
+    get_all_bans        delete_deactivate_ban_by_id
+    ban_by_id           add_update_enforce_activate_ban
 ));
 
 our ($api, $mod, $pool, $conf, $me);
@@ -229,7 +229,8 @@ sub in_bandel {
 
         # find and delete each ban
         my %ban = ban_by_id($id) or next;
-        delete_ban_by_id($id);
+        $ban{_just_set_by} = $server->id;
+        delete_deactivate_ban_by_id($id);
         notify_delete_ban($from || $server, %ban);
 
         #=== Forward ===#

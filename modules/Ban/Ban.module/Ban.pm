@@ -287,6 +287,14 @@ sub add_update_enforce_activate_ban {
     return %ban;
 }
 
+sub delete_deactivate_ban_by_id {
+    my $id = shift;
+    my %ban = ban_by_id($id) or return;
+    delete_ban_by_id($id);
+    expire_ban(%ban, deleted => 1);
+    return 1;
+}
+
 # notify opers of a new ban
 sub notify_new_ban {
     my ($source, %ban) = @_;

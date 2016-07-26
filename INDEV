@@ -3511,3 +3511,6 @@ CHANGES:
             added TS6 ENCAP NICKDELAY.
             added ->forward_plus_one() which forwards to all servers, even the source.
             fixed an issue where NICK was not sent to the server that we received RSFNC from.
+
+        69. added Ban function delete_deactivate_ban_by_id().
+            update JELP/TS6 ban implementations to use this.

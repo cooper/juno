@@ -25,7 +25,7 @@ use M::TS6::Utils qw(ts6_id);
 
 M::Ban->import(qw(
     notify_new_ban  notify_delete_ban
-    get_all_bans    delete_ban_by_id
+    get_all_bans    delete_deactivate_ban_by_id
     ban_by_id       ban_by_type_match
     add_update_enforce_activate_ban
 ));
@@ -519,7 +519,8 @@ sub unkline {
 
     # find and remove ban
     my %ban = _find_ban($server, 'kline', "$ident_mask\@$host_mask") or return;
-    delete_ban_by_id($ban{id});
+    $ban{_just_set_by} = $source->id;
+    delete_deactivate_ban_by_id($ban{id});
 
     notify_delete_ban($source, %ban);
 
@@ -573,7 +574,8 @@ sub undline {
 
     # find and remove ban
     my %ban = _find_ban($server, 'dline', $ip_mask) or return;
-    delete_ban_by_id($ban{id});
+    $ban{_just_set_by} = $user->id;
+    delete_deactivate_ban_by_id($ban{id});
 
     notify_delete_ban($user, %ban);
 
@@ -653,7 +655,8 @@ sub _unresv {
 
     # find and remove ban
     my %ban = _find_ban($server, 'resv', $nick_chan_mask) or return;
-    delete_ban_by_id($ban{id});
+    $ban{_just_set_by} = $source->id;
+    delete_deactivate_ban_by_id($ban{id});
 
     notify_delete_ban($source, %ban);
 
