@@ -1668,38 +1668,10 @@ sub rsfnc {
     # the target user has to be local.
     return if !$user->is_local;
 
-    # ignore the message if the old nickTS is incorrect.
-    if ($user->{nick_time} != $old_nick_ts) {
-        return;
-    }
-
-    # check if the nick is in use.
-    my $existing = $pool->nick_in_use($new_nick);
-
-    # the nickname is already in use by an unregistered connection.
-    if ($existing && $existing->isa('connection')) {
-        $existing->done('Overriden');
-    }
-
-    # the nickname is in use by a user.
-    elsif ($existing && $existing != $user) {
-        my $reason = 'Nickname regained by services';
-        $existing->get_killed_by($source_serv, $reason);
-        $pool->fire_command_all(kill => $source_serv, $existing, $reason);
-    }
-
-    # change the nickname.
-    $user->send_to_channels("NICK $new_nick")
-        unless $user->{nick} eq $new_nick;
-    $user->change_nick($new_nick, $new_nick_ts);
-
-    #=== Forward ===#
-    #
-    # RSFNC has a single-server target, so the nick change must be
-    # propagated as a NICK message.
-    #
-    $msg->forward_plus_one(nickchange => $user);
-
+    return server::linkage::handle_svsnick(
+        $msg, $source_serv, $user, $new_nick,
+        $new_nick_ts, $old_nick_ts
+    );
 }
 
 # CONNECT

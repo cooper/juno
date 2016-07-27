@@ -3519,5 +3519,5 @@ CHANGES:
 
     7. ->forward_to_mask() now returns true if the mask matches the local server.
         fixed TS6 RSFNC handling (it was ignoring the target). #120.
-        RSFNC now has proper outgoing code for TS6.
-        
+        RSFNC now has proper outgoing code for TS6. closes #120.
+        added JELP FNICK command. it works like TS6's RSFNC or SVSNICK in others.

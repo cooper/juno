@@ -56,6 +56,7 @@ my %ocommands = (
     realhost        => \&realhost,
     lusers          => \&lusers,
     users           => \&users,
+    svsnick         => \&fnick,
     add_cmodes      => \&acm,
     add_umodes      => \&aum,
     burst           => \&burst,
@@ -528,6 +529,11 @@ sub userinfo {
         command => 'USERINFO',
         tags    => \%fields
     )->data;
+}
+
+sub fnick {
+    my ($to_server, $server, $user, $new_nick, $new_nick_ts, $old_nick_ts) = @_;
+    ":$$server{sid} FNICK $$user{uid} $new_nick $new_nick_ts $old_nick_ts"
 }
 
 $mod

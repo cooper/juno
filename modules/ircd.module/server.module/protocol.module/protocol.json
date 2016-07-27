@@ -8,5 +8,5 @@
    "no_bless" : 1,
    "package" : "server::protocol",
    "preserve_sym" : 1,
-   "version" : "11.68"
+   "version" : "11.7"
 }

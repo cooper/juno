@@ -175,6 +175,10 @@ my %scommands = (
     USERINFO => {
         params => '-source(user)',
         code   => \&userinfo
+    },
+    FNICK => {    # :sid FNICK      uid  new_nick new_nick_ts old_nick_ts
+        params => '-source(server)  user *        ts          ts',
+        code   => \&fnick
     }
 );
 
@@ -1022,6 +1026,25 @@ sub userinfo {
     my %fields = %{ $msg->tags || {} };
     $msg->forward(update_user => $user, %fields);
 
+}
+
+# force nick change
+sub fnick {
+    my ($server, $msg, $source_serv, $user,
+    $new_nick, $new_nick_ts, $old_nick_ts) = @_;
+
+    # not my user
+    if (!$user->is_local) {
+        $msg->forward_to($user,
+            svsnick => $server, $user, $new_nick, $new_nick_ts, $old_nick_ts
+        );
+        return 1;
+    }
+
+    return server::linkage::handle_svsnick(
+        $msg, $source_serv, $user, $new_nick,
+        $new_nick_ts, $old_nick_ts
+    );
 }
 
 $mod
