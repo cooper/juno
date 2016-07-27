@@ -450,7 +450,7 @@ without restarting or disconnecting users; and a new
 module, helping users to better manage nicknames and channels.
 
 * [__kylie__](https://github.com/cooper/juno/tree/juno8-kylie) (juno8):
-Named after the adored [Kyle](http://mac-mini.org) (mac-mini), kylie introduced
+Named after the adored [Kyle](http://mac-mini.org), kylie introduced
 several previously-missing core components including
 [ident](http://en.wikipedia.org/wiki/Ident_protocol) support and channel modes:
 [limit](https://github.com/cooper/juno/blob/master/modules/Channel/Limit.module/Limit.pm),
