@@ -1033,9 +1033,10 @@ sub snote {
 #
 sub rsfnc {
     my ($to_server, $server, $user, $new_nick, $new_nick_ts, $old_nick_ts) = @_;
-    sprintf ':%s ENCAP %s RSFNC %s %d %d',
+    sprintf ':%s ENCAP %s RSFNC %s %s %d %d',
     ts6_id($server),
     $user->server->name,
+    ts6_id($user),
     $new_nick,
     $new_nick_ts,
     $old_nick_ts;
