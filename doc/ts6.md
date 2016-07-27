@@ -307,3 +307,19 @@ shared {
 	flags = all;
 };
 ```
+
+#### Known issues
+
+* __NICKDELAY__: ratbox does not support a nick delay command, which is used by
+services to prevent users from switching back to a nickname immediately after
+services forced them to a "Guest" nick. When linking ratbox to services, RESV
+is used instead, but if ratbox reaches services indirectly via juno, it cannot
+understand the NICKDELAY command that is forwarded to it. There are plans to fix
+this by specially translating NICKDELAY to RESV for ratbox (or any server
+without `EUID`).
+
+* __Cloaking__: ratbox does not have hostname cloaking and does not handle the
+REALHOST command. The result is that, on ratbox servers, users with hidden hosts
+will show their cloak as their real host, but their underlying IP address can
+easily be exposed to any user with a simple `WHOIS` command. There are plans to
+add an option to spoof the IP address field so that this is not possible.
