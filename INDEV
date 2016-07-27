@@ -3516,3 +3516,8 @@ CHANGES:
             update JELP/TS6 ban implementations to use this.
             added outgoing NICKDELAY on removal of RESV.
             fixed an issue where RSFNC would send out NICK messages even if the nick was unchanged.
+
+    7. ->forward_to_mask() now returns true if the mask matches the local server.
+        fixed TS6 RSFNC handling (it was ignoring the target). #120.
+        RSFNC now has proper outgoing code for TS6.
+        

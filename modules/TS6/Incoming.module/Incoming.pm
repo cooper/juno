@@ -1659,10 +1659,14 @@ sub rsfnc {
     my ($server, $msg, $source_serv, $serv_mask, undef,
     $user, $new_nick, $new_nick_ts, $old_nick_ts) = @_;
 
-    # TODO: source_serv must be a services server
-    # TODO: don't assume the $serv_mask is me. if not, forward.
-    #$msg->{encap_forwarded}++;
+    # forward if appropriate.
+    $msg->{encap_forwarded}++;
+    $msg->forward_to_mask($serv_mask,
+        svsnick => $server, $user, $new_nick, $new_nick_ts, $old_nick_ts
+    ) and return;
 
+    # the target user has to be local.
+    return if !$user->is_local;
 
     # ignore the message if the old nickTS is incorrect.
     if ($user->{nick_time} != $old_nick_ts) {

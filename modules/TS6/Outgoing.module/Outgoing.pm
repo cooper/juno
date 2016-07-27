@@ -68,6 +68,7 @@ our %ts6_outgoing_commands = (
      snotice        => \&snote,
      su_login       => \&su_login,
      su_logout      => \&su_logout,
+     svsnick        => \&rsfnc,
      ircd_rehash    => \&rehash
 );
 
@@ -1020,6 +1021,24 @@ sub snote {
         $message = "$pretty: $message";
     }
     ":$sid ENCAP * SNOTE $ts6_letter :$message"
+}
+
+# RSFNC
+#
+# encap only
+# capab:        RSFNC
+# encap target: single server
+# source:       services server
+# parameters:   target user, new nickname, new nickTS, old nickTS
+#
+sub rsfnc {
+    my ($to_server, $server, $user, $new_nick, $new_nick_ts, $old_nick_ts) = @_;
+    sprintf ':%s ENCAP %s RSFNC %s %d %d',
+    ts6_id($server),
+    $user->server->name,
+    $new_nick,
+    $new_nick_ts,
+    $old_nick_ts;
 }
 
 $mod

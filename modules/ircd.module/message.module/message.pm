@@ -577,12 +577,13 @@ sub forward_to {
 }
 
 # forward to all servers matching a mask except the source.
+# returns true if the mask does NOT match the local server.
 sub forward_to_mask {
     my ($msg, $mask, $e_name, @args) = @_;
-    my $amnt = 0;
     my $server = $msg->{_physical_server} or return;
 
     # send to all servers matching the mask.
+    my ($amnt, $matches_me) = 0;
     foreach ($pool->lookup_server_mask($mask)) {
 
         # don't send to servers who haven't received my burst.
@@ -591,10 +592,12 @@ sub forward_to_mask {
         # don't send to the server we got it from.
         next if $_ == $server;
 
+        $matches_me++, next if $_ == $me;
         $amnt++ if $_->fire_command($e_name => @args);
     }
 
-    return $amnt;
+    return ($amnt, !$matches_me) if wantarray;
+    return !$matches_me;
 }
 
 $mod
