@@ -3515,3 +3515,4 @@ CHANGES:
         69. added Ban function delete_deactivate_ban_by_id().
             update JELP/TS6 ban implementations to use this.
             added outgoing NICKDELAY on removal of RESV.
+            fixed an issue where RSFNC would send out NICK messages even if the nick was unchanged.

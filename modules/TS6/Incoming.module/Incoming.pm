@@ -1663,6 +1663,7 @@ sub rsfnc {
     # TODO: don't assume the $serv_mask is me. if not, forward.
     #$msg->{encap_forwarded}++;
 
+
     # ignore the message if the old nickTS is incorrect.
     if ($user->{nick_time} != $old_nick_ts) {
         return;
@@ -1677,14 +1678,15 @@ sub rsfnc {
     }
 
     # the nickname is in use by a user.
-    elsif ($existing) {
+    elsif ($existing && $existing != $user) {
         my $reason = 'Nickname regained by services';
         $existing->get_killed_by($source_serv, $reason);
         $pool->fire_command_all(kill => $source_serv, $existing, $reason);
     }
 
     # change the nickname.
-    $user->send_to_channels("NICK $new_nick");
+    $user->send_to_channels("NICK $new_nick")
+        unless $user->{nick} eq $new_nick;
     $user->change_nick($new_nick, $new_nick_ts);
 
     #=== Forward ===#
