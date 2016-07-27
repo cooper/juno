@@ -744,7 +744,7 @@ sub take_lower_time {
         $channel->handle_mode_string($me, $me, $s_str, 1, 1);
     }
 
-    notice_all($channel, "New channel time: ".scalar(localtime $time)." (set back $amount seconds)");
+    notice_all($channel, "New channel time: ".scalar(localtime $time));
     return $channel->{time};
 }
 

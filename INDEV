@@ -3521,3 +3521,4 @@ CHANGES:
         fixed TS6 RSFNC handling (it was ignoring the target). #120.
         RSFNC now has proper outgoing code for TS6. closes #120.
         added JELP FNICK command. it works like TS6's RSFNC or SVSNICK in others.
+        fixed a bug where old modes were cleared when the new TS is zero.

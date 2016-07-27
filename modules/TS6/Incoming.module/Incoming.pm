@@ -501,7 +501,7 @@ sub sjoin {
     # include +i, kick all local users, sending KICK messages to servers.
     #
     (my $accept_new_modes)++ if $new_time == $ts;
-    my $clear_old_modes = $new_time < $old_time;
+    my $clear_old_modes = $new_time < $old_time && $new_time != 0;
 
     # HANDLE USERS
     #====================
