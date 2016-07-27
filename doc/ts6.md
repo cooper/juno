@@ -214,9 +214,7 @@ is useful for authenticating to services packages linked via TS6. See issue
 This is a list of IRC servers and packages that have been tested and seem to
 work well with juno TS6.
 
-## Services
-
-### atheme
+## atheme
 
 Provides nickname and channel registration, plus a lot of other stuff.
 
@@ -235,7 +233,7 @@ statuses then you can use atheme's protocol mixin modules.
 A known bug is that the QUIET command provided by `chanserv/quiet` does not work
 on juno due to it having a hard-coded letter `q` for quiets.
 
-### PyLink
+## PyLink
 
 A services framework which features a multi-network IRC relay.
 
@@ -245,18 +243,17 @@ with juno by pretending to be elemental-ircd. It seems to work quite well.
 Use PyLink's `ts6` protocol module and enable the `use_elemental_modes` option.
 Also enable `use_owner`, `use_admin`, and `use_halfop` if appropriate.
 
-## IRC servers
-
-### charybdis
+## charybdis
 
 Specify the `ircd = 'charybdis'` option in the `connect` block.
 
-#### Nick length
+### Nick length
+
 Make sure that your configured nick length is consistent with the one you
 compiled charybdis with; otherwise, users with longer nicks will be killed
 as soon as they are propagated.
 
-#### Ban propagation
+### Ban propagation
 
 You definitely want to have this enabled in your charybdis configuration:
 
@@ -274,22 +271,24 @@ shared {
 };
 ```
 
-#### Remote oper notices
+### Remote oper notices
+
 If you want to see remote server notices from charybdis, be sure to enable
 the juno oper notice flags associated with each desired snomask letter.
 However, since juno notice flags are very verbose and fine-tunable, you can get
 most information from local notices.
 
-### ratbox
+## ratbox
 
 Specify the `ircd = 'ratbox'` option in the `connect` block.
 
-#### Nick length
+### Nick length
+
 Make sure that your configured nick length is consistent with the one you
 compiled ratbox with; otherwise, users with longer nicks will be killed
 as soon as they are propagated. RATBOX HAS A VERY LOW DEFAULT NICK LENGTH.
 
-#### Ban propagation
+### Ban propagation
 
 Adding `cluster` and `shared` blocks to your ratbox configuration is strongly
 recommended due to the fact that it lacks the `BAN` capability.
@@ -308,7 +307,7 @@ shared {
 };
 ```
 
-#### Known issues
+### Known issues
 
 * __NICKDELAY__: ratbox does not support a nick delay command, which is used by
 services to prevent users from switching back to a nickname immediately after
