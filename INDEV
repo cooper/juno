@@ -3522,3 +3522,5 @@ CHANGES:
         RSFNC now has proper outgoing code for TS6. closes #120.
         added JELP FNICK command. it works like TS6's RSFNC or SVSNICK in others.
         fixed a bug where old modes were cleared when the new TS is zero.
+        added ->ircd_opt() method to server. closes #110.
+        updated ratbox host hack to use ->ircd_opt().

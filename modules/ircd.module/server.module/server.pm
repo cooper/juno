@@ -828,6 +828,15 @@ sub notice_info {
     return "$$server{name} ($$server{sid})";
 }
 
+# IRCd support
+
+sub ircd_opt {
+    my ($server, $key) = @_;
+    my $ircd = $server->{ircd_name} or return;
+    my %ircd = server::protocol::ircd_support_hash($ircd);
+    return $ircd{$key};
+}
+
 # CAP shortcuts.
 *has_cap = *connection::has_cap;
 *add_cap = *connection::add_cap;
