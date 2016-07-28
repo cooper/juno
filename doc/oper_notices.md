@@ -63,7 +63,7 @@ resv_delete     => 'Reserve for %s deleted by %s [%s]'
 resv_expire     => 'Reserve for %s expired after %s [%s]'
 ```
 
-## Management
+## Server management
 ```
 reload          => '%s %s by %s'
 update_fail     => 'update to %s git reposity by %s failed'
