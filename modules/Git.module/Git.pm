@@ -20,12 +20,14 @@ use utils qw(col gnotice trim);
 
 our ($api, $mod, $pool, $me);
 
-our %user_commands = (update => {
+# UPDATE user command
+our %user_commands = (UPDATE => {
     desc   => 'update the IRCd git repository',
     params => '-oper(git) any(opt)',
     code   => \&ucmd_update
 });
 
+# oper notices
 our %oper_notices = (
     update_fail => 'update to %s git reposity by %s failed',
     update      => '%s git repository updated to version %s successfully by %s'
@@ -39,9 +41,9 @@ sub init {
     return 1;
 }
 
+# UPDATE user command
 sub ucmd_update {
     my ($user, $event, $server_mask_maybe) = @_;
-
 
     # server parameter?
     if (length $server_mask_maybe) {
@@ -94,6 +96,7 @@ sub ucmd_update {
     );
 }
 
+# after git pull, run git submodule update --init
 sub git_pull_succeeded {
     my ($user, $event) = @_;
 
@@ -115,15 +118,28 @@ sub git_pull_succeeded {
     );
 }
 
+# after git submodule, use git describe to get a tag
 sub git_submodule_succeeded {
     my ($user, $event) = @_;
-    my $version = 'an unknown version';
-    if (open my $fh, '<', "$::run_dir/VERSION") {
-        $version = trim(<$fh>);
-        close $fh;
+    my $desc;
+    command(['git', 'describe'],
+        sub { $desc = shift         },
+        sub { finish($user, $desc)  },
+        sub { finish($user)         }
+    );
+}
+
+# after git describe, tell opers that it succeeded
+sub finish {
+    my ($user, $desc) = @_;
+    my $version = ircd::get_version();
+    if (length $desc) {
+        $desc = trim($desc);
+        $version = "$version ($desc)";
     }
     gnotice($user, update => $me->name, $version, $user->notice_info);
 }
+
 
 # handle Evented API Engine manifest conflicts
 sub deal_with_manifest {
@@ -140,6 +156,7 @@ sub deal_with_manifest {
 
 }
 
+# git command wrapper
 sub command {
     my ($command, $stdout_cb, $finish_cb, $error_cb) = @_;
     my $command_name = ref $command eq 'ARRAY' ? join ' ', @$command : $command;

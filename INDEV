@@ -3527,3 +3527,5 @@ CHANGES:
 
         71. removed all smart matching. closes #54.
             updated Evented::API::Engine.
+            updated Git module to use ircd::get_version(), which is more reliable than reading from VERSION.
+            Git now also shows the commit and other info in the oper notices.
