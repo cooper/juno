@@ -3524,3 +3524,6 @@ CHANGES:
         fixed a bug where old modes were cleared when the new TS is zero.
         added ->ircd_opt() method to server. closes #110.
         updated ratbox host hack to use ->ircd_opt().
+
+        71. removed all smart matching. closes #54.
+            updated Evented::API::Engine.

@@ -154,7 +154,7 @@ sub safe_host {
     my $ircd = $serv->{ircd_name} // '';
 
     # HACK: see issue #115
-    if ($ircd eq 'ratbox') {
+    if ($serv->ircd_opt('no_host_slashes')) {
         my $out = '';
         for (split //, $host) {
             if (/[\/]/) {

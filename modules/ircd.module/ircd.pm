@@ -246,9 +246,10 @@ sub set_variables {
     $v_replace{TNAME} = $v_replace{SNAME}.'-'.$v_replace{NAME};
 
     # defaults; only set if not existing already.
+    my %argv_has = map { $_ => 1 } @ARGV;
     my %v_insert = (
         START   => time,
-        NOFORK  => 'NOFORK' ~~ @ARGV,
+        NOFORK  => $argv_has{NOFORK},
         connection_count      => 0,
         max_connection_count  => 0,
         max_global_user_count => 0,

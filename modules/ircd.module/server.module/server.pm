@@ -355,7 +355,7 @@ sub cmode_string_difference {
     substr($o_modes, 0, 1)   = substr($n_modes, 0, 1) = '';
 
     # determine the original values. ex. $o_modes_p{b}{'hi!*@*'} = 1
-    my (@o_modes, %o_modes_p);
+    my (@o_modes, %o_modes, %o_modes_p);
     foreach my $letter (split //, $o_modes) {
 
         # find mode name and type.
@@ -371,6 +371,7 @@ sub cmode_string_difference {
 
         # no parameter.
         push @o_modes, $letter;
+        $o_modes{$letter}++;
 
     }
 
@@ -407,8 +408,9 @@ sub cmode_string_difference {
         # no parameter.
 
         # it's in the original.
-        if ($letter ~~ @o_modes) {
+        if ($o_modes{$letter}) {
             @o_modes = grep { $_ ne $letter } @o_modes;
+            delete $o_modes{$letter};
         }
 
         # not there.
