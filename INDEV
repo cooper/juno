@@ -3529,3 +3529,5 @@ CHANGES:
             updated Evented::API::Engine.
             updated Git module to use ircd::get_version(), which is more reliable than reading from VERSION.
             Git now also shows the commit and other info in the oper notices.
+
+        72. added 'burst_topicwho' option for TS6. without it, the 'setby' parameter is omitted from TB.

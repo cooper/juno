@@ -492,11 +492,11 @@ sub tb {
     }
 
     sprintf
-    ':%s TB %s %d %s :%s',
+    ':%s TB %s %d %s:%s',
     ts6_id($me),
     $channel->{name},
     $channel->{topic}{time},
-    $channel->{topic}{setby},
+    $to_server->ircd_opt('burst_topicwho') ? "$$channel{topic}{setby} " : '',
     $channel->{topic}{topic}
 }
 
