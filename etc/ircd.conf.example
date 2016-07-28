@@ -1,6 +1,8 @@
 # juno configuration file
 
 
+# Server info
+
 [ server ]
 
     network     = 'JunoDevNet'                  # network name
@@ -11,35 +13,55 @@
     casemapping = 'rfc1459'                     # 'rfc1459' or 'ascii'
                                                 # you MUST use rfc1459 if using TS6
 
+# Modules to load automatically
 
 [ api ]
 
+    # Basic stuff
+
     Core                        # Loads core commands, modes, etc.
-    JELP                        # Juno Extensible Linking Protocol support
     Resolve                     # Resolve hostnames
-    Git                         # update git repository directly from IRC
-    Reload                      # Reload or upgrade the IRCd in 1 command
-    Modules                     # Manage IRCd modules directly from IRC
-    LOLCAT                      # SPEEK LIEK A LOLCATZ!
-    Eval                        # Evaluate Perl code directly from IRC
-    SASL                        # Support for SASL plain authentication
-    Grant                       # grant user oper flags from IRC
-    Alias                       # support for command aliases
-    Configuration::Set          # manage configuration directly from IRC
-    Channel::Fantasy            # Channel fantasy commands
-    Channel::Access             # Channel access mode (+A)
-    Channel::Invite             # Channel invitation support (INVITE, +i, +I)
-    Channel::Key                # Channel key support (+k)
-    Channel::Limit              # Channel user limit support (+l)
+    Ident                       # Resolve user identities (ident protocol)
+    Cloak                       # Hostname cloaking
+    Alias                       # Support for command aliases
+    SASL                        # Support for SASL authentication (for services)
+
+    # Channel features
+
+    Channel::Fantasy            # Fantasy commands
+    Channel::Access             # Access list mode (+A)
+    Channel::Invite             # Invitation support (INVITE, +i, +I)
+    Channel::Key                # Key support (+k)
+    Channel::Limit              # Member limit support (+l)
     Channel::Secret             # Secret/private channel support (+s/+p)
     Channel::OperOnly           # Oper-only channel support (+O)
     Channel::Forward            # Channel forward support (+f)
-    Channel::Mute               # Channel mute/quiet ban (+Z)
-    Channel::TopicAdditions     # commands to prepend or append topic
-    Channel::Permanent          # mode to preserve empty channels (+P)
+    Channel::Mute               # Mute/quiet bans (+Z)
+    Channel::TopicAdditions     # Commands to prepend or append topic
+    Channel::Permanent          # Preserve empty channels, make permanent (+P)
+
+    # Server management
+
+    Modules                     # Manage IRCd modules directly from IRC
+    Git                         # Manage IRCd git repository directly from IRC
+    #Configuration::Set         # Manage IRCd configuration directly from IRC
+    Reload                      # Reload or upgrade the IRCd in 1 command
+    Grant                       # grant user oper flags from IRC
+    # Eval                      # Evaluate Perl code directly from IRC
+
+    # Global ban support
+
     Ban::Dline                  # server/user IP ban (D-Line/Z-Line)
     Ban::Kline                  # user hostmask ban (K-Line)
+    Ban::Resv                   # nick and channel reservations (required for services)
 
+    # Extras
+
+    #DNSBL                      # Built-in host blacklist checking
+    #LOLCAT                     # SPEEK LIEK A LOLCATZ!
+
+
+# Maximum values
 
 [ limit ]
 
@@ -63,27 +85,45 @@
     key         = 50                            # channel keys
 
 
+# File paths
+
 [ file ]
 
-    motd = 'etc/ircd.motd.example'
-    log  = 'var/log/ircd.log'
+    motd = 'etc/ircd.motd.example'              # message of the day
+    log  = 'var/log/ircd.log'                   # where to write logs
 
+
+# User options
 
 [ users ]
 
-    automodes       = '+i'                      # set these modes on users at connect
-    chghost_quit    = on                        # quit and rejoin on host change
+    automodes = '+ix'                           # set these modes on users at connect
+                                                # the default is invisible and cloaked
+
+# Channel options
 
 [ channels ]
 
-    automodes           = '+ntqo +user +user'   # set these modes as users enter channel
-    invite_must_exist   = off                   # restrict INVITE to existing channels
-    only_ops_invite     = off                   # restrict INVITE to chanops
+    automodes = '+ntqo +user +user'             # set these modes as users enter channel
 
+    invite_must_exist           = off           # restrict INVITE to existing channels
+    only_ops_invite             = off           # restrict INVITE to chanops
+
+    client_max_modes_simple     = 46            # max simple mode count per msg
+    client_max_mode_params      = 10            # max mode params per msg, MODES in RPL_ISUPPORT
+
+    max_modes_per_line          = 5             # max modes per outgoing MODE message
+    max_modes_per_server_line   = 10            # same as above, except for servers
+    max_param_length            = 50            # number of characters permitted for parameters
+    max_ban_length              = 195           # number of characters permitted for a ban
+
+
+# Services options
 
 [ services ]
 
-    saslserv = 'SaslServ'                       # nickname of SASL service
+    saslserv = 'SaslServ'       # nickname of SASL service. Requires SASL module.
+
 
 # IPv4 listen
 
@@ -101,6 +141,8 @@
     sslport = [6697]                            # secure ports
 
 
+# Server uplinks
+
 [ connect: server2.example.com ]
 
     # Address(es) to accept connection from.
@@ -110,14 +152,13 @@
         address = ['192.168.1.*', '127.0.0.1']
 
     # Outgoing port. If initiating a connection, the server will try this port.
-    # Currently, the port does not affect incoming connections.
+    # Currently, this option does not affect incoming connections.
 
         port = 7000
 
     # Enable SSL connection? If so, be sure that the above port is an SSL listen
     # port and that the other server has SSL configured properly. This setting
-    #is only applicable to outgoing connections
-    # (i.e., when this server is the initiator).
+    # is only applicable to outgoing connections which this server initiates.
 
         ssl = on
 
@@ -125,12 +166,14 @@
 
         send_password = 'k'
 
-    # Incoming password and the encryption for it
+    # Incoming password and the encryption for it.
+    # Accepted crypts: sha1, sha224, sha256, sha384, sha512, md5, none
 
         receive_password = '13fbd79c3d390e5d6585a21e11ff5ec1970cff0c'
         encryption       = 'sha1'
 
-    # Auto connect on startup.
+    # Auto connect on startup. Note that this only applies to when the server
+    # is first started. To reconnect dropped connections, see auto_timer.
 
         #autoconnect
 
@@ -140,13 +183,15 @@
         #auto_timer = 30
 
 
+# IRC operators
+
 [ oper: admin ]
 
-    # Operator class (optional)
+    # Operator class (optional).
     # If present, the oper will receive flags and notices defined in this class
     # and all other classes from which it may inherit.
 
-        class      = 'netadmin'
+        class = 'netadmin'
 
     # Hostmask(s) to accept for opering.
     # These can include either hostnames or IP addresses.
@@ -154,19 +199,20 @@
 
         host = ['*@*']
 
-    # The password and encyption for it
+    # The password and encryption for it
 
         password   = '13fbd79c3d390e5d6585a21e11ff5ec1970cff0c'
         encryption = 'sha1'
 
-    # Flags (optional)
+    # Flags (optional).
     # Oper flags which are specific to this oper. These will be granted in
     # conjunction with any others that might exist from oper classes.
-    # Multiple flags accepted. Wildcards not accepted. 'all' matches all flags.
+    # Multiple flags accepted. Wildcards NOT accepted.
+    # See doc/oper_flags.md. 'all' matches all flags.
 
         flags = ['all']
 
-    # Oper notice flags (optional)
+    # Oper notice flags (optional).
     # Notice flags which are specific to this oper. These will be granted in
     # conjunction with any others that might exist from oper classes.
     # Multiple flags accepted. Wildcards not accepted. 'all' matches all flags.
@@ -174,7 +220,9 @@
         notices = ['all']
 
 
-# Require Alias module
+# Command aliases. Requires Alias module.
+# $N will be replaced with the Nth parameter;
+# $N- will be replaced with the Nth parameter and all which follow it.
 
 [ aliases ]
 
