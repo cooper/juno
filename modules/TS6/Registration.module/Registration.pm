@@ -24,8 +24,10 @@ use M::TS6::Utils qw(ts6_id sid_from_ts6 user_from_ts6 ts6_uid);
 
 our ($api, $mod, $pool, $conf, $me);
 
-our $TS_CURRENT  = 6;
-our $TS_MIN      = 6;
+my ($TS_CURRENT, $TS_MIN) =(
+    $M::TS6::Base::TS_CURRENT,
+    $M::TS6::Base::TS_MIN
+);
 
 our %ts6_capabilities = (
     ENCAP       => { required => 1 },   # enhanced command routing
@@ -85,32 +87,6 @@ sub init {
         name    => 'ts6.start.burst'
     );
     return 1;
-}
-
-# send TS6 registration.
-sub send_registration {
-    my $connection = shift;
-
-    # send PASS first.
-    $connection->send(sprintf
-        'PASS %s TS %d :%s',
-        conf(['connect', $connection->{want} // $connection->{name}], 'send_password'),
-        $TS_CURRENT,
-        ts6_id($me)
-    );
-
-    # send CAPAB. only advertise ones that are enabled on $me.
-    my @caps = grep $me->has_cap($_), M::TS6::Base::get_caps();
-    $connection->send("CAPAB :@caps");
-
-    $connection->send(sprintf
-        'SERVER %s %d :%s',
-        $me->{name},
-        1, # will this ever not be one?
-        $me->{desc}
-    );
-
-    $connection->send("PING :$$me{name}");
 }
 
 # CAPAB
@@ -223,10 +199,6 @@ sub rcmd_server {
         return;
     }
 
-    # send my own CAPAB/PASS/SERVER if I haven't already.
-    # this is postponed until the connection is ready.
-    $connection->{ts6_reg_pending} = 1;
-
     # made it.
     #$connection->fire_event(reg_server => @args); how am I going to do this?
     $connection->{ircd_name} = conf($s_conf, 'ircd') // 'charybdis';
@@ -317,7 +289,6 @@ sub connection_ready {
     my $connection = shift;
     my $server = $connection->server or return;
     return unless $server->{link_type} eq 'ts6';
-    return unless delete $server->{ts6_reg_pending};
 
     # search for required CAPABs.
     foreach my $need (M::TS6::Base::get_required_caps()) {
@@ -326,10 +297,11 @@ sub connection_ready {
         return;
     }
 
-    # time to send my own credentials.
-    send_registration($connection);
+    # if I haven't already, time to send my own credentials.
+    M::TS6::Base::initiate_ts6_link($connection)
+        unless $connection->{sent_creds};
 
-    # since I did not initiate this, I have to send my burst first.
+    # unless I initiated this, I have to send my burst first.
     # I am to send it now, immediately after sending my registration,
     # even before the initiator has verified my credentials.
     $server->send_burst if !$server->{i_sent_burst};

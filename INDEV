@@ -3549,3 +3549,4 @@ CHANGES:
             new 'initiate_$PROTO_link' events can be used by protocol modules to send the initial authentication commands.
             moved JELP's ->send_server_server and ->send_server_pass methods from connection.pm to JELP::Base.
             eliminated a cyclical reference in server autoconnect timers.
+            updated TS6 to use the new 'initiate_$PROTO_link' event. #108.

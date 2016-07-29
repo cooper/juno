@@ -20,12 +20,16 @@ use strict;
 use 5.010;
 
 use Scalar::Util  qw(blessed looks_like_number);
-use M::TS6::Utils qw(obj_from_ts6);
-use utils qw(notice);
+use M::TS6::Utils qw(obj_from_ts6 ts6_id);
+use utils qw(col trim notice v conf);
 
 our ($api, $mod, $pool, $me);
 my $PARAM_BAD = $message::PARAM_BAD;
 my $props     = $Evented::Object::props;
+
+# TS versions 
+our $TS_CURRENT  = 6;
+our $TS_MIN      = 6;
 
 sub init {
     $mod->register_module_method('register_ts6_command'         ) or return;
@@ -33,11 +37,11 @@ sub init {
     $mod->register_module_method('register_ts6_capability'      ) or return;
 
     # module events.
-    $api->on('module.unload' => \&unload_module, with_eo => 1) or return;
+    $api->on('module.unload' => \&unload_module, with_eo => 1);
     $api->on('module.init'   => \&module_init,
         name    => '%ts6_outgoing_commands',
         with_eo => 1
-    ) or return;
+    );
 
     # ok so this hooks onto raw incoming TS6 data to handle numerics.
     $pool->on('server.ts6_message' =>
@@ -47,7 +51,56 @@ sub init {
         priority => 100  # do before server.ts6_message_*
     );
 
+    # connection events
+    $pool->on('connection.initiate_ts6_link' => \&initiate_ts6_link,
+        name    => 'ts6.link',
+        with_eo => 1
+    );
+
     return 1;
+}
+
+############################
+### Initiating TS6 links ###
+############################
+
+sub initiate_ts6_link {
+    my $connection = shift;
+    $connection->{sent_creds}++;
+    send_server_pass($connection);
+    send_server_server($connection);
+}
+
+sub send_server_pass {
+    my $connection = shift;
+    my $name = $connection->{want} // $connection->{name};
+
+    # send PASS first.
+    $connection->send(sprintf
+        'PASS %s TS %d :%s',
+        conf([ 'connect', $name ], 'send_password'),
+        $TS_CURRENT,
+        ts6_id($me)
+    );
+
+    # send CAPAB. only advertise ones that are enabled on $me.
+    my @caps = grep $me->has_cap($_), get_caps();
+    $connection->send("CAPAB :@caps");
+}
+
+sub send_server_server {
+    my $connection = shift;
+
+    # send server
+    $connection->send(sprintf
+        'SERVER %s %d :%s',
+        $me->{name},
+        1, # hopcount - will this ever not be one?
+        $me->{desc}
+    );
+
+    # ask for a PONG to emulate end of burst
+    $connection->send("PING :$$me{name}");
 }
 
 ########################

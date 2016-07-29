@@ -24,8 +24,8 @@ use utils qw(notice);
 
 our ($api, $mod, $pool, $me);
 my ($TS_CURRENT, $TS_MIN) =(
-    $M::TS6::Registration::TS_CURRENT || 6,
-    $M::TS6::Registration::TS_MIN     || 6
+    $M::TS6::Base::TS_CURRENT,
+    $M::TS6::Base::TS_MIN
 );
 
 our %ts6_outgoing_commands = (
