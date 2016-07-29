@@ -480,12 +480,12 @@ sub bmask {
 #
 sub topicburst {
     my ($to_server, $channel, %opts) = @_;
-    my $new = $channel->{topic}; # or undef
 
     # find the stuff we need
+    $opts{new}        ||= $channel->{topic}; # or undef
     $opts{source}     ||= $me;
     $opts{channel_ts} ||= $channel->{time};
-    my ($source, $old, $ch_time) = @opts{ qw(source old channel_ts) };
+    my ($source, $old, $new, $ch_time) = @opts{ qw(source old new channel_ts) };
 
     # if we can use ETB, this is very simple.
     if ($to_server->has_cap('EOPMOD')) {
