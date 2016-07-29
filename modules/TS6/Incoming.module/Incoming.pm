@@ -1256,7 +1256,7 @@ sub tb {
     # topicTS. if we have a topic already and it is older, ignore this message.
     # if the topic existed already and is unchanged, ignore this message.
     if ($channel->{topic}) {
-        return if $channel->{topic}{time}   > $topic_ts;
+        return if $channel->{topic}{time}   < $topic_ts;
         return if $channel->{topic}{topic} eq $topic;
     }
 
