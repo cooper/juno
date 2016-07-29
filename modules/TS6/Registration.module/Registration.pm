@@ -24,6 +24,9 @@ use M::TS6::Utils qw(ts6_id sid_from_ts6 user_from_ts6 ts6_uid);
 
 our ($api, $mod, $pool, $conf, $me);
 
+my $TS_CURRENT  = 6;
+my $TS_MIN      = 6;
+
 our %ts6_capabilities = (
     ENCAP       => { required => 1 },   # enhanced command routing
     QS          => { required => 1 },   # quit storm
@@ -60,6 +63,11 @@ our %registration_commands = (
         code   => \&rcmd_ping,
         params => 1,
         proto  => 'ts6'
+    },
+    SVINFO => {
+        code   => \&rcmd_svinfo,
+        params => 3,
+        proto  => 'ts6'
     }
 );
 
@@ -85,8 +93,9 @@ sub send_registration {
 
     # send PASS first.
     $connection->send(sprintf
-        'PASS %s TS 6 :%s',
+        'PASS %s TS %d :%s',
         conf(['connect', $connection->{want} // $connection->{name}], 'send_password'),
+        $TS_CURRENT,
         ts6_id($me)
     );
 
@@ -128,8 +137,12 @@ sub rcmd_pass {
     my ($connection, $event, $pass, undef, $ts_version, $sid) = @_;
 
     # not supported.
-    if ($ts_version ne '6') {
-        $connection->done('Incompatible TS version');
+    if ($ts_version != $TS_CURRENT) {
+        notice(server_protocol_error =>
+            'Unregistered server from '.$connection->{host},
+            "will not be linked due to an incompatible TS version ($ts_version)"
+        );
+        $connection->done("Incompatible TS version ($ts_version)");
         return;
     }
 
@@ -221,6 +234,49 @@ sub rcmd_server {
 
     return 1;
 
+}
+
+# server info
+sub svinfo {
+    my ($connection, $event, $current, $min, undef, $their_time) = @_;
+    my $server  = $connection->server or return;
+    my $my_time = time;
+
+    # bad TS version
+    if ($TS_CURRENT < $min || $current < $TS_MIN) {
+        my $ver_str = "($current,$min)";
+        notice(server_protocol_error =>
+            $server->notice_info,
+            'will not be linked due to an incompatible TS version '.$ver_str
+        );
+        $connection->done("Incompatible TS version $ver_str");
+        return;
+    }
+
+    # check if the delta is enormous
+    my $delta = abs($their_time - $my_time);
+    my $delta_string = "(my TS=$my_time, their TS=$their_time, delta=$delta)";
+
+    if ($delta > conf('servers', 'max_delta')) {
+        notice(server_protocol_error =>
+            $server->notice_info,
+            'will not be linked due to an excessive time delta '.
+            $delta_string
+        );
+        $connection->done("Excessive TS delta $delta_string");
+        return;
+    }
+
+    # notify opers if it's sorta significant.
+    if ($delta > conf('servers', 'warn_delta')) {
+        notice(server_protocol_warning =>
+            $server->notice_info,
+            'is linked with a significant time delta '.
+            $delta_string
+        );
+    }
+
+    return 1;
 }
 
 # the first ping here indicates end of burst.
