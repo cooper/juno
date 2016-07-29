@@ -222,6 +222,7 @@ sub cancel_connection {
     }
     unless ($keep_conn) {
         my $conn = delete $conns->{$server_name};
+        $conn->{dont_reconnect}++;
         $conn->done('Connection canceled') if $conn;
     }
     return $ret;
