@@ -862,12 +862,17 @@ sub handle_privmsgnotice {
         my $lccommand = lc $command;
 
         # can_message, can_notice, can_privmsg.
-        return if $user->fire_events_together(
+        my $fire = $user->fire_events_together(
             [  can_message     => $channel, $message, $lccommand ],
             [ "can_$lccommand" => $channel, $message           ]
-        )->stopper;
+        );
 
+        # the can_* events may set $fire->{new_message} to modify the message.
+        $message = $fire->{new_message} if length $fire->{new_message};
+
+        return if $fire->stopper;
     }
+
 
     # tell local users.
     # ignore the source as well as deaf users.

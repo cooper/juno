@@ -3543,3 +3543,6 @@ CHANGES:
 
         74. added incoming handler for TS6 SVINFO. checks the TS version and time deltas. #21.
             new options servers:max_delta and servers:warn_delta specify the number of seconds for dropping or warning about link deltas.
+            set the 'proto' option for TS6 servers to TS$TS_VERSION.
+
+        75. channel 'can_message', 'can_privmsg', and 'can_notice' events can now set a {new_message} key to change the message text.
