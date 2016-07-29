@@ -35,8 +35,8 @@ sub init {
         with_eo => 1
     );
 
-    # server events.
-    $pool->on('server.initiate_jelp_link' => \&initiate_jelp_link,
+    # connection events.
+    $pool->on('connection.initiate_jelp_link' => \&initiate_jelp_link,
         name    => 'jelp.initiate',
         with_eo => 1
     );
@@ -142,9 +142,9 @@ sub register_outgoing_command {
 #############################
 
 sub initiate_jelp_link {
-    my $conn = shift;
-    $conn->{sent_creds} = 1;
-    $conn->send_server_server;
+    my $connection = shift;
+    $connection->{sent_creds} = 1;
+    $connection->send_server_server;
 }
 
 sub send_server_server {
