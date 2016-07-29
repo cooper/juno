@@ -14,7 +14,7 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils qw(col trim notice);
+use utils qw(col trim notice v);
 use Scalar::Util qw(looks_like_number blessed);
 
 our ($api, $mod, $pool, $me);
