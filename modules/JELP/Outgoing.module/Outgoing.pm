@@ -34,7 +34,7 @@ my %ocommands = (
     part            => \&part,
     topic           => \&topic,
     cmode           => \&cmode,
-    channel_burst   => [ \&sjoin, sub { topicburst(@_[0, 1]) } ],
+    channel_burst   => \&sjoin,
     kill            => \&skill,
     connect         => \&_connect,
     kick            => \&kick,
@@ -154,6 +154,7 @@ sub send_burst {
     # channels, using compact CUM
     foreach my $channel ($pool->channels) {
         $server->fire_command(channel_burst => $channel, $me, $channel->users);
+        $server->fire_command(topicburst => $channel) if $channel->topic;
     }
 
 }

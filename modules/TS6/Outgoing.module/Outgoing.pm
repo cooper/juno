@@ -38,7 +38,7 @@ our %ts6_outgoing_commands = (
      part           => \&part,
      topic          => \&topic,
      cmode          => \&tmode,
-     channel_burst  => [ \&sjoin_burst, \&bmask, sub { topicburst(@_[0, 1]) } ],
+     channel_burst  => [ \&sjoin_burst, \&bmask ],
    # acm            => \&acm,
    # aum            => \&aum,
      kill           => \&skill,
@@ -127,6 +127,7 @@ sub send_burst {
     # channels.
     foreach my $channel ($pool->channels) {
         $server->fire_command(channel_burst => $channel, $me, $channel->users);
+        $server->fire_command(topicburst => $channel) if $channel->topic;
     }
 
 }
