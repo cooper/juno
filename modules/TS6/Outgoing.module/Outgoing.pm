@@ -23,6 +23,10 @@ use M::TS6::Utils qw(ts6_id ts6_prefixes);
 use utils qw(notice);
 
 our ($api, $mod, $pool, $me);
+my ($TS_CURRENT, $TS_MIN) =(
+    $M::TS6::Registration::TS_CURRENT || 6,
+    $M::TS6::Registration::TS_MIN     || 6
+);
 
 our %ts6_outgoing_commands = (
      quit           => \&quit,
@@ -89,7 +93,7 @@ sub send_burst {
     my ($server, $event) = @_;
 
     # SVINFO is always at the start of the burst I think.
-    $server->sendfrom($me->id, "SVINFO 6 6 0 ".time());
+    $server->sendfrom($me->id, "SVINFO $TS_CURRENT $TS_MIN 0 ".time());
 
     # servers.
     my ($do, %done);

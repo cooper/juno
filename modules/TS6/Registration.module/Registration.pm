@@ -24,8 +24,8 @@ use M::TS6::Utils qw(ts6_id sid_from_ts6 user_from_ts6 ts6_uid);
 
 our ($api, $mod, $pool, $conf, $me);
 
-my $TS_CURRENT  = 6;
-my $TS_MIN      = 6;
+our $TS_CURRENT  = 6;
+our $TS_MIN      = 6;
 
 our %ts6_capabilities = (
     ENCAP       => { required => 1 },   # enhanced command routing
@@ -135,6 +135,7 @@ sub rcmd_capab {
 #
 sub rcmd_pass {
     my ($connection, $event, $pass, undef, $ts_version, $sid) = @_;
+    $connection->{proto} = "TS$ts_version";
 
     # not supported.
     if ($ts_version != $TS_CURRENT) {
@@ -168,7 +169,7 @@ sub rcmd_pass {
 #
 sub rcmd_server {
     my ($connection, $event, $name, undef, $desc) = @_;
-    @$connection{ qw(name desc ircd proto) } = ($name, $desc, -1, -1);
+    @$connection{ qw(name desc ircd) } = ($name, $desc, -1);
     my $s_conf = ['connect', $name];
 
     # hidden?
@@ -276,6 +277,7 @@ sub svinfo {
         );
     }
 
+    $server->{proto} = "TS$current";
     return 1;
 }
 
