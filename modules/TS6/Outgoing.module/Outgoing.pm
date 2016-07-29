@@ -481,6 +481,11 @@ sub bmask {
 sub topicburst {
     my ($to_server, $channel, %opts) = @_;
 
+    # if this is MY burst, use TB. don't waste time trying to guess what to do.
+    if ($to_server->{i_am_burst} && $to_server->has_cap('TB')) {
+        return tb($to_server, $channel);
+    }
+
     # find the stuff we need
     $opts{new}        ||= $channel->{topic}; # or undef
     $opts{source}     ||= $me;
@@ -492,16 +497,16 @@ sub topicburst {
         return etb($to_server, $channel, %opts);
     }
 
-    # determine if we can use TB.
+    # determine if the text has changed.
     my $text_changed = !$old || $new && $old->{topic} ne $new->{topic};
-    my $can_use_tb =
-        $text_changed   &&              # TB is only useful if the text has changed
-        $new && length $new->{topic} && # it cannot unset topics
-        (!$old || $old->{time} > $new->{time}); # the topicTS has to be newer
 
     # use TB if possible.
-    if ($can_use_tb) {
-        return tb($to_server, $channel, %opts);
+    if ($to_server->has_cap('TB')) {
+        my $can_use_tb =
+            $text_changed && # TB is only useful if the text has changed
+            $new && length $new->{topic} && # it cannot unset topics
+            (!$old || $old->{time} > $new->{time}); # the topicTS has to be newer
+        return tb($to_server, $channel, %opts) if $can_use_tb;
     }
 
     # we can't use TB. fall back to TOPIC.

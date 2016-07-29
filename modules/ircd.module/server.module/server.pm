@@ -754,7 +754,9 @@ sub handle {}
 sub send_burst {
     my $server = shift;
     return if $server->{i_sent_burst};
+
     my $time = time;
+    $server->{i_am_burst} = $time;
 
     # fire burst events.
     my $proto = $server->{link_type};
@@ -763,6 +765,7 @@ sub send_burst {
         [ "send_${proto}_burst" => $time ]
     )->fire;
 
+    delete $server->{i_am_burst};
     $server->{i_sent_burst} = time;
     return 1;
 }
