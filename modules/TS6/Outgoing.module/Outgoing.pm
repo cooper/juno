@@ -20,6 +20,7 @@ use strict;
 use 5.010;
 
 use M::TS6::Utils qw(ts6_id ts6_prefixes);
+use utils qw(notice);
 
 our ($api, $mod, $pool, $me);
 
