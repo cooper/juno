@@ -27,7 +27,7 @@ our ($api, $mod, $pool, $me);
 my $PARAM_BAD = $message::PARAM_BAD;
 my $props     = $Evented::Object::props;
 
-# TS versions 
+# TS versions
 our $TS_CURRENT  = 6;
 our $TS_MIN      = 6;
 
@@ -66,7 +66,7 @@ sub init {
 
 sub initiate_ts6_link {
     my $connection = shift;
-    $connection->{sent_creds}++;
+    return if $connection->{sent_creds}++;
     send_server_pass($connection);
     send_server_server($connection);
 }
