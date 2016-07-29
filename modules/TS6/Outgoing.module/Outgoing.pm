@@ -38,7 +38,7 @@ our %ts6_outgoing_commands = (
      part           => \&part,
      topic          => \&topic,
      cmode          => \&tmode,
-     channel_burst  => [ \&sjoin_burst, \&bmask, \&tb ],
+     channel_burst  => [ \&sjoin_burst, \&bmask, \&topicburst ],
    # acm            => \&acm,
    # aum            => \&aum,
      kill           => \&skill,
@@ -47,7 +47,7 @@ our %ts6_outgoing_commands = (
      login          => \&login,
      ping           => \&ping,
      pong           => \&pong,
-     topicburst     => \&tb,
+     topicburst     => \&topicburst,
      wallops        => \&wallops,
      chghost        => \&chghost,
      realhost       => \&realhost,
@@ -470,6 +470,50 @@ sub bmask {
     return @lines;
 }
 
+# wrapper which uses whichever topic burst method is available
+# the $source_maybe and %opts may be not be available on initial burst.
+#
+# source      => $s_serv
+# old         => the old $channel->{topic}
+# channel_ts  => $channel->{time}
+#
+sub topicburst {
+    my ($to_server, $channel, %opts) = @_;
+    my $new = $channel->{topic}; # or undef
+
+    # find the stuff we need
+    $opts{source}     ||= $me;
+    $opts{channel_ts} ||= $channel->{time};
+    my ($source, $old, $ch_time) = @opts{ qw(source old channel_ts) };
+
+    # if we can use ETB, this is very simple.
+    if ($to_server->has_cap('EOPMOD')) {
+        return etb($to_server, $channel, %opts);
+    }
+
+    # determine if we can use TB.
+    my $text_changed = !$old || $new && $old->{topic} ne $new->{topic};
+    my $can_use_tb =
+        $text_changed   &&              # TB is only useful if the text has changed
+        $new && length $new->{topic} && # it cannot unset topics
+        (!$old || $old->{time} > $new->{time}); # the topicTS has to be newer
+
+    # use TB if possible.
+    if ($can_use_tb) {
+        return tb($to_server, $channel, %opts);
+    }
+
+    # we can't use TB. fall back to TOPIC.
+    # note that this will fail if the source is not a user.
+    # ($to_server, $source, $channel, undef, $topic
+    return topic(
+        $to_server, $source, $channel, undef,
+        $new ? $new->{topic} : ''
+    ) if $text_changed;
+
+    return;
+}
+
 # TB
 #
 # capab:        TB
@@ -481,15 +525,6 @@ sub bmask {
 #
 sub tb {
     my ($to_server, $channel) = @_;
-    return unless $channel->topic;
-
-    # if TB is not supported, use TOPIC.
-    if (!$to_server->has_cap('tb')) {
-        return topic(
-            $to_server, $me, $channel,
-            $channel->{topic}{time}, $channel->{topic}{topic}
-        );
-    }
 
     sprintf
     ':%s TB %s %d %s:%s',
@@ -498,6 +533,10 @@ sub tb {
     $channel->{topic}{time},
     $to_server->ircd_opt('burst_topicwho') ? "$$channel{topic}{setby} " : '',
     $channel->{topic}{topic}
+}
+
+sub etb {
+
 }
 
 # PRIVMSG
@@ -606,9 +645,24 @@ sub kick {
 # ts6-protocol.txt:957
 #
 sub topic {
-    my ($to_server, $source, $channel, $time, $topic) = @_;
-    my $id = ts6_id($source);
-    ":$id TOPIC $$channel{name} :$topic"
+    my ($to_server, $source, $channel, undef, $topic) = @_;
+
+    # can't do anything about this.
+    if (!$source->isa('user')) {
+        notice(server_protocol_warning =>
+            $to_server->notice_info,
+            'cannot be sent topic change due to protocol limitations'
+        );
+        return;
+    }
+
+    # consider: charybdis has some crazy stuff to send SJOIN with the user
+    # opped, set the topic, and then part immediately after if the user is not
+    # in the channel.
+    # charybdis/blob/8fed90ba8a221642ae1f0fd450e8e580a79061fb/modules/m_tb.cc#L207
+
+    my $uid = ts6_id($source);
+    ":$uid TOPIC $$channel{name} :$topic"
 }
 
 # KILL

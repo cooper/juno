@@ -113,6 +113,11 @@ our %ts6_incoming_commands = (
         params  => '-source(user) :rest(opt)',
         code    => \&away
     },
+    ETB => {
+                  # :sid|uid ETB channelTS channel topicTS setby extensions topic
+        params => '-source       ts        channel ts      *     @rest',
+        code   => \&etb
+    },
     TB => {
                    # :sid TB        channel topic_ts setby    :topic
         params  => '-source(server) channel ts       *(opt)   :rest',
@@ -1245,13 +1250,51 @@ sub tb {
     }
 
     # ($source, $topic, $setby, $time, $check_time, $check_text)
+    my $old = $channel->{topic};
     $channel->do_topic($s_serv, $topic, $setby, $topic_ts, 1, 1)
         or return; # don't propagate if unchanged
 
     # === Forward ===
-    $msg->forward(topicburst => $channel);
+    $msg->forward(topicburst =>
+        $channel,
+        source      => $s_serv,
+        old         => $old
+    );
 
     return 1;
+}
+
+# ETB
+# capab:        EOPMOD
+# source:       any
+# propagation:  broadcast
+# parameters:   channelTS, channel, topicTS, topic setter, opt. extensions, topic
+#
+sub etb {
+    my ($server, $msg, $source, $ch_time, $channel, $topic_ts, $setby) = @_;
+    my $topic = pop;
+
+    # Accept if...
+    my $accept =
+        !$channel->{topic}              ||  # the channel has no topic
+         $channel->{time} > $ch_time    ||  # the provided channelTS is older
+        ($channel->{time} == $ch_time && $channel->{topic}{time} < $topic_ts);
+        # the channelTS are equal and the provided topicTS is newer
+    return unless $accept;
+
+    # set the topic. don't check the time because we already did.
+    my $old = $channel->{topic};
+    $channel->do_topic($source, $topic, $setby, $topic_ts, undef, 1);
+
+    # === Forward ===
+    $msg->forward(topicburst =>
+        $channel,
+        source      => $source,
+        old         => $old,
+        channel_ts  => $ch_time
+    );
+
+    return;
 }
 
 # WALLOPS

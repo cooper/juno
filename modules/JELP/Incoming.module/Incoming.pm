@@ -782,17 +782,25 @@ sub topicburst {
     # :sid   TOPICBURST channel ts   setby time :topic
     my ($server, $msg, $s_serv, $channel, $ts, $setby, $topic_ts, $topic) = @_;
 
-    if ($channel->take_lower_time($ts) != $ts) {
-        # bad channel time
-        return;
-    }
+    # Accept if...
+    my $accept =
+        !$channel->{topic}              ||  # the channel has no topic
+         $channel->{time} > $ts         ||  # the provided channelTS is older
+        ($channel->{time} == $ts && $channel->{topic}{time} < $topic_ts);
+        # the channelTS are equal and the provided topicTS is newer
+    return unless $accept;
 
     # ($source, $topic, $setby, $time, $check_time, $check_text)
-    $channel->do_topic($s_serv, $topic, $setby, $topic_ts, 1, 1)
-        or return; # don't propagate if unchanged
+    my $old = $channel->{topic};
+    $channel->do_topic($s_serv, $topic, $setby, $topic_ts, 0, 1);
 
     # === Forward ===
-    $msg->forward(topicburst => $channel);
+    $msg->forward(topicburst =>
+        $channel,
+        source      => $s_serv,
+        old         => $old,
+        channel_ts  => $ts
+    );
 
     return 1;
 }

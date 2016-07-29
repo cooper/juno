@@ -3534,3 +3534,8 @@ CHANGES:
             added channel method ->do_topic() which eliminates code repetition in setting topics.
             updated TS6 and JELP core handlers to use the new method.
             new server method ->server conveniently returns the server object.
+
+        73. added TS6 ETB (extended topic burst) command.
+            reworked the way topics are bursted in TS6 such that ETB, TB, or TOPIC will be used, depending on what is available.
+            the 'topicburst' outgoing command is now forwarded with additional information about the incoming command when possible.
+            this also adds the 'EOPMOD' capability, although it is not fully implemented.

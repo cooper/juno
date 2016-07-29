@@ -37,6 +37,7 @@ our %ts6_capabilities = (
     SAVETS_100  => { required => 0 },   # ratbox: silences warnings about SAVE
     RSFNC       => { required => 0 },   # forcenick extension
     CLUSTER     => { required => 0 },   # KLINE, XLINE, RESV, LOCOPS
+    EOPMOD      => { required => 0 },   # extended topic burst (ETB), +z stuff
 );
 
 our %registration_commands = (
