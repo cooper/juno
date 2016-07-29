@@ -1249,12 +1249,16 @@ sub tb {
         $setby = $s_serv->name;
     }
 
-    # in TB, the topic has to have length.
-    # this cannot be used to unset a topic.
+    # TB does not support unsetting topics. the new topic has to have length.
     return if !length $topic;
 
-    # if we have a topic already and it is older, ignore this message.
-    return if $channel->{topic} && $channel->{topic}{time} > $topic_ts;
+    # TB does not support switching to older topics or changing solely the
+    # topicTS. if we have a topic already and it is older, ignore this message.
+    # if the topic existed already and is unchanged, ignore this message.
+    if ($channel->{topic}) {
+        return if $channel->{topic}{time}   > $topic_ts;
+        return if $channel->{topic}{topic} eq $topic;
+    }
 
     # set the topic
     my $old = $channel->{topic};    # don't propagate if unchanged
