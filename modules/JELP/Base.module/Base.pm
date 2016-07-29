@@ -17,7 +17,7 @@ use 5.010;
 use utils qw(col trim notice);
 use Scalar::Util qw(looks_like_number blessed);
 
-our ($api, $mod, $pool);
+our ($api, $mod, $pool, $me);
 my $PARAM_BAD = $message::PARAM_BAD;
 my $props     = $Evented::Object::props;
 
@@ -29,11 +29,17 @@ sub init {
     $mod->register_module_method('register_outgoing_command') or return;
 
     # module events.
-    $api->on('module.unload' => \&unload_module, with_eo => 1) or return;
+    $api->on('module.unload' => \&unload_module, with_eo => 1);
     $api->on('module.init'   => \&module_init,
         name    => '%jelp_outgoing_commands',
         with_eo => 1
-    ) or return;
+    );
+
+    # server events.
+    $pool->on('server.initiate_jelp_link' => \&initiate_jelp_link,
+        name    => 'jelp.initiate',
+        with_eo => 1
+    );
 
     return 1;
 }
@@ -129,6 +135,44 @@ sub register_outgoing_command {
     L("JELP outgoing command $opts{name} registered");
     $mod->list_store_add('outgoing_commands', $opts{name});
     return 1;
+}
+
+#############################
+### Initiating JELP links ###
+#############################
+
+sub initiate_jelp_link {
+    my $conn = shift;
+    $conn->{sent_creds} = 1;
+    $conn->send_server_server;
+}
+
+sub send_server_server {
+    my $connection = shift;
+    my $name = $connection->{name} // $connection->{want};
+    if (!defined $name) {
+        L('Trying to send credentials to an unknown server?');
+        return;
+    }
+    $connection->send(sprintf 'SERVER %s %s %s %s :%s',
+        $me->{sid},
+        $me->{name},
+        v('PROTO'),
+        v('VERSION'),
+        ($me->{hidden} ? '(H) ' : '').$me->{desc}
+    );
+    $connection->{i_sent_server} = 1;
+}
+
+sub send_server_pass {
+    my $connection = shift;
+    my $name = $connection->{name} // $connection->{want};
+    if (!defined $name) {
+        L('Trying to send credentials to an unknown server?');
+        return;
+    }
+    $connection->send('PASS '.conf(['connect', $name], 'send_password'));
+    $connection->{i_sent_pass} = 1;
 }
 
 ##########################

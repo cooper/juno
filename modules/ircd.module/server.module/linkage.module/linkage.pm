@@ -84,7 +84,8 @@ sub connect_server {
             first_interval => 0,
             interval => $interval,
             on_tick  => sub {
-                _establish_connection($server_name, $timers->{$server_name}, %serv)
+                my $timer = shift;
+                _establish_connection($server_name, $timer, %serv);
             }
         );
         $timer->start;
@@ -112,6 +113,13 @@ sub _establish_connection {
         $connect = 'SSL_connect';
         %ssl_opts = (SSL_verify_mode => IO::Socket::SSL::SSL_VERIFY_NONE());
         # TODO: fingerprints
+    }
+
+    # protocol?
+    my $proto = 'jelp'; # fallback
+    if ($serv{ircd}) {
+        my %ircd = server::protocol::ircd_support_hash($serv{ircd});
+        $proto = $ircd{link_type};
     }
 
     # create a future that attempts to connect.
@@ -176,11 +184,13 @@ sub _establish_connection {
         # add to loop.
         $::loop->add($stream);
 
-        # set up the connection; send SERVER command.
+        # set up the connection.
         $conn->{i_initiated} = 1;
-        $conn->{sent_creds} = 1;
-        $conn->{want}       = $server_name; # server name to expect in return.
-        $conn->send_server_server;
+        $conn->{want} = $server_name; # server name to expect in return.
+
+        # this is where proto modules will send their initial commands
+        $conn->{link_type} = $proto;
+        $conn->fire("initiate_${proto}_link");
 
     });
 }

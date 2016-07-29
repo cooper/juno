@@ -8,7 +8,7 @@
 # @package:         'M::JELP::Registration'
 # @description:     'JELP registration commands'
 #
-# @depends.modules: 'Base::RegistrationCommands'
+# @depends.modules: ['Base::RegistrationCommands', 'JELP::Base']
 #
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'
@@ -83,13 +83,13 @@ sub rcmd_server {
 
     # send my own SERVER if I haven't already.
     if (!$connection->{i_sent_server}) {
-        $connection->send_server_server;
+        M::JELP::Base::send_server_server($connection);
     }
 
     # otherwise, I am going to expose my password.
     # this means that I was the one that issued the connect.
     else {
-        $connection->send_server_pass;
+        M::JELP::Base::send_server_pass($connection);
     }
 
     # made it.
@@ -125,9 +125,10 @@ sub rcmd_pass {
     # hostname resolve, ident, etc. are done.
     $connection->on(ready_done => sub {
         my $c = shift;
-        $c->send_server_pass;
+        M::JELP::Base::send_server_pass($c);
         $c->send('READY');
-    }, name => 'jelp.send.password', with_eo => 1) if !$connection->{i_sent_pass};
+    }, name => 'jelp.send.password', with_eo => 1)
+        if !$connection->{i_sent_pass};
 
     $connection->reg_continue('id2');
     return 1;

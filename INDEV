@@ -3546,3 +3546,6 @@ CHANGES:
             set the 'proto' option for TS6 servers to TS$TS_VERSION.
 
         75. channel 'can_message', 'can_privmsg', and 'can_notice' events can now set a {new_message} key to change the message text.
+            new 'initiate_$PROTO_link' events can be used by protocol modules to send the initial authentication commands.
+            moved JELP's ->send_server_server and ->send_server_pass methods from connection.pm to JELP::Base.
+            eliminated a cyclical reference in server autoconnect timers.

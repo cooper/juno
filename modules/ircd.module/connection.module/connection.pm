@@ -386,38 +386,6 @@ sub possibly_protocol {
     return grep { $_ eq $proto } $connection->possible_protocols;
 }
 
-##########################
-### Server credentials ###
-##########################
-
-sub send_server_server {
-    my $connection = shift;
-    my $name = $connection->{name} // $connection->{want};
-    if (!defined $name) {
-        L('Trying to send credentials to an unknown server?');
-        return;
-    }
-    $connection->send(sprintf 'SERVER %s %s %s %s :%s',
-        $me->{sid},
-        $me->{name},
-        v('PROTO'),
-        v('VERSION'),
-        ($me->{hidden} ? '(H) ' : '').$me->{desc}
-    );
-    $connection->{i_sent_server} = 1;
-}
-
-sub send_server_pass {
-    my $connection = shift;
-    my $name = $connection->{name} // $connection->{want};
-    if (!defined $name) {
-        L('Trying to send credentials to an unknown server?');
-        return;
-    }
-    $connection->send('PASS '.conf(['connect', $name], 'send_password'));
-    $connection->{i_sent_pass} = 1;
-}
-
 ####################
 ### CAPABILITIES ###
 ####################
