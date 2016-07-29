@@ -525,6 +525,7 @@ sub topicburst {
 #
 sub tb {
     my ($to_server, $channel) = @_;
+    return unless $channel->topic;
 
     sprintf
     ':%s TB %s %d %s:%s',
@@ -535,8 +536,21 @@ sub tb {
     $channel->{topic}{topic}
 }
 
+# ETB
+# capab:        EOPMOD
+# source:       any
+# propagation:  broadcast
+# parameters:   channelTS, channel, topicTS, topic setter, opt. extensions, topic
+#
 sub etb {
-
+    my ($to_server, $channel, %opts) = @_;
+    sprintf ':%s ETB %d %s %d %s :%s',
+    ts6_id($opts{source}),
+    $opts{channel_ts},
+    $channel->{name},
+    $opts{new} ? $opts{new}{time}  : 0, # FIXME
+    $opts{new} ? $opts{new}{setby} : $me->name, # FIXME
+    $opts{new} ? $opts{new}{topic} : ''
 }
 
 # PRIVMSG
