@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # Copyright (c) 2011-14, Mitchell Cooper
 
-use warnings; no warnings 'experimental::smartmatch';
+use warnings;
 use strict;
 use feature 'switch';
 
