@@ -768,7 +768,7 @@ sub topic {
         return
     }
 
-    # ($source, $topic, $setby, $time, $check_time, $check_text)
+    # ($source, $topic, $setby, $time, $check_text)
     $channel->do_topic($source, $topic, $source->full, time);
 
     # === Forward ===
@@ -790,9 +790,9 @@ sub topicburst {
         # the channelTS are equal and the provided topicTS is newer
     return unless $accept;
 
-    # ($source, $topic, $setby, $time, $check_time, $check_text)
+    # ($source, $topic, $setby, $time, $check_text)
     my $old = $channel->{topic};
-    $channel->do_topic($s_serv, $topic, $setby, $topic_ts, 0, 1);
+    $channel->do_topic($s_serv, $topic, $setby, $topic_ts, 1);
 
     # === Forward ===
     $msg->forward(topicburst =>

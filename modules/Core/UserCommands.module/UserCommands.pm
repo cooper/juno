@@ -1042,7 +1042,7 @@ sub topic {
         }
 
         my $time = time;
-        # ($source, $topic, $setby, $time, $check_time, $check_text)
+        # ($source, $topic, $setby, $time, $check_text)
         $channel->do_topic($user, $new_topic, $user->full, $time);
         $pool->fire_command_all(topic => $user, $channel, $time, $new_topic);
     }

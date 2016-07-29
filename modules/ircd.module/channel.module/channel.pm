@@ -1069,24 +1069,17 @@ sub user_get_kicked {
 # $topic            the new topic
 # $setby            string for who set the topic
 # $time             new topic TS
-# $check_time       when true, if !$is_local && topicTS < $time, abort
 # $check_text       when true, do not send TOPIC unless text has changed
 #
 # returns true if the topic changed in any way, whether that be the text,
 # setby, or topicTS.
 #
 sub do_topic {
-    my ($channel, $source, $topic, $setby, $time, $check_time, $check_text) = @_;
+    my ($channel, $source, $topic, $setby, $time, $check_text) = @_;
     $topic //= '';
 
-    # if we're checking the time, make sure this topic is older.
-    my $existing = $channel->{topic};
-    return if
-        $check_time &&
-        $existing   &&
-        $existing->{time} < $time;
-
     # if we're checking the text, see if it has changed.
+    my $existing = $channel->{topic};
     my $text_unchanged;
     $text_unchanged++ if
         $check_text   && $existing  &&

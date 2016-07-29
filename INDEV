@@ -3539,3 +3539,4 @@ CHANGES:
             reworked the way topics are bursted in TS6 such that ETB, TB, or TOPIC will be used, depending on what is available.
             the 'topicburst' outgoing command is now forwarded with additional information about the incoming command when possible.
             this also adds the 'EOPMOD' capability, although it is not fully implemented.
+            JELP TOPICBURST now uses the same logic as TS6 ETB for accepting topics.

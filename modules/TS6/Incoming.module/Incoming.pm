@@ -1220,7 +1220,7 @@ sub topic {
     # :uid TOPIC    channel :topic
     my ($server, $msg, $user, $channel, $topic) = @_;
 
-    # ($source, $topic, $setby, $time, $check_time, $check_text)
+    # ($source, $topic, $setby, $time, $check_text)
     $channel->do_topic($user, $topic, $user->full, time);
 
     # === Forward ===
@@ -1249,10 +1249,16 @@ sub tb {
         $setby = $s_serv->name;
     }
 
-    # ($source, $topic, $setby, $time, $check_time, $check_text)
-    my $old = $channel->{topic};
-    $channel->do_topic($s_serv, $topic, $setby, $topic_ts, 1, 1)
-        or return; # don't propagate if unchanged
+    # in TB, the topic has to have length.
+    # this cannot be used to unset a topic.
+    return if !length $topic;
+
+    # if we have a topic already and it is older, ignore this message.
+    return if $channel->{topic} && $channel->{topic}{time} > $topic_ts;
+
+    # set the topic
+    my $old = $channel->{topic};    # don't propagate if unchanged
+    $channel->do_topic($s_serv, $topic, $setby, $topic_ts) or return;
 
     # === Forward ===
     $msg->forward(topicburst =>
@@ -1282,11 +1288,16 @@ sub etb {
         # the channelTS are equal and the provided topicTS is newer
     return unless $accept;
 
-    # set the topic. don't check the time because we already did.
+    # set the topic.
     my $old = $channel->{topic};
-    $channel->do_topic($source, $topic, $setby, $topic_ts, undef, 1);
+    $channel->do_topic($source, $topic, $setby, $topic_ts, 1);
 
     # === Forward ===
+    #
+    # Note that the including the provided $channel_ts is crucial here.
+    # Services uses channelTS '0' to force a topic change. The channelTS
+    # must be propagated as it was received.
+    #
     $msg->forward(topicburst =>
         $channel,
         source      => $source,
