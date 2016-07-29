@@ -144,7 +144,7 @@ sub register_outgoing_command {
 sub initiate_jelp_link {
     my $connection = shift;
     $connection->{sent_creds} = 1;
-    $connection->send_server_server;
+    send_server_server($connection);
 }
 
 sub send_server_server {
