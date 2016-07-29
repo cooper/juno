@@ -768,21 +768,8 @@ sub topic {
         return
     }
 
-    # tell users.
-    $channel->sendfrom_all($source->full, "TOPIC $$channel{name} :$topic");
-
-    # set it
-    if (length $topic) {
-        $channel->{topic} = {
-            setby  => $source->full,
-            time   => $time,
-            topic  => $topic,
-            source => $server->{sid}
-        };
-    }
-    else {
-        delete $channel->{topic}
-    }
+    # ($source, $topic, $setby, $time, $check_time, $check_text)
+    $channel->do_topic($source, $topic, $source->full, time);
 
     # === Forward ===
     $msg->forward(topic => $source, $channel, $channel->{time}, $topic);
@@ -800,37 +787,9 @@ sub topicburst {
         return;
     }
 
-    # we have a topic btw.
-    if ($channel->{topic}) {
-
-        # our topicTS is older.
-        return if $channel->{topic}{time} < $topic_ts;
-
-        # the topics are the same.
-        return if
-            $channel->{topic}{topic} eq $topic &&
-            $channel->{topic}{setby} eq $setby;
-
-    }
-
-    # tell users.
-    my $t = $channel->topic;
-    if (!$t or $t && $t->{topic} ne $topic) {
-        $channel->sendfrom_all($s_serv->full, "TOPIC $$channel{name} :$topic");
-    }
-
-    # set it
-    if (length $topic) {
-        $channel->{topic} = {
-            setby  => $setby,
-            time   => $topic_ts,
-            topic  => $topic,
-            source => $server->{sid} # source = SID of server location where topic set
-        };
-    }
-    else {
-        delete $channel->{topic};
-    }
+    # ($source, $topic, $setby, $time, $check_time, $check_text)
+    $channel->do_topic($s_serv, $topic, $setby, $topic_ts, 1, 1)
+        or return; # don't propagate if unchanged
 
     # === Forward ===
     $msg->forward(topicburst => $channel);

@@ -732,6 +732,8 @@ sub full     { shift->{name}        }
 sub name     { shift->{name}        }
 sub conn     { shift->{conn}        }
 sub users    { @{ shift->{users} }  }
+sub server   { shift                }
+sub parent   { shift->{parent}      }
 
 # actual_users = real users
 # global_users = all users which are propogated, including fake ones

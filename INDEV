@@ -3531,3 +3531,6 @@ CHANGES:
             Git now also shows the commit and other info in the oper notices.
 
         72. added 'burst_topicwho' option for TS6. without it, the 'setby' parameter is omitted from TB.
+            added channel method ->do_topic() which eliminates code repetition in setting topics.
+            updated TS6 and JELP core handlers to use the new method.
+            new server method ->server conveniently returns the server object.

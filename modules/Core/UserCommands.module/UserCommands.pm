@@ -1041,23 +1041,10 @@ sub topic {
             return;
         }
 
-        $channel->sendfrom_all($user->full, "TOPIC $$channel{name} :$new_topic");
-        $pool->fire_command_all(topic => $user, $channel, time, $new_topic);
-
-        # set it.
-        if (length $new_topic) {
-            $channel->{topic} = {
-                setby => $user->full,
-                time  => time,
-                topic => $new_topic
-            };
-        }
-
-        # delete it.
-        else {
-            delete $channel->{topic};
-        }
-
+        my $time = time;
+        # ($source, $topic, $setby, $time, $check_time, $check_text)
+        $channel->do_topic($user, $new_topic, $user->full, $time);
+        $pool->fire_command_all(topic => $user, $channel, $time, $new_topic);
     }
 
     # viewing topic

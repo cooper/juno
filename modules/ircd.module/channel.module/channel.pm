@@ -1061,4 +1061,67 @@ sub user_get_kicked {
     return $channel->remove_user($user);
 }
 
+# handles a topic change. ignores newer topics.
+# if the topic is an empty string or undef, it is unset.
+# notifies users only if the text has actually changed.
+#
+# $source           source user or server to send TOPIC message from
+# $topic            the new topic
+# $setby            string for who set the topic
+# $time             new topic TS
+# $check_time       when true, if !$is_local && topicTS < $time, abort
+# $check_text       when true, do not send TOPIC unless text has changed
+#
+# returns true if the topic changed in any way, whether that be the text,
+# setby, or topicTS.
+#
+sub do_topic {
+    my ($channel, $source, $topic, $setby, $time, $check_time, $check_text) = @_;
+    $topic //= '';
+
+    # if we're checking the time, make sure this topic is older.
+    my $existing = $channel->{topic};
+    return if
+        $check_time &&
+        $existing   &&
+        $existing->{time} < $time;
+
+    # if we're checking the text, see if it has changed.
+    my $text_unchanged;
+    $text_unchanged++ if
+        $check_text   && $existing  &&
+        length $topic && $topic eq $existing->{topic};
+    $text_unchanged++ if
+        $check_text   && !$existing &&
+        !length $topic;
+
+    # determine what has changed.
+    if ($text_unchanged) {
+        return if
+            $setby eq $channel->{topic}{setby} &&
+            $time  == $channel->{topic}{time};
+    }
+
+    # tell users.
+    else {
+        $channel->sendfrom_all($source->full, "TOPIC $$channel{name} :$topic");
+    }
+
+    # no length, so unsetting.
+    if (!length $topic) {
+        delete $channel->{topic};
+        return 1;
+    }
+
+    # set a new topic.
+    $channel->{topic} = {
+        setby  => $setby,
+        time   => $time,
+        topic  => $topic,
+        source => $source->server->id
+    };
+
+    return 1;
+}
+
 $mod
