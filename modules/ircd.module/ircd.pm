@@ -720,7 +720,7 @@ sub ping_check {
             # if it's a server, we might need to produce a warning.
             if ($type eq 'server') {
                 next if $connection->{warned_ping}++;
-                my $needed_to_warn = conf([ 'servers', 'warn_ping' ]) || 'inf';
+                my $needed_to_warn = conf('servers', 'warn_ping') || 'inf';
                 notice(server_not_responding =>
                     $connection->server->notice_info,
                     $since_last
