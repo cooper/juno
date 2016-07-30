@@ -309,6 +309,7 @@ sub hops_to {
 sub id            { shift->{uid}    }
 sub name          { shift->{nick}   }
 sub server        { shift->{server} }
+sub user          { shift           }
 
 ##########################
 ### HIGH-LEVEL METHODS ###
