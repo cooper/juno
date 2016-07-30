@@ -16,6 +16,7 @@ use strict;
 use 5.010;
 use Module::Loaded qw(is_loaded);
 use Scalar::Util   qw(weaken blessed openhandle);
+use POSIX          ();
 
 our ($api, $mod, $me, $pool, $loop, $conf, $boot, $timer, $VERSION);
 our (%channel_mode_prefixes, %listeners, %listen_protocol, $disable_warnings);
@@ -98,6 +99,11 @@ sub init {
 
     L("server initialization complete");
     return 1;
+}
+
+# refuse unload unless reloading.
+sub void {
+    return $mod->{reloading};
 }
 
 sub setup_inc {
@@ -317,20 +323,33 @@ sub setup_sockets {
 
 # this is called for both new and
 # existing listeners, even during reload.
+my @listener_opts = (
+    on_accept    => sub { &handle_connect },
+    #on_error     => sub { &handle_listen_error }
+);
 sub configure_listener {
     my $listener = shift;
 
     # if there is no read handle, this is dead.
-    if ($listener->loop && !$listener->read_handle && !$listener->parent) {
+    if (!$listener->loop && !$listener->read_handle && !$listener->parent) {
         $loop->remove($listener);
     }
 
-    $listener->{on_accept} = sub { &handle_connect };
+    $listener->configure(@listener_opts);
     $listener->{ssl} = $listener->{handle_class} eq 'IO::Async::SSLStream';
 }
 
 # this is called for both new and
 # existing streams,  even during reload.
+our @stream_opts = (
+    read_all       => 0,
+    read_len       => POSIX::BUFSIZ(),
+    on_read        => sub { &handle_data },
+    on_read_eof    => sub { _conn_close('Connection closed',   @_) },
+    on_write_eof   => sub { _conn_close('Connection closed',   @_) },
+    on_read_error  => sub { _conn_close('Read error: ' .$_[1], @_) },
+    on_write_error => sub { _conn_close('Write error: '.$_[1], @_) }
+);
 sub configure_stream {
     my $stream = shift;
 
@@ -339,7 +358,7 @@ sub configure_stream {
         $loop->remove($stream);
     }
 
-    $stream->{on_read} = sub { &handle_data };
+    $stream->configure(@stream_opts);
 }
 
 sub listen_addr_port {
@@ -376,7 +395,7 @@ sub listen_addr_port {
     # handle_class or handle_constructor and on_accept.
     my $listener = IO::Async::Listener->new(
         handle_class => $ssl ? 'IO::Async::SSLStream' : 'IO::Async::Stream',
-        on_accept    => sub { &handle_connect },
+        @listener_opts
     );
     $loop->add($listener);
 
@@ -413,9 +432,15 @@ sub listen_addr_port {
     return 1;
 }
 
-# refuse unload unless reloading.
-sub void {
-    return $mod->{reloading};
+sub handle_listen_error {
+    print "@_\n";
+}
+
+# handles a connection error or EOF.
+sub _conn_close {
+    my $stream = shift;
+    my $conn = $pool->lookup_connection($stream) or return;
+    $conn->close_now;
 }
 
 # miscellaneous upgrade fixes.
@@ -571,16 +596,6 @@ sub handle_connect {
     weaken( $conn->{listener} = $listener );
 
     # set up stream.
-    $stream->configure(
-        read_all       => 0,
-        read_len       => POSIX::BUFSIZ(),
-        on_read        => sub { &handle_data },
-        on_read_eof    => sub { $stream->close_now; $conn->done('Connection closed')    },
-        on_write_eof   => sub { $stream->close_now; $conn->done('Connection closed')    },
-        on_read_error  => sub { $stream->close_now; $conn->done('Read error: ' .$_[1])  },
-        on_write_error => sub { $stream->close_now; $conn->done('Write error: '.$_[1])  }
-    );
-
     configure_stream($stream);
     $loop->add($stream);
 

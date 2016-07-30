@@ -111,7 +111,10 @@ sub _establish_connection {
     if ($serv{ssl}) {
         require IO::Async::SSL;
         $connect = 'SSL_connect';
-        %ssl_opts = (SSL_verify_mode => IO::Socket::SSL::SSL_VERIFY_NONE());
+        %ssl_opts = (
+            SSL_verify_mode => IO::Socket::SSL::SSL_VERIFY_NONE(),
+            on_ssl_error    => sub { ircd::_conn_close('SSL error: '.$_[1], @_) }
+        );
         # TODO: fingerprints
     }
 
@@ -123,12 +126,16 @@ sub _establish_connection {
     }
 
     # create a future that attempts to connect.
-    my $connect_future = $::loop->$connect(addr => {
-        family   => index($serv{address}, ':') != -1 ? 'inet6' : 'inet',
-        socktype => 'stream',
-        port     => $serv{port},
-        ip       => $serv{address},
-    }, %ssl_opts);
+    my $connect_future = $::loop->$connect(
+        addr => {
+            family   => index($serv{address}, ':') != -1 ? 'inet6' : 'inet',
+            socktype => 'stream',
+            port     => $serv{port},
+            ip       => $serv{address}
+        },
+        @ircd::stream_opts,
+        %ssl_opts
+    );
 
     # create a future to time out after 5 seconds.
     # create a third future that will wait for whichever comes first.
@@ -146,6 +153,7 @@ sub _establish_connection {
         # it failed.
         if (my $e = $f->failure) {
             chomp $e;
+            return if $f->is_cancelled;
             notice(connect_fail => $server_name, length $e ? $e : 'Timeout');
             return;
         }
@@ -162,24 +170,13 @@ sub _establish_connection {
         else {
             $stream = IO::Async::Stream->new(
                 handle         => $socket,
-                read_all       => 0,
-                read_len       => POSIX::BUFSIZ()
+                @ircd::stream_opts
             );
         }
 
-        # configure the stream events.
-        my $conn;
-        my $done = sub { $conn->done(shift) if $conn; shift->close_now };
-        $stream->configure(
-            on_read        => sub { &ircd::handle_data },
-            on_read_eof    => sub { $done->('Connection closed',   shift) },
-            on_write_eof   => sub { $done->('Connection closed',   shift) },
-            on_read_error  => sub { $done->('Read error: ' .$_[1], shift) },
-            on_write_error => sub { $done->('Write error: '.$_[1], shift) }
-        );
-
         # create a connection object.
-        $conn = $conns->{$server_name} = $pool->new_connection(stream => $stream);
+        my $conn = $conns->{$server_name} =
+            $pool->new_connection(stream => $stream);
 
         # add to loop.
         $::loop->add($stream);
@@ -213,18 +210,27 @@ sub _establish_connection {
 #
 sub cancel_connection {
     my ($server_name, $keep_conn) = (irc_lc(shift), shift);
-    my $timer = delete $timers->{$server_name};
     my $ret;
+
+    # cancel timer
+    my $timer = delete $timers->{$server_name};
     if ($timer) {
         $timer->stop if $timer->is_running;
         $timer->loop->remove($timer) if $timer->loop;
-        $ret = 1;
+        $ret++;
     }
-    unless ($keep_conn) {
+
+    # cancel pending future
+    my $future = delete $futures->{$server_name};
+    $future->cancel if $future;
+
+    # close connection
+    if ($keep_conn) {
         my $conn = delete $conns->{$server_name};
-        $conn->{dont_reconnect}++;
+        $conn->{dont_reconnect}++ if $conn;
         $conn->done('Connection canceled') if $conn;
     }
+
     return $ret;
 }
 

@@ -3567,3 +3567,7 @@ CHANGES:
             failed channel join replies now use an {error_reply} key rather than calling ->numeric() directly. this allows other modules to cancel the replies.
             updated all modules that hook onto 'cant_join' to use the new {error_reply} key.
             Channel::Forward now sends the original error channel's message when the forward channel join fails. closes #60.
+
+        79. listener and stream options are now properly updated on reload with configure_listener() and configure_stream().
+            ->configure() for IO::Async::Stream objects is now consistent between linkage.pm and ircd.pm.
+            error handlers for streams are now also shared between ircd.pm and linkage.pm.
