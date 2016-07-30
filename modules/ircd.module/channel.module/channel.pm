@@ -906,8 +906,8 @@ sub handle_privmsgnotice {
 
             # if the message was blocked, fire cant_* events.
             my $cant_fire = $source_user->fire_events_together(
-                [  cant_message     => $channel, $message, $lccommand ],
-                [ "cant_$lccommand" => $channel, $message             ]
+                [  cant_message     => $channel, $message, $lccommand, $can_fire ],
+                [ "cant_$lccommand" => $channel, $message,             $can_fire ]
             );
 
             # the cant_* events may be stopped. if this happens, the error
