@@ -439,8 +439,8 @@ sub handle_listen_error {
 # handles a connection error or EOF.
 sub _conn_close {
     my ($err, $stream) = @_;
-    my $conn = $pool->lookup_connection($stream) or return;
-    $conn->done($err);
+    my $conn = $pool->lookup_connection($stream);
+    $conn->done($err) if $conn;
     $stream->close_now;
 }
 
@@ -449,18 +449,24 @@ sub _conn_close {
 # already to improve the efficiency of this.
 sub misc_upgrades {
 
-    # all connected servers without link_type are JELP.
+    # inject missing server information.
     foreach my $server ($pool->servers) {
+
+        # servers with connections need a link_type.
+        # all connected servers without link_type are JELP.
         next unless $server->{conn};
         $server->{link_type} //= 'jelp';
     }
 
-    # local users need a last_command time.
+    # inject missing local user information.
     foreach my $user ($pool->local_users) {
         next unless $user->{conn};
+
+        # local users need a last_command time.
         $user->{conn}{last_command} ||= time;
     }
 
+    # inject missing user information.
     foreach my $user ($pool->all_users) {
 
         # nickTS otherwise equals connectTS.
@@ -715,7 +721,7 @@ sub ping_check {
             # if it's a server, we might need to produce a warning.
             if ($type eq 'server') {
                 next if $connection->{warned_ping}++;
-                my $needed_to_warn = conf([ 'servers', 'warn_ping' ]);
+                my $needed_to_warn = conf([ 'servers', 'warn_ping' ]) || 'inf';
                 notice(server_not_responding =>
                     $connection->server->notice_info,
                     $since_last
@@ -874,7 +880,7 @@ sub get_version {
 sub add_internal_channel_modes {
 
     L('registering channel status modes');
-    $me->{cmodes}      = {};
+    $me->{cmodes} = {};
     %channel_mode_prefixes = ();
 
     # [letter, symbol, name, set_weight]
