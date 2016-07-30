@@ -336,7 +336,6 @@ sub configure_listener {
     }
 
     $listener->configure(@listener_opts);
-    $listener->{ssl} = $listener->{handle_class} eq 'IO::Async::SSLStream';
 }
 
 # this is called for both new and

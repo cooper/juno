@@ -168,11 +168,9 @@ sub _establish_connection {
             $stream = $socket;
         }
         else {
-            $stream = IO::Async::Stream->new(
-                handle         => $socket,
-                @ircd::stream_opts
-            );
+            $stream = IO::Async::Stream->new(handle => $socket);
         }
+        ircd::configure_stream($stream);
 
         # create a connection object.
         my $conn = $conns->{$server_name} =

@@ -785,7 +785,7 @@ sub _new_connection {
     # set modes.
     # note: we don't use do_mode_string() because we wait until afterward to send MODE.
     $user->handle_mode_string(conf qw/users automodes/);
-    $user->set_mode('ssl') if $user->conn->{listener}{ssl};
+    $user->set_mode('ssl') if $user->{ssl};
     $user->fire_event('initially_set_modes');
 
     # tell other servers
