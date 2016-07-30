@@ -53,7 +53,7 @@ sub on_user_can_message {
     my ($user, $event, $channel, $message, $type) = @_;
 
     # has voice.
-    return if $channel->user_get_highest_level($user) >= -2;
+    return if $channel->user_get_highest_level($user) >= $channel::LEVEL_SPEAK_MOD;
 
     # not muted.
     return unless $channel->list_matches('mute', $user);

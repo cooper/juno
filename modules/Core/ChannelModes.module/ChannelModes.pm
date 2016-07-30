@@ -165,7 +165,7 @@ sub add_message_restrictions {
 
         # not moderated, or the user has proper status.
         return unless $channel->is_mode('moderated');
-        return if $channel->user_get_highest_level($user) >= -2;
+        return if $channel->user_get_highest_level($user) >= $channel::LEVEL_SPEAK_MOD;
 
         # no external messages.
         $event->{error_reply} =
@@ -179,7 +179,7 @@ sub add_message_restrictions {
         my ($user, $event, $channel, $message, $type) = @_;
 
         # not banned, or the user has overriding status.
-        return if $channel->user_get_highest_level($user) >= -2;
+        return if $channel->user_get_highest_level($user) >= $channel::LEVEL_SPEAK_MOD;
         return unless $channel->list_matches('ban', $user);
         return if $channel->list_matches('except', $user);
 

@@ -23,6 +23,9 @@ use Scalar::Util qw(blessed);
 
 our ($api, $mod, $pool, $me);
 
+our $LEVEL_SPEAK_MOD    = -2;   # level needed to speak when moderated or banned
+our $LEVEL_SIMPLE_MODES = -1;   # level needed to set simple modes
+
 #   === Channel mode types ===
 #
 #   type            n   description                                 e.g.
@@ -548,7 +551,7 @@ sub user_is {
 # greater than voice (halfop, op, admin, owner)
 sub user_has_basic_status {
     my ($channel, $user) = @_;
-    return $channel->user_get_highest_level($user) >= -1;
+    return $channel->user_get_highest_level($user) >= $LEVEL_SIMPLE_MODES;
 }
 
 # get the highest level of a user
