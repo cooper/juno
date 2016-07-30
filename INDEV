@@ -3576,3 +3576,6 @@ CHANGES:
             ping:server:frequency is now servers:ping_freq. ping:server:timeout is now servers:ping_timeout.
             ping:user:frequency is now users:ping_freq. ping:user:timeout is now users:ping_timeout.
             servers:max_delta is now delta_max. servers:warn_delta is now delta_warn. servers:warn_ping is now ping_warn.
+
+    8. added connection methods ->add_future(), ->remove_future(), and ->clear_futures().
+        these provide a decent way to manage self-cancelling futures associated with a connection.

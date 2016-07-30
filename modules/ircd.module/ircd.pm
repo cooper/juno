@@ -698,7 +698,7 @@ sub ping_check {
     foreach my $connection ($pool->connections) {
 
         # the socket is dead.
-        if (!$connection->sock) {
+        if (!$connection->stream || !$connection->sock) {
             $connection->done('Dead socket');
             next;
         }
@@ -733,13 +733,12 @@ sub ping_check {
         # send a ping if we haven't already.
         if (!$connection->{ping_in_air}) {
             $connection->send("PING :$$me{name}");
-            $connection->{ping_in_air} = 1;
+            $connection->{ping_in_air}++;
         }
 
         # ping timeout.
         $connection->done("Ping timeout: $since_last seconds")
             if $since_last >= conf($type, 'ping_timeout');
-
     }
 }
 
