@@ -223,7 +223,7 @@ sub cancel_connection {
     $future->cancel if $future;
 
     # close connection
-    if ($keep_conn) {
+    unless ($keep_conn) {
         my $conn = delete $conns->{$server_name};
         $conn->{dont_reconnect}++ if $conn;
         $conn->done('Connection canceled') if $conn;
