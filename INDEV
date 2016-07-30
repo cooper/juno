@@ -3553,3 +3553,9 @@ CHANGES:
 
         76. cleaned up channel->handle_privmsgnotice(). it now uses a single user iteration.
             a new option can specify which users to send to, but it will fall back to old behavior if omitted (all users).
+            Add support for registered-only channel mode (+r). Closes #45.
+            Add support for ssl-only channel mode (+S).
+            Added color stripping mode (+c). Closes #49.
+            Update configurations and documentation for new modes.
+
+        77. 
