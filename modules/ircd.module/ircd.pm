@@ -701,15 +701,29 @@ sub ping_check {
         # not yet registered.
         # if they have been connected for 30 secs without registering, drop.
         if (!$connection->{type}) {
-            $connection->done('Registration timeout') if time - $connection->{time} > 30;
+            $connection->done('Registration timeout')
+                if time - $connection->{time} > 30;
             next;
         }
 
         my $type = $connection->user ? 'user' : 'server';
         my $since_last = time - $connection->{last_response};
 
-        # no incoming data for configured frequency.
-        next unless $since_last >= conf(['ping', $type], 'frequency');
+        # this connection is OK - for now.
+        if ($since_last < conf([ 'ping', $type ], 'frequency')) {
+
+            # if it's a server, we might need to produce a warning.
+            if ($type eq 'server') {
+                next if $connection->{warned_ping}++;
+                my $needed_to_warn = conf([ 'servers', 'warn_ping' ]);
+                notice(server_not_responding =>
+                    $connection->server->notice_info,
+                    $since_last
+                ) if $since_last >= $needed_to_warn;
+            }
+
+            next;
+        }
 
         # send a ping if we haven't already.
         if (!$connection->{ping_in_air}) {

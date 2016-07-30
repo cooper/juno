@@ -55,6 +55,7 @@ our %oper_notices = (
     squit                   => '%s issued SQUIT for %s from %s',
     server_reintroduced     => '%s attempted to introduce %s which already exists',
     server_identifier_taken => '%s attempted to introduce %s as SID %d, which is already taken by %s',
+    server_not_responding   => '%s has not replied to ping for %d seconds',
     server_protocol_warning => '%s %s',
     server_protocol_error   => '%s %s; dropping link',
 

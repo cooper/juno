@@ -3572,4 +3572,4 @@ CHANGES:
             ->configure() for IO::Async::Stream objects is now consistent between linkage.pm and ircd.pm.
             error handlers for streams are now also shared between ircd.pm and linkage.pm.
             fixed an annoyance where "Connect fail" notices would still be displayed even after a connect attempt was canceled by SQUIT.
-            
+            added servers:warn_ping option which fires a 'server_not_responding' oper notice.

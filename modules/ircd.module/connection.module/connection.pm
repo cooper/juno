@@ -90,7 +90,8 @@ printf "GET(%s): %s\n", $connection->type ? $connection->type->name : 'unregiste
     # update ping information.
     $connection->{ping_in_air}   = 0;
     $connection->{last_response} = time;
-
+    delete $connection->{warned_ping};
+    
     # connection is being closed.
     return if $connection->{goodbye};
 
