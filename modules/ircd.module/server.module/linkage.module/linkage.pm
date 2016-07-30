@@ -175,6 +175,7 @@ sub _establish_connection {
         # create a connection object.
         my $conn = $conns->{$server_name} =
             $pool->new_connection(stream => $stream);
+        $conn->fire_event('looks_like_server');
 
         # add to loop.
         $::loop->add($stream);

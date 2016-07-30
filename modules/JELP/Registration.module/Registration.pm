@@ -93,7 +93,7 @@ sub rcmd_server {
     }
 
     # made it.
-    $connection->fire_event(reg_server => @args);
+    $connection->fire_event('looks_like_server');
     $connection->reg_continue('id1');
     return 1;
 

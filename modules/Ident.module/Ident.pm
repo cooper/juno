@@ -49,8 +49,12 @@ sub init {
     );
 
     # USER and SERVER registration commands
-    $pool->on('connection.reg_user'   => \&connection_user,   with_eo => 1);
-    $pool->on('connection.reg_server' => \&connection_server, with_eo => 1);
+    $pool->on('connection.reg_user' => \&connection_user,
+        with_eo => 1
+    );
+    $pool->on('connection.looks_like_server' => \&connection_server,
+        with_eo => 1
+    );
 
     return 1;
 }
