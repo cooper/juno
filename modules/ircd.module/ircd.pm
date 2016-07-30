@@ -692,6 +692,12 @@ sub handle_data {
 sub ping_check {
     foreach my $connection ($pool->connections) {
 
+        # the socket is dead.
+        if (!$connection->sock) {
+            $connection->done('Dead socket');
+            next;
+        }
+
         # not yet registered.
         # if they have been connected for 30 secs without registering, drop.
         if (!$connection->{type}) {
@@ -713,7 +719,7 @@ sub ping_check {
 
         # ping timeout.
         $connection->done("Ping timeout: $since_last seconds")
-          if $since_last >= conf(['ping', $type], 'timeout');
+            if $since_last >= conf(['ping', $type], 'timeout');
 
     }
 }
