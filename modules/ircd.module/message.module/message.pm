@@ -20,8 +20,8 @@ use Scalar::Util 'blessed';
 use utils qw(trim col);
 
 our ($api, $mod, $pool, $me);
-our $TRUE      = '__TAG_TRUE__';
-our $PARAM_BAD = '__PARAM_BAD__';
+our $TRUE      = \'__TAG_TRUE__';
+our $PARAM_BAD = \'__PARAM_BAD__';
 
 sub new {
     my ($class, @opts) = @_;
@@ -143,9 +143,10 @@ sub _parse_value {
 
 # escape message tag values
 sub _escape_value {
-    my $value = '';
+    my ($in, $value) = (shift, '');
+    return $in if ref $in && $in == $TRUE;
     my %r_escapes = reverse %escapes;
-    for my $char (split //, shift) {
+    for my $char (split //, $in) {
         if (my $e = $r_escapes{$char}) {
             $value .= "\\$e";
             next;
@@ -164,7 +165,7 @@ sub data {
     my ($t, $tagstr, @tags) = (0, '@', keys %{ $msg->tags });
     foreach my $tag (@tags) {
         my $value = _escape_value($msg->tag($tag));
-        $tagstr .= $value eq $TRUE ? $tag : "$tag=$value";
+        $tagstr .= ref $value && $value == $TRUE ? $tag : "$tag=$value";
         $tagstr .= ';' unless $t == $#tags;
         $t++;
     }
@@ -366,7 +367,7 @@ sub parse_params {
                 $param_code = $package->can("_param_$type") ||
                               __PACKAGE__->can("_any_$type");
                 my $res     = $param_code->($msg, $param, \@final, $attrs);
-                return $PARAM_BAD if $res && $res eq $PARAM_BAD;
+                return $PARAM_BAD if ref $res && $res == $PARAM_BAD;
             }
 
         }
@@ -374,7 +375,7 @@ sub parse_params {
         # code-implemented type.
         elsif ($param_code) {
             my $res = $param_code->($msg, $param, \@final, $match_attr[$match_i]);
-            return $PARAM_BAD if $res && $res eq $PARAM_BAD;
+            return $PARAM_BAD if ref $res && $res == $PARAM_BAD;
         }
 
         # unknown type.

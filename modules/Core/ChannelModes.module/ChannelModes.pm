@@ -153,7 +153,8 @@ sub add_message_restrictions {
         return if $channel->has_user($user);
 
         # no external messages.
-        $user->numeric(ERR_CANNOTSENDTOCHAN => $channel->name, 'No external messages');
+        $event->{error_reply} =
+            [ ERR_CANNOTSENDTOCHAN => $channel->name, 'No external messages' ];
         $event->stop('no_ext');
 
     }, name => 'no.external.messages', with_eo => 1, priority => 30);
@@ -167,7 +168,8 @@ sub add_message_restrictions {
         return if $channel->user_get_highest_level($user) >= -2;
 
         # no external messages.
-        $user->numeric(ERR_CANNOTSENDTOCHAN => $channel->name, 'Channel is moderated');
+        $event->{error_reply} =
+            [ ERR_CANNOTSENDTOCHAN => $channel->name, 'Channel is moderated' ];
         $event->stop('moderated');
 
     }, name => 'moderated', with_eo => 1, priority => 20);
@@ -181,7 +183,8 @@ sub add_message_restrictions {
         return unless $channel->list_matches('ban', $user);
         return if $channel->list_matches('except', $user);
 
-        $user->numeric(ERR_CANNOTSENDTOCHAN => $channel->name, "You're banned");
+        $event->{error_reply} =
+            [ ERR_CANNOTSENDTOCHAN => $channel->name, "You're banned" ];
         $event->stop('banned');
 
     }, name => 'stop.banned.users', with_eo => 1, priority => 10);

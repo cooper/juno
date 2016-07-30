@@ -61,9 +61,9 @@ sub on_user_can_message {
     # has an exception.
     return if $channel->list_matches('except', $user);
 
-    $user->numeric(ERR_CANNOTSENDTOCHAN => $channel->name, "You're muted");
+    $event->{error_reply} =
+        [ ERR_CANNOTSENDTOCHAN => $channel->name, "You're muted" ];
     $event->stop('muted');
-
 }
 
 $mod

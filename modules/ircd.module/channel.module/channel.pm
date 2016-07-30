@@ -866,6 +866,12 @@ sub _do_mode_string {
 #           message from being sent OR that modify the message will NOT have
 #           an effect on this message. used when receiving remote PRIVMSGs.
 #
+# \%opts    a hash reference of options which will be passed to the outgoing
+#           command handlers. if $dont_forward, this is ignored. supports:
+#
+#               op_moderate     if true, this message was blocked but will be
+#                               sent to ops in a +z channel.
+#
 # @users    if specified, this list of users will be used as the destinations.
 #           they can be local, remote, or a mixture of both. when omitted, all
 #           non-deaf users of the channel will receive the message. any deaf
@@ -873,26 +879,44 @@ sub _do_mode_string {
 #           NEVER receive a message.
 #
 sub handle_privmsgnotice {
-    my ($channel, $command, $source, $message, $dont_forward, $force, @users) = @_;
+    my ($channel, $command, $source, $message,
+        $dont_forward, $force, $opts, @users) = @_;
     my ($source_user, $source_serv) = ($source->user, $source->server);
     @users = $channel->users if !@users;
-    
+
     # it's a user. fire the can_* events.
     if ($source_user && !$force) {
         my $lccommand = lc $command;
 
         # can_message, can_notice, can_privmsg.
-        my $fire = $source_user->fire_events_together(
+        my $can_fire = $source_user->fire_events_together(
             [  can_message     => $channel, $message, $lccommand ],
-            [ "can_$lccommand" => $channel, $message           ]
+            [ "can_$lccommand" => $channel, $message             ]
         );
 
-        # the can_* events may set $fire->{new_message} to modify the message.
-        $message = $fire->{new_message} if length $fire->{new_message};
+        # the can_* events may set {new_message} to modify the message.
+        $message = $can_fire->{new_message} if length $can_fire->{new_message};
 
         # the can_* events may stop the event, preventing the message from
         # being sent to users or servers.
-        return if $fire->stopper;
+        if ($can_fire->stopper) {
+
+            # if the message was blocked, fire cant_* events.
+            my $cant_fire = $source_user->fire_events_together(
+                [  cant_message     => $channel, $message, $lccommand ],
+                [ "cant_$lccommand" => $channel, $message             ]
+            );
+
+            # the cant_* events may be stopped. if this happens, the error
+            # messages as to why the message was blocked will NOT be sent.
+            my @error_reply = ref_to_list($can_fire->{error_reply});
+            if (!$cant_fire->stopper && @error_reply) {
+                $source_user->numeric(@error_reply);
+            }
+
+            # the can_* event was stopped, so don't continue.
+            return;
+        }
     }
 
     # tell channel members.
@@ -931,7 +955,8 @@ sub handle_privmsgnotice {
         next USER if $sent{$location};
 
         $location->fire_command(privmsgnotice =>
-            $command, $source, $channel, $message
+            $command, $source, $channel, $message,
+            ref_to_list($opts)
         );
         $sent{$location}++;
     }
