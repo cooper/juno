@@ -438,9 +438,10 @@ sub handle_listen_error {
 
 # handles a connection error or EOF.
 sub _conn_close {
-    my $stream = shift;
+    my ($err, $stream) = @_;
     my $conn = $pool->lookup_connection($stream) or return;
-    $conn->close_now;
+    $conn->done($err);
+    $stream->close_now;
 }
 
 # miscellaneous upgrade fixes.

@@ -3571,3 +3571,5 @@ CHANGES:
         79. listener and stream options are now properly updated on reload with configure_listener() and configure_stream().
             ->configure() for IO::Async::Stream objects is now consistent between linkage.pm and ircd.pm.
             error handlers for streams are now also shared between ircd.pm and linkage.pm.
+            fixed an annoyance where "Connect fail" notices would still be displayed even after a connect attempt was canceled by SQUIT.
+            
