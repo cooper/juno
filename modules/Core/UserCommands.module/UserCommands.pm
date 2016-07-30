@@ -490,7 +490,8 @@ sub add_join_callbacks {
             unless $user->channels >= conf('limit', 'channel');
 
         # limit reached.
-        $user->numeric(ERR_TOOMANYCHANNELS => $channel->name);
+        $event->{error_reply} =
+            [ ERR_TOOMANYCHANNELS => $channel->name ];
         $event->stop('max_channels');
 
     }, name => 'max.channels', priority => 25);
@@ -505,7 +506,7 @@ sub add_join_callbacks {
 
         # sorry, banned.
         if ($banned && !$exempt) {
-            $user->numeric(ERR_BANNEDFROMCHAN => $channel->name);
+            $event->{error_reply} = [ ERR_BANNEDFROMCHAN => $channel->name ];
             $event->stop('banned');
         }
 

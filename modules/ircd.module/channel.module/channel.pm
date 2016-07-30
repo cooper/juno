@@ -1043,14 +1043,22 @@ sub attempt_local_join {
     unless ($force) {
 
         # fire the event and delete the callbacks.
-        my $event = $user->fire(can_join => $channel, $key);
+        my $can_fire = $user->fire(can_join => $channel, $key);
 
         # event was stopped; can't join.
-        if ($event->stopper) {
-            $user->fire(join_failed => $channel, $event->stop, $event->stopper);
+        if ($can_fire->stopper) {
+            my $cant_fire = $user->fire(cant_join =>
+                $channel, $can_fire->stop, $can_fire->stopper);
+
+            # if cant_join is canceled, do NOT send out the error reply.
+            my @error_reply = ref_to_list($can_fire->{error_reply});
+            if (!$cant_fire->stopper && @error_reply) {
+                $user->numeric(@error_reply);
+            }
+
+            # can_join was stopped; don't continue.
             return;
         }
-
     }
 
     # new channel. do automodes and whatnot.

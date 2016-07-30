@@ -49,9 +49,8 @@ sub on_user_can_join {
     # User must be registered otherwise
     return if exists $user->{account};
     # Let them know they can't join if they're not registered
-    $user->numeric(ERR_NEEDREGGEDNICK => $channel->name);
+    $event->{error_reply} = [ ERR_NEEDREGGEDNICK => $channel->name ];
     $event->stop('channel_reg_only');
 }
 
 $mod
-

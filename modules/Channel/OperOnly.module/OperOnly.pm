@@ -65,7 +65,8 @@ sub on_user_can_join {
     # user must be an IRC cop
     return if $user->is_mode('ircop');
 
-    $user->numeric(ERR_OPERONLY => $channel->name);
+    $event->{error_reply} =
+        [ ERR_OPERONLY => $channel->name ];
     $event->stop('channel_oper_only');
 }
 

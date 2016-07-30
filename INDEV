@@ -3562,3 +3562,7 @@ CHANGES:
             added 'cant_message', 'cant_privmsg', and 'cant_notice' events which are fired when a message is blocked.
             blocked message replies now use an {error_reply} key rather than calling ->numeric() directly. this allows other modules to cancel the replies.
             updated all modules that hook onto 'cant_message' to use the new {error_reply} key.
+
+        78. renamed 'join_failed' event to 'cant_join' to correspond with 'cant_message'.
+            failed channel join replies now use an {error_reply} key rather than calling ->numeric() directly. this allows other modules to cancel the replies.
+            updated all modules that hook onto 'cant_join' to use the new {error_reply} key.

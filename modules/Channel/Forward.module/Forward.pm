@@ -34,12 +34,8 @@ our %channel_modes = (
 
 sub init {
 
-    # Hook on the can_join and join_failed events to forward users if needed.
-    $pool->on('user.can_join' => \&on_user_can_join,
-        after=> 'in.channel',
-        name => 'check.forward'
-    );
-    $pool->on('user.join_failed' => \&on_user_join_failed,
+    # Hook on the cant_join event to forward users if needed.
+    $pool->on('user.cant_join' => \&on_user_cant_join,
         with_eo => 1,
         name    => 'join.failed'
     );
@@ -101,15 +97,8 @@ sub cmode_forward {
     return 1;
 }
 
-# setting silent_errors tells +i, +l to not send errors.
-sub on_user_can_join {
-    my ($event, $channel) = @_;
-    return unless $channel->is_mode('forward');
-    $event->{silent_errors} = 1;
-}
-
 # attempt to do a forward maybe.
-sub on_user_join_failed {
+sub on_user_cant_join {
     my ($user, $event, $channel) = @_;
     return unless $channel->is_mode('forward');
     my $f_ch_name = $channel->mode_parameter('forward');

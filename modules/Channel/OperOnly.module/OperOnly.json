@@ -12,5 +12,5 @@
    "description" : "adds oper only mode",
    "name" : "Channel::OperOnly",
    "package" : "M::Channel::OperOnly",
-   "version" : "1.6"
+   "version" : "1.7"
 }
