@@ -1,0 +1,15 @@
+{
+   "author" : {
+      "name" : "Matt Barksdale",
+      "website" : "https://github.com/mattwb65.com"
+   },
+   "depends" : {
+      "modules" : [
+         "Base::ChannelModes"
+      ]
+   },
+   "description" : "Adds mode to allow only ssl users to join",
+   "name" : "Channel::SSLOnly",
+   "package" : "M::Channel::SSLOnly",
+   "version" : "0.1"
+}
