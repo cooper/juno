@@ -99,7 +99,7 @@ sub cmode_forward {
 
 # attempt to do a forward maybe.
 sub on_user_cant_join {
-    my ($user, $event, $channel) = @_;
+    my ($user, $event, $channel, $can_fire) = @_;
     return unless $channel->is_mode('forward');
     my $f_ch_name = $channel->mode_parameter('forward');
 
@@ -114,23 +114,30 @@ sub on_user_cant_join {
     # we are being forwarded to a channel that already exists.
     my ($f_chan, $new) = $pool->lookup_or_create_channel($f_ch_name);
 
-    # Let the user know we're forwarding...
-    $user->numeric(ERR_LINKCHAN => $channel->name, $f_chan->name);
-
     # Check if we're even able to join the channel to be forwarded to
-    if ($user->fire('can_join' => $f_chan)->stopper) {
+    my $can_fire = $user->fire(can_join => $f_chan);
+    if ($can_fire->stopper) {
+
         # we can't...
         # if we just created this channel, dispose of it.
         if ($new) {
             $pool->delete_channel($f_chan);
             $f_chan->delete_all_events();
         }
+
         return;
     }
 
-    # We can join
+    # Safe point - we are definitely joining the forward channel.
+
+    # Let the user know we're forwarding...
+    $user->numeric(ERR_LINKCHAN => $channel->name, $f_chan->name);
+
+    # force the join.
     $f_chan->attempt_local_join($user, $new, undef, 1);
 
+    # stopping cant_join cancels the original channel's error message.
+    $event->stop;
 }
 
 $mod

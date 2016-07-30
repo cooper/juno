@@ -1047,8 +1047,7 @@ sub attempt_local_join {
 
         # event was stopped; can't join.
         if ($can_fire->stopper) {
-            my $cant_fire = $user->fire(cant_join =>
-                $channel, $can_fire->stop, $can_fire->stopper);
+            my $cant_fire = $user->fire(cant_join => $channel, $can_fire);
 
             # if cant_join is canceled, do NOT send out the error reply.
             my @error_reply = ref_to_list($can_fire->{error_reply});

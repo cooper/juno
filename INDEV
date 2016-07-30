@@ -3566,3 +3566,4 @@ CHANGES:
         78. renamed 'join_failed' event to 'cant_join' to correspond with 'cant_message'.
             failed channel join replies now use an {error_reply} key rather than calling ->numeric() directly. this allows other modules to cancel the replies.
             updated all modules that hook onto 'cant_join' to use the new {error_reply} key.
+            Channel::Forward now sends the original error channel's message when the forward channel join fails. closes #60.

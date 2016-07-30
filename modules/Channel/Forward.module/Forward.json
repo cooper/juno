@@ -12,5 +12,5 @@
    "description" : "adds channel forwarding abilities",
    "name" : "Channel::Forward",
    "package" : "M::Channel::Forward",
-   "version" : "2.8"
+   "version" : "3"
 }
