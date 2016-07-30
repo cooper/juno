@@ -11,7 +11,7 @@
 # @depends.modules: ['Base::ChannelModes', 'Base::UserNumerics']
 #
 # @author.name:     'Matt Barksdale'
-# @author.website:  'https://github.com/mattwb65.com'
+# @author.website:  'https://github.com/mattwb65'
 #
 package M::Channel::RegisteredOnly;
 
@@ -23,7 +23,7 @@ our ($api, $mod, $pool);
 
 # numerics
 our %user_numerics = (
-    ERR_NEEDREGGEDNICK => [ 477, '%s :Cannot join channel (+r) - you need to be identified with services']
+    ERR_NEEDREGGEDNICK => [ 477, '%s :Cannot join channel - you need to be identified with services']
 );
 
 # channel modes

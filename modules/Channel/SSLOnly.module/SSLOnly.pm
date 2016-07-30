@@ -11,7 +11,7 @@
 # @depends.modules: ['Base::ChannelModes']
 #
 # @author.name:     'Matt Barksdale'
-# @author.website:  'https://github.com/mattwb65.com'
+# @author.website:  'https://github.com/mattwb65'
 #
 package M::Channel::SSLOnly;
 
