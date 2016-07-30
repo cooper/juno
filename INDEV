@@ -3551,4 +3551,5 @@ CHANGES:
             eliminated a cyclical reference in server autoconnect timers.
             updated TS6 to use the new 'initiate_$PROTO_link' event. #108.
 
-        76. 
+        76. cleaned up channel->handle_privmsgnotice(). it now uses a single user iteration.
+            a new option can specify which users to send to, but it will fall back to old behavior if omitted (all users).

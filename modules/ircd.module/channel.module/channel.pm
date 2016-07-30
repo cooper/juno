@@ -847,22 +847,42 @@ sub _do_mode_string {
     return _do_modes($local_only, $channel, $source, $changes, $force, $protocol);
 }
 
-# handle a privmsg. send it to our local users and other servers.
-# FIXME: this is just really bad.
-# it is necessary though to distinguish real PRIVMSGs from ones initiated by other
-# commands and whatnot; for example ECHO uses this directly.
+# ->handle_privmsgnotice()
+#
+# Handles a PRIVMSG or NOTICE. Notifies local users and uplinks when necessary.
+#
+# $command  one of 'privmsg' or 'notice'.
+#
+# $source   user or server object which is the source of the method.
+#
+# $message  the message text as it was received.
+#
+# $dont_forward     if specified, the message will NOT be forwarded to other
+#           servers by this method. this is used in protocol modules in
+#           conjunction with $msg->forward*() methods.
+#
+# $force    if specified, the can_privmsg, can_notice, and can_message events
+#           will not be fired. this means that any modules that prevent the
+#           message from being sent OR that modify the message will NOT have
+#           an effect on this message. used when receiving remote PRIVMSGs.
+#
+# @users    if specified, this list of users will be used as the destinations.
+#           they can be local, remote, or a mixture of both. when omitted, all
+#           non-deaf users of the channel will receive the message. any deaf
+#           user, whether local or remote and whether in @users or not, will
+#           NEVER receive a message.
+#
 sub handle_privmsgnotice {
-    my ($channel, $command, $source, $message, $dont_forward, $force) = @_;
-    my $user   = $source->isa('user')   ? $source : undef;
-    my $server = $source->isa('server') ? $source : undef;
-    $command   = uc $command;
-
-    # it's a user.
-    if ($user && !$force) {
+    my ($channel, $command, $source, $message, $dont_forward, $force, @users) = @_;
+    my ($source_user, $source_serv) = ($source->user, $source->server);
+    @users = $channel->users if !@users;
+    
+    # it's a user. fire the can_* events.
+    if ($source_user && !$force) {
         my $lccommand = lc $command;
 
         # can_message, can_notice, can_privmsg.
-        my $fire = $user->fire_events_together(
+        my $fire = $source_user->fire_events_together(
             [  can_message     => $channel, $message, $lccommand ],
             [ "can_$lccommand" => $channel, $message           ]
         );
@@ -870,41 +890,50 @@ sub handle_privmsgnotice {
         # the can_* events may set $fire->{new_message} to modify the message.
         $message = $fire->{new_message} if length $fire->{new_message};
 
+        # the can_* events may stop the event, preventing the message from
+        # being sent to users or servers.
         return if $fire->stopper;
     }
 
-
-    # tell local users.
-    # ignore the source as well as deaf users.
-    $channel->sendfrom_all(
-        $source->full,
-        "$command $$channel{name} :$message",
-        sub { $_[0] == $source || $_[0]->is_mode('deaf') }
-    );
-
-    # then tell other servers.
+    # tell channel members.
     my %sent;
-    foreach my $usr ($channel->users) {
-        last if $dont_forward;
+    my $local_data = "$command $$channel{name} :$message";
+    USER: foreach my $user (@users) {
 
-        # local users already know.
-        next if $usr->is_local;
+        # this is the source!
+        next USER if $source_user && $source_user == $user;
+
+        # not telling remotes.
+        next USER if !$user->is_local && $dont_forward;
 
         # deaf users don't care.
         # if a server has all-deaf users, it will never receive the message.
-        next if $usr->is_mode('deaf');
+        next USER if $user->is_mode('deaf');
+
+        # the user is local.
+        if ($user->is_local) {
+            # TODO: fire can_receive_* events which can modify $message or stop:
+            # my $my_message = $message;
+            # my $my_local_data = $local_data;
+            $user->sendfrom($source->full, $local_data);
+            next USER;
+        }
+
+        # Safe point - the user is remote.
+        my $location = $user->{location};
 
         # the source user is reached through this user's server,
         # or the source is the server we know the user from.
-        next if $user   && $usr->{location} == $user->{location};
-        next if $server && $usr->{location}{sid} == $server->{sid};
+        next USER if $source_user && $location == $source_user->{location};
+        next USER if $source_serv && $location->{sid} == $source_serv->{sid};
 
         # already sent to this server.
-        next if $sent{ $usr->{location} };
+        next USER if $sent{$location};
 
-        $usr->{location}->fire_command(privmsgnotice => $command, $source, $channel, $message);
-        $sent{ $usr->{location} } = 1;
-
+        $location->fire_command(privmsgnotice =>
+            $command, $source, $channel, $message
+        );
+        $sent{$location}++;
     }
 
     # fire event.
