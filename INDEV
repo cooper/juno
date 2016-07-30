@@ -3581,3 +3581,4 @@ CHANGES:
         these provide a decent way to manage self-cancelling futures associated with a connection.
         so apparently the Ident module has been broken for a long time and no one noticed.
         fixed that and cleaned it up to use the new ->add_future().
+        updated Resolve to use the new future methods.

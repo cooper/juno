@@ -13,23 +13,29 @@ use warnings;
 use strict;
 
 use utils 'safe_ip';
+use Socket qw(SOCK_STREAM);
 
 our ($api, $mod, $me, $pool);
 
 sub init {
+
+    # hook onto new connections to resolve host
     $pool->on('connection.new' => \&connection_new,
         with_eo => 1,
         name    => 'resolve.hostname'
-    ) or return;
+    );
+
     return 1;
 }
 
+# on new connection, attempt to resolve
 sub connection_new {
     my ($connection, $event) = @_;
     $connection->early_reply(NOTICE => ':*** Looking up your hostname...');
     resolve_address($connection);
 }
 
+# Step 1: getnameinfo()
 sub resolve_address {
     my $connection = shift;
     return if $connection->{goodbye};
@@ -38,22 +44,24 @@ sub resolve_address {
     $connection->reg_wait('resolve');
 
     # peername -> human-readable hostname
-    my $f = $connection->{resolve_future} = $::loop->resolver->getnameinfo(
-        addr        => $connection->sock->peername,
-        timeout     => 3
+    my $f = $::loop->resolver->getnameinfo(
+        addr    => $connection->sock->peername,
+        timeout => 3
     );
+
     $f->on_done(sub { on_got_host1($connection, @_   ) });
     $f->on_fail(sub { on_error    ($connection, shift) });
-
+    $connection->add_future(resolve_host1 => $f);
 }
 
+# Step 2: getaddrinfo()
 # got human-readable hostname
 sub on_got_host1 {
     my ($connection, $host) = @_;
     $host = safe_ip($host);
 
     # temporarily store the host.
-    $connection->{temp_host} = $host;
+    $connection->{resolve_host} = $host;
 
     # getnameinfo() spit out the IP.
     # we need better IP comparison probably.
@@ -62,17 +70,19 @@ sub on_got_host1 {
     }
 
     # human readable hostname -> binary address
-    my $f = $connection->{resolve_future} = $::loop->resolver->getaddrinfo(
+    my $f = $::loop->resolver->getaddrinfo(
         host        => $host,
         service     => '',
-        socktype    => Socket::SOCK_STREAM(),
+        socktype    => SOCK_STREAM,
         timeout     => 3
     );
+
     $f->on_done(sub { on_got_addr($connection, @_   ) });
     $f->on_fail(sub { on_error   ($connection, shift) });
-
+    $connection->add_future(resolve_addr => $f);
 }
 
+# Step 3: getnameinfo()
 # got binary representation of address
 sub on_got_addr {
     my ($connection, $addr) = @_;
@@ -80,25 +90,26 @@ sub on_got_addr {
     # binary address -> human-readable hostname
     my $f = $connection->{resolve_future} = $::loop->resolver->getnameinfo(
         addr        => $addr->{addr},
-        socktype    => Socket::SOCK_STREAM(),
+        socktype    => SOCK_STREAM,
         timeout     => 3
     );
+
     $f->on_done(sub { on_got_host2($connection, @_   ) });
     $f->on_fail(sub { on_error    ($connection, shift) });
-
+    $connection->add_future(resolve_host2 => $f);
 }
 
+# Step 4: Set the host
 # got human-readable hostname
 sub on_got_host2 {
     my ($connection, $host) = @_;
 
     # they match.
-    if ($connection->{temp_host} eq $host) {
+    if ($connection->{resolve_host} eq $host) {
         $connection->early_reply(NOTICE => ':*** Found your hostname');
-        $connection->{host} = safe_ip(delete $connection->{temp_host});
+        $connection->{host} = safe_ip(delete $connection->{resolve_host});
         $connection->fire('found_hostname');
-        $connection->reg_continue('resolve');
-        delete $connection->{resolve_future};
+        _finish($connection);
         return 1;
     }
 
@@ -107,15 +118,26 @@ sub on_got_host2 {
 
 }
 
+# called on error
 sub on_error {
     my ($connection, $err) = (shift, shift // 'unknown error');
-    delete $connection->{resolve_future};
-    return if $connection->{goodbye};
     $connection->early_reply(NOTICE => ":*** Couldn't resolve your hostname");
     L("Lookup for $$connection{ip} failed: $err");
-    delete $connection->{temp_host};
-    $connection->reg_continue('resolve');
+    _finish($connection);
     return;
+}
+
+# call with either success or failure
+sub _finish {
+    my $connection = shift;
+    return if $connection->{goodbye};
+
+    # delete futures that might be left
+    $connection->remove_future($_)
+        for qw(resolve_host1 resolve_host2 resolve_addr);
+
+    delete $connection->{resolve_host};
+    $connection->reg_continue('resolve');
 }
 
 $mod
