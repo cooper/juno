@@ -711,16 +711,16 @@ sub ping_check {
             next;
         }
 
-        my $type = $connection->user ? 'user' : 'server';
+        my $type = $connection->user ? 'users' : 'servers';
         my $since_last = time - $connection->{last_response};
 
         # this connection is OK - for now.
-        if ($since_last < conf([ 'ping', $type ], 'frequency')) {
+        if ($since_last < conf($type, 'ping_freq')) {
 
             # if it's a server, we might need to produce a warning.
-            if ($type eq 'server') {
+            if ($type eq 'servers') {
                 next if $connection->{warned_ping}++;
-                my $needed_to_warn = conf('servers', 'warn_ping') || 'inf';
+                my $needed_to_warn = conf($type, 'ping_warn') || 'inf';
                 notice(server_not_responding =>
                     $connection->server->notice_info,
                     $since_last
@@ -738,7 +738,7 @@ sub ping_check {
 
         # ping timeout.
         $connection->done("Ping timeout: $since_last seconds")
-            if $since_last >= conf(['ping', $type], 'timeout');
+            if $since_last >= conf($type, 'ping_timeout');
 
     }
 }

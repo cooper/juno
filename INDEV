@@ -3573,3 +3573,6 @@ CHANGES:
             error handlers for streams are now also shared between ircd.pm and linkage.pm.
             fixed an annoyance where "Connect fail" notices would still be displayed even after a connect attempt was canceled by SQUIT.
             added servers:warn_ping option which fires a 'server_not_responding' oper notice.
+            ping:server:frequency is now servers:ping_freq. ping:server:timeout is now servers:ping_timeout.
+            ping:user:frequency is now users:ping_freq. ping:user:timeout is now users:ping_timeout.
+            servers:max_delta is now delta_max. servers:warn_delta is now delta_warn. servers:warn_ping is now ping_warn.

@@ -230,7 +230,7 @@ sub svinfo {
     my $delta = abs($their_time - $my_time);
     my $delta_string = "(my TS=$my_time, their TS=$their_time, delta=$delta)";
 
-    if ($delta > conf('servers', 'max_delta')) {
+    if ($delta > conf('servers', 'delta_max')) {
         notice(server_protocol_error =>
             $server->notice_info,
             'will not be linked due to an excessive time delta '.
@@ -241,7 +241,7 @@ sub svinfo {
     }
 
     # notify opers if it's sorta significant.
-    if ($delta > conf('servers', 'warn_delta')) {
+    if ($delta > conf('servers', 'delta_warn')) {
         notice(server_protocol_warning =>
             $server->notice_info,
             'is linked with a significant time delta '.
