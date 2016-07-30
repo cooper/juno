@@ -39,6 +39,9 @@
     Channel::Mute               # Mute/quiet bans (+Z)
     Channel::TopicAdditions     # Commands to prepend or append topic
     Channel::Permanent          # Preserve empty channels, make permanent (+P)
+    Channel::RegisteredOnly     # Registered only channel support (+r)
+    Channel::SSLOnly            # SSL users only channel support (+S)
+    Channel::NoColor            # Strip colors from messages (+c)
 
     # Server management
 

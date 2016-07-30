@@ -1,0 +1,15 @@
+{
+   "author" : {
+      "name" : "Matt Barksdale",
+      "website" : "https://github.com/mattwb65"
+   },
+   "depends" : {
+      "modules" : [
+         "Base::ChannelModes"
+      ]
+   },
+   "description" : "Adds mode to strip colors from channel messages",
+   "name" : "Channel::NoColor",
+   "package" : "M::Channel::NoColor",
+   "version" : "0.2"
+}
