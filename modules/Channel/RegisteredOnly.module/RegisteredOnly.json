@@ -1,0 +1,16 @@
+{
+   "author" : {
+      "name" : "Matt Barksdale",
+      "website" : "https://github.com/mattwb65.com"
+   },
+   "depends" : {
+      "modules" : [
+         "Base::ChannelModes",
+         "Base::UserNumerics"
+      ]
+   },
+   "description" : "Adds mode to allow only registered users to join",
+   "name" : "Channel::RegisteredOnly",
+   "package" : "M::Channel::RegisteredOnly",
+   "version" : "0.2"
+}
