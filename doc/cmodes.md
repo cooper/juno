@@ -20,6 +20,8 @@ limit         = [2, 'l']  # Channel user limit mode              (l)
 forward       = [2, 'f']  # Channel forward mode                 (f)
 key           = [5, 'k']  # Channel key mode                     (k)
 permanent     = [0, 'P']  # do not destroy channel when empty    (P)
+reg_only      = [0, 'r']  # only registered users can join       (r)
+ssl_only      = [0, 'S']  # only SSL users can join              (S)
 owner         = ['q', '~',  2    ] # channel owner               (q)
 admin         = ['a', '&',  1    ] # channel administrator       (a)
 op            = ['o', '@',  0    ] # channel operator            (o)
@@ -29,8 +31,6 @@ voice         = ['v', '+', -2    ] # voiced channel member       (v)
 
 ## Not yet supported
 ```
-reg_only      = [0, 'r'] # only registered users can join       (r)
-ssl_only      = [0, 'S'] # only SSL users can join              (S)
 join_throttle = [2, 'j'] # limit join frequency N:T             (j)
 large_banlist = [0, 'L'] # allow lots of entries on lists       (L)
 no_forward    = [0, 'Q'] # do not forward users to this channel (Q)
