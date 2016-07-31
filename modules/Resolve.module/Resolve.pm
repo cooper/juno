@@ -51,7 +51,7 @@ sub resolve_address {
 
     $f->on_done(sub { on_got_host1($connection, @_   ) });
     $f->on_fail(sub { on_error    ($connection, shift) });
-    $connection->add_future(resolve_host1 => $f);
+    $connection->adopt_future(resolve_host1 => $f);
 }
 
 # Step 2: getaddrinfo()
@@ -79,7 +79,7 @@ sub on_got_host1 {
 
     $f->on_done(sub { on_got_addr($connection, @_   ) });
     $f->on_fail(sub { on_error   ($connection, shift) });
-    $connection->add_future(resolve_addr => $f);
+    $connection->adopt_future(resolve_addr => $f);
 }
 
 # Step 3: getnameinfo()
@@ -96,7 +96,7 @@ sub on_got_addr {
 
     $f->on_done(sub { on_got_host2($connection, @_   ) });
     $f->on_fail(sub { on_error    ($connection, shift) });
-    $connection->add_future(resolve_host2 => $f);
+    $connection->adopt_future(resolve_host2 => $f);
 }
 
 # Step 4: Set the host
@@ -133,7 +133,7 @@ sub _finish {
     return if $connection->{goodbye};
 
     # delete futures that might be left
-    $connection->remove_future($_)
+    $connection->abandon_future($_)
         for qw(resolve_host1 resolve_host2 resolve_addr);
 
     delete $connection->{resolve_host};

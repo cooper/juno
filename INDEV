@@ -3587,3 +3587,5 @@ CHANGES:
             fixed an issue where outgoing TS6 INVITEs which originated on a JELP link were not forward properly.
             ->take_lower_time() no longer resets the channel topic.
             this corresponds with TOPICBURST, TB, and ETB accepting topics for any channel which had no topic.
+            renamed ->add_future() to ->adopt_future() and ->remove_future() to ->abandon_future().
+            these names better reflect what the methods do.

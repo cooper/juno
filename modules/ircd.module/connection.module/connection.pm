@@ -428,16 +428,16 @@ sub remove_cap {
 
 # add a future which represents a pending operation related to the connection.
 # it will automatically be removed when it completes or fails.
-sub add_future {
+sub adopt_future {
     my ($connection, $name, $f) = @_;
     $connection->{futures}{$name} = $f;
     weaken(my $weak_conn = $connection);
-    $f->on_ready(sub { $weak_conn->remove_future($name) });
+    $f->on_ready(sub { $weak_conn->abandon_future($name) });
 }
 
 # remove a future. this is only necessary if you want to cancel a future which
 # has not finished. however, calling it with an expired one produces no error.
-sub remove_future {
+sub abandon_future {
     my ($connection, $name) = @_;
     my $f = delete $connection->{futures}{$name} or return;
     $f->cancel; # it may already be canceled, but that's ok
@@ -449,7 +449,7 @@ sub clear_futures {
     my $count = 0;
     $connection->{futures} or return $count;
     foreach my $name (keys %{ $connection->{futures} }) {
-        $connection->remove_future($name);
+        $connection->abandon_future($name);
         $count++;
     }
     return $count;

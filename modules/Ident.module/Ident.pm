@@ -86,7 +86,7 @@ sub connection_new {
 
     # create a third future that will wait for whichever comes first.
     my $future = Future->wait_any($connect_future, $timeout_future);
-    $connection->add_future(ident_connect => $future);
+    $connection->adopt_future(ident_connect => $future);
 
     # on ready, either start sending data or cancel.
     $future->on_ready(sub {
@@ -158,7 +158,7 @@ sub ident_write {
     my $line_future    = $stream->read_until("\n");
     my $timeout_future = $::loop->timeout_future(after => 10);
     my $future         = Future->wait_any($line_future, $timeout_future);
-    $connection->add_future(ident_read => $future);
+    $connection->adopt_future(ident_read => $future);
 
     # on ready, set the ident or cancel.
     $future->on_ready(sub {
@@ -229,8 +229,8 @@ sub ident_done {
     $stream->close_when_empty if $stream;
 
     # immediately cancel both futures.
-    $connection->remove_future('ident_connect');
-    $connection->remove_future('ident_read');
+    $connection->abandon_future('ident_connect');
+    $connection->abandon_future('ident_read');
 
     # add tilde if not successful.
     if (!defined $connection->{ident_success}) {
