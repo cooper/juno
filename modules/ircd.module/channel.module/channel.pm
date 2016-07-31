@@ -161,7 +161,7 @@ sub add {
     # mine.pm:           for locals
     # core_scommands.pm: for nonlocals.
 
-    notice(user_join => $user->notice_info, $channel->name)
+    notice(channel_join => $user->notice_info, $channel->name)
         unless $user->{location}{is_burst};
     return $channel->{time};
 }
@@ -1097,7 +1097,7 @@ sub do_part {
     $channel->remove($user);
 
     # tell opers unless it's quiet
-    notice(user_part =>
+    notice(channel_part =>
         $user->notice_info, $channel->name, $reason // 'no reason')
         unless $quiet;
 
@@ -1114,12 +1114,12 @@ sub user_get_kicked {
     # tell the local users of the channel.
     $channel->sendfrom_all($source->full, "KICK $$channel{name} $$user{nick} :$reason");
 
-    notice(user_kick =>
+    notice(channel_kick =>
         $user->notice_info,
         $channel->name,
-        $source->name,
+        $source->notice_info,
         $reason
-    ) if $source->isa('user');
+    );
 
     return $channel->remove_user($user);
 }

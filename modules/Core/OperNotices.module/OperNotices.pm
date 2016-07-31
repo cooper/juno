@@ -31,15 +31,19 @@ our %oper_notices = (
     user_deopered           => '%s is no longer an IRC operator',
     user_killed             => '%s killed by %s (%s)',
     user_nick_change        => '%s is now known as %s',
-    user_join               => '%s joined %s',
-    user_part               => '%s parted %s (%s)',
     user_part_all           => '%s parted all channels: %s',
-    user_kick               => '%s was kicked from %s by %s (%s)',
     user_mask_change        => '%s switched from (%s@%s) to (%s@%s)',
     user_identifier_taken   => '%s introduced %s with UID %s, which is already taken by %s',
     user_saved              => '%s was spared in the midst of a nick collision (was %s)',
     user_logged_in          => '%s is now logged in as %s',
     user_logged_out         => '%s logged out (was %s)',
+    user_mode_unknown       => 'Attempted to set %s, but this mode is not defined on %s; ignored',
+
+    # channels
+    channel_join            => '%s joined %s',
+    channel_part            => '%s parted %s (%s)',
+    channel_kick            => '%s was kicked from %s by %s (%s)',
+    channel_mode_unknown    => 'Attempted to set %s, but this mode is not defined on %s; ignored',
 
     # servers
     new_server              => '%s ircd %s, proto %s [%s] parent: %s',
@@ -58,10 +62,6 @@ our %oper_notices = (
     server_not_responding   => '%s has not replied to ping for %d seconds',
     server_protocol_warning => '%s %s',
     server_protocol_error   => '%s %s; dropping link',
-
-    # modes
-    user_mode_unknown       => 'Attempted to set %s, but this mode is not defined on %s; ignored',
-    channel_mode_unknown    => 'Attempted to set %s, but this mode is not defined on %s; ignored',
 
     # miscellaneous
     perl_warning            => '%s',

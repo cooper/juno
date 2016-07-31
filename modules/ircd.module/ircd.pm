@@ -349,7 +349,7 @@ sub configure_listener {
     $listener->{IO_Async_Notifier__on_error} = sub { &handle_listen_error };
 
     eval { $listener->configure(@listener_opts); 1 }
-    or L("Configuring listener failed!")
+    or L("Configuring listener failed!");
 }
 
 # this is called for both new and

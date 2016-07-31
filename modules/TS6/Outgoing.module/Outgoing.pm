@@ -577,10 +577,20 @@ sub etb {
 #
 #
 sub privmsgnotice {
-    my ($to_server, $cmd, $source, $target, $message) = @_;
+    my ($to_server, $cmd, $source, $target, $message, %opts) = @_;
     my $id  = ts6_id($source);
     my $tid = ts6_id($target);
-    ":$id $cmd $tid :$message"
+
+    # complex channel PRIVMSGs
+    my $pfx = '';
+    if ($target->isa('channel')) {
+        $pfx = '=' if $opts{op_moderate};
+    }
+
+    # complex user PRIVMSGs
+    # if ($target->isa('user'))
+
+    ":$id $cmd $pfx$tid :$message"
 }
 
 # Complex PRIVMSG
