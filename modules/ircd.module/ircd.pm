@@ -326,6 +326,7 @@ sub setup_sockets {
 my @listener_opts = (
     on_accept    => sub { &handle_connect },
     #on_error     => sub { &handle_listen_error }
+    # see below hack
 );
 sub configure_listener {
     my $listener = shift;
@@ -335,7 +336,20 @@ sub configure_listener {
         $loop->remove($listener);
     }
 
-    $listener->configure(@listener_opts);
+    # HACK: this is the only way I can figure out how to fix uncaught errors
+    # invoked upon the listener. 'on_error' is not accepted in ->configure().
+    # it says: Cannot pass though configuration keys to underlying Handle -
+    # on_error at /Library/Perl/5.18/IO/Async/Listener.pm line 246.
+    # this is how I "fixed" issue #128.
+    #
+    # note that this will catch any error which is invoked on the listener.
+    # in the case of the SSL issue (#128), this will be called several times,
+    # maybe every time someone tries to connect via SSL.
+    #
+    $listener->{IO_Async_Notifier__on_error} = sub { &handle_listen_error };
+
+    eval { $listener->configure(@listener_opts); 1 }
+    or L("Configuring listener failed!")
 }
 
 # this is called for both new and
@@ -357,7 +371,8 @@ sub configure_stream {
         $loop->remove($stream);
     }
 
-    $stream->configure(@stream_opts);
+    eval { $stream->configure(@stream_opts); 1 }
+    or L("Configure stream failed!");
 }
 
 sub listen_addr_port {
@@ -383,8 +398,9 @@ sub listen_addr_port {
         %sslopts = (
             SSL_cert_file => $ssl_cert,
             SSL_key_file  => $ssl_key,
-            SSL_server    => 1,
-            on_ssl_error  => sub { L("SSL error: @_") }
+            SSL_server    => 1
+            #on_ssl_error  => sub { L("SSL error: @_") }
+            # probably not needed when using a future
         );
 
     }
@@ -396,10 +412,11 @@ sub listen_addr_port {
         handle_class => $ssl ? 'IO::Async::SSLStream' : 'IO::Async::Stream',
         @listener_opts
     );
+    $listener->{l_key} = $l_key;
     $loop->add($listener);
 
     # call ->listen() or ->SSL_listen() on the loop.
-    my $f = $listeners{$l_key}{future} = $loop->$method(
+    my $f = eval { $listeners{$l_key}{future} = $loop->$method(
         addr => {
             family   => $ipv6 ? 'inet6' : 'inet',
             socktype => 'stream',
@@ -408,7 +425,13 @@ sub listen_addr_port {
         },
         listener => $listener,
         %sslopts
-    );
+    ) };
+
+    # something happened.
+    if (!$f) {
+        L("->$method() for $l_key failed!");
+        return;
+    }
 
     # when the listener is ready.
     $f->on_ready(sub {
@@ -417,7 +440,7 @@ sub listen_addr_port {
 
         # failed.
         if (my $err = $f->failure) {
-            L("Listen on $l_key failed: $err");
+            handle_listen_error(undef, $err, $l_key);
             return;
         }
 
@@ -432,7 +455,9 @@ sub listen_addr_port {
 }
 
 sub handle_listen_error {
-    print "@_\n";
+    my ($listener, $err, $l_key) = @_;
+    $l_key = $listener ? $listener->{l_key} : $l_key || '(unknown)';
+    L("Listen on $l_key failed: $err");
 }
 
 # handles a connection error or EOF.
