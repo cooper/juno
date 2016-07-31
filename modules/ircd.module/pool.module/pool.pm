@@ -49,19 +49,17 @@ sub new_connection {
     # become an event listener.
     $connection->add_listener($pool, 'connection');
 
-    # fire connection creation event.
-    $connection->fire_event('new');
-
     # update total connection count
     my $connection_num = v('connection_count') + 1;
     set_v(connection_count => $connection_num);
+    notice(new_connection => $connection->{ip}, $connection_num);
 
     # update maximum connection count.
     if (scalar keys %{ $pool->{connections} } > v('max_connection_count')) {
         set_v(max_connection_count => scalar keys %{ $pool->{connections} });
     }
 
-    notice(new_connection => $connection->{ip}, $connection_num);
+    $connection->fire_event('new');
     return $connection;
 }
 
@@ -121,7 +119,6 @@ sub new_server {
 
     # become an event listener.
     $server->add_listener($pool, 'server');
-    $server->fire_event('new');
 
     notice(new_server =>
         $server->notice_info,
@@ -130,6 +127,8 @@ sub new_server {
         $server->{desc},
         $server->{parent}{name}
     );
+
+    $server->fire_event('new');
     return $server;
 }
 
@@ -235,7 +234,6 @@ sub new_user {
 
     # become an event listener.
     $user->add_listener($pool, 'user');
-    $user->fire_event('new');
 
     # add the user to the server.
     push @{ $opts{server}{users} }, $user;
@@ -247,9 +245,10 @@ sub new_user {
     my $c_g   = scalar $pool->all_users;
     set_v(max_local_user_count  => $c_l) if $c_l > $max_l;
     set_v(max_global_user_count => $c_g) if $c_g > $max_g;
-
     notice(new_user => $user->notice_info, $user->{real}, $user->{server}{name})
         unless $user->{location}{is_burst};
+
+    $user->fire_event('new');
     return $user;
 }
 
