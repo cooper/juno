@@ -3582,3 +3582,5 @@ CHANGES:
         so apparently the Ident module has been broken for a long time and no one noticed.
         fixed that and cleaned it up to use the new ->add_future().
         updated Resolve to use the new future methods.
+
+        81. fixed an issue where INVITEs from TS6 without the optional channelTS parameter were dropped.

@@ -205,7 +205,7 @@ our %ts6_incoming_commands = (
     },
     INVITE => {
                   # :uid INVITE  uid  channel channelTS
-        params => '-source(user) user channel ts',
+        params => '-source(user) user channel ts(opt)',
         code   => \&invite
     },
     ENCAP_LOGIN => {
@@ -1606,7 +1606,7 @@ sub invite {
     my ($server, $msg, $user, $t_user, $channel, $time) = @_;
 
     # if the timestamp is newer than what we have, drop the message.
-    return if $channel->{time} < $time;
+    return if defined $time && $channel->{time} < $time;
 
     # this user belongs to me.
     if ($t_user->is_local) {
