@@ -729,12 +729,6 @@ sub take_lower_time {
     my $amount = $channel->{time} - $time;
     $channel->set_time($time);
 
-    # unset topic.
-    if ($channel->topic) {
-        $channel->sendfrom_all($me->{name}, "TOPIC $$channel{name} :");
-        delete $channel->{topic};
-    }
-
     # unset all channel modes.
     # hackery: use the server mode string to reset all modes.
     # note: we can't use do_mode_string() because it would send to other servers.
