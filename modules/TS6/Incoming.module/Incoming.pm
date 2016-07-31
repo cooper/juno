@@ -699,9 +699,10 @@ sub privmsgnotice {
             #
             # otherwise, forward it
             #
-            $msg->forward_to($serv, privmsgnotice_server_mask =>
+            $msg->forward_to($serv, privmsgnotice =>
                 $command, $source,
-                $mask,    $message
+                undef,    $message,
+                serv_mask => $mask
             );
 
             $done{$location} = 1;

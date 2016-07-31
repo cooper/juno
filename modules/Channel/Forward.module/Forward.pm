@@ -99,7 +99,7 @@ sub cmode_forward {
 
 # attempt to do a forward maybe.
 sub on_user_cant_join {
-    my ($user, $event, $channel, $can_fire) = @_;
+    my ($user, $event, $channel) = @_;
     return unless $channel->is_mode('forward');
     my $f_ch_name = $channel->mode_parameter('forward');
 

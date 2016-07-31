@@ -35,7 +35,6 @@ our %ts6_outgoing_commands = (
      nickchange     => \&nick,
      umode          => \&umode,
      privmsgnotice  => \&privmsgnotice,
-     privmsgnotice_server_mask => \&privmsgnotice_smask,
      join           => \&_join,
    # oper           => \&oper,
      away           => \&away,
@@ -589,7 +588,9 @@ sub privmsgnotice {
 
     # complex stuff
     return privmsgnotice_opmod(@_) if $opts{op_moderate};
+    return privmsgnotice_smask(@_) if defined $opts{serv_mask};
 
+    $target or return;
     my $id  = ts6_id($source);
     my $tid = ts6_id($target);
     ":$id $cmd $tid :$message"
@@ -601,12 +602,9 @@ sub privmsgnotice {
 #   propagation: broadcast
 #   Only allowed to IRC operators.
 #
-# privmsgnotice_server_mask =>
-#     $command, $source,
-#     $mask, $message
-#
 sub privmsgnotice_smask {
-    my ($to_server, $cmd, $source, $server_mask, $message) = @_;
+    my ($to_server, $cmd, $source, undef, $message, %opts) = @_;
+    my $server_mask = $opts{serv_mask};
     my $id = ts6_id($source);
     ":$id $cmd \$\$$server_mask :$message"
 }
@@ -634,6 +632,7 @@ sub privmsgnotice_opmod {
     # sends a normal PRIVMSG or NOTICE from the original source. I don't know
     # why that would be desirable though, because it would go to all members?
     #
+    $target or return;
     return sprintf ':%s NOTICE @%s :<%s:%s> %s',
     ts6_id($source->server),
     $target->name,

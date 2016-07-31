@@ -3600,3 +3600,4 @@ CHANGES:
             channel method ->user_is() can now take a status level in addition to a mode name.
             new channel method ->user_is_at_least() returns true if a user has a mode name or level greater than or equal to the one passed.
             added outgoing TS6 logic for messages that were blocked by +z.
+            the former privmsgnotice_server_mask outgoing command is now an extension of privmsgnotice.

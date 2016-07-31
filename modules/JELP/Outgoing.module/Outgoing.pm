@@ -26,7 +26,6 @@ my %ocommands = (
     nickchange      => \&nickchange,
     umode           => \&umode,
     privmsgnotice   => \&privmsgnotice,
-    privmsgnotice_server_mask => \&privmsgnotice_smask,
     join            => \&_join,
     oper            => \&oper,
     away            => \&away,
@@ -232,7 +231,12 @@ sub umode {
 
 # privmsg and notice
 sub privmsgnotice {
-    my ($to_server, $cmd, $source, $target, $message) = @_;
+    my ($to_server, $cmd, $source, $target, $message, %opts) = @_;
+
+    # complex stuff
+    return privmsgnotice_smask(@_) if defined $opts{serv_mask};
+
+    $target or return;
     my $id  = $source->id;
     my $tid = $target->id;
     ":$id $cmd $tid :$message"
@@ -244,12 +248,9 @@ sub privmsgnotice {
 #   propagation: broadcast
 #   Only allowed to IRC operators.
 #
-# privmsgnotice_server_mask =>
-#     $command, $source,
-#     $mask, $message
-#
 sub privmsgnotice_smask {
-    my ($to_server, $cmd, $source, $server_mask, $message) = @_;
+    my ($to_server, $cmd, $source, undef, $message, %opts) = @_;
+    my $server_mask = $opts{serv_mask};
     my $id = $source->id;
     ":$id $cmd \$\$$server_mask :$message"
 }
