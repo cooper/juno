@@ -19,7 +19,7 @@ use parent 'Evented::Object';
 
 use utils qw(conf v notice match ref_to_list cut_to_length);
 use List::Util qw(first max);
-use Scalar::Util qw(blessed);
+use Scalar::Util qw(blessed looks_like_number);
 
 our ($api, $mod, $pool, $me);
 
@@ -543,8 +543,33 @@ sub mode_string_status {
 # the passed status list.
 sub user_is {
     my ($channel, $user, $what) = @_;
+
+    # if it's an num, check if they have that level specifically.
+    if (looks_like_number($what)) {
+        $what = $ircd::channel_mode_prefixes{$what}[2]; # name
+    }
+
     return 1 if $channel->list_has($what, $user);
     return;
+}
+
+# check if a user has at least a certain level
+sub user_is_at_least {
+    my ($channel, $user, $level) = @_;
+
+    # if it's not an num, convert mode name to level.
+    if (!looks_like_number($level)) { my $found;
+        foreach my $lvl (keys %ircd::channel_mode_prefixes) {
+            my $name = $ircd::channel_mode_prefixes{$lvl}[2];
+            next if $level ne $name;
+            $level = $lvl;
+            $found++;
+            last;
+        }
+        return unless $found;
+    }
+
+    return $channel->user_get_highest_level($user) >= $level;
 }
 
 # returns true value only if the passed user has status
@@ -555,6 +580,7 @@ sub user_has_basic_status {
 }
 
 # get the highest level of a user
+# returns -inf if they have no status
 # [letter, symbol, name]
 sub user_get_highest_level {
     my ($channel, $user) = @_;
@@ -620,21 +646,21 @@ sub names {
 
     my @str;
     my $curr = 0;
-    foreach my $usr ($channel->users) {
+    foreach my $a_user ($channel->users) {
 
         # some extension said not to show this user.
         # the first user is the one being considered;
         # the second is the one which initiated the NAMES.
-        next if $channel->fire_event(show_in_names => $usr, $user)->stopper;
+        next if $channel->fire_event(show_in_names => $a_user, $user)->stopper;
 
         # if this user is invisible, do not show him unless the querier is in a common
         # channel or has the see_invisible flag.
-        if ($usr->is_mode('invisible')) {
+        if ($a_user->is_mode('invisible')) {
             next if !$in_channel && !$user->has_flag('see_invisible');
         }
 
         # add him.
-        $str[$curr] .= $channel->$prefixes($usr).$usr->{nick}.q( );
+        $str[$curr] .= $channel->$prefixes($a_user).$a_user->{nick}.q( );
 
         # if the current string is over 500 chars, start a new one.
         $curr++ if length $str[$curr] > 500;
@@ -711,11 +737,12 @@ sub sendfrom_all_cap {
 
 # send a notice to all the local members.
 sub notice_all {
-    my ($channel, $what, $ignore) = @_;
+    my ($channel, $what, $ignore, $no_stars) = @_;
+    my $stars = $no_stars ? '' : '*** ';
     foreach my $user ($channel->users) {
         next unless $user->is_local;
         next if defined $ignore && $ignore == $user;
-        $user->sendfrom($me->name, "NOTICE $$channel{name} :*** $what");
+        $user->sendfrom($me->name, "NOTICE $$channel{name} :$stars$what");
     }
     return 1;
 }

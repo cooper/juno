@@ -3597,3 +3597,5 @@ CHANGES:
 
         83. improved the Eval module. it now properly detects empty strings.
             it catches warnings produced by the eval and forward them to the user or channel.
+            channel method ->user_is() can now take a status level in addition to a mode name.
+            new channel method ->user_is_at_least() returns true if a user has a mode name or level greater than or equal to the one passed.
