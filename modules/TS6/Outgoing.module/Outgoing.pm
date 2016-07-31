@@ -486,7 +486,15 @@ sub bmask {
 sub topicburst {
     my ($to_server, $channel, %opts) = @_;
 
-    # if this is MY burst, use TB. don't waste time trying to guess what to do.
+    # if this is MY burst, use TB.
+    # don't waste time trying to guess what to do.
+    #
+    # <jilles> mad, ETB is not used in bursts for compatibility reasons, since
+    #   there is no way to force a non-ETB server to apply the correct change
+    #   in the general case
+    # <jilles> once non-ETB servers are deemed uninteresting/obsolete,
+    #   it's possible to use ETB in bursts
+    #
     if ($to_server->{i_am_burst} && $to_server->has_cap('TB')) {
         return tb($to_server, $channel);
     }

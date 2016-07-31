@@ -3594,3 +3594,6 @@ CHANGES:
             this uses an undocumented option in IO::Async::Notifier which is subject to change. closes #128 (for now).
             renamed some channel-related oper notices to start with 'channel' rather than 'user'.
             outgoing PRIVMSG/NOTICE for TS6 now supports the '=' prefix used for +z.
+
+        83. improved the Eval module. it now properly detects empty strings.
+            it catches warnings produced by the eval and forward them to the user or channel.

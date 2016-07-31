@@ -19,9 +19,11 @@ use warnings;
 use strict;
 use 5.010;
 
-our ($api, $mod, $me, $pool, $conf);
-my %allowed;
+use utils qw(trim);
 
+our ($api, $mod, $me, $pool, $conf);
+
+my %allowed;
 our $depth = 1;
 
 our %user_commands = (EVAL => {
@@ -57,8 +59,21 @@ sub _eval {
         return;
     }
 
+    # find destination and code
     my $channel = $pool->lookup_channel($ch_name);
     $code = join(' ', $ch_name, $code // '') unless $channel;
+    return if !length $code;
+
+    # create a function to write to the destination
+    my $write = sub {
+        my $text = shift;
+        $user or return;
+        if ($channel) {
+            $user->handle("ECHO $$channel{name} :$text");
+            return;
+        }
+        $user->server_notice(eval => $text);
+    };
 
     # start eval block.
     if ($code eq 'BLOCK') {
@@ -79,36 +94,46 @@ sub _eval {
     }
 
     # evaluate.
-    $code //= '';
-    my $result = eval {
+    my ($error, $result);
+    my $passed = eval {
+
+        # catch timeouts
         local $SIG{ALRM} = sub { die "Timed out\n" };
+
+        # catch warnings
+        local $SIG{__WARN__} = sub {
+            $user && $channel or return;
+            $write->("Warning: $_") for split "\n", shift;
+        };
+
+        # do the eval
         alarm 10;
         my $r = eval $code;
         alarm 0;
-        $r // $@;
-    } // $@ || "\2undef\2";
-    my @result = map { length $_ ? $_ : "\2empty\2" } split "\n", $result;
 
-    # send the result to the channel.
+        # store the results
+        $error  = $@;
+        $result = $r;
+
+        !length $error
+    };
+
+    # determine the results
+    $result = "Exception: $error" if !$passed;
+    $result //= "(undef)";
+    my @result = split "\n", "$result\n", -1;
+    pop @result;
+
+    # send the result.
     my $i = 0;
-    if ($channel) {
-        foreach (@result) {
-            $i++;
-            my $e = ($#result ? "($i): " : '').$_;
-            $user->handle("ECHO $$channel{name} :$e");
-        }
+    foreach (@result) {
+        $i++;
+        my $line = length() ? $_ : '(empty string)';
+        my $pfx  = $#result ? "($i): " : '';
+        $write->($pfx.$line);
     }
 
-    # send the result to the user.
-    else {
-        my $i = 0;
-        foreach (@result) {
-            $i++;
-            my $e = ($#result ? "($i): " : '').$_;
-            $user->server_notice(eval => $e);
-        }
-    }
-
+    undef $write;
     return 1;
 }
 
@@ -128,13 +153,14 @@ use utils qw(conf ref_to_list);
 sub Dumper {
     ircd::load_or_reload('Data::Dumper', 0) or return;
     my $d = Data::Dumper->new([ @_ ]);
-    return $d->Maxdepth($depth)->Dump;
+    return trim($d->Maxdepth($depth)->Dump);
 }
 
 sub user { $pool->lookup_user    (@_)  || $pool->lookup_user_nick   (@_) }
 sub serv { $pool->lookup_server  (@_)  || $pool->lookup_server_mask (@_) }
 sub chan { $pool->lookup_channel (@_)  }
 
+sub Dump;       *Dump    = *Dumper;
 sub server;     *server  = *serv;
 sub channel;    *channel = *chan;
 
