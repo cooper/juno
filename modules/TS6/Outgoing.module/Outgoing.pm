@@ -982,10 +982,13 @@ sub invite {
     # in JELP, the channel does not have to exist.
     # this is why the channel name is used here.
     # in TS6, invitations to nonexistent channels are not supported.
-    my $channel = $pool->lookup_channel($ch_name);
+    my $channel = blessed $ch_name ? $ch_name : $pool->lookup_channel($ch_name);
     if (!$channel) {
-        L("$$to_server{name} does not support invitations to nonexistent ".
-          "channels; INVITE message dropped");
+        notice(server_protocol_warning =>
+            $to_server->notice_info,
+            'does not support invitations to nonexistent channels; '.
+            'invite message dropped'
+        );
         return;
     }
 

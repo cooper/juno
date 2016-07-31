@@ -3584,3 +3584,4 @@ CHANGES:
         updated Resolve to use the new future methods.
 
         81. fixed an issue where INVITEs from TS6 without the optional channelTS parameter were dropped.
+            fixed an issue where outgoing TS6 INVITEs which originated on a JELP link were not forward properly.
