@@ -66,10 +66,10 @@ sub _eval {
 
     # create a function to write to the destination
     my $write = sub {
-        my $text = shift;
+        my ($text, $pfx) = @_;
         $user or return;
         if ($channel) {
-            $user->handle("ECHO $$channel{name} :$text");
+            $channel->notice_all("$pfx: $text", undef, 1);
             return;
         }
         $user->server_notice(eval => $text);
@@ -103,7 +103,8 @@ sub _eval {
         # catch warnings
         local $SIG{__WARN__} = sub {
             $user && $channel or return;
-            $write->("Warning: $_") for split "\n", shift;
+            my @lines = split "\n", shift; my $i = 1;
+            $write->($_, $#lines ? 'W'.$i++ : 'W') for @lines;
         };
 
         # do the eval
@@ -119,7 +120,11 @@ sub _eval {
     };
 
     # determine the results
-    $result = 'Exception: '.trim($error || $@ || 'unknown') if !$passed;
+    my $pfx = 'R';
+    if (!$passed) {
+        $result = trim($error || $@ || 'unknown');
+        $pfx = 'E';
+    }
     $result //= "(undef)";
     my @result = split "\n", "$result\n", -1;
     pop @result;
@@ -129,8 +134,8 @@ sub _eval {
     foreach (@result) {
         $i++;
         my $line = length() ? $_ : '(empty string)';
-        my $pfx  = $#result ? "($i): " : '';
-        $write->($pfx.$line);
+        my $pfx  = $#result ? "$pfx$i" : $pfx;
+        $write->($line, $pfx);
     }
 
     undef $write;
