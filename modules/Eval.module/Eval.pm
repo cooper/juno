@@ -119,7 +119,7 @@ sub _eval {
     };
 
     # determine the results
-    $result = "Exception: $error" if !$passed;
+    $result = 'Exception: '.trim($error || $@ || 'unknown') if !$passed;
     $result //= "(undef)";
     my @result = split "\n", "$result\n", -1;
     pop @result;
