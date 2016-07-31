@@ -586,19 +586,13 @@ sub etb {
 #
 sub privmsgnotice {
     my ($to_server, $cmd, $source, $target, $message, %opts) = @_;
+
+    # complex stuff
+    return privmsgnotice_opmod(@_) if $opts{op_moderate};
+
     my $id  = ts6_id($source);
     my $tid = ts6_id($target);
-
-    # complex channel PRIVMSGs
-    my $pfx = '';
-    if ($target->isa('channel')) {
-        $pfx = '=' if $opts{op_moderate};
-    }
-
-    # complex user PRIVMSGs
-    # if ($target->isa('user'))
-
-    ":$id $cmd $pfx$tid :$message"
+    ":$id $cmd $tid :$message"
 }
 
 # Complex PRIVMSG
@@ -615,6 +609,37 @@ sub privmsgnotice_smask {
     my ($to_server, $cmd, $source, $server_mask, $message) = @_;
     my $id = ts6_id($source);
     ":$id $cmd \$\$$server_mask :$message"
+}
+
+# charybdis/blob/8fed90ba8a221642ae1f0fd450e8e580a79061fb/ircd/send.cc#L581
+sub privmsgnotice_opmod {
+    my ($to_server, $cmd, $source, $target, $message, %opts) = @_;
+    return if !$target->isa('channel');
+
+    # unfortunately we can't do anything for servers without CHW.
+    return if !$to_server->has_cap('CHW');
+
+    # if the target server has EOPMOD, we can use the '=' prefix.
+    if ($to_server->has_cap('EOPMOD')) {
+        return sprintf ':%s %s =%s :%s',
+        ts6_id($source),
+        $cmd,
+        $target->name,
+        $message;
+    }
+
+    # no EOPMOD. use NOTICE @#channel
+    #
+    # note: charybdis also checks if the channel is moderated, and if so,
+    # sends a normal PRIVMSG or NOTICE from the original source. I don't know
+    # why that would be desirable though, because it would go to all members?
+    #
+    return sprintf ':%s NOTICE @%s :<%s:%s> %s',
+    ts6_id($source->server),
+    $target->name,
+    $source->name,
+    $target->name,
+    $message;
 }
 
 # PART

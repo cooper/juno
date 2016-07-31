@@ -72,7 +72,7 @@ sub _eval {
             $channel->notice_all("$pfx: $text", undef, 1);
             return;
         }
-        $user->server_notice(eval => $text);
+        $user->server_notice(eval => "$pfx: $text");
     };
 
     # start eval block.
