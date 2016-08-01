@@ -788,7 +788,8 @@ sub privmsgnotice_opmod {
     #
     $channel->handle_privmsgnotice(
         $command, $source, $message,
-        op_moderate => 1
+        force => 1,
+        op_moderated => 1
     );
 
     return 1;
