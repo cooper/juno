@@ -59,7 +59,7 @@ sub new_connection {
         set_v(max_connection_count => scalar keys %{ $pool->{connections} });
     }
 
-    $connection->fire_event('new');
+    $connection->fire('new');
     return $connection;
 }
 
@@ -128,7 +128,7 @@ sub new_server {
         $server->{parent}{name}
     );
 
-    $server->fire_event('new');
+    $server->fire('new');
     return $server;
 }
 
@@ -248,7 +248,7 @@ sub new_user {
     notice(new_user => $user->notice_info, $user->{real}, $user->{server}{name})
         unless $user->{location}{is_burst};
 
-    $user->fire_event('new');
+    $user->fire('new');
     return $user;
 }
 
@@ -845,7 +845,7 @@ sub channel_mode_string {
 
 sub user_match {
     my ($pool, $user, @list) = @_;
-    my $e = $pool->fire_event(user_match => $user, @list);
+    my $e = $pool->fire(user_match => $user, @list);
     return $e->{matched};
 }
 

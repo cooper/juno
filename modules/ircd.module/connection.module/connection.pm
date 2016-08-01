@@ -166,7 +166,7 @@ sub reg_continue {
 sub ready {
     my $connection = shift;
     return if $connection->{ready};
-    $connection->fire_event('ready');
+    $connection->fire('ready');
 
     # must be a user.
     if (length $connection->{nick} && length $connection->{ident}) {
@@ -202,7 +202,7 @@ sub ready {
         );
 
         weaken($connection->{type}{conn} = $connection);
-        $connection->fire_event(user_ready => $connection->{type});
+        $connection->fire(user_ready => $connection->{type});
 
     }
 
@@ -226,7 +226,7 @@ sub ready {
         );
 
         weaken($connection->{type}{conn} = $connection);
-        $connection->fire_event(server_ready => $connection->{type});
+        $connection->fire(server_ready => $connection->{type});
 
         $server->{conn} = $connection;
         weaken($connection->{type}{location} = $connection->{type});
@@ -243,7 +243,7 @@ sub ready {
         return;
     }
 
-    $connection->fire_event(ready_done => $connection->{type});
+    $connection->fire(ready_done => $connection->{type});
     $connection->{type}->_new_connection if $connection->user;
     return $connection->{ready} = 1;
 }
@@ -327,7 +327,7 @@ sub done {
     # fire done event, then
     # delete all callbacks to dispose of any possible
     # looping references within them.
-    $connection->fire_event(done => $reason);
+    $connection->fire(done => $reason);
     $connection->clear_futures;
     $connection->delete_all_events;
 

@@ -665,7 +665,7 @@ sub add_whois_callbacks {
             next if $quser->is_mode('service');
 
             # some callback said not to include this channel
-            my $e = $channel->fire_event(show_in_whois => $quser, $ruser);
+            my $e = $channel->fire(show_in_whois => $quser, $ruser);
             next if $e->stopper;
 
             push @channels, $channel;
@@ -1257,7 +1257,7 @@ sub list {
 
     # send for each channel in no particular order.
     foreach my $channel ($pool->channels) {
-        next if $channel->fire_event(show_in_list => $user)->stopper;
+        next if $channel->fire(show_in_list => $user)->stopper;
         # 322 RPL_LIST "<channel> <# visible> :<topic>"
         my $number_of_users = scalar $channel->users;
         my $channel_topic   = $channel->topic ? $channel->topic->{topic} : '';

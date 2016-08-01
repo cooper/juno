@@ -200,7 +200,7 @@ sub rcmd_server {
     }
 
     # made it.
-    $connection->fire_event('looks_like_server');
+    $connection->fire('looks_like_server');
     $connection->{ircd_name} = conf($s_conf, 'ircd') // 'charybdis';
     $connection->{link_type} = 'ts6';
     $connection->reg_continue('id2');

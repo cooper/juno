@@ -3614,3 +3614,5 @@ CHANGES:
             server::protocol now provides a generic PRIVMSG/NOTICE handler to eliminate code repetition.
             cleaned up/reorganized server::protocol.
             renamed ->handle_privmsgnotice() to ->do_privmsgnotice() such that it is consistent with other high-level 'do' methods.
+            cleanup: renamed all occurrences of ->register_event() to ->on().
+            cleanup: renamed all occurrences of ->fire_event() to ->fire().

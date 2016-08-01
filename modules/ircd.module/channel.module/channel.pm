@@ -633,7 +633,7 @@ sub destroy_maybe {
     my $channel = shift;
 
     # an event said not to destroy the channel.
-    return if $channel->fire_event('can_destroy')->stopper;
+    return if $channel->fire('can_destroy')->stopper;
 
     # there are still users in here!
     return if $channel->users;
@@ -684,7 +684,7 @@ sub names {
         # some extension said not to show this user.
         # the first user is the one being considered;
         # the second is the one which initiated the NAMES.
-        next if $channel->fire_event(show_in_names => $a_user, $user)->stopper;
+        next if $channel->fire(show_in_names => $a_user, $user)->stopper;
 
         # if this user is invisible, do not show him unless the querier is in a common
         # channel or has the see_invisible flag.
@@ -702,7 +702,7 @@ sub names {
 
     # fire an event which allows modules to change the character.
     my $c = '=';
-    $channel->fire_event(names_character => \$c);
+    $channel->fire(names_character => \$c);
 
     # send out the NAMREPLYs, if any. if no users matched, none will be sent.
     # then, send out ENDOFNAMES unless told not to by the caller.
@@ -961,7 +961,7 @@ sub do_privmsgnotice {
         my $lccommand = lc $command;
 
         # can_message, can_notice, can_privmsg.
-        my $can_fire = $source_user->fire_events_together(
+        my $can_fire = $source_user->fires_together(
             [  can_message     => $channel, $message, $lccommand ],
             [ "can_$lccommand" => $channel, $message             ]
         );
@@ -974,7 +974,7 @@ sub do_privmsgnotice {
         if ($can_fire->stopper) {
 
             # if the message was blocked, fire cant_* events.
-            my $cant_fire = $source_user->fire_events_together(
+            my $cant_fire = $source_user->fires_together(
                 [  cant_message     => $channel, $message, $lccommand, $can_fire ],
                 [ "cant_$lccommand" => $channel, $message,             $can_fire ]
             );
@@ -1033,7 +1033,7 @@ sub do_privmsgnotice {
     }
 
     # fire event.
-    $channel->fire_event($command => $source, $message);
+    $channel->fire($command => $source, $message);
 
     return 1;
 }
@@ -1086,7 +1086,7 @@ sub do_join {
     }
 
     # fire after join event.
-    $channel->fire_event(user_joined => $user);
+    $channel->fire(user_joined => $user);
 
 }
 

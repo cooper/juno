@@ -186,7 +186,7 @@ sub rcmd_nick {
     # set the nick.
     $pool->reserve_nick($nick, $connection);
     $connection->{nick} = $nick;
-    $connection->fire_event(reg_nick => $nick);
+    $connection->fire(reg_nick => $nick);
     $connection->reg_continue('id1');
 
 }
@@ -202,7 +202,7 @@ sub rcmd_user {
 
     $connection->{ident} = $args[0];
     $connection->{real}  = $args[3];
-    $connection->fire_event(reg_user => @args[0,3]);
+    $connection->fire(reg_user => @args[0,3]);
     $connection->reg_continue('id2');
 }
 

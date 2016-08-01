@@ -780,17 +780,17 @@ sub _safe {
 sub _new_connection {
     &_safe or return;
     my $user = shift;
-    $user->fire_event('welcoming');
+    $user->fire('welcoming');
 
     # set modes.
     # note: we don't use do_mode_string() because we wait until afterward to send MODE.
     $user->handle_mode_string(conf qw/users automodes/);
     $user->set_mode('ssl') if $user->{ssl};
-    $user->fire_event('initially_set_modes');
+    $user->fire('initially_set_modes');
 
     # tell other servers
     $pool->fire_command_all(new_user => $user);
-    $user->fire_event('initially_propagated');
+    $user->fire('initially_propagated');
     $user->{initially_propagated}++;
 
     # send numerics.
