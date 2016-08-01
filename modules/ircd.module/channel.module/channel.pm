@@ -961,7 +961,7 @@ sub do_privmsgnotice {
         my $lccommand = lc $command;
 
         # can_message, can_notice, can_privmsg.
-        my $can_fire = $source_user->fires_together(
+        my $can_fire = $source_user->fire_events_together(
             [  can_message     => $channel, $message, $lccommand ],
             [ "can_$lccommand" => $channel, $message             ]
         );
@@ -974,7 +974,7 @@ sub do_privmsgnotice {
         if ($can_fire->stopper) {
 
             # if the message was blocked, fire cant_* events.
-            my $cant_fire = $source_user->fires_together(
+            my $cant_fire = $source_user->fire_events_together(
                 [  cant_message     => $channel, $message, $lccommand, $can_fire ],
                 [ "cant_$lccommand" => $channel, $message,             $can_fire ]
             );
