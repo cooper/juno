@@ -936,6 +936,12 @@ sub _do_mode_string {
 #       serv_mask       if provided, the message is to be sent to all
 #                               users which belong to servers matching the mask.
 #
+#       atserv_user     if provided, this is the nickname for a target@server
+#                       message. if it is present, atserv_serv must also exist.
+#
+#       atserv_serv     if provided, this is the server name for a target@server
+#                       message. if it is present, atserv_user must also exist.
+#
 sub do_privmsgnotice {
     my ($channel, $command, $source, $message, %opts) = @_;
     my ($source_user, $source_serv) = ($source->user, $source->server);

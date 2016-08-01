@@ -164,6 +164,13 @@ sub handle_svsnick {
 #
 #   opmod_prefix        prefix for messaging ops in an op moderated channel.
 #
+#   supports_atserv     if true, the protocol supports the user@server target.
+#                       this is not handled here, except that the message may
+#                       be routed to a server with an exact name match.
+#
+#   opers_prefix        prefix for sending a message to all online opers.
+#                       this only works with supports_atserv.
+#
 sub handle_privmsgnotice {
     my ($server, $msg, $source, $command, $target, $message, %opts) = @_;
     my $prefix;
@@ -191,6 +198,15 @@ sub handle_privmsgnotice {
             my $channel = $opts{channel_lookup}($t_name) or return;
             return _privmsgnotice_opmod(@_[0..3], $channel, $message, %opts);
         }
+    }
+
+    # it might be someone@somewhere
+    if (m/^(.+)@(.+)$/) {
+        my ($nick, $serv_name) = ($1, $2);
+        return _privmsgnotice_atserver(
+            @_[0..3],
+            $nick, $serv_name, $message, %opts
+        );
     }
 
     # is it a user?
@@ -238,7 +254,7 @@ sub handle_privmsgnotice {
     return;
 }
 
-# Complex PRIVMSG
+# - Complex PRIVMSG
 #   a message to all users on server names matching a mask ('$$' followed by mask)
 #   propagation: broadcast
 #   Only allowed to IRC operators.
@@ -305,6 +321,46 @@ sub _privmsgnotice_opmod {
     );
 
     return 1;
+}
+
+# - Complex PRIVMSG
+#   a user@server message, to send to users on a specific server. The exact
+#   meaning of the part before the '@' is not prescribed, except that "opers"
+#   allows IRC operators to send to all IRC operators on the server in an
+#   unspecified format.
+#   propagation:    one-to-one
+#
+sub _privmsgnotice_atserver {
+    my ($server, $msg, $source, $command,
+    $nick, $serv_name, $message, %opts) = @_;
+
+    # if the server is not exactly equal to this one, forward it.
+    if (irc_lc($serv_name) ne irc_lc($me->name)) {
+
+        # it cannot have wildcards.
+        return if index($msg, '*') != -1 || index($msg, '?') != -1;
+
+        # === Forward ===
+        $msg->forward_to_mask($serv_name, privmsgnotice =>
+            $command, $source,
+            undef,    $message,
+            atserv_user => $nick,
+            atserv_serv => $serv_name
+        );
+
+        return 1;
+    }
+
+    # Safe point - this server is the target.
+
+    # if the target is opers@me, send a notice to online opers.
+    my $prefix;
+    if (length($prefix = $opts{opers_prefix}) && $nick eq $prefix) {
+        notice(oper_message => $source->notice_info, $message);
+        return 1;
+    }
+
+    return;
 }
 
 ##################################

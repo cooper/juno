@@ -3616,3 +3616,5 @@ CHANGES:
             renamed ->handle_privmsgnotice() to ->do_privmsgnotice() such that it is consistent with other high-level 'do' methods.
             cleanup: renamed all occurrences of ->register_event() to ->on().
             cleanup: renamed all occurrences of ->fire_event() to ->fire().
+            added support for user@server PRIVMSG target.
+            added support for opers@server special target.

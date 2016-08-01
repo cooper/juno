@@ -64,6 +64,7 @@ our %oper_notices = (
     server_protocol_error   => '%s %s; dropping link',
 
     # miscellaneous
+    oper_message            => 'From %s: %s',
     perl_warning            => '%s',
     exception               => '%s',
     rehash                  => '%s is rehashing the server',

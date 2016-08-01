@@ -395,7 +395,9 @@ sub privmsgnotice {
         channel_lookup => sub { $pool->lookup_channel(shift) },
         user_lookup    => sub { $pool->lookup_user(shift)    },
         opmod_prefix   => '=',
-        smask_prefix   => '$$'
+        smask_prefix   => '$$',
+        supports_atserv => 1,
+        opers_prefix    => 'opers'
     );
 }
 

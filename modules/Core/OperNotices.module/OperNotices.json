@@ -9,5 +9,5 @@
    "description" : "the core set of oper notices",
    "name" : "Core::OperNotices",
    "package" : "M::Core::OperNotices",
-   "version" : "12.05"
+   "version" : "12.15"
 }

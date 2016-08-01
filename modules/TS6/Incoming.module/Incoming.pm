@@ -623,7 +623,7 @@ sub sjoin {
 #   capab:          CHW and EOPMOD
 #   propagation:    all servers with -D chanops
 #
-# - TODO: Complex PRIVMSG
+# - Complex PRIVMSG
 #   a user@server message, to send to users on a specific server. The exact
 #   meaning of the part before the '@' is not prescribed, except that "opers"
 #   allows IRC operators to send to all IRC operators on the server in an
@@ -661,10 +661,12 @@ sub privmsgnotice {
     my ($server, $msg, $source, $command, $target, $message) = @_;
     return server::protocol::handle_privmsgnotice(
         @_[0..5],
-        channel_lookup => sub { $pool->lookup_channel(shift) },
-        user_lookup    => \&user_from_ts6,
-        opmod_prefix   => '=',
-        smask_prefix   => '$$'
+        channel_lookup  => sub { $pool->lookup_channel(shift) },
+        user_lookup     => \&user_from_ts6,
+        opmod_prefix    => '=',
+        smask_prefix    => '$$',
+        supports_atserv => 1,
+        opers_prefix    => 'opers'
     );
 }
 
