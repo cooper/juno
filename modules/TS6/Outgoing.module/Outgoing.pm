@@ -609,7 +609,13 @@ sub privmsgnotice_smask {
     ":$id $cmd \$\$$server_mask :$message"
 }
 
+# - Complex PRIVMSG
+#   '=' followed by a channel name, to send to chanops only, for cmode +z.
+#   capab:          CHW and EOPMOD
+#   propagation:    all servers with -D chanops
+#
 # charybdis/blob/8fed90ba8a221642ae1f0fd450e8e580a79061fb/ircd/send.cc#L581
+#
 sub privmsgnotice_opmod {
     my ($to_server, $cmd, $source, $target, $message, %opts) = @_;
     return if !$target->isa('channel');

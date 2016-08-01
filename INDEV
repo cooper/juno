@@ -3609,3 +3609,5 @@ CHANGES:
             added incoming TS6 handler for opmod (=#channel).
             added incoming JELP handler for opmod (=#channel).
             ->handle_privmsgnotice()'s dont_forward option is no longer used in JELP/TS6 because the routing of these commands may be modified by modules.
+
+        85. added utils level_from_prefix_ts6() and ts6_closest_level().

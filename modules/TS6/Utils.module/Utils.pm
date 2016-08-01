@@ -18,6 +18,7 @@ use strict;
 use 5.010;
 
 use Scalar::Util 'blessed';
+use List::Util 'min';
 use utils qw(import ref_to_list);
 
 our ($api, $mod, $pool, $conf);
@@ -75,30 +76,6 @@ sub ts6_uid {
 sub ts6_uid_u {
     my $id = shift;
     return ts6_id_n(utils::a2n($id));
-}
-
-# convert juno level to prefix.
-sub ts6_prefix {
-    my ($server, $level) = @_;
-    foreach my $prefix (keys %{ $server->{ircd_prefixes} || {} }) {
-        my ($letter, $lvl) = ref_to_list($server->{ircd_prefixes}{$prefix});
-        next unless $level == $lvl;
-        return $prefix;
-    }
-    return '';
-}
-
-# convert juno levels to prefixes, removing duplicates.
-sub ts6_prefixes {
-    my ($server, @levels) = @_;
-    my ($prefixes, %done) = '';
-    foreach my $level (@levels) {
-        my $prefix = ts6_prefix($server, $level);
-        next if $done{$prefix};
-        $prefixes .= $prefix;
-        $done{$prefix} = 1;
-    }
-    return $prefixes;
 }
 
 # get nth ts6 ID.
@@ -181,11 +158,66 @@ sub uid_n_from_ts6 {
     return ++$dec;
 }
 
+
+# convert juno level to prefix.
+# returns empty string if there is no equivalent.
+sub ts6_prefix {
+    my ($server, $level) = @_;
+    foreach my $prefix (keys %{ $server->{ircd_prefixes} || {} }) {
+        my ($letter, $lvl) = ref_to_list($server->{ircd_prefixes}{$prefix});
+        next unless $level == $lvl;
+        return $prefix;
+    }
+    return '';
+}
+
+# returns the first level which is less than or equal to the prefix's level.
+# e.g. 2 (owner) to charybdis would be 0 (op).
+sub ts6_closest_level {
+    my ($server, $level) = @_;
+
+    # find the lowest supported level.
+    my %supported_levels = map { $_->[1] => 1 }
+        values %{ $server->{ircd_prefixes} || {} };
+    my $lowest = min keys %supported_levels;
+
+    # if the requested level is lower than the lowest supported,
+    # we cannot do anything.
+    return -inf if $level < $lowest;
+
+    # starting with $level, go backwards to $lowest
+    for (reverse $lowest .. $level) {
+        return $_ if $supported_levels{$_};
+    }
+
+    return -inf;
+}
+
+# convert juno levels to prefixes, removing duplicates.
+sub ts6_prefixes {
+    my ($server, @levels) = @_;
+    my ($prefixes, %done) = '';
+    foreach my $level (@levels) {
+        my $prefix = ts6_prefix($server, $level);
+        next if $done{$prefix};
+        $prefixes .= $prefix;
+        $done{$prefix} = 1;
+    }
+    return $prefixes;
+}
+
 # TS6 prefix -> mode letter
 sub mode_from_prefix_ts6 {
     my ($server, $prefix) = @_;
     my $p = $server->{ircd_prefixes}{$prefix};
     return $p ? $p->[0] : '';
+}
+
+# TS6 prefix -> level
+sub level_from_prefix_ts6 {
+    my ($server, $prefix) = @_;
+    my $p = $server->{ircd_prefixes}{$prefix};
+    return $p ? $p->[1] : -inf;
 }
 
 $mod
