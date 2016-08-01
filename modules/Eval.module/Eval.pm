@@ -104,7 +104,7 @@ sub _eval {
         local $SIG{__WARN__} = sub {
             $user && $channel or return;
             my @lines = split "\n", shift; my $i = 1;
-            $write->($_, $#lines ? 'W'.$i++ : 'W') for @lines;
+            $write->($_, $#lines ? 'Warning'.$i++ : 'Warning') for @lines;
         };
 
         # do the eval
@@ -120,10 +120,10 @@ sub _eval {
     };
 
     # determine the results
-    my $pfx = 'R';
+    my $pfx = 'Result';
     if (!$passed) {
         $result = trim($error || $@ || 'unknown');
-        $pfx = 'E';
+        $pfx = 'Exception';
     }
     $result //= "(undef)";
     my @result = split "\n", "$result\n", -1;
