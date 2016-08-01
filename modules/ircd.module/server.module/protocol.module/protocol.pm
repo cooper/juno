@@ -201,7 +201,7 @@ sub handle_privmsgnotice {
     }
 
     # it might be someone@somewhere
-    if (m/^(.+)@(.+)$/) {
+    if ($opts{supports_atserv} && $target =~ m/^(.+)\@(.+)$/) {
         my ($nick, $serv_str) = ($1, $2);
         return _privmsgnotice_atserver(
             @_[0..3],
