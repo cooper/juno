@@ -161,9 +161,9 @@ sub Dumper {
     return trim($d->Maxdepth($depth)->Dump);
 }
 
-sub user { $pool->lookup_user    (@_)  || $pool->lookup_user_nick   (@_) }
-sub serv { $pool->lookup_server  (@_)  || $pool->lookup_server_mask (@_) }
-sub chan { $pool->lookup_channel (@_)  }
+sub user ($) { $pool->lookup_user    (@_)  || $pool->lookup_user_nick   (@_) }
+sub serv ($) { $pool->lookup_server  (@_)  || $pool->lookup_server_mask (@_) }
+sub chan ($) { $pool->lookup_channel (@_)  }
 
 sub Dump;       *Dump    = *Dumper;
 sub server;     *server  = *serv;
