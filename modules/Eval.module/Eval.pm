@@ -69,7 +69,7 @@ sub _eval {
         my ($text, $pfx) = @_;
         $user or return;
         if ($channel) {
-            $channel->notice_all("$pfx: $text", undef, 1);
+            $channel->notice_all("$pfx: $text", undef, undef, 1);
             return;
         }
         $user->server_notice(eval => "$pfx: $text");

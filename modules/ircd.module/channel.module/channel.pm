@@ -735,15 +735,14 @@ sub sendfrom_all_cap {
     return 1;
 }
 
-# send a notice to all the local members.
+# send a notice from the server to all members.
 sub notice_all {
-    my ($channel, $what, $ignore, $no_stars) = @_;
-    my $stars = $no_stars ? '' : '*** ';
-    foreach my $user ($channel->users) {
-        next unless $user->is_local;
-        next if defined $ignore && $ignore == $user;
-        $user->sendfrom($me->name, "NOTICE $$channel{name} :$stars$what");
-    }
+    my ($channel, $what, $ignore, $local_only, $no_stars) = @_;
+    $what = "*** $what" unless $no_stars;
+
+    # ($command, $source, $message, $dont_forward, $force, $opts, @users) = @_;
+    $channel->handle_privmsgnotice('NOTICE', $me, $what, $local_only, 1);
+
     return 1;
 }
 
@@ -768,7 +767,7 @@ sub take_lower_time {
         $channel->handle_mode_string($me, $me, $s_str, 1, 1);
     }
 
-    notice_all($channel, "New channel time: ".scalar(localtime $time));
+    $channel->notice_all("New channel time: ".scalar(localtime $time), 1);
     return $channel->{time};
 }
 
@@ -893,8 +892,11 @@ sub _do_mode_string {
 # \%opts    a hash reference of options which will be passed to the outgoing
 #           command handlers. if $dont_forward, this is ignored. supports:
 #
-#               op_moderate     if true, this message was blocked but will be
+#               op_moderated    if true, this message was blocked but will be
 #                               sent to ops in a +z channel.
+#
+#               serv_mask       if provided, the message is to be sent to all
+#                               users which belong to servers matching the mask.
 #
 # @users    if specified, this list of users will be used as the destinations.
 #           they can be local, remote, or a mixture of both. when omitted, all
@@ -907,6 +909,7 @@ sub handle_privmsgnotice {
         $dont_forward, $force, $opts, @users) = @_;
     my ($source_user, $source_serv) = ($source->user, $source->server);
     @users = $channel->users if !@users;
+    $command = uc $command;
 
     # it's a user. fire the can_* events.
     if ($source_user && !$force) {

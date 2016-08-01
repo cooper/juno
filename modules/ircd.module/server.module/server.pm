@@ -731,6 +731,7 @@ sub id       { shift->{sid}         }
 sub full     { shift->{name}        }
 sub name     { shift->{name}        }
 sub conn     { shift->{conn}        }
+sub user     { undef                }
 sub users    { @{ shift->{users} }  }
 sub server   { shift                }
 sub parent   { shift->{parent}      }
