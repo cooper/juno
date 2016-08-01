@@ -249,7 +249,7 @@ sub handle_privmsgnotice {
     #   ('$$' followed by mask)
     #   propagation: broadcast
     if (length($prefix = $opts{serv_mask_prefix})) {
-        my $pfx = substr(my $t_name = $target, 0, length $prefix);
+        my $pfx = \substr(my $t_name = $target, 0, length $prefix);
         if ($$pfx eq $prefix) {
             $$pfx = '';
             return _privmsgnotice_smask(@_[0..3], $t_name, $message, %opts);
@@ -261,7 +261,7 @@ sub handle_privmsgnotice {
     #   capab:          CHW and EOPMOD
     #   propagation:    all servers with -D chanops
     if (length($prefix = $opts{opmod_prefix})) {
-        my $pfx = substr(my $t_name = $target, 0, length $prefix);
+        my $pfx = \substr(my $t_name = $target, 0, length $prefix);
         if ($$pfx eq $prefix) {
             $$pfx = '';
             my $channel = $opts{channel_lookup}($t_name) or return;
