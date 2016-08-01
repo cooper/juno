@@ -425,7 +425,7 @@ sub privmsgnotice {
     # must be a channel.
     my $channel = $pool->lookup_channel($t_name);
     if ($channel) {
-        $channel->handle_privmsgnotice($command, $user, $message);
+        $channel->do_privmsgnotice($command, $user, $message);
         $msg->{target} = $channel;
         return 1;
     }
@@ -1425,7 +1425,7 @@ sub links {
 
 sub echo {
     my ($user, undef, $channel, $message) = @_;
-    my $continue = $channel->handle_privmsgnotice(PRIVMSG => $user, $message);
+    my $continue = $channel->do_privmsgnotice(PRIVMSG => $user, $message);
     $user->sendfrom($user->full, "PRIVMSG $$channel{name} :$message") if $continue;
 }
 

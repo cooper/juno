@@ -39,7 +39,7 @@ sub message_blocked {
     return unless $channel->is_mode('op_moderated');
     return unless $user->is_local;
 
-    $channel->handle_privmsgnotice(
+    $channel->do_privmsgnotice(
         $lccommand,                 # command
         $user,                      # source
         $message,                   # text

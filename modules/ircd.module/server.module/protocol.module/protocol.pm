@@ -222,9 +222,9 @@ sub handle_privmsgnotice {
 
         # === Forward ===
         #
-        #  ->handle_privmsgnotice() deals with routing
+        #  ->do_privmsgnotice() deals with routing
         #
-        $channel->handle_privmsgnotice($command, $source, $message, force => 1);
+        $channel->do_privmsgnotice($command, $source, $message, force => 1);
 
         return 1;
     }
@@ -296,9 +296,9 @@ sub _privmsgnotice_opmod {
 
     #=== Forward ===#
     #
-    # Forwarding for opmod is handled by ->handle_privmsgnotice()!
+    # Forwarding for opmod is handled by ->do_privmsgnotice()!
     #
-    $channel->handle_privmsgnotice(
+    $channel->do_privmsgnotice(
         $command, $source, $message,
         force => 1,
         op_moderated => 1

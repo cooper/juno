@@ -773,7 +773,7 @@ sub notice_all {
     my ($channel, $what, $ignore, $local_only, $no_stars) = @_;
     $what = "*** $what" unless $no_stars;
     my %opts = (dont_forward => $local_only, force => 1);
-    $channel->handle_privmsgnotice(NOTICE => $me, $what, %opts);
+    $channel->do_privmsgnotice(NOTICE => $me, $what, %opts);
     return 1;
 }
 
@@ -901,7 +901,7 @@ sub _do_mode_string {
     return _do_modes($local_only, $channel, $source, $changes, $force, $protocol);
 }
 
-# ->handle_privmsgnotice()
+# ->do_privmsgnotice()
 #
 # Handles a PRIVMSG or NOTICE. Notifies local users and uplinks when necessary.
 #
@@ -936,7 +936,7 @@ sub _do_mode_string {
 #       serv_mask       if provided, the message is to be sent to all
 #                               users which belong to servers matching the mask.
 #
-sub handle_privmsgnotice {
+sub do_privmsgnotice {
     my ($channel, $command, $source, $message, %opts) = @_;
     my ($source_user, $source_serv) = ($source->user, $source->server);
     $command = uc $command;
