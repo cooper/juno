@@ -148,6 +148,7 @@ sub server_from_ts6 {
 # TS6 SID -> juno SID
 sub sid_from_ts6 {
     my $sid = shift;
+    return unless $sid =~ m/^[0-9A-Z]{3}$/;
     if ($sid =~ m/[A-Z]/) {
         return join('', map { sprintf '%03d', ord } split //, $sid) + 0;
     }
@@ -159,6 +160,7 @@ sub sid_from_ts6 {
 sub uid_from_ts6 {
     my $uid = shift;
     my ($sid, $id) = ($uid =~ m/^([0-9A-Z]{3})([0-9A-Z]{6})$/);
+    defined $sid && defined $id or return;
     return sid_from_ts6($sid).uid_u_from_ts6($id);
 }
 
