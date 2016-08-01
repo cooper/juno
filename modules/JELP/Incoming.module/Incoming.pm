@@ -437,26 +437,11 @@ sub privmsgnotice {
     my $channel = $pool->lookup_channel($target);
     if ($channel) {
 
-        # the second-to-last argument here tells ->handle_privmsgnotice
-        # to not forward the message to servers. that is handled below.
-        #
-        # the last argument tells it to force the message to send,
-        # regardless of modes or bans, etc.
-        #
-        $channel->handle_privmsgnotice($command, $source, $message,
-            dont_forward => 1,
-            force        => 1
-        );
-
         # === Forward ===
         #
-        # forwarding to a channel means to send it to every server that
-        # has 1 or more members in the channel.
+        #  ->handle_privmsgnotice() deals with routing
         #
-        $msg->forward_to($channel, privmsgnotice =>
-            $command, $source,
-            $channel, $message
-        );
+        $channel->handle_privmsgnotice($command, $source, $message, force => 1);
 
         return 1;
     }

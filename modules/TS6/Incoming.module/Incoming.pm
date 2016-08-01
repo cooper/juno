@@ -706,20 +706,11 @@ sub privmsgnotice {
     my $channel = $pool->lookup_channel($target);
     if ($channel) {
 
-        $channel->handle_privmsgnotice($command, $source, $message,
-            dont_forward => 1,
-            force        => 1
-        );
-
         # === Forward ===
         #
-        # forwarding to a channel means to send it to every server that
-        # has 1 or more members in the channel.
+        # ->handle_privmsgnotice() deals with routing
         #
-        $msg->forward_to($channel, privmsgnotice =>
-            $command, $source,
-            $channel, $message
-        );
+        $channel->handle_privmsgnotice($command, $source, $message, force => 1);
 
         return 1;
     }

@@ -3608,3 +3608,4 @@ CHANGES:
             ->handle_privmsgnotice() was getting too complicated, so it now accepts most parameters as named options. updated everything uses it accordingly.
             added incoming TS6 handler for opmod (=#channel).
             added incoming JELP handler for opmod (=#channel).
+            ->handle_privmsgnotice()'s dont_forward option is no longer used in JELP/TS6 because the routing of these commands may be modified by modules.
