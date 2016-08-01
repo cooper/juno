@@ -772,10 +772,8 @@ sub sendfrom_all_cap {
 sub notice_all {
     my ($channel, $what, $ignore, $local_only, $no_stars) = @_;
     $what = "*** $what" unless $no_stars;
-
-    # ($command, $source, $message, $dont_forward, $force, $opts, @users) = @_;
-    $channel->handle_privmsgnotice('NOTICE', $me, $what, $local_only, 1);
-
+    my %opts = (dont_forward => $local_only, force => 1);
+    $channel->handle_privmsgnotice(NOTICE => $me, $what, %opts);
     return 1;
 }
 
@@ -913,42 +911,53 @@ sub _do_mode_string {
 #
 # $message  the message text as it was received.
 #
-# $dont_forward     if specified, the message will NOT be forwarded to other
-#           servers by this method. this is used in protocol modules in
-#           conjunction with $msg->forward*() methods.
+# %opts     a hash of options:
 #
-# $force    if specified, the can_privmsg, can_notice, and can_message events
-#           will not be fired. this means that any modules that prevent the
-#           message from being sent OR that modify the message will NOT have
-#           an effect on this message. used when receiving remote PRIVMSGs.
+#       force           if specified, the can_privmsg, can_notice, and
+#                       can_message events will not be fired. this means that
+#                       any modules that prevent the message from being sent OR
+#                       that modify the message will NOT have an effect on this
+#                       message. used when receiving remote PRIVMSGs.
 #
-# \%opts    a hash reference of options which will be passed to the outgoing
-#           command handlers. if $dont_forward, this is ignored. supports:
+#       dont_forward    if specified, the message will NOT be forwarded to other
+#                       servers by this method. this is used in protocol modules
+#                       in conjunction with $msg->forward*() methods.
 #
-#               op_moderated    if true, this message was blocked but will be
-#                               sent to ops in a +z channel.
+#       users           if specified, this list of users will be used as the
+#                       destinations. they can be local, remote, or a mixture of
+#                       both. when omitted, all non-deaf users of the channel
+#                       will receive the message. any deaf user, whether local
+#                       or remote and whether in @users or not, will NEVER
+#                       receive a message.
 #
-#               serv_mask       if provided, the message is to be sent to all
+#       op_moderated    if true, this message was blocked but will be
+#                       sent to ops in a +z channel.
+#
+#       serv_mask       if provided, the message is to be sent to all
 #                               users which belong to servers matching the mask.
 #
-# \@users   if specified, this list of users will be used as the destinations.
-#           they can be local, remote, or a mixture of both. when omitted, all
-#           non-deaf users of the channel will receive the message. any deaf
-#           user, whether local or remote and whether in @users or not, will
-#           NEVER receive a message.
-#
 sub handle_privmsgnotice {
-    my ($channel, $command, $source, $message,
-        $dont_forward, $force, $opts, $users) = @_;
+    my ($channel, $command, $source, $message, %opts) = @_;
     my ($source_user, $source_serv) = ($source->user, $source->server);
     $command = uc $command;
 
+    # find the destinations
+    my @users;
+    if ($opts{users}) {
+        @users = ref_to_list($opts{users});
+    }
+    elsif ($opts{op_moderated}) {
+        @users = $channel->users_with_at_least(0);
+    }
+    else {
+        @users = $channel->users;
+    }
+
     # nowhere to send it!
-    my @users = $users ? ref_to_list($users) : $channel->users;
     return if !@users;
 
     # it's a user. fire the can_* events.
-    if ($source_user && !$force) {
+    if ($source_user && !$opts{force}) {
         my $lccommand = lc $command;
 
         # can_message, can_notice, can_privmsg.
@@ -984,14 +993,14 @@ sub handle_privmsgnotice {
 
     # tell channel members.
     my %sent;
-    my $local_data = "$command $$channel{name} :$message";
+    my $local_data   = "$command $$channel{name} :$message";
     USER: foreach my $user (@users) {
 
         # this is the source!
         next USER if $source_user && $source_user == $user;
 
         # not telling remotes.
-        next USER if !$user->is_local && $dont_forward;
+        next USER if !$user->is_local && $opts{dont_forward};
 
         # deaf users don't care.
         # if a server has all-deaf users, it will never receive the message.
@@ -1018,8 +1027,7 @@ sub handle_privmsgnotice {
         next USER if $sent{$location};
 
         $location->fire_command(privmsgnotice =>
-            $command, $source, $channel, $message,
-            ref_to_list($opts)
+            $command, $source, $channel, $message, %opts
         );
         $sent{$location}++;
     }

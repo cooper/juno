@@ -468,7 +468,10 @@ sub privmsgnotice {
         # the last argument tells it to force the message to send,
         # regardless of modes or bans, etc.
         #
-        $channel->handle_privmsgnotice($command, $source, $message, 1, 1);
+        $channel->handle_privmsgnotice($command, $source, $message,
+            dont_forward => 1,
+            force        => 1
+        );
 
         # === Forward ===
         #

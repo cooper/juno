@@ -39,15 +39,13 @@ sub message_blocked {
     return unless $channel->is_mode('op_moderated');
     return unless $user->is_local;
 
-    # ($command, $source, $message, $dont_forward, $force, $opts, @users)
+    # ($command, $source, $message, $dont_forward, $force, \%opts, \@users)
     $channel->handle_privmsgnotice(
         $lccommand,                 # command
         $user,                      # source
         $message,                   # text
-        undef,                      # DO forward to servers with non-deaf ops
-        1,                          # force it! we know it got blocked once
-        { op_moderated => 1 },               # tell outgoing handlers it's opmod
-        [ $channel->users_with_at_least(0) ] # only include ops
+        force => 1,                 # force it! we know it got blocked once
+        op_moderated => 1           # send to ops only
     );
 
     # stopping the event tells can_message callbacks NOT to send error
