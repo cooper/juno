@@ -6,11 +6,12 @@
    "depends" : {
       "modules" : [
          "Base::UserCommands",
-         "JELP::Base"
+         "JELP::Base",
+         "Base::OperNotices"
       ]
    },
    "description" : "git repository management",
    "name" : "Git",
    "package" : "M::Git",
-   "version" : "3.5"
+   "version" : "3.6"
 }

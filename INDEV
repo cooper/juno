@@ -3619,3 +3619,4 @@ CHANGES:
             added support for user@server PRIVMSG target.
             added support for opers@server special target.
             added outgoing handlers for PRIVMSG user@server.
+            fixed #125 where UPDATE sometimes did not send out oper notices.
