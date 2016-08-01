@@ -392,12 +392,13 @@ sub privmsgnotice {
     my ($server, $msg, $source, $command, $target, $message) = @_;
     return server::protocol::handle_privmsgnotice(
         @_[0..5],
-        channel_lookup => sub { $pool->lookup_channel(shift) },
-        user_lookup    => sub { $pool->lookup_user(shift)    },
-        opmod_prefix   => '=',
-        smask_prefix   => '$$',
+        channel_lookup  => sub { $pool->lookup_channel(shift) },
+        user_lookup     => sub { $pool->lookup_user(shift)    },
+        atserv_lookup   => sub { $pool->lookup_server(shift)  },
         supports_atserv => 1,
-        opers_prefix    => 'opers'
+        opers_prefix    => 'opers',
+        opmod_prefix    => '=',
+        smask_prefix    => '$$',
     );
 }
 

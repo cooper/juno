@@ -587,8 +587,9 @@ sub privmsgnotice {
     my ($to_server, $cmd, $source, $target, $message, %opts) = @_;
 
     # complex stuff
-    return privmsgnotice_opmod(@_) if $opts{op_moderated};
-    return privmsgnotice_smask(@_) if defined $opts{serv_mask};
+    return &privmsgnotice_opmod         if $opts{op_moderated};
+    return &privmsgnotice_smask         if defined $opts{serv_mask};
+    return &privmsgnotice_atserver      if defined $opts{atserv_serv};
 
     $target or return;
     my $id  = ts6_id($source);
@@ -645,6 +646,20 @@ sub privmsgnotice_opmod {
     $source->name,
     $target->name,
     $message;
+}
+
+# - Complex PRIVMSG
+#   a user@server message, to send to users on a specific server. The exact
+#   meaning of the part before the '@' is not prescribed, except that "opers"
+#   allows IRC operators to send to all IRC operators on the server in an
+#   unspecified format.
+#   propagation:    one-to-one
+#
+sub privmsgnotice_atserver {
+    my ($to_server, $cmd, $source, undef, $message, %opts) = @_;
+    return if !length $opts{atserv_nick} || !ref $opts{atserv_serv};
+    my $id = ts6_id($source);
+    ":$id $cmd $opts{atserv_nick}\@$opts{atserv_serv}{name} :$message"
 }
 
 # PART

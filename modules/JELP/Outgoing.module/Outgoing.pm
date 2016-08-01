@@ -234,7 +234,9 @@ sub privmsgnotice {
     my ($to_server, $cmd, $source, $target, $message, %opts) = @_;
 
     # complex stuff
-    return privmsgnotice_smask(@_) if defined $opts{serv_mask};
+    return &privmsgnotice_opmod         if $opts{op_moderated};
+    return &privmsgnotice_smask         if defined $opts{serv_mask};
+    return &privmsgnotice_atserver      if defined $opts{atserv_serv};
 
     $target or return;
     my $id  = $source->id;
@@ -253,6 +255,36 @@ sub privmsgnotice_smask {
     my $server_mask = $opts{serv_mask};
     my $id = $source->id;
     ":$id $cmd \$\$$server_mask :$message"
+}
+
+# - Complex PRIVMSG
+#   '=' followed by a channel name, to send to chanops only, for cmode +z.
+#   capab:          CHW and EOPMOD
+#   propagation:    all servers with -D chanops
+#
+sub privmsgnotice_opmod {
+    my ($to_server, $cmd, $source, $target, $message, %opts) = @_;
+    return if !$target->isa('channel');
+
+    return sprintf ':%s %s =%s :%s',
+    $source->id,
+    $cmd,
+    $target->name,
+    $message;
+}
+
+# - Complex PRIVMSG
+#   a user@server message, to send to users on a specific server. The exact
+#   meaning of the part before the '@' is not prescribed, except that "opers"
+#   allows IRC operators to send to all IRC operators on the server in an
+#   unspecified format.
+#   propagation:    one-to-one
+#
+sub privmsgnotice_atserver {
+    my ($to_server, $cmd, $source, undef, $message, %opts) = @_;
+    return if !length $opts{atserv_nick} || !ref $opts{atserv_serv};
+    my $id = $source->id;
+    ":$id $cmd $opts{atserv_nick}\@$opts{atserv_serv}{sid} :$message"
 }
 
 # channel join

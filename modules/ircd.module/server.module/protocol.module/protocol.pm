@@ -202,10 +202,10 @@ sub handle_privmsgnotice {
 
     # it might be someone@somewhere
     if (m/^(.+)@(.+)$/) {
-        my ($nick, $serv_name) = ($1, $2);
+        my ($nick, $serv_str) = ($1, $2);
         return _privmsgnotice_atserver(
             @_[0..3],
-            $nick, $serv_name, $message, %opts
+            $nick, $serv_str, $message, %opts
         );
     }
 
@@ -332,20 +332,18 @@ sub _privmsgnotice_opmod {
 #
 sub _privmsgnotice_atserver {
     my ($server, $msg, $source, $command,
-    $nick, $serv_name, $message, %opts) = @_;
+    $nick, $serv_str, $message, %opts) = @_;
 
     # if the server is not exactly equal to this one, forward it.
-    if (irc_lc($serv_name) ne irc_lc($me->name)) {
-
-        # it cannot have wildcards.
-        return if index($msg, '*') != -1 || index($msg, '?') != -1;
+    my $serv = $opts{atserv_lookup}($serv_str) or return;
+    if ($serv != $me) {
 
         # === Forward ===
-        $msg->forward_to_mask($serv_name, privmsgnotice =>
+        $msg->forward_to($serv, privmsgnotice =>
             $command, $source,
             undef,    $message,
-            atserv_user => $nick,
-            atserv_serv => $serv_name
+            atserv_nick => $nick,
+            atserv_serv => $serv
         );
 
         return 1;
@@ -356,6 +354,10 @@ sub _privmsgnotice_atserver {
     # if the target is opers@me, send a notice to online opers.
     my $prefix;
     if (length($prefix = $opts{opers_prefix}) && $nick eq $prefix) {
+
+        # we should check even if remote users are oper for this
+        return if $source->isa('user') && !$source->is_mode('ircop');
+
         notice(oper_message => $source->notice_info, $message);
         return 1;
     }
