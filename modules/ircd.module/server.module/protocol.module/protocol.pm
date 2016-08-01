@@ -223,6 +223,166 @@ sub handle_svsnick {
     return 1;
 }
 
+
+# ->handle_privmsgnotice()
+# Generic PRIVSG/NOTICE handler.
+#
+# Required:
+#
+#   channel_lookup      channel lookup function.
+#
+#   user_lookup         UID lookup function.
+#
+# Optional:
+#
+#   smask_prefix        prefix for messaging all users on server names matching
+#                       a mask (usually '$$' or '$').
+#
+#   opmod_prefix        prefix for messaging ops in an op moderated channel.
+#
+sub handle_privmsgnotice {
+    my ($server, $msg, $source, $command, $target, $message, %opts) = @_;
+    my $prefix;
+
+    # Complex PRIVMSG
+    #   a message to all users on server names matching a mask
+    #   ('$$' followed by mask)
+    #   propagation: broadcast
+    if (length($prefix = $opts{serv_mask_prefix})) {
+        my $pfx = substr(my $t_name = $target, 0, length $prefix);
+        if ($$pfx eq $prefix) {
+            $$pfx = '';
+            return _privmsgnotice_smask(@_[0..3], $t_name, $message, %opts);
+        }
+    }
+
+    # - Complex PRIVMSG
+    #   '=' followed by a channel name, to send to chanops only, for cmode +z.
+    #   capab:          CHW and EOPMOD
+    #   propagation:    all servers with -D chanops
+    if (length($prefix = $opts{opmod_prefix})) {
+        my $pfx = substr(my $t_name = $target, 0, length $prefix);
+        if ($$pfx eq $prefix) {
+            $$pfx = '';
+            my $channel = $opts{channel_lookup}($t_name) or return;
+            return _privmsgnotice_opmod(@_[0..3], $channel, $message, %opts);
+        }
+    }
+
+    # is it a user?
+    my $tuser = $opts{user_lookup}($target);
+    if ($tuser) {
+
+        # if it's mine, send it.
+        if ($tuser->is_local) {
+            $tuser->sendfrom($source->full, "$command $$tuser{nick} :$message");
+            return 1;
+        }
+
+        # === Forward ===
+        #
+        # the user does not belong to us;
+        # pass this on to its physical location.
+        #
+        $msg->forward_to($tuser, privmsgnotice =>
+            $command, $source,
+            $tuser,   $message
+        );
+
+        return 1;
+    }
+
+    # must be a channel.
+    my $channel = $opts{channel_lookup}($target);
+    if ($channel) {
+
+        # === Forward ===
+        #
+        #  ->handle_privmsgnotice() deals with routing
+        #
+        $channel->handle_privmsgnotice($command, $source, $message, force => 1);
+
+        return 1;
+    }
+
+    # at this point, we don't know what to do
+    notice(server_protocol_warning =>
+        $server->notice_info,
+        "sent unknown target '$target' for $command; ignored"
+    );
+
+    return;
+}
+
+# Complex PRIVMSG
+#   a message to all users on server names matching a mask ('$$' followed by mask)
+#   propagation: broadcast
+#   Only allowed to IRC operators.
+#
+sub _privmsgnotice_smask {
+    my ($server, $msg, $source, $command, $mask, $message, %opts) = @_;
+
+    # it cannot be a server source.
+    if ($source->isa('server')) {
+        notice(server_protocol_warning =>
+            $source->notice_info,
+            "cannot be sent $command because \"\$\$\" target is ".
+            "not permitted with server source (for TS6 compatibility)"
+        );
+        return;
+    }
+
+    # consider each server that matches
+    my %done;
+    foreach my $serv ($pool->lookup_server_mask($mask)) {
+        my $location = $serv->{location} || $serv; # for $me, location = nil
+
+        # already did or the server is connected via the source server
+        next if $done{$location};
+        next if $location == $server;
+
+        # if the server is me, send to all my users
+        if ($serv == $me) {
+            $_->sendfrom($source->full, "$command $$_{nick} :$message")
+                foreach $pool->local_users;
+            $done{$me} = 1;
+            next;
+        }
+
+        # otherwise, forward it
+        $msg->forward_to($serv, privmsgnotice =>
+            $command, $source,
+            undef,    $message,
+            serv_mask => $mask
+        );
+
+        $done{$location} = 1;
+    }
+
+    return 1;
+}
+
+# - Complex PRIVMSG
+#   '=' followed by a channel name, to send to chanops only, for cmode +z.
+#   capab:          CHW and EOPMOD
+#   propagation:    all servers with -D chanops
+#
+sub _privmsgnotice_opmod {
+    my ($server, $msg, $source, $command, $channel, $message, %opts) = @_;
+
+    #=== Forward ===#
+    #
+    # Forwarding for opmod is handled by ->handle_privmsgnotice()!
+    #
+    $channel->handle_privmsgnotice(
+        $command, $source, $message,
+        force => 1,
+        op_moderated => 1
+    );
+
+    return 1;
+}
+
 # fetch a hash of options from an IRCd definition in the configuration.
 # see issue #110.
 sub ircd_support_hash {

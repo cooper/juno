@@ -3611,3 +3611,4 @@ CHANGES:
             ->handle_privmsgnotice()'s dont_forward option is no longer used in JELP/TS6 because the routing of these commands may be modified by modules.
 
         85. added utils level_from_prefix_ts6() and ts6_closest_level().
+            server::protocol now provides a generic PRIVMSG/NOTICE handler to eliminate code repetition.
