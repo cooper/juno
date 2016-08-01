@@ -779,6 +779,11 @@ sub privmsgnotice_smask {
     return 1;
 }
 
+# - Complex PRIVMSG
+#   '=' followed by a channel name, to send to chanops only, for cmode +z.
+#   capab:          CHW and EOPMOD
+#   propagation:    all servers with -D chanops
+#
 sub privmsgnotice_opmod {
     my ($server, $msg, $source, $command, $channel, $message) = @_;
 

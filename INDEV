@@ -3607,3 +3607,4 @@ CHANGES:
         84. added Channel::OpModerate which provides channel mode +z to send blocked messages to ops. closes #50.
             ->handle_privmsgnotice() was getting too complicated, so it now accepts most parameters as named options. updated everything uses it accordingly.
             added incoming TS6 handler for opmod (=#channel).
+            added incoming JELP handler for opmod (=#channel).

@@ -396,43 +396,18 @@ sub privmsgnotice {
     #   propagation: broadcast
     #   Only allowed to IRC operators.
     if ($target =~ m/^\$\$(.+)$/) {
-        my $mask = $1;
+        return privmsgnotice_smask(@_[0..3], $1, $message);
+    }
 
-        # it cannot be a server source.
-        if ($source->isa('server')) {
-            L('For TS6 compatibility, "$$" complex PRIVMSG not permitted with server as a source');
-            return;
-        }
-
-        # consider each server that matches
-        # consider: what if a server is hidden? would this skip it?
-        my %done;
-        foreach my $serv ($pool->lookup_server_mask($mask)) {
-            my $location = $serv->{location} || $serv; # for $me, location = nil
-
-            # already did or the server is connected via the source server
-            next if $done{$location};
-            next if $location == $server;
-
-            # if the server is me, send to all my users
-            if ($serv == $me) {
-                $_->sendfrom($source->full, "$command $$_{nick} :$message")
-                    foreach $pool->local_users;
-                $done{$me} = 1;
-                next;
-            }
-
-            # otherwise, forward it
-            $msg->forward_to($serv, privmsgnotice =>
-                $command, $source,
-                undef,    $message,
-                serv_mask => $mask
-            );
-
-            $done{$location} = 1;
-        }
-
-        return 1;
+    # - Complex PRIVMSG
+    #   '=' followed by a channel name, to send to chanops only, for cmode +z.
+    #   capab:          CHW and EOPMOD
+    #   propagation:    all servers with -D chanops
+    my $first = \substr(my $ch_name = $target, 0, 1);
+    if ($$first eq '=') {
+        $$first = '';
+        my $channel = $pool->lookup_channel($ch_name) or return;
+        return privmsgnotice_opmod(@_[0..3], $channel, $message);
     }
 
     # is it a user?
@@ -487,6 +462,76 @@ sub privmsgnotice {
     }
 
     return;
+}
+
+# Complex PRIVMSG
+#   a message to all users on server names matching a mask ('$$' followed by mask)
+#   propagation: broadcast
+#   Only allowed to IRC operators.
+#
+sub privmsgnotice_smask {
+    my ($server, $msg, $source, $command, $mask, $message) = @_;
+
+    # it cannot be a server source.
+    if ($source->isa('server')) {
+        notice(server_protocol_warning =>
+            $source->notice_info,
+            "cannot be sent $command because \"\$\$\" target is ".
+            "not permitted with server source (for TS6 compatibility)"
+        );
+        return;
+    }
+
+    # consider each server that matches
+    # consider: what if a server is hidden? would this skip it?
+    my %done;
+    foreach my $serv ($pool->lookup_server_mask($mask)) {
+        my $location = $serv->{location} || $serv; # for $me, location = nil
+
+        # already did or the server is connected via the source server
+        next if $done{$location};
+        next if $location == $server;
+
+        # if the server is me, send to all my users
+        if ($serv == $me) {
+            $_->sendfrom($source->full, "$command $$_{nick} :$message")
+                foreach $pool->local_users;
+            $done{$me} = 1;
+            next;
+        }
+
+        # otherwise, forward it
+        $msg->forward_to($serv, privmsgnotice =>
+            $command, $source,
+            undef,    $message,
+            serv_mask => $mask
+        );
+
+        $done{$location} = 1;
+    }
+
+    return 1;
+}
+
+# - Complex PRIVMSG
+#   '=' followed by a channel name, to send to chanops only, for cmode +z.
+#   capab:          CHW and EOPMOD
+#   propagation:    all servers with -D chanops
+#
+sub privmsgnotice_opmod {
+    my ($server, $msg, $source, $command, $channel, $message) = @_;
+
+    #=== Forward ===#
+    #
+    # Forwarding for opmod is handled by ->handle_privmsgnotice()!
+    #
+    $channel->handle_privmsgnotice(
+        $command, $source, $message,
+        force => 1,
+        op_moderated => 1
+    );
+
+    return 1;
 }
 
 sub _join {
