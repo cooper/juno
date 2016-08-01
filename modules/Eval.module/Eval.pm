@@ -160,13 +160,12 @@ sub Dumper {
     my $d = Data::Dumper->new([ @_ ]);
     return trim($d->Maxdepth($depth)->Dump);
 }
+sub Dump; *Dump = *Dumper;
 
-sub user ($) { $pool->lookup_user    (@_)  || $pool->lookup_user_nick   (@_) }
+sub nick ($) { $pool->lookup_user    (@_)  || $pool->lookup_user_nick   (@_) }
 sub serv ($) { $pool->lookup_server  (@_)  || $pool->lookup_server_mask (@_) }
 sub chan ($) { $pool->lookup_channel (@_)  }
 
-sub Dump;       *Dump    = *Dumper;
-sub server;     *server  = *serv;
-sub channel;    *channel = *chan;
+
 
 $mod
