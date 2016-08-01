@@ -587,7 +587,7 @@ sub privmsgnotice {
     my ($to_server, $cmd, $source, $target, $message, %opts) = @_;
 
     # complex stuff
-    return privmsgnotice_opmod(@_) if $opts{op_moderate};
+    return privmsgnotice_opmod(@_) if $opts{op_moderated};
     return privmsgnotice_smask(@_) if defined $opts{serv_mask};
 
     $target or return;

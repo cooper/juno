@@ -543,12 +543,7 @@ sub mode_string_status {
 # the passed status list.
 sub user_is {
     my ($channel, $user, $what) = @_;
-
-    # if it's an num, check if they have that level specifically.
-    if (looks_like_number($what)) {
-        $what = $ircd::channel_mode_prefixes{$what}[2]; # name
-    }
-
+    $what = _get_status_mode($channel, $what);
     return 1 if $channel->list_has($what, $user);
     return;
 }
@@ -556,19 +551,7 @@ sub user_is {
 # check if a user has at least a certain level
 sub user_is_at_least {
     my ($channel, $user, $level) = @_;
-
-    # if it's not an num, convert mode name to level.
-    if (!looks_like_number($level)) { my $found;
-        foreach my $lvl (keys %ircd::channel_mode_prefixes) {
-            my $name = $ircd::channel_mode_prefixes{$lvl}[2];
-            next if $level ne $name;
-            $level = $lvl;
-            $found++;
-            last;
-        }
-        return unless $found;
-    }
-
+    $level = _get_level($channel, $level);
     return $channel->user_get_highest_level($user) >= $level;
 }
 
@@ -601,6 +584,40 @@ sub user_get_levels {
     return @levels;
 }
 
+# possibly convert a mode name to a level
+sub _get_level {
+    my ($channel, $level) = @_;
+    return unless defined $level;
+
+    # if it's not an num, convert mode name to level.
+    if (!looks_like_number($level)) {
+        my $found;
+        foreach my $lvl (keys %ircd::channel_mode_prefixes) {
+            my $name = $ircd::channel_mode_prefixes{$lvl}[2];
+            next if $level ne $name;
+            $level = $lvl;
+            $found++;
+            last;
+        }
+        return unless $found;
+    }
+
+    return $level;
+}
+
+# possibily convert a level to a mode name
+sub _get_status_mode {
+    my ($channel, $what) = @_;
+    return unless defined $what;
+
+    # if it's an num, check if they have that level specifically.
+    if (looks_like_number($what)) {
+        $what = $ircd::channel_mode_prefixes{$what}[2]; # name
+    }
+
+    return $what;
+}
+
 # fetch the topic or return undef if none.
 sub topic {
     my $channel = shift;
@@ -626,6 +643,22 @@ sub destroy_maybe {
     $channel->delete_all_events();
 
     return 1;
+}
+
+# return users that satisfy a code
+sub users_satisfying {
+    my ($channel, $code) = @_;
+    ref $code eq 'CODE' or return;
+    return grep $code->($_), $channel->users;
+}
+
+# return users with a certain level or higher
+sub users_with_at_least {
+    my ($channel, $level) = @_;
+    $level = _get_level($channel, $level);
+    return $channel->users_satisfying(sub {
+        $channel->user_get_highest_level(shift) >= $level;
+    });
 }
 
 sub id    { shift->{name}       }
@@ -898,7 +931,7 @@ sub _do_mode_string {
 #               serv_mask       if provided, the message is to be sent to all
 #                               users which belong to servers matching the mask.
 #
-# @users    if specified, this list of users will be used as the destinations.
+# \@users   if specified, this list of users will be used as the destinations.
 #           they can be local, remote, or a mixture of both. when omitted, all
 #           non-deaf users of the channel will receive the message. any deaf
 #           user, whether local or remote and whether in @users or not, will
@@ -906,10 +939,13 @@ sub _do_mode_string {
 #
 sub handle_privmsgnotice {
     my ($channel, $command, $source, $message,
-        $dont_forward, $force, $opts, @users) = @_;
+        $dont_forward, $force, $opts, $users) = @_;
     my ($source_user, $source_serv) = ($source->user, $source->server);
-    @users = $channel->users if !@users;
     $command = uc $command;
+
+    # nowhere to send it!
+    my @users = $users ? ref_to_list($users) : $channel->users;
+    return if !@users;
 
     # it's a user. fire the can_* events.
     if ($source_user && !$force) {

@@ -1,0 +1,15 @@
+{
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
+   "depends" : {
+      "modules" : [
+         "Base::ChannelModes"
+      ]
+   },
+   "description" : "adds a channel mode to send blocked messages to ops",
+   "name" : "Channel::OpModerate",
+   "package" : "M::Channel::OpModerate",
+   "version" : "0.5"
+}

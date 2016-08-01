@@ -3603,3 +3603,5 @@ CHANGES:
             the former privmsgnotice_server_mask outgoing command is now an extension of privmsgnotice.
             'new' events for connections, users, and servers now occur after firing oper notices.
             this fixes 'connection closed' being sent out before 'new connection' when the connection is immediately terminated (due to bans or limits).
+
+        84. added Channel::OpModerate which provides channel mode +z to send blocked messages to ops. closes #50.

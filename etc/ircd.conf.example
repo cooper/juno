@@ -42,7 +42,8 @@
     Channel::RegisteredOnly     # Registered only channel support (+r)
     Channel::SSLOnly            # SSL users only channel support (+S)
     Channel::NoColor            # Strip colors from messages (+c)
-
+    Channel::OpModerate         # Sends blocked messages to chanops (+z)
+    
     # Server management
 
     Modules                     # Manage IRCd modules directly from IRC
