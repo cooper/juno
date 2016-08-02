@@ -44,9 +44,14 @@ Kill users locally or (g)lobally.
 
 Use MODLOAD, MODUNLOAD, and MODRELOAD commands.
 
-### (g)git
+### (g)update
 
-Manage the git repository on the local server or (g)lobally.
+Update the git repository on the local server or (g)lobally.
+
+### (g)checkout
+
+Switch branches or commits on the git repository of the local server or
+(g)lobally.
 
 ### (g)reload
 

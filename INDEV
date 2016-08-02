@@ -3625,4 +3625,6 @@ CHANGES:
             fixed a bug where SVINFO was sent with a juno SID.
             update Evented::Object.
             cleanup: omit 'with_eo' and 'name' callback options where they are implied.
-            
+            RELOAD now detects if upgrading or downgrading.
+            UPDATE now uses '(g)update' flag instead of 'git'.
+            the Git module now provides a CHECKOUT command to switch branches.

@@ -21,16 +21,25 @@ use utils qw(col gnotice trim);
 our ($api, $mod, $pool, $me);
 
 # UPDATE user command
-our %user_commands = (UPDATE => {
-    desc   => 'update the IRCd git repository',
-    params => '-oper(git) any(opt)',
-    code   => \&ucmd_update
-});
+our %user_commands = (
+    CHECKOUT => {
+        desc   => 'switch branches or commits in the IRCd git repository',
+        params => '-oper(checkout) *',
+        code   => \&ucmd_checkout
+    },
+    UPDATE => {
+        desc   => 'update the IRCd git repository',
+        params => '-oper(update) *(opt)',
+        code   => \&ucmd_update
+    }
+);
 
 # oper notices
 our %oper_notices = (
-    update_fail => 'Update to %s git reposity by %s failed',
-    update      => '%s git repository updated to version %s successfully by %s'
+    checkout_fail   => 'Checkout \'%s\' on %s by %s failed',
+    checkout        => 'Checked out \'%s\' on %s by %s',
+    update_fail     => 'Update to %s git reposity by %s failed (%s)',
+    update          => '%s git repository updated to version %s successfully by %s'
 );
 
 sub init {
@@ -38,6 +47,27 @@ sub init {
     # allow UPDATE to work remotely.
     $mod->register_global_command(name => 'update') or return;
 
+    return 1;
+}
+
+# CHECKOUT user command
+sub ucmd_checkout {
+    my ($user, $event, $point) = @_;
+    command(['git', 'checkout', $point], undef,
+
+        # success
+        sub {
+            gnotice($user, checkout => $point, $me->name, $user->notice_info);
+        },
+
+        # failure
+        sub {
+            gnotice($user, checkout_fail =>
+                $point, $me->name, $user->notice_info
+            );
+        }
+
+    );
     return 1;
 }
 
@@ -87,7 +117,9 @@ sub ucmd_update {
             my @lines = split /\n/, $error;
             $user->server_notice(update => "[$$me{name}] Errors (pull): $_")
             foreach @lines;
-            gnotice($user, update_fail => $me->name, $user->notice_info);
+            gnotice($user, update_fail =>
+                $me->name, $user->notice_info, 'git pull'
+            );
 
             # handle Evented API Engine manifest conflicts
             deal_with_manifest($user, $event) if index($error, '.json') != -1;
@@ -113,7 +145,9 @@ sub git_pull_succeeded {
             my @lines = split /\n/, shift;
             $user->server_notice(update => "[$$me{name}] Errors (submodule): $_")
                 foreach @lines;
-            gnotice(update_fail => $me->name, $user->notice_info);
+            gnotice(update_fail => $me->name,
+                $user->notice_info, 'git submodule update --init'
+            );
         }
     );
 }
@@ -123,14 +157,14 @@ sub git_submodule_succeeded {
     my ($user, $event) = @_;
     my $desc;
     command(['git', 'describe'],
-        sub { $desc = shift         },
-        sub { finish($user, $desc)  },
-        sub { finish($user)         }
+        sub { $desc = shift                },
+        sub { update_finish($user, $desc)  },
+        sub { update_finish($user)         }
     );
 }
 
 # after git describe, tell opers that it succeeded
-sub finish {
+sub update_finish {
     my ($user, $desc) = @_;
     my $version = ircd::get_version();
     if (length $desc) {
