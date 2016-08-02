@@ -19,6 +19,7 @@ use warnings;
 use strict;
 use 5.010;
 
+use Scalar::Util qw(blessed);
 use M::TS6::Utils qw(ts6_id ts6_prefixes ts6_prefix ts6_closest_level);
 use utils qw(notice);
 
