@@ -372,6 +372,7 @@ sub numeric {
 sub possible_protocols {
     my ($connection, @protos) = shift;
     my $port = $connection->{localport};
+    return $connection->{link_type} if defined $connection->{link_type};
     #
     # maybe a protocol has been specified.
     # this means that JELP will not be permitted,
