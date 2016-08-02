@@ -89,7 +89,7 @@ sub init {
     $mod->register_module_method('register_ban_type')   or return;
     $mod->register_module_method('register_ban_action') or return;
     $mod->register_module_method('get_ban_action')      or return;
-    $api->on('module.unload' => \&unload_module, with_eo => 1) or return;
+    $api->on('module.unload' => \&unload_module, 'void.ban.types');
 
     # add protocol submodules.
     $mod->add_companion_submodule('JELP::Base', 'JELP');
@@ -561,17 +561,15 @@ sub add_enforcement_events {
 
     # new connection, host resolved, ident found
     my $enforce_on_conn = sub { enforce_all_on_conn(shift) };
-    $pool->on("connection.$_" => $enforce_on_conn,
-        name    => 'ban.enforce.conn',
-        with_eo => 1
-    ) for qw(new found_hostname found_ident);
+    $pool->on("connection.$_" => $enforce_on_conn, 'ban.enforce.conn')
+        for qw(new found_hostname found_ident);
 
     # new local user
     # this is done before sending welcomes or propagating the user
     $pool->on('connection.user_ready' => sub {
-        my ($event, $user) = @_;
+        my ($conn, $event, $user) = @_;
         enforce_all_on_user($user);
-    }, name => 'ban.enforce.user');
+    }, 'ban.enforce.user');
 
 }
 

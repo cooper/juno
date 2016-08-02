@@ -25,10 +25,7 @@ sub init {
     $mod->register_module_method('register_registration_command') or return;
 
     # module events.
-    $api->on('module.init' => \&module_init,
-        name    => '%registration_commands',
-        with_eo => 1
-    );
+    $api->on('module.init' => \&module_init, '%registration_commands');
 
     return 1;
 }
@@ -95,7 +92,7 @@ sub register_registration_command {
         priority => 500,
         %opts,
         _caller  => $mod->package
-    ) or return;
+    );
 
     L("$command ($opts{cb_name}) registered");
     $mod->list_store_add('registration_commands', $command);

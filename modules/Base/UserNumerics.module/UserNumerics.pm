@@ -21,14 +21,9 @@ sub init {
     # register methods.
     $mod->register_module_method('register_user_numeric') or return;
 
-    # module unload event.
-    $api->on('module.unload' => \&unload_module, with_eo => 1) or return;
-
-    # module initialization.
-    $api->on('module.init' => \&module_init,
-        name    => '%user_numerics',
-        with_eo => 1
-    ) or return;
+    # module events.
+    $api->on('module.unload' => \&unload_module, 'void.user.numerics');
+    $api->on('module.init'   => \&module_init,   '%user_numerics');
 
     return 1;
 }

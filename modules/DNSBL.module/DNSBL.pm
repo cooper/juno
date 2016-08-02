@@ -20,13 +20,13 @@ use 5.010;
 our ($api, $mod, $pool, $conf);
 
 sub init {
-    $pool->on('connection.new', \&connection_new, with_eo => 1, name => 'check.dnsbl') or return;
+    $pool->on('connection.new', \&connection_new, 'check.dnsbl');
 }
 
 sub connection_new {
     my ($connection, $event) = @_;
     return if $connection->{goodbye};
-    
+
     my @lists = $conf->names_of_block('dnsbl');
     return if scalar(@lists) == 0;
     $connection->{dnsbl_checks} = 0;
@@ -96,4 +96,3 @@ sub dnsbl_ok {
 
 
 $mod
-

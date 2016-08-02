@@ -11,5 +11,5 @@
    "description" : "Adds mode to allow only ssl users to join",
    "name" : "Channel::SSLOnly",
    "package" : "M::Channel::SSLOnly",
-   "version" : "0.2"
+   "version" : "0.3"
 }

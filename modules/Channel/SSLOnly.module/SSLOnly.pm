@@ -22,7 +22,7 @@ use 5.010;
 our ($api, $mod, $pool);
 
 
-# channel modes 
+# channel modes
 our %channel_modes = (
     ssl_only => { type => 'normal' }
 );
@@ -30,11 +30,7 @@ our %channel_modes = (
 
 sub init {
     # Hook on to the can_join event to prevent joining a channel that is ssl users only.
-    $pool->on('user.can_join' => \&on_user_can_join,
-        with_eo => 1,
-        name    => 'is.ssl.user'
-    );
-
+    $pool->on('user.can_join' => \&on_user_can_join, 'is.ssl.user');
     return 1;
 }
 
@@ -43,11 +39,10 @@ sub on_user_can_join {
     # A user can join a channel that isn't +S
     return unless $channel->is_mode('ssl_only');
     # User must be connected via ssl otherwise
-    return if exists $user->{ssl};
+    return if $user->{ssl};
     # Let them know they can't join if they're not on ssl
     $user->server_notice("Only users using SSL can join this channel!");
     $event->stop('channel_ssl_only');
 }
 
 $mod
-

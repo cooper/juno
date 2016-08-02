@@ -29,11 +29,7 @@ our %channel_modes = (
 
 sub init {
     # Hook on to the can_message event to strip colors.
-    $pool->on('user.can_message' => \&on_user_can_message,
-        with_eo => 1,
-        name    => 'strip.colors'
-    );
-
+    $pool->on('user.can_message' => \&on_user_can_message, 'strip.colors');
     return 1;
 }
 
@@ -51,4 +47,3 @@ sub on_user_can_message {
 }
 
 $mod
-

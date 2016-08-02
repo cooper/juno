@@ -34,10 +34,7 @@ our %channel_modes = (
 sub init {
 
     # Hook on the can_join event to prevent joining a channel that is oper only
-    $pool->on('user.can_join' => \&on_user_can_join,
-        with_eo => 1,
-        name    => 'is.oper.only'
-    );
+    $pool->on('user.can_join' => \&on_user_can_join, 'is.oper.only');
 
     return 1;
 }

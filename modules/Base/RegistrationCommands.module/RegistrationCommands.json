@@ -6,5 +6,5 @@
    "description" : "provides an interface for client registration commands",
    "name" : "Base::RegistrationCommands",
    "package" : "M::Base::RegistrationCommands",
-   "version" : "10.84"
+   "version" : "10.94"
 }

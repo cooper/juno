@@ -12,5 +12,5 @@
    "description" : "adds channel user limit mode",
    "name" : "Channel::Limit",
    "package" : "M::Channel::Limit",
-   "version" : "2.7"
+   "version" : "2.8"
 }

@@ -37,7 +37,7 @@ our %channel_modes = (
 sub init {
 
     # Hook on the can_join event to prevent joining a channel without valid key
-    $pool->on('user.can_join' => \&on_user_can_join, with_eo => 1, name => 'has.key');
+    $pool->on('user.can_join' => \&on_user_can_join, 'has.key');
 
     return 1;
 }

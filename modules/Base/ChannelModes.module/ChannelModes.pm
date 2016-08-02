@@ -23,14 +23,9 @@ sub init {
     # register methods.
     $mod->register_module_method('register_channel_mode_block') or return;
 
-    # module unload event.
-    $api->on('module.unload' => \&unload_module, with_eo => 1) or return;
-
-    # module initialization.
-    $api->on('module.init' => \&module_init,
-        name    => '%channel_modes',
-        with_eo => 1
-    ) or return;
+    # module events.
+    $api->on('module.unload' => \&unload_module, 'void.channel.modes');
+    $api->on('module.init'   => \&module_init,   '%channel_modes');
 
     return 1;
 }

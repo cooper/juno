@@ -77,10 +77,7 @@ our %ts6_outgoing_commands = (
 );
 
 sub init {
-    $pool->on('server.send_ts6_burst' => \&send_burst,
-        name    => 'ts6.mainburst',
-        with_eo => 1
-    );
+    $pool->on('server.send_ts6_burst' => \&send_burst, 'ts6.mainburst');
     $pool->on('server.send_ts6_burst' => \&send_endburst,
         name     => 'ts6.endburst',
         with_eo  => 1,

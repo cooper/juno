@@ -11,5 +11,5 @@
    "description" : "adds permanent channel support",
    "name" : "Channel::Permanent",
    "package" : "M::Channel::Permanent",
-   "version" : "0.4"
+   "version" : "0.5"
 }

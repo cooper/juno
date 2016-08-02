@@ -950,6 +950,7 @@ sub _do_mode_string {
 sub do_privmsgnotice {
     my ($channel, $command, $source, $message, %opts) = @_;
     my ($source_user, $source_serv) = ($source->user, $source->server);
+    undef $source_serv if $source_user;
     $command = uc $command;
 
     # find the destinations

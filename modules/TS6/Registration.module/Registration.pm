@@ -74,17 +74,17 @@ our %registration_commands = (
 );
 
 sub init {
-    $pool->on('connection.server_ready' => \&server_ready,
-        with_eo => 1,
-        name    => 'ts6.server_ready'
+    $pool->on('connection.server_ready' =>
+        \&server_ready,
+        'ts6.server_ready'
     );
-    $pool->on('connection.ready_done' => \&connection_ready,
-        with_eo => 1,
-        name    => 'ts6.ready_done'
+    $pool->on('connection.ready_done' =>
+        \&connection_ready,
+        'ts6.ready_done'
     );
-    $pool->on('server.initially_propagated' => \&server_propagated,
-        with_eo => 1,
-        name    => 'ts6.start.burst'
+    $pool->on('server.initially_propagated' =>
+        \&server_propagated,
+        'ts6.start.burst'
     );
     return 1;
 }

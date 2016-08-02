@@ -23,7 +23,7 @@ our ($api, $mod, $pool);
 
 sub init {
     $mod->register_module_method('register_capability') or return;
-    $api->on('module.unload' => \&unload_module, with_eo => 1) or return;
+    $api->on('module.unload' => \&unload_module, 'void.capabilities');
     return 1;
 }
 

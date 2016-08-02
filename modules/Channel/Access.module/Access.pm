@@ -52,8 +52,14 @@ sub init {
     ) or return;
 
     # events.
-    $pool->on('channel.user_joined'    => \&on_user_joined,    with_eo => 1);
-    $pool->on('user.account_logged_in' => \&on_user_logged_in, with_eo => 1);
+    $pool->on('channel.user_joined' =>
+        \&on_user_joined,
+        'apply.access.join'
+    );
+    $pool->on('user.account_logged_in' =>
+        \&on_user_logged_in,
+        'apply.access.login'
+    );
 
     return 1;
 }

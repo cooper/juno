@@ -20,10 +20,7 @@ our ($api, $mod, $me, $pool);
 sub init {
 
     # hook onto new connections to resolve host
-    $pool->on('connection.new' => \&connection_new,
-        with_eo => 1,
-        name    => 'resolve.hostname'
-    );
+    $pool->on('connection.new' => \&connection_new, 'resolve.hostname');
 
     return 1;
 }

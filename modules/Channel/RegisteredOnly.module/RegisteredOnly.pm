@@ -34,11 +34,7 @@ our %channel_modes = (
 
 sub init {
     # Hook on to the can_join event to prevent joining a channel that is registered users only.
-    $pool->on('user.can_join' => \&on_user_can_join,
-        with_eo => 1,
-        name    => 'is.registered.user'
-    );
-
+    $pool->on('user.can_join' => \&on_user_can_join, 'is.registered.user');
     return 1;
 }
 

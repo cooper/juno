@@ -9,5 +9,5 @@
    "description" : "support for command aliases",
    "name" : "Alias",
    "package" : "M::Alias",
-   "version" : "2.6"
+   "version" : "2.7"
 }

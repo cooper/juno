@@ -27,10 +27,7 @@ sub init {
     $mod->register_module_method('delete_user_command')       or return;
 
     # module events.
-    $api->on('module.init' => \&module_init,
-        name    => '%user_commands',
-        with_eo => 1
-    );
+    $api->on('module.init' => \&module_init, '%user_commands');
 
     return 1;
 }

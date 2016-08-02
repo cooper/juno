@@ -34,20 +34,20 @@ sub init {
 
     # Hook on the show_in_list, show_in_whois, and show_in_names events to
     # prevent secret or private channels from showing
-    $pool->on('channel.show_in_list' => \&show_in_list,
-        with_eo => 1,
-        name => 'channel.secret.show_in_list'
+    $pool->on('channel.show_in_list' =>
+        \&show_in_list,
+        'channel.secret.show_in_list'
     );
-    $pool->on('channel.show_in_whois' => \&show_in_whois,
-        with_eo => 1,
-        name => 'channel.secret.show_in_whois'
+    $pool->on('channel.show_in_whois' =>
+        \&show_in_whois,
+        'channel.secret.show_in_whois'
     );
 
     # names_character allows us to change the "=" in NAMES to "@" or "*"
     # for secret and private channels respectively
-    $pool->on('channel.names_character' => \&names_character,
-        with_eo => 1,
-        name => 'channel.secret.names_character'
+    $pool->on('channel.names_character' =>
+        \&names_character,
+        'channel.secret.names_character'
     );
 
     return 1;

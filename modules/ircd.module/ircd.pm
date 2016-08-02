@@ -560,9 +560,9 @@ sub load_dependencies {
 
         [ 'IO::Socket::IP',                0.25 ],
 
-        [ 'Evented::Object',               5.50 ],
-        [ 'Evented::Object::Collection',   5.50 ],
-        [ 'Evented::Object::EventFire',    5.50 ],
+        [ 'Evented::Object',               5.56 ],
+        [ 'Evented::Object::Collection',   5.56 ],
+        [ 'Evented::Object::EventFire',    5.56 ],
 
         [ 'Evented::API::Engine',          3.94 ],
         [ 'Evented::API::Module',          3.94 ],

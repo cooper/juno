@@ -3623,3 +3623,6 @@ CHANGES:
 
         86. added support for PRIVMSG/NOTICE targets with a status prefix (@#channel).
             fixed a bug where SVINFO was sent with a juno SID.
+            update Evented::Object.
+            cleanup: omit 'with_eo' and 'name' callback options where they are implied.
+            

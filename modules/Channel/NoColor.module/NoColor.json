@@ -11,5 +11,5 @@
    "description" : "Adds mode to strip colors from channel messages",
    "name" : "Channel::NoColor",
    "package" : "M::Channel::NoColor",
-   "version" : "0.2"
+   "version" : "0.3"
 }

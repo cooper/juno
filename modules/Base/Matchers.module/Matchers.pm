@@ -21,10 +21,6 @@ sub init {
     # register methods.
     $mod->register_module_method('register_matcher') or return;
 
-    # module unload event.
-    # no longer used - this is simply a callback that will be automatically deleted.
-    # $api->on('module.unload' => \&unload_module, with_eo => 1) or return;
-
     return 1;
 }
 

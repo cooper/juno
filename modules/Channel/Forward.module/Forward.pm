@@ -35,10 +35,7 @@ our %channel_modes = (
 sub init {
 
     # Hook on the cant_join event to forward users if needed.
-    $pool->on('user.cant_join' => \&on_user_cant_join,
-        with_eo => 1,
-        name    => 'join.failed'
-    );
+    $pool->on('user.cant_join' => \&on_user_cant_join, 'join.fail.forward');
 
     return 1;
 }

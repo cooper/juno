@@ -22,10 +22,7 @@ our %channel_modes = (
 );
 
 sub init {
-    $pool->on('channel.can_destroy' => \&on_can_destroy,
-        with_eo => 1,
-        name    => 'channel.permanent'
-    );
+    $pool->on('channel.can_destroy' => \&on_can_destroy, 'channel.permanent');
 }
 
 # prevent non-opers from (un)setting the mode

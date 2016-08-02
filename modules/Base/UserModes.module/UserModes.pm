@@ -22,7 +22,7 @@ sub init {
     $mod->register_module_method('register_user_mode_block') or return;
 
     # module unload event.
-    $api->on('module.unload' => \&unload_module, with_eo => 1);
+    $api->on('module.unload' => \&unload_module, 'void.user.modes');
 
     return 1;
 }

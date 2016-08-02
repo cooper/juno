@@ -23,7 +23,7 @@ our ($api, $mod, $pool, $conf);
 my %current_aliases;
 
 sub init {
-    $pool->on('rehash_after' => \&update_aliases, name => 'update.aliases');
+    $pool->on('rehash_after' => \&update_aliases, 'update.aliases');
     return update_aliases();
 }
 

@@ -105,6 +105,8 @@ my $modes = $ts6_server->cmodes_from_string($some_ts6_mode_string);
 $channel->do_modes_local($source, $modes, 1, 1, 1);
 ```
 
+### Omission of unknown modes
+
 Modes which are missing on a destination server are simply omitted from the
 resulting messages. juno used to map status modes like +q (owner) and +a (admin)
 to +o (op), but in issue [#7](https://github.com/cooper/juno/issues/7), we
@@ -116,6 +118,16 @@ built-in channel access feature set +o along with any higher status mode.
 ```
 [TS6::Outgoing] convert_cmode_string(): +qo 0a 0a (k.notroll.net) -> +o 000AAAAAA (charybdis.notroll.net)
 ```
+
+### Status message targets
+
+PRIVMSGs and NOTICEs can be directed to channel members with a certain status or
+higher with the `<prefix><channel>` syntax, such as `@#channel` or `+#channel`.
+To ensure that members on TS-based servers that do not have some status modes
+still receive these, juno translates them to the "nearest" status which is less
+than or equal to the original one. For example, `&#channel`
+(a message to protected members) will become `@#channel` on charybdis since it
+does not support admins.
 
 ## SID, UID conversion
 
@@ -169,7 +181,7 @@ See
 [the code](https://github.com/cooper/juno/blob/master/modules/TS6/Utils.module/Utils.pm)
 for more info.
 
-## K-Lines, D-Lines
+## K-Lines, D-Lines, etc.
 
 [Ban::TS](https://github.com/cooper/juno/blob/master/modules/Ban/Ban.module/TS6.module)
 provides the TS6 server ban implementation. It is loaded automatically when TS6
