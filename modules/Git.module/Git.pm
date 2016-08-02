@@ -37,7 +37,7 @@ our %user_commands = (
 # oper notices
 our %oper_notices = (
     checkout_fail   => 'Checkout \'%s\' on %s by %s failed',
-    checkout        => 'Checked out \'%s\' on %s by %s',
+    checkout        => 'Checked out \'%s\' version %s on %s by %s',
     update_fail     => 'Update to %s git reposity by %s failed (%s)',
     update          => '%s git repository updated to version %s successfully by %s'
 );
@@ -45,20 +45,53 @@ our %oper_notices = (
 sub init {
 
     # allow UPDATE to work remotely.
-    $mod->register_global_command(name => 'update') or return;
+    $mod->register_global_command(name => $_) or return
+        for qw(checkout update);
 
     return 1;
 }
 
 # CHECKOUT user command
 sub ucmd_checkout {
-    my ($user, $event, $point) = @_;
-    command(['git', 'checkout', $point], undef,
+    my ($user, $event, $server_mask_maybe, $point) = @_;
+
+    # server parameter?
+    if (!defined $point) {
+        $point = $server_mask_maybe;
+        undef $server_mask_maybe;
+    }
+    if (length $server_mask_maybe) {
+        my @servers = $pool->lookup_server_mask($server_mask_maybe);
+
+        # no priv.
+        if (!$user->has_flag('gcheckout')) {
+            $user->numeric(ERR_NOPRIVILEGES => 'gcheckout');
+            return;
+        }
+
+        # no matches.
+        if (!@servers) {
+            $user->numeric(ERR_NOSUCHSERVER => $server_mask_maybe);
+            return;
+        }
+
+        # use forward_global_command() to send it out.
+        my $matched = server::protocol::forward_global_command(
+            \@servers,
+            ircd_checkout => $user, $server::protocol::INJECT_SERVERS
+        ) if @servers;
+        my %matched = $matched ? %$matched : ();
+
+        # if $me is not in %done, we're not reloading locally.
+        return 1 if !$matched{$me};
+
+    }
+
+    # git checkout
+    command([ 'git', 'checkout', $point ], undef,
 
         # success
-        sub {
-            gnotice($user, checkout => $point, $me->name, $user->notice_info);
-        },
+        sub { git_checkout_succeeded($user, $event, $point) },
 
         # failure
         sub {
@@ -68,6 +101,7 @@ sub ucmd_checkout {
         }
 
     );
+
     return 1;
 }
 
@@ -80,8 +114,8 @@ sub ucmd_update {
         my @servers = $pool->lookup_server_mask($server_mask_maybe);
 
         # no priv.
-        if (!$user->has_flag('ggit')) {
-            $user->numeric(ERR_NOPRIVILEGES => 'ggit');
+        if (!$user->has_flag('gupdate')) {
+            $user->numeric(ERR_NOPRIVILEGES => 'gupdate');
             return;
         }
 
@@ -150,6 +184,28 @@ sub git_pull_succeeded {
             );
         }
     );
+}
+
+# after git checkout, use git describe to get a tag
+sub git_checkout_succeeded {
+    my ($user, $event, $point) = @_;
+    my $desc;
+    command(['git', 'describe'],
+        sub { $desc = shift                          },
+        sub { checkout_finish($user, $point, $desc)  },
+        sub { checkout_finish($user, $point)         }
+    );
+}
+
+# after git describe, tell opers that it succeeded
+sub checkout_finish {
+    my ($user, $point, $desc) = @_;
+    my $version = ircd::get_version();
+    if (length $desc) {
+        $desc = trim($desc);
+        $version = "$version ($desc)";
+    }
+    gnotice($user, checkout => $point, $version, $me->name, $user->notice_info);
 }
 
 # after git submodule, use git describe to get a tag

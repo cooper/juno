@@ -61,6 +61,7 @@ my %ocommands = (
     burst           => \&burst,
     endburst        => \&endburst,
     ircd_rehash     => \&rehash,
+    ircd_checkout   => \&checkout,
     ircd_update     => \&update,
     ircd_reload     => \&reload
 );
@@ -546,6 +547,12 @@ sub reload {
     my $sids = join '', map '$'.$_->id, @servers;
     $flags = length $flags ? " $flags" : '';
     ":$$user{uid} RELOAD $sids$flags"
+}
+
+sub checkout {
+    my ($to_server, $user, @servers) = @_;
+    my $sids = join '', map '$'.$_->id, @servers;
+    ":$$user{uid} CHECKOUT $sids"
 }
 
 sub update {

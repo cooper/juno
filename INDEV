@@ -3628,3 +3628,4 @@ CHANGES:
             RELOAD now detects if upgrading or downgrading.
             UPDATE now uses '(g)update' flag instead of 'git'.
             the Git module now provides a CHECKOUT command to switch branches.
+            CHECKOUT now works remotely. it also provides version/tag info.
