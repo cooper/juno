@@ -403,7 +403,7 @@ sub _privmsgnotice_atserver {
 #   capab:          CHW
 #   propagation:    all servers with -D users with appropriate status
 #
-sub privmsgnotice_status {
+sub _privmsgnotice_status {
     my ($server, $msg, $source, $command,
     $channel, $message, $level, %opts) = @_;
 
