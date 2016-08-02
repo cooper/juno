@@ -943,6 +943,10 @@ sub _do_mode_string {
 #                       target@server message. if it is present, atserv_nick
 #                       must also exist.
 #
+#       min_level       a status level which this message is directed to. the
+#                       message will be sent to users with the prefix; e.g.
+#                       @#channel or +#channel.
+#
 sub do_privmsgnotice {
     my ($channel, $command, $source, $message, %opts) = @_;
     my ($source_user, $source_serv) = ($source->user, $source->server);
@@ -950,13 +954,16 @@ sub do_privmsgnotice {
 
     # find the destinations
     my @users;
-    if ($opts{users}) {
+    if ($opts{users}) {                             # explicitly specified
         @users = ref_to_list($opts{users});
     }
-    elsif ($opts{op_moderated}) {
+    elsif ($opts{op_moderated}) {                   # op moderated = all ops
         @users = $channel->users_with_at_least(0);
     }
-    else {
+    elsif (defined $opts{min_level}) {              # @#channel or similar
+        @users = $channel->users_with_at_least($opts{min_level});
+    }
+    else {                                          # fall back to all users
         @users = $channel->users;
     }
 
@@ -998,9 +1005,16 @@ sub do_privmsgnotice {
         }
     }
 
+    # send to @#channel if necessary
+    my $local_data = "$command $$channel{name} :$message";
+    if (defined $opts{min_level}) {
+        my $prefix = $ircd::channel_mode_prefixes{ $opts{min_level} } or return;
+        $prefix = $prefix->[1]; # [ letter, prefix, ... ]
+        $local_data = "$command $prefix$$channel{name} :$message";
+    }
+
     # tell channel members.
     my %sent;
-    my $local_data   = "$command $$channel{name} :$message";
     USER: foreach my $user (@users) {
 
         # this is the source!

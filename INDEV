@@ -3620,3 +3620,5 @@ CHANGES:
             added support for opers@server special target.
             added outgoing handlers for PRIVMSG user@server.
             fixed #125 where UPDATE sometimes did not send out oper notices.
+
+        86. added support for PRIVMSG/NOTICE targets with a status prefix (@#channel).

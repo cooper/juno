@@ -390,6 +390,7 @@ sub umode {
 
 sub privmsgnotice {
     my ($server, $msg, $source, $command, $target, $message) = @_;
+    my @status_modes = grep { $_->{type} == 4 } values %{ $server->{cmodes} };
     return server::protocol::handle_privmsgnotice(
         @_[0..5],
         channel_lookup  => sub { $pool->lookup_channel(shift) },
@@ -399,6 +400,8 @@ sub privmsgnotice {
         opers_prefix    => 'opers',
         opmod_prefix    => '=',
         smask_prefix    => '$$',
+        chan_prefixes   => [ map "\@$$_{letter}", @status_modes ],
+        chan_pfx_lookup => \&level_from_prefix_ts6
     );
 }
 

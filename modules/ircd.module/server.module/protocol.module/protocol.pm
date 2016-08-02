@@ -17,7 +17,7 @@ use strict;
 use 5.010;
 
 use Scalar::Util qw(blessed);
-use utils qw(import ref_to_list notice gnotice conf ref_to_list);
+use utils qw(import ref_to_list notice gnotice conf);
 
 our ($api, $mod, $pool, $me, $conf);
 our %ircd_support;
@@ -150,6 +150,7 @@ sub handle_svsnick {
 
 # handle_privmsgnotice()
 # Generic PRIVSG/NOTICE handler.
+# See issue #10 for complex PRIVMSG info.
 #
 # Required:
 #
@@ -170,6 +171,13 @@ sub handle_svsnick {
 #
 #   opers_prefix        prefix for sending a message to all online opers.
 #                       this only works with supports_atserv.
+#
+#   chan_prefixes       a list of prefixes which might prepend channel targets.
+#                       only members with this status or higher will be targets.
+#
+#   chan_pfx_lookup     code which takes a prefix (something from chan_prefixes)
+#                       and returns a juno status level. required with
+#                       chan_prefixes.
 #
 sub handle_privmsgnotice {
     my ($server, $msg, $source, $command, $target, $message, %opts) = @_;
@@ -200,7 +208,31 @@ sub handle_privmsgnotice {
         }
     }
 
-    # it might be someone@somewhere
+    # - Complex PRIVMSG
+    #   a status character ('@'/'+') followed by a channel name, to send to users
+    #   with that status or higher only.
+    #   capab:          CHW
+    #   propagation:    all servers with -D users with appropriate status
+    # Note: Check this after all other prefixes but before user@server.
+    foreach $prefix (ref_to_list($opts{chan_prefixes})) {
+        my $pfx = \substr(my $t_name = $target, 0, length $prefix);
+        next if $$pfx ne $prefix;
+        $$pfx = '';
+        my $channel = $opts{channel_lookup}($t_name) or return;
+
+        # find the level
+        my $level = $opts{chan_pfx_lookup}($prefix);
+        defined $level or return;
+
+        return _privmsgnotice_status(@_[0..3], $channel, $message, $level, %opts);
+    }
+
+    # - Complex PRIVMSG
+    #   a user@server message, to send to users on a specific server. The exact
+    #   meaning of the part before the '@' is not prescribed, except that "opers"
+    #   allows IRC operators to send to all IRC operators on the server in an
+    #   unspecified format.
+    #   propagation:    one-to-one
     if ($opts{supports_atserv} && $target =~ m/^(.+)\@(.+)$/) {
         my ($nick, $serv_str) = ($1, $2);
         return _privmsgnotice_atserver(
@@ -266,8 +298,8 @@ sub _privmsgnotice_smask {
     if ($source->isa('server')) {
         notice(server_protocol_warning =>
             $source->notice_info,
-            "cannot be sent $command because \"\$\$\" target is ".
-            "not permitted with server source (for TS6 compatibility)"
+            "cannot be sent $command because '\$\$' targets are ".
+            "not permitted with a server source"
         );
         return;
     }
@@ -363,6 +395,26 @@ sub _privmsgnotice_atserver {
     }
 
     return;
+}
+
+# - Complex PRIVMSG
+#   a status character ('@'/'+') followed by a channel name, to send to users
+#   with that status or higher only.
+#   capab:          CHW
+#   propagation:    all servers with -D users with appropriate status
+#
+sub privmsgnotice_status {
+    my ($server, $msg, $source, $command,
+    $channel, $message, $level, %opts) = @_;
+
+    #=== Forward ===#
+    $channel->do_privmsgnotice(
+        $command, $source, $message,
+        force => 1,
+        min_level => $level
+    );
+
+    return 1;
 }
 
 ##################################

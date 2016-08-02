@@ -22,7 +22,7 @@ use 5.010;
 use M::TS6::Utils qw(
     user_from_ts6   server_from_ts6     obj_from_ts6
     uid_from_ts6    sid_from_ts6        mode_from_prefix_ts6
-    ts6_id
+    ts6_id          level_from_prefix_ts6
 );
 
 use utils qw(channel_str_to_list notice);
@@ -612,7 +612,7 @@ sub sjoin {
 #   (cmode +m/+n should be checked everywhere, bans should not be checked
 #   remotely)
 #
-# - TODO: Complex PRIVMSG
+# - Complex PRIVMSG
 #   a status character ('@'/'+') followed by a channel name, to send to users
 #   with that status or higher only.
 #   capab:          CHW
@@ -667,7 +667,9 @@ sub privmsgnotice {
         supports_atserv => 1,
         opers_prefix    => 'opers',
         opmod_prefix    => '=',
-        smask_prefix    => '$$'
+        smask_prefix    => '$$',
+        chan_prefixes   => [ keys %{ $server->{ircd_prefixes} || {} } ],
+        chan_pfx_lookup => \&level_from_prefix_ts6
     );
 }
 

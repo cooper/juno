@@ -19,7 +19,7 @@ use warnings;
 use strict;
 use 5.010;
 
-use M::TS6::Utils qw(ts6_id ts6_prefixes);
+use M::TS6::Utils qw(ts6_id ts6_prefixes ts6_prefix ts6_closest_level);
 use utils qw(notice);
 
 our ($api, $mod, $pool, $me);
@@ -660,6 +660,26 @@ sub privmsgnotice_atserver {
     return if !length $opts{atserv_nick} || !ref $opts{atserv_serv};
     my $id = ts6_id($source);
     ":$id $cmd $opts{atserv_nick}\@$opts{atserv_serv}{name} :$message"
+}
+
+# - Complex PRIVMSG
+#   a status character ('@'/'+') followed by a channel name, to send to users
+#   with that status or higher only.
+#   capab:          CHW
+#   propagation:    all servers with -D users with appropriate status
+#
+sub privmsgnotice_status {
+    my ($to_server, $cmd, $source, $channel, $message, %opts) = @_;
+    $channel or return;
+
+    # convert the level to the nearest TS6 prefix
+    my $level  = ts6_closest_level($to_server, $opts{min_level});
+    my $prefix = ts6_prefix($to_server, $level);
+    defined $prefix or return;
+
+    my $id = $source->id;
+    my $ch_name = $channel->name;
+    ":$id $cmd $prefix$ch_name :$message"
 }
 
 # PART

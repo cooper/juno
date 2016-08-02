@@ -29,7 +29,7 @@ our %user_commands = (UPDATE => {
 
 # oper notices
 our %oper_notices = (
-    update_fail => 'update to %s git reposity by %s failed',
+    update_fail => 'Update to %s git reposity by %s failed',
     update      => '%s git repository updated to version %s successfully by %s'
 );
 

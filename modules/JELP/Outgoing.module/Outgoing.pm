@@ -237,6 +237,7 @@ sub privmsgnotice {
     return &privmsgnotice_opmod         if $opts{op_moderated};
     return &privmsgnotice_smask         if defined $opts{serv_mask};
     return &privmsgnotice_atserver      if defined $opts{atserv_serv};
+    return &privmsgnotice_status        if defined $opts{min_level};
 
     $target or return;
     my $id  = $source->id;
@@ -285,6 +286,25 @@ sub privmsgnotice_atserver {
     return if !length $opts{atserv_nick} || !ref $opts{atserv_serv};
     my $id = $source->id;
     ":$id $cmd $opts{atserv_nick}\@$opts{atserv_serv}{sid} :$message"
+}
+
+# - Complex PRIVMSG
+#   a status character ('@'/'+') followed by a channel name, to send to users
+#   with that status or higher only.
+#   capab:          CHW
+#   propagation:    all servers with -D users with appropriate status
+#
+sub privmsgnotice_status {
+    my ($to_server, $cmd, $source, $channel, $message, %opts) = @_;
+    $channel or return;
+
+    # convert the level to a mode letter
+    my $letter = $ircd::channel_mode_prefixes{ $opts{min_level} } or return;
+    $letter = $letter->[0];
+
+    my $id = $source->id;
+    my $ch_name = $channel->name;
+    ":$id $cmd \@$letter$ch_name :$message"
 }
 
 # channel join
