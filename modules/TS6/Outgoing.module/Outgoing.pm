@@ -92,7 +92,7 @@ sub send_burst {
     my ($server, $event) = @_;
 
     # SVINFO is always at the start of the burst I think.
-    $server->sendfrom($me->id, "SVINFO $TS_CURRENT $TS_MIN 0 ".time());
+    $server->sendfrom(ts6_id($me), "SVINFO $TS_CURRENT $TS_MIN 0 ".time());
 
     # servers.
     my ($do, %done);
@@ -590,6 +590,7 @@ sub privmsgnotice {
     return &privmsgnotice_opmod         if $opts{op_moderated};
     return &privmsgnotice_smask         if defined $opts{serv_mask};
     return &privmsgnotice_atserver      if defined $opts{atserv_serv};
+    return &privmsgnotice_status        if defined $opts{min_level};
 
     $target or return;
     my $id  = ts6_id($source);
@@ -677,7 +678,7 @@ sub privmsgnotice_status {
     my $prefix = ts6_prefix($to_server, $level);
     defined $prefix or return;
 
-    my $id = $source->id;
+    my $id = ts6_id($source);
     my $ch_name = $channel->name;
     ":$id $cmd $prefix$ch_name :$message"
 }

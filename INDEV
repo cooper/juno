@@ -3622,3 +3622,4 @@ CHANGES:
             fixed #125 where UPDATE sometimes did not send out oper notices.
 
         86. added support for PRIVMSG/NOTICE targets with a status prefix (@#channel).
+            fixed a bug where SVINFO was sent with a juno SID.
