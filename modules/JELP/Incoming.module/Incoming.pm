@@ -401,7 +401,14 @@ sub privmsgnotice {
         opmod_prefix    => '=',
         smask_prefix    => '$$',
         chan_prefixes   => [ map "\@$$_{letter}", @status_modes ],
-        chan_pfx_lookup => \&level_from_prefix_ts6
+        chan_pfx_lookup => sub {
+            my $prefix = shift;
+            my $letter = chop $prefix;
+            foreach my $hideous (keys %ircd::channel_mode_prefixes) {
+                my $ref = ircd::channel_mode_prefixes{$hideous};
+                return $hideous if $ref->[0] eq $letter;
+            }
+        }
     );
 }
 

@@ -175,7 +175,7 @@ sub handle_svsnick {
 #   chan_prefixes       a list of prefixes which might prepend channel targets.
 #                       only members with this status or higher will be targets.
 #
-#   chan_pfx_lookup     code which takes a prefix (something from chan_prefixes)
+#   chan_lvl_lookup     code which takes a prefix (something from chan_prefixes)
 #                       and returns a juno status level. required with
 #                       chan_prefixes.
 #
@@ -221,7 +221,7 @@ sub handle_privmsgnotice {
         my $channel = $opts{channel_lookup}($t_name) or return;
 
         # find the level
-        my $level = $opts{chan_pfx_lookup}($prefix);
+        my $level = $opts{chan_lvl_lookup}($prefix);
         defined $level or return;
 
         return _privmsgnotice_status(@_[0..3], $channel, $message, $level, %opts);

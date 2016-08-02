@@ -669,7 +669,7 @@ sub privmsgnotice {
         opmod_prefix    => '=',
         smask_prefix    => '$$',
         chan_prefixes   => [ keys %{ $server->{ircd_prefixes} || {} } ],
-        chan_pfx_lookup => \&level_from_prefix_ts6
+        chan_lvl_lookup => sub { level_from_prefix_ts6($server, shift) }
     );
 }
 
