@@ -168,7 +168,8 @@ sub cmd_reload {
     my $info;
     if ($new_v != $old_v) {
         my $amnt = sprintf('%.f', abs($new_v - $::VERSION) * 100);
-        $info = "upgraded from $old_v to $new_v (up $amnt versions since start)";
+        my $direction = $new_v < $old_v ? 'downgraded' : 'upgraded';
+        $info = "$direction from $old_v to $new_v (up $amnt versions since start)";
     }
     else {
         $info = 'reloaded';
