@@ -234,9 +234,21 @@ sub enforce_on_conn {
     return $enforce->($conn, $ban, $type);
 }
 
+# enforce the ban on all connections
+sub enforce_on_all_conns {
+    my $ban = shift;
+    my @affected;
+    foreach my $conn ($pool->connections) {
+        my $affected = $ban->enforce_on_conn($conn);
+        push @affected, $conn if $affected;
+    }
+    return @affected;
+}
+
 # enforce the ban on a single user
 sub enforce_on_user {
     my ($ban, $user) = @_;
+    return unless $user->is_local;
 
     # check that the user matches
     my $user_code = $ban->type('user_code')   or return;
@@ -250,6 +262,16 @@ sub enforce_on_user {
     return $enforce->($user, $ban, $type);
 }
 
+# enforce the ban on all users
+sub enforce_on_all_users {
+    my $ban = shift;
+    my @affected;
+    foreach my $user ($pool->local_users) {
+        my $affected = $ban->enforce_on_user($user);
+        push @affected, $user if $affected;
+    }
+    return @affected;
+}
 
 ##############
 ### TIMERS ###
