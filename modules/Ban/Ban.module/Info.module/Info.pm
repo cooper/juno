@@ -202,22 +202,47 @@ sub destroy {
 # (re)activate ban enforcement
 sub activate_enforcement {
     my $ban = shift;
+
+    # disable if it was enabled
     $ban->deactivate_enforcement if $ban->{enforcement_active};
-    $ban->{enforcement_active}++
+
+    # Custom activation
+    # -----------------
+    my $activate = $ban->type('activate_code');
+    $activate->($ban) if $activate;
+
+    # enable enforcement
+    $ban->{enforcement_active}++;
     M::Ban::_activate_ban_enforcement($ban);
+
+    # enforce the ban immediately
     $ban->enforce;
+
+    return 1;
 }
 
 # deactivate ban enforcement
 sub deactivate_enforcement {
     my $ban = shift;
+
+    # check if enabled
     delete $ban->{enforcement_active} or return;
-    M::Ban::_deactivate_ban_enforcement($ban);
+
+    # Custom deactivation
+    # -------------------
+    my $disable = $ban->type('disable_code');
+    $disable->(\%ban) if $disable;
+
+    # disable enforcement
+    return M::Ban::_deactivate_ban_enforcement($ban);
 }
 
 # enforce the ban immediately on anything affected
 sub enforce {
-
+    my @affected;
+    push @affected, $ban->enforce_on_all_conns if $ban->type('conn_code');
+    push @affected, $ban->enforce_on_all_users if $ban->type('user_code');
+    return @affected;
 }
 
 # enforce the ban on a single connection

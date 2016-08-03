@@ -207,8 +207,9 @@ sub all_bans {
 }
 
 # @bans = enforceable_bans()
+# returns bans with enforcement enabled.
 sub enforceable_bans {
-    return values %ban_enforces;
+    return grep $_, values %ban_enforces;
 }
 
 # $ban = create_or_update_ban(%opts)
@@ -448,28 +449,19 @@ sub _expire_ban {
     return 1;
 }
 
+# enable enforcement
+# internal use only - called from Info
 sub _activate_ban_enforcement {
     my $ban = shift;
-
-    # Custom activation
-    # -----------------
-    my $activate = $ban->type('activate_code');
-    $activate->($ban) if $activate;
-
     # $ban->activate_enforcement calls ->enforce to enforce the ban immediately,
     # so we don't have to
-
     weaken($ban_enforces{ $ban->id } = $ban);
 }
 
+# disable enforcement
+# internal use only - called from Info
 sub _deactivate_ban_enforcement {
     my $ban = shift;
-
-    # Custom deactivation
-    # -------------------
-    my $disable = $ban->type('disable_code');
-    $disable->(\%ban) if $disable;
-
     delete $ban_enforces{ $ban->id };
 }
 
