@@ -42,7 +42,9 @@ my ($table, %unordered_format, @format);
 #               or 0 if the ban is permanent
 #               e.g. 300 (5 minutes)
 #
-# added         UTC timestamp when the ban was added
+# added         UTC timestamp when the ban was added. note that the modification
+#               time is used for most things; this is mostly only for showing
+#               opers when the ban was first introduced.
 #
 # modified      UTC timestamp when the ban was last modified
 #
@@ -117,7 +119,7 @@ sub activate {
     # activate the timer as long as it is not permanent.
     # ifs lifetime is over when calling this, it will be immediately destroyed.
     $ban->activate_timer or return
-        if $ban{lifetime};
+        if $banlifetime;
 
     # only activate enforcement if the ban has not expired.
     # this will also enforce the ban immediately.
@@ -140,13 +142,13 @@ sub disable {
     my $ban = shift;
 
     # update the expire time
-    if ($ban->{modified} < time) {
-        $ban->{modified} = time;
+    if ($ban->modified < time) {
+        $ban->modified = time;
     }
     else {
-        $ban->{modified}++;
+        $ban->modified++;
     }
-    $ban->{expires} = $ban->{modified};
+    $ban->expires = $ban->modified;
 
     # disable enforcement
     $ban->deactivate_enforcement;
@@ -166,10 +168,10 @@ sub disable {
 #
 sub validate {
     my $ban = shift;
-    $ban->{added}     ||= time;
-    $ban->{modified}  ||= $ban->{added};
-    $ban->{expires}   ||= $ban->{duration} ? time + $ban->{duration} : 0;
-    $ban->{lifetime}  ||= $ban->{expires};
+    $ban->added     ||= time;
+    $ban->modified  ||= $ban->added;
+    $ban->expires   ||= $ban->duration ? time + $ban->duration : 0;
+    $ban->lifetime  ||= $ban->expires;
     return 1;
 }
 
@@ -358,34 +360,42 @@ sub type {
     return $type_name;
 }
 
+# timestamps and durations
+sub added       { shift->{added}        }   # timestamp when originally added
+sub modified    { shift->{modified}     }   # timestamp when last modified
 sub expires     { shift->{expires}      }   # timestamp of expiration
 sub lifetime    { shift->{lifetime}     }   # timestamp of end-of-life
 sub duration    { shift->{duration}     }   # ban duration in seconds
+
+# strings (all of these are optional and may be undef)
+sub reason      { shift->{reason}       }   # reason text
+sub aserver     { shift->{aserver}      }   # server name where ban originated
+sub auser       { shift->{auser}        }   # nick!ident@host that added it
 
 # the expire time relative to the modification time.
 # this is usually the same as ->duration.
 sub expires_duration {
     my $ban = shift;
-    return $ban->{modified} - $ban->{expires};
+    return $ban->modified - $ban->expires;
 }
 
 # the lifetime relative to the modification time.
 sub lifetime_duration {
     my $ban = shift;
-    return $ban->{modified} - $ban->{lifetime};
+    return $ban->modified - $ban->lifetime;
 }
 
 # true if the ban has expired. it may still have lifetime though.
 sub has_expired {
     my $ban = shift;
-    return if !$ban->{expires}; # permanent
-    return $ban->{expires} <= time;
+    return if !$ban->expires; # permanent
+    return $ban->expires <= time;
 }
 
 # true if the ban's lifetime has expired.
 sub has_expired_lifetime {
-    return if !$ban->{lifetime}; # permanent
-    return $ban->{lifetime} <= time;
+    return if !$ban->lifetime; # permanent
+    return $ban->lifetime <= time;
 }
 
 # Human-readable stuff
@@ -397,31 +407,31 @@ sub hr_ban_type {
 
 # expire time
 sub hr_expires  {
-    my $expires = shift->{expires};
+    my $expires = shift->expires;
     return 'never' if !$expires;
     return pretty_time($expires);
 }
 
 # added time
 sub hr_added {
-    return pretty_time(shift->{added});
+    return pretty_time(shift->added);
 }
 
 # modified time
 sub hr_modified {
-    return pretty_time(shift->{modified});
+    return pretty_time(shift->modified);
 }
 
 # duration
 sub hr_duration {
-    my $duration = shift->{duration};
+    my $duration = shift->duration;
     return 'permanent' if !$duration;
     return pretty_duration($duration);
 }
 
 # time remaining
 sub hr_remaining {
-    return pretty_duration(shift->{expires} - time);
+    return pretty_duration(shift->expires - time);
 }
 
 # reason

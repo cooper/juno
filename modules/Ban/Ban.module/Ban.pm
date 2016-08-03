@@ -271,7 +271,7 @@ sub ucmd_bans {
 
     # list all bans
     $user->server_notice(bans => 'Listing all bans');
-    foreach my $ban (sort { $a->{added} <=> $b->{added} } @bans) {
+    foreach my $ban (sort { $a->added <=> $b->added } @bans) {
 
         # hide this one because it is expired
         next if $ban->has_expired;
@@ -279,13 +279,13 @@ sub ucmd_bans {
         my $type = uc $ban->type;
         my @lines = "\2$type\2 $$ban{match} ($$ban{id})";
 
-push @lines, '      Reason: '.$ban->{reason}        if length $ban->{reason};
-push @lines, '       Added: '.$ban->hr_added        if $ban->{added};
-push @lines, '     by user: '.$ban->{auser}         if length $ban->{auser};
-push @lines, '   on server: '.$ban->{aserver}       if length $ban->{aserver};
-push @lines, '    Duration: '.$ban->hr_duration     if $ban->{duration};
-push @lines, '   Remaining: '.$ban->hr_remaining    if $ban->{expires};
-push @lines, '     Expires: '.$ban->hr_expires      if $ban->{expires};
+push @lines, '      Reason: '.$ban->reason          if length $ban->reason;
+push @lines, '       Added: '.$ban->hr_added        if $ban->added;
+push @lines, '     by user: '.$ban->auser           if length $ban->auser;
+push @lines, '   on server: '.$ban->auser           if length $ban->aserver;
+push @lines, '    Duration: '.$ban->hr_duration     if $ban->duration;
+push @lines, '   Remaining: '.$ban->hr_remaining    if $ban->expires;
+push @lines, '     Expires: '.$ban->hr_expires      if $ban->expires;
 
         $user->server_notice("- $_") for '', @lines;
     }
@@ -394,8 +394,8 @@ sub _activate_ban_timer {
     my ($expire_time, $code);
 
     # do nothing if the ban is permanent.
-    my $expires  = $ban->{expires};
-    my $lifetime = $ban->{lifetime} || $expires;
+    my $expires  = $ban->expires;
+    my $lifetime = $ban->lifetime || $expires;
     return if !$expires;
 
     # if the ban has not expired, add a timer to expire it.
@@ -442,7 +442,7 @@ sub _expire_ban {
     notice("$ban{type}_expire" =>
         $ban->type('hname'),
         $ban->{match},
-        pretty_duration(time - $ban->{added}),
+        pretty_duration(time - $ban->added),
         $ban->hr_reason
     );
     return 1;
