@@ -25,7 +25,7 @@ sub init {
         del_cmd         => 'unresv' ,        # delete command
         reason          => 'Reserved',       # reason prefix
         activate_code   => \&activate_resv,  # activation code
-        expire_code     => \&expire_resv,    # expire code
+        disable_code     => \&expire_resv,    # expire code
         match_code      => \&_match          # match checker
     );
 }

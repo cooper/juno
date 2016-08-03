@@ -78,10 +78,18 @@ sub init {
 #
 # name          name of the ban type
 #
+# hname         human-readable name of the ban type
+#
 # command       user command for add/deleting bans
+#
+# reason        default ban reason
 #
 # match_code    code that takes a string input as an argument and returns a string
 #               for storage in the ban table or undef if the input was invalid
+#
+# add_cmd       (optional) name of user command to add a ban of this type
+#
+# del_cmd       (optional) name of user command to delete a ban of this type
 #
 # user_code     (optional) code which determines whether a user matches a ban.
 #               if not specified, this ban type does not apply to users.
@@ -91,8 +99,8 @@ sub init {
 #               if not specified, this ban type does not apply to connections.
 #               it must return a ban action identifier.
 #
-# reason        default ban reason
-#
+# disable_code  (optional) code which is called when a ban is diabled. this is
+#               useful if the ban type requires manual enforcement deactivation.
 #
 sub register_ban_type {
     my ($mod_, $event, %opts) = @_;
@@ -420,7 +428,7 @@ sub expire_ban {
 
     # Custom activation
     # -----------------
-    $type->{expire_code}(\%ban) if $type->{expire_code};
+    $type->{disable_code}(\%ban) if $type->{disable_code};
 
     # deactive the timer
     deactivate_ban(%ban);

@@ -81,7 +81,9 @@ sub init {
 # construct a ban object
 sub construct {
     my ($class, %opts) = @_;
-    bless \%opts, $class;
+    my $ban = bless \%opts, $class;
+    $ban->validate or return;
+    return $ban;
 }
 
 # construct a ban object from db with ID
@@ -130,6 +132,20 @@ sub disable {
 
     # update the ban in the db
     $ban->_db_update(%ban);
+}
+
+# $ban->validate
+#
+# checks that the info is valid and returns false if not.
+# injects missing data when possible.
+#
+sub validate {
+    my $ban = shift;
+    $ban->{added}     ||= time;
+    $ban->{modified}  ||= $ban{added};
+    $ban->{expires}   ||= $ban{duration} ? time + $ban{duration} : 0;
+    $ban->{lifetime}  ||= $ban{expires};
+    return $ban;
 }
 
 ###################
