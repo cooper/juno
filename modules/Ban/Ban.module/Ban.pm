@@ -460,53 +460,6 @@ sub handle_del_command {
     return 1;
 }
 
-################
-### DATABASE ###    Low-level bandb functions
-################################################################################
-
-# return the next available ban ID
-sub get_next_id {
-    my $id = $table->meta('last_id');
-    $table->set_meta(last_id => ++$id);
-    return "$$me{sid}.$id";
-}
-
-# returns all bans as a list of hashrefs.
-sub get_all_bans {
-    $table->rows->select_hash;
-}
-
-# look up a ban by an ID
-sub ban_by_id {
-    my %ban = $table->row(id => shift)->select_hash;
-    return %ban;
-}
-
-# look up a ban by a matcher
-sub ban_by_match {
-    my %ban = $table->row(match => shift)->select_hash;
-    return %ban;
-}
-
-# look up a ban by a matcher and type
-sub ban_by_type_match {
-    my %ban = $table->row(type => shift, match => shift)->select_hash;
-    return %ban;
-}
-
-# insert or update a ban
-sub add_or_update_ban {
-    my %ban = @_;
-    delete @ban{ grep !$unordered_format{$_}, keys %ban };
-    $table->row(id => $ban{id})->insert_or_update(%ban);
-}
-
-# delete a ban
-sub delete_ban_by_id {
-    my $id = shift;
-    $table->row(id => $id)->delete;
-}
-
 ##############
 ### TIMERS ###
 ################################################################################
@@ -755,5 +708,18 @@ sub unload_module {
     delete_ban_type($_)   foreach $mod_->list_store_items('ban_types');
     delete_ban_action($_) foreach $mod_->list_store_items('ban_actions');
 }
+
+# return the next available ban ID
+sub get_next_id {
+    my $id = $table->meta('last_id');
+    $table->set_meta(last_id => ++$id);
+    return "$$me{sid}.$id";
+}
+
+# returns all bans as a list of hashrefs.
+sub get_all_bans {
+    $table->rows->select_hash;
+}
+
 
 $mod
