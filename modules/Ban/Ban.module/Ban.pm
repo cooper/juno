@@ -235,60 +235,7 @@ sub add_update_enforce_activate_ban {
     return %ban;
 }
 
-# despire the name, this does NOT delete the ban from the database.
-# it deactivates it and changes the expire time so that it will not be enforced.
-sub delete_deactivate_ban_by_id {
-    my $id = shift;
-    my %ban = ban_by_id($id) or return;
 
-    # update the expire time
-    if ($ban{modified} < time) {
-        $ban{modified} = time;
-    }
-    else {
-        $ban{modified}++;
-    }
-    $ban{expires} = $ban{modified};
-
-    # reactivate the ban timer
-    %ban = deactivate_ban(%ban);
-    %ban = activate_ban(%ban);
-
-    # update the ban in the db
-    add_or_update_ban(%ban);
-
-    return %ban;
-}
-
-#####################
-### NOTIFICATIONS ###
-################################################################################
-
-# notify opers of a new ban
-sub notify_new_ban {
-    my ($source, %ban) = @_;
-    my @user = $source if $source->isa('user') && $source->is_local;
-    notice(@user, $ban{type} =>
-        ucfirst($ban_types{ $ban{type} }{hname} || 'ban'),
-        $ban{match},
-        $source->notice_info,
-        $ban{expires}  ? pretty_time($ban{expires})             : 'never',
-        $ban{duration} ? 'in '.pretty_duration($ban{duration})  : 'permanent',
-        length $ban{reason} ? $ban{reason}                      : 'no reason'
-    );
-}
-
-# notify opers of a deleted ban
-sub notify_delete_ban {
-    my ($source, %ban) = @_;
-    my @user = $source if $source->isa('user') && $source->is_local;
-    notice(@user, "$ban{type}_delete" =>
-        ucfirst($ban_types{ $ban{type} }{hname} || 'ban'),
-        $ban{match},
-        $source->notice_info,
-        length $ban{reason} ? $ban{reason} : 'no reason'
-    );
-}
 
 #####################
 ### USER COMMANDS ###

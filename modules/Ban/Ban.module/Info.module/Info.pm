@@ -9,6 +9,12 @@
 #
 package M::Ban::Info;
 
+use warnings;
+use strict;
+use 5.010;
+
+use utils qw(pretty_time pretty_duration);
+
 our ($api, $mod, $pool, $conf, $me);
 my ($table, %unordered_format, @format);
 
@@ -68,6 +74,10 @@ sub init {
     return 1;
 }
 
+####################
+### CONSTRUCTORS ###
+################################################################################
+
 # construct a ban object
 sub construct {
     my ($class, %opts) = @_;
@@ -92,7 +102,7 @@ sub construct_by_type_match {
 
 ##########################
 ### HIGH-LEVEL METHODS ###
-##########################
+################################################################################
 
 # $ban->disable
 #
@@ -103,7 +113,7 @@ sub construct_by_type_match {
 # does NOT (and you should not) deactivate expiration timer.
 # does NOT (and you should not) remove the ban from the database.
 #
-sub disable : method {
+sub disable {
     my $ban = shift;
 
     # update the expire time
@@ -122,7 +132,9 @@ sub disable : method {
     $ban->_db_update(%ban);
 }
 
-### ENFORCEMENT
+###################
+### ENFORCEMENT ###
+################################################################################
 
 sub activate_enforcement {
 
@@ -132,7 +144,9 @@ sub deactivate_enforcement {
 
 }
 
-### TIMERS
+##############
+### TIMERS ###
+################################################################################
 
 # (re)activate the ban timer
 sub activate_timer {
@@ -147,6 +161,36 @@ sub deactivate_timer {
     my $ban = shift;
     delete $ban->{timer_active} or return;
     M::Ban::deactivate_ban_timer($ban);
+}
+
+#####################
+### NOTIFICATIONS ###
+################################################################################
+
+# notify opers of a new ban
+sub notify_new {
+    my ($source, $ban) = @_;
+    my @user = $source if $source->isa('user') && $source->is_local;
+    notice(@user, $ban->type =>
+        ucfirst $ban->hr_ban_type,
+        $ban->{match},
+        $source->notice_info,
+        $ban->hr_expires,
+        $ban->hr_duration,
+        $ban->hr_reason
+    );
+}
+
+# notify opers of a deleted ban
+sub notify_delete {
+    my ($source, $ban) = @_;
+    my @user = $source if $source->isa('user') && $source->is_local;
+    notice(@user, "$$ban{type}_delete" =>
+        ucfirst $ban->hr_ban_type,
+        $ban->{match},
+        $source->notice_info,
+        $ban->hr_reason
+    );
 }
 
 ################
@@ -167,8 +211,47 @@ sub _db_delete {
     $table->row(id => $ban->id)->delete;
 }
 
-# getters
-sub type    { shift->{type} }
-sub id      { shift->{id}   }
+###############
+### GETTERS ###
+################################################################################
+
+sub id { shift->{id} }
+
+# $ban->type
+# $ban->type('hname')
+sub type {
+    my $type = shift->{type};
+    my $key = shift;
+    return $type->{$key} if defined $key;
+    return $type;
+}
+
+# Human-readable stuff
+
+# ban type
+sub hr_ban_type {
+    return shift->type('hname') || 'ban';
+}
+
+# expire time
+sub hr_expires  {
+    my $expires = shift->{expires};
+    return 'never' if !$expires;
+    return pretty_time($expires);
+}
+
+# duration
+sub hr_duration {
+    my $duration = shift->{duration};
+    return 'permanent' if !$duration;
+    return pretty_duration($duration);
+}
+
+# reason
+sub hr_reason {
+    my $reason = shift->{reason};
+    return 'no reason' if !length $reason;
+    return $reason;
+}
 
 $mod
