@@ -19,12 +19,13 @@ use strict;
 use 5.010;
 
 use IO::Async::Timer::Absolute;
-use utils qw(import notice string_to_seconds);
+use utils qw(import notice string_to_seconds pretty_time pretty_duration);
 
 our ($api, $mod, $pool, $conf, $me);
 our ($table, %ban_types, %timers, %ban_actions);
 
-my %unordered_format = my @format = (
+# Evented::Database table format
+my %unordered_format = our @format = (
     id          => 'TEXT',
     type        => 'TEXT',
     match       => 'TEXT COLLATE NOCASE',
@@ -38,65 +39,17 @@ my %unordered_format = my @format = (
     reason      => 'TEXT'
 );
 
-# specification
-# -----
-#
-#   RECORDED IN DATABASE
-#
-# id            ban identifier
-#
-#               IDs are unique globally, not just per server or per ban type
-#               in the format of <server ID>.<local ID>
-#               where <server ID> is the SID of the server on which the ban was created
-#               and <local ID> is a numeric ID of the ban which is specific to that server
-#               e.g. 0.1
-#
-# type          string representing type of ban
-#               e.g. kline, dline, ...
-#
-# match         mask or string to match
-#               string representing what to match
-#               e.g. *@example.com, 127.0.0.*, ...
-#
-# duration      duration of ban in seconds
-#               or 0 if the ban is permanent
-#               e.g. 300 (5 minutes)
-#
-# added         UTC timestamp when the ban was added
-#
-# modified      UTC timestamp when the ban was last modified
-#
-# expires       UTC timestamp when ban will expire and no longer be in effect
-#               or 0 if the ban is permanent
-#
-# lifetime      UTC timestamp when ban should be removed from the database
-#               or nothing/0 if it is the same as 'expires'
-#
-# auser         mask of user who added the ban
-#               e.g. someone!someone[@]somewhere
-#
-# aserver       name of server where ban was added
-#               e.g. s1.example.com
-#
-# reason        user-set reason for ban
-#
-#   NOT RECORDED IN DATABASE
-#
-# inactive      set by activate_ban() so that we know not to enforce an
-#               expired ban
-#
-# _just_set_by  SID/UID of who set a ban. used for propagation
-#
 sub init {
-    $table = $conf->table('bans') or return;
+    $mod->load_submodule('Info')                            or return;
 
     # create or update the table.
+    $table = $conf->table('bans')                           or return;
     $table->create_or_alter(@format);
 
     # ban API.
-    $mod->register_module_method('register_ban_type')   or return;
-    $mod->register_module_method('register_ban_action') or return;
-    $mod->register_module_method('get_ban_action')      or return;
+    $mod->register_module_method('register_ban_type')       or return;
+    $mod->register_module_method('register_ban_action')     or return;
+    $mod->register_module_method('get_ban_action')          or return;
     $api->on('module.unload' => \&unload_module, 'void.ban.types');
 
     # add protocol submodules.
@@ -116,17 +69,6 @@ sub init {
 
     return 1;
 }
-
-# time prettifiers
-my $t = sub { scalar localtime shift };
-my $d = sub {
-    my $secs = shift;
-    if ($secs >= 365*24*60*60) { return sprintf '%.1fy', $secs/(365*24*60*60) }
-    elsif ($secs >= 24*60*60)  { return sprintf '%.1fd', $secs/(24*60*60) }
-    elsif ($secs >= 60*60)     { return sprintf '%.1fh', $secs/(60*60) }
-    elsif ($secs >= 60)        { return sprintf '%.1fm', $secs/(60) }
-    return sprintf '%.1fs', $secs;
-};
 
 ###############
 ### BAN API ###
@@ -318,6 +260,10 @@ sub delete_deactivate_ban_by_id {
     return %ban;
 }
 
+#####################
+### NOTIFICATIONS ###
+################################################################################
+
 # notify opers of a new ban
 sub notify_new_ban {
     my ($source, %ban) = @_;
@@ -326,9 +272,9 @@ sub notify_new_ban {
         ucfirst($ban_types{ $ban{type} }{hname} || 'ban'),
         $ban{match},
         $source->notice_info,
-        $ban{expires}  ? $t->($ban{expires})        : 'never',
-        $ban{duration} ? 'in '.$d->($ban{duration}) : 'permanent',
-        length $ban{reason} ? $ban{reason}          : 'no reason'
+        $ban{expires}  ? pretty_time($ban{expires})             : 'never',
+        $ban{duration} ? 'in '.pretty_duration($ban{duration})  : 'permanent',
+        length $ban{reason} ? $ban{reason}                      : 'no reason'
     );
 }
 
@@ -373,13 +319,13 @@ sub ucmd_bans {
         my %ban = %$ban; my $type = uc $ban{type};
         my @lines = "\2$type\2 $ban{match} ($ban{id})";
         push @lines, '      Reason: '.$ban{reason}                  if length $ban{reason};
-        push @lines, '       Added: '.$t->($ban->{added})           if $ban{added};
+        push @lines, '       Added: '.pretty_time($ban->{added})    if $ban{added};
         push @lines, '     by user: '.$ban{auser}                   if length $ban{auser};
         push @lines, '   on server: '.$ban{aserver}                 if length $ban{aserver};
-        push @lines, '    Duration: '.$d->($ban{duration})          if  $ban{duration};
+        push @lines, '    Duration: '.pretty_duration($ban{duration}) if  $ban{duration};
         push @lines, '    Duration: Permanent'                      if !$ban{duration};
-        push @lines, '   Remaining: '.$d->($ban->{expires} - time)  if $ban{expires};
-        push @lines, '     Expires: '.$t->($ban->{expires})         if $ban{expires};
+        push @lines, '   Remaining: '.pretty_duration($ban->{expires} - time)  if $ban{expires};
+        push @lines, '     Expires: '.pretty_time($ban->{expires})  if $ban{expires};
         $user->server_notice("- $_") for '', @lines;
     }
     $user->server_notice('- ');
@@ -538,7 +484,7 @@ sub expire_ban {
     notice("$ban{type}_expire" =>
         ucfirst($type->{hname} || 'ban'),
         $ban{match},
-        $d->(time - $ban{added}),
+        pretty_duration(time - $ban{added}),
         length $ban{reason} ? $ban{reason} : 'no reason'
     ) if !$ban{inactive};
 }
