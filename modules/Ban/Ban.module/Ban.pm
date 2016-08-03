@@ -186,6 +186,34 @@ sub get_ban_action {
 ### High-level stuff ###
 ################################################################################
 
+# $ban = create_or_update_ban(%opts)
+sub create_or_update_ban {
+    my %opts = @_;
+
+    # find or create ban
+    my $ban = ban_by_id($opts{id});
+    if (!$ban) {
+        $ban = M::Ban::Info->construct(%opts);
+        return if !$ban;
+    }
+
+    # update ban info
+    # this also validates.
+    $ban->update(%opts) or return;
+
+    return $ban;
+}
+
+sub ban_by_id {
+    my $id = shift;
+
+    # find it in the symbol table
+    my $ban = $bans_being_used{$id};
+
+    # find it in the database.
+    $ban ||= M::Ban::Info->
+}
+
 sub add_update_enforce_activate_ban {
 
     # validate it
