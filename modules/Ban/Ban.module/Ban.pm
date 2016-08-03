@@ -186,39 +186,6 @@ sub get_ban_action {
 ### High-level stuff ###
 ################################################################################
 
-sub validate_ban {
-    my %ban = @_;
-
-    # check for required keys
-    defined $ban{$_} or return for qw(id type match duration);
-
-    # inject missing keys
-    $ban{added}     ||= time;
-    $ban{modified}  ||= $ban{added};
-    $ban{expires}   ||= $ban{duration} ? time + $ban{duration} : 0;
-    $ban{lifetime}  ||= $ban{expires};
-
-    return %ban;
-}
-
-# register a ban right now from this server
-sub register_ban {
-    my ($type_name, %opts) = @_;
-    $opts{id} //= get_next_id();
-
-    # validate, update, enforce, activate
-    my %ban = add_update_enforce_activate_ban(
-        type    => $type_name,
-        aserver => $me->name,
-        %opts
-    ) or return;
-
-    # forward it
-    $pool->fire_command_all(baninfo => \%ban);
-
-    return %ban;
-}
-
 sub add_update_enforce_activate_ban {
 
     # validate it
@@ -319,7 +286,7 @@ sub handle_add_command {
     # TODO: check if it matches too many people
 
     # register: validate, update, enforce, activate
-    my %ban = register_ban($type_name,
+    my %ban = create_my_ban($type_name,
         match        => $match,
         reason       => $reason,
         duration     => $seconds,
@@ -336,6 +303,24 @@ sub handle_add_command {
 
     notify_new_ban($user, %ban);
     return 1;
+}
+
+# register a ban right now from this server
+sub create_my_ban {
+    my ($type_name, %opts) = @_;
+    $opts{id} //= get_next_id();
+
+    # validate, update, enforce, activate
+    my %ban = add_update_enforce_activate_ban(
+        type    => $type_name,
+        aserver => $me->name,
+        %opts
+    ) or return;
+
+    # forward it
+    $pool->fire_command_all(baninfo => \%ban);
+
+    return %ban;
 }
 
 # $match can be a mask or a ban ID

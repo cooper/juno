@@ -145,18 +145,37 @@ sub validate {
     $ban->{modified}  ||= $ban{added};
     $ban->{expires}   ||= $ban{duration} ? time + $ban{duration} : 0;
     $ban->{lifetime}  ||= $ban{expires};
-    return $ban;
+    return 1;
+}
+
+sub update {
+    my ($ban, %opts) = @_;
+    $ban{ keys %opts } = values %opts;
+    $ban->validate or return;
+    $ban->_db_update;
+    return 1;
 }
 
 ###################
 ### ENFORCEMENT ###
 ################################################################################
 
+# (re)activate ban enforcement
 sub activate_enforcement {
-
+    my $ban = shift;
+    $ban->deactivate_timer if $ban->{enforcement_active}++;
+    M::Ban::_activate_ban_enforcement($ban);
 }
 
+# deactivate ban enforcement
 sub deactivate_enforcement {
+    my $ban = shift;
+    delete $ban->{enforcement_active} or return;
+    M::Ban::_deactivate_ban_enforcement($ban);
+}
+
+# enforce the ban
+sub enforce {
 
 }
 
@@ -167,16 +186,15 @@ sub deactivate_enforcement {
 # (re)activate the ban timer
 sub activate_timer {
     my $ban = shift;
-    $ban->deactivate_timer if $ban->{timer_active};
-    $ban->{timer_active}++;
-    M::Ban::activate_ban_timer($ban);
+    $ban->deactivate_timer if $ban->{timer_active}++;
+    M::Ban::_activate_ban_timer($ban);
 }
 
 # deactivate the ban timer
 sub deactivate_timer {
     my $ban = shift;
     delete $ban->{timer_active} or return;
-    M::Ban::deactivate_ban_timer($ban);
+    M::Ban::_deactivate_ban_timer($ban);
 }
 
 #####################
