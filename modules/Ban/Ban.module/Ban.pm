@@ -479,41 +479,29 @@ sub _deactivate_ban_enforcement {
 
 sub add_enforcement_events {
 
-    # new connection, host resolved, ident found
-    my $enforce_on_conn = sub { enforce_all_on_conn(shift) };
-    $pool->on("connection.$_" => $enforce_on_conn, 'ban.enforce.conn')
+    # new connection, host resolved, or ident found
+    my $enforce_on_conn = sub {
+        my $conn = shift;
+        foreach my $ban (enforceable_bans()) {
+            $ban->type('conn_code') or next;
+            return 1 if $ban->enforce_on_conn($conn);
+        }
+        return;
+    };
+    $pool->on("connection.$_" => $enforce_on_conn, "ban.enforce.conn.$_")
         for qw(new found_hostname found_ident);
 
     # new local user
     # this is done before sending welcomes or propagating the user
     $pool->on('connection.user_ready' => sub {
-        my ($conn, $event, $user) = @_;
-        enforce_all_on_user($user);
+        my $user = shift;
+        foreach my $ban (enforceable_bans()) {
+            $ban->type('user_code') or next;
+            return 1 if $ban->enforce_on_user($user);
+        }
+        return;
     }, 'ban.enforce.user');
 
-}
-
-# Enforce all bans on a single entity
-# -----
-
-# enforce all bans on a user
-sub enforce_all_on_user {
-    my $user = shift;
-    foreach my $ban (enforceable_bans()) {
-        $ban->type('user_code') or next;
-        return 1 if enforce_ban_on_user($ban, $user);
-    }
-    return;
-}
-
-# enforce all bans on a connection
-sub enforce_all_on_conn {
-    my $conn = shift;
-    foreach my $ban (enforceable_bans()) {
-        $ban->type('conn_code') or next;
-        return 1 if enforce_ban_on_conn($ban, $conn);
-    }
-    return;
 }
 
 ############################
