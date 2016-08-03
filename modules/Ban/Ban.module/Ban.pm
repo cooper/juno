@@ -22,9 +22,16 @@ use IO::Async::Timer::Absolute;
 use utils qw(import notice string_to_seconds pretty_time pretty_duration);
 
 our ($api, $mod, $pool, $conf, $me);
-our ($table, %ban_types, %timers, %ban_actions);
 
-# Evented::Database table format
+our (
+    $table,         # Evented::Database bans table
+    %ban_types,     # registered ban types
+    %ban_actions,   # registered ban actions
+    %timers,        # expiration timers
+    %ban_table      # ban objects stored in memory
+);
+
+# Evented::Database bans table format
 my %unordered_format = our @format = (
     id          => 'TEXT',
     type        => 'TEXT',
@@ -208,10 +215,14 @@ sub ban_by_id {
     my $id = shift;
 
     # find it in the symbol table
-    my $ban = $bans_being_used{$id};
+    my $ban = $ban_table{$id};
 
     # find it in the database.
-    $ban ||= M::Ban::Info->
+    $ban ||= M::Ban::Info->construct_by_id($id);
+    $ban or return;
+
+    $ban_table{$id} = $ban;
+    return $ban;
 }
 
 sub add_update_enforce_activate_ban {
