@@ -205,6 +205,10 @@ sub all_bans {
     return map ban_by_id($_), @ban_ids;
 }
 
+sub enforceable_bans {
+    ...
+}
+
 # $ban = create_or_update_ban(%opts)
 sub create_or_update_ban {
     my %opts = @_;
@@ -488,12 +492,11 @@ sub add_enforcement_events {
 # Enforce all bans on a single entity
 # -----
 
-# enforce ball bans on a user
+# enforce all bans on a user
 sub enforce_all_on_user {
     my $user = shift;
-    foreach my $ban (get_all_bans()) {
-        my $type = $ban_types{ $ban->{type} };
-        next unless $type->{user_code};
+    foreach my $ban (enforceable_bans()) {
+        $ban->type('user_code') or next;
         return 1 if enforce_ban_on_user($ban, $user);
     }
     return;
@@ -502,52 +505,20 @@ sub enforce_all_on_user {
 # enforce all bans on a connection
 sub enforce_all_on_conn {
     my $conn = shift;
-    foreach my $ban (get_all_bans()) {
-        my $type = $ban_types{ $ban->{type} };
-        next unless $type->{conn_code};
+    foreach my $ban (enforceable_bans()) {
+        $ban->type('conn_code') or next;
         return 1 if enforce_ban_on_conn($ban, $conn);
     }
     return;
 }
 
-# Enforce a single ban on all entities
-# -----
-
-sub enforce_ban {
-    my %ban = @_;
-    return if $ban{inactive};
-    my $type = $ban_types{ $ban{type} } or return;
-
-    my @a;
-    push @a, enforce_ban_on_users(%ban) if $type->{user_code};
-    push @a, enforce_ban_on_conns(%ban) if $type->{conn_code};
-
-    return @a;
-}
-
-# enforce a ban on all connections
-sub enforce_ban_on_conns {
-    my %ban = @_;
-    return if $ban{inactive};
-    my $type = $ban_types{ $ban{type} } or return;
-    my @affected;
-
-    foreach my $conn ($pool->connections) {
-        my $affected = enforce_ban_on_conn(\%ban, $conn);
-        push @affected, $conn if $affected;
-    }
-
-    return @affected;
-}
-
 # enforce a ban on a single connection
 sub enforce_ban_on_conn {
     my ($ban, $conn) = @_;
-    return if $ban->{inactive};
 
     # check that the connection matches
-    my $type = $ban_types{ $ban->{type} } or return;
-    my $action = $type->{conn_code}->($conn, $ban);
+    my $conn_code = $ban->type('conn_code') or return;
+    my $action = $conn_code->($conn, $ban);
 
     # find the action code
     return if !$action;
@@ -557,29 +528,13 @@ sub enforce_ban_on_conn {
     return $enforce->($conn, $ban, $type);
 }
 
-# enforce a ban on all local users
-sub enforce_ban_on_users {
-    my %ban = @_;
-    return if $ban{inactive};
-    my $type = $ban_types{ $ban{type} } or return;
-    my @affected;
-
-    foreach my $user ($pool->local_users) {
-        my $affected = enforce_ban_on_user(\%ban, $user);
-        push @affected, $user if $affected;
-    }
-
-    return @affected;
-}
-
 # enforce a ban on a single user
 sub enforce_ban_on_user {
     my ($ban, $user) = @_;
-    return if $ban->{inactive};
 
-    # check that the user matches
-    my $type = $ban_types{ $ban->{type} } or return;
-    my $action = $type->{user_code}->($user, $ban);
+    # check that the connection matches
+    my $user_code = $ban->type('user_code') or return;
+    my $action = $user_code->($user, $ban);
 
     # find the action code
     return if !$action;
