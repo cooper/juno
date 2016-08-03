@@ -129,11 +129,11 @@ sub activate {
 
 # $ban->disable
 #
-# changes the ban's modified time to the current time (plus one second) and then
-# copies that to the expire time. this way the ban will be preserved in the
-# database until its lifetime is over, but it will no longer be enforced.
+# changes the ban's modified time to the current time and then copies that to
+# the expire time. this way the ban will be preserved in the database until its
+# lifetime is over, but it will no longer be enforced.
 #
-# does NOT (and you should not) deactivate expiration timer.
+# does NOT (and you should not) deactivate the expiration timer.
 # does NOT (and you should not) remove the ban from the database.
 #
 sub disable {
@@ -150,6 +150,10 @@ sub disable {
 
     # disable enforcement
     $ban->deactivate_enforcement;
+
+    # reactivate timer
+    $ban->activate_timer
+        if $ban->{timer_active};
 
     # update the ban in the db
     $ban->_db_update(%ban);
@@ -184,6 +188,11 @@ sub update {
     return 1;
 }
 
+# deactivate everything, remove from db, remove from ban table
+sub destroy {
+
+}
+
 ###################
 ### ENFORCEMENT ###
 ################################################################################
@@ -191,7 +200,8 @@ sub update {
 # (re)activate ban enforcement
 sub activate_enforcement {
     my $ban = shift;
-    $ban->deactivate_enforcement if $ban->{enforcement_active}++;
+    $ban->deactivate_enforcement if $ban->{enforcement_active};
+    $ban->{enforcement_active}++
     M::Ban::_activate_ban_enforcement($ban);
     $ban->enforce;
 }
@@ -203,7 +213,7 @@ sub deactivate_enforcement {
     M::Ban::_deactivate_ban_enforcement($ban);
 }
 
-# enforce the ban
+# enforce the ban immediately
 sub enforce {
 
 }
@@ -215,15 +225,16 @@ sub enforce {
 # (re)activate the ban timer
 sub activate_timer {
     my $ban = shift;
-    $ban->deactivate_timer if $ban->{timer_active}++;
-    M::Ban::_activate_ban_timer($ban);
+    $ban->deactivate_timer if $ban->{timer_active};
+    $ban->{timer_active}++;
+    return M::Ban::_activate_ban_timer($ban);
 }
 
 # deactivate the ban timer
 sub deactivate_timer {
     my $ban = shift;
     delete $ban->{timer_active} or return;
-    M::Ban::_deactivate_ban_timer($ban);
+    return M::Ban::_deactivate_ban_timer($ban);
 }
 
 #####################
@@ -283,10 +294,13 @@ sub id { shift->{id} }
 # $ban->type
 # $ban->type('hname')
 sub type {
-    my $type = shift->{type};
+    my $type_name = shift->{type};
     my $key = shift;
-    return $type->{$key} if defined $key;
-    return $type;
+    if (defined(my $key = shift)) {
+        my $type = $M::Ban::ban_types{$type_name} or return;
+        return $type->{$key};
+    }
+    return $type_name;
 }
 
 # true if the ban has expired. it may still have lifetime though.

@@ -240,8 +240,6 @@ sub ban_by_id {
     return $ban;
 }
 
-
-
 #####################
 ### USER COMMANDS ###
 ################################################################################
@@ -385,83 +383,86 @@ sub handle_del_command {
 ### TIMERS ###
 ################################################################################
 
-# activate a ban timer
-sub activate_ban {
-    my %ban = @_;
-    my $type = $ban_types{ $ban{type} } or return;
+sub _activate_ban_timer {
+    my $ban = shift;
+    my ($expire_time, $code);
 
-    # Custom activation
-    # -----------------
-    $type->{activate_code}(\%ban) if $type->{activate_code};
+    # do nothing if the ban is permanent.
+    my $expires  = $ban->{expires};
+    my $lifetime = $ban->{lifetime} || $expires;
+    return if !$expires;
 
-    # Expiration
-    # -----------------
-
-    # it's permanent
-    my $lifetime = $ban{lifetime} || $ban{expires};
-    return if !$lifetime;
-
-    # it has already expired
-    if ($lifetime <= time) {
-        expire_ban(%ban);
-        return;
+    # if the ban has not expired, add a timer to expire it.
+    if ($expires && !$ban->has_expired) {
+        $expire_time = $expires;
+        $code = sub { _expire_ban(shift) };
     }
 
-    # it has expired, but we're keeping it a while
-    elsif ($ban{expires} <= time) {
-        $ban{inactive} = 1;
+    # if the ban has expired but its lifetime has not, add a timer to delete it.
+    elsif ($lifetime && !$ban->has_expired_lifetime) {
+        $expire_time = $lifetime;
+        $code = sub { shift->destroy }
     }
 
-    # create a timer
-    my $timer = $timers{ $ban{id} } ||= IO::Async::Timer::Absolute->new(
-        time      => $lifetime,
-        on_expire => sub { expire_ban(%ban) }
+    # if both have expired, delete the ban.
+    else {
+        _expire_ban($ban);
+        return; # indicates that it was immediately expired
+    }
+
+    # add the timer otherwise.
+    my $id = $ban->id;
+    $timers->{$id} = IO::Async::Timer::Absolute->new(
+        time      => $time,
+        on_expire => sub {
+            my $ban = ban_by_id($id) or return;
+            $code->($ban);
+        }
     );
 
-    # start timer
-    if (!$timer->is_running) {
-        $timer->start;
-        $::loop->add($timer);
-    }
-
-    return %ban;
+    return 1; # indicates that a timer was activated
 }
 
-# deactivate a ban timer
-sub deactivate_ban {
-    my %ban = @_;
+# called when the ban should be expired but not deleted.
+sub _expire_ban {
+    my $ban = shift;
 
-    # dispose of the timer
-    if (my $timer = $timers{ $ban{id} }) {
-        $timer->stop;
-        $timer->remove_from_parent;
-        delete $timers{ $ban{id} };
-    }
+    # disable the ban
+    $ban->disable;
 
-    return %ban;
+    # now activate the deletion timer
+    $ban->activate_timer;
+
+    notice("$ban{type}_expire" =>
+        $ban->type('hname'),
+        $ban->{match},
+        pretty_duration(time - $ban->{added}),
+        $ban->hr_reason
+    );
+    return 1;
 }
 
-# deactivate and remove ban from database
-sub expire_ban {
-    my %ban = @_;
-    my $type = $ban_types{ $ban{type} } or return;
+sub _activate_ban_enforcement {
+    my $ban = shift;
 
     # Custom activation
     # -----------------
-    $type->{disable_code}(\%ban) if $type->{disable_code};
+    my $activate = $ban->type('activate_code');
+    $activate->($ban) if $activate;
 
-    # deactive the timer
-    deactivate_ban(%ban);
+    # TODO: add to some list of bans to enforce
 
-    # remove from database
-    delete_ban_by_id($ban{id});
+}
 
-    notice("$ban{type}_expire" =>
-        ucfirst($type->{hname} || 'ban'),
-        $ban{match},
-        pretty_duration(time - $ban{added}),
-        length $ban{reason} ? $ban{reason} : 'no reason'
-    ) if !$ban{inactive};
+sub _deactivate_ban_enforcement {
+    my $ban = shift;
+
+    # Custom deactivation
+    # -------------------
+    my $disable = $ban->type('disable_code');
+    $disable->(\%ban) if $disable;
+
+    # TODO: remove from some list of bans to enforce
 }
 
 ###################
