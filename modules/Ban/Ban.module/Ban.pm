@@ -70,9 +70,11 @@ sub init {
         conn_code => \&ban_action_kill
     );
 
-    # initial activation
+    # add hooks for enforcing bans
     add_enforcement_events();
-    activate_ban(%$_) foreach get_all_bans();
+
+    # initial activation
+    $_->activate for all_bans();
 
     return 1;
 }
@@ -193,6 +195,16 @@ sub get_ban_action {
 ### High-level stuff ###
 ################################################################################
 
+# @bans = all_bans()
+#
+# consider: could make this a bit more efficient with ->select_hash() and
+# ->construct() instead of using ban_by_id() which queries the db for each one
+#
+sub all_bans {
+    my @ban_ids = $table->rows->select('id');
+    return map ban_by_id($_), @ban_ids;
+}
+
 # $ban = create_or_update_ban(%opts)
 sub create_or_update_ban {
     my %opts = @_;
@@ -211,6 +223,7 @@ sub create_or_update_ban {
     return $ban;
 }
 
+# $ban = ban_by_id($id)
 sub ban_by_id {
     my $id = shift;
 
@@ -640,11 +653,5 @@ sub get_next_id {
     $table->set_meta(last_id => ++$id);
     return "$$me{sid}.$id";
 }
-
-# returns all bans as a list of hashrefs.
-sub get_all_bans {
-    $table->rows->select_hash;
-}
-
 
 $mod

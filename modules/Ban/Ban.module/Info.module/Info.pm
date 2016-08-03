@@ -106,6 +106,26 @@ sub construct_by_type_match {
 ### HIGH-LEVEL METHODS ###
 ################################################################################
 
+# $ban->activate
+#
+# enables enforcement and expiration timer when necessary. this is used just
+# as a ban is introduced or when it is resurrected from the database.
+#
+sub activate {
+    my $ban = shift;
+
+    # activate the timer as long as it is not permanent.
+    # ifs lifetime is over when calling this, it will be immediately destroyed.
+    $ban->activate_timer or return
+        if $ban{lifetime};
+
+    # only activate enforcement if the ban has not expired.
+    $ban->activate_enforcement
+        if !$ban{expires} || $ban{expires} > time;
+
+    return 1;
+}
+
 # $ban->disable
 #
 # changes the ban's modified time to the current time (plus one second) and then
@@ -163,7 +183,7 @@ sub update {
 # (re)activate ban enforcement
 sub activate_enforcement {
     my $ban = shift;
-    $ban->deactivate_timer if $ban->{enforcement_active}++;
+    $ban->deactivate_enforcement if $ban->{enforcement_active}++;
     M::Ban::_activate_ban_enforcement($ban);
 }
 
