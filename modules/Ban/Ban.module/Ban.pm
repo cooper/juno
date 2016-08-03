@@ -177,20 +177,19 @@ sub register_ban_action {
     # store this action.
     $ban_actions{$action} = {
         %opts,
-        name => $action,
-        id   => $action  # for now
+        name => $action
     };
 
     L("'$action' registered");
     $mod_->list_store_add(ban_actions => $action);
-    return $ban_actions{$action}{id};
+    return $ban_actions{$action}{name};
 }
 
 # fetches a ban action identifier. this is used as a return type
 # for enforcement functions.
 sub get_ban_action {
-    my ($mod_, $event, $action) = @_;
-    return $ban_actions{ lc $action }{id};
+    my ($mod_, $event, $action_name) = @_;
+    return $ban_actions{ lc $action_name }{name};
 }
 
 ########################
@@ -515,38 +514,6 @@ sub enforce_all_on_conn {
         return 1 if enforce_ban_on_conn($ban, $conn);
     }
     return;
-}
-
-# enforce a ban on a single connection
-sub enforce_ban_on_conn {
-    my ($ban, $conn) = @_;
-
-    # check that the connection matches
-    my $conn_code = $ban->type('conn_code') or return;
-    my $action = $conn_code->($conn, $ban);
-
-    # find the action code
-    return if !$action;
-    my $enforce = $ban_actions{$action}{conn_code} or return;
-
-    # do the action
-    return $enforce->($conn, $ban, $type);
-}
-
-# enforce a ban on a single user
-sub enforce_ban_on_user {
-    my ($ban, $user) = @_;
-
-    # check that the connection matches
-    my $user_code = $ban->type('user_code') or return;
-    my $action = $user_code->($user, $ban);
-
-    # find the action code
-    return if !$action;
-    my $enforce = $ban_actions{$action}{user_code} or return;
-
-    # do the action
-    return $enforce->($user, $ban, $type);
 }
 
 ############################

@@ -213,10 +213,43 @@ sub deactivate_enforcement {
     M::Ban::_deactivate_ban_enforcement($ban);
 }
 
-# enforce the ban immediately
+# enforce the ban immediately on anything affected
 sub enforce {
 
 }
+
+# enforce the ban on a single connection
+sub enforce_on_conn {
+    my ($ban, $conn) = @_;
+
+    # check that the connection matches
+    my $conn_code = $ban->type('conn_code')   or return;
+    my $action = $conn_code->($conn, $ban)    or return;
+
+    # find the action conn code
+    $action = M::Ban::get_ban_action($action) or return;
+    my $enforce = $action->{conn_code}        or return;
+
+    # do the action
+    return $enforce->($conn, $ban, $type);
+}
+
+# enforce the ban on a single user
+sub enforce_on_user {
+    my ($ban, $user) = @_;
+
+    # check that the user matches
+    my $user_code = $ban->type('user_code')   or return;
+    my $action = $user_code->($user, $ban)    or return;
+
+    # find the action user code
+    $action = M::Ban::get_ban_action($action) or return;
+    my $enforce = $action->{user_code}        or return;
+
+    # do the action
+    return $enforce->($user, $ban, $type);
+}
+
 
 ##############
 ### TIMERS ###
