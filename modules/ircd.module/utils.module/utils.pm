@@ -188,7 +188,7 @@ sub match {
 sub irc_match {
     my ($what, @list) = (lc shift, @_);
     return scalar grep { $what =~ /^$_$/ } map {
-        $_ = lc quotemeta;
+        $_ = quotemeta irc_lc($_);
         s/\\\*/[\x01-\xFF]{0,}/g;
         s/\\\?/[\x01-\xFF]{1,1}/g;
         $_
@@ -233,7 +233,7 @@ sub pretty_mask_parts {
 }
 
 sub pretty_mask {
-    my @mask = pretty_mask(@_);
+    my @mask = &pretty_mask_parts;
     return "$mask[0]!$mask[1]\@$mask[2]";
 }
 
