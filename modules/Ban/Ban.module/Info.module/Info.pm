@@ -122,7 +122,7 @@ sub activate {
     # only activate enforcement if the ban has not expired.
     # this will also enforce the ban immediately.
     $ban->activate_enforcement
-        if !$ban{expires} || $ban{expires} > time;
+        if !$ban->has_expired;
 
     return 1;
 }
@@ -289,6 +289,19 @@ sub type {
     return $type;
 }
 
+# true if the ban has expired. it may still have lifetime though.
+sub has_expired {
+    my $ban = shift;
+    return if !$ban->{expires}; # permanent
+    return $ban->{expires} <= time;
+}
+
+# true if the ban's lifetime has expired.
+sub has_expired_lifetime {
+    return if !$ban->{lifetime}; # permanent
+    return $ban->{lifetime} <= time;
+}
+
 # Human-readable stuff
 
 # ban type
@@ -303,11 +316,26 @@ sub hr_expires  {
     return pretty_time($expires);
 }
 
+# added time
+sub hr_added {
+    return pretty_time(shift->{added});
+}
+
+# modified time
+sub hr_modified {
+    return pretty_time(shift->{modified});
+}
+
 # duration
 sub hr_duration {
     my $duration = shift->{duration};
     return 'permanent' if !$duration;
     return pretty_duration($duration);
+}
+
+# time remaining
+sub hr_remaining {
+    return pretty_duration(shift->{expires} - time);
 }
 
 # reason
