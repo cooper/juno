@@ -152,6 +152,7 @@ sub ts6_ban {
     else {
         $ban{ts6_duration} = 0;
     }
+    $ban{lifetime} ||= $ban{expires};
 
     # add user and host if there's an @
     if ($ban{match} =~ m/^(.*?)\@(.*)$/) {
@@ -459,7 +460,7 @@ sub _capab_ban {
     $ban{match_host},       # host mask
     $ban{modified},         # creationTS (modified time)
     $ban{duration},         # REAL duration (not ts6_duration)
-    $ban{duration},         # FIXME: lifetime
+    $ban{modified} - $ban{lifetime}, # lifetime, relative to creationTS
     $added_by,              # oper field
     $ban{reason};           # reason
 }

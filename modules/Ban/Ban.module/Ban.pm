@@ -249,7 +249,8 @@ sub validate_ban {
     my %inject = (
         added        => time,
         modified     => time,
-        expires      => $ban{duration} ? time + $ban{duration} : 0
+        expires      => $ban{duration} ? time + $ban{duration} : 0,
+        lifetime     => $ban{duration} ? time + $ban{duration} : 0,
     );
     $ban{$_} //= $inject{$_} for keys %inject;
 

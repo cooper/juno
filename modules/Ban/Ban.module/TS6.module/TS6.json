@@ -11,5 +11,5 @@
    "description" : "TS6 ban propagation",
    "name" : "Ban::TS6",
    "package" : "M::Ban::TS6",
-   "version" : "7.4"
+   "version" : "7.6"
 }
