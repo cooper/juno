@@ -246,13 +246,10 @@ sub validate_ban {
     defined $ban{$_} or return for qw(id type match duration);
 
     # inject missing keys
-    my %inject = (
-        added        => time,
-        modified     => time,
-        expires      => $ban{duration} ? time + $ban{duration} : 0,
-        lifetime     => $ban{duration} ? time + $ban{duration} : 0,
-    );
-    $ban{$_} //= $inject{$_} for keys %inject;
+    $ban{added}     ||= time;
+    $ban{modified}  ||= $ban{added};
+    $ban{expires}   ||= $ban{duration} ? time + $ban{duration} : 0;
+    $ban{lifetime}  ||= $ban{expires};
 
     return %ban;
 }
