@@ -32,6 +32,7 @@ my %unordered_format = my @format = (
     added       => 'INTEGER',
     modified    => 'INTEGER',
     expires     => 'INTEGER',
+    lifetime    => 'INTEGER',
     aserver     => 'TEXT',
     auser       => 'TEXT',
     reason      => 'TEXT'
@@ -39,6 +40,8 @@ my %unordered_format = my @format = (
 
 # specification
 # -----
+#
+#   RECORDED IN DATABASE
 #
 # id            ban identifier
 #
@@ -63,8 +66,11 @@ my %unordered_format = my @format = (
 #
 # modified      UTC timestamp when the ban was last modified
 #
-# expires       UTC timestamp when ban will expire
+# expires       UTC timestamp when ban will expire and no longer be in effect
 #               or 0 if the ban is permanent
+#
+# lifetime      UTC timestamp when ban should be removed from the database
+#               or nothing/0 if it is the same as 'expires'
 #
 # auser         mask of user who added the ban
 #               e.g. someone!someone[@]somewhere
@@ -74,7 +80,12 @@ my %unordered_format = my @format = (
 #
 # reason        user-set reason for ban
 #
-# _just_set_by  SID/UID of who set a ban. used for propagation.
+#   NOT RECORDED IN DATABASE
+#
+# inactive      set by activate_ban() so that we know not to enforce an
+#               expired ban
+#
+# _just_set_by  SID/UID of who set a ban. used for propagation
 #
 # deleted       passed to expire_ban() when the ban was deleted, to
 #               prevent expiration oper notices from being sent out
@@ -502,17 +513,23 @@ sub activate_ban {
     # -----------------
 
     # it's permanent
-    return if !$ban{expires};
+    my $lifetime = $ban{lifetime} || $ban{expires};
+    return if !$lifetime;
 
     # it has already expired
-    if ($ban{expires} <= time) {
+    if ($lifetime <= time) {
         expire_ban(%ban);
         return;
     }
 
+    # it has expired, but we're keeping it a while
+    elsif ($ban{expires} <= time) {
+        $ban{inactive} = 1;
+    }
+
     # create a timer
     my $timer = $timers{ $ban{id} } ||= IO::Async::Timer::Absolute->new(
-        time      => $ban{expires},
+        time      => $lifetime,
         on_expire => sub { expire_ban(%ban) }
     );
 
@@ -603,6 +620,7 @@ sub enforce_all_on_conn {
 
 sub enforce_ban {
     my %ban = @_;
+    return if $ban{inactive};
     my $type = $ban_types{ $ban{type} } or return;
 
     my @a;
@@ -615,6 +633,7 @@ sub enforce_ban {
 # enforce a ban on all connections
 sub enforce_ban_on_conns {
     my %ban = @_;
+    return if $ban{inactive};
     my $type = $ban_types{ $ban{type} } or return;
     my @affected;
 
@@ -629,6 +648,7 @@ sub enforce_ban_on_conns {
 # enforce a ban on a single connection
 sub enforce_ban_on_conn {
     my ($ban, $conn) = @_;
+    return if $ban->{inactive};
 
     # check that the connection matches
     my $type = $ban_types{ $ban->{type} } or return;
@@ -645,6 +665,7 @@ sub enforce_ban_on_conn {
 # enforce a ban on all local users
 sub enforce_ban_on_users {
     my %ban = @_;
+    return if $ban{inactive};
     my $type = $ban_types{ $ban{type} } or return;
     my @affected;
 
@@ -659,6 +680,7 @@ sub enforce_ban_on_users {
 # enforce a ban on a single user
 sub enforce_ban_on_user {
     my ($ban, $user) = @_;
+    return if $ban->{inactive};
 
     # check that the user matches
     my $type = $ban_types{ $ban->{type} } or return;

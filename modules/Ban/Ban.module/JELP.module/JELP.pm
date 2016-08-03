@@ -35,7 +35,7 @@ our ($api, $mod, $pool, $conf, $me);
 # keys that are valid for propagation.
 # note that 'reason' is not in this list because it's special.
 my %good_keys = map { $_ => 1 }
-    qw(id type match duration added modified expires auser aserver);
+    qw(id type match duration added modified expires lifetime auser aserver);
 
 our %jelp_outgoing_commands = (
     ban     => \&out_ban,

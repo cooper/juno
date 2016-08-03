@@ -3629,3 +3629,7 @@ CHANGES:
             UPDATE now uses '(g)update' flag instead of 'git'.
             the Git module now provides a CHECKOUT command to switch branches.
             CHECKOUT now works remotely. it also provides version/tag info.
+            fixed an issue in TS6 outgoing INVITE.
+            fixed an issue where "new channel time" notices were propagated
+
+        87. bans now have a 'lifetime' field which allows them to be preserved for some time after expiration. #114.

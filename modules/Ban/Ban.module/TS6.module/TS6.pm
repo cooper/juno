@@ -747,6 +747,10 @@ sub ban {
     my @common = (
         reason       => $reason,
         duration     => $duration,
+        added        => $modified,
+        modified     => $modified,
+        expires      => $modified + $duration,
+        lifetime     => $modified + $lifetime,
         aserver      => $found_server_name,
         auser        => $found_oper_mask,
         _just_set_by => $source->id
