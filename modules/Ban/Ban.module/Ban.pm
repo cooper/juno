@@ -508,6 +508,9 @@ sub add_enforcement_events {
 ### Built-in ban actions ###
 ################################################################################
 
+# ban actions must return true if they were effective
+
+# ban action to kill a user or connection
 sub ban_action_kill {
     my ($conn_user, $ban, $type) = @_;
 

@@ -167,9 +167,9 @@ sub disable {
 sub validate {
     my $ban = shift;
     $ban->{added}     ||= time;
-    $ban->{modified}  ||= $ban{added};
-    $ban->{expires}   ||= $ban{duration} ? time + $ban{duration} : 0;
-    $ban->{lifetime}  ||= $ban{expires};
+    $ban->{modified}  ||= $ban->{added};
+    $ban->{expires}   ||= $ban->{duration} ? time + $ban->{duration} : 0;
+    $ban->{lifetime}  ||= $ban->{expires};
     return 1;
 }
 
@@ -356,6 +356,23 @@ sub type {
         return $type->{$key};
     }
     return $type_name;
+}
+
+sub expires     { shift->{expires}      }   # timestamp of expiration
+sub lifetime    { shift->{lifetime}     }   # timestamp of end-of-life
+sub duration    { shift->{duration}     }   # ban duration in seconds
+
+# the expire time relative to the modification time.
+# this is usually the same as ->duration.
+sub expires_duration {
+    my $ban = shift;
+    return $ban->{modified} - $ban->{expires};
+}
+
+# the lifetime relative to the modification time.
+sub lifetime_duration {
+    my $ban = shift;
+    return $ban->{modified} - $ban->{lifetime};
 }
 
 # true if the ban has expired. it may still have lifetime though.
