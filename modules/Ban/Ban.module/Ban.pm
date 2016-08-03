@@ -257,7 +257,7 @@ our %user_commands = (BANS => {
 # then, make each type register an additional command which does that
 sub ucmd_bans {
     my $user = shift;
-    my @bans = get_all_bans();
+    my @bans = all_bans();
 
     # no bans
     if (!@bans) {
@@ -268,16 +268,21 @@ sub ucmd_bans {
     # list all bans
     $user->server_notice(bans => 'Listing all bans');
     foreach my $ban (sort { $a->{added} <=> $b->{added} } @bans) {
-        my %ban = %$ban; my $type = uc $ban{type};
-        my @lines = "\2$type\2 $ban{match} ($ban{id})";
-        push @lines, '      Reason: '.$ban{reason}                  if length $ban{reason};
-        push @lines, '       Added: '.pretty_time($ban->{added})    if $ban{added};
-        push @lines, '     by user: '.$ban{auser}                   if length $ban{auser};
-        push @lines, '   on server: '.$ban{aserver}                 if length $ban{aserver};
-        push @lines, '    Duration: '.pretty_duration($ban{duration}) if  $ban{duration};
-        push @lines, '    Duration: Permanent'                      if !$ban{duration};
-        push @lines, '   Remaining: '.pretty_duration($ban->{expires} - time)  if $ban{expires};
-        push @lines, '     Expires: '.pretty_time($ban->{expires})  if $ban{expires};
+
+        # hide this one because it is expired
+        next if $ban->has_expired;
+
+        my $type = uc $ban->type;
+        my @lines = "\2$type\2 $$ban{match} ($$ban{id})";
+
+push @lines, '      Reason: '.$ban->{reason}        if length $ban->{reason};
+push @lines, '       Added: '.$ban->hr_added        if $ban->{added};
+push @lines, '     by user: '.$ban->{auser}         if length $ban->{auser};
+push @lines, '   on server: '.$ban->{aserver}       if length $ban->{aserver};
+push @lines, '    Duration: '.$ban->hr_duration     if $ban->{duration};
+push @lines, '   Remaining: '.$ban->hr_remaining    if $ban->{expires};
+push @lines, '     Expires: '.$ban->hr_expires      if $ban->{expires};
+
         $user->server_notice("- $_") for '', @lines;
     }
     $user->server_notice('- ');
