@@ -87,9 +87,6 @@ my %unordered_format = my @format = (
 #
 # _just_set_by  SID/UID of who set a ban. used for propagation
 #
-# deleted       passed to expire_ban() when the ban was deleted, to
-#               prevent expiration oper notices from being sent out
-#
 sub init {
     $table = $conf->table('bans') or return;
 
@@ -296,12 +293,29 @@ sub add_update_enforce_activate_ban {
     return %ban;
 }
 
+# despire the name, this does NOT delete the ban from the database.
+# it deactivates it and changes the expire time so that it will not be enforced.
 sub delete_deactivate_ban_by_id {
     my $id = shift;
     my %ban = ban_by_id($id) or return;
-    delete_ban_by_id($id);
-    expire_ban(%ban, deleted => 1);
-    return 1;
+
+    # update the expire time
+    if ($ban{modified} < time) {
+        $ban{modified} = time;
+    }
+    else {
+        $ban{modified}++;
+    }
+    $ban{expires} = $ban{modified};
+
+    # reactivate the ban timer
+    %ban = deactivate_ban(%ban);
+    %ban = activate_ban(%ban);
+
+    # update the ban in the db
+    add_or_update_ban(%ban);
+
+    return %ban;
 }
 
 # notify opers of a new ban
@@ -437,10 +451,9 @@ sub handle_del_command {
         return;
     }
 
-    # delete it
+    # remove it
     $ban{_just_set_by} = $user->id;
-    delete_ban_by_id($ban{id});
-    expire_ban(%ban, deleted => 1);
+    delete_deactivate_ban_by_id($ban{id});
     $pool->fire_command_all(bandel => \%ban);
 
     notify_delete_ban($user, %ban);
@@ -537,11 +550,24 @@ sub activate_ban {
         $::loop->add($timer);
     }
 
+    return %ban;
 }
 
 # deactivate a ban timer
-# this is also called when a ban is deleted
-# but with deleted => 1
+sub deactivate_ban {
+    my %ban = @_;
+
+    # dispose of the timer
+    if (my $timer = $timers{ $ban{id} }) {
+        $timer->stop;
+        $timer->remove_from_parent;
+        delete $timers{ $ban{id} };
+    }
+
+    return %ban;
+}
+
+# deactivate and remove ban from database
 sub expire_ban {
     my %ban = @_;
     my $type = $ban_types{ $ban{type} } or return;
@@ -550,12 +576,8 @@ sub expire_ban {
     # -----------------
     $type->{expire_code}(\%ban) if $type->{expire_code};
 
-    # dispose of the timer
-    if (my $timer = $timers{ $ban{id} }) {
-        $timer->stop;
-        $timer->remove_from_parent;
-        delete $timers{ $ban{id} };
-    }
+    # deactive the timer
+    deactivate_ban(%ban);
 
     # remove from database
     delete_ban_by_id($ban{id});
@@ -565,7 +587,7 @@ sub expire_ban {
         $ban{match},
         $d->(time - $ban{added}),
         length $ban{reason} ? $ban{reason} : 'no reason'
-    ) unless $ban{deleted};
+    ) if !$ban{inactive};
 }
 
 ###################

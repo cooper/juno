@@ -3633,3 +3633,4 @@ CHANGES:
             fixed an issue where "new channel time" notices were propagated
 
         87. bans now have a 'lifetime' field which allows them to be preserved for some time after expiration. #114.
+            delete_deactivate_ban_by_id() no longer deletes the ban. it disables it until expiration.
