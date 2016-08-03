@@ -244,6 +244,7 @@ sub ban_by_id {
     $ban or return;
 
     $ban_table{$id} = $ban;
+    $ban_table{ $ban->type.'/'.$ban->match } = $ban;
     return $ban;
 }
 
@@ -326,7 +327,8 @@ sub handle_add_command {
     # TODO: check if it matches too many people
 
     # register: validate, update, enforce, activate
-    my %ban = create_my_ban($type_name,
+    my $ban = create_my_ban(
+        type         => $type_name,
         match        => $match,
         reason       => $reason,
         duration     => $seconds,
@@ -335,32 +337,31 @@ sub handle_add_command {
     );
 
     # returned nothing
-    if (!%ban) {
+    if (!$ban) {
         $what = $type->{hname} || 'ban';
         $user->server_notice($command => "Invalid $what");
         return;
     }
 
-    notify_new_ban($user, %ban);
+    $ban->notify_new($user);
     return 1;
 }
 
 # register a ban right now from this server
 sub create_my_ban {
-    my ($type_name, %opts) = @_;
+    my %opts = @_;
     $opts{id} //= get_next_id();
 
     # validate, update, enforce, activate
-    my %ban = add_update_enforce_activate_ban(
-        type    => $type_name,
+    my $ban = create_or_update_ban(
         aserver => $me->name,
         %opts
     ) or return;
 
     # forward it
-    $pool->fire_command_all(baninfo => \%ban);
+    $pool->fire_command_all(baninfo => $ban);
 
-    return %ban;
+    return $ban;
 }
 
 # $match can be a mask or a ban ID
@@ -368,26 +369,25 @@ sub handle_del_command {
     my ($type_name, $command, $user, $event, $match) = @_;
     my $type = $ban_types{$type_name} or return;
 
-    # find the ban
-    my %ban = ban_by_id($match);
-    if (!%ban) { %ban = ban_by_type_match($type, $match) }
-    if (!%ban) {
+    # find the ban by ID or matcher
+    my $ban = $ban_table{$match} || $ban_table{ "$type_name/$match" };
+    if (!$ban) {
         my $what = $type->{hname} || 'ban';
         $user->server_notice($command => "No $what matches");
         return;
     }
 
-    # remove it
-    $ban{_just_set_by} = $user->id;
-    delete_deactivate_ban_by_id($ban{id});
-    $pool->fire_command_all(bandel => \%ban);
+    # disable it
+    $ban->{_just_set_by} = $user->id;
+    $ban->disable;
+    $pool->fire_command_all(bandel => $ban);
 
-    notify_delete_ban($user, %ban);
+    $ban->notify_delete($user);
     return 1;
 }
 
-##############
-### TIMERS ###
+#############################
+### BAN OBJECT MANAGEMENT ###
 ################################################################################
 
 sub _activate_ban_timer {
@@ -440,7 +440,7 @@ sub _expire_ban {
     # now activate the deletion timer
     $ban->activate_timer;
 
-    notice("$ban{type}_expire" =>
+    notice("$$ban{type}_expire" =>
         $ban->type('hname'),
         $ban->{match},
         pretty_duration(time - $ban->added),

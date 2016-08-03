@@ -325,7 +325,7 @@ sub deactivate_timer {
 
 # notify opers of a new ban
 sub notify_new {
-    my ($source, $ban) = @_;
+    my ($ban, $source) = @_;
     my @user = $source if $source->isa('user') && $source->is_local;
     notice(@user, $ban->type =>
         ucfirst $ban->hr_ban_type,
@@ -339,7 +339,7 @@ sub notify_new {
 
 # notify opers of a deleted ban
 sub notify_delete {
-    my ($source, $ban) = @_;
+    my ($ban, $source) = @_;
     my @user = $source if $source->isa('user') && $source->is_local;
     notice(@user, "$$ban{type}_delete" =>
         ucfirst $ban->hr_ban_type,
@@ -384,6 +384,11 @@ sub type {
     }
     return $type_name;
 }
+
+# matchers
+sub match       { shift->{match}        }   # ban matcher
+sub match_user  { ...                   }   # user field from matcher (or undef)
+sub match_host  { ...                   }   # host field from matcher
 
 # timestamps and durations
 sub added       { shift->{added}        }   # timestamp when originally added
