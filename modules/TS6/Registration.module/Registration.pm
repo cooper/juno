@@ -43,6 +43,7 @@ our %ts6_capabilities = (
     RSFNC       => { required => 0 },   # forcenick extension
     CLUSTER     => { required => 0 },   # KLINE, XLINE, RESV, LOCOPS
     EOPMOD      => { required => 0 },   # extended topic burst (ETB), +z stuff
+    CHW         => { required => 0 },   # messages to @#channel
 );
 
 our %registration_commands = (
