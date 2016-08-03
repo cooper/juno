@@ -19,6 +19,7 @@ use strict;
 use 5.010;
 
 use IO::Async::Timer::Absolute;
+use Scalar::Util qw(weaken);
 use utils qw(import notice string_to_seconds pretty_time pretty_duration);
 
 our ($api, $mod, $pool, $conf, $me);
@@ -28,6 +29,7 @@ our (
     %ban_types,     # registered ban types
     %ban_actions,   # registered ban actions
     %ban_timers,    # expiration timers
+    %ban_enforces,  # bans with enforcement active
     %ban_table      # ban objects stored in memory
 );
 
@@ -205,8 +207,9 @@ sub all_bans {
     return map ban_by_id($_), @ban_ids;
 }
 
+# @bans = enforceable_bans()
 sub enforceable_bans {
-    ...
+    return values %ban_enforces;
 }
 
 # $ban = create_or_update_ban(%opts)
@@ -454,8 +457,10 @@ sub _activate_ban_enforcement {
     my $activate = $ban->type('activate_code');
     $activate->($ban) if $activate;
 
-    # TODO: add to some list of bans to enforce
+    # $ban->activate_enforcement calls ->enforce to enforce the ban immediately,
+    # so we don't have to
 
+    weaken($ban_enforces{ $ban->id } = $ban);
 }
 
 sub _deactivate_ban_enforcement {
@@ -466,7 +471,7 @@ sub _deactivate_ban_enforcement {
     my $disable = $ban->type('disable_code');
     $disable->(\%ban) if $disable;
 
-    # TODO: remove from some list of bans to enforce
+    delete $ban_enforces{ $ban->id };
 }
 
 ###################
