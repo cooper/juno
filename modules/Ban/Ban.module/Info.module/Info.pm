@@ -120,6 +120,7 @@ sub activate {
         if $ban{lifetime};
 
     # only activate enforcement if the ban has not expired.
+    # this will also enforce the ban immediately.
     $ban->activate_enforcement
         if !$ban{expires} || $ban{expires} > time;
 
@@ -170,8 +171,15 @@ sub validate {
 
 sub update {
     my ($ban, %opts) = @_;
-    $ban{ keys %opts } = values %opts;
+
+    # inject these options and validate.
+    @$ban{ keys %opts } = values %opts;
     $ban->validate or return;
+
+    # reactivate timer in case the expires/lifetime changed.
+    $ban->activate_timer
+        if $ban->{timer_active};
+
     $ban->_db_update;
     return 1;
 }
@@ -185,6 +193,7 @@ sub activate_enforcement {
     my $ban = shift;
     $ban->deactivate_enforcement if $ban->{enforcement_active}++;
     M::Ban::_activate_ban_enforcement($ban);
+    $ban->enforce;
 }
 
 # deactivate ban enforcement

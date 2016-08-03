@@ -27,7 +27,7 @@ our (
     $table,         # Evented::Database bans table
     %ban_types,     # registered ban types
     %ban_actions,   # registered ban actions
-    %timers,        # expiration timers
+    %ban_timers,    # expiration timers
     %ban_table      # ban objects stored in memory
 );
 
@@ -209,16 +209,18 @@ sub all_bans {
 sub create_or_update_ban {
     my %opts = @_;
 
-    # find or create ban
+    # find or create ban.
     my $ban = ban_by_id($opts{id});
     if (!$ban) {
         $ban = M::Ban::Info->construct(%opts);
         return if !$ban;
     }
 
-    # update ban info
-    # this also validates.
+    # update ban info. this also validates.
     $ban->update(%opts) or return;
+
+    # activate the ban.
+    $ban->activate;
 
     return $ban;
 }
@@ -236,30 +238,6 @@ sub ban_by_id {
 
     $ban_table{$id} = $ban;
     return $ban;
-}
-
-sub add_update_enforce_activate_ban {
-
-    # validate it
-    my %ban = validate_ban(@_);
-    if (!%ban) {
-        L("validate_ban() failed!");
-        return;
-    }
-
-    # ignore bans with older modification times
-    my %existing = ban_by_id($ban{id});
-    if ($existing{modified} && $existing{modified} > $ban{modified}) {
-        L("ignoring older ban on $ban{match}");
-        return;
-    }
-
-    # add, update, enforce, and activate it
-    add_or_update_ban(%ban);
-    enforce_ban(%ban);
-    activate_ban(%ban);
-
-    return %ban;
 }
 
 
