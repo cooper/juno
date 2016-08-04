@@ -36,7 +36,6 @@ sub _match {
 }
 
 sub activate_resv {
-    print "ACTIVATE RESV: @_\n";
     my $ban = shift;
     $pool->add_resv($ban->match, $ban->expires);
 }

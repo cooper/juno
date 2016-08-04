@@ -13,7 +13,7 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils qw(pretty_time pretty_duration);
+use utils qw(notice pretty_time pretty_duration);
 
 our ($api, $mod, $pool, $conf, $me);
 my ($table, %unordered_format, @format);
@@ -63,9 +63,6 @@ my ($table, %unordered_format, @format);
 # reason        user-set reason for ban
 #
 #   NOT RECORDED IN DATABASE
-#
-# inactive      set by activate_ban() so that we know not to enforce an
-#               expired ban
 #
 # _just_set_by  SID/UID of who set a ban. used for propagation
 #
@@ -192,6 +189,17 @@ sub update {
 
 # deactivate everything, remove from db, remove from ban table
 sub destroy {
+    my $ban = shift;
+
+    # disable enforcement and timer
+    $ban->deactivate_enforcement;
+    $ban->deactivate_timer;
+
+    # remove from db
+    $ban->_db_delete;
+
+    # remove from ban table
+    M::Ban::_destroy_ban($ban);
 
 }
 

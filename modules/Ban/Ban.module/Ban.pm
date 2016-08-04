@@ -20,9 +20,10 @@ use 5.010;
 
 use IO::Async::Timer::Absolute;
 use Scalar::Util qw(weaken);
-use utils qw(import notice string_to_seconds pretty_time pretty_duration);
+use utils qw(notice string_to_seconds pretty_time pretty_duration);
 
 our ($api, $mod, $pool, $conf, $me);
+my $loop;
 
 our (
     $table,         # Evented::Database bans table
@@ -52,8 +53,11 @@ sub init {
 
     # create or update the table.
     $table = $conf->table('bans')                           or return;
-    $mod->load_submodule('Info')                            or return;
     $table->create_or_alter(@format);
+
+    # load ban object and find loop.
+    $mod->load_submodule('Info')                            or return;
+    $loop = $ircd::loop                                     or return;
 
     # ban API.
     $mod->register_module_method('register_ban_type')       or return;
@@ -232,6 +236,9 @@ sub create_or_update_ban {
     # update ban info. this also validates.
     $ban->update(%opts) or return;
 
+    # store in the ban table.
+    _store_ban($ban);
+
     # activate the ban.
     $ban->activate;
 
@@ -249,9 +256,28 @@ sub ban_by_id {
     $ban ||= M::Ban::Info->construct_by_id($id);
     $ban or return;
 
-    $ban_table{$id} = $ban;
-    $ban_table{ $ban->type.'/'.$ban->match } = $ban;
+    _store_ban($ban);
     return $ban;
+}
+
+# $ban = ban_by_user_input($type_name, $match)
+sub ban_by_user_input {
+    my ($type_name, $match) = @_;
+    return $ban_table{$match} || $ban_table{ "$type_name/$match" };
+}
+
+# store ban in ban table
+sub _store_ban {
+    my $ban = shift;
+    $ban_table{ $ban->id } = $ban;
+    $ban_table{ $ban->type.'/'.$ban->match } = $ban;
+}
+
+# remove ban from ban table
+sub _destroy_ban {
+    my $ban = shift;
+    delete $ban_table{ $ban->id };
+    delete $ban_table{ $ban->type.'/'.$ban->match };
 }
 
 #####################
@@ -325,9 +351,13 @@ sub handle_add_command {
     }
 
     # check if the ban exists already
-    if (ban_by_type_match($type, $match)) {
-        $user->server_notice($command => "$what for $match exists already");
-        return;
+    if (my $exists = ban_by_user_input($type_name, $match)) {
+
+        # if it is expired, we will overwrite it.
+        if (!$exists->has_expired) {
+            $user->server_notice($command => "$what for $match exists already");
+            return;
+        }
     }
 
     # TODO: check if it matches too many people
@@ -376,7 +406,7 @@ sub handle_del_command {
     my $type = $ban_types{$type_name} or return;
 
     # find the ban by ID or matcher
-    my $ban = $ban_table{$match} || $ban_table{ "$type_name/$match" };
+    my $ban = ban_by_user_input($type_name, $match);
     if (!$ban) {
         my $what = $type->{hname} || 'ban';
         $user->server_notice($command => "No $what matches");
@@ -398,7 +428,7 @@ sub handle_del_command {
 
 sub _activate_ban_timer {
     my $ban = shift;
-    my ($expire_time, $code);
+    my $expire_time;
 
     # do nothing if the ban is permanent.
     my $expires  = $ban->expires;
@@ -408,13 +438,11 @@ sub _activate_ban_timer {
     # if the ban has not expired, add a timer to expire it.
     if ($expires && !$ban->has_expired) {
         $expire_time = $expires;
-        $code = sub { _expire_ban(shift) };
     }
 
     # if the ban has expired but its lifetime has not, add a timer to delete it.
     elsif ($lifetime && !$ban->has_expired_lifetime) {
         $expire_time = $lifetime;
-        $code = sub { shift->destroy };
     }
 
     # if both have expired, delete the ban.
@@ -425,13 +453,15 @@ sub _activate_ban_timer {
 
     # add the timer otherwise.
     my $id = $ban->id;
-    $ban_timers{$id} = IO::Async::Timer::Absolute->new(
+    my $timer = $ban_timers{$id} = IO::Async::Timer::Absolute->new(
         time      => $expire_time,
         on_expire => sub {
             my $ban = ban_by_id($id) or return;
-            $code->($ban);
+            _expire_ban($ban);
         }
     );
+    $timer->start;
+    $loop->add($timer);
 
     return 1; # indicates that a timer was activated
 }
@@ -453,15 +483,19 @@ sub _deactivate_ban_timer {
 sub _expire_ban {
     my $ban = shift;
 
-    # disable the ban
-    $ban->disable;
+    # disable the ban.
+    # this also will activate the timer for deletion.
+    if (!$ban->has_expired_lifetime) {
+        $ban->disable;
+        return 1;
+    }
 
-    # now activate the deletion timer
-    $ban->activate_timer;
+    # delete the ban.
+    $ban->destroy;
 
     notice("$$ban{type}_expire" =>
-        $ban->type('hname'),
-        $ban->{match},
+        ucfirst($ban->type('hname') || 'ban'),
+        $ban->match,
         pretty_duration(time - $ban->added),
         $ban->hr_reason
     );
