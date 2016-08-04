@@ -23,13 +23,6 @@ use 5.010;
 use utils qw(fnv v notice);
 use M::TS6::Utils qw(ts6_id);
 
-M::Ban->import(qw(
-    notify_new_ban  notify_delete_ban
-    get_all_bans    delete_deactivate_ban_by_id
-    ban_by_id       ban_by_type_match
-    add_update_enforce_activate_ban
-));
-
 our ($api, $mod, $pool, $conf, $me);
 
 my %ts6_supports = map { $_ => 1 }
@@ -124,69 +117,29 @@ sub init {
     return 1;
 }
 
-# takes a ban hash and returns one ready for ts6 use
-sub ts6_ban {
-    my %ban = @_;
 
-    # TS6 only supports kdlines
-    return unless $ts6_supports{ $ban{type} };
-
-    # create an ID based on the fnv hash of the mask
-    # this is a last resort... it should already be set
-    $ban{id} //= $me->{sid}.'.'.fnv($ban{match});
-
-    # TS6 bans have to have a reason
-    $ban{reason} = 'no reason' if !length $ban{reason};
-
-    # prepare the duration for TS6
-    if ($ban{duration} || $ban{expires}) {
-        my $duration = $ban{duration} || 0;
-
-        # we can't propagate an expiration time over TS6, so we have to
-        # calculate how long the duration should be from the current time
-        $duration = $ban{expires} - time
-            if $ban{expires};
-
-        $ban{ts6_duration} = $duration;
-    }
-    else {
-        $ban{ts6_duration} = 0;
-    }
-    $ban{lifetime} ||= $ban{expires};
-
-    # add user and host if there's an @
-    if ($ban{match} =~ m/^(.*?)\@(.*)$/) {
-        $ban{match_user} = $1;
-        $ban{match_host} = $2;
-    }
-    else {
-        $ban{match_user} = '*';
-        $ban{match_host} = $ban{match};
-    }
-
-    # match_ts6 is special for using in ts6 commands.
-    # if it's a KLINE, it's match_user and match_host joined by a space.
-    # if it's a DLINE, it's the match_host.
-    $ban{match_ts6} = $ban{type} eq 'kline' ?
-        join(' ', @ban{'match_user', 'match_host'}) : $ban{match_host};
-
-    # this is a safety check for dumb things like a DLINE on someone@*
-    return if $ban{match_ts6} eq '*';
-
-    return %ban;
+# we can't propagate an expiration time over old TS commands, so we have to
+# calculate how long the duration should be from the current time
+sub M::Ban::Info::ts6_duration {
+    my $ban = shift;
+    return if !$ban->expires;
+    return $ban->expires - time;
 }
 
-# create and register a ban
-sub add_update_enforce_activate_ts6_ban {
-    my %ban = ts6_ban(@_) or return;
-    %ban = add_update_enforce_activate_ban(%ban);
-    return %ban;
+# match_ts6 is special for using in ts6 commands.
+# if it's a KLINE, it's match_user and match_host joined by a space.
+# if it's a DLINE, it's the match_host.
+sub M::Ban::Info::match_ts6 {
+    my $ban = shift;
+    return join(' ', @$ban{'match_user', 'match_host'})
+        if $ban->type eq 'kline';
+    return $ban->match_host;
 }
 
 # create and register a ban witha user and server
-sub add_update_enforce_activate_ts6_ban_with_server_source {
+sub create_or_update_ban_server_source {
     my ($type, $server, $source, $mask, $duration, $reason) = @_;
-    return add_update_enforce_activate_ts6_ban(
+    return M::Ban::create_or_update_ban(
         type         => $type,
         id           => $server->{sid}.'.'.fnv($mask),
         match        => $mask,
@@ -203,11 +156,15 @@ sub add_update_enforce_activate_ts6_ban_with_server_source {
 # find a ban for removing
 sub _find_ban {
     my ($server, $type, $match) = @_;
-    my $id_maybe = $server->{sid}.'.'.fnv($match);
-    my %ban = ban_by_id($id_maybe);
-    return %ban if %ban;
-    %ban = ban_by_type_match($type, $match);
-    return %ban if %ban;
+
+    # find by ID
+    my $ban = M::Ban::ban_by_id($server->{sid}.'.'.fnv($match));
+    return $ban if $ban;
+
+    # find by type and matcher
+    $ban = M::Ban::ban_by_user_input($type, $match);
+    return $ban if $ban;
+
     return;
 }
 
@@ -275,10 +232,10 @@ sub get_fake_user {
 # find who to send an outgoing command from
 # when only a user can be used
 sub find_from {
-    my ($to_server, %ban) = @_;
+    my ($to_server, $ban) = @_;
 
     # if there's no user, this is probably during burst.
-    my $from = $pool->lookup_user($ban{_just_set_by})
+    my $from = $pool->lookup_user($ban->{_just_set_by})
         || get_fake_user($to_server);
 
     # this shouldn't happen.
@@ -296,16 +253,16 @@ sub find_from {
 
 # find who to send an outgoing command. only server
 sub find_from_serv {
-    my ($to_server, %ban) = @_;
-    my $from = $pool->lookup_server($ban{_just_set_by});
+    my ($to_server, $ban) = @_;
+    my $from = $pool->lookup_server($ban->{_just_set_by});
     return $from || $me;
 }
 
 # find who to send an outgoing command. any user/server
 sub find_from_any {
-    my ($to_server, %ban) = @_;
-    my $from = $pool->lookup_user($ban{_just_set_by});
-    $from  ||= $pool->lookup_server($ban{_just_set_by});
+    my ($to_server, $ban) = @_;
+    my $from = $pool->lookup_user($ban->{_just_set_by});
+    $from  ||= $pool->lookup_server($ban->{_just_set_by});
     return $from || $me;
 }
 
@@ -317,128 +274,146 @@ sub out_ban {
     return map out_baninfo($to_server, $_), @_;
 }
 
+my %can_use_ban = map { $_ => 1 } qw(kline resv);
+
 # baninfo is the advertisement of a ban. in TS6, use ENCAP K/DLINE
 sub out_baninfo {
-    my ($to_server, $ban_) = @_;
-    my %ban = ts6_ban(%$ban_) or return;
+    my ($to_server, $ban) = @_;
 
     # charybdis will send the encap target as it is received from the oper.
     # we don't care about that though. juno bans are global.
 
-    # we might be able to use BAN or non-encap KLINE for K-Lines.
-    if ($ban{type} eq 'kline') {
 
-        # CAP BAN
-        if ($to_server->has_cap('BAN')) {
+    # for reserves, it might be a NICKDELAY.
+    # NICKDELAY is certainly supported if EUID is, but even if we don't
+    # have EUID, still send this. charybdis does not forward it differently.
+    #
+    # we have to check this before the below BAN command check
+    #
+    if ($ban->type eq 'resv' && $ban->{_is_nickdelay}) {
+        return if $ban->has_expired;
+        return if $ban->ts6_duration < 0;
 
-            # this can come from either a user or a server
-            my $from = find_from_any($to_server, %ban);
+        # this can come from only a server
+        my $from = find_from_serv($to_server, $ban) or return;
 
-            return _capab_ban($to_server, $from, \%ban);
-        }
+        return sprintf ':%s ENCAP * NICKDELAY %d %s',
+        ts6_id($from),
+        $ban->ts6_duration,
+        $ban->match;
+    }
+
+    # CAP BAN
+    # we might be able to use BAN
+    if ($can_use_ban{ $ban->type } && $to_server->has_cap('BAN')) {
+
+        # this can come from either a user or a server
+        my $from = find_from_any($to_server, $ban);
+
+        return _capab_ban($to_server, $from, $ban);
+    }
+
+    # OK, at this point we are using ts6_duration, which is calculated by the
+    # amount of time between the current time and the expire time. check if it
+    # has already expired because we can't propagate a negative duration.
+    return if $ban->has_expired;
+    return if $ban->ts6_duration < 0;
+
+    # we might be able to use non-encap KLINE for K-Lines.
+    if ($ban->type eq 'kline') {
 
         # CAP KLN
         if ($to_server->has_cap('KLN')) {
 
             # KLINE can only come from a user
-            my $from = find_from($to_server, %ban) or return;
+            my $from = find_from($to_server, $ban) or return;
+
+            # it has already expired
+            return if $ban->has_expired;
+            return if $ban->ts6_duration < 0;
 
             # :<source> KLINE <target> <time> <user> <host> :<reason>
             return sprintf ':%s KLINE * %d %s %s :%s',
             ts6_id($from),
-            $ban{ts6_duration},
-            $ban{match_user},
-            $ban{match_host},
-            $ban{reason};
+            $ban->ts6_duration,
+            $ban->match_user,
+            $ban->match_host,
+            $ban->hr_reason;
         }
     }
 
-    # for reserves, it might be a NICKDELAY.
-    # NICKDELAY is certainly supported if EUID is, but even if we don't
-    # have EUID, still send this. charybdis does not forward it differently.
-    if ($ban{type} eq 'resv' && $ban{_is_nickdelay}) {
-
-        # this can come from only a server
-        my $from = find_from_serv($to_server, %ban);
-
-        return sprintf ':%s ENCAP * NICKDELAY %d %s',
-        ts6_id($from),
-        $ban{ts6_duration},
-        $ban{match};
-    }
-
     # at this point, we have to have a user source
-    my $from = find_from($to_server, %ban) or return;
+    my $from = find_from($to_server, $ban) or return;
 
     # encap fallback
     return sprintf ':%s ENCAP * %s %d %s :%s',
     ts6_id($from),
-    uc $ban{type},
-    $ban{ts6_duration},
-    $ban{match_ts6},
-    $ban{reason};
+    uc $ban->type,
+    $ban->ts6_duration,
+    $ban->match_ts6,
+    $ban->hr_reason;
 }
 
 # bandel is sent out when a ban is removed. in TS6, use ENCAP UNK/DLINE
 sub out_bandel {
-    my ($to_server, $ban_) = @_;
-    my %ban = ts6_ban(%$ban_) or return;
-    my $from = find_from($to_server, %ban) or return;
+    my ($to_server, $ban) = @_;
+    my $from = find_from($to_server, $ban) or return;
+
+    # for reserves, it might be a NICKDELAY.
+    # NICKDELAY is certainly supported if EUID is, but even if we don't
+    # have EUID, still send this. charybdis does not forward it differently.
+    #
+    # we have to check this before the below BAN command check
+    #
+    if ($ban->type eq 'resv' && $ban->{_is_nickdelay}) {
+        return if $ban->has_expired;
+        return if $ban->ts6_duration < 0;
+
+        # this can come from only a server
+        my $from = find_from_serv($to_server, $ban) or return;
+
+        return sprintf ':%s ENCAP * NICKDELAY 0 %s',
+        ts6_id($from),
+        $ban->match;
+    }
+
+    # CAP BAN
+    # we might be able to use BAN
+    if ($can_use_ban{ $ban->type } && $to_server->has_cap('BAN')) {
+
+        # this can come from either a user or a server
+        my $from = $pool->lookup_user($ban->{_just_set_by}) || $me;
+
+        return _capab_ban($to_server, $from, $ban, 1);
+    }
 
     # we might be able to use BAN or non-encap UNKLINE for K-Lines.
-    if ($ban{type} eq 'kline') {
-
-        # CAP BAN
-        if ($to_server->has_cap('BAN')) {
-
-            # this can come from either a user or a server
-            my $from = $pool->lookup_user($ban{_just_set_by}) || $me;
-
-            $ban{duration} = 0; # indicates deletion
-            return _capab_ban($to_server, $from, \%ban);
-        }
+    if ($ban->type eq 'kline') {
 
         # CAP UNKLN
         if ($to_server->has_cap('UNKLN')) {
 
             # KLINE can only come from a user
-            my $from = find_from($to_server, %ban) or return;
+            my $from = find_from($to_server, $ban) or return;
 
             # CAP_UNKLN: :<source> UNKLINE <target> <user> <host>
             return sprintf ':%s UNKLINE * %s %s',
             ts6_id($from),
-            $ban{ts6_duration},
-            $ban{match_user},
-            $ban{match_host};
+            $ban->ts6_duration,
+            $ban->match_user,
+            $ban->match_host;
         }
-    }
-
-    # for reserves, it might be a NICKDELAY.
-    # NICKDELAY is certainly supported if EUID is, but even if we don't
-    # have EUID, still send this. charybdis does not forward it differently.
-    if ($ban{type} eq 'resv' && $ban{_is_nickdelay}) {
-
-        # this can come from only a server
-        my $from = find_from_serv($to_server, %ban);
-
-        return sprintf ':%s ENCAP * NICKDELAY 0 %s',
-        ts6_id($from),
-        $ban{match};
     }
 
     # encap fallback
     return sprintf ':%s ENCAP * UN%s %s',
     ts6_id($from),
-    uc $ban{type},
-    $ban{match_ts6};
+    uc $ban->type,
+    $ban->match_ts6;
 }
 
 sub _capab_ban {
-    my ($to_server, $from, $ban_) = @_;
-
-    # the ban has already been validated
-    # the {duration} may be 0 if this is an unban
-    my %ban = %$ban_;
+    my ($to_server, $from, $ban, $deleting) = @_;
 
     # only these are supported
     my %possible = (
@@ -446,23 +421,23 @@ sub _capab_ban {
       # xline => 'X',
         resv  => 'R'
     );
-    my $letter = $possible{ $ban{type} } or return;
+    my $letter = $possible{ $ban->type } or return;
 
     # nick!user@host{server} that added it
     # or * if this is being set by a real-time user
-    my $added_by = $ban{auser} ? "$ban{auser}\{$ban{aserver}\}" : '*';
+    my $added_by = $ban->auser ? "$$ban{auser}\{$$ban{aserver}\}" : '*';
     $added_by = '*' if $from->isa('user');
 
     return sprintf ':%s BAN %s %s %s %d %d %d %s :%s',
     ts6_id($from),          # user or server
     $letter,                # ban type
-    $ban{match_user},       # user mask or *
-    $ban{match_host},       # host mask
-    $ban{modified},         # creationTS (modified time)
-    $ban{duration},         # REAL duration (not ts6_duration)
-    $ban{modified} - $ban{lifetime}, # lifetime, relative to creationTS
+    $ban->match_user,       # user mask or *
+    $ban->match_host,       # host mask
+    $ban->modified,         # creationTS (modified time)
+    $deleting ? 0 : $ban->duration, # REAL duration (not ts6_duration)
+    $ban->lifetime_duration, # lifetime, relative to creationTS
     $added_by,              # oper field
-    $ban{reason};           # reason
+    $ban->reason;           # reason
 }
 
 ################
@@ -495,20 +470,20 @@ sub kline {
 
     # create and activate the ban
     my $match = "$ident_mask\@$host_mask";
-    my %ban = add_update_enforce_activate_ts6_ban_with_server_source(
+    my $ban = create_or_update_ban_server_source(
         # ($type, $server, $user, $mask, $duration, $reason)
         'kline',
         $server, $user, $match, $duration, $reason
     ) or return;
 
-    notify_new_ban($user, %ban);
+    $ban->notify_new($user);
 
     #=== Forward ===#
     #
     # we ignore the target mask. juno bans are global, so let's pretend
     # this was intended to be global too.
     #
-    $msg->forward(baninfo => \%ban);
+    $msg->forward(baninfo => $ban);
 }
 
 # UNKLINE
@@ -532,14 +507,14 @@ sub unkline {
     $msg->{encap_forwarded}++;
 
     # find and remove ban
-    my %ban = _find_ban($server, 'kline', "$ident_mask\@$host_mask") or return;
-    $ban{_just_set_by} = $source->id;
-    delete_deactivate_ban_by_id($ban{id});
+    my $ban = _find_ban($server, 'kline', "$ident_mask\@$host_mask") or return;
+    $ban->{_just_set_by} = $source->id;
+    $ban->disable;
 
-    notify_delete_ban($source, %ban);
+    $ban->notify_delete($source);
 
     #=== Forward ===#
-    $msg->forward(bandel => \%ban);
+    $msg->forward(bandel => $ban);
 
 }
 
@@ -559,20 +534,20 @@ sub dline {
     $msg->{encap_forwarded}++;
 
     # create and activate the ban
-    my %ban = add_update_enforce_activate_ts6_ban_with_server_source(
+    my $ban = create_or_update_ban_server_source(
         # ($type, $server, $user, $mask, $duration, $reason)
         'dline',
         $server, $user, $ip_mask, $duration, $reason
     ) or return;
 
-    notify_new_ban($user, %ban);
+    $ban->notify_new($user);
 
     #=== Forward ===#
     #
     # we ignore the target mask. juno bans are global, so let's pretend
     # this was intended to be global too.
     #
-    $msg->forward(baninfo => \%ban);
+    $msg->forward(baninfo => $ban);
 }
 
 # UNDLINE
@@ -587,14 +562,14 @@ sub undline {
     $msg->{encap_forwarded}++;
 
     # find and remove ban
-    my %ban = _find_ban($server, 'dline', $ip_mask) or return;
-    $ban{_just_set_by} = $user->id;
-    delete_deactivate_ban_by_id($ban{id});
+    my $ban = _find_ban($server, 'dline', $ip_mask) or return;
+    $ban->{_just_set_by} = $user->id;
+    $ban->disable;
 
-    notify_delete_ban($user, %ban);
+    $ban->notify_delete($user);
 
     #=== Forward ===#
-    $msg->forward(bandel => \%ban);
+    $msg->forward(bandel => $ban);
 
 }
 
@@ -626,13 +601,13 @@ sub _resv {
     $msg->{encap_forwarded}++;
 
     # create and activate the ban
-    my %ban = add_update_enforce_activate_ts6_ban_with_server_source(
+    my $ban = create_or_update_ban_server_source(
         # ($type, $server, $user, $mask, $duration, $reason)
         'resv',
         $server, $source, $nick_chan_mask, $duration, $reason
     ) or return;
 
-    notify_new_ban($source, %ban);
+    $ban->notify_new($source);
 
     #=== Forward ===#
     #
@@ -640,8 +615,8 @@ sub _resv {
     # this was intended to be global too.
     # the _is_nickdelay is used for TS6 outgoing.
     #
-    $ban{_is_nickdelay} = $is_nickdelay;
-    $msg->forward(baninfo => \%ban);
+    $ban->{_is_nickdelay} = $is_nickdelay;
+    $msg->forward(baninfo => $ban);
 
     return 1;
 }
@@ -668,18 +643,18 @@ sub _unresv {
     $msg->{encap_forwarded}++;
 
     # find and remove ban
-    my %ban = _find_ban($server, 'resv', $nick_chan_mask) or return;
-    $ban{_just_set_by} = $source->id;
-    delete_deactivate_ban_by_id($ban{id});
+    my $ban = _find_ban($server, 'resv', $nick_chan_mask) or return;
+    $ban->{_just_set_by} = $source->id;
+    $ban->disable;
 
-    notify_delete_ban($source, %ban);
+    $ban->notify_delete($source);
 
     #=== Forward ===#
     #
     # the _is_nickdelay is used for TS6 outgoing.
     #
-    $ban{_is_nickdelay} = $is_nickdelay;
-    $msg->forward(bandel => \%ban);
+    $ban->{_is_nickdelay} = $is_nickdelay;
+    $msg->forward(bandel => $ban);
 
     return 1;
 }
@@ -744,7 +719,7 @@ sub ban {
     $found_oper_mask   ||= $source->full;
 
     # info used in all ban types
-    my %ban;
+    my $ban;
     my @common = (
         reason       => $reason,
         duration     => $duration,
@@ -768,7 +743,7 @@ sub ban {
 
         # create and activate the ban
         my $match = "$ident_mask\@$host_mask";
-        %ban = add_update_enforce_activate_ts6_ban(
+        $ban = M::Ban::create_or_update_ban(
             @common,
             type         => 'kline',
             id           => $server->{sid}.'.'.fnv($match),
@@ -787,7 +762,7 @@ sub ban {
         }
 
         # create and activate the ban
-        %ban = add_update_enforce_activate_ts6_ban(
+        $ban = M::Ban::create_or_update_ban(
             @common,
             type         => 'resv',
             id           => $server->{sid}.'.'.fnv($host_mask),
@@ -805,10 +780,10 @@ sub ban {
         return;
     }
 
-    notify_new_ban($source, %ban);
+    $ban->notify_new($source);
 
     #=== Forward ===#
-    $msg->forward(baninfo => \%ban);
+    $msg->forward(baninfo => $ban);
 
     return 1;
 }

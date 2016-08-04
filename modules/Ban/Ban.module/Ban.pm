@@ -226,6 +226,7 @@ sub enforceable_bans {
 # $ban = create_or_update_ban(%opts)
 sub create_or_update_ban {
     my %opts = @_;
+    return if $opts{match} eq '*';
 
     # find or create ban.
     my $ban = ban_by_id($opts{id});
