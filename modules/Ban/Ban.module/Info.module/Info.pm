@@ -165,15 +165,28 @@ sub disable {
 #
 sub validate {
     my $ban = shift;
+
+    # inject missing stuff
     $ban->added     ||= time;
     $ban->modified  ||= $ban->added;
     $ban->expires   ||= $ban->duration ? time + $ban->duration : 0;
     $ban->lifetime  ||= $ban->expires;
+
+
+    # fix stuff that doesn't make sense
+    $ban->lifetime = $ban->expires
+        if $ban->lifetime < $ban->expires;
+
     return 1;
 }
 
 sub update {
     my ($ban, %opts) = @_;
+
+    # do not accept a shorter lifetime
+    if (exists $opts{lifetime} && $ban->lifetime > $opts{lifetime}) {
+        delete $opts{lifetime};
+    }
 
     # inject these options and validate.
     @$ban{ keys %opts } = values %opts;

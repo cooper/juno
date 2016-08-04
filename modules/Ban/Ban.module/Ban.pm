@@ -354,7 +354,6 @@ sub handle_add_command {
     my ($type_name, $command, $user, $event, $duration, $match, $reason) = @_;
     my $type = $ban_types{$type_name} or return;
     my $what = ucfirst($type->{hname} || 'ban');
-    $reason //= '';
 
     # check that the duration is numeric
     my $seconds = string_to_seconds($duration);
