@@ -24,6 +24,7 @@ use utils qw(notice string_to_seconds pretty_time pretty_duration);
 
 our ($api, $mod, $pool, $conf, $me);
 my $loop;
+my $debug;
 
 our (
     $table,         # Evented::Database bans table
@@ -483,22 +484,25 @@ sub _deactivate_ban_timer {
 sub _expire_ban {
     my $ban = shift;
 
-    # disable the ban.
-    # this also will activate the timer for deletion.
-    if (!$ban->has_expired_lifetime) {
-        $ban->disable;
-        return 1;
+    # delete the ban.
+    if ($ban->has_expired_lifetime) {
+        $ban->destroy;
     }
 
-    # delete the ban.
-    $ban->destroy;
+    # disable the ban.
+    # this also will activate the timer for deletion.
+    else {
+        $ban->disable;
+    }
 
+    # notify if it expired but not if it was only deleted
     notice("$$ban{type}_expire" =>
         ucfirst($ban->type('hname') || 'ban'),
         $ban->match,
         pretty_duration(time - $ban->added),
         $ban->hr_reason
-    );
+    ) if ($ban->lifetime == $ban->expires) || !$ban->has_expired_lifetime;
+
     return 1;
 }
 
@@ -599,6 +603,12 @@ sub get_next_id {
     my $id = $table->meta('last_id');
     $table->set_meta(last_id => ++$id);
     return "$$me{sid}.$id";
+}
+
+# debug
+sub D {
+    return if !$debug;
+    L(@_);
 }
 
 $mod
