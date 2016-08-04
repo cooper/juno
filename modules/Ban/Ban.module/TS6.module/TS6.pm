@@ -117,6 +117,10 @@ sub init {
     return 1;
 }
 
+sub void {
+    undef *M::Ban::Info::ts6_duration;
+    undef *M::Ban::Info::ts6_match;
+}
 
 # we can't propagate an expiration time over old TS commands, so we have to
 # calculate how long the duration should be from the current time
@@ -126,10 +130,10 @@ sub M::Ban::Info::ts6_duration {
     return $ban->expires - time;
 }
 
-# match_ts6 is special for using in ts6 commands.
+# ts6_match is special for using in ts6 commands.
 # if it's a KLINE, it's match_user and match_host joined by a space.
 # if it's a DLINE, it's the match_host.
-sub M::Ban::Info::match_ts6 {
+sub M::Ban::Info::ts6_match {
     my $ban = shift;
     return join(' ', @$ban{'match_user', 'match_host'})
         if $ban->type eq 'kline';
@@ -350,7 +354,7 @@ sub out_baninfo {
     ts6_id($from),
     uc $ban->type,
     $ban->ts6_duration,
-    $ban->match_ts6,
+    $ban->ts6_match,
     $ban->hr_reason;
 }
 
@@ -409,7 +413,7 @@ sub out_bandel {
     return sprintf ':%s ENCAP * UN%s %s',
     ts6_id($from),
     uc $ban->type,
-    $ban->match_ts6;
+    $ban->ts6_match;
 }
 
 sub _capab_ban {
