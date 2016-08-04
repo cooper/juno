@@ -30,3 +30,4 @@ dev/
 db/*.db
 var/log/*.log
 PRIVATE_INFORMATION
+*.icloud
