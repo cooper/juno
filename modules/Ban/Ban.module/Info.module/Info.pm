@@ -450,6 +450,13 @@ sub hr_expires  {
     return pretty_time($expires);
 }
 
+# lifetime
+sub hr_lifetime  {
+    my $lifetime = shift->lifetime;
+    return 'forever' if !$lifetime;
+    return pretty_time($lifetime);
+}
+
 # added time
 sub hr_added {
     return pretty_time(shift->added);
@@ -467,9 +474,14 @@ sub hr_duration {
     return pretty_duration($duration);
 }
 
-# time remaining
+# time remaining until expires
 sub hr_remaining {
     return pretty_duration(shift->expires - time);
+}
+
+# time remaining until end-of-life
+sub hr_remaining_lifetime {
+    return pretty_duration(shift->lifetime - time);
 }
 
 # reason

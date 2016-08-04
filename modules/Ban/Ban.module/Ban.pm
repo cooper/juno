@@ -289,27 +289,41 @@ sub _destroy_ban {
 our %user_commands = (BANS => {
     code   => \&ucmd_bans,
     desc   => 'list user or server bans',
-    params => '-oper(list_bans)'
+    params => '-oper(list_bans) *(opt) *(opt)'
 });
 
-# TODO: make it possible to list only dlines, only klines, etc.
-# then, make each type register an additional command which does that
+# BANS command
 sub ucmd_bans {
-    my $user = shift;
-    my @bans = all_bans();
+    my ($user, $event, $only_show, $flags) = @_;
 
-    # no bans
+    # e.g. /bans -a
+    if (!length $flags && length $only_show && !index($only_show, '-')) {
+        $flags = $only_show;
+        undef $only_show;
+    }
+
+    # get optional flags
+    # a = show all, even expired
+    my %opts = map { $_ => 1 } split //, $flags if length $flags;
+
+    # pick and sort bans
+    my @bans = sort { $a->added <=> $b->added } grep {
+        my $type_ok   = length $only_show ? lc $_->type eq $only_show : 1;
+        my $expire_ok = $opts{a} || !$_->has_expired;
+        $type_ok && $expire_ok
+    } all_bans();
+
+    # no bans match
     if (!@bans) {
-        $user->server_notice(bans => 'No bans are set');
+        $user->server_notice(bans => 'No matching bans');
         return;
     }
 
     # list all bans
-    $user->server_notice(bans => 'Listing all bans');
-    foreach my $ban (sort { $a->added <=> $b->added } @bans) {
-
-        # hide this one because it is expired
-        next if $ban->has_expired;
+    my $n = scalar @bans;
+    $only_show = length $only_show ? uc $only_show : 'ban';
+    $user->server_notice(bans => "Listing all ${only_show}s");
+    foreach my $ban (@bans) {
 
         my $type = uc $ban->type;
         my @lines = "\2$type\2 $$ban{match} ($$ban{id})";
@@ -317,15 +331,20 @@ sub ucmd_bans {
 push @lines, '      Reason: '.$ban->reason          if length $ban->reason;
 push @lines, '       Added: '.$ban->hr_added        if $ban->added;
 push @lines, '     by user: '.$ban->auser           if length $ban->auser;
-push @lines, '   on server: '.$ban->auser           if length $ban->aserver;
-push @lines, '    Duration: '.$ban->hr_duration     if $ban->duration;
-push @lines, '   Remaining: '.$ban->hr_remaining    if $ban->expires;
-push @lines, '     Expires: '.$ban->hr_expires      if $ban->expires;
+push @lines, '   on server: '.$ban->aserver         if length $ban->aserver;
+push @lines, '    Duration: '.ucfirst($ban->hr_duration);
+                                      if (!$ban->has_expired && $ban->expires) {
+push @lines, '   Remaining: '.$ban->hr_remaining;
+push @lines, '     Expires: '.$ban->hr_expires;    } elsif ($ban->has_expired) {
+push @lines, '     EXPIRED: '.$ban->hr_expires;
+push @lines, '  Deletes in: '.$ban->hr_remaining_lifetime;
+push @lines, '     on date: '.$ban->hr_lifetime;                               }
 
         $user->server_notice("- $_") for '', @lines;
     }
+
     $user->server_notice('- ');
-    $user->server_notice(bans => 'End of ban list');
+    $user->server_notice(bans => "End of $only_show list ($n total)");
 
     return 1;
 }
