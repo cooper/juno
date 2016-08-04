@@ -3637,3 +3637,5 @@ CHANGES:
             fixed irc_match() to use irc_lc(). thanks @GLolol for pointing this out.
             fixed deep recursion in pretty_mask().
             message.pm now checks if tags are undefined. the ->data() method can now use a new optional 'source_stringify_method' to stringify a source object.
+
+        88. add jelp_message() and ts6_message().

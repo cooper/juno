@@ -27,6 +27,8 @@ our ($api, $mod, $pool, $conf);
 ### juno -> TS6 ###
 ###################
 
+*ts6_message = *M::TS6::Base::ts6_message;
+
 # convert an object to its ID.
 sub ts6_id {
     my $obj = shift;

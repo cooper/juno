@@ -179,14 +179,27 @@ sub send_server_pass {
 ### Handling JELP data ###
 ##########################
 
-sub _handle_command {
-    my ($server, $event, $msg) = @_;
-    $event->cancel('ERR_UNKNOWNCOMMAND');
+sub jelp_message {
+    my $msg;
+    if (scalar @_ == 1 && blessed $_[0]) {
+        $msg = shift;
+    }
+    else {
+        $msg = message->new(@_);
+    }
 
-    # JELP param handlers and lookup method.
+    # JELP param handlers and lookup methods.
     $msg->{source_lookup_method}    = \&_lookup_source;
     $msg->{source_stringify_method} = sub { shift->id };
     $msg->{param_package}           = __PACKAGE__;
+
+    return $msg;
+}
+
+sub _handle_command {
+    my ($server, $event, $msg) = @_;
+    $event->cancel('ERR_UNKNOWNCOMMAND');
+    jelp_message($msg);
 
     # figure parameters.
     my @params;
