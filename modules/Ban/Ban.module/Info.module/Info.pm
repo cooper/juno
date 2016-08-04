@@ -119,7 +119,7 @@ sub activate {
     # activate the timer as long as it is not permanent.
     # ifs lifetime is over when calling this, it will be immediately destroyed.
     $ban->activate_timer or return
-        if $banlifetime;
+        if $ban->lifetime;
 
     # only activate enforcement if the ban has not expired.
     # this will also enforce the ban immediately.
@@ -158,7 +158,7 @@ sub disable {
         if $ban->{timer_active};
 
     # update the ban in the db
-    $ban->_db_update(%ban);
+    $ban->_db_update;
 }
 
 # $ban->validate
@@ -231,7 +231,7 @@ sub deactivate_enforcement {
     # Custom deactivation
     # -------------------
     my $disable = $ban->type('disable_code');
-    $disable->(\%ban) if $disable;
+    $disable->($ban) if $disable;
 
     # disable enforcement
     return M::Ban::_deactivate_ban_enforcement($ban);
@@ -239,7 +239,7 @@ sub deactivate_enforcement {
 
 # enforce the ban immediately on anything affected
 sub enforce {
-    my @affected;
+    my ($ban, @affected) = shift;
     push @affected, $ban->enforce_on_all_conns if $ban->type('conn_code');
     push @affected, $ban->enforce_on_all_users if $ban->type('user_code');
     return @affected;
@@ -258,7 +258,7 @@ sub enforce_on_conn {
     my $enforce = $action->{conn_code}        or return;
 
     # do the action
-    return $enforce->($conn, $ban, $type);
+    return $enforce->($conn, $ban);
 }
 
 # enforce the ban on all connections
@@ -286,7 +286,7 @@ sub enforce_on_user {
     my $enforce = $action->{user_code}        or return;
 
     # do the action
-    return $enforce->($user, $ban, $type);
+    return $enforce->($user, $ban);
 }
 
 # enforce the ban on all users
@@ -377,7 +377,6 @@ sub id { shift->{id} }
 # $ban->type('hname')
 sub type {
     my $type_name = shift->{type};
-    my $key = shift;
     if (defined(my $key = shift)) {
         my $type = $M::Ban::ban_types{$type_name} or return;
         return $type->{$key};
@@ -386,21 +385,21 @@ sub type {
 }
 
 # matchers
-sub match       { shift->{match}        }   # ban matcher
-sub match_user  { ...                   }   # user field from matcher (or undef)
-sub match_host  { ...                   }   # host field from matcher
+sub match       : lvalue { shift->{match}   }   # ban matcher
+sub match_user  { ...                       }   # user field from matcher (or undef)
+sub match_host  { ...                       }   # host field from matcher
 
 # timestamps and durations
-sub added       { shift->{added}        }   # timestamp when originally added
-sub modified    { shift->{modified}     }   # timestamp when last modified
-sub expires     { shift->{expires}      }   # timestamp of expiration
-sub lifetime    { shift->{lifetime}     }   # timestamp of end-of-life
-sub duration    { shift->{duration}     }   # ban duration in seconds
+sub added    : lvalue { shift->{added}      }   # timestamp when originally added
+sub modified : lvalue { shift->{modified}   }   # timestamp when last modified
+sub expires  : lvalue { shift->{expires}    }   # timestamp of expiration
+sub lifetime : lvalue { shift->{lifetime}   }   # timestamp of end-of-life
+sub duration : lvalue { shift->{duration}   }   # ban duration in seconds
 
 # strings (all of these are optional and may be undef)
-sub reason      { shift->{reason}       }   # reason text
-sub aserver     { shift->{aserver}      }   # server name where ban originated
-sub auser       { shift->{auser}        }   # nick!ident@host that added it
+sub reason  : lvalue { shift->{reason}      }   # reason text
+sub aserver : lvalue { shift->{aserver}     }   # server name where ban originated
+sub auser   : lvalue { shift->{auser}       }   # nick!ident@host that added it
 
 # the expire time relative to the modification time.
 # this is usually the same as ->duration.
@@ -424,6 +423,7 @@ sub has_expired {
 
 # true if the ban's lifetime has expired.
 sub has_expired_lifetime {
+    my $ban = shift;
     return if !$ban->lifetime; # permanent
     return $ban->lifetime <= time;
 }

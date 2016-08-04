@@ -25,7 +25,7 @@ sub init {
         del_cmd         => 'unresv' ,        # delete command
         reason          => 'Reserved',       # reason prefix
         activate_code   => \&activate_resv,  # activation code
-        disable_code     => \&expire_resv,    # expire code
+        disable_code    => \&expire_resv,    # expire code
         match_code      => \&_match          # match checker
     );
 }
@@ -36,13 +36,14 @@ sub _match {
 }
 
 sub activate_resv {
+    print "ACTIVATE RESV: @_\n";
     my $ban = shift;
-    $pool->add_resv($ban->{match}, $ban->{expires});
+    $pool->add_resv($ban->match, $ban->expires);
 }
 
 sub expire_resv {
     my $ban = shift;
-    $pool->delete_resv($ban->{match});
+    $pool->delete_resv($ban->match);
 }
 
 $mod

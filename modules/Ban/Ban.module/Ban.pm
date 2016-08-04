@@ -49,10 +49,10 @@ my %unordered_format = our @format = (
 );
 
 sub init {
-    $mod->load_submodule('Info')                            or return;
 
     # create or update the table.
     $table = $conf->table('bans')                           or return;
+    $mod->load_submodule('Info')                            or return;
     $table->create_or_alter(@format);
 
     # ban API.
@@ -76,6 +76,8 @@ sub init {
     add_enforcement_events();
 
     # initial activation
+    # note that this likely does nothing during boot, but it will be called
+    # again for each ban type as they are registered.
     $_->activate for all_bans();
 
     return 1;
@@ -164,6 +166,10 @@ sub register_ban_type {
 
     L("$type_name registered");
     $mod_->list_store_add(ban_types => $type_name);
+
+    # initial activation
+    $_->activate for all_bans(type => $type_name);
+
     return 1;
 }
 
@@ -202,7 +208,7 @@ sub get_ban_action {
 # ->construct() instead of using ban_by_id() which queries the db for each one
 #
 sub all_bans {
-    my @ban_ids = $table->rows->select('id');
+    my @ban_ids = $table->rows(@_)->select('id');
     return map ban_by_id($_), @ban_ids;
 }
 
@@ -408,7 +414,7 @@ sub _activate_ban_timer {
     # if the ban has expired but its lifetime has not, add a timer to delete it.
     elsif ($lifetime && !$ban->has_expired_lifetime) {
         $expire_time = $lifetime;
-        $code = sub { shift->destroy }
+        $code = sub { shift->destroy };
     }
 
     # if both have expired, delete the ban.
@@ -419,8 +425,8 @@ sub _activate_ban_timer {
 
     # add the timer otherwise.
     my $id = $ban->id;
-    $timers->{$id} = IO::Async::Timer::Absolute->new(
-        time      => $time,
+    $ban_timers{$id} = IO::Async::Timer::Absolute->new(
+        time      => $expire_time,
         on_expire => sub {
             my $ban = ban_by_id($id) or return;
             $code->($ban);
@@ -428,6 +434,19 @@ sub _activate_ban_timer {
     );
 
     return 1; # indicates that a timer was activated
+}
+
+sub _deactivate_ban_timer {
+    my $ban = shift;
+
+    # find the timer.
+    my $timer = delete $ban_timers{ $ban->id } or return;
+
+    # stop it and remove it from the loop.
+    $timer->stop;
+    $timer->remove_from_parent;
+
+    return 1;
 }
 
 # called when the ban should be expired but not deleted.
@@ -486,7 +505,7 @@ sub add_enforcement_events {
     # new local user
     # this is done before sending welcomes or propagating the user
     $pool->on('connection.user_ready' => sub {
-        my $user = shift;
+        my (undef, undef, $user) = @_;
         foreach my $ban (enforceable_bans()) {
             $ban->type('user_code') or next;
             return 1 if $ban->enforce_on_user($user);
@@ -504,14 +523,14 @@ sub add_enforcement_events {
 
 # ban action to kill a user or connection
 sub ban_action_kill {
-    my ($conn_user, $ban, $type) = @_;
+    my ($conn_user, $ban) = @_;
 
     # find the connection
     $conn_user = $conn_user->conn if $conn_user->can('conn');
     $conn_user or return;
 
     # like "Banned" or "Banned: because"
-    my $reason = $type->{reason};
+    my $reason = $ban->type('reason');
     $reason .= ": $$ban{reason}" if length $ban->{reason};
 
     # terminate it
