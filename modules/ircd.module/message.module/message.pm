@@ -17,7 +17,7 @@ use strict;
 use utf8;
 
 use Scalar::Util 'blessed';
-use utils qw(trim col);
+use utils qw(trim col ref_to_list);
 
 our ($api, $mod, $pool, $me);
 our $TRUE      = \'__TAG_TRUE__';
@@ -25,13 +25,25 @@ our $PARAM_BAD = \'__PARAM_BAD__';
 
 sub new {
     my ($class, @opts) = @_;
-    @opts = (data => shift @opts) if scalar @opts == 1;
+    my %opts;
+    %opts = (data => shift @opts) if scalar @opts == 1;
+    %opts = @opts if !%opts;
+
+    # remove undefined tags
+    if (my %tags = ref_to_list($opts{tags})) {
+        defined $tags{$_} or delete $tags{$_} for keys %tags;
+        $opts{tags} = \%tags;
+    }
+
+    # create message
     my $msg = bless {
         tags => {},
-        @opts
+        %opts
     }, $class;
 
+    # parse data if provided
     $msg->parse if length $msg->{data};
+
     return $msg;
 }
 
@@ -164,8 +176,10 @@ sub data {
     # message tags.
     my ($t, $tagstr, @tags) = (0, '@', keys %{ $msg->tags });
     foreach my $tag (@tags) {
-        my $value = _escape_value($msg->tag($tag));
-        $tagstr .= ref $value && $value == $TRUE ? $tag : "$tag=$value";
+        my $value = $msg->tag($tag);
+        next if !defined $value;        
+        $tagstr .= ref $value && $value == $TRUE ?
+            $tag : $tag.'='._escape_value($value);
         $tagstr .= ';' unless $t == $#tags;
         $t++;
     }
@@ -173,7 +187,10 @@ sub data {
 
     # source.
     if (defined(my $source = $msg->source)) {
-        $source = $source->full if blessed $source;
+        if (blessed $source) {
+            my $code = $msg->{source_stringify_method} || $source->can('full');
+            $source = $code->($source);
+        }
         push @parts, ":$source" if length $source;
     }
 

@@ -219,6 +219,23 @@ sub register_outgoing_ts6_command {
 ### Handling incoming TS6 data ###
 ##################################
 
+sub ts6_message {
+    my $msg;
+    if (scalar @_ == 1 && blessed $_[0]) {
+        $msg = shift;
+    }
+    else {
+        $msg = message->new(@_);
+    }
+
+    # TS6 param handlers and lookup methods.
+    $msg->{source_lookup_method}    = \&obj_from_ts6;
+    $msg->{source_stringify_method} = \&ts6_id;
+    $msg->{param_package}           = __PACKAGE__;
+
+    return $msg;
+}
+
 sub _handle_command {
     my ($server, $event, $msg) = @_;
 
@@ -245,10 +262,7 @@ sub _handle_command {
 sub _handle_numeric_maybe {
     my ($server, $event, $msg) = @_;
     $event->cancel('ERR_UNKNOWNCOMMAND');
-
-    # TS6 param handlers and lookup method.
-    $msg->{source_lookup_method} = \&obj_from_ts6;
-    $msg->{param_package} = __PACKAGE__;
+    ts6_message($msg);
 
     # check for numeric
     return 1 if $msg->command !~ m/^\d+$/;
