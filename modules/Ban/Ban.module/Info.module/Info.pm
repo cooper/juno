@@ -172,10 +172,21 @@ sub validate {
     $ban->expires   ||= $ban->duration ? time + $ban->duration : 0;
     $ban->lifetime  ||= $ban->expires;
 
-
     # fix stuff that doesn't make sense
     $ban->lifetime = $ban->expires
         if $ban->lifetime < $ban->expires;
+
+    # separate user and host fields
+    if (!length $ban->match_host || !length $ban->match_user) {
+        if ($ban->match =~ m/^(.*?)\@(.*)$/) {
+            $ban->match_user = $1;
+            $ban->match_host = $2;
+        }
+        else {
+            $ban->match_user = '*';
+            $ban->match_host = $ban->match;
+        }
+    }
 
     return 1;
 }
@@ -406,9 +417,9 @@ sub type {
 }
 
 # matchers
-sub match       : lvalue { shift->{match}   }   # ban matcher
-sub match_user  { ...                       }   # user field from matcher (or undef)
-sub match_host  { ...                       }   # host field from matcher
+sub match       : lvalue { shift->{match}       }   # ban matcher
+sub match_user  : lvalue { shift->{match_user}  }   # user field from matcher
+sub match_host  : lvalue { shift->{match_host}  }   # host field from matcher
 
 # timestamps and durations
 sub added    : lvalue { shift->{added}      }   # timestamp when originally added
