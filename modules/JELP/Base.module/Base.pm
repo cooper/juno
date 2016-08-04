@@ -184,8 +184,9 @@ sub _handle_command {
     $event->cancel('ERR_UNKNOWNCOMMAND');
 
     # JELP param handlers and lookup method.
-    $msg->{source_lookup_method} = \&_lookup_source;
-    $msg->{param_package} = __PACKAGE__;
+    $msg->{source_lookup_method}    = \&_lookup_source;
+    $msg->{source_stringify_method} = sub { shift->id };
+    $msg->{param_package}           = __PACKAGE__;
 
     # figure parameters.
     my @params;

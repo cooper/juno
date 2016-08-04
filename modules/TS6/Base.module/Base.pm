@@ -247,8 +247,9 @@ sub _handle_numeric_maybe {
     $event->cancel('ERR_UNKNOWNCOMMAND');
 
     # TS6 param handlers and lookup method.
-    $msg->{source_lookup_method} = \&obj_from_ts6;
-    $msg->{param_package} = __PACKAGE__;
+    $msg->{source_lookup_method}    = \&obj_from_ts6;
+    $msg->{source_stringify_method} = \&ts6_id;
+    $msg->{param_package}           = __PACKAGE__;
 
     # check for numeric
     return 1 if $msg->command !~ m/^\d+$/;
