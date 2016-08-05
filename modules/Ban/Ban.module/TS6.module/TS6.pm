@@ -25,8 +25,12 @@ use M::TS6::Utils qw(ts6_id);
 
 our ($api, $mod, $pool, $conf, $me);
 
+# these ban types supported by this implementation
 my %ts6_supports = map { $_ => 1 }
     qw(resv kline dline);
+
+# these ban types can be sent in the ENCAP form
+my %ts6_encap_ok = %ts6_supports;
 
 our %ts6_capabilities = (
     KLN   => { required => 0 },
@@ -190,7 +194,7 @@ sub burst_bans {
 
     # if there are no bans, stop here
     return 1 if $server->{bans_negotiated}++;
-    my @bans = get_all_bans() or return 1;
+    my @bans = M::Ban::all_bans() or return 1;
 
     # create a fake user. ha! see issue #32.
     my $uid = $me->{sid}.$pool->{user_i};
@@ -283,6 +287,7 @@ my %can_use_ban = map { $_ => 1 } qw(kline resv);
 # baninfo is the advertisement of a ban. in TS6, use ENCAP K/DLINE
 sub out_baninfo {
     my ($to_server, $ban) = @_;
+    return if !$ts6_supports{ $ban->type };
 
     # charybdis will send the encap target as it is received from the oper.
     # we don't care about that though. juno bans are global.
@@ -347,6 +352,7 @@ sub out_baninfo {
     }
 
     # at this point, we have to have a user source
+    return if !$ts6_encap_ok{ $ban->type };
     my $from = find_from($to_server, $ban) or return;
 
     # encap fallback
@@ -361,6 +367,7 @@ sub out_baninfo {
 # bandel is sent out when a ban is removed. in TS6, use ENCAP UNK/DLINE
 sub out_bandel {
     my ($to_server, $ban) = @_;
+    return if !$ts6_supports{ $ban->type };
     my $from = find_from($to_server, $ban) or return;
 
     # for reserves, it might be a NICKDELAY.
@@ -410,6 +417,8 @@ sub out_bandel {
     }
 
     # encap fallback
+    return if !$ts6_encap_ok{ $ban->type };
+
     return sprintf ':%s ENCAP * UN%s %s',
     ts6_id($from),
     uc $ban->type,
@@ -418,14 +427,15 @@ sub out_bandel {
 
 sub _capab_ban {
     my ($to_server, $from, $ban, $deleting) = @_;
+    return if !$ts6_supports{ $ban->type };
 
     # only these are supported
-    my %possible = (
+    my %ban_cmd_supports = (
         kline => 'K',
       # xline => 'X',
         resv  => 'R'
     );
-    my $letter = $possible{ $ban->type } or return;
+    my $letter = $ban_cmd_supports{ $ban->type } or return;
 
     # nick!user@host{server} that added it
     # or * if this is being set by a real-time user

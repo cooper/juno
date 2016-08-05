@@ -47,7 +47,7 @@ our %jelp_incoming_commands = (
     },
     BANINFO => {
                     # @from_user=uid          :sid BANINFO    id  type match :reason
-        params   => '-tag.from_user(user,opt) -source(server) *   *    *     :rest(opt',
+        params   => '-tag.from_user(user,opt) -source(server) *   *    *     :rest(opt)',
         code     => \&in_baninfo
     },
     BANIDK => {
@@ -74,10 +74,12 @@ sub init {
 
 sub burst_bans {
     my ($server, $fire, $time) = @_;
-    if (!$server->{bans_negotiated}) {
-        $server->fire_command(ban => get_all_bans());
-        $server->{bans_negotiated} = 1;
-    }
+
+    # already did or no bans
+    return 1 if $server->{bans_negotiated}++;
+    my @bans = M::Ban::all_bans() or return 1;
+
+    $server->fire_command(ban => @bans);
 }
 
 # Outgoing
@@ -171,8 +173,14 @@ sub in_ban {
 # BANINFO: share ban data
 sub in_baninfo {
     my ($server, $msg, $from, $source_serv, $id, $type, $match, $reason) = @_;
-
     # $from may be a user object or it may be undef
+
+    # consider: we may want to eventually ignore this message completely if the
+    # stored modification time is equal or newer than the incoming one.
+    # this is hardly necessary for the time being because BANINFO should never
+    # be received unless the ban is being added or modified or we explicitly
+    # requested its information during burst with BANIDK. however, BANINFO may
+    # later be used by a user-initiated which would "resync" all global bans.
 
     # these things can be specified as tags, but all are optional
     my %possible_tags = map { $_ => $msg->tag($_) } qw(

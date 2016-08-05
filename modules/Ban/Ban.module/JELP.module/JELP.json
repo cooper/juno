@@ -11,5 +11,5 @@
    "description" : "JELP ban propagation",
    "name" : "Ban::JELP",
    "package" : "M::Ban::JELP",
-   "version" : "3.9"
+   "version" : "4.2"
 }
