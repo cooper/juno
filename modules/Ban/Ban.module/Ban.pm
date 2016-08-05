@@ -388,9 +388,9 @@ sub handle_add_command {
         match        => $match,
         reason       => $reason,
         duration     => $seconds,
-        auser        => $user->fullreal,
-        _just_set_by => $user->id
-    );
+        auser        => $user->fullreal
+    ) or return;
+    $ban->set_recent_source($user);
 
     # returned nothing
     if (!$ban) {
@@ -434,8 +434,8 @@ sub handle_del_command {
     }
 
     # disable it
-    $ban->{_just_set_by} = $user->id;
     $ban->disable;
+    $ban->set_recent_source($user);
     $pool->fire_command_all(bandel => $ban);
 
     $ban->notify_delete($user);

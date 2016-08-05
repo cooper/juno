@@ -140,10 +140,10 @@ sub M::Ban::Info::ts6_match {
     return $ban->match_host;
 }
 
-# create and register a ban witha user and server
+# create and register a ban with a user and server
 sub create_or_update_ban_server_source {
     my ($type, $server, $source, $mask, $duration, $reason) = @_;
-    return M::Ban::create_or_update_ban(
+    my $ban = M::Ban::create_or_update_ban(
         type         => $type,
         id           => $server->{sid}.'.'.fnv($mask),
         match        => $mask,
@@ -152,9 +152,10 @@ sub create_or_update_ban_server_source {
         aserver      => $source->isa('user')  ?
                         $source->server->name : $source->name,
         auser        => $source->isa('user')  ?
-                        $source->full : $source->id.'!services@'.$source->full,
-        _just_set_by => $source->id
-    );
+                        $source->full : $source->id.'!services@'.$source->full
+    ) or return;
+    $ban->set_recent_source($source);
+    return $ban;
 }
 
 # find a ban for removing
@@ -239,8 +240,7 @@ sub find_from {
     my ($to_server, $ban) = @_;
 
     # if there's no user, this is probably during burst.
-    my $from = $pool->lookup_user($ban->{_just_set_by})
-        || get_fake_user($to_server);
+    my $from = $ban->recent_source;
 
     # this shouldn't happen.
     if (!$from) {
@@ -258,15 +258,15 @@ sub find_from {
 # find who to send an outgoing command. only server
 sub find_from_serv {
     my ($to_server, $ban) = @_;
-    my $from = $pool->lookup_server($ban->{_just_set_by});
+    my $from = $ban->recent_source;
+    undef $from if $from && !$from->isa('server');
     return $from || $me;
 }
 
 # find who to send an outgoing command. any user/server
 sub find_from_any {
     my ($to_server, $ban) = @_;
-    my $from = $pool->lookup_user($ban->{_just_set_by});
-    $from  ||= $pool->lookup_server($ban->{_just_set_by});
+    my $from = $ban->recent_source;
     return $from || $me;
 }
 
@@ -386,7 +386,7 @@ sub out_bandel {
     if ($can_use_ban{ $ban->type } && $to_server->has_cap('BAN')) {
 
         # this can come from either a user or a server
-        my $from = $pool->lookup_user($ban->{_just_set_by}) || $me;
+        my $from = $ban->recent_source || $me;
 
         return _capab_ban($to_server, $from, $ban, 1);
     }
@@ -512,7 +512,7 @@ sub unkline {
 
     # find and remove ban
     my $ban = _find_ban($server, 'kline', "$ident_mask\@$host_mask") or return;
-    $ban->{_just_set_by} = $source->id;
+    $ban->set_recent_source($source);
     $ban->disable;
 
     $ban->notify_delete($source);
@@ -567,7 +567,7 @@ sub undline {
 
     # find and remove ban
     my $ban = _find_ban($server, 'dline', $ip_mask) or return;
-    $ban->{_just_set_by} = $user->id;
+    $ban->set_recent_source($user);
     $ban->disable;
 
     $ban->notify_delete($user);
@@ -648,7 +648,7 @@ sub _unresv {
 
     # find and remove ban
     my $ban = _find_ban($server, 'resv', $nick_chan_mask) or return;
-    $ban->{_just_set_by} = $source->id;
+    $ban->set_recent_source($source);
     $ban->disable;
 
     $ban->notify_delete($source);
@@ -732,8 +732,7 @@ sub ban {
         expires      => $modified + $duration,
         lifetime     => $modified + $lifetime,
         aserver      => $found_server_name,
-        auser        => $found_oper_mask,
-        _just_set_by => $source->id
+        auser        => $found_oper_mask
     );
 
     # K-Line
@@ -784,6 +783,7 @@ sub ban {
         return;
     }
 
+    $ban->set_recent_source($source);
     $ban->notify_new($source);
 
     #=== Forward ===#

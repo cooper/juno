@@ -433,6 +433,25 @@ sub reason  : lvalue { shift->{reason}      }   # reason text
 sub aserver : lvalue { shift->{aserver}     }   # server name where ban originated
 sub auser   : lvalue { shift->{auser}       }   # nick!ident@host that added it
 
+# set recent source.
+sub set_recent_source {
+    my ($ban, $source_obj) = @_;
+    $ban->{_just_set_by} = $source_obj->id;
+}
+
+# object which just set or unset the ban.
+sub recent_source {
+    my $ban = shift;
+    return $pool->lookup_user($ban->{_just_set_by}) ||
+    $pool->lookup_server($ban->{_just_set_by});
+}
+
+# same as above except only return a user.
+sub recent_user {
+    my $ban = shift;
+    return $pool->lookup_user($ban->{_just_set_by});
+}
+
 # the expire time relative to the modification time.
 # this is usually the same as ->duration.
 sub expires_duration {

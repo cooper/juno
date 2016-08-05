@@ -110,7 +110,7 @@ sub out_baninfo {
     );
 
     # get user set by, if available
-    $tags{from_user} = $pool->lookup_user($ban->{_just_set_by});
+    $tags{from_user} = $ban->recent_user;
 
     return jelp_message(
         command => 'BANINFO',
@@ -131,9 +131,10 @@ sub out_banidk {
 sub out_bandel {
     my $to_server = shift;
     my @ban_ids = map $_->id, @_;
+    return if !@ban_ids;
 
     # get user deleted by
-    my $from = $pool->lookup_user($_[0]{_just_set_by});
+    my $from = $_[0]->recent_user;
 
     return jelp_message(
         command => 'BANDEL',
@@ -190,10 +191,9 @@ sub in_baninfo {
         %possible_tags
     ) or return;
 
-    $ban->{_just_set_by} = $from->id if $from;
-    $ban->notify_new($from || $source_serv);
-
     #=== Forward ===#
+    $ban->set_recent_source($from || $source_serv);
+    $ban->notify_new($ban->recent_source);
     $msg->forward(baninfo => $ban);
 
     return 1;
@@ -222,10 +222,10 @@ sub in_bandel {
 
         # find and delete the ban
         my $ban = M::Ban::ban_by_id($id) or next;
-        $ban->{_just_set_by} = $server->id;
-        $ban->disable;
 
-        $ban->notify_delete($from || $source_serv);
+        $ban->set_recent_source($from || $server);
+        $ban->disable;
+        $ban->notify_delete($ban->recent_source);
 
         push @bans, $ban;
     }
