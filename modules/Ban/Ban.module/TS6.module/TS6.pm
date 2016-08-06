@@ -451,7 +451,7 @@ sub _capab_ban {
     $deleting ? 0 : $ban->duration, # REAL duration (not ts6_duration)
     $ban->lifetime_duration, # lifetime, relative to creationTS
     $added_by,              # oper field
-    $ban->reason;           # reason
+    $ban->hr_reason;        # reason
 }
 
 ################

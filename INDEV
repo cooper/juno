@@ -3682,3 +3682,6 @@ CHANGES:
             e7fa917 update JELP ban implementation to use objective bans.
             a33fa8d get rid of confusing _just_set_by. this is now handled internally by new methods ->set_recent_source, ->recent_source, and ->recent_user.
             5eea4b5 use the newer all_bans() instead of get_all_bans(). improve TS6 ban type checks.
+
+    9. use ->hr_reason in TS6 outgoing BAN command. this fixes TS6 propagation of bans without a reason.
+        
