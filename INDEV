@@ -3641,3 +3641,44 @@ CHANGES:
         88. add jelp_message() and ts6_message().
             improved string<->object conversion in message.pm.
             in message.pm, check if params are undefined when passed to constructor. also convert objects with the new stringify function.
+
+        89. the Ban implementation has been reworked to use Ban::Info objects instead of passing around hashes. closes #134.
+            aside from the cleanup, this also fixes a lot of issues in ban expiration and adds proper lifetime support. closes #114.
+            JELP ban propagation commands have been revised; instead of working with raw keys and value pairs, JELP now uses a combination of ordered command parameters and message tags.
+            From objective-bans:
+            ccb7ad3 new Ban::Info is an objective representation of a ban. #134.
+            3f9acd0 move time prettifier functions to utils.
+            da6874c add Ban::Info ->disable, timer methods, enforcement methods.
+            3ecb132 move notifications to Info, add some ban info getters.
+            edabc0c add ->validate.
+            332d4b4 add ->update and create_my_ban().
+            c8e6772 add create_or_update_ban(), ban_by_id().
+            09eebef Merge branch 'master' into objective-bans.
+            3e51ab8 update ban_by_id() to use ban table.
+            812cfbc add ->activate(), all_bans().
+            db9a2e5 activate ban on create_or_update(). enforce ban on ->enable_enforcement().
+            3e5fec2 add ->has_expired, ->has_expired_lifetime, more ->hr_* getters.
+            c8232f7 update BANS command.
+            c52f657 fix timers, enforcement activation.
+            8b5b243 update enforce_ban_on_conn(), enforce_ban_on_user().
+            22aa80c add ban_enforces.
+            bcd9004 add ->enforce_on_user(), ->enforce_on_conn(). get rid of 'id' field in ban actions; it's the same as 'name'.
+            e7f3c15 add ->enforce_on_all_conns, ->enforce_on_all_users.
+            f26780d update stuff to enforce all bans on one entity and move to add_enforcement_events().
+            c379325 add more getters.
+            c2fe2e1 even more getters.
+            8541ea6 move enable_code and disable_code to Info. add ->enforce().
+            19b9c31 update add/del commands to use objective bans. update create_my_ban(). add matcher getters.
+            c5de606 make getters lvalues. update kline, line, resv to use new ban objects. add _deactivate_ban_timer().
+            35dd148 fix expiration. add ->destroy.
+            0b69c66 fix expiration notices to only show when it is truly expiring, not when it is deleted.
+            851ceb8 improve the BANS command. add more ->hr_* getters.
+            af9364a add lifetime checks.
+            cf25fbf add ->match_user, ->match_host.
+            dec672a rewrite Ban::TS6 to use objective bans.
+            3367ab0 delete Info method additions on void.
+            8005615 Merge branch 'master' into objective-bans.
+            849025f Merge branch 'master' into objective-bans.
+            e7fa917 update JELP ban implementation to use objective bans.
+            a33fa8d get rid of confusing _just_set_by. this is now handled internally by new methods ->set_recent_source, ->recent_source, and ->recent_user.
+            5eea4b5 use the newer all_bans() instead of get_all_bans(). improve TS6 ban type checks.
