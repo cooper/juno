@@ -188,6 +188,13 @@ sub validate {
         }
     }
 
+    # at this point, we have to give up if any of these are missing.
+    for (qw[ id type match duration ]) {
+        next if defined $ban->{$_};
+        warn "\$ban->validate() failed because '$_' is missing!";
+        return;
+    }
+
     return 1;
 }
 

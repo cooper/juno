@@ -3684,4 +3684,4 @@ CHANGES:
             5eea4b5 use the newer all_bans() instead of get_all_bans(). improve TS6 ban type checks.
 
     9. use ->hr_reason in TS6 outgoing BAN command. this fixes TS6 propagation of bans without a reason.
-        
+        added additional checks in ban ->validate().
