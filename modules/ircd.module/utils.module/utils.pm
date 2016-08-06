@@ -368,6 +368,17 @@ sub string_to_seconds {
 
 }
 
+# time prettifiers
+sub pretty_time     { scalar localtime shift }
+sub pretty_duration {
+    my $secs = shift;
+    if ($secs >= 365*24*60*60) { return sprintf '%.1fy', $secs/(365*24*60*60) }
+    elsif ($secs >= 24*60*60)  { return sprintf '%.1fd', $secs/(24*60*60) }
+    elsif ($secs >= 60*60)     { return sprintf '%.1fh', $secs/(60*60) }
+    elsif ($secs >= 60)        { return sprintf '%.1fm', $secs/(60) }
+    return sprintf '%.1fs', $secs;
+}
+
 # fetch variable.
 sub v {
     my $h = \%::v;
@@ -489,6 +500,7 @@ sub import {
     no strict 'refs';
     *{$package.'::'.$_} = *{$this_package.'::'.$_} foreach @_;
 }
+
 
 # utils must have its own L() because it is loaded before anything else.
 sub L { ircd::_L($mod, [caller 1], @_) if ircd->can('_L') }

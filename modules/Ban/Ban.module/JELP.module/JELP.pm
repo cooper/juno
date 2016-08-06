@@ -20,22 +20,18 @@ use warnings;
 use strict;
 use 5.010;
 
-M::Ban->import(qw(
-    notify_new_ban      notify_delete_ban
-    get_all_bans        delete_deactivate_ban_by_id
-    ban_by_id           add_update_enforce_activate_ban
-));
-
 our ($api, $mod, $pool, $conf, $me);
 
 ############
 ### JELP ###
 ############
 
+*jelp_message = *M::JELP::Base::jelp_message;
+
 # keys that are valid for propagation.
 # note that 'reason' is not in this list because it's special.
 my %good_keys = map { $_ => 1 }
-    qw(id type match duration added modified expires lifetime auser aserver);
+    qw();
 
 our %jelp_outgoing_commands = (
     ban     => \&out_ban,
@@ -50,15 +46,16 @@ our %jelp_incoming_commands = (
         code    => \&in_ban
     },
     BANINFO => {
-        params   => '-tag.from_user(user,opt) @rest',
+                    # @from_user=uid          :sid BANINFO    id  type match :reason
+        params   => '-tag.from_user(user,opt) -source(server) *   *    *     :rest(opt)',
         code     => \&in_baninfo
     },
     BANIDK => {
         params  => '@rest',
         code    => \&in_banidk
     },
-    BANDEL => {
-        params  => '-tag.from_user(user,opt) @rest',
+    BANDEL => {    # @from_user=uid          :sid BANDEL     id1 id2...
+        params  => '-tag.from_user(user,opt) -source(server) @rest',
         code    => \&in_bandel
     }
 );
@@ -77,10 +74,12 @@ sub init {
 
 sub burst_bans {
     my ($server, $fire, $time) = @_;
-    if (!$server->{bans_negotiated}) {
-        $server->fire_command(ban => get_all_bans());
-        $server->{bans_negotiated} = 1;
-    }
+
+    # already did or no bans
+    return 1 if $server->{bans_negotiated}++;
+    my @bans = M::Ban::all_bans() or return 1;
+
+    $server->fire_command(ban => @bans);
 }
 
 # Outgoing
@@ -95,7 +94,7 @@ sub out_ban {
     my $str = '';
     foreach my $ban (@_) {
         $str .= ' ' if $str;
-        $str .= $ban->{id}.q(,).$ban->{modified};
+        $str .= $ban->id.q(,).$ban->modified;
     }
 
     ":$$me{sid} BAN $str"
@@ -103,29 +102,24 @@ sub out_ban {
 
 # BANINFO: share ban data
 sub out_baninfo {
-    my ($to_server, $ban_) = @_;
+    my ($to_server, $ban) = @_;
     my $str = '';
-    my %ban = %$ban_;
 
-    # get user set by
-    my $from = $pool->lookup_user($ban{_just_set_by});
+    # this info is added as tags
+    my %tags = map { $_ => $ban->$_ } qw(
+        duration added modified expires
+        lifetime auser aserver
+    );
 
-    # remove bogus keys
-    delete @ban{ grep !$good_keys{$_}, keys %ban };
+    # get user set by, if available
+    $tags{from_user} = $ban->recent_user;
 
-    # add each key and value
-    foreach my $key (keys %ban) {
-        my $value = $ban{$key};
-        next unless length $value;
-        next if ref $value;
-        $str .= "$key $value ";
-    }
-
-    my $reason = $ban{reason} // '';
-
-    my $res = ":$$me{sid} BANINFO $str:$reason";
-    $res = "\@from_user=$$from{uid} $res" if $from;
-    $res;
+    return jelp_message(
+        command => 'BANINFO',
+        source  => $me,
+        params  => [ $ban->id, $ban->type, $ban->match, $ban->reason ],
+        tags    => \%tags
+    )->data;
 }
 
 # BANIDK: request ban data
@@ -138,14 +132,18 @@ sub out_banidk {
 # BANDEL: delete bans
 sub out_bandel {
     my $to_server = shift;
-    my $str = join ' ', map $_->{id}, @_;
+    my @ban_ids = map $_->id, @_;
+    return if !@ban_ids;
 
     # get user deleted by
-    my $from = $pool->lookup_user($_[0]{_just_set_by});
+    my $from = $_[0]->recent_user;
 
-    my $res = ":$$me{sid} BANDEL $str";
-    $res = "\@from_user=$$from{uid} $res" if $from;
-    $res;
+    return jelp_message(
+        command => 'BANDEL',
+        source  => $me,
+        params  => \@ban_ids,
+        tags    => { from_user => $from }
+    )->data;
 }
 
 # Incoming
@@ -154,55 +152,57 @@ sub out_bandel {
 # BAN: burst bans
 sub in_ban {
     my ($server, $msg, @items) = @_;
-
-    # check ban times
-    my (@i_dk, @u_dk, %done);
+    my @idk;
     foreach my $item (@items) {
-        my @parts = split /,/, $item;
-        next if @parts % 2;
-        my ($id, $modified) = @parts;
+
+        # split into ban ID and modified time.
+        my ($id, $modified) = split /,/, $item;
+        next if !length $id || !length $modified;
 
         # does this ban exist?
-        if (my %ban = ban_by_id($id)) {
-            next if $ban{modified} == $modified;
-            push @i_dk, $id if $modified > $ban{modified};
-            push @u_dk, $id if $modified < $ban{modified};
+        # ignore this if our existing mod time is the same or newer
+        if (my $ban = M::Ban::ban_by_id($id)) {
+            next if $ban->modified >= $modified;
         }
 
-        push @i_dk, $id;
-        $done{$id} = 1;
+        push @idk, $id;
     }
-
-    # if the server didn't mention some bans, send them out too
-    push @u_dk, grep { !$done{$_} } map $_->{id}, get_all_bans();
-
-    # FIXME: do I need u_dk or not?
-
-    $server->fire_command(banidk => @i_dk) if @i_dk;
+    $server->fire_command(banidk => @idk) if @idk;
 }
 
 # BANINFO: share ban data
-# :sid BANINFO key value key value :reason
-# TODO: add @from_user for passing to notify
 sub in_baninfo {
-    my ($server, $msg, $from, @parts) = @_;
+    my ($server, $msg, $from, $source_serv, $id, $type, $match, $reason) = @_;
+    # $from may be a user object or it may be undef
 
-    # the reason is always last
-    my $reason = pop @parts;
+    # consider: we may want to eventually ignore this message completely if the
+    # stored modification time is equal or newer than the incoming one.
+    # this is hardly necessary for the time being because BANINFO should never
+    # be received unless the ban is being added or modified or we explicitly
+    # requested its information during burst with BANIDK. however, BANINFO may
+    # later be used by a user-initiated which would "resync" all global bans.
 
-    # the rest must be divisible by two
-    return if @parts % 2;
-    my %ban = (@parts, reason => $reason);
+    # these things can be specified as tags, but all are optional
+    my %possible_tags = map { $_ => $msg->tag($_) } qw(
+        duration added modified expires
+        lifetime auser aserver
+    );
+    defined $possible_tags{$_} or delete $possible_tags{$_}
+        for keys %possible_tags;
 
-    # ignore unknown keys
-    delete @ban{ grep !$good_keys{$_}, keys %ban };
-
-    # validate, update, enforce, and activate
-    %ban = add_update_enforce_activate_ban(%ban) or return;
-    notify_new_ban($from || $server, %ban);
+    # create or update a ban based on the required parameters and optional tags.
+    my $ban = M::Ban::create_or_update_ban(
+        id      => $id,
+        type    => $type,
+        match   => $match,
+        reason  => $reason,  # optional
+        %possible_tags
+    ) or return;
 
     #=== Forward ===#
-    $msg->forward(baninfo => \%ban);
+    $ban->set_recent_source($from || $source_serv);
+    $ban->notify_new($ban->recent_source);
+    $msg->forward(baninfo => $ban);
 
     return 1;
 }
@@ -213,30 +213,33 @@ sub in_banidk {
 
     # send out ban info for each requested ID
     foreach my $id (@ids) {
-        my %ban = ban_by_id($id) or next;
-        $server->fire_command(baninfo => \%ban);
+        my $ban = M::Ban::ban_by_id($id) or next;
+        $server->fire_command(baninfo => $ban);
     }
 
     return 1;
 }
 
 # BANDEL: delete a ban
-# TODO: add @from_user for passing to notify
 sub in_bandel {
-    my ($server, $msg, $from, @ids) = @_;
+    my ($server, $msg, $from, $source_serv, @ids) = @_;
+    my @bans;
 
+    # handle each ban
     foreach my $id (@ids) {
 
-        # find and delete each ban
-        my %ban = ban_by_id($id) or next;
-        $ban{_just_set_by} = $server->id;
-        delete_deactivate_ban_by_id($id);
-        notify_delete_ban($from || $server, %ban);
+        # find and delete the ban
+        my $ban = M::Ban::ban_by_id($id) or next;
 
-        #=== Forward ===#
-        $msg->forward(bandel => \%ban);
+        $ban->set_recent_source($from || $server);
+        $ban->disable;
+        $ban->notify_delete($ban->recent_source);
 
+        push @bans, $ban;
     }
+
+    #=== Forward ===#
+    $msg->forward(bandel => @bans) if @bans;
 
     return 1;
 }

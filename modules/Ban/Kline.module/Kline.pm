@@ -59,10 +59,10 @@ sub user_or_conn_matches {
     return unless length $ident;
 
     return $KILL_CONN
-        if irc_match("$ident\@$host", $ban->{match});
+        if irc_match("$ident\@$host", $ban->match);
 
     return $KILL_CONN
-        if irc_match("$ident\@$ip",   $ban->{match});
+        if irc_match("$ident\@$ip",   $ban->match);
 
     return;
 }

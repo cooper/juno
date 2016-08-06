@@ -50,7 +50,7 @@ sub _match {
 sub conn_matches {
     my ($conn, $ban) = @_;
     return $KILL_CONN
-        if utils::irc_match($conn->{ip}, $ban->{match});
+        if utils::irc_match($conn->{ip}, $ban->match);
     return;
 }
 

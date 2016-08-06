@@ -1,0 +1,10 @@
+{
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
+   "description" : "objective representation of a ban",
+   "name" : "Ban::Info",
+   "package" : "M::Ban::Info",
+   "version" : "2.9"
+}
