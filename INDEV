@@ -3640,3 +3640,4 @@ CHANGES:
 
         88. add jelp_message() and ts6_message().
             improved string<->object conversion in message.pm.
+            in message.pm, check if params are undefined when passed to constructor. also convert objects with the new stringify function.

@@ -35,6 +35,11 @@ sub new {
         $opts{tags} = \%tags;
     }
 
+    # remove undefined parameters
+    if (my $params = $opts{params}) {
+        $opts{params} = [ grep defined, ref_to_list($params) ];
+    }
+
     # create message
     my $msg = bless {
         tags => {},
@@ -198,12 +203,16 @@ sub data {
     # command.
     push @parts, $msg->command if length $msg->command;
 
-    # arguments.
+    # parameters.
     my ($p, @params) = (0, $msg->params);
     foreach my $param (@params) {
 
         # handle objects.
-        $param = $param->name if blessed $param && $param->can('name');
+        if (blessed $param) {
+            my ($str, $changed) = $msg->_stringify($param);
+            $param = $changed            ? $str         :
+                     $param->can('name') ? $param->name : $param;
+        }
 
         # handle sentinel-prefixed final parameter.
         $param = ":$param" if $p == $#params && $param =~ m/\s+/;
