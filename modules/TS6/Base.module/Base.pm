@@ -229,9 +229,9 @@ sub ts6_message {
     }
 
     # TS6 param handlers and lookup methods.
-    $msg->{source_lookup_method}    = \&obj_from_ts6;
-    $msg->{source_stringify_method} = \&ts6_id;
-    $msg->{param_package}           = __PACKAGE__;
+    $msg->{objectify_function}  = \&obj_from_ts6;
+    $msg->{stringify_function}  = \&ts6_id;
+    $msg->{param_package}       = __PACKAGE__;
 
     return $msg;
 }

@@ -177,7 +177,7 @@ sub data {
     my ($t, $tagstr, @tags) = (0, '@', keys %{ $msg->tags });
     foreach my $tag (@tags) {
         my $value = $msg->tag($tag);
-        next if !defined $value;        
+        next if !defined $value;
         $tagstr .= ref $value && $value == $TRUE ?
             $tag : $tag.'='._escape_value($value);
         $tagstr .= ';' unless $t == $#tags;
@@ -188,8 +188,9 @@ sub data {
     # source.
     if (defined(my $source = $msg->source)) {
         if (blessed $source) {
-            my $code = $msg->{source_stringify_method} || $source->can('full');
-            $source = $code->($source);
+            my ($str, $changed) = $msg->_stringify($source);
+            $source = $changed   ? $str          :
+            $source->can('full') ? $source->full : $source;
         }
         push @parts, ":$source" if length $source;
     }
@@ -237,14 +238,10 @@ sub source {
     if (!blessed $source) {
 
         # is there code for looking up sources?
-        if (my $code = $msg->{source_lookup_method}) {
-            return unless ref $code eq 'CODE';
-            $source = $code->($msg);
-            $msg->{source} = $source if $source;
-            return $source;
-        }
+        my ($obj, $changed) = $msg->_objectify($source);
+        return $obj if $changed;
 
-        # no, use the client protocol.
+        # if not, assume the client protocol.
 
         # nickname lookup.
         $source = $pool->lookup_user_nick($1) if $source =~ m/^(.+)!.*@.*/;
@@ -403,6 +400,28 @@ sub parse_params {
 
     }
     return @final;
+}
+
+# object->string. returns ($string, $changed)
+sub _stringify {
+    my ($msg, $possible_object) = @_;
+    my $code = $msg->{stringify_function};
+    if (!blessed $possible_object || !$code || ref $code ne 'CODE') {
+        return $possible_object;
+    }
+    my $string = $code->($possible_object);
+    return wantarray ? ($string, 1) : $string;
+}
+
+# string->object. returns ($object, $changed)
+sub _objectify {
+    my ($msg, $possible_id) = @_;
+    my $code = $msg->{objectify_function};
+    if (blessed $possible_id || !$code || ref $code ne 'CODE') {
+        return $possible_id;
+    }
+    my $object = $code->($possible_id);
+    return wantarray ? ($object, 1) : $object;
 }
 
 ############################################

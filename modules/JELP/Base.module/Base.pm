@@ -189,9 +189,9 @@ sub jelp_message {
     }
 
     # JELP param handlers and lookup methods.
-    $msg->{source_lookup_method}    = \&_lookup_source;
-    $msg->{source_stringify_method} = sub { shift->id };
-    $msg->{param_package}           = __PACKAGE__;
+    $msg->{objectify_function}  = \&_lookup_source;
+    $msg->{stringify_function}  = sub { shift->id };
+    $msg->{param_package}       = __PACKAGE__;
 
     return $msg;
 }

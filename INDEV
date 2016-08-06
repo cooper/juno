@@ -3639,3 +3639,4 @@ CHANGES:
             message.pm now checks if tags are undefined. the ->data() method can now use a new optional 'source_stringify_method' to stringify a source object.
 
         88. add jelp_message() and ts6_message().
+            improved string<->object conversion in message.pm.
