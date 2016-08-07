@@ -32,6 +32,11 @@ my %ts6_supports = map { $_ => 1 }
 # these ban types can be sent in the ENCAP form
 my %ts6_encap_ok = %ts6_supports;
 
+# this is the maximum duration permitted for global bans in charybdis.
+# it is only currently used by the outgoing BAN command.
+# charybdis/blob/8fed90ba8a221642ae1f0fd450e8e580a79061fb/ircd/s_newconf.cc#L747
+my $max_duration = 524160;
+
 our %ts6_capabilities = (
     KLN   => { required => 0 },
     UNKLN => { required => 0 },
@@ -442,14 +447,15 @@ sub _capab_ban {
     my $added_by = $ban->auser ? "$$ban{auser}\{$$ban{aserver}\}" : '*';
     $added_by = '*' if $from->isa('user');
 
+
     return sprintf ':%s BAN %s %s %s %d %d %d %s :%s',
     ts6_id($from),          # user or server
     $letter,                # ban type
     $ban->match_user,       # user mask or *
     $ban->match_host,       # host mask
     $ban->modified,         # creationTS (modified time)
-    $deleting ? 0 : $ban->duration, # REAL duration (not ts6_duration)
-    $ban->lifetime_duration, # lifetime, relative to creationTS
+    $deleting ? 0 : $ban->duration || $max_duration, # REAL duration (not ts6_duration)
+    $ban->lifetime_duration        || $max_duration, # lifetime, relative to creationTS
     $added_by,              # oper field
     $ban->hr_reason;        # reason
 }
