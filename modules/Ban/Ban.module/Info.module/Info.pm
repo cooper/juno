@@ -176,6 +176,13 @@ sub validate {
     $ban->lifetime = $ban->expires
         if $ban->lifetime < $ban->expires;
 
+    # at this point, we have to give up if any of these are missing.
+    for (qw[ id type match duration ]) {
+        next if defined $ban->{$_};
+        warn "\$ban->validate() failed because '$_' is missing!";
+        return;
+    }
+
     # separate user and host fields
     if (!length $ban->match_host || !length $ban->match_user) {
         if ($ban->match =~ m/^(.*?)\@(.*)$/) {
@@ -186,13 +193,6 @@ sub validate {
             $ban->match_user = '*';
             $ban->match_host = $ban->match;
         }
-    }
-
-    # at this point, we have to give up if any of these are missing.
-    for (qw[ id type match duration ]) {
-        next if defined $ban->{$_};
-        warn "\$ban->validate() failed because '$_' is missing!";
-        return;
     }
 
     return 1;
@@ -463,13 +463,15 @@ sub recent_user {
 # this is usually the same as ->duration.
 sub expires_duration {
     my $ban = shift;
-    return $ban->modified - $ban->expires;
+    return 0 if !$ban->expires;
+    return $ban->expires - $ban->modified;
 }
 
 # the lifetime relative to the modification time.
 sub lifetime_duration {
     my $ban = shift;
-    return $ban->modified - $ban->lifetime;
+    return 0 if !$ban->lifetime;
+    return $ban->lifetime - $ban->modified;
 }
 
 # true if the ban has expired. it may still have lifetime though.
