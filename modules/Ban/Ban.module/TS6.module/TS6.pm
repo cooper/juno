@@ -130,7 +130,7 @@ sub void {
 # calculate how long the duration should be from the current time
 sub M::Ban::Info::ts6_duration {
     my $ban = shift;
-    return if !$ban->expires;
+    return 0 if !$ban->expires;
     return $ban->expires - time;
 }
 
