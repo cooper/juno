@@ -250,6 +250,7 @@ sub find_from {
 
     # if there's no user, this is probably during burst.
     my $from = $ban->recent_source;
+    $from  ||= get_fake_user($to_server);
 
     # this shouldn't happen.
     if (!$from) {

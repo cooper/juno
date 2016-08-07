@@ -3688,6 +3688,7 @@ CHANGES:
         fixed ban enforcement issues caused by get_ban_action() being passed action refs rather than string action names.
         updated Evented::API::Engine. this fixes #136.
 
-            91. use max duration 314 days for global permanent bans in TS6.
-                in create_or_update_ban(), check the modification time. ignore unchanged bans.
-                this fixes an issue where new ban notifications were sent on TS6 burst for preexisting bans.
+        91. use max duration 314 days for global permanent bans in TS6.
+            in create_or_update_ban(), check the modification time. ignore unchanged bans.
+            this fixes an issue where new ban notifications were sent on TS6 burst for preexisting bans.
+            fixed Ban::TS6 to use the ban agent again during our own burst.
