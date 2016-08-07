@@ -237,6 +237,12 @@ sub create_or_update_ban {
         return if !$ban;
     }
 
+    # for existing bans, do not accept this unless the modification time
+    # is newer than what we already know.
+    else {
+        return if $opts{modified} <= $ban->modified;
+    }
+
     # update ban info. this also validates.
     $ban->update(%opts) or return;
 

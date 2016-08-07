@@ -256,7 +256,7 @@ sub find_from {
         notice(server_protocol_warning =>
             $to_server->notice_info,
             'cannot be sent ban info because no source user was specified and '.
-            'the ban agent is not available'
+            "the ban agent is not available ($$ban{type} $$ban{match})"
         );
         return;
     }
