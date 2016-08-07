@@ -200,7 +200,9 @@ sub register_ban_action {
 # for enforcement functions.
 sub get_ban_action {
     my ($mod_, $event, $action_name) = @_;
-    return $ban_actions{ lc $action_name }{name};
+    return $action_name if ref $action_name;
+    my $action = $ban_actions{ lc $action_name } or return;
+    return $action;
 }
 
 ########################

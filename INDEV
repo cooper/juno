@@ -3685,3 +3685,4 @@ CHANGES:
 
     9. use ->hr_reason in TS6 outgoing BAN command. this fixes TS6 propagation of bans without a reason.
         added additional checks in ban ->validate().
+        fixed ban enforcement issues caused by get_ban_action() being passed action refs rather than string action names.

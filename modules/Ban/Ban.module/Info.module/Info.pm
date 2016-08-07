@@ -289,12 +289,12 @@ sub enforce_on_conn {
     my ($ban, $conn) = @_;
 
     # check that the connection matches
-    my $conn_code = $ban->type('conn_code')   or return;
-    my $action = $conn_code->($conn, $ban)    or return;
+    my $conn_code = $ban->type('conn_code')     or return;
+    my $action = $conn_code->($conn, $ban)      or return;
 
     # find the action conn code
-    $action = M::Ban::get_ban_action($action) or return;
-    my $enforce = $action->{conn_code}        or return;
+    $action = $mod->get_ban_action($action)     or return;
+    my $enforce = $action->{conn_code}          or return;
 
     # do the action
     return $enforce->($conn, $ban);
@@ -317,12 +317,12 @@ sub enforce_on_user {
     return unless $user->is_local;
 
     # check that the user matches
-    my $user_code = $ban->type('user_code')   or return;
-    my $action = $user_code->($user, $ban)    or return;
+    my $user_code = $ban->type('user_code')     or return;
+    my $action = $user_code->($user, $ban)      or return;
 
     # find the action user code
-    $action = M::Ban::get_ban_action($action) or return;
-    my $enforce = $action->{user_code}        or return;
+    $action = $mod->get_ban_action($action)     or return;
+    my $enforce = $action->{user_code}          or return;
 
     # do the action
     return $enforce->($user, $ban);
