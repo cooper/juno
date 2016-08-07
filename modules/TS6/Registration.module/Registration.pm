@@ -112,7 +112,7 @@ sub rcmd_capab {
 #
 sub rcmd_pass {
     my ($connection, $event, $pass, undef, $ts_version, $sid) = @_;
-    $connection->{proto} = "TS$ts_version";
+    $connection->{proto} = $ts_version;
 
     # not supported.
     if ($ts_version != $TS_CURRENT) {
@@ -250,7 +250,7 @@ sub svinfo {
         );
     }
 
-    $server->{proto} = "TS$current";
+    $server->{proto} = $current;
     return 1;
 }
 

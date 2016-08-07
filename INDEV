@@ -3692,3 +3692,4 @@ CHANGES:
             in create_or_update_ban(), check the modification time. ignore unchanged bans.
             this fixes an issue where new ban notifications were sent on TS6 burst for preexisting bans.
             fixed Ban::TS6 to use the ban agent again during our own burst.
+            ircd and proto server keys are now always numeric. update oper notice to use link_type and ircd_name.
