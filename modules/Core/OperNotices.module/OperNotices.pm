@@ -46,7 +46,7 @@ our %oper_notices = (
     channel_mode_unknown    => 'Attempted to set %s, but this mode is not defined on %s; ignored',
 
     # servers
-    new_server              => '%s ircd %s, proto %s [%s] parent: %s',
+    new_server              => '%s ircd = %s, proto = %s [%s] parent: %s',
     server_closing          => 'Received SQUIT from %s; dropping link (%s)',
     server_quit             => '%s quit from parent %s (%s)',
     server_burst            => '%s is bursting information',
