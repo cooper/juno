@@ -195,22 +195,32 @@ bans.
 Bans are sent to TS6 servers on burst. Because certain ban commands only support
 a user source, a ban agent bot may be introduced to set the bans and then exit.
 
+### Durations
+
 The duration sent to TS6 servers is variable based on the difference between the
 expiration time and the duration, since we cannot propagate an expiration time.
 The TS6 server will ignore any bans which already exist for the given mask,
 which is perfect for our purposes. An exception to this is the newer BAN command
 which does allow propagation of expiry times and is used when available.
 
+A limitation of the BAN command is that it does not support global permanent
+bans. In such a case, juno will use the maximum ban duration supported by
+charybdis which, at the time of writing, is 364 days. After a year passes and
+the ban expires, it will be revived the next time the servers link.
+
+### Command preference
+
 Ban::TS6 uses the charybdis-style BAN command when possible. Alternatively KLINE
-and INCLINE may be used when the KLN and UKLN capabilities are available.
+and UNKLINE may be used when the KLN and UKLN capabilities are available.
 Otherwise, it uses ENCAP KLINE and ENCAP UNKLINE. DLINEs always use ENCAP and
 therefore always require a ban agent during burst.
 
-Note that, because some charybdis server bans are local-only, the TS6 server may
-not burst its own bans (such as D-Lines, or even K-Lines if the BAN capability
-is not available). However, ban commands are handled such that AKILLs (which
-have target `*`) will be effective across an entire mixed charybdis/juno
-network. AKILL is considered the most reliable way to ensure global ban propagation.
+Note that, because some server bans are local-only, the TS6 server may
+not burst its own bans to juno (such as D-Lines, or even K-Lines if the BAN
+capability is not available). However, ban commands are handled such that AKILLs
+(which have target `*`) will be effective across an entire mixed charybdis/juno
+network. AKILL is considered the most reliable way to ensure global ban
+propagation.
 
 See issue [#32](https://github.com/cooper/juno/issues/32)
 for more information about the TS6 ban implementation.
