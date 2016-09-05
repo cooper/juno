@@ -3,26 +3,22 @@
 use warnings; use strict; use 5.010;
 foreach ([qw(__WARN__ WARNING)], [qw(TERM terminate )], [qw(KILL terminate)],
          [qw(INT    terminate)], [qw(PIPE signalpipe)], [qw(HUP  signalhup)]) {
-my  ($sig, $func) = @$_; $SIG{$sig} = sub { safe_call($func, @_) } }    
+my  ($sig, $func) = @$_; $SIG{$sig} = sub { safe_call($func, @_) } }
 our ($run_dir, $loop, $api, $pool, %v); local $0 = 'juno';
-
 BEGIN {
     defined($run_dir = shift @ARGV) or die "No directory specified";
     die "Run directory does not exist" unless -d $run_dir;
     chdir $run_dir or die "Can't access run directory";
     foreach (map { "$run_dir/lib$_" } ('', qw(/api-engine /evented-object/lib
-        /evented-api-engine/lib /evented-configuration/lib
-        /evented-database/lib /evented-properties/lib))){ unshift @INC, $_ }
+        /evented-api-engine/lib))) { unshift @INC, $_ }
     require Evented::API::Engine;
 }
 sub get_version { $_ = $api->_slurp(undef, undef, "$run_dir/VERSION"); chomp; $_ }
-sub safe_call   { my $f = shift; (ircd->can($f) or return)->(@_) } # @_ is needed idk why
-
+sub safe_call   { my $f = shift; (ircd->can($f) or return)->(@_) }
 $api = Evented::API::Engine->new(
     mod_inc => ['modules', 'lib/evented-api-engine/mod'],
     log_sub => sub { say $_[1] }
 );
 our $VERSION = get_version() or die "Can't read VERSION";
-
 $api->load_module('ircd') or exit 1;
 ircd::loop();

@@ -21,83 +21,109 @@ use POSIX          ();
 our ($api, $mod, $me, $pool, $loop, $conf, $boot, $timer, $VERSION);
 our (%channel_mode_prefixes, %listeners, %listen_protocol, $disable_warnings);
 
-######################
-### INITIALIZATION ###
-######################
+#############################
+### Module initialization ###
+################################################################################
 
 sub init {
 
-    # load utils immediately.
-    $mod->load_submodule('utils') or return;
-    utils->import(qw|conf fatal v trim notice gnotice ref_to_list|);
-    $VERSION = get_version();
-    $mod->{version} = $VERSION;
+    # PHASE 1: Load utilities
+    #
+    #   utils is used everywhere, including this ircd package. we must treat it
+    #   specially and load it manually before doing anything else. we also
+    #   call ->import() directly because utils is not a formal dependency.
+    #
 
-    &set_variables;         # set default global variables.
-    &boot;                  # boot if we haven't already.
+    &setup_utils;           # load utils module
 
-    L('Started server at '.scalar(localtime v('START')));
+    # PHASE 2: Prepare for boot
+    #
+    #   here we prepare for boot by reading the VERSION file and setting
+    #   $ircd::VERSION. we then set up the global variable map which contains
+    #   additional version information and default values for statistics.
+    #
 
-    &setup_inc;             # add things to @INC.
-    &load_dependencies;     # load or reload all dependency packages.
-    &setup_config;          # parse the configuration.
-    &setup_logging;         # open the logging handle.
-    &load_optionals;        # load or reload optional packages.
+    &set_version;           # set $VERSION to VERSION file
+    &set_variables;         # set default global variables
 
-    # create the server before the server module is loaded.
-    # these default values will be added if not present,
-    # even when reloading the ircd module.
-    $me = $::v{SERVER} ||= bless {}, 'server';
-    $me->{ $_->[0] } //= $_->[1] foreach (
-        [ umodes   => {} ],
-        [ cmodes   => {} ],
-        [ users    => [] ],
-        [ children => [] ]
-    );
-    $me->{parent} = $me;
+    # PHASE 3: Boot
+    #
+    #   finally, we boot(), which requires the most basic of our dependencies,
+    #   daemonizes, and initializes the IO::Async loop. boot() has no effect
+    #   during reload; it only applies to the initial startup.
+    #
 
-    # exported variables in modules.
-    # note that these will not be available in the utils module.
-    $api->on('module.set_variables' => sub {
-        my ($event, $pkg) = @_;
-        my $obj = $event->object;
-        Evented::API::Hax::set_symbol($pkg, {
-            '$me'   => $me,
-            '$pool' => $pool,
-            '$conf' => $conf,
-            '*L'    => sub { _L($obj, [caller 1], @_) }
-        });
-    });
+    L('this is '.v('NAME')." version $VERSION");
 
-    # load submodules. create the pool.
-    $mod->load_submodule('pool') or return;
-    $ircd::pool = $::pool ||= pool->new; # must be ircd::pool; don't change.
-    $mod->load_submodule($_) or return
-        foreach qw(message user server channel connection);
+    &boot;                  # boot if we haven't already
 
-    # consider: new values are NOT inserted after reloading.
-    # I had an idea once upon a time to make $server->configure(%opts)
-    # which would optionally only set the values if nothing exists there.
-    # but this works for now.
-    $pool->new_server($me,
-        source => conf('server', 'id'),
-        sid    => conf('server', 'id'),
-        name   => conf('server', 'name'),
-        desc   => conf('server', 'description'),
-        proto  => v('PROTO'),
-        ircd   => v('VERSION'),
-        time   => v('START')
-    ) if not exists $me->{source};
+    L('started server at '.scalar(localtime v('START')));
 
+    # PHASE 4: Setup dependencies
+    #
+    #   after booting, we execute several routines which load dependencies and
+    #   set up the configuration.
+    #
 
-    &setup_modes;           # set up local server modes.
-    &setup_modules;         # load API modules.
-    &setup_sockets;         # start listening.
-    &setup_timer;           # set up ping timer.
-    &setup_autoconnect;     # connect to servers with autoconnect enabled.
+    &setup_inc;             # add things to @INC
+    &load_dependencies;     # load or reload all dependency packages
+    &setup_config;          # parse the configuration
+    &setup_logging;         # open the logging handle
+
+    # PHASE 5: Server creation
+    #
+    #   the local server object is used all throughout the program. it is
+    #   exported to modules as the package variable $me. for this reason, it
+    #   must be available at this point, but we are not quite ready to call
+    #   $pool->new_server() because nothing is yet loaded to respond to that.
+    #
+    #   here we create the local server object manually. we use neither
+    #   $pool->new_server() nor server->new(); we instead bless a hash reference
+    #   with only the skeleton of the server. the default values below will also
+    #   be injected to the existing server during reload if they are undefined.
+    #
+
+    &create_server;         # create the server object
+
+    # PHASE 6: API setup
+    #
+    #   here we set up the Evented API Engine and load the submodules of ircd.
+    #   pool is loaded first and then created before creating the rest because
+    #   the pool object is exported to all modules besides utils.
+    #
+    #   we do not load any non-ircd modules yet. those are postponed until
+    #   setup_server() and setup_modes() have completed in phase 7 below.
+    #
+
+    &setup_api;
+
+    # PHASE 7: Server setup
+    #
+    #   now that all dependencies are loaded, the configuration is ready, the
+    #   server object has been created, and the ircd submodules have been
+    #   loaded, we are ready to do the "real setup."
+    #
+    #   this includes adding mode definitions to the local server, loading
+    #   all API modules specified in the configuration, setting up listening
+    #   sockets, starting ping and autoconnect timers.
+    #
+
+    &setup_server;          # call ->new_server() with skeleton server object
+    &setup_modes;           # set up local server modes
+    &setup_modules;         # load API modules
+    &setup_sockets;         # start listening
+    &setup_timer;           # set up ping timer
+    &setup_autoconnect;     # connect to servers with autoconnect enabled
+
+    # PHASE 8: Miscellaneous upgrades
+    #
+    #   this is where code can be placed in case a certain upgrade requires
+    #   manual fixes.
+    #
+
     &misc_upgrades;         # miscellaneous upgrade fixes
 
-    L("server initialization complete");
+    L('server initialization complete');
     return 1;
 }
 
@@ -106,6 +132,148 @@ sub void {
     return $mod->{reloading};
 }
 
+############################
+### PHASE 1: Setup utils ###
+################################################################################
+
+# load utils before anything else
+sub setup_utils {
+    $mod->load_submodule('utils') or return;
+    utils->import(qw|conf fatal v trim notice gnotice ref_to_list|);
+}
+
+#################################
+### PHASE 2: Prepare for boot ###
+################################################################################
+
+# set $VERSION to VERSION file
+sub set_version {
+    $VERSION = get_version();
+    $mod->{version} = $VERSION;
+}
+
+# get version from VERSION file.
+# $::VERSION = version of IRCd when it was started; version of static code
+# $ircd::VERSION = version of ircd.pm and all reloadable packages at last reload
+# $API::Module::Core::VERSION = version of the core module currently
+# v('VERSION') = same as $ircd::VERSION
+sub get_version {
+    open my $fh, '<', "$::run_dir/VERSION"
+        or L("Cannot open VERSION: $!") and return;
+    my $version = trim(<$fh>);
+    close $fh;
+    return $version;
+}
+
+# set global variables
+sub set_variables {
+
+    # defaults; replace current values.
+    my %v_replace = (
+        NAME    => 'janet',         # major version name
+        SNAME   => 'juno',          # short ircd name
+        LNAME   => 'juno-ircd',     # long ircd name
+        VERSION => $VERSION,        # combination of these 3 in VERSION command
+        PROTO   => '20.00'
+    );
+    $v_replace{TNAME} = $v_replace{SNAME}.'-'.$v_replace{NAME};
+
+    # defaults; only set if not existing already.
+    my %argv_has = map { $_ => 1 } @ARGV;
+    my %v_insert = (
+        START   => time,
+        NOFORK  => $argv_has{NOFORK},
+        connection_count      => 0,
+        max_connection_count  => 0,
+        max_global_user_count => 0,
+        max_local_user_count  => 0
+    );
+
+    # replacements.
+    @::v{keys %v_replace} = values %v_replace;
+
+    # insertions.
+    my @missing_keys    = grep { not exists $::v{$_} } keys %v_insert;
+    @::v{@missing_keys} = @v_insert{@missing_keys};
+
+}
+
+#####################
+### PHASE 3: Boot ###
+################################################################################
+
+# boot
+sub boot {
+    return if $::has_booted;
+    $boot = 1;
+    $::VERSION = $VERSION;
+    $::notice_warnings = 1;
+
+    # load mandatory boot stuff.
+    require POSIX;
+    require IO::Async;
+    require IO::Async::Loop;
+
+    $::loop = $loop = IO::Async::Loop->new;
+
+    become_daemon();
+
+    undef $boot;
+    $::has_booted = 1;
+}
+
+# daemonize
+sub become_daemon {
+
+    # open PID file
+    open my $pidfh, '>', "$::run_dir/etc/juno.pid"
+        or fatal("Can't write $::run_dir/etc/juno.pid");
+
+    # become a daemon.
+    if (!v('NOFORK')) {
+        L('Becoming a daemon...');
+
+        # since there will be no input or output from here on,
+        # open the filehandles to /dev/null
+        open STDIN,  '<', '/dev/null' or fatal("Can't read /dev/null: $!");
+        open STDOUT, '>', '/dev/null' or fatal("Can't write /dev/null: $!");
+        open STDERR, '>', '/dev/null' or fatal("Can't write /dev/null: $!");
+
+        # try to fork.
+        $::v{PID} = fork;
+
+        # it worked.
+        if (v('PID')) {
+            say $pidfh v('PID');
+            $::v{DAEMON} = 1;
+        }
+    }
+
+    # don't become a daemon.
+    else {
+        $::v{PID} = $$;
+        say $pidfh $$;
+    }
+
+    close $pidfh;
+
+    # exit if daemonization was successful.
+    if (v('DAEMON')) {
+        exit;
+        POSIX::setsid();
+    }
+}
+
+# loop indefinitely
+sub loop {
+    $loop->loop_forever;
+}
+
+###################################
+### PHASE 4: Setup dependencies ###
+################################################################################
+
+# inject directories into @INC
 sub setup_inc {
     my %inc = map { $_ => 1 } @INC;
     foreach (qw(
@@ -117,24 +285,41 @@ sub setup_inc {
     )) { unshift @INC, $_ unless $inc{$_} }
 }
 
-sub setup_modules {
-    return if $mod->{loading};
+# load our package dependencies
+sub load_dependencies {
+    load_or_reload(@$_) foreach (
 
-    # the old way: modules key.
-    my %mods = $conf->hash_of_block('api');
-    my @modules = ref_to_list(delete $mods{modules});
+        [ 'DBD::SQLite',                   0.00 ],
 
-    # the new way: other keys.
-    foreach my $mod_name (keys %mods) {
-        next unless $mods{$mod_name};
-        push @modules, $mod_name;
-    }
+        [ 'IO::Async::Loop',               0.60 ],
+        [ 'IO::Async::Stream',             0.60 ],
+        [ 'IO::Async::Listener',           0.60 ],
+        [ 'IO::Async::Timer::Periodic',    0.60 ],
+        [ 'IO::Async::Timer::Countdown',   0.60 ],
 
-    L('Loading API configuration modules');
-    $api->load_modules(@modules);
-    L('Done loading modules');
+        [ 'IO::Socket::IP',                0.25 ],
+
+        [ 'Evented::Object',               5.59 ],
+        [ 'Evented::Object::Collection',   5.59 ],
+        [ 'Evented::Object::EventFire',    5.59 ],
+
+        [ 'Evented::API::Engine',          3.99 ],
+        [ 'Evented::API::Module',          3.99 ],
+        [ 'Evented::API::Hax',             3.99 ],
+
+        [ 'Evented::Configuration',        3.96 ],
+
+        [ 'Evented::Database',             1.12 ],
+        [ 'Evented::Database::Rows',       1.12 ],
+        [ 'Evented::Database::Table',      1.12 ],
+
+        [ 'Scalar::Util',                  1.00 ],
+        [ 'List::Util',                    1.00 ]
+
+    );
 }
 
+# load configuration
 sub setup_config {
     require DBI;
     my $dbfile = "$::run_dir/db/conf.db";
@@ -178,6 +363,7 @@ sub setup_config {
     return 1;
 }
 
+# setup logging handle
 sub setup_logging {
 
     # close the old filehandle.
@@ -202,75 +388,94 @@ sub setup_logging {
     }, name => 'log.to.file');
 }
 
-sub setup_modes {
+################################
+### PHASE 5: Server creation ###
+################################################################################
 
-    # register modes.
+# precreate server object
+sub create_server {
+    $me = $::v{SERVER} ||= bless {}, 'server';
+    $me->{ $_->[0] } //= $_->[1] foreach (
+        [ umodes   => {} ],
+        [ cmodes   => {} ],
+        [ users    => [] ],
+        [ children => [] ]
+    );
+    $me->{parent} = $me;
+}
+
+##########################
+### PHASE 6: API setup ###
+################################################################################
+
+# setup API Engine
+sub setup_api {
+
+    # exported variables in modules.
+    # note that these will not be available in the utils module.
+    $api->on('module.set_variables' => sub {
+        my ($event, $pkg) = @_;
+        my $obj = $event->object;
+        Evented::API::Hax::set_symbol($pkg, {
+            '$me'   => $me,
+            '$pool' => $pool,
+            '$conf' => $conf,
+            '*L'    => sub { _L($obj, [caller 1], @_) }
+        });
+    });
+
+    # load submodules. create the pool.
+    $mod->load_submodule('pool') or return;
+    $ircd::pool = $::pool ||= pool->new; # must be ircd::pool; don't change.
+    $mod->load_submodule($_) or return
+        foreach qw(message user server channel connection);
+
+}
+
+#############################
+### PHASE 7: Server setup ###
+################################################################################
+
+# setup precreated server object
+sub setup_server {
+    # consider: new values are NOT inserted after reloading.
+    $pool->new_server($me,
+        source => conf('server', 'id'),
+        sid    => conf('server', 'id'),
+        name   => conf('server', 'name'),
+        desc   => conf('server', 'description'),
+        proto  => v('PROTO'),
+        ircd   => v('VERSION'),
+        time   => v('START')
+    ) if not exists $me->{source};
+}
+
+# setup user and channel modes
+sub setup_modes {
     &add_internal_channel_modes;
     &add_internal_user_modes;
-
 }
 
-sub setup_timer {
+# load API modules
+sub setup_modules {
+    return if $mod->{loading};
 
-    # delete the existing timer if there is one.
-    if ($timer = $::timer) {
-        $loop->remove($timer) if $timer->is_running;
+    # the old way: modules key.
+    my %mods = $conf->hash_of_block('api');
+    my @modules = ref_to_list(delete $mods{modules});
+
+    # the new way: other keys.
+    foreach my $mod_name (keys %mods) {
+        next unless $mods{$mod_name};
+        push @modules, $mod_name;
     }
 
-    # create a new timer.
-    $timer = $::timer = IO::Async::Timer::Periodic->new(
-        interval => 30,
-        on_tick  => \&ping_check
-    );
-    $loop->add($timer);
-    $timer->start;
-
+    L('Loading API configuration modules');
+    $api->load_modules(@modules);
+    L('Done loading modules');
 }
 
-sub setup_autoconnect {
-
-    # auto server connect.
-    # honestly this needs to be moved to an event for after loading the configuration;
-    # even if it's a rehash or something it should check for this.
-    foreach my $name ($conf->names_of_block('connect')) {
-        next unless conf(['connect', $name], 'autoconnect');
-        server::linkage::connect_server($name);
-    }
-
-}
-
-sub set_variables {
-
-    # defaults; replace current values.
-    my %v_replace = (
-        NAME    => 'janet',         # major version name
-        SNAME   => 'juno',          # short ircd name
-        LNAME   => 'juno-ircd',     # long ircd name
-        VERSION => $VERSION,        # combination of these 3 in VERSION command
-        PROTO   => '20.00'
-    );
-    $v_replace{TNAME} = $v_replace{SNAME}.'-'.$v_replace{NAME};
-
-    # defaults; only set if not existing already.
-    my %argv_has = map { $_ => 1 } @ARGV;
-    my %v_insert = (
-        START   => time,
-        NOFORK  => $argv_has{NOFORK},
-        connection_count      => 0,
-        max_connection_count  => 0,
-        max_global_user_count => 0,
-        max_local_user_count  => 0
-    );
-
-    # replacements.
-    @::v{keys %v_replace} = values %v_replace;
-
-    # insertions.
-    my @missing_keys    = grep { not exists $::v{$_} } keys %v_insert;
-    @::v{@missing_keys} = @v_insert{@missing_keys};
-
-}
-
+# setup listening sockets
 sub setup_sockets {
 
     # start listeners.
@@ -321,152 +526,40 @@ sub setup_sockets {
 
 }
 
-# this is called for both new and
-# existing listeners, even during reload.
-my @listener_opts = (
-    on_accept    => sub { &handle_connect },
-    #on_error     => sub { &handle_listen_error }
-    # see below hack
-);
-sub configure_listener {
-    my $listener = shift;
+# setup ping timer
+sub setup_timer {
 
-    # if there is no read handle, this is dead.
-    if (!$listener->loop && !$listener->read_handle && !$listener->parent) {
-        $loop->remove($listener);
+    # delete the existing timer if there is one.
+    if ($timer = $::timer) {
+        $loop->remove($timer) if $timer->is_running;
     }
 
-    # HACK: this is the only way I can figure out how to fix uncaught errors
-    # invoked upon the listener. 'on_error' is not accepted in ->configure().
-    # it says: Cannot pass though configuration keys to underlying Handle -
-    # on_error at /Library/Perl/5.18/IO/Async/Listener.pm line 246.
-    # this is how I "fixed" issue #128.
-    #
-    # note that this will catch any error which is invoked on the listener.
-    # in the case of the SSL issue (#128), this will be called several times,
-    # maybe every time someone tries to connect via SSL.
-    #
-    $listener->{IO_Async_Notifier__on_error} = sub { &handle_listen_error };
-
-    eval { $listener->configure(@listener_opts); 1 }
-    or L("Configuring listener failed!");
-}
-
-# this is called for both new and
-# existing streams,  even during reload.
-our @stream_opts = (
-    read_all       => 0,
-    read_len       => POSIX::BUFSIZ(),
-    on_read        => sub { &handle_data },
-    on_read_eof    => sub { _conn_close('Connection closed',   @_) },
-    on_write_eof   => sub { _conn_close('Connection closed',   @_) },
-    on_read_error  => sub { _conn_close('Read error: ' .$_[1], @_) },
-    on_write_error => sub { _conn_close('Write error: '.$_[1], @_) }
-);
-sub configure_stream {
-    my $stream = shift;
-
-    # if there is no read handle, this is dead.
-    if ($stream->loop && !$stream->read_handle && !$stream->parent) {
-        $loop->remove($stream);
-    }
-
-    eval { $stream->configure(@stream_opts); 1 }
-    or L("Configure stream failed!");
-}
-
-sub listen_addr_port {
-    my ($addr, $port, $ssl) = @_;
-    my $ipv6 = utils::looks_like_ipv6($addr);
-    my ($p_addr, $p_port) = ($ipv6 ? "[$addr]" : $addr, $ssl ? "+$port" : $port);
-    my $l_key = lc "$p_addr:$p_port";
-
-    # use SSL.
-    my ($method, %sslopts) = 'listen';
-    if ($ssl) {
-        $method  = 'SSL_listen';
-
-        # ensure the key and certificate exist.
-        my $ssl_cert = $::run_dir.q(/).conf('ssl', 'cert');
-        my $ssl_key  = $::run_dir.q(/).conf('ssl', 'key');
-        if (!-f $ssl_cert || !-f $ssl_key) {
-            L("SSL key or certificate missing! Cannnot listen on $l_key");
-            return;
-        }
-
-        # pass SSL options to ->SSL_listen().
-        %sslopts = (
-            SSL_cert_file => $ssl_cert,
-            SSL_key_file  => $ssl_key,
-            SSL_server    => 1
-            #on_ssl_error  => sub { L("SSL error: @_") }
-            # probably not needed when using a future
-        );
-
-    }
-
-    # create a listener object.
-    # as of IO::Async 0.62, ->listen on its own does not work with
-    # handle_class or handle_constructor and on_accept.
-    my $listener = IO::Async::Listener->new(
-        handle_class => $ssl ? 'IO::Async::SSLStream' : 'IO::Async::Stream',
-        @listener_opts
+    # create a new timer.
+    $timer = $::timer = IO::Async::Timer::Periodic->new(
+        interval => 30,
+        on_tick  => \&ping_check
     );
-    $listener->{l_key} = $l_key;
-    $loop->add($listener);
+    $loop->add($timer);
+    $timer->start;
 
-    # call ->listen() or ->SSL_listen() on the loop.
-    my $f = eval { $listeners{$l_key}{future} = $loop->$method(
-        addr => {
-            family   => $ipv6 ? 'inet6' : 'inet',
-            socktype => 'stream',
-            port     => $port,
-            ip       => $addr
-        },
-        listener => $listener,
-        %sslopts
-    ) };
+}
 
-    # something happened.
-    if (!$f) {
-        L("->$method() for $l_key failed!");
-        return;
+# setup autoconnect timers
+sub setup_autoconnect {
+
+    # auto server connect.
+    # honestly this needs to be moved to an event for after loading the configuration;
+    # even if it's a rehash or something it should check for this.
+    foreach my $name ($conf->names_of_block('connect')) {
+        next unless conf(['connect', $name], 'autoconnect');
+        server::linkage::connect_server($name);
     }
 
-    # when the listener is ready.
-    $f->on_ready(sub {
-        my $f = shift;
-        delete $listeners{$l_key}{future};
-
-        # failed.
-        if (my $err = $f->failure) {
-            handle_listen_error(undef, $err, $l_key);
-            return;
-        }
-
-        # store the listener.
-        my $listener = $listeners{$l_key}{listener} = $f->get;
-        configure_listener($listener);
-        L("Listening on $l_key");
-
-    });
-
-    return 1;
 }
 
-sub handle_listen_error {
-    my ($listener, $err, $l_key) = @_;
-    $l_key = $listener ? $listener->{l_key} : $l_key || '(unknown)';
-    L("Listen on $l_key failed: $err");
-}
-
-# handles a connection error or EOF.
-sub _conn_close {
-    my ($err, $stream) = @_;
-    my $conn = $pool->lookup_connection($stream);
-    $conn->done($err) if $conn;
-    $stream->close_now;
-}
+#######################################
+### PHASE 8: Miscellaneous upgrades ###
+################################################################################
 
 # miscellaneous upgrade fixes.
 # TODO: I want each instance to be able to track which upgrades have been done
@@ -546,71 +639,157 @@ sub load_or_reload {
     return 1;
 }
 
-# load our package dependencies.
-sub load_dependencies {
+#################
+### LISTENING ###
+#################
 
-    # main dependencies.
-    load_or_reload(@$_) foreach (
+# this is called for both new and
+# existing listeners, even during reload.
+my @listener_opts = (
+    on_accept    => sub { &handle_connect },
+    #on_error     => sub { &handle_listen_error }
+    # see below hack
+);
+sub configure_listener {
+    my $listener = shift;
 
-        [ 'IO::Async::Loop',               0.60 ],
-        [ 'IO::Async::Stream',             0.60 ],
-        [ 'IO::Async::Listener',           0.60 ],
-        [ 'IO::Async::Timer::Periodic',    0.60 ],
-        [ 'IO::Async::Timer::Countdown',   0.60 ],
+    # if there is no read handle, this is dead.
+    if (!$listener->loop && !$listener->read_handle && !$listener->parent) {
+        $loop->remove($listener);
+    }
 
-        [ 'IO::Socket::IP',                0.25 ],
+    # HACK: this is the only way I can figure out how to fix uncaught errors
+    # invoked upon the listener. 'on_error' is not accepted in ->configure().
+    # it says: Cannot pass though configuration keys to underlying Handle -
+    # on_error at /Library/Perl/5.18/IO/Async/Listener.pm line 246.
+    # this is how I "fixed" issue #128.
+    #
+    # note that this will catch any error which is invoked on the listener.
+    # in the case of the SSL issue (#128), this will be called several times,
+    # maybe every time someone tries to connect via SSL.
+    #
+    $listener->{IO_Async_Notifier__on_error} = sub { &handle_listen_error };
 
-        [ 'Evented::Object',               5.59 ],
-        [ 'Evented::Object::Collection',   5.59 ],
-        [ 'Evented::Object::EventFire',    5.59 ],
+    eval { $listener->configure(@listener_opts); 1 }
+    or L("Configuring listener failed!");
+}
 
-        [ 'Evented::API::Engine',          3.99 ],
-        [ 'Evented::API::Module',          3.99 ],
-        [ 'Evented::API::Hax',             3.99 ],
+# this is called for both new and
+# existing streams, even during reload.
+our @stream_opts = (
+    read_all       => 0,
+    read_len       => POSIX::BUFSIZ(),
+    on_read        => sub { &handle_data },
+    on_read_eof    => sub { _conn_close('Connection closed',   @_) },
+    on_write_eof   => sub { _conn_close('Connection closed',   @_) },
+    on_read_error  => sub { _conn_close('Read error: ' .$_[1], @_) },
+    on_write_error => sub { _conn_close('Write error: '.$_[1], @_) }
+);
+sub configure_stream {
+    my $stream = shift;
 
-        [ 'Evented::Configuration',        3.96 ],
+    # if there is no read handle, this is dead.
+    if ($stream->loop && !$stream->read_handle && !$stream->parent) {
+        $loop->remove($stream);
+    }
 
-        [ 'Evented::Database',             1.12 ],
-        [ 'Evented::Database::Rows',       1.12 ],
-        [ 'Evented::Database::Table',      1.12 ],
+    eval { $stream->configure(@stream_opts); 1 }
+    or L("Configure stream failed!");
+}
 
-        [ 'Scalar::Util',                  1.00 ],
-        [ 'List::Util',                    1.00 ]
+# listen on an address at a port
+sub listen_addr_port {
+    my ($addr, $port, $ssl) = @_;
+    my $ipv6 = utils::looks_like_ipv6($addr);
+    my ($p_addr, $p_port) = ($ipv6 ? "[$addr]" : $addr, $ssl ? "+$port" : $port);
+    my $l_key = lc "$p_addr:$p_port";
 
+    # use SSL.
+    my ($method, %sslopts) = 'listen';
+    if ($ssl) {
+        $method  = 'SSL_listen';
+
+        # ensure the key and certificate exist.
+        my $ssl_cert = $::run_dir.q(/).conf('ssl', 'cert');
+        my $ssl_key  = $::run_dir.q(/).conf('ssl', 'key');
+        if (!-f $ssl_cert || !-f $ssl_key) {
+            L("SSL key or certificate missing! Cannnot listen on $l_key");
+            return;
+        }
+
+        # pass SSL options to ->SSL_listen().
+        %sslopts = (
+            SSL_cert_file => $ssl_cert,
+            SSL_key_file  => $ssl_key,
+            SSL_server    => 1
+            #on_ssl_error  => sub { L("SSL error: @_") }
+            # probably not needed when using a future
+        );
+
+    }
+
+    # create a listener object.
+    # as of IO::Async 0.62, ->listen on its own does not work with
+    # handle_class or handle_constructor and on_accept.
+    my $listener = IO::Async::Listener->new(
+        handle_class => $ssl ? 'IO::Async::SSLStream' : 'IO::Async::Stream',
+        @listener_opts
     );
+    $listener->{l_key} = $l_key;
+    $loop->add($listener);
 
+    # call ->listen() or ->SSL_listen() on the loop.
+    my $f = eval { $listeners{$l_key}{future} = $loop->$method(
+        addr => {
+            family   => $ipv6 ? 'inet6' : 'inet',
+            socktype => 'stream',
+            port     => $port,
+            ip       => $addr
+        },
+        listener => $listener,
+        %sslopts
+    ) };
+
+    # something happened.
+    if (!$f) {
+        L("->$method() for $l_key failed!");
+        return;
+    }
+
+    # when the listener is ready.
+    $f->on_ready(sub {
+        my $f = shift;
+        delete $listeners{$l_key}{future};
+
+        # failed.
+        if (my $err = $f->failure) {
+            handle_listen_error(undef, $err, $l_key);
+            return;
+        }
+
+        # store the listener.
+        my $listener = $listeners{$l_key}{listener} = $f->get;
+        configure_listener($listener);
+        L("Listening on $l_key");
+
+    });
+
+    return 1;
 }
 
-# load configured optional packages.
-sub load_optionals {
-
-    #load_or_reload('Digest::SHA', 0) if conf qw[enabled sha];
-    #load_or_reload('Digest::MD5', 0) if conf qw[enabled md5];
-    load_or_reload('DBD::SQLite', 0) if conf('database', 'type') eq 'sqlite';
-
+# handle any uncaught exception in listening
+sub handle_listen_error {
+    my ($listener, $err, $l_key) = @_;
+    $l_key = $listener ? $listener->{l_key} : $l_key || '(unknown)';
+    L("Listen on $l_key failed: $err");
 }
 
-###############
-### SIGNALS ###
-###############
-
-# handle a HUP
-sub signalhup {
-    notice(rehash => 'HUP signal', 'someone', 'localhost');
-    rehash();
-}
-
-# handle a PIPE
-sub signalpipe { }
-
-# handle warning
-sub WARNING {
-    my $warn = shift;
-    return if $disable_warnings;
-    chomp $warn;
-    ircd->can('notice') && $::notice_warnings ?
-    notice(perl_warning => $warn)             :
-    L($warn);
+# handles a connection error or EOF
+sub _conn_close {
+    my ($err, $stream) = @_;
+    my $conn = $pool->lookup_connection($stream);
+    $conn->done($err) if $conn;
+    $stream->close_now;
 }
 
 #####################
@@ -639,13 +818,15 @@ sub handle_connect {
 
     # if the connection IP limit has been reached, disconnect.
     my $ip = $conn->{ip};
-    if (scalar(grep { $_->{ip} eq $ip } $pool->connections) > conf('limit', 'perip')) {
+    if (scalar(grep { $_->{ip} eq $ip } $pool->connections)
+      > conf('limit', 'perip')) {
         $conn->done('Connections per IP limit exceeded');
         return;
     }
 
     # if the global user IP limit has been reached, disconnect.
-    if (scalar(grep { $_->{ip} eq $ip } $pool->actual_users) > conf('limit', 'globalperip')) {
+    if (scalar(grep { $_->{ip} eq $ip } $pool->actual_users)
+      > conf('limit', 'globalperip')) {
         $conn->done('Global connections per IP limit exceeded');
         return;
     }
@@ -664,8 +845,10 @@ sub handle_data {
     my $is_server  = $connection->server;
 
     # fetch the values at which the limit was exceeded.
-    my $overflow_1line = (my $max_in_line = conf('limit', 'bytes_line')  // 2048) + 1;
-    my $overflow_lines = (my $max_lines   = conf('limit', 'lines_sec')   // 30  ) + 1;
+    my $overflow_1line   =
+        (my $max_in_line = conf('limit', 'bytes_line')  // 2048) + 1;
+    my $overflow_lines   =
+        (my $max_lines   = conf('limit', 'lines_sec')   // 30  ) + 1;
 
     foreach my $char (split '', $$buffer) {
         my $length = length $connection->{current_line} || 0;
@@ -718,52 +901,109 @@ sub handle_data {
     $$buffer = '';
 }
 
+##############
+### TIMERS ###
+##############
+
 # send out PINGs and check for timeouts
 sub ping_check {
     foreach my $connection ($pool->connections) {
 
-        # the socket is dead.
-        if (!$connection->stream || !$connection->sock) {
-            $connection->done('Dead socket');
-            next;
+    # the socket is dead.
+    if (!$connection->stream || !$connection->sock) {
+        $connection->done('Dead socket');
+        next;
+    }
+
+    # not yet registered.
+    # if they have been connected for 30 secs without registering, drop.
+    if (!$connection->{type}) {
+        $connection->done('Registration timeout')
+            if time - $connection->{time} > 30;
+        next;
+    }
+
+    my $type = $connection->user ? 'users' : 'servers';
+    my $since_last = time - $connection->{last_response};
+
+    # this connection is OK - for now.
+    if ($since_last < conf($type, 'ping_freq')) {
+
+        # if it's a server, we might need to produce a warning.
+        if ($type eq 'servers') {
+            next if $connection->{warned_ping}++;
+            my $needed_to_warn = conf($type, 'ping_warn') || 'inf';
+            notice(server_not_responding =>
+                $connection->server->notice_info,
+                $since_last
+            ) if $since_last >= $needed_to_warn;
         }
 
-        # not yet registered.
-        # if they have been connected for 30 secs without registering, drop.
-        if (!$connection->{type}) {
-            $connection->done('Registration timeout')
-                if time - $connection->{time} > 30;
-            next;
-        }
+        next;
+    }
 
-        my $type = $connection->user ? 'users' : 'servers';
-        my $since_last = time - $connection->{last_response};
+    # send a ping if we haven't already.
+    if (!$connection->{ping_in_air}) {
+        $connection->send("PING :$$me{name}");
+        $connection->{ping_in_air}++;
+    }
 
-        # this connection is OK - for now.
-        if ($since_last < conf($type, 'ping_freq')) {
+    # ping timeout.
+    $connection->done("Ping timeout: $since_last seconds")
+        if $since_last >= conf($type, 'ping_timeout');
 
-            # if it's a server, we might need to produce a warning.
-            if ($type eq 'servers') {
-                next if $connection->{warned_ping}++;
-                my $needed_to_warn = conf($type, 'ping_warn') || 'inf';
-                notice(server_not_responding =>
-                    $connection->server->notice_info,
-                    $since_last
-                ) if $since_last >= $needed_to_warn;
-            }
+} }
 
-            next;
-        }
+#############
+### MODES ###
+#############
 
-        # send a ping if we haven't already.
-        if (!$connection->{ping_in_air}) {
-            $connection->send("PING :$$me{name}");
-            $connection->{ping_in_air}++;
-        }
+# this just tells the internal server what
+# mode is associated with what letter and type by configuration
+sub add_internal_channel_modes {
+    L('registering channel status modes');
 
-        # ping timeout.
-        $connection->done("Ping timeout: $since_last seconds")
-            if $since_last >= conf($type, 'ping_timeout');
+    # clear the old modes
+    $me->{cmodes} = {};
+    %channel_mode_prefixes = ();
+
+    # FIXME: this is repulsive
+    # store prefixes as [letter, symbol, name, set_weight]
+    foreach my $name ($conf->keys_of_block('prefixes')) {
+        my $p = conf('prefixes', $name) or next;
+        next if !ref $p || ref $p ne 'ARRAY' || @$p < 3;
+        $me->add_cmode($name, $p->[0], 4);
+        $channel_mode_prefixes{ $p->[2] } = [
+            $p->[0],    # (0) mode letter
+            $p->[1],    # (1) nick prefix symbol
+            $name,      # (2) mode name
+            $p->[3]     # (3) weight needed to set/unset this mode
+        ];
+    }
+
+    # add the new non-status modes
+    L('registering channel mode letters');
+    foreach my $name ($conf->keys_of_block(['modes', 'channel'])) {
+        $me->add_cmode(
+            $name,
+            (conf(['modes', 'channel'], $name))->[1],
+            (conf(['modes', 'channel'], $name))->[0]
+        );
+    }
+}
+
+# this just tells the internal server what
+# mode is associated with what letter as defined by the configuration
+sub add_internal_user_modes {
+    L('registering user mode letters');
+
+    # clear the previous ones
+    $me->{umodes} = {};
+    return unless $conf->has_block(['modes', 'user']);
+
+    # add the new ones
+    foreach my $name ($conf->keys_of_block(['modes', 'user'])) {
+        $me->add_umode($name, conf(['modes', 'user'], $name));
     }
 }
 
@@ -773,24 +1013,24 @@ sub ping_check {
 
 # stop the ircd
 sub terminate {
-    L("removing all connections for server shutdown");
 
     # delete all users/servers/other
+    L('disposing of all connections');
     foreach my $connection ($pool->connections) {
         $connection->done('Shutting down');
     }
 
-    L("deleting PID file");
-
     # delete the PID file
+    L('deleting PID file');
     unlink 'etc/juno.pid' or fatal("Can't remove PID file");
 
-    L("shutting down");
+    L('shutting down');
     exit;
 }
 
-# rehash the server.
+# rehash the server
 sub rehash {
+    L('rehashing');
     $pool->fire('rehash_before');
 
     # if a user is passed, use him for the notices.
@@ -817,135 +1057,27 @@ sub rehash {
     return 1;
 }
 
-sub boot {
-    return if $::has_booted;
-    $boot = 1;
-    $::VERSION = $VERSION;
-    $::notice_warnings = 1;
+###############
+### SIGNALS ###
+###############
 
-    # load mandatory boot stuff.
-    require POSIX;
-    require IO::Async;
-    require IO::Async::Loop;
-
-    L("this is $::v{NAME} version $VERSION");
-    $::loop = $loop = IO::Async::Loop->new;
-
-    become_daemon();
-
-    undef $boot;
-    $::has_booted = 1;
+# handle a HUP
+sub signalhup {
+    notice(rehash => 'HUP signal', 'someone', 'localhost');
+    rehash();
 }
 
-sub loop {
-    $loop->loop_forever;
-}
+# handle a PIPE
+sub signalpipe { }
 
-sub become_daemon {
-    open my $pidfh, '>', "$::run_dir/etc/juno.pid" or fatal("Can't write $::run_dir/etc/juno.pid");
-
-    # become a daemon.
-    if (!v('NOFORK')) {
-        L('Becoming a daemon...');
-
-        # since there will be no input or output from here on,
-        # open the filehandles to /dev/null
-        open STDIN,  '<', '/dev/null' or fatal("Can't read /dev/null: $!");
-        open STDOUT, '>', '/dev/null' or fatal("Can't write /dev/null: $!");
-        open STDERR, '>', '/dev/null' or fatal("Can't write /dev/null: $!");
-
-        # try to fork.
-        $::v{PID} = fork;
-
-        # it worked.
-        if (v('PID')) {
-            say $pidfh v('PID');
-            $::v{DAEMON} = 1;
-        }
-
-        close $pidfh;
-
-    }
-
-    # don't become a daemon.
-    else {
-        $::v{PID} = $$;
-        say $pidfh $$;
-        close $pidfh;
-    }
-
-    # exit if daemonization was successful.
-    if (v('DAEMON')) {
-        exit;
-        POSIX::setsid();
-    }
-
-}
-
-# get version from VERSION file.
-# $::VERSION = version of IRCd when it was started; version of static code
-# $ircd::VERSION = version of ircd.pm and all reloadable packages at last reload
-# $API::Module::Core::VERSION = version of the core module currently
-# v('VERSION') = same as $ircd::VERSION
-sub get_version {
-    open my $fh, '<', "$::run_dir/VERSION" or L("Cannot open VERSION: $!") and return;
-    my $version = trim(<$fh>);
-    close $fh;
-    return $version;
-}
-
-#####################
-### CHANNEL MODES ###
-#####################
-
-# this just tells the internal server what
-# mode is associated with what letter and type by configuration
-sub add_internal_channel_modes {
-
-    L('registering channel status modes');
-    $me->{cmodes} = {};
-    %channel_mode_prefixes = ();
-
-    # [letter, symbol, name, set_weight]
-    foreach my $name ($conf->keys_of_block('prefixes')) {
-        my $p = conf('prefixes', $name) or next;
-        next if !ref $p || ref $p ne 'ARRAY' || @$p < 3;
-        $me->add_cmode($name, $p->[0], 4);
-        $channel_mode_prefixes{ $p->[2] } = [
-            $p->[0],    # (0) mode letter
-            $p->[1],    # (1) nick prefix symbol
-            $name,      # (2) mode name
-            $p->[3]     # (3) weight needed to set/unset this mode
-        ];
-    }
-
-    L("registering channel mode letters");
-
-    foreach my $name ($conf->keys_of_block(['modes', 'channel'])) {
-        $me->add_cmode(
-            $name,
-            (conf(['modes', 'channel'], $name))->[1],
-            (conf(['modes', 'channel'], $name))->[0]
-        );
-    }
-
-    L("end of channel modes");
-}
-
-##################
-### USER MODES ###
-##################
-
-# this just tells the internal server what
-# mode is associated with what letter as defined by the configuration
-sub add_internal_user_modes {
-    $me->{umodes} = {};
-    return unless $conf->has_block(['modes', 'user']);
-    L("registering user mode letters");
-    foreach my $name ($conf->keys_of_block(['modes', 'user'])) {
-        $me->add_umode($name, conf(['modes', 'user'], $name));
-    }
-    L("end of user mode letters");
+# handle a warning
+sub WARNING {
+    my $warn = shift;
+    return if $disable_warnings;
+    chomp $warn;
+    ircd->can('notice') && $::notice_warnings ?
+    notice(perl_warning => $warn)             :
+    L($warn);
 }
 
 ###############
