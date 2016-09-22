@@ -132,10 +132,16 @@ sub modload {
     my ($user, $event, $mod_name) = @_;
     $user->server_notice(modload => "Loading module \2$mod_name\2.");
 
+    # before loading any modules, copy the mode mapping tables.
+    my $old_modes = server::protocol::mode_change_start($me);
+
     # attempt.
     my $cb     = $api->on(log => sub { $user->server_notice("- $_[1]") }, name => 'mm.modload');
     my $result = $api->load_module($mod_name);
     $api->delete_callback(log => $cb->{name});
+
+    # notify servers of mode changes
+    server::protocol::mode_change_end($me, $old_modes);
 
     # failure.
     if (!$result) {
@@ -153,10 +159,16 @@ sub modunload {
     my ($user, $event, $mod_name) = @_;
     $user->server_notice(modunload => "Unloading module \2$mod_name\2.");
 
+    # before unloading any modules, copy the mode mapping tables.
+    my $old_modes = server::protocol::mode_change_start($me);
+
     # attempt.
     my $cb     = $api->on(log => sub { $user->server_notice("- $_[1]") }, name => 'mm.modunload');
     my $result = $api->unload_module($mod_name);
     $api->delete_callback(log => $cb->{name});
+
+    # notify servers of mode changes
+    server::protocol::mode_change_end($me, $old_modes);
 
     # failure.
     if (!$result) {

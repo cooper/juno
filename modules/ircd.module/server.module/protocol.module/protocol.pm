@@ -504,35 +504,18 @@ sub forward_global_command {
     return wantarray ? (\%done, \%loc_done) : \%done;
 }
 
-# this should be called with hash references of before and after some
-# event which may have added or removed user modes. some protocols such as
-# JELP may need to notify other servers of changes to mode mapping tables.
-#
-# these hash references are in the form { mode_name => { letter => }}
-#
-sub notify_umode_changes {
-    my ($server, $old_modes, $new_modes) = @_;
-    my (@added, @removed);
+sub cmode_change_start {
+    my $server = shift;
 
-    foreach my $mode_name (keys %$new_modes) {
-
-        # we have addressed this, so remove it from the old list
-        my $old = delete $old_modes->{$mode_name};
-        my $new = $new_modes->{$mode_name};
-
-        # if it existed, check if it has changed
-        next if $old &&
-            $old->{letter} eq $new->{letter};
-
-        # it has changed or did not exist, so add it
-        push @added, [ $mode_name, $new->{letter} ];
+    # find the currently enabled user modes.
+    # weed out the ones that have no mode blocks registered.
+    my %enabled = %{ $server->{cmodes} };
+    for (keys %enabled) {
+        next if $pool->{channel_modes}{$_};
+        delete $enabled{$_};
     }
 
-    # anything that's left in the old list at this point was removed.
-    my @removed = keys %$old_modes;
-
-    return if !@added && !@removed;
-    $pool->fire_command_all(add_umodes => $server, \@added, \@removed);
+    return \%enabled;
 }
 
 # this should be called with hash references of before and after some
@@ -541,15 +524,25 @@ sub notify_umode_changes {
 #
 # these hash references are in the form { mode_name => { letter => type => }}
 #
-sub notify_cmode_changes {
-    my ($server, $old_modes, $new_modes) = @_;
+sub cmode_change_end {
+    my ($server, $previously_enabled) = @_;
+
+    # find the currently enabled user modes.
+    # weed out the ones that have no mode blocks registered.
+    my %enabled = %{ $server->{cmodes} };
+    for (keys %enabled) {
+        next if $pool->{channel_modes}{$_};
+        delete $enabled{$_};
+    }
+
+    # figure out which were added and which were removed.
     my (@added, @removed);
 
-    foreach my $mode_name (keys %$new_modes) {
+    foreach my $mode_name (keys %enabled) {
 
         # we have addressed this, so remove it from the old list
-        my $old = delete $old_modes->{$mode_name};
-        my $new = $new_modes->{$mode_name};
+        my $old = delete $previously_enabled->{$mode_name};
+        my $new = $enabled{$mode_name};
 
         # if it existed, check if it has changed
         next if $old &&
@@ -561,10 +554,78 @@ sub notify_cmode_changes {
     }
 
     # anything that's left in the old list at this point was removed.
-    my @removed = keys %$old_modes;
+    my @removed = keys %$previously_enabled;
 
     return if !@added && !@removed;
     $pool->fire_command_all(add_cmodes => $server, \@added, \@removed);
+}
+
+sub umode_change_start {
+    my $server = shift;
+
+    # find the currently enabled user modes.
+    # weed out the ones that have no mode blocks registered.
+    my %enabled = %{ $server->{umodes} };
+    for (keys %enabled) {
+        next if $pool->{user_modes}{$_};
+        delete $enabled{$_};
+    }
+
+    return \%enabled;
+}
+
+# this should be called with hash references of before and after some
+# event which may have added or removed user modes. some protocols such as
+# JELP may need to notify other servers of changes to mode mapping tables.
+#
+# these hash references are in the form { mode_name => { letter => }}
+#
+sub umode_change_end {
+    my ($server, $previously_enabled) = @_;
+
+    # find the currently enabled user modes.
+    # weed out the ones that have no mode blocks registered.
+    my %enabled = %{ $server->{umodes} };
+    for (keys %enabled) {
+        next if $pool->{user_modes}{$_};
+        delete $enabled{$_};
+    }
+
+    # figure out which were added and which were removed.
+    my (@added, @removed);
+
+    foreach my $mode_name (keys %enabled) {
+
+        # we have addressed this, so remove it from the old list
+        my $old = delete $previously_enabled->{$mode_name};
+        my $new = $enabled{$mode_name};
+
+        # if it existed, check if it has changed
+        next if $old &&
+            $old->{letter} eq $new->{letter};
+
+        # it has changed or did not exist, so add it
+        push @added, [ $mode_name, $new->{letter} ];
+    }
+
+    # anything that's left in the old list at this point was removed.
+    my @removed = keys %$previously_enabled;
+
+    return if !@added && !@removed;
+    $pool->fire_command_all(add_umodes => $server, \@added, \@removed);
+}
+
+sub mode_change_start {
+    my $server = shift;
+    my $ret1 = umode_change_start($server);
+    my $ret2 = cmode_change_start($server);
+    return [ $ret1, $ret2 ];
+}
+
+sub mode_change_end {
+    my ($server, $ret) = @_;
+    umode_change_end($server, $ret->[0]);
+    cmode_change_end($server, $ret->[1]);
 }
 
 ####################

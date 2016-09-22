@@ -97,9 +97,8 @@ sub cmd_reload {
     }
     $ircd::disable_warnings--;
 
-    # Before reloading any modules, copy the mode mapping tables.
-    my $old_umodes = { %{ $me->{umodes} } };
-    my $old_cmodes = { %{ $me->{cmodes} } };
+    # before reloading any modules, copy the mode mapping tables.
+    my $old_modes = server::protocol::mode_change_start($me);
 
     # determine modules loaded beforehand.
     my @mods_loaded = @{ $api->{loaded} };
@@ -182,8 +181,7 @@ sub cmd_reload {
     }
 
     # notify servers of mode changes
-    server::protocol::notify_umode_changes($me, $old_umodes, $me->{umodes});
-    server::protocol::notify_cmode_changes($me, $old_cmodes, $me->{cmodes});
+    server::protocol::mode_change_end($me, $old_modes);
 
     $api->delete_callback('log', $cb->{name}) if $verbose;
     gnotice($user, reload => $me->name, $info, $user->notice_info);

@@ -423,22 +423,39 @@ sub sjoin {
 
 # add cmodes
 sub acm {
-    my ($to_server, $serv, $modes) = (shift, shift, '');
+    my ($to_server, $serv, $added, $removed) = @_;
+    my @mode_strs;
 
-    # iterate through each mode on the server.
-    foreach my $name (keys %{ $serv->{cmodes} }) {
-        my ($letter, $type) = ($serv->cmode_letter($name), $serv->cmode_type($name));
+    # if the lists are omitted, this is an initial ACM during burst.
+    # send out all registered cmodes.
+    if (!$added) {
+        my %cmodes = %{ $serv->{cmodes} };
 
-        # first, make sure this isn't garbage.
-        next if !defined $letter || !defined $type;
+        # remove ones with no mode blocks
+        foreach (keys %cmodes) {
+            next if $pool->{channel_modes}{$_};
+            delete $cmodes{$_};
+        }
 
-        # it's not. append it to the mode list.
-        $modes .= " $name:$letter:$type";
-
+        $added = [ map [ $_, @{ $cmodes{$_} }{qw(letter type)} ], keys %cmodes ];
+        $removed = [];
     }
 
-    return unless length $modes;
-    return ":$$serv{sid} ACM$modes";
+    # additions
+    foreach (@$added) {
+        my ($name, $letter, $type) = @$_;
+        push @mode_strs, "$name:$letter:$type";
+    }
+
+    # removals
+    foreach my $rem (@$removed) {
+        push @mode_strs, "-$rem";
+    }
+
+    # if there are none, just don't.
+    scalar @mode_strs or return;
+
+    ":$$serv{sid} ACM ".join(' ', @mode_strs)
 }
 
 # add umodes
@@ -450,8 +467,15 @@ sub aum {
     # send out all registered umodes.
     if (!$added) {
         my %umodes = %{ $serv->{umodes} };
-        $added     = [ map [ $_, $umodes{$_}{letter} ], keys %umodes ];
-        $removed   = [];
+
+        # remove ones with no mode blocks
+        foreach (keys %umodes) {
+            next if $pool->{user_modes}{$_};
+            delete $umodes{$_};
+        }
+
+        $added = [ map [ $_, $umodes{$_}{letter} ], keys %umodes ];
+        $removed = [];
     }
 
     # additions
