@@ -443,16 +443,32 @@ sub acm {
 
 # add umodes
 sub aum {
-    my ($to_server, $serv) = (shift, shift);
+    my ($to_server, $serv, $added, $removed) = @_;
+    my @mode_strs;
 
-    my @modes = map {
-       "$_:".($serv->umode_letter($_) || '')
-    } keys %{ $serv->{umodes} };
+    # if the lists are omitted, this is an initial AUM during burst.
+    # send out all registered umodes.
+    if (!$added) {
+        my %umodes = %{ $serv->{umodes} };
+        $added     = [ map [ $_, $umodes{$_}{letter} ], keys %umodes ];
+        $removed   = [];
+    }
+
+    # additions
+    foreach (@$added) {
+        my ($name, $letter) = @$_;
+        push @mode_strs, "$name:$letter";
+    }
+
+    # removals
+    foreach my $rem (@$removed) {
+        push @mode_strs, "-$rem";
+    }
 
     # if there are none, just don't.
-    scalar @modes or return;
+    scalar @mode_strs or return;
 
-    ":$$serv{sid} AUM ".join(' ', @modes)
+    ":$$serv{sid} AUM ".join(' ', @mode_strs)
 }
 
 # KICK command.

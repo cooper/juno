@@ -87,6 +87,13 @@ sub add_umode {
     return 1;
 }
 
+sub remove_umode {
+    my ($server, $name) = @_;
+    my $u = delete $server->{umodes}{$name} or return;
+    L("$$server{name} deleted $$u{letter}:$name");
+    return 1;
+}
+
 # umode letter to name.
 sub umode_name {
     my ($server, $mode) = @_;

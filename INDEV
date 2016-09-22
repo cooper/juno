@@ -3702,3 +3702,6 @@ CHANGES:
 12. mihret.
 
         01. destroy the config object on each RELOAD. this is necessary to set new defaults from default.conf.
+
+        02. added server method ->remove_umode().
+            JELP AUM (add user mode) can now also remove mode definitions. #63.

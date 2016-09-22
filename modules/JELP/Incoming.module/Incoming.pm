@@ -525,19 +525,36 @@ sub part {
 # add user mode, compact AUM
 sub aum {
     # server @rest
-    # :sid   AUM   name:letter name:letter
-    my ($server, $msg, $serv) = (shift, shift, shift);
-    foreach my $str (@_) {
-        my ($name, $letter) = split /:/, $str;
+    # :sid   AUM   name:letter -name
+    #
+    my ($server, $msg, $serv, @pieces) = @_;
+
+    # keep track of changes to forward
+    my @added;      # list of array refs in form [ mode name, letter ]
+    my @removed;    # list of string mode names
+
+    foreach my $str (@pieces) {
+
+        # when dash is present, remove by name.
+        if (!index($str, '-')) {
+            $serv->remove_umode(substr $str, 1);
+            push @removed, $str;
+            next;
+        }
+
+        # when adding, both of these must be present.
+        my ($name, $letter) = split /:/, $str, 2;
         next if !length $name || !length $letter;
+
         $serv->add_umode($name, $letter);
+        push @added, [ $name, $letter ];
     }
 
     # === Forward ===
     #
     # this will probably only be used for JELP
     #
-    $msg->forward(add_umodes => $serv);
+    $msg->forward(add_umodes => $serv, \@added, \@removed);
 
     return 1;
 }
