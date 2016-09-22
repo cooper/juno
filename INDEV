@@ -3695,3 +3695,6 @@ CHANGES:
             ircd and proto server keys are now always numeric. update oper notice to use link_type and ircd_name.
 
         92. cleaned up ircd.pm by splitting the initializing process into 8 phases. closes #129.
+
+        93. added 'truncate_hosts' ircd option to specify the max host length an ircd supports. closes #135.
+            the 'no_host_slashes' ircd option now replaces slashes with dots. closes #115 for now.

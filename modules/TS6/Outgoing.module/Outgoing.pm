@@ -21,7 +21,7 @@ use 5.010;
 
 use Scalar::Util qw(blessed);
 use M::TS6::Utils qw(ts6_id ts6_prefixes ts6_prefix ts6_closest_level);
-use utils qw(notice);
+use utils qw(notice cut_to_length);
 
 our ($api, $mod, $pool, $me);
 my ($TS_CURRENT, $TS_MIN) =(
@@ -154,19 +154,16 @@ sub safe_nick {
 # ts6 host safety
 sub safe_host {
     my ($host, $serv) = @_;
-    my $ircd = $serv->{ircd_name} // '';
 
+    # truncate when necessary
+    if (my $limit = $serv->ircd_opt('truncate_hosts')) {
+        $host = cut_to_length($limit, $host);
+    }
+
+    # replace slashes with dots when necessary
     # HACK: see issue #115
     if ($serv->ircd_opt('no_host_slashes')) {
-        my $out = '';
-        for (split //, $host) {
-            if (/[\/]/) {
-                $out .= '.-'.ord().'.';
-                next;
-            }
-            $out .= $_;
-        }
-        $host = $out;
+        $host =~ s/\//\./g;
     }
 
     return $host;
