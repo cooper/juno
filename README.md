@@ -541,26 +541,33 @@ and IRCv3
 [away-notify](http://ircv3.net/specs/extensions/away-notify-3.1.html) support.
 As always, there were lots of bug fixes and efficiency improvements too.
 
-* [__janet__](https://github.com/cooper/juno) (juno11):
-A lot was accomplished during the short-lived development of janet.
+* [__janet__](https://github.com/cooper/juno/tree/juno11-janet) (juno11):
+Upon the release of mihret (juno12), a new versioning system was adopted.
+Releases now occur at the start of the next major version (in this case,
+v12.00), rather than at an arbitrary version as before. So janet and mihret are
+actually the same release. See below. This new system is less confusing and
+makes it easier to release patches.
+
+* [__mihret__](https://github.com/cooper/juno/tree/juno12-mihret) (juno12):
+A lot was accomplished during the short-lived development of mihret.
 Several new channel features were introduced, including
 IRCv3 [extended-join](http://ircv3.net/specs/extensions/extended-join-3.1.html),
 [permanent channels (+P)](modules/Channel/Permanent.module/Permanent.pm),
 [op moderation (+z)](modules/Channel/OpModerate.module/OpModerate.pm),
 [color stripping (+c)](modules/Channel/NoColor.module/NoColor.pm),
-[registered users restriction (+r)](modules/Channel/RegisteredOnly.module/RegisteredOnly.pm), and
-[SSL users restriction (+S)](modules/Channel/SSLOnly.module/SSLOnly.pm),
+[registered only (+r)](modules/Channel/RegisteredOnly.module/RegisteredOnly.pm),
+and [SSL only (+S)](modules/Channel/SSLOnly.module/SSLOnly.pm),
 all implemented as modules.
-Internal support for deafness (+D) and bot status (+B) user modes was also
-added. janet furthered the support of external IRC services packages by
+Internal support for new user modes, deafness (+D) and bot status (+B), was also
+added. mihret furthered the support of external IRC services packages by
 reworking the [SASL](modules/SASL/SASL.module)
-module to support relaying SASL authentication over both
-server protocols. Nickname enforcement (RSFNC), nickname reservations, and
+module to support relaying authentication over both
+server protocols. Nickname enforcement, nickname reservations, and
 channel reservations are now supported as well. For the first time in its
 history, juno now has a decent [hostname cloaking](modules/Cloak.module/Cloak.pm)
 interface with a
 [charybdis-compatible](modules/Cloak.module/Charybdis.module/Charybdis.pm)
-implementation. The [netban](modules/Ban) implementation was
+implementation. The [netban](modules/Ban) module was
 rewritten from the ground up in an objective fashion. New APIs make it very easy
 to extend netban functionality from additional modules. The
 [TS6 netban](modules/Ban/TS6.module/TS6.pm) implementation was mostly completed
@@ -568,11 +575,11 @@ too. A new IRCd support
 interface makes it easy to add special rules for certain IRC software and also
 features inheritance of properties for derivative software.
 As usual, there were astounding improvements to [TS6](doc/ts6.md)
-and even some enhancements to JELP. janet was also the last release before
-adopting a new and improved versioning system.
+and even some enhancements to JELP.
 
-* [__mihret__](https://github.com/cooper/juno) (juno12): mihret is a
-continuation of janet and is the current version under active development.
+* [__dev__](https://github.com/cooper/juno) (juno13): Yet to be named, the next
+release will be based on the current git, a continuation of mihret under active
+development.
 
 # Information
 
