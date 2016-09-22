@@ -3700,3 +3700,5 @@ CHANGES:
             the 'no_host_slashes' ircd option now replaces slashes with dots. closes #115 for now.
 
 12. mihret.
+
+        01. destroy the config object on each RELOAD. this is necessary to set new defaults from default.conf.

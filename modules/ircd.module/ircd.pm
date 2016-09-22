@@ -326,7 +326,7 @@ sub setup_config {
     my $dbh    = DBI->connect("dbi:SQLite:dbname=$dbfile", '', '');
 
     # set up the configuration/database.
-    $conf ||= Evented::Database->new(
+    $conf = Evented::Database->new(
         db       => $dbh,
         conffile => "$::run_dir/etc/default.conf"
     );
