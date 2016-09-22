@@ -3708,3 +3708,5 @@ CHANGES:
 
         03. added server method ->remove_cmode().
             JELP ACM (add channel mode) can now also remove mode definitions. #63.
+
+        04. added server::protocol utilities notify_umode_changes() and notify_cmode_changes().

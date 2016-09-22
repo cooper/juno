@@ -504,6 +504,69 @@ sub forward_global_command {
     return wantarray ? (\%done, \%loc_done) : \%done;
 }
 
+# this should be called with hash references of before and after some
+# event which may have added or removed user modes. some protocols such as
+# JELP may need to notify other servers of changes to mode mapping tables.
+#
+# these hash references are in the form { mode_name => { letter => }}
+#
+sub notify_umode_changes {
+    my ($server, $old_modes, $new_modes) = @_;
+    my (@added, @removed);
+
+    foreach my $mode_name (keys %$new_modes) {
+
+        # we have addressed this, so remove it from the old list
+        my $old = delete $old_modes->{$mode_name};
+        my $new = $new_modes->{$mode_name};
+
+        # if it existed, check if it has changed
+        next if $old &&
+            $old->{letter} eq $new->{letter};
+
+        # it has changed or did not exist, so add it
+        push @added, [ $mode_name, $new->{letter} ];
+    }
+
+    # anything that's left in the old list at this point was removed.
+    my @removed = keys %$old_modes;
+
+    return if !@added && !@removed;
+    $pool->fire_command_all(add_umodes => $server, \@added, \@removed);
+}
+
+# this should be called with hash references of before and after some
+# event which may have added or removed channel modes. some protocols such as
+# JELP may need to notify other servers of changes to mode mapping tables.
+#
+# these hash references are in the form { mode_name => { letter => type => }}
+#
+sub notify_cmode_changes {
+    my ($server, $old_modes, $new_modes) = @_;
+    my (@added, @removed);
+
+    foreach my $mode_name (keys %$new_modes) {
+
+        # we have addressed this, so remove it from the old list
+        my $old = delete $old_modes->{$mode_name};
+        my $new = $new_modes->{$mode_name};
+
+        # if it existed, check if it has changed
+        next if $old &&
+            $old->{letter} eq $new->{letter} &&
+            $old->{type}   == $old->{type};
+
+        # it has changed or did not exist, so add it
+        push @added, [ $mode_name, $new->{letter}, $new->{type} ];
+    }
+
+    # anything that's left in the old list at this point was removed.
+    my @removed = keys %$old_modes;
+
+    return if !@added && !@removed;
+    $pool->fire_command_all(add_cmodes => $server, \@added, \@removed);
+}
+
 ####################
 ### IRCD SUPPORT ###
 ####################
