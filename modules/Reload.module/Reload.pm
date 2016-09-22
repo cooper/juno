@@ -77,12 +77,14 @@ sub cmd_reload {
 
     }
 
+    # Safe point - we're definitely going to reload locally
+
     my $old_v = $ircd::VERSION;
     my $prefix = $user->is_local ? '' : "[$$me{name}] ";
 
     # log to user if debug.
     my $cb;
-    $cb = $::api->on(log => sub { $user->server_notice("$prefix- $_[1]") },
+    $cb = $api->on(log => sub { $user->server_notice("$prefix- $_[1]") },
         name      => 'cmd.reload',
         permanent => 1 # we will remove it manually afterward
     ) if $debug_verbose;
@@ -94,6 +96,10 @@ sub cmd_reload {
         do $_ foreach grep { /^Evented\/Object/ } keys %INC;
     }
     $ircd::disable_warnings--;
+
+    # Before reloading any modules, copy the mode mapping tables.
+    my $old_umodes = { %{ $me->{umodes} } };
+    my $old_cmodes = { %{ $me->{cmodes} } };
 
     # determine modules loaded beforehand.
     my @mods_loaded = @{ $api->{loaded} };
@@ -175,7 +181,11 @@ sub cmd_reload {
         $info = 'reloaded';
     }
 
-    $::api->delete_callback('log', $cb->{name}) if $verbose;
+    # notify servers of mode changes
+    server::protocol::notify_umode_changes($me, $old_umodes, $me->{umodes});
+    server::protocol::notify_cmode_changes($me, $old_cmodes, $me->{cmodes});
+
+    $api->delete_callback('log', $cb->{name}) if $verbose;
     gnotice($user, reload => $me->name, $info, $user->notice_info);
     return 1;
 }

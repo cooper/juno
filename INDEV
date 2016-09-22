@@ -3710,3 +3710,5 @@ CHANGES:
             JELP ACM (add channel mode) can now also remove mode definitions. #63.
 
         04. added server::protocol utilities notify_umode_changes() and notify_cmode_changes().
+
+        05. Reload now tracks mode mapping changes and notifies other servers when necessary.
