@@ -164,6 +164,13 @@ sub add_cmode {
     return 1;
 }
 
+sub remove_cmode {
+    my ($server, $name) = @_;
+    my $c = delete $server->{cmodes}{$name} or return;
+    L("$$server{name} deleted $$c{letter}:$name");
+    return 1;
+}
+
 # cmode letter to name.
 sub cmode_name {
     my ($server, $mode) = @_;

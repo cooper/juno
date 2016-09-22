@@ -3705,3 +3705,6 @@ CHANGES:
 
         02. added server method ->remove_umode().
             JELP AUM (add user mode) can now also remove mode definitions. #63.
+
+        03. added server method ->remove_cmode().
+            JELP ACM (add channel mode) can now also remove mode definitions. #63.

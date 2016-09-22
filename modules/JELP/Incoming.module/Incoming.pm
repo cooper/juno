@@ -562,25 +562,38 @@ sub aum {
 # add channel mode, compact ACM
 sub acm {
     # server @rest
-    # :sid   ACM   name:letter:type name:letter:type
-    my ($server, $msg, $serv) = (shift, shift, shift);
-    foreach my $str (@_) {
-        my ($name, $letter, $type) = split /:/, $str, 3;
+    # :sid   ACM   name:letter:type -name
+    my ($server, $msg, $serv, @pieces) = @_;
+
+    # keep track of changes to forward
+    my @added;      # list of array refs in form [ mode name, letter, type ]
+    my @removed;    # list of string mode names
+
+    foreach my $str (@pieces) {
+
+        # when dash is present, remove by name.
+        if (!index($str, '-')) {
+            $serv->remove_cmode(substr $str, 1);
+            push @removed, $str;
+            next;
+        }
 
         # ensure that all values are present.
+        my ($name, $letter, $type) = split /:/, $str, 3;
         next if
             !length $name   ||
             !length $letter ||
             !length $type;
 
-        $serv->add_cmode($name, $letter, $type)
+        $serv->add_cmode($name, $letter, $type);
+        push @added, [ $name, $letter, $type ];
     }
 
     # === Forward ===
     #
     # this will probably only be used for JELP
     #
-    $msg->forward(add_cmodes => $serv);
+    $msg->forward(add_cmodes => $serv, \@added, \@removed);
 
     return 1;
 }
