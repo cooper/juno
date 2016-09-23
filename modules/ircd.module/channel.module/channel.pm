@@ -901,6 +901,33 @@ sub _do_mode_string {
     return _do_modes($local_only, $channel, $source, $changes, $force, $protocol);
 }
 
+# returns currently set modes for the given modes or all modes
+sub get_modes {
+    my ($channel, @types) = @_;
+    @types = keys %{ $channel->{modes} } if !@types;
+    my @modes;
+
+    foreach my $mode_type (@types) {
+        my $m = $channel->{modes}{$mode_type} or next;
+
+        # has a list
+        if ($m->{list}) {
+            push @modes, $mode_type, $_->[0] for ref_to_list($m->{list});
+        }
+
+        # has a single parameter
+        elsif (length $m->{parameter}) {
+            push @modes, $mode_type, $m->{parameter};
+        }
+
+        # no parameters
+        else {
+            push @modes, $mode_type, undef;
+        }
+    }
+    return \@modes;
+}
+
 # ->do_privmsgnotice()
 #
 # Handles a PRIVMSG or NOTICE. Notifies local users and uplinks when necessary.

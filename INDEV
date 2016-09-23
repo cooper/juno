@@ -3716,3 +3716,6 @@ CHANGES:
         06. added utilities mode_change_start() and mode_change_end().
             AUM and ACM are now sent out dynamically when new modes are added and removed. #63.
             AUM and ACM for juno servers now only advertise modes which are actually available for use.
+
+        07. add channel method ->get_modes().
+            add events for mode_change_end().
