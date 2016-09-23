@@ -1,0 +1,10 @@
+{
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
+   "description" : "improves channel mode synchronization",
+   "name" : "Channel::ModeSync",
+   "package" : "M::Channel::ModeSync",
+   "version" : "0.2"
+}

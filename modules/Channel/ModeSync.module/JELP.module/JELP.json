@@ -1,0 +1,10 @@
+{
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
+   "description" : "JELP mode synchronization",
+   "name" : "Channel::ModeSync::JELP",
+   "package" : "M::Channel::ModeSync::JELP",
+   "version" : "0.1"
+}

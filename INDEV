@@ -3719,3 +3719,5 @@ CHANGES:
 
         07. add channel method ->get_modes().
             add events for mode_change_end().
+            started work on Channel::ModeSync. #63.
+            unset modes locally when they are no longer available.
