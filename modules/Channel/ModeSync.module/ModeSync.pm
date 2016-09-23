@@ -44,8 +44,22 @@ sub cmodes_changed {
 
             push @all_modes, @$modes;
         }
-        $channel->do_modes_local($me, \@all_modes, 1, undef, 1);
+
+        # commit the changes
+        $channel->do_modes_local(
+            $me, \@all_modes,
+            1,          # force
+            undef,      # not over protocol
+            1,          # organize
+            1           # allow unloaded modes (see issue #63)
+        );
     }
+
+    # consider: now that we're done with this mode, we could tell the pool to
+    # abandon it. currently the temp code stays until overwritten. I wouldn't
+    # feel good about deleting it here because then it would still remain when
+    # ModeSync isn't loaded. it's not that big of a deal regardless.
+
 }
 
 $mod

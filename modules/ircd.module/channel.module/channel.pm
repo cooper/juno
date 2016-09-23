@@ -215,7 +215,7 @@ sub set_time {
 # See issues #77 and #101 for background information.
 #
 sub handle_modes {
-    my ($channel, $source, $modes, $force, $over_protocol) = @_;
+    my ($channel, $source, $modes, $force, $over_protocol, $was_unloaded) = @_;
     my (@changes, $param_length, $ban_length);
 
     # $modes has to be an arrayref.
@@ -299,7 +299,9 @@ sub handle_modes {
 
         # don't allow this mode to be changed if the test fails
         # *unless* force is provided.
-        my ($win, $moderef) = $pool->fire_channel_mode($channel, $name, {
+        my $fire_method = $was_unloaded ?
+            'fire_unloaded_channel_mode' : 'fire_channel_mode';
+        my ($win, $moderef) = $pool->$fire_method($channel, $name, {
             channel => $channel,        # the channel
             server  => $me,             # the server perspective
             source  => $source,         # the source of the mode change (user or server)
@@ -839,15 +841,17 @@ sub do_modes_local { _do_modes(1, @_) }
 #   $force              whether to ignore permissions
 #   $over_protocol      specifies that the modes originated on incoming s2s
 #   $organize           whether to alphabetize and put positive changes first
+#   $was_unloaded       true if the modes were recently unloaded
 #
 sub _do_modes {
     my $local_only = shift;
-    my ($channel, $source, $modes, $force, $over_protocol, $organize) = @_;
+    my ($channel, $source, $modes, $force,
+    $over_protocol, $organize, $was_unloaded) = @_;
 
     # handle the mode.
     # ($source, $modes, $force, $over_protocol) = @_;
     my $changes = $channel->handle_modes(
-        $source, $modes, $force, $over_protocol
+        $source, $modes, $force, $over_protocol, $was_unloaded
     );
 
     # if nothing changed, stop here.

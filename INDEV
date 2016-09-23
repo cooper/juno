@@ -3723,3 +3723,5 @@ CHANGES:
             unset modes locally when they are no longer available.
 
         08. do not change topic text when it is a truncated version of the existing topic. closes #132.
+
+        09. temporarily store mode handling code while a mode is pending deletion. #63.

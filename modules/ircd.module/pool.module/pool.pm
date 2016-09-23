@@ -809,8 +809,15 @@ sub register_channel_mode_block {
 sub delete_channel_mode_block {
     my ($pool, $name, $what) = @_;
     if (my $hash = $pool->{channel_modes}{$name}) {
-        delete $hash->{$what};
+        my $code = delete $hash->{$what};
         delete $pool->{channel_modes}{$name} unless scalar keys %$hash;
+
+        # store temporarily in a different location for unsetting modes.
+        # this could be dangerous if the mode block tried to call any function
+        # in the module symbol table which will have been deleted. for that
+        # reason, I wrapped this in an eval just to be safe.
+        $pool->{unloaded_channel_modes}{$name} ||= sub { eval { &$code } };
+
         return 1;
     }
     return;
@@ -831,6 +838,19 @@ sub fire_channel_mode {
     }
 
     return ($amount, $this);
+}
+
+# fire a channel mode that was recently unloaded.
+sub fire_unloaded_channel_mode {
+    my ($pool, $channel, $name, $this) = @_;
+
+    # nothing to do.
+    return 0 unless $pool->{unloaded_channel_modes}{$name};
+
+    return (undef, $this)
+        unless $pool->{unloaded_channel_modes}{$name}($channel, $this);
+
+    return (1, $this);
 }
 
 sub channel_mode_string {
