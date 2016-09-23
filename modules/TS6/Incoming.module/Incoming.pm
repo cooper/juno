@@ -1164,12 +1164,16 @@ sub tb {
     # TB does not support unsetting topics. the new topic has to have length.
     return if !length $topic;
 
-    # TB does not support switching to older topics or changing solely the
-    # topicTS. if we have a topic already and it is older, ignore this message.
-    # if the topic existed already and is unchanged, ignore this message.
     if ($channel->{topic}) {
-        return if $channel->{topic}{time}   < $topic_ts;
-        return if $channel->{topic}{topic} eq $topic;
+
+        # TB does not support switching to older topics or changing solely the
+        # topicTS. if we have a topic already and it is older, ignore this message.
+        return if $channel->{topic}{time} < $topic_ts;
+
+        # if the topic existed already and is unchanged, ignore this message.
+        # we only care about the first length($topic) chars. see issue #132.
+        return if substr($channel->{topic}{topic}, 0, length $topic) eq $topic;
+
     }
 
     # set the topic
@@ -1203,6 +1207,10 @@ sub etb {
         ($channel->{time} == $ch_time && $channel->{topic}{time} < $topic_ts);
         # the channelTS are equal and the provided topicTS is newer
     return unless $accept;
+
+    # (issue #132) we don't have to check if the topic is a shorter version of
+    # the existing one here because ETB only accepts topics with a newer
+    # topicTS. if it is newer, it will always win.
 
     # set the topic.
     my $old = $channel->{topic};

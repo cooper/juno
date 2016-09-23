@@ -747,6 +747,10 @@ sub topicburst {
         # the channelTS are equal and the provided topicTS is newer
     return unless $accept;
 
+    # (issue #132) we don't have to check if the topic is a shorter version of
+    # the existing one here because TOPICBURST only accepts topics with a newer
+    # topicTS. if it is newer, it will always win.
+
     # ($source, $topic, $setby, $time, $check_text)
     my $old = $channel->{topic};
     $channel->do_topic($s_serv, $topic, $setby, $topic_ts, 1);
