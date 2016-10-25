@@ -3733,3 +3733,6 @@ CHANGES:
         fixed #138.
 
     11. misc. cleanup in connection.pm.
+
+    12. don't fire user_mask_change oper notice for cloaks applied to new users.
+        closes #111.
