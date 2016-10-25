@@ -195,14 +195,14 @@ sub ready {
         }
 
         # create a new user.
-        $connection->{type} = $pool->new_user(
+        my $user = $connection->{type} = $pool->new_user(
             %$connection,
             $Evented::Object::props  => {},
             $Evented::Object::events => {}
         );
 
-        weaken($connection->{type}{conn} = $connection);
-        $connection->fire(user_ready => $connection->{type});
+        weaken($user->{conn} = $connection);
+        $connection->fire(user_ready => $user);
 
     }
 
@@ -219,18 +219,17 @@ sub ready {
         }
 
         $connection->{parent} = $me;
-        $connection->{type}   = my $server = $pool->new_server(
+        my $server = $connection->{type} = $pool->new_server(
             %$connection,
             $Evented::Object::props  => {},
             $Evented::Object::events => {}
         );
 
-        weaken($connection->{type}{conn} = $connection);
-        $connection->fire(server_ready => $connection->{type});
+        weaken($server->{conn} = $connection);
+        $connection->fire(server_ready => $server);
 
-        $server->{conn} = $connection;
-        weaken($connection->{type}{location} = $connection->{type});
-        $pool->fire_command_all(new_server => $connection->{type});
+        weaken($connection->{type}{location} = $server);
+        $pool->fire_command_all(new_server => $server);
         $server->fire('initially_propagated');
         $server->{initially_propagated}++;
 
