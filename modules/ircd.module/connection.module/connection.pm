@@ -53,7 +53,6 @@ sub init {
 
 sub new {
     my ($class, $stream) = @_;
-    print "stream : $stream\n";
     return unless $stream && $stream->{write_handle};
 
     # check the IP.
@@ -86,48 +85,37 @@ sub new {
 
 sub handle {
     my ($connection, $data) = @_;
-printf "GET(%s): %s\n", $connection->type ? $connection->type->name : 'unregistered', $data;
+
     # update ping information.
     $connection->{ping_in_air}   = 0;
     $connection->{last_response} = time;
     delete $connection->{warned_ping};
 
-    # connection is being closed.
-    return if $connection->{goodbye};
+    # connection is being closed or empty line.
+    return if $connection->{goodbye} || !length $data;
 
-    return unless length $data;
-    my $msg  = message->new(data => $data, real_message => 1, source => $connection);
-    my $cmd  = $msg->command;
-    my @args = $msg->params;
+    # create a message.
+    my $msg = message->new(
+        data            => $data,
+        source          => $connection,
+        real_message    => 1
+    );
+    my $cmd = $msg->command;
 
     # connection events.
     my @events = (
-
-    # TODO: check if anything still uses these; then remove
-    #   .---------------.
-    #   | legacy events |
-    #   '---------------'
-
-        [ raw                   => $data, @args ],
-        [ "command_${cmd}_raw"  => $data, @args ],
-        [ "command_$cmd"        =>        @args ],
-
-    #   .------------.
-    #   | new events |
-    #   '------------'
-
         [ message               => $msg ],
         [ "message_${cmd}"      => $msg ]
-
     );
 
     # user events.
     if (my $user = $connection->user) {
         push @events, $user->_events_for_message($msg);
-        $connection->{last_command} = time unless $cmd eq 'PING' || $cmd eq 'PONG';
+        $connection->{last_command} = time
+            unless $cmd eq 'PING' || $cmd eq 'PONG';
     }
 
-    # if it's a server, add the $PROTO_message events.
+    # server $PROTO_message events.
     elsif (my $server = $connection->server) {
         my $proto = $server->{link_type};
         push @events, [ $server, "${proto}_message"        => $msg ],
@@ -138,7 +126,7 @@ printf "GET(%s): %s\n", $connection->type ? $connection->type->name : 'unregiste
     # fire with safe option.
     my $fire = $connection->prepare(@events)->fire('safe');
 
-    # 'safe' with exception.
+    # an exception occurred.
     if (my $e = $fire->exception) {
         my $stopper = $fire->stopper;
         notice(exception => "Error in $cmd from $stopper: $e");
@@ -179,20 +167,15 @@ sub ready {
 
         # check if the ident is valid.
         if (!utils::validident($connection->{ident})) {
-            $connection->early_reply(NOTICE => ':*** Your username is invalid.');
+            $connection->early_reply(NOTICE =>
+                ':*** Your username is invalid.');
             $connection->done("Invalid username [$$connection{ident}]");
             return;
         }
 
-        $connection->{server}   =
-        $connection->{location} = $me;
-        $connection->{cloak}  //= $connection->{host};
-
-        # at this point, if a user by this nick exists...
-        if ($pool->lookup_user_nick($connection->{nick})) {
-            delete $connection->{nick};
-            # fallback to the UID.
-        }
+        # at this point, if a user by this nick exists, fall back to UID.
+        delete $connection->{nick}
+            if $pool->lookup_user_nick($connection->{nick});
 
         # create a new user.
         my $user = $connection->{type} = $pool->new_user(
@@ -204,6 +187,7 @@ sub ready {
         weaken($user->{conn} = $connection);
         $connection->fire(user_ready => $user);
 
+        # we notify other servers of the new user in $user->_new_connection
     }
 
     # must be a server.
@@ -218,7 +202,7 @@ sub ready {
             return;
         }
 
-        $connection->{parent} = $me;
+        # create a new server.
         my $server = $connection->{type} = $pool->new_server(
             %$connection,
             $Evented::Object::props  => {},
@@ -228,17 +212,16 @@ sub ready {
         weaken($server->{conn} = $connection);
         $connection->fire(server_ready => $server);
 
-        weaken($connection->{type}{location} = $server);
+        # tell other servers.
         $pool->fire_command_all(new_server => $server);
         $server->fire('initially_propagated');
         $server->{initially_propagated}++;
-
     }
 
     # must be an intergalactic alien.
     else {
-        warn 'intergalactic alien has been found';
-        $connection->done('alien');
+        warn 'Connection ->ready called prematurely';
+        $connection->done('Alien');
         return;
     }
 
@@ -250,12 +233,14 @@ sub ready {
 # send data to the socket
 sub send {
     my ($connection, @msg) = @_;
+
+    # check that there is a writable stream.
     return unless $connection->{stream};
     return unless $connection->{stream}->write_handle;
     return if $connection->{goodbye};
+
     @msg = grep { defined } @msg;
     $connection->{stream}->write("$_\r\n") foreach @msg;
-printf "SEND(%s): %s\n", $connection->type ? $connection->type->name : 'unregistered', $_ foreach @msg;
 }
 
 # send data with a source
@@ -264,7 +249,7 @@ sub sendfrom {
     $connection->send(map { ":$source $_" } @_);
 }
 
-# send data from ME
+# send data from ME. JELP SID if server, server name otherwise.
 sub sendme {
     my $connection = shift;
     my $source =
@@ -306,7 +291,8 @@ sub done {
 
     # remove from connection the pool if it's still there.
     # if the connection has reserved a nick, release it.
-    my $r = defined $connection->{nick} ? $pool->nick_in_use($connection->{nick}) : undef;
+    my $r = defined $connection->{nick} ?
+        $pool->nick_in_use($connection->{nick}) : undef;
     $pool->release_nick($connection->{nick}) if $r && $r == $connection;
     $pool->delete_connection($connection, $reason) if $connection->{pool};
 
@@ -443,7 +429,7 @@ sub abandon_future {
     $f->cancel; # it may already be canceled, but that's ok
 }
 
-# clear all futures associated with a 9connection.
+# clear all futures associated with a connection.
 sub clear_futures {
     my $connection = shift;
     my $count = 0;

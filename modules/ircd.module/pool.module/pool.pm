@@ -113,9 +113,12 @@ sub new_server {
     $pool->{servers}{ $server->{sid} } =
     $pool->{server_names}{ irc_lc($server->{name}) } = $server;
 
+    # fall back parent to the local server and location to the server itself.
+    weaken($server->{parent}   ||= $me);
+    weaken($server->{location} ||= $server);
+
     # weakly reference to the pool.
     weaken($server->{pool} = $pool);
-    weaken($server->{parent});
 
     # become an event listener.
     $server->add_listener($pool, 'server');
@@ -218,9 +221,6 @@ sub all_servers { values %{ shift->{servers} }            }
 sub new_user {
     my ($pool, %opts) = @_;
 
-    # no server provided; default to this server.
-    weaken($opts{server} ||= $me);
-
     # no UID provided; generate one.
     # no nick specified; use UID.
     $opts{uid}  //= $me->{sid}.$pool->{user_i}++;
@@ -229,7 +229,11 @@ sub new_user {
     delete $opts{stream};
     my $user = user->new(%opts) or return;
 
-    # store it by ID and nick.
+    # no server provided; default to this server.
+    weaken($user->{server}   ||= $me);
+    weaken($user->{location} ||= $me);
+
+    # store the user by ID and nick.
     $pool->{users}{ $opts{uid} } =
     $pool->{nicks}{ irc_lc($opts{nick}) } = $user;
 

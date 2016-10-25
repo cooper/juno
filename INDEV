@@ -3731,3 +3731,5 @@ CHANGES:
         possibly resolved MAYBE #138. or maybe not.
         for #138, dispose of ghosts without connection objects.
         fixed #138.
+
+    11. misc. cleanup in connection.pm.

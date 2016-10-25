@@ -36,9 +36,10 @@ our ($api, $mod, $pool, $me);
 sub new {
     my ($class, %opts) = @_;
     return bless {
-        modes => [],
-        flags => [],
-        nick_time => time,
+        modes       => [],
+        flags       => [],
+        nick_time   => time,
+        cloak       => $opts{host},
         %opts
     }, $class;
 }
