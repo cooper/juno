@@ -579,6 +579,12 @@ sub misc_upgrades {
     foreach my $user ($pool->local_users) {
         next unless $user->{conn};
 
+        # if the conn exists but is not an object, it's a ghost.
+        if (!blessed $user->{conn}) {
+            $user->quit('Ghost');
+            next;
+        }
+
         # local users need a last_command time.
         $user->{conn}{last_command} ||= time;
     }
