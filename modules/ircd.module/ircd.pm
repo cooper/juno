@@ -581,6 +581,7 @@ sub misc_upgrades {
 
         # if the conn exists but is not an object, it's a ghost.
         if (!blessed $user->{conn}) {
+            delete $user->{conn};
             $user->quit('Ghost');
             next;
         }
