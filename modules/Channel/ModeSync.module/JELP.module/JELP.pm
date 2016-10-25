@@ -15,6 +15,7 @@ use 5.010;
 
 our ($api, $mod, $pool);
 
-
+our %jelp_incoming_commands = ();
+our %jelp_outgoing_commands = ();
 
 $mod

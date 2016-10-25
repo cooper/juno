@@ -211,7 +211,7 @@ sub rcmd_server {
 }
 
 # server info
-sub svinfo {
+sub rcmd_svinfo {
     my ($connection, $event, $current, $min, undef, $their_time) = @_;
     my $server  = $connection->server or return;
     my $my_time = time;

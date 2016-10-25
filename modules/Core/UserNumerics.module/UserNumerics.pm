@@ -26,7 +26,7 @@ our %user_numerics = (
                           # [                                                                             ],
                           # [============================= DIRECT CONNECTION =============================],
                           # [                                                                             ],
-    RPL_WELCOME          => ['001', 'Welcome to the %s IRC Network %s!%s@%s'                              ],
+    RPL_WELCOME          => ['001', ':Welcome to the %s IRC Network %s!%s@%s'                             ],
     RPL_YOURHOST         => ['002', ':Your host is %s, running version %s'                                ],
     RPL_CREATED          => ['003', ':This server was created %s'                                         ],
     RPL_MYINFO           => ['004', '%s %s %s %s'                                                         ],

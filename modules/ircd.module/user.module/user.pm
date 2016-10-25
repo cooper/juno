@@ -394,8 +394,8 @@ sub get_killed_by {
         $reason = \ "$name ($reason)";
     }
 
-    # local user, use ->done().
-    if ($user->is_local) {
+    # local user with conn still active, use ->done().
+    if ($user->conn) {
         $user->{conn}{killed} = 1;
         $user->{conn}->done("Killed ($$reason)");
     }

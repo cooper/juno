@@ -3701,27 +3701,29 @@ CHANGES:
 
 12. mihret.
 
-        01. destroy the config object on each RELOAD. this is necessary to set new defaults from default.conf.
+    01. destroy the config object on each RELOAD. this is necessary to set new defaults from default.conf.
 
-        02. added server method ->remove_umode().
-            JELP AUM (add user mode) can now also remove mode definitions. #63.
+    02. added server method ->remove_umode().
+        JELP AUM (add user mode) can now also remove mode definitions. #63.
 
-        03. added server method ->remove_cmode().
-            JELP ACM (add channel mode) can now also remove mode definitions. #63.
+    03. added server method ->remove_cmode().
+        JELP ACM (add channel mode) can now also remove mode definitions. #63.
 
-        04. added server::protocol utilities notify_umode_changes() and notify_cmode_changes(). #63.
+    04. added server::protocol utilities notify_umode_changes() and notify_cmode_changes(). #63.
 
-        05. Reload now tracks mode mapping changes and notifies other servers when necessary. #63.
+    05. Reload now tracks mode mapping changes and notifies other servers when necessary. #63.
 
-        06. added utilities mode_change_start() and mode_change_end().
-            AUM and ACM are now sent out dynamically when new modes are added and removed. #63.
-            AUM and ACM for juno servers now only advertise modes which are actually available for use.
+    06. added utilities mode_change_start() and mode_change_end().
+        AUM and ACM are now sent out dynamically when new modes are added and removed. #63.
+        AUM and ACM for juno servers now only advertise modes which are actually available for use.
 
-        07. add channel method ->get_modes().
-            add events for mode_change_end().
-            started work on Channel::ModeSync. #63.
-            unset modes locally when they are no longer available.
+    07. add channel method ->get_modes().
+        add events for mode_change_end().
+        started work on Channel::ModeSync. #63.
+        unset modes locally when they are no longer available.
 
-        08. do not change topic text when it is a truncated version of the existing topic. closes #132.
+    08. do not change topic text when it is a truncated version of the existing topic. closes #132.
 
-        09. temporarily store mode handling code while a mode is pending deletion. #63.
+    09. temporarily store mode handling code while a mode is pending deletion. #63.
+
+    10. fixed bug in SVINFO. fixed RPL_WELCOME bug.
