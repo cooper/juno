@@ -498,7 +498,8 @@ sub get_mask_changed {
     }
 
     notice(user_mask_change => $user->{nick},
-        $old_ident, $old_host, $new_ident, $new_host) if $user->{init_complete};
+        $old_ident, $old_host, $new_ident, $new_host)
+        if !$user->is_local || $user->{init_complete};
     return 1;
 }
 
