@@ -165,7 +165,7 @@ sub reg_continue {
 
 sub ready {
     my $connection = shift;
-    return if $connection->{ready};
+    return if $connection->{ready} || $connection->{done};
     $connection->fire('ready');
 
     # must be a user.
