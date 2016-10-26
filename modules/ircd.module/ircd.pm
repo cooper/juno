@@ -795,12 +795,7 @@ sub handle_listen_error {
 sub _conn_close {
     my ($err, $stream) = @_;
     my $conn = $pool->lookup_connection($stream);
-    if ($conn) {
-        $conn->done($err);
-    }
-    else {
-        warn 'Closing a stream with no associated connection';
-    }
+    $conn->done($err) if $conn;
     $stream->close_now;
 }
 
