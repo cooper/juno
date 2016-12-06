@@ -62,4 +62,52 @@ sub cmodes_changed {
 
 }
 
+# handle_modereq()
+#
+# $source_serv  server object source
+#
+# $ch_maybe     channel object or undef if it is for all channels
+#
+# $target       server object target or undef if it is network-wide
+#
+# $modes        string of mode letters in the perspective of the source server
+#               or undef if requesting all modes
+#
+sub handle_modereq {
+    my ($msg, $source_serv, $ch_maybe, $target, $modes) = @_;
+
+    # if the modes are missing, a channel must be present.
+    # this indicates a network-wide sync of all modes on a channel.
+    return if !$ch_maybe && !defined $modes;
+
+    my @forward_args = (modereq => $source_serv, $ch_maybe, $target, $modes);
+
+    # this is not for me; forward.
+    if (defined $target && $target ne $me->id) {
+        $target = $pool->lookup_server($target) or return;
+        return $msg->forward_to($target, @forward_args);
+    }
+
+    # Safe point - we will handle this request.
+    my @channels = $ch_maybe ? $ch_maybe : $pool->channels;
+    foreach my $channel (@channels) {
+
+        # map mode letters in the perspective of $source_serv to names.
+        my @mode_names = map $source_serv->cmode_name($_), split //, $modes;
+
+        # construct a mode string in the perspective of $me with these modes.
+        my $mode_str = $channel->mode_string_with($me, @mode_names);
+        next if !length $mode_str;
+
+        $source_serv->{location}->fire_command(moderep =>
+            $me, $channel, $target, $mode_str
+        );
+    }
+
+    # unless this was addressed specifically to me, forward.
+    $msg->forward(@forward_args) if !defined $target;
+
+    return 1;
+}
+
 $mod

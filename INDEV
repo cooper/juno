@@ -3737,3 +3737,7 @@ CHANGES:
     12. don't fire user_mask_change oper notice for cloaks applied to new users.
         closes #111.
         actually always do it for remote users. #111.
+
+    13. implemented JELP MODEREQ. #63.
+        added outgoing JELP MODEREQ and MODEREP.
+        update Evented::Object.

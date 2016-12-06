@@ -431,6 +431,9 @@ sub handle_mode_string {
 
 }
 
+sub modes_with { ... }
+sub mode_string_with { ... }
+
 # returns a +modes string.
 sub mode_string        { _mode_string(0, @_) }
 sub mode_string_hidden { _mode_string(1, @_) }
