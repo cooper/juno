@@ -431,16 +431,62 @@ sub handle_mode_string {
 
 }
 
-sub modes_with { ... }
-sub mode_string_with { ... }
+my %zero_or_one = map { $_ => 1 } (0, 1, 2);    # zero or one parameters
+my %exactly_one = map { $_ => 1 } (1, 2, 5);    # exactly one parameter
+
+# return a moderef from the provided mode names.
+sub modes_with  { _modes_with($me, @_) }
+sub _modes_with {
+    my ($server, $channel, @mode_names) = @_;
+    my @modes;
+
+    foreach my $name (@mode_names) {
+        my $type = $me->cmode_type($name);
+        my $ref  = $channel->{modes}{$name} or next;
+        next if $type == -1;
+
+        # if it takes 0 or 1 parameters, add the mode name.
+        push @modes, $name if $zero_or_one{$type};
+
+        # if it takes 0 parameters, add undef.
+        push @modes, undef if $type == 0;
+
+        # exactly one parameter; add it.
+        if ($exactly_one{$type}) {
+            push @modes, $ref->{parameter};
+        }
+
+        # list/status modes. add each string or user object.
+        elsif ($type == 3 || $type == 4) {
+            push @modes, $name, $_ for $channel->list_elements($name);
+        }
+    }
+
+    return \@modes;
+}
+
+# return a mode string in the perspective of $server with the
+# provided mode names.
+sub mode_string_with {
+    my ($channel, $server, @mode_names) = @_;
+    my $modes = _modes_with($server, $channel, @mode_names);
+
+    # ($modes, $over_protocol, $split, $organize, $skip_checks)
+    my $user_string = $server->strings_from_cmodes(
+        $modes, undef, undef, 1, 1);
+    my $server_string = $server->strings_from_cmodes(
+        $modes, 1, undef, 1, 1);
+
+    return ($user_string, $server_string);
+}
 
 # returns a +modes string.
 sub mode_string        { _mode_string(0, @_) }
 sub mode_string_hidden { _mode_string(1, @_) }
 sub _mode_string       {
     my ($show_hidden, $channel, $server) = @_;
-    my (@modes, @params);
     my @set_modes = sort keys %{ $channel->{modes} };
+    my @modes;
 
     # "normal types" generally means the ones that show in MODES.
     # does not include lists, status, etc.
@@ -454,18 +500,14 @@ sub _mode_string       {
     # add all the modes for each of these types.
     foreach my $name (@set_modes) {
         next unless $normal_types{ $server->cmode_type($name) };
-
-        push @modes, $server->cmode_letter($name);
-        my $param = $channel->mode_parameter($name);
-        push @params, $param if defined $param;
+        push @modes,
+            $name,
+            $channel->mode_parameter($name);
     }
 
-    return '+'.join(' ', join('', @modes), @params);
+    # ($modes, $over_protocol, $split, $organize, $skip_checks)
+    return $server->strings_from_cmodes(\@modes, 1, undef, 1, 1);
 }
-
-
-my %zero_or_one = map { $_ => 1 } (0, 1, 2);    # zero or one parameters
-my %exactly_one = map { $_ => 1 } (1, 2, 5);    # exactly one parameter
 
 # includes ALL modes
 #

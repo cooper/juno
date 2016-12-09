@@ -100,7 +100,9 @@ sub handle_modereq {
         next if !length $mode_str;
 
         $source_serv->{location}->fire_command(moderep =>
-            $me, $channel, $target, $mode_str
+            $me, $channel,
+            $target ? $source_serv : undef, # reply to the server or *
+            $mode_str
         );
     }
 

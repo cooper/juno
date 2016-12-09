@@ -3741,3 +3741,6 @@ CHANGES:
     13. implemented JELP MODEREQ. #63.
         added outgoing JELP MODEREQ and MODEREP.
         update Evented::Object.
+
+    14. add channel ->modes_with() and ->mode_string_with().
+        more work on MODESYNC #63.
