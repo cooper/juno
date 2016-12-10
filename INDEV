@@ -3744,3 +3744,7 @@ CHANGES:
 
     14. add channel ->modes_with() and ->mode_string_with().
         more work on MODESYNC #63.
+
+    15. ->modes_with now accepts numeric mode types in addition to string mode names.
+        ->mode_string, ->mode_string_hidden, ->mode_string_status, and ->mode_string_all
+        now all are wrappers for the new ->modes_with.

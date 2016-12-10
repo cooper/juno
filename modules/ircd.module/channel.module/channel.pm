@@ -431,8 +431,8 @@ sub handle_mode_string {
 
 }
 
-my %zero_or_one = map { $_ => 1 } (0, 1, 2);    # zero or one parameters
-my %exactly_one = map { $_ => 1 } (1, 2, 5);    # exactly one parameter
+my %zero_or_one = map { $_ => 1 } 0, 1, 2, 5;     # zero or one parameters
+my %exactly_one = map { $_ => 1 } 1, 2, 5;        # exactly one parameter
 
 # return a moderef from the provided mode names.
 sub modes_with  { _modes_with($me, @_) }
@@ -440,6 +440,31 @@ sub _modes_with {
     my ($server, $channel, @mode_names) = @_;
     my @modes;
 
+    # replace numbers with mode names.
+    @mode_names = map {
+        my @res = my $type = $_;
+        my @all_modes = keys %{ $channel->{modes} };
+
+        # inf means all modes
+        if ($type eq 'inf') {
+            @res = @all_modes;
+        }
+
+        # -inf means all except status modes
+        elsif ($type eq -inf) {
+            @res = @all_modes;
+            @res = grep { $server->cmode_type($_) != 4 } @all_modes;
+        }
+
+        # other number means all modes of the specified type.
+        elsif (looks_like_number($type)) {
+            @res = grep { $server->cmode_type($_) == $type } @all_modes;
+        }
+
+        @res
+    } @mode_names;
+
+    # add each mode by name.
     foreach my $name (@mode_names) {
         my $type = $me->cmode_type($name);
         my $ref  = $channel->{modes}{$name} or next;
@@ -485,105 +510,32 @@ sub mode_string        { _mode_string(0, @_) }
 sub mode_string_hidden { _mode_string(1, @_) }
 sub _mode_string       {
     my ($show_hidden, $channel, $server) = @_;
-    my @set_modes = sort keys %{ $channel->{modes} };
-    my @modes;
 
-    # "normal types" generally means the ones that show in MODES.
-    # does not include lists, status, etc.
-    my %normal_types = (
-        0 => 1,                 # normal modes always incluided
-        1 => 1,                 # parameter always included
-        2 => 1,                 # parameter_set always included
-        5 => $show_hidden       # key only if included showing hidden
-    );
+    # acceptable types are 0 (normal), 1 (parameter), 2 (parameter_set),
+    # and possibly 5 (hidden), if showing hidden.
+    my @types = (0, 1, 2);
+    push @types, 5 if $show_hidden;
 
-    # add all the modes for each of these types.
-    foreach my $name (@set_modes) {
-        next unless $normal_types{ $server->cmode_type($name) };
-        push @modes,
-            $name,
-            $channel->mode_parameter($name);
-    }
-
-    # ($modes, $over_protocol, $split, $organize, $skip_checks)
-    return $server->strings_from_cmodes(\@modes, 1, undef, 1, 1);
+    return $channel->mode_string_with($server, @types);
 }
 
-# includes ALL modes
+# includes ALL modes, even +k
 #
 # returns a string for users and a string for servers
 # $no_status = all but status modes
 #
+# returns both a user string and a server string.
+#
 sub mode_string_all {
     my ($channel, $server, $no_status) = @_;
-    my (@modes, @user_params, @server_params);
-    my @set_modes = sort keys %{ $channel->{modes} };
-
-
-    foreach my $name (@set_modes) {
-        my $letter = $server->cmode_letter($name);
-        my $type   = $server->cmode_type($name);
-
-        # if it takes 0 or 1 parameters, add 1 mode letter.
-        push @modes, $letter if $zero_or_one{$type};
-
-        # exactly one parameter; add it.
-        if ($exactly_one{$type}) {
-            push @user_params,   $channel->{modes}{$name}{parameter};
-            push @server_params, $channel->{modes}{$name}{parameter};
-        }
-
-        # list modes. add each item.
-        elsif ($type == 3) {
-            foreach my $thing ($channel->list_elements($name)) {
-                push @modes,         $letter;
-                push @user_params,   $thing;
-                push @server_params, $thing;
-            }
-        }
-
-        # status modes. add each nick/uid.
-        elsif ($type == 4 && !$no_status) {
-            foreach my $user ($channel->list_elements($name)) {
-                push @modes,         $letter;
-                push @user_params,   $user->{nick};
-                push @server_params, $user->{uid};
-            }
-        }
-
-    }
-
-    # make +modes params strings.
-    my $user_string   = '+'.join(' ', join('', @modes), @user_params);
-    my $server_string = '+'.join(' ', join('', @modes), @server_params);
-
-    # returns both a user string and a server string.
-    return ($user_string, $server_string);
+    return $channel->mode_string_with($server, $no_status ? -inf : 'inf');
 }
 
-# same mode_string except for status modes only.
+# same as ->mode_string except for status modes only.
+# returns both a user string and a server string.
 sub mode_string_status {
     my ($channel, $server) = @_;
-    my (@modes, @user_params, @server_params);
-    my @set_modes = sort keys %{ $channel->{modes} };
-
-    foreach my $name (@set_modes) {
-        my $letter = $server->cmode_letter($name);
-        next unless $server->cmode_type($name) == 4;
-
-        foreach my $user ($channel->list_elements($name)) {
-            push @modes,         $letter;
-            push @user_params,   $user->{nick};
-            push @server_params, $user->{uid};
-        }
-    }
-
-    # make +modes params strings.
-    my $user_string   = '+'.join(' ', join('', @modes), @user_params);
-    my $server_string = '+'.join(' ', join('', @modes), @server_params);
-
-    # returns both a user string and a server string.
-    return ($user_string, $server_string);
+    return $channel->mode_string_with($server, 4);
 }
 
 # returns true only if the passed user is in
