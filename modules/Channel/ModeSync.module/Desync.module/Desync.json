@@ -1,0 +1,10 @@
+{
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
+   "description" : "provides the MODESYNC user command to fix desyncs",
+   "name" : "Channel::ModeSync::Desync",
+   "package" : "M::Channel::ModeSync::Desync",
+   "version" : "0.3"
+}

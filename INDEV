@@ -3758,3 +3758,5 @@ CHANGES:
     18. fixed some issues with reloading companion submodules.
         update Evented::API::Engine.
         update Evented::Object.
+
+    19. add MODESYNC user command. #63

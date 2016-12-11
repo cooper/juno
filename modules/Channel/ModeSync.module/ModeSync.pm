@@ -21,6 +21,7 @@ our ($api, $mod, $pool, $me);
 
 sub init {
     $mod->add_companion_submodule('JELP::Base', 'JELP');
+    $mod->add_companion_submodule('Base::UserCommands', 'Desync');
     $pool->on(cmodes_changed => \&cmodes_changed, 'modesync');
     return 1;
 }
