@@ -157,7 +157,7 @@ sub handle_moderep {
         $old_mode_str,      # all former modes
         $mode_str,          # all new modes
         undef,              # combine ban lists? no longer used in JELP
-        undef               # do NOT remove modes missing from $mode_str
+        1                   # do NOT remove modes missing from $mode_str
     );
 
     # do the mode string in perspective of $me.
