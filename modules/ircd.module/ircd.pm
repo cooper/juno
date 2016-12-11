@@ -299,13 +299,12 @@ sub load_dependencies {
 
         [ 'IO::Socket::IP',                0.25 ],
 
-        [ 'Evented::Object',               5.59 ],
-        [ 'Evented::Object::Collection',   5.59 ],
-        [ 'Evented::Object::EventFire',    5.59 ],
+        [ 'Evented::Object',               5.62 ],
+        [ 'Evented::Object::Collection',   5.62 ],
+        [ 'Evented::Object::EventFire',    5.62 ],
 
-        [ 'Evented::API::Engine',          3.99 ],
-        [ 'Evented::API::Module',          3.99 ],
-        [ 'Evented::API::Hax',             3.99 ],
+        [ 'Evented::API::Engine',          4.01 ],
+        [ 'Evented::API::Module',          4.01 ],
 
         [ 'Evented::Configuration',        3.96 ],
 
@@ -416,7 +415,7 @@ sub setup_api {
     $api->on('module.set_variables' => sub {
         my ($event, $pkg) = @_;
         my $obj = $event->object;
-        Evented::API::Hax::set_symbol($pkg, {
+        Evented::Object::Hax::set_symbol($pkg, {
             '$me'   => $me,
             '$pool' => $pool,
             '$conf' => $conf,

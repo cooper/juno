@@ -3754,3 +3754,7 @@ CHANGES:
         add MODEREP handler. #63
 
     17. send out MODEREQ upon cmodes_changed.
+
+    18. fixed some issues with reloading companion submodules.
+        update Evented::API::Engine.
+        update Evented::Object.

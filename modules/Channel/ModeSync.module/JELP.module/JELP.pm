@@ -29,8 +29,8 @@ our %jelp_incoming_commands = (
 );
 
 our %jelp_outgoing_commands = (
-    MODEREQ => \&out_modereq,
-    MODEREP => \&out_moderep
+    modereq => \&out_modereq,
+    moderep => \&out_moderep
 );
 
 my ($handle_modereq, $handle_moderep);
