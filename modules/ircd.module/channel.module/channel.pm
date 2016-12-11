@@ -1108,7 +1108,7 @@ sub do_join {
     # if local, send topic and names.
     if ($user->is_local) {
         $user->handle("TOPIC $$channel{name}") if $channel->topic;
-        names($channel, $user);
+        $channel->send_names($user);
     }
 
     # fire after join event.

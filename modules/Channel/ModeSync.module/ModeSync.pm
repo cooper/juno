@@ -30,10 +30,10 @@ sub cmodes_changed {
     # first, locally unset the modes which were removed
     for my $channel ($pool->channels) {
         my @all_modes;
-        for my $mode_type (@$removed) {
+        for my $name (@$removed) {
 
-            # get all modes of this type
-            my $modes = $channel->modes_with($mode_type);
+            # get all modes of this name
+            my $modes = $channel->modes_with($name);
             next if !@$modes;
 
             # invert the state
@@ -59,8 +59,17 @@ sub cmodes_changed {
     # abandon it. currently the temp code stays until overwritten. I wouldn't
     # feel good about deleting it here because then it would still remain when
     # ModeSync isn't loaded. it's not that big of a deal regardless.
-    use Data::Dumper;
-    print Dumper($added), "\n";
+
+    # send out a MODEREQ targeting all channels and all servers affected by
+    # the new mode letters.
+    my $letters = '';
+    foreach (@$added) {
+        my ($name, $letter, $type) = @$_;
+        $letters .= $letter;
+    }
+
+    $pool->fire_command_all(modereq => $me, undef, undef, $letters)
+        if length $letters;
 }
 
 # handle_modereq()

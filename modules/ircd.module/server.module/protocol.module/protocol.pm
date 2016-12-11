@@ -557,8 +557,8 @@ sub cmode_change_end {
     my @removed = keys %$previously_enabled;
 
     return if !@added && !@removed;
-    $pool->fire(cmodes_changed => \@added, \@removed);
     $pool->fire_command_all(add_cmodes => $server, \@added, \@removed);
+    $pool->fire(cmodes_changed => \@added, \@removed);
 }
 
 sub umode_change_start {
@@ -613,8 +613,8 @@ sub umode_change_end {
     my @removed = keys %$previously_enabled;
 
     return if !@added && !@removed;
-    $pool->fire(umodes_changed => \@added, \@removed);
     $pool->fire_command_all(add_umodes => $server, \@added, \@removed);
+    $pool->fire(umodes_changed => \@added, \@removed);
 }
 
 sub mode_change_start {
