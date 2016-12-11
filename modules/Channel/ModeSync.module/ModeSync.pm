@@ -33,7 +33,7 @@ sub cmodes_changed {
         for my $mode_type (@$removed) {
 
             # get all modes of this type
-            my $modes = $channel->get_modes($mode_type);
+            my $modes = $channel->modes_with($mode_type);
             next if !@$modes;
 
             # invert the state
@@ -59,7 +59,8 @@ sub cmodes_changed {
     # abandon it. currently the temp code stays until overwritten. I wouldn't
     # feel good about deleting it here because then it would still remain when
     # ModeSync isn't loaded. it's not that big of a deal regardless.
-
+    use Data::Dumper;
+    print Dumper($added), "\n";
 }
 
 # handle_modereq()
@@ -83,17 +84,18 @@ sub handle_modereq {
     my @forward_args = (modereq => $source_serv, $ch_maybe, $target, $modes);
 
     # this is not for me; forward.
-    if (defined $target && $target ne $me->id) {
-        $target = $pool->lookup_server($target) or return;
+    if ($target && $target != $me) {
         return $msg->forward_to($target, @forward_args);
     }
 
-    # Safe point - we will handle this request.
+    # Safe point - we will handle this mode request.
     my @channels = $ch_maybe ? $ch_maybe : $pool->channels;
     foreach my $channel (@channels) {
 
         # map mode letters in the perspective of $source_serv to names.
-        my @mode_names = map $source_serv->cmode_name($_), split //, $modes;
+        my @mode_names = defined $modes ?
+            map $source_serv->cmode_name($_), split //, $modes :
+            'inf'; # inf indicates all modes
 
         # construct a mode string in the perspective of $me with these modes.
         my $mode_str = $channel->mode_string_with($me, @mode_names);
@@ -101,10 +103,57 @@ sub handle_modereq {
 
         $source_serv->{location}->fire_command(moderep =>
             $me, $channel,
-            $target ? $source_serv : undef, # reply to the server or *
+            defined $modes ? $source_serv : undef, # reply to the server or *
             $mode_str
         );
     }
+
+    # unless this was addressed specifically to me, forward.
+    $msg->forward(@forward_args) if !defined $target;
+
+    return 1;
+}
+
+# handle_moderep()
+#
+# $source_serv  server object source
+#
+# $ch_maybe     channel object (required)
+#
+# $target       server object target or undef if it is network-wide
+#
+# $mode_str     mode string in the perspective of $source_serv, including
+#               any possible parameters
+#
+sub handle_moderep {
+    my ($msg, $source_serv, $channel, $target, $mode_str) = @_;
+
+    my @forward_args = (moderep => $source_serv, $channel, $target, $mode_str);
+
+    # this is not for me; forward.
+    if ($target && $target != $me) {
+        return $msg->forward_to($target, @forward_args);
+    }
+
+    # Safe point - we will handle this mode reply.
+
+    # store the complete mode string before any changes.
+    # convert the incoming mode string to the perspective of $me.
+    my $old_mode_str = $channel->mode_string_all($me);
+    $mode_str = $source_serv->convert_cmode_string($me, $mode_str, 1);
+
+    # determine the difference between the old mode string and the new one.
+    # note that ->cmode_string_difference() ONLY supports positive +modes.
+    my $difference = $me->cmode_string_difference(
+        $old_mode_str,      # all former modes
+        $mode_str,          # all new modes
+        undef,              # combine ban lists? no longer used in JELP
+        undef               # do NOT remove modes missing from $mode_str
+    );
+
+    # do the mode string in perspective of $me.
+    $channel->do_mode_string_local($me, $source_serv, $difference, 1, 1)
+        if $difference;
 
     # unless this was addressed specifically to me, forward.
     $msg->forward(@forward_args) if !defined $target;

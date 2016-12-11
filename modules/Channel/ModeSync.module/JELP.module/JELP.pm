@@ -33,10 +33,11 @@ our %jelp_outgoing_commands = (
     MODEREP => \&out_moderep
 );
 
-my $handle_modereq;
+my ($handle_modereq, $handle_moderep);
 
 sub init {
     $handle_modereq = M::Channel::ModeSync->can('handle_modereq') or return;
+    $handle_moderep = M::Channel::ModeSync->can('handle_moderep') or return;
     return 1;
 }
 
@@ -46,6 +47,10 @@ sub in_modereq {
     undef $target  if $target  eq '*';
     undef $modes   if $modes   eq '*';
 
+    # find a target server maybe.
+    $target = $pool->lookup_server($target) or return
+        if defined $target;
+
     # find a channel maybe.
     # abort if a name was provided and we can't find it.
     my $ch_maybe = $pool->lookup_channel($ch_name) or return
@@ -54,8 +59,16 @@ sub in_modereq {
     return $handle_modereq->($msg, $source_serv, $ch_maybe, $target, $modes);
 }
 
+# :69 MODEREP #k 100 :+n
 sub in_moderep {
+    my ($server, $msg, $source_serv, $channel, $target, $mode_str) = @_;
+    undef $target if $target eq '*';
 
+    # find a target server maybe.
+    $target = $pool->lookup_server($target) or return
+        if defined $target;
+
+    return $handle_moderep->($msg, $source_serv, $channel, $target, $mode_str);
 }
 
 sub out_modereq {

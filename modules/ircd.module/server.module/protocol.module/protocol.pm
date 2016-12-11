@@ -547,7 +547,7 @@ sub cmode_change_end {
         # if it existed, check if it has changed
         next if $old &&
             $old->{letter} eq $new->{letter} &&
-            $old->{type}   == $old->{type};
+            $old->{type}   == $new->{type};
 
         # it has changed or did not exist, so add it
         push @added, [ $mode_name, $new->{letter}, $new->{type} ];

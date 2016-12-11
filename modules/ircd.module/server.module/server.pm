@@ -1,3 +1,4 @@
+
 # Copyright (c) 2009-16, Mitchell Cooper
 #
 # @name:            "ircd::server"

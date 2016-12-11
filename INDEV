@@ -3751,4 +3751,4 @@ CHANGES:
 
     16. get rid of ->get_modes; it is replaced by ->modes_with and new ->all_modes.
         rename ->modes to ->send_modes and ->names to ->send_names.
-        
+        add MODEREP handler. #63
