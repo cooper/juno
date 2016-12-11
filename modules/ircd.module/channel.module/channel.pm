@@ -431,8 +431,11 @@ sub handle_mode_string {
 
 }
 
-my %zero_or_one = map { $_ => 1 } 0, 1, 2, 5;     # zero or one parameters
-my %exactly_one = map { $_ => 1 } 1, 2, 5;        # exactly one parameter
+# return a moderef for all modes.
+sub all_modes {
+    my $channel = shift;
+    return $channel->modes_with('inf');
+}
 
 # return a moderef from the provided mode names.
 sub modes_with  { _modes_with($me, @_) }
@@ -470,21 +473,21 @@ sub _modes_with {
         my $ref  = $channel->{modes}{$name} or next;
         next if $type == -1;
 
-        # if it takes 0 or 1 parameters, add the mode name.
-        push @modes, $name if $zero_or_one{$type};
-
-        # if it takes 0 parameters, add undef.
-        push @modes, undef if $type == 0;
-
-        # exactly one parameter; add it.
-        if ($exactly_one{$type}) {
-            push @modes, $ref->{parameter};
-        }
-
         # list/status modes. add each string or user object.
-        elsif ($type == 3 || $type == 4) {
+        if ($ref->{list}) {
             push @modes, $name, $_ for $channel->list_elements($name);
         }
+
+        # exactly one parameter; add it.
+        elsif (length $ref->{parameter}) {
+            push @modes, $name, $ref->{parameter};
+        }
+
+        # no parameter; add undef.
+        else {
+            push @modes, $name, undef;
+        }
+
     }
 
     return \@modes;
@@ -669,7 +672,7 @@ sub users { @{ shift->{users} } }
 ############
 
 # send NAMES.
-sub names {
+sub send_names {
     my ($channel, $user, $no_endof) = @_;
     $user->is_local or return;
 
@@ -711,7 +714,7 @@ sub names {
 }
 
 # send mode information.
-sub modes {
+sub send_modes {
     my ($channel, $user) = @_;
     my $modestr = $channel->mode_string($user->{server});
     $user->numeric(RPL_CHANNELMODEIS =>  $channel->name, $modestr);
@@ -900,33 +903,6 @@ sub _do_mode_string {
 
     # do the modes.
     return _do_modes($local_only, $channel, $source, $changes, $force, $protocol);
-}
-
-# returns currently set modes for the given modes or all modes
-sub get_modes {
-    my ($channel, @types) = @_;
-    @types = keys %{ $channel->{modes} } if !@types;
-    my @modes;
-
-    foreach my $mode_type (@types) {
-        my $m = $channel->{modes}{$mode_type} or next;
-
-        # has a list
-        if ($m->{list}) {
-            push @modes, $mode_type, $_->[0] for ref_to_list($m->{list});
-        }
-
-        # has a single parameter
-        elsif (length $m->{parameter}) {
-            push @modes, $mode_type, $m->{parameter};
-        }
-
-        # no parameters
-        else {
-            push @modes, $mode_type, undef;
-        }
-    }
-    return \@modes;
 }
 
 # ->do_privmsgnotice()

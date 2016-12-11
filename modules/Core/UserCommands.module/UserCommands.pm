@@ -347,7 +347,7 @@ sub mode {
 
         # viewing.
         if (!length $modestr) {
-            $channel->modes($user);
+            $channel->send_modes($user);
             return 1;
         }
 
@@ -556,7 +556,7 @@ sub names {
         # nonexistent channels return no error,
         # and RPL_ENDOFNAMES is sent no matter what
         my $channel = $pool->lookup_channel($chname);
-        $channel->names($user, 1) if $channel;
+        $channel->send_names($user, 1) if $channel;
         $user->numeric(RPL_ENDOFNAMES => $channel ? $channel->name : $chname);
     }
 

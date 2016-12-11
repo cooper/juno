@@ -3748,3 +3748,7 @@ CHANGES:
     15. ->modes_with now accepts numeric mode types in addition to string mode names.
         ->mode_string, ->mode_string_hidden, ->mode_string_status, and ->mode_string_all
         now all are wrappers for the new ->modes_with.
+
+    16. get rid of ->get_modes; it is replaced by ->modes_with and new ->all_modes.
+        rename ->modes to ->send_modes and ->names to ->send_names.
+        
