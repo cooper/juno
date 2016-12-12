@@ -25,6 +25,8 @@
     Cloak                       # Hostname cloaking
     Alias                       # Support for command aliases
     SASL                        # Support for SASL authentication (for services)
+    JELP                        # Juno Extensible Linking Protocol
+    #TS6                        # TS6 linking protocol
 
     # Channel features
 
@@ -43,7 +45,8 @@
     Channel::SSLOnly            # SSL users only channel support (+S)
     Channel::NoColor            # Strip colors from messages (+c)
     Channel::OpModerate         # Sends blocked messages to chanops (+z)
-    
+    Channel::ModeSync           # Improves channel mode synchronization
+
     # Server management
 
     Modules                     # Manage IRCd modules directly from IRC
@@ -51,7 +54,7 @@
     #Configuration::Set         # Manage IRCd configuration directly from IRC
     Reload                      # Reload or upgrade the IRCd in 1 command
     Grant                       # grant user oper flags from IRC
-    # Eval                      # Evaluate Perl code directly from IRC
+    #Eval                       # Evaluate Perl code directly from IRC
 
     # Global ban support
 
