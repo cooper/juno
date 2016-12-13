@@ -65,6 +65,10 @@ Add and remove K-Lines.
 
 Add and remove D-Lines.
 
+### resv
+
+Add and remove channel and nickname reservations.
+
 ### list_bans
 
 View K-Lines, D-Lines, etc.

@@ -297,7 +297,7 @@ sub _destroy_ban {
 # BANS user command.
 our %user_commands = (BANS => {
     code   => \&ucmd_bans,
-    desc   => 'list user or server bans',
+    desc   => 'list global bans',
     params => '-oper(list_bans) *(opt) *(opt)'
 });
 

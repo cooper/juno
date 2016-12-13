@@ -58,7 +58,7 @@ my $SHOW_IT;
 sub show_in_list {
     my ($channel, $event, $user) = @_;
 
-    # if it's neither secret not private, we are not concerned with this.
+    # if it's neither secret nor private, we are not concerned with this.
     return $SHOW_IT
         if !$channel->is_mode('secret') && !$channel->is_mode('private');
 
@@ -101,7 +101,7 @@ sub show_in_names {
     # $quser = the one being queried
     # $ruser = the one requesting the info
 
-    # if it's neither secret not private, we are not concerned with this.
+    # if it's neither secret nor private, we are not concerned with this.
     return $SHOW_IT
         if !$channel->is_mode('secret') && !$channel->is_mode('private');
 
