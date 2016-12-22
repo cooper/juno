@@ -247,7 +247,7 @@ sub uid {
         qw[server uid nick_time modes nick ident host cloak ip real];
     $ref->{source}   = $server->{sid}; # source = sid we learned about the user from
     $ref->{location} = $server;
-    my $modestr      = delete $ref->{modes};
+    my $mode_str      = delete $ref->{modes};
     # location = the server through which this server can access the user.
     # the location is not necessarily the same as the user's server.
 
@@ -286,7 +286,7 @@ sub uid {
     my $user = $pool->new_user(%$new_usr_temp);
 
     # set modes.
-    $user->handle_mode_string($modestr, 1);
+    $user->handle_mode_string($mode_str, 1);
 
     # === Forward ===
     #
@@ -478,23 +478,23 @@ sub return_away {
 sub cmode {
     #                   source   channel   ts     server        :rest
     #                  :source   channel   time   perspective   :modestr
-    my ($server, $msg, $source, $channel, $time, $perspective, $modestr) = @_;
+    my ($server, $msg, $source, $channel, $time, $perspective, $mode_str) = @_;
 
     # ignore if time is older and take lower time
     my $new_ts = $channel->take_lower_time($time);
     return unless $time == $new_ts;
 
     # handle the mode string and send to local users.
-    $channel->do_mode_string_local($perspective, $source, $modestr, 1, 1);
+    $channel->do_mode_string_local($perspective, $source, $mode_str, 1, 1);
 
     # === Forward ===
     #
-    # $source, $channel, $time, $perspective, $modestr
+    # $source, $channel, $time, $perspective, $mode_str
     #
     # JELP: CMODE
     # TS6:  TMODE
     #
-    $msg->forward(cmode => $source, $channel, $time, $perspective, $modestr);
+    $msg->forward(cmode => $source, $channel, $time, $perspective, $mode_str);
 
     return 1;
 }

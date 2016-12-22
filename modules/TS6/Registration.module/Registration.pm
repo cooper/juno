@@ -20,7 +20,10 @@ use strict;
 use 5.010;
 
 use utils qw(conf irc_match notice ref_to_list irc_lc);
-use M::TS6::Utils qw(ts6_id sid_from_ts6 user_from_ts6 ts6_uid);
+use M::TS6::Utils qw(
+    ts6_id sid_from_ts6 user_from_ts6
+    server_from_ts6 ts6_uid ts6_sid
+);
 
 our ($api, $mod, $pool, $conf, $me);
 
@@ -279,8 +282,10 @@ sub server_ready {
 
     # add user lookup functions.
     $server->set_functions(
-        uid_to_user => \&user_from_ts6,
-        user_to_uid => \&ts6_uid
+        uid_to_user     => \&user_from_ts6,
+        user_to_uid     => \&ts6_uid,
+        sid_to_server   => \&server_from_ts6,
+        server_to_sid   => \&ts6_sid
     );
 
 }

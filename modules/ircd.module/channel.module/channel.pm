@@ -14,7 +14,7 @@ package channel;
 
 use warnings;
 use strict;
-use feature 'switch';
+use 5.010;
 use parent 'Evented::Object';
 
 use utils qw(conf v notice match ref_to_list cut_to_length);
@@ -216,19 +216,8 @@ sub set_time {
 #
 sub handle_modes {
     my ($channel, $source, $modes, $force, $over_protocol, $was_unloaded) = @_;
-    my (@changes, $param_length, $ban_length);
-
-    # $modes has to be an arrayref.
-    if (!ref $modes || ref $modes ne 'ARRAY') {
-        L("Modes are not in the proper arrayref form; mode handle aborted");
-        return;
-    }
-
-    # $modes has to have an even number of elements.
-    if (@$modes % 2) {
-        L("Odd number of elements passed; mode handle aborted");
-        return;
-    }
+    my ($param_length, $ban_length);
+    my $changes = modes->new;
 
     # if over_protocol is specified but not a code reference, fall back
     # to JELP UID lookup function for compatibility.
@@ -405,12 +394,11 @@ sub handle_modes {
         }
 
         # add it to the list of changes.
-        my $prefixed_name = ($state ? '' : '-').$name;
-        push @changes, $prefixed_name, $param;
+        $changes->push_stated_mode($state, $name => $param);
 
     }
 
-    return \@changes;
+    return $changes;
 }
 
 # ->handle_mode_string()
@@ -421,10 +409,10 @@ sub handle_modes {
 # you probably want to use ->do_mode_string(), which sends to users and servers.
 #
 sub handle_mode_string {
-    my ($channel, $server, $source, $modestr, $force, $over_protocol) = @_;
+    my ($channel, $server, $source, $mode_str, $force, $over_protocol) = @_;
 
     # extract the modes.
-    my $changes = $server->cmodes_from_string($modestr, $over_protocol);
+    my $changes = modes->new_from_string($server, $mode_str, $over_protocol);
 
     # handle the modes.
     return $channel->handle_modes($source, $changes, $force, $over_protocol);
@@ -441,12 +429,12 @@ sub all_modes {
 sub modes_with  { _modes_with($me, @_) }
 sub _modes_with {
     my ($server, $channel, @mode_names) = @_;
-    my @modes;
+    my @all_modes = keys %{ $channel->{modes} };
+    my $modes = modes->new;
 
     # replace numbers with mode names.
     @mode_names = map {
         my @res = my $type = $_;
-        my @all_modes = keys %{ $channel->{modes} };
 
         # inf means all modes
         if ($type eq 'inf') {
@@ -475,22 +463,18 @@ sub _modes_with {
 
         # list/status modes. add each string or user object.
         if ($ref->{list}) {
-            push @modes, $name, $_ for $channel->list_elements($name);
+            $modes->push_mode($name => $_)
+                for $channel->list_elements($name);
+            next;
         }
 
-        # exactly one parameter; add it.
-        elsif (length $ref->{parameter}) {
-            push @modes, $name, $ref->{parameter};
-        }
-
-        # no parameter; add undef.
-        else {
-            push @modes, $name, undef;
-        }
+        # otherwise it has either zero or one parameters.
+        # either the value of the parameter or undef will be pushed.
+        $modes->push_mode($name => $ref->{parameter});
 
     }
 
-    return \@modes;
+    return $modes;
 }
 
 # return a mode string in the perspective of $server with the
@@ -499,11 +483,9 @@ sub mode_string_with {
     my ($channel, $server, @mode_names) = @_;
     my $modes = _modes_with($server, $channel, @mode_names);
 
-    # ($modes, $over_protocol, $split, $organize, $skip_checks)
-    my $user_string = $server->strings_from_cmodes(
-        $modes, undef, undef, 1, 1);
-    my $server_string = $server->strings_from_cmodes(
-        $modes, 1, undef, 1, 1);
+    # ($over_protocol, $organize, $skip_checks)
+    my $user_string   = $modes->to_string($server, 0, 1, 1);
+    my $server_string = $modes->to_string($server, 1, 1, 1);
 
     return ($user_string, $server_string);
 }
@@ -716,8 +698,8 @@ sub send_names {
 # send mode information.
 sub send_modes {
     my ($channel, $user) = @_;
-    my $modestr = $channel->mode_string($user->{server});
-    $user->numeric(RPL_CHANNELMODEIS =>  $channel->name, $modestr);
+    my $mode_str = $channel->mode_string($user->{server});
+    $user->numeric(RPL_CHANNELMODEIS =>  $channel->name, $mode_str);
     $user->numeric(RPL_CREATIONTIME  =>  $channel->name, $channel->{time});
 }
 
@@ -855,15 +837,15 @@ sub _do_modes {
     );
 
     # if nothing changed, stop here.
-    $changes && ref $changes eq 'ARRAY' && @$changes or return;
+    $changes && $changes->count or return;
 
     # tell the channel's users. this might be sent as multiple messages.
     #
-    # ->strings...($modes, $over_protocol, $split, $organize, $skip_checks)
+    # ($over_protocol, $organize, $skip_checks)
     # $over_protocol is false here because we want nicks rather than UIDs.
     # $split is true here because we want to send multiple messages to users.
     #
-    foreach ($me->strings_from_cmodes($changes, undef, 1, $organize, 1)) {
+    foreach ($changes->to_strings($me, 0, $organize, 1)) {
         next unless length > 1;
         $channel->sendfrom_all($source->full, "MODE $$channel{name} $_");
     }
@@ -873,14 +855,14 @@ sub _do_modes {
 
     # the source is our user or this server, so tell other servers.
     #
-    # ->strings...($modes, $over_protocol, $split, $organize, $skip_checks)
+    # ($over_protocol, $organize, $skip_checks)
     # $over_protocol is true here because we want UIDs rather than nicks.
     # $split is false because we are generating a single mode string.
     # currently each protocol implementation has to split it when necessary.
     #
     # cmode => ($source, $channel, $time, $perspective, $server_modestr)
     #
-    my $server_str = $me->strings_from_cmodes($changes, 1, undef, $organize, 1);
+    my $server_str = $changes->to_string($me, 1, $organize, 1);
     $pool->fire_command_all(cmode =>
         $source, $channel, $channel->{time},
         $me, $server_str
@@ -896,10 +878,10 @@ sub do_mode_string { _do_mode_string(undef, @_) }
 sub do_mode_string_local { _do_mode_string(1, @_) }
 
 sub _do_mode_string {
-    my ($local_only, $channel, $perspective, $source, $modestr, $force, $protocol) = @_;
+    my ($local_only, $channel, $perspective, $source, $mode_str, $force, $protocol) = @_;
 
     # extract the modes.
-    my $changes = $perspective->cmodes_from_string($modestr, $protocol);
+    my $changes = modes->new_from_string($perspective, $mode_str, $protocol);
 
     # do the modes.
     return _do_modes($local_only, $channel, $source, $changes, $force, $protocol);

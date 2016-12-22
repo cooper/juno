@@ -11,7 +11,7 @@ There. Very good.
 # Introduction
 
 This is juno-ircd, a seriously modern IRC server daemon written from scratch
-in the Perl programming language. Yes, for real.
+in the Perl programming language. Really.
 
 This software will hopefully surprise you with its functionality and novel
 features. Although no stable versions have been released throughout its six-year
@@ -22,32 +22,32 @@ Come chat with us at [irc.notroll.net #k](irc://irc.notroll.net/k) too.
 
 ## Features
 
-There are a lot of them! But here are some things that make juno-ircd stand out.
+There are a lot! But here are some things that make juno-ircd stand out.
 
 You can
 
-* Upgrade an entire network without restarting any servers
-* Check out the latest version from git via IRC, even remotely
-* Modify server configuration dynamically from IRC, even remotely
-* Link a complex network of various IRCds spanning multiple server protocols
-* Write modules for the easy-to-use and event-based module API
-* Or rather, [beg us](irc://irc.notroll.net/k) to add the features you want
+* Upgrade an entire network without restarting any servers.
+* Check out the latest version from git via IRC, even remotely.
+* Modify server configuration dynamically from IRC, even remotely.
+* Link a complex network of various IRCds spanning multiple server protocols.
+* Write modules for the easy-to-use and event-based module API.
+* Or rather, [beg us](irc://irc.notroll.net/k) to add the features you want.
 
 Plus, juno-ircd
 
-* Is free and open-source
-* Is written in Perl, making it fun and easy to tinker with
-* Is extensively configurable
-* Despite that, ships with a working configuration and runs out-of-the-box
-* Consists entirely of modules and therefore can be as minimal or as bloated as
-  you're comfortable with
-* Supports the latest [IRCv3](http://ircv3.net) standards
+* Is free and open-source.
+* Is written in Perl, making it fun and easy to tinker with.
+* Is extensively configurable.
+* Despite that, ships with a working configuration and runs out-of-the-box.
+* Consists entirely of [modules](doc/modules.md) and therefore can be as minimal
+  or as bloated as you're comfortable with.
+* Supports the latest [IRCv3](http://ircv3.net) standards.
 * Supports multiple linking protocols, including several
   [TS6 implementations](doc/ts6.md)
-  and a custom user-extensible protocol
+  and a custom user-extensible protocol.
 * Supports [Atheme](http://atheme.net),
   [PyLink](https://github.com/GLolol/PyLink) and probably other IRC services
-  packages
+  packages.
 
 ## Concepts
 
@@ -113,9 +113,10 @@ for more to be added with ease.
     voice  = ['v', '+', -2]           # voiced channel member             (v)
 ```
 
-* __Modularity__: By responding to events, modules add new features and
-functionality to the IRCd. Without them, juno is made up of a mere thirty lines
-of Perl code. Everything else is within a module. Modules communicate and work
+* __Modularity__: By responding to events, [modules](doc/modules.md) add new
+features and functionality to the IRCd. Without them, juno is made up of
+[under thirty lines](https://github.com/cooper/juno/blob/master/bin/ircd) of
+Perl code. Everything else is within a module. Modules communicate and work
 together to create a single functioning body whose parts can be added, removed,
 and modified dynamically. This functionality is provided by the
 [Evented::API::Engine](https://github.com/cooper/evented-api-engine),

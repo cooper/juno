@@ -3760,3 +3760,6 @@ CHANGES:
         update Evented::Object.
 
     19. add MODESYNC user command. #63
+
+    20. moderefs are now objects.
+        got rid of ->strings_from_cmodes() and ->cmodes_from_string() in favor of new methods of the "modes" package.

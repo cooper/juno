@@ -234,15 +234,15 @@ sub isp_chanmodes {
 
 # PREFIX in RPL_ISUPPORT.
 sub isp_prefix {
-    my ($modestr, $prefixes) = ('', '');
+    my ($mode_str, $prefixes) = ('', '');
 
     # sort from largest to smallest level.
     foreach my $level (sort { $b <=> $a } keys %ircd::channel_mode_prefixes) {
-        $modestr  .= $ircd::channel_mode_prefixes{$level}[0];
+        $mode_str .= $ircd::channel_mode_prefixes{$level}[0];
         $prefixes .= $ircd::channel_mode_prefixes{$level}[1];
     }
 
-    return "($modestr)$prefixes";
+    return "($mode_str)$prefixes";
 }
 
 sub rpl_time {

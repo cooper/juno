@@ -324,14 +324,14 @@ END
 
 sub mode {
     my ($user, $event, $t_name, @rest) = @_;
-    my $modestr = join ' ', @rest;
+    my $mode_str = join ' ', @rest;
 
     # is it the user himself?
     if (irc_lc($user->{nick}) eq irc_lc($t_name)) {
 
         # mode change.
-        if (length $modestr) {
-            $user->do_mode_string($modestr);
+        if (length $mode_str) {
+            $user->do_mode_string($mode_str);
             return 1;
         }
 
@@ -346,7 +346,7 @@ sub mode {
     if (my $channel = $pool->lookup_channel($t_name)) {
 
         # viewing.
-        if (!length $modestr) {
+        if (!length $mode_str) {
             $channel->send_modes($user);
             return 1;
         }
@@ -367,10 +367,10 @@ sub mode {
         # truncate parameters.
         my $max_parameters = conf('channels', 'client_max_mode_params') - 1;
         $max_parameters = $#rest if $#rest < $max_parameters;
-        $modestr = join ' ', $str_modes, @rest[0 .. $max_parameters];
+        $mode_str = join ' ', $str_modes, @rest[0 .. $max_parameters];
 
         # setting.
-        $channel->do_mode_string($user->{server}, $user, $modestr);
+        $channel->do_mode_string($user->{server}, $user, $mode_str);
         return 1;
 
     }

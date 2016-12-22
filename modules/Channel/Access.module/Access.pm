@@ -243,7 +243,7 @@ sub on_user_joined {
     my $sstr    = "+$letters$uids";
 
     # handle it locally (this sends to other servers too).
-    # ($channel, $server, $source, $modestr, $force, $over_protocol)
+    # ($channel, $server, $source, $mode_str, $force, $over_protocol)
     $channel->do_mode_string($user->{server}, $user->{server}, $sstr, 1, 1);
 
     return 1;

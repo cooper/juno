@@ -226,8 +226,8 @@ sub nickchange {
 
 # user mode change
 sub umode {
-    my ($to_server, $user, $modestr) = @_;
-    ":$$user{uid} UMODE $modestr"
+    my ($to_server, $user, $mode_str) = @_;
+    ":$$user{uid} UMODE $mode_str"
 }
 
 # privmsg and notice
@@ -374,11 +374,11 @@ sub whois {
 # channel mode change
 
 sub cmode {
-    my ($to_server, $source, $channel, $time, $perspective, $modestr) = @_;
-    return unless length $modestr;
+    my ($to_server, $source, $channel, $time, $perspective, $mode_str) = @_;
+    return unless length $mode_str;
     my $id  = $source->id;
     my $pid = $perspective->id;
-    ":$id CMODE $$channel{name} $time $pid :$modestr"
+    ":$id CMODE $$channel{name} $time $pid :$mode_str"
 }
 
 # kill
@@ -396,7 +396,7 @@ sub sjoin {
 
     # make +modes params string without status modes.
     # modes are from the perspective of the source server.
-    my (undef, $modestr) = $channel->mode_string_all($serv, 1);
+    my (undef, $mode_str) = $channel->mode_string_all($serv, 1);
 
     # fetch the prefixes for each user.
     my (%prefixes, @userstrs);
@@ -418,7 +418,7 @@ sub sjoin {
     }
 
     my $userstr = join ' ', @userstrs;
-    ":$$serv{sid} SJOIN $$channel{name} $$channel{time} $modestr :$userstr"
+    ":$$serv{sid} SJOIN $$channel{name} $$channel{time} $mode_str :$userstr"
 }
 
 # add cmodes

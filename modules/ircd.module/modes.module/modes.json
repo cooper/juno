@@ -3,10 +3,10 @@
       "name" : "Mitchell Cooper",
       "website" : "https://github.com/cooper"
    },
-   "description" : "represents an IRC channel",
-   "name" : "ircd::channel",
+   "description" : "represents a sequence of IRC mode changes",
+   "name" : "ircd::modes",
    "no_bless" : 1,
-   "package" : "channel",
+   "package" : "modes",
    "preserve_sym" : 1,
    "version" : "12.20"
 }

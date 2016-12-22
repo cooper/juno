@@ -369,6 +369,8 @@ can.
 | Secret  | No            | No             | No             | Yes          |
 | Private | No            | No             | Yes            | No           |
 
+See [issue #34](https://github.com/cooper/juno/issues/34) for more info.
+
 ### Channel::SSLOnly
 
 __Channel::SSLOnly__ adds a channel mode which prevents users that did not
@@ -426,8 +428,8 @@ and ident resolution processes are complete.
 D-Lines are applied to IP address masks. They can be complete IP addresses or
 partial addresses with POSIX-style wildcards; e.g. `123.456.789.*`.
 
-Ban::Dline adds the DLINE and UNDLINE commands, both which require the `dline`
-oper flag.
+Ban::Dline adds the DLINE and UNDLINE commands, both which require the
+[`dline`](oper_flags.md#dline) oper flag.
 
 ### Ban::Kline
 
@@ -438,8 +440,8 @@ K-Lines are a type of kill ban enforced on users upon registration.
 K-Lines are applied to `user@host` masks. They can be complete masks or
 partial masks with POSIX-style wildcards; e.g. `*@microsoft.com`.
 
-Ban::Kline adds the KLINE and UNKLINE commands, both which require the `kline`
-oper flag.
+Ban::Kline adds the KLINE and UNKLINE commands, both which require the
+[`kline`](oper_flags.md#kline) oper flag.
 
 ### Ban::Resv
 
@@ -450,8 +452,8 @@ Instead, they are used to prohibit nicknames or channel names. Reserve masks
 can be complete channel names or nicknames, or they can contain POSIX-style
 wildcards; e.g. `bill*` or `#*sex*`.
 
-Ban::Resv adds the RESV and UNRESV commands, both which require the `resv`
-oper flag.
+Ban::Resv adds the RESV and UNRESV commands, both which require the
+[`resv`](oper_flags.md#resv) oper flag.
 
 ## Server management
 
@@ -459,6 +461,11 @@ This category includes modules that make it easier for server administrators to
 manage an IRC server or network.
 
 ### Configuration::Set
+
+__Configuration::Set__ allows IRC operators to view and modify the server
+configuration directly from IRC.
+
+The CONFGET command 
 
 ### Eval
 

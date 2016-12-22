@@ -84,11 +84,11 @@ sub unset_mode {
 # names by searching the user's server's modes. returns the mode
 # string, or '+' if no changes were made.
 sub handle_mode_string {
-    my ($user, $modestr, $force) = @_;
-    L("set $modestr on $$user{nick}");
+    my ($user, $mode_str, $force) = @_;
+    L("set $mode_str on $$user{nick}");
     my $state = 1;
     my $str   = '+';
-    letter: foreach my $letter (split //, $modestr) {
+    letter: foreach my $letter (split //, $mode_str) {
         if ($letter eq '+') {
             $str .= '+' unless $state;
             $state = 1;
@@ -862,10 +862,10 @@ sub _events_for_message {
 # $unsafe  = propagate even if the user is remote
 #
 sub _do_mode_string {
-    my ($no_prop, $unsafe, $user, $modestr, $force) = @_;
+    my ($no_prop, $unsafe, $user, $mode_str, $force) = @_;
 
     # handle it, regardless if local or remote.
-    my $result = $user->handle_mode_string($modestr, $force) or return;
+    my $result = $user->handle_mode_string($mode_str, $force) or return;
 
     return if !$user->is_local && !$unsafe;                 # remote not allowed
     return if $user->is_local  && !$user->{init_complete};  # local user not done registering
