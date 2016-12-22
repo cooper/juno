@@ -736,9 +736,9 @@ sub sendfrom_all_cap {
 
 # send a notice from the server to all members.
 sub notice_all {
-    my ($channel, $what, $ignore, $local_only, $no_stars) = @_;
+    my ($channel, $what, $ignore, $local, $no_stars) = @_;
     $what = "*** $what" unless $no_stars;
-    my %opts = (dont_forward => $local_only, force => 1);
+    my %opts = (dont_forward => $local, force => 1);
     $channel->do_privmsgnotice(NOTICE => $me, $what, %opts);
     return 1;
 }
@@ -746,21 +746,24 @@ sub notice_all {
 # take the lower time of a channel and unset higher time stuff.
 sub take_lower_time {
     my ($channel, $time, $ignore_modes) = @_;
+
+    # the current time is older; keep it.
     return $channel->{time} if $time >= $channel->{time};
 
+    # the new time is older; reset.
     L("locally resetting $$channel{name} time to $time");
     my $amount = $channel->{time} - $time;
     $channel->set_time($time);
 
     # unset all channel modes.
     if (!$ignore_modes) {
-        my $all_modes_inverted = $channel->all_modes->invert;
-
         # ($source, $modes, $force, $organize)
-        $channel->do_modes_local($me, $all_modes_inverted, 1, 1);
+        $channel->do_modes_local($me, $channel->all_modes->invert, 1, 1);
     }
 
-    $channel->notice_all("New channel time: ".scalar(localtime $time), undef, 1);
+    # tell local users.
+    # ($notice, $ignore, $local)
+    $channel->notice_all("New channel time: ".scalar(localtime $time), 0, 1);
     return $channel->{time};
 }
 

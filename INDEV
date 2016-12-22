@@ -3767,3 +3767,4 @@ CHANGES:
     21. add moderef method ->invert.
         ->do_modes() and ->handle_modes() no longer require an $over_protocol option.
         got rid of {user_lookup} and {proto} mode block hints. these long-deprecated keys are no longer needed because mode blocks are passed user objects rather than nicks and UIDs.
+        ->take_lower_time() now uses ->invert.
