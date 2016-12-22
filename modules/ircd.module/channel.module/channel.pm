@@ -215,15 +215,9 @@ sub set_time {
 # See issues #77 and #101 for background information.
 #
 sub handle_modes {
-    my ($channel, $source, $modes, $force, $over_protocol, $was_unloaded) = @_;
+    my ($channel, $source, $modes, $force, $unloaded) = @_;
     my ($param_length, $ban_length);
     my $changes = modes->new;
-
-    # if over_protocol is specified but not a code reference, fall back
-    # to JELP UID lookup function for compatibility.
-    if ($over_protocol && ref $over_protocol ne 'CODE') {
-        $over_protocol = sub { $pool->lookup_user(@_) };
-    }
 
     # apply each mode.
     my @modes = @$modes; # explicitly make a copy
@@ -288,7 +282,7 @@ sub handle_modes {
 
         # don't allow this mode to be changed if the test fails
         # *unless* force is provided.
-        my $fire_method = $was_unloaded ?
+        my $fire_method = $unloaded ?
             'fire_unloaded_channel_mode' : 'fire_channel_mode';
         my ($win, $moderef) = $pool->$fire_method($channel, $name, {
             channel => $channel,        # the channel
@@ -299,22 +293,10 @@ sub handle_modes {
             param   => $param,          # the parameter for this particular mode
             params  => $parameters,     # the parameters for the resulting mode string
             force   => $force,          # true if permissions should be ignored
-            proto   => $over_protocol,  # true if IDs used rather than nicks/names
 
             # source can set simple modes.
             has_basic_status => $force || $source->isa('server') ? 1
-                                : $channel->user_has_basic_status($source),
-
-            # a function to look up a user by nickname or UID.
-            # this exists only for compatibility; newer ->do_modes() and friends
-            # use user objects. note that this checks if it's already an object.
-            user_lookup => sub {
-                my $p = $_[0];
-                return $p if blessed $p && $p->isa('user');
-                return $over_protocol->(@_) if $over_protocol;
-                return $pool->lookup_user_nick(@_);
-            }
-
+                                : $channel->user_has_basic_status($source)
         });
 
         # Determining whether to send ERR_CHANOPRIVSNEEDED
@@ -415,7 +397,7 @@ sub handle_mode_string {
     my $changes = modes->new_from_string($server, $mode_str, $over_protocol);
 
     # handle the modes.
-    return $channel->handle_modes($source, $changes, $force, $over_protocol);
+    return $channel->handle_modes($source, $changes, $force);
 
 }
 
@@ -771,15 +753,11 @@ sub take_lower_time {
     $channel->set_time($time);
 
     # unset all channel modes.
-    # hackery: use the server mode string to reset all modes.
-    # note: we can't use do_mode_string() because it would send to other servers.
-    # note: we don't do this for CUM cmd ($ignore_modes = 1) because it handles
-    #       modes in a prettier manner.
     if (!$ignore_modes) {
-        my ($u_str, $s_str)  = $channel->mode_string_all($me);
-        substr($u_str, 0, 1) = substr($s_str, 0, 1) = '-';
-        $channel->sendfrom_all($me->{name}, "MODE $$channel{name} $u_str");
-        $channel->handle_mode_string($me, $me, $s_str, 1, 1);
+        my $all_modes_inverted = $channel->all_modes->invert;
+
+        # ($source, $modes, $force, $organize)
+        $channel->do_modes_local($me, $all_modes_inverted, 1, 1);
     }
 
     $channel->notice_all("New channel time: ".scalar(localtime $time), undef, 1);
@@ -821,20 +799,15 @@ sub do_modes_local { _do_modes(1, @_) }
 #   $source             the source of the mode change
 #   $modes              named modes in an arrayref as described in issue #101
 #   $force              whether to ignore permissions
-#   $over_protocol      specifies that the modes originated on incoming s2s
 #   $organize           whether to alphabetize and put positive changes first
-#   $was_unloaded       true if the modes were recently unloaded
+#   $unloaded           true if the modes were recently unloaded
 #
 sub _do_modes {
-    my $local_only = shift;
-    my ($channel, $source, $modes, $force,
-    $over_protocol, $organize, $was_unloaded) = @_;
+    my $local = shift;
+    my ($channel, $source, $modes, $force, $organize, $unloaded) = @_;
 
     # handle the mode.
-    # ($source, $modes, $force, $over_protocol) = @_;
-    my $changes = $channel->handle_modes(
-        $source, $modes, $force, $over_protocol, $was_unloaded
-    );
+    my $changes = $channel->handle_modes($source, $modes, $force, $unloaded);
 
     # if nothing changed, stop here.
     $changes && $changes->count or return;
@@ -851,7 +824,7 @@ sub _do_modes {
     }
 
     # stop here if it's not a local user or this server.
-    return if $local_only || !$source->is_local;
+    return if $local || !$source->is_local;
 
     # the source is our user or this server, so tell other servers.
     #
@@ -878,13 +851,15 @@ sub do_mode_string { _do_mode_string(undef, @_) }
 sub do_mode_string_local { _do_mode_string(1, @_) }
 
 sub _do_mode_string {
-    my ($local_only, $channel, $perspective, $source, $mode_str, $force, $protocol) = @_;
+    my ($local, $channel, $server, $source,
+        $mode_str, $force, $over_protocol) = @_;
 
     # extract the modes.
-    my $changes = modes->new_from_string($perspective, $mode_str, $protocol);
+    my $changes = modes->new_from_string($server, $mode_str, $over_protocol);
 
     # do the modes.
-    return _do_modes($local_only, $channel, $source, $changes, $force, $protocol);
+    return _do_modes($local,
+        $channel, $source, $changes, $force, $over_protocol);
 }
 
 # ->do_privmsgnotice()

@@ -127,17 +127,21 @@ sub count {
 
 # remove redundancies
 sub simplify {
-
+    ...
+    # TODO
 }
 
 # change the sign of each mode
 sub invert {
-
-}
-
-# put positives first
-sub organize {
-
+    my $modes = shift;
+    my @new;
+    while (my ($name, $param) = splice @$modes, 0, 2) {
+        my $pfx = \substr $name, 0, 1;
+        $$pfx = $$pfx eq '-' ? '' : "-$$pfx";
+        push @new, $name, $param;
+    }
+    @$modes = @new;
+    return $modes;
 }
 
 # my $string  = $modes->to_string(...)

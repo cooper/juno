@@ -69,11 +69,7 @@ sub register_statuses {
     $mod->register_channel_mode_block( name => $name, code => sub {
         my ($channel, $mode) = @_;
         my $source = $mode->{source};
-
-        # find the target.
-        # note that, if the user does exist,
-        # $mode->{param} is probably already a user object.
-        my $t_user = $mode->{user_lookup}($mode->{param});
+        my $t_user = $mode->{param};
 
         # make sure the target user exists.
         if (!$t_user) {
