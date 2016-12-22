@@ -186,10 +186,6 @@ sub remove {
     return 1;
 }
 
-# alias remove_user.
-sub remove_user;
-*remove_user = *remove;
-
 # user is on channel.
 sub has_user {
     my ($channel, $user) = @_;
@@ -1181,7 +1177,7 @@ sub user_get_kicked {
         $reason
     );
 
-    return $channel->remove_user($user);
+    return $channel->remove($user);
 }
 
 # handles a topic change. ignores newer topics.

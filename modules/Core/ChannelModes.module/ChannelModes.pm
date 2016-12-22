@@ -15,6 +15,8 @@ use warnings;
 use strict;
 use 5.010;
 
+use Scalar::Util qw(blessed);
+
 our ($api, $mod, $me, $pool);
 
 our %channel_modes = (
@@ -72,8 +74,8 @@ sub register_statuses {
         my $t_user = $mode->{param};
 
         # make sure the target user exists.
-        if (!$t_user) {
-            $source->numeric(ERR_NOSUCHNICK => $mode->{param})
+        if (!blessed $t_user) {
+            $source->numeric(ERR_NOSUCHNICK => $t_user)
                 if $source->isa('user') && $source->is_local;
             return;
         }
