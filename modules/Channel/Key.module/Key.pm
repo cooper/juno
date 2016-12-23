@@ -75,7 +75,7 @@ sub cmode_key {
     return 1;
 }
 
-# charybdis/blob/8fed90ba8a221642ae1f0fd450e8e580a79061fb/ircd/chmode.cc#L556
+# charybdis@8fed90ba8a221642ae1f0fd450e8e580a79061fb/ircd/chmode.cc#L556
 sub fix_key {
     my $in = shift;
     my $out = '';

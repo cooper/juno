@@ -3790,3 +3790,4 @@ CHANGES:
         removed unused $channel->mode_string_status.
 
     26. fixed a bug where AUM and ACM sometimes included modes not known to the source server.
+        misc. cleanup TS6::Outgoing.

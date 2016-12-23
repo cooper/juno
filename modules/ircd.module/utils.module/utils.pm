@@ -115,7 +115,7 @@ sub validnick {
 
 # check if an ident is valid.
 sub validident {
-    # charybdis/blob/55abcbb20aeabcf2e878a9c65c9697210dd10079/src/match.c
+    # charybdis@55abcbb20aeabcf2e878a9c65c9697210dd10079/src/match.c
     # the (?#) is a regex comment that fixes syntax highlighting screwups caused by ` :)
     return shift() =~ m/^(~?)([A-Za-z0-9]{1})([A-Za-z0-9\-\.\[\\\]\^_(?#)`\{\|\}~]*)$/;
 }

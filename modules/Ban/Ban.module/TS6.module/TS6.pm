@@ -34,7 +34,7 @@ my %ts6_encap_ok = %ts6_supports;
 
 # this is the maximum duration permitted for global bans in charybdis.
 # it is only currently used by the outgoing BAN command.
-# charybdis/blob/8fed90ba8a221642ae1f0fd450e8e580a79061fb/ircd/s_newconf.cc#L747
+# charybdis@8fed90ba8a221642ae1f0fd450e8e580a79061fb/ircd/s_newconf.cc#L747
 my $max_duration = 524160;
 
 our %ts6_capabilities = (

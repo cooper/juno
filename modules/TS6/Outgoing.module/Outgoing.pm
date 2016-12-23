@@ -44,8 +44,6 @@ our %ts6_outgoing_commands = (
      topic          => \&topic,
      cmode          => \&tmode,
      channel_burst  => [ \&sjoin_burst, \&bmask ],
-   # acm            => \&acm,
-   # aum            => \&aum,
      kill           => \&skill,
      connect         => \&_connect,
      kick           => \&kick,
@@ -109,7 +107,7 @@ sub send_burst {
             $do->($serv->{parent});
         }
 
-        # fire the command.
+        # SID
         $server->fire_command(new_server => $serv);
         $done{$serv} = 1;
 
@@ -120,23 +118,41 @@ sub send_burst {
 
         # ignore users the server already knows!
         next if $user->{server} == $server || $user->{source} == $server->{sid};
+
+        # (E)UID, ENCAP REALHOST, ENCAP LOGIN
         $server->fire_command(new_user => $user);
-        $server->fire_command(login => $user, $user->{account}{name}) if $user->{account};
+
+        # ENCAP LOGIN
+        # FIXME: wouldn't this have been dealt with already?
+        $server->fire_command(login => $user, $user->{account}{name})
+            if $user->{account};
+
         # TODO: oper flags
-        $server->fire_command(away => $user) if length $user->{away};
+
+        # AWAY
+        $server->fire_command(away => $user)
+            if length $user->{away};
     }
 
     # channels.
     foreach my $channel ($pool->channels) {
+
+        # SJOIN
         $server->fire_command(channel_burst => $channel, $me, $channel->users);
-        $server->fire_command(topicburst => $channel) if $channel->topic;
+
+        # (E)TB, TOPIC
+        $server->fire_command(topicburst => $channel)
+            if $channel->topic;
     }
 
 }
 
 sub send_endburst {
     my ($server, $event) = @_;
-    $server->send($server->has_cap('eb') ? '' : sprintf ':%s PONG %s %s', ts6_id($me), $me->{name}, $server->{name});
+    $server->send(
+        $server->has_cap('eb') ? '' :
+        sprintf ':%s PONG %s %s', ts6_id($me), $me->{name}, $server->{name}
+    );
 }
 
 # ts6 nick safety
@@ -175,8 +191,6 @@ sub safe_host {
 # propagation:  broadcast
 # parameters:   server name, hopcount, sid, server description
 #
-# ts6-protocol.txt:805
-#
 sub sid {
     my ($server, $serv) = @_;
     return if $server == $serv;
@@ -186,11 +200,11 @@ sub sid {
     $desc = "(H) $desc" if $serv->{hidden};
 
     sprintf ':%s SID %s %d %s :%s',
-    ts6_id($serv->{parent}),
-    $serv->{name},
-    $me->hops_to($serv) + 1,
-    ts6_id($serv),
-    $desc
+    ts6_id($serv->{parent}),            # source SID
+    $serv->{name},                      # server name
+    $me->hops_to($serv) + 1,            # hops away
+    ts6_id($serv),                      # server SID
+    $desc;                              # server description
 }
 
 # EUID
@@ -203,8 +217,6 @@ sub sid {
 #               IP address, UID, real hostname, account name, gecos
 # propagation:  broadcast
 #
-# ts6-protocol.txt:315
-#
 sub euid {
     my ($server, $user) = @_;
 
@@ -214,23 +226,23 @@ sub euid {
 
         # UID
         my $uid = sprintf ':%s UID %s %d %ld %s %s %s %s %s :%s',
-            ts6_id($user->{server}),
-            safe_nick($user),
-            $me->hops_to($user->{server}) + 1,
-            $user->{nick_time},
-            $user->mode_string($server),
-            $user->{ident},
-            safe_host($user->{cloak}, $server),
-            $user->{ip},
-            ts6_id($user),
-            $user->{real};
+            ts6_id($user->{server}),                # source SID
+            safe_nick($user),                       # nickname
+            $me->hops_to($user->{server}) + 1,      # number of hops
+            $user->{nick_time},                     # last nick-change time
+            $user->mode_string($server),            # +modes string
+            $user->{ident},                         # username (w/ ~ if needed)
+            safe_host($user->{cloak}, $server),     # visible hostname
+            $user->{ip},                            # IP address
+            ts6_id($user),                          # UID
+            $user->{real};                          # real name
         push @uid_lines, $uid;
 
         # ENCAP REALHOST
         if ($user->{cloak} ne $user->{host}) {
             my $realhost = sprintf ':%s ENCAP * REALHOST %s',
-                ts6_id($user),
-                safe_host($user->{host}, $server);
+                ts6_id($user),                      # source UID
+                safe_host($user->{host}, $server);  # real hostname
             push @uid_lines, $realhost;
         }
 
@@ -241,6 +253,8 @@ sub euid {
 
         return @uid_lines;
     }
+
+    # server supports EUID
 
     sprintf ":%s EUID %s %d %d %s %s %s %s %s %s %s :%s",
     ts6_id($user->{server}),                        # source SID
@@ -256,16 +270,15 @@ sub euid {
         '*' : safe_host($user->{host}, $server),    #   (* if equal to visible)
     $user->{account} ?                              # account name
         $user->{account}{name} : '*',               #   (* if not logged in)
-    $user->{real}
+    $user->{real};                                  # real name
 }
 
 # SJOIN
 #
 # source:       server
 # propagation:  broadcast
-# parameters:   channelTS, channel, simple modes, opt. mode parameters..., nicklist
-#
-# ts6-protocol.txt:821
+# parameters:   channelTS, channel, simple modes,
+#               opt. mode parameters..., nicklist
 #
 # $server    = server object we're sending to
 # $channel   = channel object
@@ -304,7 +317,7 @@ sub sjoin {
             $channel->{name},       # channel name
             $mode_str,              # includes +ntk, excludes +ovbI, etc.
             $_                      # the member string
-        )
+        );
     } @member_str;
 }
 
@@ -328,8 +341,6 @@ sub sjoin_burst {
 # parameters:   channelTS, channel, '+' (a plus sign)
 # propagation:  broadcast
 #
-# ts6-protocol.txt:397
-#
 sub _join {
     my ($server, $user, $channel, $time) = @_; # why $time?
     my @channels = ref $channel eq 'ARRAY' ? @$channel : $channel;
@@ -337,8 +348,8 @@ sub _join {
     foreach my $channel (@channels) {
 
         # there's only one user, so this channel was just created.
-        # we will just pretend we're bursting, sending the single user with modes
-        # from THIS local server ($me).
+        # we will just pretend we're bursting, sending the single user with
+        # modes from THIS local server ($me).
         if (scalar $channel->users == 1) {
             push @lines, sjoin_burst($server, $channel, $me);
             next;
@@ -374,16 +385,15 @@ sub join_zero {
 #
 # 2. (not used in TS 6)
 # source:       server
-# parameters:   nickname, hopcount, nickTS, umodes, username, hostname, server, gecos
-#
-# ts6-protocol.txt:562
+# parameters:   nickname, hopcount, nickTS, umodes, username, hostname, server,
+#               gecos
 #
 sub nick {
     my ($server, $user) = @_;
     sprintf ':%s NICK %s :%d',
-    ts6_id($user),
-    safe_nick($user),
-    $user->{nick_time}
+    ts6_id($user),          # source UID
+    safe_nick($user),       # TS6-safe nickname
+    $user->{nick_time};     # nick TS
 }
 
 # TMODE
@@ -391,20 +401,18 @@ sub nick {
 # source:       any
 # parameters:   channelTS, channel, cmode changes, opt. cmode parameters...
 #
-# ts6-protocol.txt:937
-#
 sub tmode {
-    my ($server, $source, $channel, $time, $perspective, $mode_str) = @_; # why $time?
+    my ($server, $source, $channel, $time, $perspective, $mode_str) = @_;
 
     # convert to TS6
-    my $str = $perspective->convert_cmode_string($server, $mode_str, 1);
-    return if !length $str;
+    $mode_str = $perspective->convert_cmode_string($server, $mode_str, 1);
+    return if !length $mode_str;
 
     sprintf ":%s TMODE %d %s %s",
-    ts6_id($source),
-    $time,
-    $channel->{name},
-    $str
+    ts6_id($source),        # UID or SID
+    $time,                  # channel TS
+    $channel->{name},       # channel name
+    $mode_str;              # mode string in target perspective
 }
 
 # BMASK
@@ -413,15 +421,13 @@ sub tmode {
 # propagation:  broadcast
 # parameters:   channelTS, channel, type, space separated masks
 #
-# ts6-protocol.txt:194
-#
 sub bmask {
     my ($server, $channel) = @_;
     my @lines;
 
     foreach my $mode_name (keys %{ $server->{cmodes} }) {
 
-        # ignore status modes in bmask
+        # ignore all non-list modes
         next unless $server->cmode_type($mode_name) == 3;
 
         # find the items and the mode letter
@@ -430,10 +436,10 @@ sub bmask {
 
         # construct multiple messages if necessary
         my $base = my $str = sprintf(':%s BMASK %d %s %s ',
-            ts6_id($me),
-            $channel->{time},
-            $channel->{name},
-            $letter
+            ts6_id($me),        # source SID
+            $channel->{time},   # channel TS
+            $channel->{name},   # channel name
+            $letter             # banlike mode letter
         );
 
         # with each item
@@ -503,7 +509,7 @@ sub topicburst {
         my $can_use_tb =
             $text_changed && # TB is only useful if the text has changed
             $new && length $new->{topic} && # it cannot unset topics
-            (!$old || $old->{time} > $new->{time}); # the topicTS has to be newer
+            (!$old || $old->{time} > $new->{time}); # topicTS has to be newer
         return tb($to_server, $channel, %opts) if $can_use_tb;
     }
 
@@ -525,36 +531,34 @@ sub topicburst {
 # propagation:  broadcast
 # parameters:   channel, topicTS, opt. topic setter, topic
 #
-# ts6-protocol.txt:916
-#
 sub tb {
     my ($to_server, $channel) = @_;
     return unless $channel->topic;
 
-    sprintf
-    ':%s TB %s %d %s:%s',
-    ts6_id($me),
-    $channel->{name},
-    $channel->{topic}{time},
+    sprintf ':%s TB %s %d %s:%s',
+    ts6_id($me),                # source SID
+    $channel->{name},           # channel name
+    $channel->{topic}{time},    # topic TS
     $to_server->ircd_opt('burst_topicwho') ? "$$channel{topic}{setby} " : '',
-    $channel->{topic}{topic}
+    $channel->{topic}{topic};   # topic
 }
 
 # ETB
 # capab:        EOPMOD
 # source:       any
 # propagation:  broadcast
-# parameters:   channelTS, channel, topicTS, topic setter, opt. extensions, topic
+# parameters:   channelTS, channel, topicTS, topic setter, opt. extensions,
+#               topic
 #
 sub etb {
     my ($to_server, $channel, %opts) = @_;
     sprintf ':%s ETB %d %s %d %s :%s',
-    ts6_id($opts{source}),
-    $opts{channel_ts},
-    $channel->{name},
-    $opts{new} ? $opts{new}{time}  : 0, # FIXME
+    ts6_id($opts{source}),                      # source UID or SID
+    $opts{channel_ts},                          # channel TS
+    $channel->{name},                           # channel name
+    $opts{new} ? $opts{new}{time}  : 0,         # FIXME
     $opts{new} ? $opts{new}{setby} : $me->name, # FIXME
-    $opts{new} ? $opts{new}{topic} : ''
+    $opts{new} ? $opts{new}{topic} : '';        # topic
 }
 
 # PRIVMSG
@@ -586,7 +590,8 @@ sub privmsgnotice {
 
 # Complex PRIVMSG
 #
-#   a message to all users on server names matching a mask ('$$' followed by mask)
+#   a message to all users on server names matching a mask
+#       ('$$' followed by mask)
 #   propagation: broadcast
 #   Only allowed to IRC operators.
 #
@@ -602,7 +607,7 @@ sub privmsgnotice_smask {
 #   capab:          CHW and EOPMOD
 #   propagation:    all servers with -D chanops
 #
-# charybdis/blob/8fed90ba8a221642ae1f0fd450e8e580a79061fb/ircd/send.cc#L581
+# charybdis@8fed90ba8a221642ae1f0fd450e8e580a79061fb/ircd/send.cc#L581
 #
 sub privmsgnotice_opmod {
     my ($to_server, $cmd, $source, $target, $message, %opts) = @_;
@@ -614,10 +619,10 @@ sub privmsgnotice_opmod {
     # if the target server has EOPMOD, we can use the '=' prefix.
     if ($to_server->has_cap('EOPMOD')) {
         return sprintf ':%s %s =%s :%s',
-        ts6_id($source),
-        $cmd,
-        $target->name,
-        $message;
+        ts6_id($source),        # source UID or SID
+        $cmd,                   # PRIVMSG or NOTICE
+        $target->name,          # channel name
+        $message;               # message text
     }
 
     # no EOPMOD. use NOTICE @#channel
@@ -628,11 +633,11 @@ sub privmsgnotice_opmod {
     #
     $target or return;
     return sprintf ':%s NOTICE @%s :<%s:%s> %s',
-    ts6_id($source->server),
-    $target->name,
-    $source->name,
-    $target->name,
-    $message;
+    ts6_id($source->server),    # source's server SID
+    $target->name,              # channel name
+    $source->name,              # source nickname or server name
+    $target->name,              # channel name
+    $message;                   # message text
 }
 
 # - Complex PRIVMSG
@@ -674,12 +679,10 @@ sub privmsgnotice_status {
 # source:       user
 # parameters:   comma separated channel list, message
 #
-# ts6-protocol.txt:617
-#
 sub part {
     my ($to_server, $user, $channel, $reason) = @_;
     my $id = ts6_id($user);
-    $reason //= q();
+    $reason //= '';
     my @channels = ref $channel eq 'ARRAY' ? @$channel : $channel;
     map ":$id PART $$_{name} :$reason", @channels;
 }
@@ -691,12 +694,8 @@ sub part {
 #
 # this can take a server object, user object, or connection object.
 #
-# ts6-protocol.txt:694
-#
 # SQUIT
 # parameters:   target server, comment
-#
-# ts6-protocol.txt:858
 #
 sub quit {
     my ($to_server, $object, $reason, $from) = @_;
@@ -721,8 +720,6 @@ sub quit {
 # parameters:   channel, target user, opt. reason
 # propagation:  broadcast
 #
-# ts6-protocol.txt:433
-#
 sub kick {
     my ($to_server, $source, $channel, $target, $reason) = @_;
     my $sourceid = ts6_id($source);
@@ -736,8 +733,6 @@ sub kick {
 # source:       user
 # propagation:  broadcast
 # parameters:   channel, topic
-#
-# ts6-protocol.txt:957
 #
 sub topic {
     my ($to_server, $source, $channel, undef, $topic) = @_;
@@ -754,7 +749,7 @@ sub topic {
     # consider: charybdis has some crazy stuff to send SJOIN with the user
     # opped, set the topic, and then part immediately after if the user is not
     # in the channel.
-    # charybdis/blob/8fed90ba8a221642ae1f0fd450e8e580a79061fb/modules/m_tb.cc#L207
+    # charybdis@8fed90ba8a221642ae1f0fd450e8e580a79061fb/modules/m_tb.cc#L207
 
     my $uid = ts6_id($source);
     ":$uid TOPIC $$channel{name} :$topic"
@@ -765,8 +760,6 @@ sub topic {
 # source:       any
 # parameters:   target user, path
 # propagation:  broadcast
-#
-# ts6-protocol.txt:444
 #
 sub skill {
     my ($to_server, $source, $tuser, $reason) = @_;
@@ -785,8 +778,6 @@ sub skill {
 #
 # source:       user
 # parameters:   account name
-#
-# ts6-protocol.txt:505
 #
 sub login {
     my ($to_server, $user, $acctname) = @_;
@@ -827,8 +818,6 @@ sub su_logout {
 # source:       any
 # parameters:   origin, opt. destination server
 #
-# ts6-protocol.txt:700
-#
 sub ping {
     my ($to_server, $source_serv, $dest_serv) = @_;
     my $sid1 = ts6_id($source_serv);
@@ -847,8 +836,6 @@ sub ping {
 # source:       server
 # parameters:   origin, destination
 #
-# ts6-protocol.txt:714
-#
 sub pong {
     my ($to_server, $source_serv, $dest_serv) = @_;
     my $sid1 = ts6_id($source_serv);
@@ -862,8 +849,6 @@ sub pong {
 # propagation:  broadcast
 # parameters:   opt. away reason
 #
-# ts6-protocol.txt:215
-#
 sub away {
     my ($to_server, $user) = @_;
     my $id = ts6_id($user);
@@ -875,8 +860,6 @@ sub away {
 # source:       user
 # propagation:  broadcast
 # parameters:   opt. away reason
-#
-# ts6-protocol.txt:215
 #
 sub return_away {
     my ($to_server, $user) = @_;
@@ -895,8 +878,6 @@ sub return_away {
 # source:       server
 # parameters:   message
 # propagation:  broadcast
-#
-# ts6-protocol.txt:1140
 #
 sub wallops {
     my ($to_server, $source, $message, $oper_only) = @_;
@@ -1123,13 +1104,14 @@ sub userinfo {
 #               new nickTS, new login name
 #
 sub signon {
-    my ($to_server, $user, $new_nick, $new_ident, $new_host, $new_nick_time, $new_act_name) = @_;
+    my ($to_server, $user, $new_nick, $new_ident, $new_host,
+        $new_nick_time, $new_act_name) = @_;
     sprintf ':%s SIGNON %s %s %s %s %s',
-    $new_nick,
-    $new_ident,
-    $new_host,
-    $new_nick_time,
-    $new_act_name
+    $new_nick,          # new nickname
+    $new_ident,         # new username
+    $new_host,          # new visible hostname
+    $new_nick_time,     # new nick TS
+    $new_act_name;      # new account name
 }
 
 # CONNECT
@@ -1186,12 +1168,12 @@ sub snote {
 sub rsfnc {
     my ($to_server, $server, $user, $new_nick, $new_nick_ts, $old_nick_ts) = @_;
     sprintf ':%s ENCAP %s RSFNC %s %s %d %d',
-    ts6_id($server),
-    $user->server->name,
-    ts6_id($user),
-    $new_nick,
-    $new_nick_ts,
-    $old_nick_ts;
+    ts6_id($server),        # services server SID
+    $user->server->name,    # user's server name (ENCAP target)
+    ts6_id($user),          # UID
+    $new_nick,              # new nickname
+    $new_nick_ts,           # new nick TS
+    $old_nick_ts;           # old nick TS
 }
 
 $mod
