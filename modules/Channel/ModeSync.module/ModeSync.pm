@@ -158,7 +158,6 @@ sub handle_moderep {
     my $difference = $me->cmode_string_difference(
         $old_mode_str,      # all former modes
         $mode_str,          # all new modes
-        undef,              # combine ban lists? no longer used in JELP
         1                   # do NOT remove modes missing from $mode_str
     );
 

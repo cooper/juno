@@ -110,13 +110,20 @@ sub push_stated_mode {
     my ($modes, $state, $name, $param) = @_;
     $name = "-$name" if !$state;
     $modes->push_mode($name => $param);
+    return $modes;
 }
 
 # push a mode ref
 sub push_modes {
     my ($modes, $new_modes) = @_;
     push @$modes, @$new_modes;
-    # TODO: simplify?
+    return $modes;
+}
+
+# same as ->push_modes except it auto-simplifies
+sub merge_in {
+    my ($modes, $new_modes) = @_;
+    return $modes->push_modes($new_modes)->simplify;
 }
 
 # the number of modes
@@ -127,8 +134,10 @@ sub count {
 
 # remove redundancies
 sub simplify {
-    ...
-    # TODO
+    my $modes = shift;
+    my $new_modes = difference(modes->new, $modes);
+    @$modes = @$new_modes;
+    return $modes;
 }
 
 # change the sign of each mode
@@ -282,6 +291,88 @@ sub _stringify_cmode_parameter {
     }
 
     return $param;
+}
+
+# modes::difference($old_modes, $new_modes)
+sub difference {
+    my ($_old_modes, $_new_modes, $remove_none) = @_;
+
+    # explicitly copy the modes.
+    my @old_modes = @$_old_modes;
+    my @new_modes = @$_new_modes;
+
+    # determine the original values.
+    my %o_modes;
+    while (my ($name, $param) = splice @old_modes, 0, 2) {
+        my $type = $me->cmode_type($name);
+
+        # this type takes a parameter.
+        if ($me->cmode_takes_parameter($name, 1)) {
+            $o_modes{$name}{$param} = $param;
+            next;
+        }
+
+        # no parameter.
+         $o_modes{$name}++;
+
+    }
+
+    # determine the new values.
+    my %n_modes;
+    while (my ($name, $param) = splice @new_modes, 0, 2) {
+
+        # this type takes a parameter.
+        if ($me->cmode_takes_parameter($name, 1)) {
+
+            # only add to %n_modes if it does not exist in %o_modes.
+            $n_modes{$name}{$param} = $param
+                unless delete $o_modes{$name}{$param};
+
+            next;
+        }
+
+        # no parameter.
+        $n_modes{$name}++
+            unless delete $o_modes{$name};
+    }
+
+    # ok, at this point:
+    # %n_modes contains modes that were missing from $old_modes
+    # %o_modes contains modes that were missing from $new_modes
+
+    # create a moderef of the new modes.
+    my $changes = modes->new;
+    foreach my $name (keys %n_modes) {
+
+        # if it takes a parameter, push each instance.
+        if ($me->cmode_takes_parameter($name, 1)) {
+            $changes->push_mode($name => $_)
+                for values %{ $n_modes{$name} };
+            next;
+        }
+
+        # otherwise, push the mode and undef.
+        $changes->push_mode($name => undef);
+    }
+
+    # if we're not removing any modes, we're done.
+    return $changes if $remove_none;
+
+    # ok now add negated modes for anything that was missing from $new_modes.
+    foreach my $name (keys %o_modes) {
+
+        # if it takes a parameter, push each instance.
+        if ($me->cmode_takes_parameter($name, 1)) {
+            $changes->push_stated_mode(0, $name => $_)
+                for values %{ $o_modes{$name} };
+            next;
+        }
+
+        # otherwise, push the mode and undef.
+        $changes->push_stated_mode(0, $name => undef);
+    }
+
+    return $changes;
 }
 
 $mod

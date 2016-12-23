@@ -12,5 +12,5 @@
    "description" : "adds channel key mode",
    "name" : "Channel::Key",
    "package" : "M::Channel::Key",
-   "version" : "2.5"
+   "version" : "2.6"
 }

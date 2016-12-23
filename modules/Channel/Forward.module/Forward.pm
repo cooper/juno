@@ -45,7 +45,7 @@ sub cmode_forward {
     $mode->{has_basic_status} or return;
 
     # if we're unsetting...
-    if (!$mode->{setting}) {
+    if (!$mode->{state}) {
         return unless $channel->is_mode('forward');
         $channel->unset_mode('forward');
     }

@@ -694,7 +694,6 @@ sub sjoin {
         my $difference = $me->cmode_string_difference(
             $old_mode_str,      # all former modes
             $command_mode_str,  # all new modes including statuses
-            0,                  # combine ban lists? no longer used in JELP
             !$clear_old_modes   # do not remove modes missing from $old_mode_str
         );
 

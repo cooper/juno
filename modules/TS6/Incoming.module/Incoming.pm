@@ -563,7 +563,6 @@ sub sjoin {
         my $difference = $me->cmode_string_difference(
             $old_mode_str,      # all former modes
             $command_mode_str,  # all new modes including statuses
-            0,                  # combine ban lists? not used in TS6
             !$clear_old_modes   # do not remove modes missing from $old_mode_str
         );
 

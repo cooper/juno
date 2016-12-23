@@ -3771,3 +3771,9 @@ CHANGES:
 
     22. in status mode blocks, check if the parameter is blessed.
         an unblessed string indicates the nickname or UID could not be resolved.
+
+    23. new modes::difference() identifies the differences between two moderefs.
+        new mode methods ->simplify and ->merge_in.
+        ->handle_modes() now skips status modes whose parameters are not user objects.
+        ->cmode_string_difference() has been removed in favor of modes::difference().
+        ->combine_cmode_strings() has been removed in favor of $modes->merge_in().

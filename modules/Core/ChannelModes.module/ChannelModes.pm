@@ -15,8 +15,6 @@ use warnings;
 use strict;
 use 5.010;
 
-use Scalar::Util qw(blessed);
-
 our ($api, $mod, $me, $pool);
 
 our %channel_modes = (
@@ -73,14 +71,7 @@ sub register_statuses {
         my $source = $mode->{source};
         my $t_user = $mode->{param};
 
-        # make sure the target user exists.
-        if (!blessed $t_user) {
-            $source->numeric(ERR_NOSUCHNICK => $t_user)
-                if $source->isa('user') && $source->is_local;
-            return;
-        }
-
-        # and also make sure he is on the channel
+        # make sure the user is on the channel.
         if (!$channel->has_user($t_user)) {
             $source->numeric(ERR_USERNOTINCHANNEL =>
                 $t_user->{nick}, $channel->name
@@ -89,7 +80,7 @@ sub register_statuses {
         }
 
         # if we're not forcing the change, and the source user is local,
-        # check that he has the proper permissions
+        # check that he has the proper permissions.
         if (!$mode->{force} && $source->is_local) {
 
             # check 1: see if he has basic status and that he is not trying

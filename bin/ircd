@@ -9,7 +9,7 @@ BEGIN {
     defined($run_dir = shift @ARGV) or die "No directory specified";
     die "Run directory does not exist" unless -d $run_dir;
     chdir $run_dir or die "Can't access run directory";
-    foreach (map { "$run_dir/lib$_" } ('', qw(/api-engine /evented-object/lib
+    foreach (map { "$run_dir/lib$_" } ('', qw(/evented-object/lib
         /evented-api-engine/lib))) { unshift @INC, $_ }
     require Evented::API::Engine;
 }

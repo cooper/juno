@@ -254,6 +254,13 @@ sub handle_modes {
             next MODE;
         }
 
+        # status mode parameters must be user objects at this point.
+        if ($type == 4 and !blessed $param || !$param->isa('user')) {
+            $source->numeric(ERR_NOSUCHNICK => $param)
+                if $source->isa('user') && $source->is_local;
+            next MODE;
+        }
+
         # truncate the parameter, if necessary.
         #
         # consider: truncating bans might be a bad idea; it could have weird
@@ -285,7 +292,7 @@ sub handle_modes {
             server  => $me,             # the server perspective
             source  => $source,         # the source of the mode change (user or server)
             state   => $state,          # setting or unsetting
-            setting => $state,          # to satisfy matthew
+            name    => $name,           # the mode name
             param   => $param,          # the parameter for this particular mode
             params  => $parameters,     # the parameters for the resulting mode string
             force   => $force,          # true if permissions should be ignored

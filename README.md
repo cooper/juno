@@ -208,7 +208,7 @@ git clone --recurse-submodules https://github.com/cooper/juno.git
 ```
 
 If your `git` does not support recursive cloning, or if you forgot to specify,
-run `git submodule update --init` to check them out.
+run `git submodule update --init` to check the submodules out.
 
 ### SSL setup
 

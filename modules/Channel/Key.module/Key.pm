@@ -47,7 +47,7 @@ sub cmode_key {
     $mode->{has_basic_status} or return;
 
     # if we're unsetting...
-    if (!$mode->{setting}) {
+    if (!$mode->{state}) {
         return unless $channel->is_mode('key');
 
         # if we unset without a parameter (the key),
