@@ -101,7 +101,7 @@ sub send_startburst {
 sub send_burst {
     my ($server, $fire, $time) = @_;
 
-    # servers and mode names
+    # servers and mode names.
     my ($do, %done);
 
     # first, send modes of this server.
@@ -131,30 +131,34 @@ sub send_burst {
 
     }; $do->($_) foreach $pool->all_servers;
 
-    # users
+    # users.
     foreach my $user ($pool->global_users) {
 
         # ignore users the server already knows!
         next if $user->{server} == $server || $user->{source} == $server->{sid};
 
+        # UID
         $server->fire_command(new_user => $user);
 
-        # oper flags
-        if (scalar @{ $user->{flags} }) {
-            $server->fire_command(oper => $user, @{ $user->{flags} })
-        }
+        # OPER
+        my @flags = @{ $user->{flags} };
+        $server->fire_command(oper => $user, @flags)
+            if @flags;
 
-        # away reason
-        if (exists $user->{away}) {
-            $server->fire_command(away => $user)
-        }
-
+        # AWAY
+        $server->fire_command(away => $user)
+            if length $user->{away};
     }
 
-    # channels, using compact CUM
+    # channels.
     foreach my $channel ($pool->channels) {
+
+        # SJOIN
         $server->fire_command(channel_burst => $channel, $me, $channel->users);
-        $server->fire_command(topicburst => $channel) if $channel->topic;
+
+        # TOPICBURST
+        $server->fire_command(topicburst => $channel)
+            if $channel->topic;
     }
 
 }
@@ -179,43 +183,47 @@ sub quit {
 # new user
 sub uid {
     my ($to_server, $user) = @_;
-    my $cmd = sprintf(
-        'UID %s %d %s %s %s %s %s %s :%s',
-        $user->{uid}, $user->{nick_time}, $user->mode_string,
-        $user->{nick}, $user->{ident}, $user->{host},
-        $user->{cloak}, $user->{ip}, $user->{real}
-    );
-    ":$$user{server}{sid} $cmd"
+    sprintf ':%s UID %s %d %s %s %s %s %s %s :%s',
+    $user->server->id,      # user's server SID
+    $user->id,              # UID
+    $user->{nick_time},     # nick TS
+    $user->mode_string,     # +modes string
+    $user->{nick},          # nickname
+    $user->{ident},         # username (w/ ~ if necessary)
+    $user->{host},          # real hostname
+    $user->{cloak},         # visible hostname
+    $user->{ip},            # IP address
+    $user->{real};          # real name
 }
 
+# new server
 sub sid {
     my ($to_server, $serv) = @_;
     return if $to_server == $serv;
 
-    # hidden?
-    my $desc = $serv->{desc};
-    $desc = "(H) $desc" if $serv->{hidden};
-
-    my $cmd = sprintf(
-        'SID %s %d %s %s %s :%s',
-        $serv->{sid},   $serv->{time}, $serv->{name},
-        $serv->{proto}, $serv->{ircd}, $desc
-    );
-    ":$$serv{parent}{sid} $cmd"
+    sprintf ':%s SID %s %d %s %s %s :%s%s',
+    $serv->parent->id,  # parent server SID
+    $serv->id,          # SID
+    $serv->{time},      # server creation time
+    $serv->name,        # server name
+    $serv->{proto},     # server protocol version
+    $serv->{ircd},      # server IRCd version
+    $serv->{hidden} ? '(H) ' : '', # hidden?
+    $serv->{desc};      # server description
 }
 
+# topic burst
 sub topicburst {
     my ($to_server, $channel) = @_;
     return unless $channel->topic;
-    my $cmd = sprintf(
-        'TOPICBURST %s %d %s %d :%s',
-        $channel->name,
-        $channel->{time},
-        $channel->{topic}{setby},
-        $channel->{topic}{time},
-        $channel->{topic}{topic}
-    );
-    ":$$me{sid} $cmd"
+
+    sprintf ':%s TOPICBURST %s %d %s %d :%s',
+    $me->id,                    # source SID
+    $channel->name,             # channel name
+    $channel->{time},           # channel TS
+    $channel->{topic}{setby},   # topic set by
+    $channel->{topic}{time},    # topic TS
+    $channel->{topic}{topic};   # topic text
 }
 
 # nick change
@@ -248,7 +256,8 @@ sub privmsgnotice {
 
 # Complex PRIVMSG
 #
-#   a message to all users on server names matching a mask ('$$' followed by mask)
+#   a message to all users on server names matching a mask
+#       ('$$' followed by mask)
 #   propagation: broadcast
 #   Only allowed to IRC operators.
 #
@@ -345,7 +354,7 @@ sub return_away {
 # leave a channel
 sub part {
     my ($to_server, $user, $channel, $reason) = @_;
-    $reason //= q();
+    $reason //= '';
     my @channels = ref $channel eq 'ARRAY' ? @$channel : $channel;
     map ":$$user{uid} PART $$_{name} $$_{time} :$reason", @channels;
 }
@@ -403,7 +412,7 @@ sub sjoin {
     foreach my $name (keys %{ $channel->{modes} }) {
         next if $serv->cmode_type($name) != 4;
         my $letter = $serv->cmode_letter($name);
-        ($prefixes{$_} //= '') .= $letter foreach $channel->list_elements($name);
+        ($prefixes{$_} //= '') .= $letter for $channel->list_elements($name);
     }
 
     # create an array of uid!status
@@ -509,7 +518,7 @@ sub kick {
     my ($to_server, $source, $channel, $target, $reason) = @_;
     my $sourceid = $source->can('id') ? $source->id : '';
     my $targetid = $target->can('id') ? $target->id : '';
-    return ":$sourceid KICK $$channel{name} $targetid :$reason";
+    ":$sourceid KICK $$channel{name} $targetid :$reason"
 }
 
 # remote numerics
