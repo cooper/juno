@@ -199,80 +199,12 @@ sub cmode_type {
 
 # convert cmodes and their parameters
 sub convert_cmode_string {
-    my ($server1, $server2, $mode_str, $over_protocol, $skip_status) = @_;
-
-    my $string = '+';                       # new (+/-)modes
-    my @m      = split /\s+/, $mode_str;    # old mode string parts
-    my $modes  = shift @m;                  # old (+/-)modes
-    my $curr_p = -1;                        # current parameter index
-    my $state  = 1;                         # current state
-    my $since_state;                        # changes since state change
-
-    foreach my $letter (split //, $modes) {
-
-        # state change.
-        if ($letter eq '+' || $letter eq '-') {
-            chop $string if !$since_state;
-            my $new  = $letter eq '+';
-            $string .= $letter if !length $string || $state != $new;
-            $state   = $new;
-            undef $since_state;
-            next;
-        }
-
-        # find the mode.
-        my $name = $server1->cmode_name($letter) or next;
-
-        # this mode takes a parameter.
-        my $takes_param;
-        if ($server1->cmode_takes_parameter($name, $state)) {
-            $curr_p++;
-            $takes_param++;
-        }
-
-        # skip this mode maybe if $skip_status.
-        my $is_status = $server1->cmode_type($name) == 4;
-        if ($skip_status && $is_status) {
-            delete $m[$curr_p];
-            next;
-        }
-
-        # if over protocol, some parameter translate might be necessary.
-        if ($over_protocol) {
-
-            # if it's a status mode, translate the UID maybe.
-            if ($is_status && length $m[$curr_p]) {
-                my $user    = $server1->uid_to_user($m[$curr_p]);
-                $m[$curr_p] = $server2->user_to_uid($user) if $user;
-            }
-
-        }
-
-        # translate the letter.
-        my $new = $server2->cmode_letter($name);
-
-        # the second server does not know this mode.
-        # remove the parameter if it has one.
-        if (!length $new) {
-            delete $m[$curr_p] if $takes_param;
-            next;
-        }
-
-        $string .= $new;
-        $since_state++;
-    }
-
-    # if we have nothing but a sign, return +.
-    if (length $string == 1) {
-        L("$mode_str ($$server1{name}) -> nothing at all ($$server2{name})");
-        return '+';
-    }
-
-    # join mode string and parameters
-    my $new_string = join ' ', grep(length, $string, @m);
-
-    L("$mode_str ($$server1{name}) -> $new_string ($$server2{name})");
-    return $new_string;
+    my ($server1, $server2, $mode_str, $over_protocol) = @_;
+    return modes->new_from_string(
+        $server1,
+        $mode_str,
+        $over_protocol
+    )->to_string($server2);
 }
 
 # true if the mode takes a parameter in this state.
