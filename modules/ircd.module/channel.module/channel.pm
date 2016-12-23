@@ -800,7 +800,7 @@ sub _do_modes {
     }
 
     # stop here if it's not a local user or this server.
-    return if $local || !$source->is_local;
+    return $changes if $local || !$source->is_local;
 
     # the source is our user or this server, so tell other servers.
     #
@@ -817,7 +817,7 @@ sub _do_modes {
         $me, $server_str
     ) if length $server_str > 1;
 
-    return 1;
+    return $changes;
 }
 
 # handle a mode string, tell our local users, and tell other servers.
