@@ -17,7 +17,8 @@ use strict;
 use 5.010;
 use utf8;
 
-use Scalar::Util qw(blessed);
+use Scalar::Util qw(blessed looks_like_number);
+use List::Util qw(first);
 use utils qw(conf notice);
 
 our ($mod, $me, $pool);
@@ -153,6 +154,65 @@ sub invert {
     return $modes;
 }
 
+# remove modes matching criteria
+sub remove {
+    my ($modes, @matchers) = @_;
+    my $new = _matching_not_matching(0, $modes, @matchers);
+    @$modes = @$new;
+    return $modes;
+}
+
+# remove modes not matching criteria
+sub filter {
+    my ($modes, @matchers) = @_;
+    my $new = _matching_not_matching(1, $modes, @matchers);
+    @$modes = @$new;
+    return $modes;
+}
+
+sub _matching_not_matching {
+    my ($matching, $modes, @matchers) = @_;
+    @matchers = map _get_matcher($_), @matchers;
+    my $matches = modes->new;
+
+    # add only modes matching this
+    foreach ($modes->stated) {
+        my ($state, $name, $param) = @$_;
+        my $found = first { $_->($name) } @matchers;
+        next if !!$matching != !!$found;
+        $matches->push_stated_mode($state, $name, $param);
+    }
+
+    return $matches;
+}
+
+sub _get_matcher {
+    my $type = shift;
+
+    # inf means all modes
+    if ($type eq 'inf') {
+        return sub { 1 };
+    }
+
+    # -inf means all except status modes
+    elsif ($type eq -inf) {
+        return sub { $me->cmode_type(shift) != 4 };
+    }
+
+    # code ref is a custom matcher.
+    elsif (ref $type eq 'CODE') {
+        return $type;
+    }
+
+    # other number means all modes of the specified type.
+    elsif (looks_like_number($type)) {
+        return sub { $me->cmode_type(shift) == $type };
+    }
+
+    # anything else is hopefully a string mode name.
+    return sub { shift() eq $type };
+}
+
 # my $string  = $modes->to_string(...)
 # my @strings = $modes->to_strings(...)
 #
@@ -170,16 +230,8 @@ sub _to_strings {
     my @changes;
 
     # add each mode to the resultant.
-    my @modes = @$modes; # explicitly make a copy
-    MODE: while (my ($name, $param) = splice @modes, 0, 2) {
-
-        # extract the state.
-        my $state = 1;
-        my $first = \substr($name, 0, 1);
-        if ($$first eq '-' || $$first eq '+') {
-            $state  = $$first eq '+';
-            $$first = '';
-        }
+    MODE: foreach ($modes->stated) {
+        my ($state, $name, $param) = @$_;
 
         # $skip_checks is enabled when the modes were generated internally.
         # this is to improve efficiency when we're already certain it's valid.
@@ -373,6 +425,19 @@ sub difference {
     }
 
     return $changes;
+}
+
+sub stated {
+    my $modes = shift;
+    my @modes = @$modes;
+    my @stated;
+    while (my ($name, $param) = splice @modes, 0, 2) {
+        my $pfx   = \substr $name, 0, 1;
+        my $state = $$pfx ne '-';
+        $$pfx     = '' if !$state;
+        push @stated, [ $state, $name, $param ];
+    }
+    return @stated;
 }
 
 $mod

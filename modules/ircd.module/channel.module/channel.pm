@@ -216,16 +216,8 @@ sub handle_modes {
     my $changes = modes->new;
 
     # apply each mode.
-    my @modes = @$modes; # explicitly make a copy
-    MODE: while (my ($name, $param) = splice @modes, 0, 2) {
-
-        # extract the state.
-        my $state = 1;
-        my $first = \substr($name, 0, 1);
-        if ($$first eq '-' || $$first eq '+') {
-            $state  = $$first eq '+';
-            $$first = '';
-        }
+    MODE: foreach ($modes->stated) {
+        my ($state, $name, $param) = @$_;
 
         # find the mode type.
         my $type = $me->cmode_type($name);
@@ -419,25 +411,8 @@ sub _modes_with {
 
     # replace numbers with mode names.
     @mode_names = map {
-        my @res = my $type = $_;
-
-        # inf means all modes
-        if ($type eq 'inf') {
-            @res = @all_modes;
-        }
-
-        # -inf means all except status modes
-        elsif ($type eq -inf) {
-            @res = @all_modes;
-            @res = grep { $server->cmode_type($_) != 4 } @all_modes;
-        }
-
-        # other number means all modes of the specified type.
-        elsif (looks_like_number($type)) {
-            @res = grep { $server->cmode_type($_) == $type } @all_modes;
-        }
-
-        @res
+        my $matcher = modes::_get_matcher($_);
+        grep $matcher->($_), @all_modes;
     } @mode_names;
 
     # add each mode by name.
@@ -812,7 +787,7 @@ sub _do_modes {
     my $local = shift;
     my ($channel, $source, $modes, $force, $organize, $unloaded) = @_;
     $modes->count or return;
-    
+
     # handle the mode.
     my $changes = $channel->handle_modes($source, $modes, $force, $unloaded);
 

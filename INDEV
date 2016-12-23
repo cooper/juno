@@ -3781,3 +3781,6 @@ CHANGES:
     24. update JELP and TS6 to use moderefs rather working with mode strings.
         fixed a bug where the mode letter and/or type was sometimes omitted from JELP AUM and ACM.
         simplifed ->convert_cmode_string() using new moderef methods.
+
+    25. add $modes->stated for easier iteration.
+        add $modes->remove() and $modes->filter().
