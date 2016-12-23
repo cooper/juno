@@ -547,8 +547,12 @@ sub sjoin {
         $new_modes->merge_in($uid_modes);
 
         # determine the difference between the old mode string and the new one.
-        my $changes = modes::difference($old_modes, $new_modes);
-
+        my $changes = modes::difference(
+            $old_modes,         # modes before any changes
+            $new_modes,         # incoming modes
+            !$clear_old_modes   # ignore missing modes unless $clear_old_modes
+        );
+        
         # handle the modes locally.
         # ($source, $modes, $force, $organize)
         $channel->do_modes_local($source_serv, $changes, 1, 1);
