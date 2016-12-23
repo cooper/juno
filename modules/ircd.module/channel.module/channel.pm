@@ -717,11 +717,10 @@ sub take_lower_time {
 
     # the new time is older; reset.
     L("locally resetting $$channel{name} time to $time");
-    my $amount = $channel->{time} - $time;
     $channel->set_time($time);
 
     # unset all channel modes.
-    if (!$ignore_modes) {
+    unless ($ignore_modes) {
         # ($source, $modes, $force, $organize)
         $channel->do_modes_local($me, $channel->all_modes->invert, 1, 1);
     }
@@ -785,10 +784,9 @@ sub _do_modes {
     #
     # ($over_protocol, $organize, $skip_checks)
     # $over_protocol is false here because we want nicks rather than UIDs.
-    # $split is true here because we want to send multiple messages to users.
     #
     foreach ($changes->to_strings($me, 0, $organize, 1)) {
-        next unless length > 1;
+        next unless length;
         $channel->sendfrom_all($source->full, "MODE $$channel{name} $_");
     }
 
@@ -799,16 +797,15 @@ sub _do_modes {
     #
     # ($over_protocol, $organize, $skip_checks)
     # $over_protocol is true here because we want UIDs rather than nicks.
-    # $split is false because we are generating a single mode string.
     # currently each protocol implementation has to split it when necessary.
     #
-    # cmode => ($source, $channel, $time, $perspective, $server_modestr)
+    # cmode => ($source, $channel, $time, $perspective, $mode_str)
     #
-    my $server_str = $changes->to_string($me, 1, $organize, 1);
+    my $mode_str = $changes->to_string($me, 1, $organize, 1);
     $pool->fire_command_all(cmode =>
         $source, $channel, $channel->{time},
-        $me, $server_str
-    ) if length $server_str > 1;
+        $me, $mode_str
+    ) if length $mode_str;
 
     return $changes;
 }

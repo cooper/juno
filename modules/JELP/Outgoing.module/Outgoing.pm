@@ -431,9 +431,10 @@ sub acm {
     if (!$added) {
         my %cmodes = %{ $serv->{cmodes} };
 
-        # remove ones with no mode blocks
+        # remove ones with no mode blocks if this is $me
         foreach (keys %cmodes) {
-            next if $pool->{channel_modes}{$_};
+            last if $serv != $me;
+            next if keys %{ $serv->{cmodes}{$_} } && $pool->{channel_modes}{$_};
             delete $cmodes{$_};
         }
 
@@ -471,9 +472,10 @@ sub aum {
     if (!$added) {
         my %umodes = %{ $serv->{umodes} };
 
-        # remove ones with no mode blocks
+        # remove ones with no mode blocks if this is $me
         foreach (keys %umodes) {
-            next if $pool->{user_modes}{$_};
+            last if $serv != $me;
+            next if keys %{ $serv->{umodes}{$_} } && $pool->{user_modes}{$_};
             delete $umodes{$_};
         }
 

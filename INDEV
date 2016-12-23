@@ -3788,3 +3788,5 @@ CHANGES:
         TS6 SJOIN no longer uses $server->convert_cmode_string().
         ->do_modes() and ->do_mode_string() now return moderefs of changes.
         removed unused $channel->mode_string_status.
+
+    26. fixed a bug where AUM and ACM sometimes included modes not known to the source server.
