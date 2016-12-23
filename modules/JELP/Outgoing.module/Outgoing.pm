@@ -437,7 +437,10 @@ sub acm {
             delete $cmodes{$_};
         }
 
-        $added = [ map [ $_, @{ $cmodes{$_} }{qw(letter type)} ], keys %cmodes ];
+        $added = [
+            map [ $_, $serv->cmode_letter($_), $serv->cmode_type($_) ],
+            keys %cmodes
+        ];
         $removed = [];
     }
 
@@ -474,7 +477,7 @@ sub aum {
             delete $umodes{$_};
         }
 
-        $added = [ map [ $_, $umodes{$_}{letter} ], keys %umodes ];
+        $added = [ map [ $_, $serv->umode_letter($_) ], keys %umodes ];
         $removed = [];
     }
 

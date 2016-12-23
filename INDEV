@@ -3779,3 +3779,4 @@ CHANGES:
         ->combine_cmode_strings() has been removed in favor of $modes->merge_in().
 
     24. update JELP and TS6 to use moderefs rather working with mode strings.
+        fixed a bug where the mode letter and/or type was sometimes omitted from JELP AUM and ACM.
