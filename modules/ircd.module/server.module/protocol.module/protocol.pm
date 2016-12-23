@@ -78,7 +78,7 @@ sub handle_nick_collision {
 
 
     # Send out a SAVE for the existing user
-    # and broadcast a local nickchange to his UID.
+    # and broadcast a local nick change to his UID.
     if ($kill_old) {
         $pool->fire_command_all(save_user => $me, $old, $old->{nick_time});
         $old->save_locally;
@@ -139,7 +139,7 @@ sub handle_svsnick {
     # RSFNC has a single-server target, so the nick change must be
     # propagated as a NICK message.
     #
-    $msg->forward_plus_one(nickchange => $user);
+    $msg->forward_plus_one(nick_change => $user);
 
     return 1;
 }

@@ -23,7 +23,7 @@ my %ocommands = (
     quit            => \&quit,
     new_server      => [ \&sid, \&aum, \&acm ],
     new_user        => \&uid,
-    nickchange      => \&nickchange,
+    nick_change     => \&nick,
     umode           => \&umode,
     privmsgnotice   => \&privmsgnotice,
     join            => \&_join,
@@ -227,7 +227,7 @@ sub topicburst {
 }
 
 # nick change
-sub nickchange {
+sub nick {
     my ($to_server, $user) = @_;
     ":$$user{uid} NICK $$user{nick}"
 }

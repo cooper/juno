@@ -274,7 +274,7 @@ sub nick {
 
     # change it.
     $user->change_nick($newnick, time);
-    $pool->fire_command_all(nickchange => $user);
+    $pool->fire_command_all(nick_change => $user);
 
 }
 

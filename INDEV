@@ -3792,3 +3792,4 @@ CHANGES:
     26. fixed a bug where AUM and ACM sometimes included modes not known to the source server.
         misc. cleanup TS6::Outgoing.
         misc. cleanup JELP::Outgoing.
+        misc. cleanup JELP::Incoming.

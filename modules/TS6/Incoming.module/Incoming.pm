@@ -984,7 +984,7 @@ sub nick {
     $user->change_nick($newnick, $newts);
 
     # === Forward ===
-    $msg->forward(nickchange => $user);
+    $msg->forward(nick_change => $user);
 
     return 1;
 }

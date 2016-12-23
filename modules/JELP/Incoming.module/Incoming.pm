@@ -203,33 +203,38 @@ sub init {
 # SERVER COMMANDS #
 ###################
 
+# new server
 sub sid {
     # server any    ts any  any   any  :rest
     # :sid   SID   newsid ts name proto ircd :desc
     my ($server, $msg, @args) = @_;
 
     # info.
-    my $ref          = {};
-    $ref->{$_}       = shift @args foreach qw[parent sid time name proto ircd desc];
-    $ref->{source}   = $server->{sid}; # source = sid we learned about the server from
-    $ref->{location} = $server;
+    my %serv;
+    $serv{$_}       = shift @args for qw(parent sid time name proto ircd desc);
+    $serv{source}   = $server->{sid}; # SID we learned about the server from
+    $serv{location} = $server;
 
     # hidden?
-    my $sub = \substr($ref->{desc}, 0, 4);
+    my $sub = \substr($serv{desc}, 0, 4);
     if (length $sub && $$sub eq '(H) ') {
         $$sub = '';
-        $ref->{hidden} = 1;
+        $serv{hidden} = 1;
     }
 
-    # do not allow SID or server name collisions
-    if (my $err = server::protocol::check_new_server(
-    $ref->{sid}, $ref->{name}, $server->{name})) {
+    # do not allow SID or server name collisions.
+    my $err = server::protocol::check_new_server(
+        $serv{sid},
+        $serv{name},
+        $server->{name}
+    );
+    if ($err) {
         $server->conn->done($err);
         return;
     }
 
-    # create a new server
-    my $serv = $pool->new_server(%$ref);
+    # create a new server.
+    my $serv = $pool->new_server(%serv);
 
     # === Forward ===
     $msg->forward(new_server => $serv);
@@ -237,25 +242,24 @@ sub sid {
     return 1;
 }
 
+# new user
 sub uid {
     # server any ts any   any  any   any  any   any :rest
     # :sid   UID   uid ts modes nick ident host cloak ip  :realname
     my ($server, $msg, @args) = @_;
 
-    my $ref          = {};
-    $ref->{$_}       = shift @args foreach
-        qw[server uid nick_time modes nick ident host cloak ip real];
-    $ref->{source}   = $server->{sid}; # source = sid we learned about the user from
-    $ref->{location} = $server;
-    my $mode_str      = delete $ref->{modes};
-    # location = the server through which this server can access the user.
-    # the location is not necessarily the same as the user's server.
+    my %user;
+    $user{$_}       = shift @args for
+        qw(server uid nick_time modes nick ident host cloak ip real);
+    $user{source}   = $server->{sid}; # SID we learned about the user from
+    $user{location} = $server; # server through which this user is reached
+    my $mode_str    = delete $user{modes};
 
     # create a temporary user object.
-    my $new_usr_temp = user->new(%$ref);
+    my $new_usr_temp = user->new(%user);
 
     # uid collision?
-    if (my $other = $pool->lookup_user($ref->{uid})) {
+    if (my $other = $pool->lookup_user($user{uid})) {
         notice(user_identifier_taken =>
             $server->{name},
             $new_usr_temp->notice_info, $new_usr_temp->id,
@@ -266,7 +270,7 @@ sub uid {
     }
 
     # nick collision!
-    my $used = $pool->nick_in_use($ref->{nick});
+    my $used = $pool->nick_in_use($user{nick});
 
     # unregistered user. kill it.
     if ($used && $used->isa('connection')) {
@@ -282,7 +286,7 @@ sub uid {
         ) and return 1;
     }
 
-    # create a new user
+    # create a new user.
     my $user = $pool->new_user(%$new_usr_temp);
 
     # set modes.
@@ -298,6 +302,7 @@ sub uid {
     return 1;
 }
 
+# user or server quit
 sub quit {
     # source   :rest
     # :source QUIT   :reason
@@ -330,7 +335,7 @@ sub quit {
     return 1;
 }
 
-# handle a nickchange
+# nick change
 sub nick {
     # user any
     # :uid NICK  newnick
@@ -341,10 +346,11 @@ sub nick {
     $user->change_nick($newnick, time);
 
     # === Forward ===
-    $msg->forward(nickchange => $user);
+    $msg->forward(nick_change => $user);
 
 }
 
+# indicates a server is bursting info
 sub burst {
     # server dummy
     # :sid   BURST
@@ -358,6 +364,7 @@ sub burst {
 
 }
 
+# indicates the end of server burst
 sub endburst {
     # server dummy
     # :sid   ENDBURST
@@ -377,6 +384,7 @@ sub endburst {
 
 }
 
+# user mode change
 sub umode {
     # user any
     # :uid UMODE modestring
@@ -388,6 +396,7 @@ sub umode {
 
 }
 
+# PRIVMSG or NOTICE
 sub privmsgnotice {
     my ($server, $msg, $source, $command, $target, $message) = @_;
     my @status_modes = grep { $_->{type} == 4 } values %{ $server->{cmodes} };
@@ -412,6 +421,7 @@ sub privmsgnotice {
     );
 }
 
+# channel join
 sub _join {
     # user any     ts
     # :uid JOIN  channel time
@@ -434,6 +444,8 @@ sub oper {
     # user @rest
     # :uid OPER  flag flag flag
     my ($server, $msg, $user, @flags) = @_;
+
+    # split into add and remove
     my (@add, @remove);
     foreach my $flag (@flags) {
         my $first = \substr($flag, 0, 1);
@@ -444,6 +456,8 @@ sub oper {
         }
         push @add, $flag;
     }
+
+    # commit changes
     $user->add_flags(@add);
     $user->remove_flags(@remove);
 
@@ -452,6 +466,7 @@ sub oper {
 
 }
 
+# mark user as away
 sub away {
     # user :rest
     # :uid AWAY  :reason
@@ -463,6 +478,7 @@ sub away {
 
 }
 
+# unmark user as away
 sub return_away {
     # user dummy
     # :uid RETURN
@@ -499,6 +515,7 @@ sub cmode {
     return 1;
 }
 
+# channel part
 sub part {
     # user channel ts   :rest
     # :uid PART  channel time :reason
@@ -509,7 +526,11 @@ sub part {
 
     # ?!?!!?!
     if (!$channel->has_user($user)) {
-        L("attempting to remove $$user{nick} from $$channel{name} but that user isn't on that channel");
+        notice(server_protocol_warning =>
+            $server->notice_info,
+            "sent PART for ".$user->notice_info.
+            "from $$channel{name}, but the user is not there"
+        );
         return;
     }
 
@@ -603,7 +624,8 @@ sub sjoin {
     # server         any     ts   any   :rest
     # :sid   SJOIN   channel time users :modestr
     my $nicklist = pop;
-    my ($server, $msg, $source_serv, $ch_name, $ts, $mode_str_modes, @mode_params) = @_;
+    my ($server, $msg, $source_serv, $ch_name, $ts,
+        $mode_str_modes, @mode_params) = @_;
 
     # UPDATE CHANNEL TIME
     #=================================
@@ -800,8 +822,8 @@ sub kick {
 sub num {
     my ($server, $msg, $source, $user, $num, $message) = @_;
 
-    # If the first digit is 0 (indicating a reply about the local connection), it
-    # should be changed to 1 before propagation or sending to a user.
+    # If the first digit is 0 (indicating a reply about the local connection),
+    # it should be changed to 1 before propagation or sending to a user.
     my $first = \substr($num, 0, 1);
     if ($$first eq '0') {
         $$first = '1';
