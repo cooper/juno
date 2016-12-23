@@ -1,10 +1,11 @@
-# mihret
+# juno
 
 Yes.  
 It really is an IRC daemon.  
 It's written in Perl.  
 
 ...  
+
 You can breathe again.  
 There. Very good.  
 
