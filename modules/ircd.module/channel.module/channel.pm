@@ -470,13 +470,6 @@ sub mode_string_all {
     return $channel->mode_string_with($server, $no_status ? -inf : 'inf');
 }
 
-# same as ->mode_string except for status modes only.
-# returns both a user string and a server string.
-sub mode_string_status {
-    my ($channel, $server) = @_;
-    return $channel->mode_string_with($server, 4);
-}
-
 # returns true only if the passed user is in
 # the passed status list.
 sub user_is {

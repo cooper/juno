@@ -3787,3 +3787,4 @@ CHANGES:
         removed now-unused $channel->mode_string_hidden.
         TS6 SJOIN no longer uses $server->convert_cmode_string().
         ->do_modes() and ->do_mode_string() now return moderefs of changes.
+        removed unused $channel->mode_string_status.
