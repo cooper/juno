@@ -624,7 +624,7 @@ sub sjoin {
     my $old_modes = $channel->all_modes;
     my $new_modes = modes->new_from_string(
         $source_serv,
-        join ' ', $mode_str_modes, @mode_params,
+        join(' ', $mode_str_modes, @mode_params),
         1 # over protocol
     );
 
@@ -679,7 +679,7 @@ sub sjoin {
         # create a moderef based on the status modes we just extracted.
         my $uid_modes = modes->new_from_string(
             $source_serv,
-            join ' ', $uid_letters, @uids,
+            join(' ', $uid_letters, @uids),
             1 # over protocol
         );
 
