@@ -204,7 +204,7 @@ sub convert_cmode_string {
         $server1,
         $mode_str,
         $over_protocol
-    )->to_string($server2);
+    )->to_string($server2, $over_protocol);
 }
 
 # true if the mode takes a parameter in this state.
