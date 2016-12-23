@@ -478,23 +478,17 @@ sub sjoin {
     # CONVERT MODES
     #=================================
 
-    # store mode string before any possible changes.
-    # this now includes status modes as well,
-    # which were previously handled separately.
-    my (undef, $old_mode_str) = $channel->mode_string_all($me);
+    # store modes existing and incoming modes.
+    my $old_modes = $channel->all_modes;
+    my $new_modes = modes->new_from_string(
+        $source_serv,
+        join ' ', $mode_str_modes, @mode_params,
+        1 # over protocol
+    );
 
-    # the incoming mode string must be converted to the perspective of this
-    # server. this is necessary in case our own modes are unset.
-    my $mode_str = join ' ', $mode_str_modes, @mode_params;
-    $mode_str = $server->convert_cmode_string($me, $mode_str, 1);
-
-    # $old_mode_str and $mode_str are now both in the perspective of $me.
-
-    # their TS is either older or the same.
-    #
-    # 1. wipe out our old modes.
-    # 2. accept all new modes.
-    # 3. propagate all simple modes (not just the difference).
+    # accept new modes if the accepted TS is equal to the incoming TS.
+    # clear old modes if the accepted TS is older than the stored TS and
+    # is not equal to zero (in which case all modes are preserved).
     #
     # The interpretation depends on the channelTS and the current TS of the channel.
     # If either is 0, set the channel's TS to 0 and accept all modes. Otherwise, if
@@ -511,7 +505,7 @@ sub sjoin {
     # HANDLE USERS
     #====================
 
-    my ($uids_modes, @uids, @good_users) = '+';
+    my ($uid_letters, @uids, @good_users) = '+';
     foreach my $str (split /\s+/, $nicklist) {
         my ($prefixes, $uid) = ($str =~ m/^(\W*)([0-9A-Z]+)$/) or next;
         my $user     = user_from_ts6($uid) or next;
@@ -527,12 +521,13 @@ sub sjoin {
         # no prefixes or not accepting the prefixes.
         next unless length $prefixes && $accept_new_modes;
 
-        # add the modes (these are in the perspective of $server)
-        my $modes = join '', map mode_from_prefix_ts6($server, $_), @prefixes;
-        $uids_modes .= $modes;
+        # map to TS6.
         my $id = ts6_id($user);
-        push @uids, $id for 1 .. length $modes;
+        my $modes = join '', map mode_from_prefix_ts6($server, $_), @prefixes;
 
+        # add the letters in the perspective of $source_serv.
+        $uid_letters .= $modes;
+        push @uids, $id for 1 .. length $modes;
     }
 
     # ACCEPT AND RESET MODES
@@ -541,36 +536,22 @@ sub sjoin {
     # okay, now we're ready to apply the modes.
     if ($accept_new_modes) {
 
-        # $uids_modes and @uids are in the perspective of the TS6 server.
-        #
-        # we used to only convert the mode letters and not pass the parameters
-        # to ->convert_cmode_string(), but this caused parameter mixups when the
-        # destination server did not recognize one of the status modes.
-        #
-        # we also used to use a combination of TS6 modes ($uids_modes) and JELP
-        # UIDs (@uids) in a single ->convert_cmode_string() call, but now, since
-        # proper user object lookup is essential (#101), it's all in TS6 format.
-        #
-        my $uid_str = join ' ', $uids_modes, @uids;
-        $uid_str = $source_serv->convert_cmode_string($me, $uid_str, 1);
-
-        # combine status modes with the other modes in the message,
-        # now that $mode_str and $uid_str are both in the perspective of $me.
-        my $command_mode_str = $me->combine_cmode_strings($mode_str, $uid_str);
-
-        # determine the difference between the old mode string and the new one.
-        # note that ->cmode_string_difference() ONLY supports positive +modes.
-        my $difference = $me->cmode_string_difference(
-            $old_mode_str,      # all former modes
-            $command_mode_str,  # all new modes including statuses
-            !$clear_old_modes   # do not remove modes missing from $old_mode_str
+        # create a moderef based on the status modes we just extracted.
+        my $uid_modes = modes->new_from_string(
+            $source_serv,
+            join ' ', $uid_letters, @uids,
+            1 # over protocol
         );
 
-        # handle the mode string locally.
-        # note: do not supply a $over_protocol sub because
-        # this generated string uses juno UIDs.
-        $channel->do_mode_string_local($me, $source_serv, $difference, 1, 1)
-            if $difference;
+        # combine status modes with the other modes in the message.
+        $new_modes->merge_in($uid_modes);
+
+        # determine the difference between the old mode string and the new one.
+        my $changes = modes::difference($old_modes, $new_modes);
+
+        # handle the modes locally.
+        # ($source, $modes, $force, $organize)
+        $channel->do_modes_local($source_serv, $changes, 1, 1);
 
     }
 

@@ -148,22 +148,16 @@ sub handle_moderep {
 
     # Safe point - we will handle this mode reply.
 
-    # store the complete mode string before any changes.
-    # convert the incoming mode string to the perspective of $me.
-    my $old_mode_str = $channel->mode_string_all($me);
-    $mode_str = $source_serv->convert_cmode_string($me, $mode_str, 1);
+    # store the modes before any changes and the incoming modes.
+    my $old_modes = $channel->all_modes;
+    my $new_modes = modes->new_from_string($me, $mode_str, 1);
 
-    # determine the difference between the old mode string and the new one.
-    # note that ->cmode_string_difference() ONLY supports positive +modes.
-    my $difference = $me->cmode_string_difference(
-        $old_mode_str,      # all former modes
-        $mode_str,          # all new modes
-        1                   # do NOT remove modes missing from $mode_str
-    );
+    # determine the difference between the old modes and the new ones.
+    my $changes = modes::difference($old_modes, $new_modes, 1);
 
-    # do the mode string in perspective of $me.
-    $channel->do_mode_string_local($me, $source_serv, $difference, 1, 1)
-        if $difference;
+    # do the modes.
+    # ($source, $modes, $force, $organize)
+    $channel->do_modes_local($source_serv, $changes, 1, 1);
 
     # unless this was addressed specifically to me, forward.
     $msg->forward(@forward_args) if !defined $target;

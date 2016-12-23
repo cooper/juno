@@ -811,7 +811,8 @@ sub do_modes_local { _do_modes(1, @_) }
 sub _do_modes {
     my $local = shift;
     my ($channel, $source, $modes, $force, $organize, $unloaded) = @_;
-
+    $modes->count or return;
+    
     # handle the mode.
     my $changes = $channel->handle_modes($source, $modes, $force, $unloaded);
 

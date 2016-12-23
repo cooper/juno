@@ -3777,3 +3777,5 @@ CHANGES:
         ->handle_modes() now skips status modes whose parameters are not user objects.
         ->cmode_string_difference() has been removed in favor of modes::difference().
         ->combine_cmode_strings() has been removed in favor of $modes->merge_in().
+
+    24. update JELP and TS6 to use moderefs rather working with mode strings.
