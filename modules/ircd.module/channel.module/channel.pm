@@ -451,17 +451,11 @@ sub mode_string_with {
 }
 
 # returns a +modes string.
-sub mode_string        { _mode_string(0, @_) }
-sub mode_string_hidden { _mode_string(1, @_) }
-sub _mode_string       {
-    my ($show_hidden, $channel, $server) = @_;
-
+sub mode_string {
+    my ($channel, $server) = @_;
     # acceptable types are 0 (normal), 1 (parameter), 2 (parameter_set),
     # and possibly 5 (hidden), if showing hidden.
-    my @types = (0, 1, 2);
-    push @types, 5 if $show_hidden;
-
-    return $channel->mode_string_with($server, @types);
+    return $channel->mode_string_with($server, 0, 1, 2);
 }
 
 # includes ALL modes, even +k

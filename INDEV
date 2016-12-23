@@ -3784,3 +3784,5 @@ CHANGES:
 
     25. add $modes->stated for easier iteration.
         add $modes->remove() and $modes->filter().
+        removed now-unused $channel->mode_string_hidden.
+        TS6 SJOIN no longer uses $server->convert_cmode_string().

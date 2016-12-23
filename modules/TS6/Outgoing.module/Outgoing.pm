@@ -270,20 +270,12 @@ sub euid {
 # $server    = server object we're sending to
 # $channel   = channel object
 # $serv      = server source of the message
-# $mode_str  = mode string being sent
-# $mode_serv = server object for mode perspective
+# $modes     = moderef
 # @members   = channel members (user objects)
 #
 sub sjoin {
-    my ($server, $channel, $serv, $mode_str, $mode_serv, @members) = @_;
-
-    # if the mode perspective is not the server we're sending to, convert.
-    $mode_str = $mode_serv->convert_cmode_string(
-        $server,    # the destination server, the one we're converting to
-        $mode_str,  # the raw mode string in the perpsective of $mode_serv
-        1,          # indicates that this is over a server protocol
-        1           # skip status modes (TS 6 sends them as prefixes)
-    ) if $mode_serv != $server;
+    my ($server, $channel, $serv, $modes, @members) = @_;
+    my $mode_str = $modes->to_string($server, 1);
 
     # create @UID +UID etc. strings.
     my @member_str = '';
@@ -319,13 +311,12 @@ sub sjoin {
 # for bursting, send SJOIN with all simple modes.
 sub sjoin_burst {
     my ($server, $channel, $serv, @members) = @_;
-    my $mode_str = $channel->mode_string_hidden($server);
+    my $modes = $channel->modes_with(0, 1, 2, 5);
     return sjoin(
         $server,        # destination server
         $channel,       # channel
         $serv,          # source server
-        $mode_str,      # mode string
-        $serv,          # mode perspective (in TS 6, same as source)
+        $modes,         # moderef
         @members        # members
     );
 }
