@@ -46,30 +46,22 @@ sub cmode_key {
     my ($channel, $mode) = @_;
     $mode->{has_basic_status} or return;
 
-    # if we're unsetting...
-    if (!$mode->{state}) {
-        return unless $channel->is_mode('key');
-
-        # if we unset without a parameter (the key),
-        # we need to push the current key to params
-        push @{ $mode->{params} }, $channel->mode_parameter('key')
-            if !defined $mode->{param};
-
-        $channel->unset_mode('key');
-    }
-
     # setting.
-    else {
+    if ($mode->{state}) {
 
         # sanity checking
         $mode->{param} = fix_key($mode->{param});
-
-        # no length; don't set.
-        if (!length $mode->{param}) {
-            return;
-        }
+        return if !length $mode->{param};
 
         $channel->set_mode('key', $mode->{param});
+    }
+
+    # unsetting.
+    else {
+        return unless $channel->is_mode('key');
+        # show -k * for security
+        $mode->{param} = '*';
+        $channel->unset_mode('key');
     }
 
     return 1;

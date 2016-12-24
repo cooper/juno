@@ -268,13 +268,6 @@ sub handle_modes {
             );
         }
 
-        # this is for compatibility with mode blocks that use something like:
-        # push @{ $mode->{parameters} }, ... to add a parameter to the
-        # resultant. it works by resetting the parameter list for each mode,
-        # such that it will probably never exceed a length of one.
-        my $params_before = 0;
-        my $parameters = [];
-
         # don't allow this mode to be changed if the test fails
         # *unless* force is provided.
         my $fire_method = $unloaded ?
@@ -286,9 +279,7 @@ sub handle_modes {
             state   => $state,          # setting or unsetting
             name    => $name,           # the mode name
             param   => $param,          # the parameter for this particular mode
-            params  => $parameters,     # the parameters for the resulting mode string
             force   => $force,          # true if permissions should be ignored
-
             # source can set simple modes.
             has_basic_status => $force || $source->isa('server') ? 1
                                 : $channel->user_has_basic_status($source)
@@ -318,40 +309,16 @@ sub handle_modes {
         # block returned false; cancel the change.
         next MODE if !$win;
 
-        # so this is the "new" way to set a parameter. rather than pushing
-        # to the parameter list, set the param key.
-        push @$parameters, $moderef->{param} if defined $moderef->{param};
-
-        # if this mode requires a parameter but the param count before handling
-        # the mode is the same as after, something didn't work.
-        # for example, a mode handler might not be present if a module isn't
-        # loaded. just ignore this mode in such a case.
+        # if this mode requires a parameter but none is present at this point,
+        # this means a mode block set the {param} to undef. we cannot continue.
         #
         # this also catches banlike modes when viewing the list.
         # they require a parameter when setting or unsetting, so even though
         # $win is true when viewing the list, this will prevent the mode from
         # appearing in the resultant.
         #
-        next MODE if scalar @$parameters <= $params_before && $takes;
-
-        # the parameter is extracted in case it was modified by the mode
-        # block. the only place $param is used from hereo n is below in
-        # ->(un)set_mode() which is only called for modes of type 1 and 2.
-        $param = @$parameters[$#$parameters] if @$parameters;
-
-        # prior to 11.38, mode blocks could push an array reference in the form
-        # of [ USER RESPONSE, SERVER RESPONSE ] to the parameter list. this was
-        # only used for UIDs and nicknames and is now deprecated in favor of
-        # user objects.
-        if (ref $param && ref $param eq 'ARRAY') {
-            $param =
-                $me->uid_to_user($param->[1])        ||
-                $pool->lookup_user_nick($param->[0]) || $param;
-            L(
-                "Pushing an array reference to the '$name' parameter list is " .
-                "deprecated; attempted to convert to user object"
-            );
-        }
+        $param = $moderef->{param};
+        next MODE if !defined $param && $takes;
 
         # SAFE POINT:
         # from here we can assume that the mode will be set or unset.
@@ -364,7 +331,7 @@ sub handle_modes {
         }
 
         # it is a mode with a simple parameter.
-        # does not include lists, status modes, key mode.
+        # does not include lists, status modes, or key.
         elsif ($type == 1 || $type == 2) {
             $channel->set_mode($name, $param)   if  $state;
             $channel->unset_mode($name)         if !$state;

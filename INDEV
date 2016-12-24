@@ -3793,3 +3793,8 @@ CHANGES:
         misc. cleanup TS6::Outgoing.
         misc. cleanup JELP::Outgoing.
         misc. cleanup JELP::Incoming.
+
+    27. got rid of the deprecated {params} mode block hint.
+        got rid of compat code for mode blocks which returned protocol-specific string parameters.
+        modules can no longer manually modify mode parameters besides those of the modes they provide.
+        Channel::Key now injects '*' as the parameter to -k when unsetting.

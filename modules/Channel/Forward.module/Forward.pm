@@ -75,10 +75,7 @@ sub cmode_forward {
         }
 
         # forwarding to the same channel.
-        if ($f_channel == $channel) {
-            # TODO: add a numeric?
-            return;
-        }
+        return if $f_channel == $channel;
 
         # is the channel free forward or is the user opped?
         if (!$source->isa('user') || $f_channel->is_mode('free_forward')
