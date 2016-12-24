@@ -17,6 +17,7 @@ use strict;
 use 5.010;
 use parent 'Evented::Object';
 
+use modes;
 use utils qw(conf v notice match ref_to_list cut_to_length);
 use List::Util qw(first max);
 use Scalar::Util qw(blessed looks_like_number);
@@ -44,6 +45,7 @@ our $LEVEL_SIMPLE_MODES = -1;   # level needed to set simple modes
 #   key             5   like type 1 but visible only to members     +k
 #                       and consumes parameter when unsetting
 #                       only if present (keys are very particular!)
+#
 
 # create a channel.
 sub new {
@@ -173,7 +175,8 @@ sub remove {
 
     # remove the user from status lists
     foreach my $name (keys %{ $channel->{modes} }) {
-        $channel->remove_from_list($name, $user) if $me->cmode_type($name) == 4;
+        $channel->remove_from_list($name, $user)
+            if $me->cmode_type($name) == MODE_STATUS;
     }
 
     # remove the user.
@@ -221,7 +224,7 @@ sub handle_modes {
 
         # find the mode type.
         my $type = $me->cmode_type($name);
-        if (!defined $type || $type == -1) {
+        if ($type == MODE_UNKNOWN) {
             L("Mode '$name' is not known to this server; skipped");
             next MODE;
         }
@@ -247,7 +250,7 @@ sub handle_modes {
         }
 
         # status mode parameters must be user objects at this point.
-        if ($type == 4 and !blessed $param || !$param->isa('user')) {
+        if ($type == MODE_STATUS and !blessed $param || !$param->isa('user')) {
             $source->numeric(ERR_NOSUCHNICK => $param)
                 if $source->isa('user') && $source->is_local;
             next MODE;
@@ -263,7 +266,7 @@ sub handle_modes {
             $param_length ||= conf('channels', 'max_param_length');
             $ban_length   ||= conf('channels', 'max_ban_length');
             $param = cut_to_length(
-                $type == 3 ? $ban_length : $param_length,
+                $type == MODE_LIST ? $ban_length : $param_length,
                 $param
             );
         }
@@ -272,7 +275,7 @@ sub handle_modes {
         # *unless* force is provided.
         my $fire_method = $unloaded ?
             'fire_unloaded_channel_mode' : 'fire_channel_mode';
-        my ($win, $moderef) = $pool->$fire_method($channel, $name, {
+        my ($win, $mode) = $pool->$fire_method($channel, $name, {
             channel => $channel,        # the channel
             server  => $me,             # the server perspective
             source  => $source,         # the source of the mode change (user or server)
@@ -300,9 +303,9 @@ sub handle_modes {
         #                   No..................... SEND
         #
         if ($source->isa('user') && $source->is_local) {
-            my $no_status = !$win && !$moderef->{has_basic_status}
-                && !$moderef->{hide_no_privs};
-            my $yes = $moderef->{send_no_privs} || $no_status;
+            my $no_status = !$win && !$mode->{has_basic_status}
+                && !$mode->{hide_no_privs};
+            my $yes = $mode->{send_no_privs} || $no_status;
             $source->numeric(ERR_CHANOPRIVSNEEDED => $channel->name) if $yes;
         }
 
@@ -317,7 +320,7 @@ sub handle_modes {
         # $win is true when viewing the list, this will prevent the mode from
         # appearing in the resultant.
         #
-        $param = $moderef->{param};
+        $param = $mode->{param};
         next MODE if !defined $param && $takes;
 
         # SAFE POINT:
@@ -325,14 +328,14 @@ sub handle_modes {
         # it has passed all the tests and will certainly be applied.
 
         # it is a "normal" type mode.
-        if ($type == 0) {
+        if ($type == MODE_NORMAL) {
             my $do = $state ? 'set_mode' : 'unset_mode';
             $channel->$do($name);
         }
 
         # it is a mode with a simple parameter.
         # does not include lists, status modes, or key.
-        elsif ($type == 1 || $type == 2) {
+        elsif ($type == MODE_PARAM || $type == MODE_PSET) {
             $channel->set_mode($name, $param)   if  $state;
             $channel->unset_mode($name)         if !$state;
         }
@@ -386,7 +389,7 @@ sub _modes_with {
     foreach my $name (@mode_names) {
         my $type = $me->cmode_type($name);
         my $ref  = $channel->{modes}{$name} or next;
-        next if $type == -1;
+        next if $type == MODE_UNKNOWN;
 
         # list/status modes. add each string or user object.
         if ($ref->{list}) {

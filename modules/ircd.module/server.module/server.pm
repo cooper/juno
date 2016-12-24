@@ -193,7 +193,7 @@ sub cmode_letter {
 # get cmode type.
 sub cmode_type {
     my ($server, $name) = @_;
-    return unless defined $name;
+    return -1 if !defined $name;
     return $server->{cmodes}{$name}{type} // -1;
 }
 
@@ -217,14 +217,14 @@ sub convert_cmode_string {
 #
 sub cmode_takes_parameter {
     my ($server, $name, $state) = @_;
-    my $keyshit = $state ? 1 : 2;
     my %params  = (
-        0 => 0,         # normal        - never
-        1 => 1,         # parameter     - always
-        2 => $state,    # parameter_set - when setting only
-        3 => 2,         # list mode     - consume parameter if present but valid if not
-        4 => 1,         # status mode   - always
-        5 => $keyshit   # key mode (+k) - always when setting, only if present when unsetting
+        +MODE_NORMAL    => 0,               # normal - never
+        +MODE_PARAM     => 1,               # parameter - always
+        +MODE_PSET      => $state,          # parameter_set - when setting only
+        +MODE_LIST      => 2,               # list mode - valid without
+        +MODE_STATUS    => 1,               # status mode - always
+        +MODE_KEY       => $state ? 1 : 2   # key mode - always when setting,
+                                            #     only if present when unsetting
     );
     return $params{ $server->{cmodes}{$name}{type} || -1 };
 }

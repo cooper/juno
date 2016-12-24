@@ -3798,3 +3798,5 @@ CHANGES:
         got rid of compat code for mode blocks which returned protocol-specific string parameters.
         modules can no longer manually modify mode parameters besides those of the modes they provide.
         Channel::Key now injects '*' as the parameter to -k when unsetting.
+
+    28. added constants for mode types, exported by the modes package.

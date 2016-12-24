@@ -427,7 +427,7 @@ sub setup_api {
     $mod->load_submodule('pool') or return;
     $ircd::pool = $::pool ||= pool->new; # must be ircd::pool; don't change.
     $mod->load_submodule($_) or return
-        foreach qw(message user server channel connection modes);
+        foreach qw(modes message user server channel connection);
 
 }
 

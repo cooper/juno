@@ -15,6 +15,7 @@ use warnings;
 use strict;
 use 5.010;
 
+use modes;
 use utils qw(conf v);
 
 our ($api, $mod, $me, $pool);
@@ -170,7 +171,7 @@ sub rpl_isupport {
 sub isp_core {
     my ($event, $supported, $yes) = @_;
     my $listmodes = join '', sort map { $_->{letter} }
-      grep { ($_->{type} // -1) == 3 } values %{ $me->{cmodes} };
+        grep { ($_->{type} // -1) == MODE_LIST } values %{ $me->{cmodes} };
 
     # construct core tokens
     my %core_supported = (
@@ -214,8 +215,9 @@ sub isp_chanmodes {
     foreach my $name ($ircd::conf->keys_of_block(['modes', 'channel'])) {
 
         # fetch the type.
+        # channel key (+k) is an exception.
         my ($type, $letter) = @{ conf(['modes', 'channel'], $name) };
-        $type = 1 if $type == 5; # channel key (+k) is an exception...
+        $type = MODE_PARAM if $type == MODE_KEY;
 
         # ignore modes without blocks.
         next unless keys %{ $pool->{channel_modes}{$name} || {} };

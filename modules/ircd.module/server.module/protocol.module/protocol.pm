@@ -536,8 +536,7 @@ sub cmode_change_end {
     }
 
     # figure out which were added and which were removed.
-    my (@added, @removed);
-
+    my @added;
     foreach my $mode_name (keys %enabled) {
 
         # we have addressed this, so remove it from the old list
@@ -593,8 +592,7 @@ sub umode_change_end {
     }
 
     # figure out which were added and which were removed.
-    my (@added, @removed);
-
+    my @added;
     foreach my $mode_name (keys %enabled) {
 
         # we have addressed this, so remove it from the old list

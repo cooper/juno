@@ -15,6 +15,7 @@ use warnings;
 use strict;
 use 5.010;
 
+use modes;
 use utils qw(col match cut_to_limit conf v notice);
 
 our ($api, $mod, $pool, $me);
@@ -399,7 +400,8 @@ sub umode {
 # PRIVMSG or NOTICE
 sub privmsgnotice {
     my ($server, $msg, $source, $command, $target, $message) = @_;
-    my @status_modes = grep { $_->{type} == 4 } values %{ $server->{cmodes} };
+    my @status_modes = grep { $_->{type} == MODE_STATUS }
+        values %{ $server->{cmodes} };
     return server::protocol::handle_privmsgnotice(
         @_[0..5],
         channel_lookup  => sub { $pool->lookup_channel(shift) },

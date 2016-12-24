@@ -22,6 +22,7 @@ use 5.010;
 use Scalar::Util qw(blessed);
 use M::TS6::Utils qw(ts6_id ts6_prefixes ts6_prefix ts6_closest_level);
 use utils qw(notice cut_to_length);
+use modes;
 
 our ($api, $mod, $pool, $me);
 my ($TS_CURRENT, $TS_MIN) =(
@@ -428,7 +429,7 @@ sub bmask {
     foreach my $mode_name (keys %{ $server->{cmodes} }) {
 
         # ignore all non-list modes
-        next unless $server->cmode_type($mode_name) == 3;
+        next unless $server->cmode_type($mode_name) == MODE_LIST;
 
         # find the items and the mode letter
         my @items  = $channel->list_elements($mode_name);

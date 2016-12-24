@@ -23,6 +23,25 @@ use utils qw(conf notice);
 
 our ($mod, $me, $pool);
 
+# Mode types
+sub MODE_UNKNOWN () { -1 }
+sub MODE_NORMAL  () {  0 }
+sub MODE_PARAM   () {  1 }
+sub MODE_PSET    () {  2 }
+sub MODE_LIST    () {  3 }
+sub MODE_STATUS  () {  4 }
+sub MODE_KEY     () {  5 }
+
+sub import {
+    my $this_package = shift;
+    my $package = caller;
+    no strict 'refs';
+    *{$package.'::'.$_} = *{$this_package.'::'.$_} foreach qw(
+        MODE_UNKNOWN MODE_NORMAL MODE_PARAM
+        MODE_PSET MODE_LIST MODE_STATUS MODE_KEY
+    );
+}
+
 # modes->new(...)
 # my $modes = modes->new(owner => 'mitch', op => 'mitch', -no_ext => undef)
 sub new {
@@ -81,7 +100,7 @@ sub new_from_string {
         }
 
         # convert nicks or UIDs to user objects.
-        if (length $param && $type == 4) {
+        if (length $param && $type == MODE_STATUS) {
             my $user = $over_protocol ?
                 $server->uid_to_user($param): $pool->lookup_user_nick($param);
             $param = $user if $user;
@@ -196,7 +215,7 @@ sub _get_matcher {
 
     # -inf means all except status modes
     elsif ($type eq -inf) {
-        return sub { $me->cmode_type(shift) != 4 };
+        return sub { $me->cmode_type(shift) != MODE_STATUS };
     }
 
     # code ref is a custom matcher.
@@ -239,7 +258,7 @@ sub _to_strings {
 
             # find the mode type.
             my $type = $me->cmode_type($name);
-            if (!defined $type || $type == -1) {
+            if (!defined $type || $type == MODE_UNKNOWN) {
                 L("Mode '$name' is not known to this server; skipped");
                 next MODE;
             }
