@@ -238,9 +238,10 @@ sub create_or_update_ban {
     }
 
     # for existing bans, do not accept this unless the modification time
-    # is newer than what we already know.
+    # is newer than what we already know. UNLESS the existing ban is expired.
     else {
-        return if $ban->modified <= ($opts{modified} || 'inf');
+        return if !$ban->has_expired &&
+            $ban->modified <= ($opts{modified} || 'inf');
     }
 
     # update ban info. this also validates.
