@@ -32,6 +32,13 @@ my %ts6_supports = map { $_ => 1 }
 # these ban types can be sent in the ENCAP form
 my %ts6_encap_ok = %ts6_supports;
 
+# these ban types can be sent with the BAN command
+my %ts6_ban_ok = (
+    kline => 'K',
+  # xline => 'X',
+    resv  => 'R'
+);
+
 # this is the maximum duration permitted for global bans in charybdis.
 # it is only currently used by the outgoing BAN command.
 # charybdis@8fed90ba8a221642ae1f0fd450e8e580a79061fb/ircd/s_newconf.cc#L747
@@ -258,7 +265,7 @@ sub find_from {
     if (!$from) {
 
         # OK maybe there is a server bursting. we will postpone sending
-        # the ban out until the burst is done.
+        # the ban out until the burst is done. see issue #119.
         my $server = $ban->recent_source;
         undef $server if !$server || !$server->isa('server') || !$postpone_ok;
         if ($server && $server->{is_burst}) {
@@ -323,8 +330,6 @@ sub out_ban {
     return map out_baninfo($to_server, $_), @_;
 }
 
-my %can_use_ban = map { $_ => 1 } qw(kline resv);
-
 # baninfo is the advertisement of a ban. in TS6, use ENCAP K/DLINE
 sub out_baninfo {
     my ($to_server, $ban) = @_;
@@ -335,12 +340,9 @@ sub out_baninfo {
 
 
     # for reserves, it might be a NICKDELAY.
-    # NICKDELAY is certainly supported if EUID is, but even if we don't
-    # have EUID, still send this. charybdis does not forward it differently.
-    #
-    # we have to check this before the below BAN command check
-    #
-    if ($ban->type eq 'resv' && $ban->{_is_nickdelay}) {
+    # we have to check this before the below BAN command check.
+    if ($ban->type eq 'resv' && $ban->{_is_nickdelay} &&
+      $to_server->has_cap('EUID')) {
         return if $ban->has_expired;
         return if $ban->ts6_duration < 0;
 
@@ -355,7 +357,7 @@ sub out_baninfo {
 
     # CAP BAN
     # we might be able to use BAN
-    if ($can_use_ban{ $ban->type } && $to_server->has_cap('BAN')) {
+    if ($ts6_ban_ok{ $ban->type } && $to_server->has_cap('BAN')) {
 
         # this can come from either a user or a server
         my $from = find_from_any($to_server, $ban);
@@ -431,7 +433,7 @@ sub out_bandel {
 
     # CAP BAN
     # we might be able to use BAN
-    if ($can_use_ban{ $ban->type } && $to_server->has_cap('BAN')) {
+    if ($ts6_ban_ok{ $ban->type } && $to_server->has_cap('BAN')) {
 
         # this can come from either a user or a server
         my $from = $ban->recent_source || $me;
@@ -469,14 +471,7 @@ sub out_bandel {
 sub _capab_ban {
     my ($to_server, $from, $ban, $deleting) = @_;
     return if !$ts6_supports{ $ban->type };
-
-    # only these are supported
-    my %ban_cmd_supports = (
-        kline => 'K',
-      # xline => 'X',
-        resv  => 'R'
-    );
-    my $letter = $ban_cmd_supports{ $ban->type } or return;
+    my $letter = $ts6_ban_ok{ $ban->type } or return;
 
     # nick!user@host{server} that added it
     # or * if this is being set by a real-time user

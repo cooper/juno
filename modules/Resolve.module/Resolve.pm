@@ -85,7 +85,7 @@ sub on_got_addr {
     my ($connection, $addr) = @_;
 
     # binary address -> human-readable hostname
-    my $f = $connection->{resolve_future} = $::loop->resolver->getnameinfo(
+    my $f = $::loop->resolver->getnameinfo(
         addr        => $addr->{addr},
         socktype    => SOCK_STREAM,
         timeout     => 3
