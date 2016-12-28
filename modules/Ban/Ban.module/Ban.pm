@@ -392,13 +392,13 @@ sub handle_add_command {
 
     # register: validate, update, enforce, activate
     my $ban = create_my_ban(
-        type         => $type_name,
-        match        => $match,
-        reason       => $reason,
-        duration     => $seconds,
-        auser        => $user->fullreal
+        type          => $type_name,
+        match         => $match,
+        reason        => $reason,
+        duration      => $seconds,
+        auser         => $user->fullreal,
+        recent_source => $user
     ) or return;
-    $ban->set_recent_source($user);
 
     # returned nothing
     if (!$ban) {
@@ -415,12 +415,16 @@ sub handle_add_command {
 sub create_my_ban {
     my %opts = @_;
     $opts{id} //= get_next_id();
+    my $source = delete $opts{recent_source};
 
     # validate, update, enforce, activate
     my $ban = create_or_update_ban(
         aserver => $me->name,
         %opts
     ) or return;
+
+    # say where it came from
+    $ban->set_recent_source($source) if $source;
 
     # forward it
     $pool->fire_command_all(baninfo => $ban);
@@ -432,12 +436,19 @@ sub create_my_ban {
 sub handle_del_command {
     my ($type_name, $command, $user, $event, $match) = @_;
     my $type = $ban_types{$type_name} or return;
+    my $what = $type->{hname} || 'ban';
 
     # find the ban by ID or matcher
     my $ban = ban_by_user_input($type_name, $match);
     if (!$ban) {
-        my $what = $type->{hname} || 'ban';
         $user->server_notice($command => "No $what matches");
+        return;
+    }
+
+    # the ban is already expired but has still has lifetime.
+    # this has either already expired or already been deleted.
+    if ($ban->has_expired && !$ban->has_expired_lifetime) {
+        $user->server_notice($command => "$what has already been deleted");
         return;
     }
 
