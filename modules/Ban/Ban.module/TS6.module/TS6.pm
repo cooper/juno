@@ -342,18 +342,18 @@ sub out_baninfo {
         return $maybe if length $maybe;
     }
 
-    # CAP CLUSTER
-    # other reserves might be able to use the non-encap RESV command.
-    if ($ban->type eq 'resv') {
-        my $maybe = _out_resv($to_server, $ban);
-        return $maybe if length $maybe;
-    }
-
     # CAP BAN
     # we might be able to use BAN. if available, this cannot fail.
     if ($ts6_ban_ok{ $ban->type } && $to_server->has_cap('BAN')) {
         my $from = find_from_any($to_server, $ban);
         return _out_capab_ban($to_server, $from, $ban);
+    }
+
+    # CAP CLUSTER
+    # other reserves might be able to use the non-encap RESV command.
+    if ($ban->type eq 'resv') {
+        my $maybe = _out_resv($to_server, $ban);
+        return $maybe if length $maybe;
     }
 
     # CAP KLN
@@ -412,7 +412,7 @@ sub _out_resv {
     my $from = find_from($to_server, $ban, 1) or return;
 
     # :<source> RESV <target> <duration> <mask> :<reason>
-    return sprintf ':%s RESV * %d %s %s :%s',
+    return sprintf ':%s RESV * %d %s :%s',
     ts6_id($from),
     $ban->ts6_duration,
     $ban->match_host,
