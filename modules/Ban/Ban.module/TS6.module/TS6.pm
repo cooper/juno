@@ -195,11 +195,15 @@ sub _find_ban {
 # here. at least ones set on juno should be global, as the oper likely intended.
 #
 sub burst_bans {
-    my ($server, $event, $time) = @_;
+    my $server = shift;
+    _burst_bans($server, M::Ban::all_bans());
+}
+sub _burst_bans {
+    my ($server, @bans) = @_;
+    return 1 if !@bans;
 
     # if there are no bans, stop here
     return 1 if $server->{bans_negotiated}++;
-    my @bans = M::Ban::all_bans() or return 1;
 
     # create a fake user. ha! see issue #32.
     my $uid = $me->{sid}.$pool->{user_i};
@@ -246,23 +250,56 @@ sub get_fake_user {
 # find who to send an outgoing command from
 # when only a user can be used
 sub find_from {
-    my ($to_server, $ban) = @_;
+    my ($to_server, $ban, $postpone_ok) = @_;
 
     # if there's no user, this is probably during burst.
     my $from = $ban->recent_source;
     $from  ||= get_fake_user($to_server);
 
-    # this shouldn't happen.
+    # still nothing...
     if (!$from) {
+
+        # OK maybe there is a server bursting. we will postpone sending
+        # the ban out until the burst is done.
+        my $server = $ban->recent_source;
+        undef $server if !$server || !$server->isa('server') || !$postpone_ok;
+        if ($server && $server->{is_burst}) {
+
+            # none postponed yet. add a callback to send them out after burst.
+            $server->on(end_burst =>
+                \&_send_postponed_bans,
+                'send.postponed.bans'
+            ) if !$server->{postponed_bans};
+
+            # push to postponed ban list.
+            push @{ $server->{postponed_bans}{$to_server} ||= [] }, $ban;
+            push @{ $server->{postponed_ban_servers}      ||= [] }, $to_server;
+
+            return;
+        }
+
+        # this shouldn't happen.
         notice(server_protocol_warning =>
             $to_server->notice_info,
-            'cannot be sent ban info because no source user was specified and '.
-            "the ban agent is not available ($$ban{type} $$ban{match})"
+            'cannot be sent ban info because no source user was specified '.
+            "and the ban agent is not available ($$ban{type} $$ban{match})"
         );
+
         return;
     }
 
     return $from;
+}
+
+# callback to send postponed bans.
+sub _send_postponed_bans {
+    my $server = shift;
+    my $bans = delete $server->{postponed_bans}        or return;
+    my $to   = delete $server->{postponed_ban_servers} or return;
+    foreach my $to_server (@$to) {
+        my $my_bans = delete $bans->{$to_server} or next;
+        _burst_bans($to_server, @$my_bans);
+    }
 }
 
 # find who to send an outgoing command. only server
@@ -341,7 +378,7 @@ sub out_baninfo {
         if ($to_server->has_cap('KLN')) {
 
             # KLINE can only come from a user
-            my $from = find_from($to_server, $ban) or return;
+            my $from = find_from($to_server, $ban, 1) or return;
 
             # it has already expired
             return if $ban->has_expired;
@@ -359,7 +396,7 @@ sub out_baninfo {
 
     # at this point, we have to have a user source
     return if !$ts6_encap_ok{ $ban->type };
-    my $from = find_from($to_server, $ban) or return;
+    my $from = find_from($to_server, $ban, 1) or return;
 
     # encap fallback
     return sprintf ':%s ENCAP * %s %d %s :%s',
