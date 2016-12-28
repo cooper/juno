@@ -129,7 +129,8 @@
 
 [ services ]
 
-    saslserv = 'SaslServ'       # nickname of SASL service. Requires SASL module.
+    nickserv = 'NickServ'       # nickname of nick service. used with TS6.
+    saslserv = 'SaslServ'       # nickname of SASL service. used by SASL module.
 
 
 # IPv4 listen

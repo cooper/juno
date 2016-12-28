@@ -26,7 +26,7 @@ our ($api, $mod, $pool);
 our %registration_commands = (
     SERVER => {
         code   => \&rcmd_server,
-        params => 5,
+        params => 6,
         proto  => 'jelp'
     },
     PASS => {
@@ -47,7 +47,13 @@ our %registration_commands = (
 
 sub rcmd_server {
     my ($connection, $event, @args) = @_;
-    $connection->{$_} = shift @args foreach qw[sid name proto ircd desc];
+    $connection->{desc} = pop   @args;
+    $connection->{$_}   = shift @args for qw(sid name proto ircd);
+    my $their_time      = shift @args;
+
+    # check if the time delta is enormous
+    server::protocol::check_ts_delta($connection, time, $their_time)
+        or return;
 
     # hidden?
     my $sub = \substr($connection->{desc}, 0, 4);
@@ -59,17 +65,19 @@ sub rcmd_server {
     # if this was by our request (as in an autoconnect or /connect or something)
     # don't accept any server except the one we asked for.
     if (length $connection->{want} &&
-    irc_lc($connection->{want}) ne irc_lc($connection->{name})) {
+      irc_lc($connection->{want}) ne irc_lc($connection->{name})) {
         $connection->done('Unexpected server');
         return;
     }
 
     # find a matching server.
-    if (defined(my $addrs = conf(['connect', $connection->{name}], 'address'))) {
+    if (defined(my $addrs =
+      conf([ 'connect', $connection->{name} ], 'address'))) {
         $addrs = [$addrs] if !ref $addrs;
         if (!irc_match($connection->{ip}, @$addrs)) {
             $connection->done('Invalid credentials');
-            notice(connection_invalid => $connection->{ip}, 'IP does not match configuration');
+            notice(connection_invalid =>
+                $connection->{ip}, 'IP does not match configuration');
             return;
         }
     }
@@ -77,7 +85,8 @@ sub rcmd_server {
     # no such server.
     else {
         $connection->done('Invalid credentials');
-        notice(connection_invalid => $connection->{ip}, 'No block for this server');
+        notice(connection_invalid =>
+            $connection->{ip}, 'No block for this server');
         return;
     }
 
@@ -116,7 +125,8 @@ sub rcmd_pass {
     );
     if ($password ne conf(['connect', $name], 'receive_password')) {
         $connection->done('Invalid credentials');
-        notice(connection_invalid => $connection->{ip}, 'Received invalid password');
+        notice(connection_invalid =>
+            $connection->{ip}, 'Received invalid password');
         return;
     }
 

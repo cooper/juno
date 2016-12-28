@@ -380,10 +380,6 @@ sub out_baninfo {
             # KLINE can only come from a user
             my $from = find_from($to_server, $ban, 1) or return;
 
-            # it has already expired
-            return if $ban->has_expired;
-            return if $ban->ts6_duration < 0;
-
             # :<source> KLINE <target> <time> <user> <host> :<reason>
             return sprintf ':%s KLINE * %d %s %s :%s',
             ts6_id($from),

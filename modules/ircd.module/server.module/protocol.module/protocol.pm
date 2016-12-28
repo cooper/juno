@@ -504,6 +504,33 @@ sub forward_global_command {
     return wantarray ? (\%done, \%loc_done) : \%done;
 }
 
+# check if the TS delta is enormous.
+sub check_ts_delta {
+    my ($connection, $my_time, $their_time) = @_;
+    my $delta = abs($their_time - $my_time);
+    my $delta_string = "(my TS=$my_time, their TS=$their_time, delta=$delta)";
+
+    # too much; drop the server.
+    if ($delta > conf('servers', 'delta_max')) {
+        notice(server_protocol_error =>
+            $connection->{name},
+            "will be dropped due to excessive time delta $delta_string"
+        );
+        $connection->done("Excessive time delta $delta_string");
+        return;
+    }
+
+    # notify opers if it's sorta significant.
+    if ($delta > conf('servers', 'delta_warn')) {
+        notice(server_protocol_warning =>
+            $connection->{name},
+            "will link with a significant time delta $delta_string"
+        );
+    }
+
+    return 1;
+}
+
 sub cmode_change_start {
     my $server = shift;
 

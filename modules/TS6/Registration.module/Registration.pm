@@ -216,8 +216,7 @@ sub rcmd_server {
 # server info
 sub rcmd_svinfo {
     my ($connection, $event, $current, $min, undef, $their_time) = @_;
-    my $server  = $connection->server or return;
-    my $my_time = time;
+    my $server = $connection->server or return;
 
     # bad TS version
     if ($TS_CURRENT < $min || $current < $TS_MIN) {
@@ -230,28 +229,9 @@ sub rcmd_svinfo {
         return;
     }
 
-    # check if the delta is enormous
-    my $delta = abs($their_time - $my_time);
-    my $delta_string = "(my TS=$my_time, their TS=$their_time, delta=$delta)";
-
-    if ($delta > conf('servers', 'delta_max')) {
-        notice(server_protocol_error =>
-            $server->notice_info,
-            'will not be linked due to an excessive time delta '.
-            $delta_string
-        );
-        $connection->done("Excessive TS delta $delta_string");
-        return;
-    }
-
-    # notify opers if it's sorta significant.
-    if ($delta > conf('servers', 'delta_warn')) {
-        notice(server_protocol_warning =>
-            $server->notice_info,
-            'is linked with a significant time delta '.
-            $delta_string
-        );
-    }
+    # check if the delta is enormous.
+    server::protocol::check_ts_delta($connection, time, $their_time)
+        or return;
 
     $server->{proto} = $current;
     return 1;

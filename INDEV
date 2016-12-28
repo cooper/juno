@@ -3806,3 +3806,6 @@ CHANGES:
     29. added server ->end_burst(), protocol-common code for burst end.
         new idea for #119 to postpone ban propagation requiring the ban agent during other uplinks' bursts until the burst is complete.
         send ENCAP RESV instead of NICKDELAY when EUID capab is not supported. closes #137.
+
+    30. JELP SERVER command now has a timestamp parameter. closes #21.
+        moved TS delta checking to server::protocol.

@@ -259,6 +259,7 @@ sub sendme {
 
 sub stream { shift->{stream} }
 sub sock   { shift->{stream}{write_handle} }
+sub ip     { shift->{ip} }
 
 # send a command to a possibly unregistered connection.
 sub early_reply {

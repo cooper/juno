@@ -159,6 +159,7 @@ sub send_server_server {
         $me->{name},
         v('PROTO'),
         v('VERSION'),
+        time,
         ($me->{hidden} ? '(H) ' : '').$me->{desc}
     );
     $connection->{i_sent_server} = 1;
@@ -171,7 +172,7 @@ sub send_server_pass {
         L('Trying to send credentials to an unknown server?');
         return;
     }
-    $connection->send('PASS '.conf(['connect', $name], 'send_password'));
+    $connection->send('PASS '.conf([ 'connect', $name ], 'send_password'));
     $connection->{i_sent_pass} = 1;
 }
 
