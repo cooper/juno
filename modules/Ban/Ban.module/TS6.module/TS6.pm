@@ -253,7 +253,7 @@ sub find_from {
     my ($to_server, $ban, $postpone_ok) = @_;
 
     # if there's no user, this is probably during burst.
-    my $from = $ban->recent_source;
+    my $from = $ban->recent_user;
     $from  ||= get_fake_user($to_server);
 
     # still nothing...
