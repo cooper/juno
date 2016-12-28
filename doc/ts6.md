@@ -210,10 +210,17 @@ the ban expires, it will be revived the next time the servers link.
 
 ### Command preference
 
-Ban::TS6 uses the charybdis-style BAN command when possible. Alternatively KLINE
-and UNKLINE may be used when the KLN and UKLN capabilities are available.
-Otherwise, it uses ENCAP KLINE and ENCAP UNKLINE. DLINEs always use ENCAP and
-therefore always require a ban agent during burst.
+Ban::TS6 uses the charybdis-style BAN command when possible. Legacy commands
+are used when this is unavailable. Below are the commands used for each type
+of ban in order of preference.
+
+* __KLINE__: `BAN K` (BAN capab), `KLINE`/`UNKLINE` (KLN and UNKLN capabs),
+  `ENCAP KLINE`/`ENCAP UNKLINE`
+* __RESV__: `BAN R` (BAN capab), `RESV`/`UNRESV` (CLUSTER capab),
+  `ENCAP RESV`/`ENCAP UNRESV`
+* __NICKDELAY__: `ENCAP NICKDELAY` (EUID capab), `RESV` (CLUSTER capab),
+  `ENCAP RESV`
+* __DLINE__: `ENCAP DLINE`
 
 Note that, because some server bans are local-only, the TS6 server may
 not burst its own bans to juno (such as D-Lines, or even K-Lines if the BAN
@@ -329,15 +336,23 @@ shared {
 };
 ```
 
-### Known issues
+### Hacks
+
+* __Hostname limitations__: ratbox has hostname length limits stricter than
+other servers, so hostnames may be truncated. Also, it does not support
+forward slashes (`/`) in hosts, so they are rewritten as dots (`.`).
 
 * __NICKDELAY__: ratbox does not support a nick delay command, which is used by
 services to prevent users from switching back to a nickname immediately after
 services forced them to a "Guest" nick. When linking ratbox to services, RESV
 is used instead, but if ratbox reaches services indirectly via juno, it cannot
-understand the NICKDELAY command that is forwarded to it. There are plans to fix
-this by specially translating NICKDELAY to RESV for ratbox (or any server
-without `EUID`).
+understand the encapsulated NICKDELAY command that would normally be forwarded
+to it. To resolve this, juno rewrites NICKDELAY as RESV and attempts to find
+NickServ using the `services:nickserv` config option, using it as the source
+of the RESV command. See issue
+[#137]( https://github.com/cooper/juno/issues/137).
+
+### Known issues
 
 * __Cloaking__: ratbox does not have hostname cloaking and does not handle the
 REALHOST command. The result is that, on ratbox servers, users with hidden hosts
