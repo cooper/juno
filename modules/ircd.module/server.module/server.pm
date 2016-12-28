@@ -336,6 +336,24 @@ sub send_burst {
     return 1;
 }
 
+sub end_burst {
+    my $server  = shift;
+    my $time    = delete $server->{is_burst};
+    my $elapsed = time - $time;
+    $server->{sent_burst} = time;
+
+    notice(server_endburst => $server->notice_info, $elapsed);
+
+    # fire end burst events.
+    my $proto = $server->{link_type};
+    $server->prepare(
+        [ end_burst            => $time ],
+        [ "end_${proto}_burst" => $time ]
+    )->fire;
+
+    return 1;
+}
+
 # send data to all of my children.
 # this actually sends it to all connected servers.
 # it is only intended to be called with this server object.

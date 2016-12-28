@@ -370,12 +370,7 @@ sub endburst {
     # server dummy
     # :sid   ENDBURST
     my ($server, $msg, $serv, $their_time) = @_;
-    my $time    = delete $serv->{is_burst};
-    my $elapsed = time - $time;
-    $serv->{sent_burst} = time;
-
-    L("end of burst from $$serv{name}");
-    notice(server_endburst => $serv->notice_info, $elapsed);
+    $server->end_burst();
 
     # if we haven't sent our own burst yet, do so.
     $serv->send_burst if $serv->{conn} && !$serv->{i_sent_burst};

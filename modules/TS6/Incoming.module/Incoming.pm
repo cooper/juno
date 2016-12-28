@@ -1039,13 +1039,7 @@ sub pong {
 
     # the first pong indicates the end of a burst.
     if ($source_serv->{is_burst}) {
-        my $time    = delete $source_serv->{is_burst};
-        my $elapsed = time - $time;
-        $source_serv->{sent_burst} = time;
-
-        L("end of burst from $$source_serv{name}");
-        notice(server_endburst =>
-            $source_serv->notice_info, $elapsed);
+        $source_serv->end_burst();
 
         # === Forward ===
         $msg->forward(endburst => $source_serv, time);

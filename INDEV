@@ -3802,3 +3802,5 @@ CHANGES:
     28. added constants for mode types, exported by the modes package.
         RPL_CHANNELMODEIS now omits mode parameters for those not in the channel.
         RPL_CHANNELMODEIS now shows +k. closes #141.
+
+    29. added server ->end_burst(), protocol-common code for burst end.
