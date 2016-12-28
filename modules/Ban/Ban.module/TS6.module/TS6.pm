@@ -196,14 +196,12 @@ sub _find_ban {
 #
 sub burst_bans {
     my $server = shift;
+    return 1 if $server->{bans_negotiated}++;
     _burst_bans($server, M::Ban::all_bans());
 }
 sub _burst_bans {
     my ($server, @bans) = @_;
     return 1 if !@bans;
-
-    # if there are no bans, stop here
-    return 1 if $server->{bans_negotiated}++;
 
     # create a fake user. ha! see issue #32.
     my $uid = $me->{sid}.$pool->{user_i};
