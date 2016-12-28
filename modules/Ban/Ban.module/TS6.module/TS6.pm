@@ -147,12 +147,18 @@ sub M::Ban::Info::ts6_duration {
 }
 
 # ts6_match is special for using in ts6 commands.
-# if it's a KLINE, it's match_user and match_host joined by a space.
-# if it's a DLINE, it's the match_host.
 sub M::Ban::Info::ts6_match {
     my $ban = shift;
+
+    # if it's a KLINE, it's match_user and match_host joined by a space.
     return join(' ', @$ban{'match_user', 'match_host'})
         if $ban->type eq 'kline';
+
+    # if it's a RESV, it's the match_host followed by a zero.
+    return join (' ', $ban->match_host, '0')
+        if $ban->type eq 'resv';
+
+    # if it's a DLINE, it's the match_host.
     return $ban->match_host;
 }
 
