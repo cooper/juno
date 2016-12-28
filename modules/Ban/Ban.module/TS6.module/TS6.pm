@@ -20,7 +20,7 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils qw(fnv v notice);
+use utils qw(fnv v notice conf);
 use M::TS6::Utils qw(ts6_id);
 
 our ($api, $mod, $pool, $conf, $me);
@@ -335,16 +335,46 @@ sub out_baninfo {
     my ($to_server, $ban) = @_;
     return if !$ts6_supports{ $ban->type };
 
-    # charybdis will send the encap target as it is received from the oper.
-    # we don't care about that though. juno bans are global.
-
-
     # for reserves, it might be a NICKDELAY.
     # we have to check this before the below BAN command check.
-    if ($ban->type eq 'resv' && $ban->{_is_nickdelay} &&
-      $to_server->has_cap('EUID')) {
-        return if $ban->has_expired;
-        return if $ban->ts6_duration < 0;
+    if ($ban->type eq 'resv' && $ban->{_is_nickdelay}) {
+        my $maybe = _out_nickdelay($to_server, $ban);
+        return $maybe if length $maybe;
+    }
+
+    # CAP CLUSTER
+    # other reserves might be able to use the non-encap RESV command.
+    if ($ban->type eq 'resv') {
+        my $maybe = _out_resv($to_server, $ban);
+        return $maybe if length $maybe;
+    }
+
+    # CAP BAN
+    # we might be able to use BAN. if available, this cannot fail.
+    if ($ts6_ban_ok{ $ban->type } && $to_server->has_cap('BAN')) {
+        my $from = find_from_any($to_server, $ban);
+        return _out_capab_ban($to_server, $from, $ban);
+    }
+
+    # CAP KLN
+    # we might be able to use non-encap KLINE for K-Lines.
+    if ($ban->type eq 'kline') {
+        my $maybe = _out_kline($to_server, $ban);
+        return $maybe if length $maybe;
+    }
+
+    # fallback to ENCAP form.
+    return _out_encap_generic($to_server, $ban);
+}
+
+# returns ENCAP NICKDELAY when possible to use it (with EUID).
+# overrides the source user to NickServ when using (ENCAP) RESV command.
+sub _out_nickdelay {
+    my ($to_server, $ban) = @_;
+    return if $ban->has_expired || $ban->ts6_duration < 0;
+
+    # if EUID is available, the server should support ENCAP NICKDELAY.
+    if ($to_server->has_cap('EUID')) {
 
         # this can come from only a server
         my $from = find_from_serv($to_server, $ban) or return;
@@ -355,43 +385,91 @@ sub out_baninfo {
         $ban->match;
     }
 
-    # CAP BAN
-    # we might be able to use BAN
-    if ($ts6_ban_ok{ $ban->type } && $to_server->has_cap('BAN')) {
+    # otherwise, we might be able to send out a RESV from NickServ
+    # (since ENCAP RESV can only come from a user source).
+    my $nickserv = $pool->lookup_user_nick(conf('services', 'nickserv'));
+    if ($nickserv && $nickserv->is_mode('service') && !$nickserv->is_local) {
 
-        # this can come from either a user or a server
-        my $from = find_from_any($to_server, $ban);
+        # set the recent source to NickServ.
+        $ban->set_recent_source($nickserv);
 
-        return _capab_ban($to_server, $from, $ban);
+        # return false such that out_bandel() will fall back to either
+        # CLUSTER RESV or ENCAP RESV with the newly set source.
+        return;
     }
 
-    # OK, at this point we are using ts6_duration, which is calculated by the
-    # amount of time between the current time and the expire time. check if it
-    # has already expired because we can't propagate a negative duration.
-    return if $ban->has_expired;
-    return if $ban->ts6_duration < 0;
+    # use either RESV (with CLUSTER) or ENCAP RESV (for anything else).
+    return;
+}
 
-    # we might be able to use non-encap KLINE for K-Lines.
-    if ($ban->type eq 'kline') {
+# CAP CLUSTER
+sub _out_resv {
+    my ($to_server, $ban) = @_;
+    return if !$to_server->has_cap('CLUSTER');
+    return if $ban->has_expired || $ban->ts6_duration < 0;
 
-        # CAP KLN
-        if ($to_server->has_cap('KLN')) {
+    # RESV can only come from a user
+    my $from = find_from($to_server, $ban, 1) or return;
 
-            # KLINE can only come from a user
-            my $from = find_from($to_server, $ban, 1) or return;
+    # :<source> RESV <target> <duration> <mask> :<reason>
+    return sprintf ':%s RESV * %d %s %s :%s',
+    ts6_id($from),
+    $ban->ts6_duration,
+    $ban->match_host,
+    $ban->hr_reason;
+}
 
-            # :<source> KLINE <target> <time> <user> <host> :<reason>
-            return sprintf ':%s KLINE * %d %s %s :%s',
-            ts6_id($from),
-            $ban->ts6_duration,
-            $ban->match_user,
-            $ban->match_host,
-            $ban->hr_reason;
-        }
-    }
+# CAP BAN
+# returns the BAN command when possible to use it (with BAN).
+# accepts $deleting to indicate that this is a ban removal.
+sub _out_capab_ban {
+    my ($to_server, $from, $ban, $deleting) = @_;
+    return if !$ts6_supports{ $ban->type };
+    my $letter = $ts6_ban_ok{ $ban->type } or return;
+
+    # nick!user@host{server} that added it
+    # or * if this is being set by a real-time user
+    my $added_by = $ban->auser ? "$$ban{auser}\{$$ban{aserver}\}" : '*';
+    $added_by = '*' if $from->isa('user');
+
+    return sprintf ':%s BAN %s %s %s %d %d %d %s :%s',
+    ts6_id($from),          # user or server
+    $letter,                # ban type
+    $ban->match_user,       # user mask or *
+    $ban->match_host,       # host mask
+    $ban->modified,         # creationTS (modified time)
+    $deleting ? 0 : $ban->duration || $max_duration, # REAL duration (not ts6_duration)
+    $ban->lifetime_duration        || $max_duration, # lifetime, relative to creationTS
+    $added_by,              # oper field
+    $ban->hr_reason;        # reason
+}
+
+# CAP KLN
+# returns the KLINE command when possible to use it (with KLN).
+sub _out_kline {
+    my ($to_server, $ban) = @_;
+    return if !$to_server->has_cap('KLN');
+    return if $ban->has_expired || $ban->ts6_duration < 0;
+
+    # KLINE can only come from a user
+    my $from = find_from($to_server, $ban, 1) or return;
+
+    # :<source> KLINE <target> <time> <user> <host> :<reason>
+    return sprintf ':%s KLINE * %d %s %s :%s',
+    ts6_id($from),
+    $ban->ts6_duration,
+    $ban->match_user,
+    $ban->match_host,
+    $ban->hr_reason;
+}
+
+# returns the ENCAP form as a last resort. used for kline, resv, dline.
+sub _out_encap_generic {
+    my ($to_server, $ban) = @_;
+    return if !$ts6_encap_ok{ $ban->type };
+    return if $ban->has_expired || $ban->ts6_duration < 0;
 
     # at this point, we have to have a user source
-    return if !$ts6_encap_ok{ $ban->type };
     my $from = find_from($to_server, $ban, 1) or return;
 
     # encap fallback
@@ -428,13 +506,10 @@ sub out_bandel {
     }
 
     # CAP BAN
-    # we might be able to use BAN
+    # we might be able to use BAN. if available, this cannot fail.
     if ($ts6_ban_ok{ $ban->type } && $to_server->has_cap('BAN')) {
-
-        # this can come from either a user or a server
-        my $from = $ban->recent_source || $me;
-
-        return _capab_ban($to_server, $from, $ban, 1);
+        my $from = find_from_any($to_server, $ban);
+        return _out_capab_ban($to_server, $from, $ban, 1);
     }
 
     # we might be able to use BAN or non-encap UNKLINE for K-Lines.
@@ -462,29 +537,6 @@ sub out_bandel {
     ts6_id($from),
     uc $ban->type,
     $ban->ts6_match;
-}
-
-sub _capab_ban {
-    my ($to_server, $from, $ban, $deleting) = @_;
-    return if !$ts6_supports{ $ban->type };
-    my $letter = $ts6_ban_ok{ $ban->type } or return;
-
-    # nick!user@host{server} that added it
-    # or * if this is being set by a real-time user
-    my $added_by = $ban->auser ? "$$ban{auser}\{$$ban{aserver}\}" : '*';
-    $added_by = '*' if $from->isa('user');
-
-
-    return sprintf ':%s BAN %s %s %s %d %d %d %s :%s',
-    ts6_id($from),          # user or server
-    $letter,                # ban type
-    $ban->match_user,       # user mask or *
-    $ban->match_host,       # host mask
-    $ban->modified,         # creationTS (modified time)
-    $deleting ? 0 : $ban->duration || $max_duration, # REAL duration (not ts6_duration)
-    $ban->lifetime_duration        || $max_duration, # lifetime, relative to creationTS
-    $added_by,              # oper field
-    $ban->hr_reason;        # reason
 }
 
 ################

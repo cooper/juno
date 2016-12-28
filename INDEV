@@ -3809,3 +3809,6 @@ CHANGES:
 
     30. JELP SERVER command now has a timestamp parameter. closes #21.
         moved TS delta checking to server::protocol.
+
+    31. added a hack to address #137 which looks for NickServ when we have to use RESV instead of NICKDELAY.
+        added outgoing non-ENCAP TS6 RESV command (for use with CLUSTER capab).
