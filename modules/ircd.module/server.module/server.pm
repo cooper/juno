@@ -18,6 +18,7 @@ use strict;
 use feature 'switch';
 use parent 'Evented::Object';
 
+use modes;
 use utils qw(col v conf notice);
 use Scalar::Util qw(looks_like_number blessed);
 
@@ -218,12 +219,12 @@ sub convert_cmode_string {
 sub cmode_takes_parameter {
     my ($server, $name, $state) = @_;
     my %params  = (
-        +MODE_NORMAL    => 0,               # normal - never
-        +MODE_PARAM     => 1,               # parameter - always
-        +MODE_PSET      => $state,          # parameter_set - when setting only
-        +MODE_LIST      => 2,               # list mode - valid without
-        +MODE_STATUS    => 1,               # status mode - always
-        +MODE_KEY       => $state ? 1 : 2   # key mode - always when setting,
+        MODE_NORMAL,    0,               # normal - never
+        MODE_PARAM,     1,               # parameter - always
+        MODE_PSET,      $state,          # parameter_set - when setting only
+        MODE_LIST,      2,               # list mode - valid without
+        MODE_STATUS,    1,               # status mode - always
+        MODE_KEY,       $state ? 1 : 2   # key mode - always when setting,
                                             #     only if present when unsetting
     );
     return $params{ $server->{cmodes}{$name}{type} || -1 };

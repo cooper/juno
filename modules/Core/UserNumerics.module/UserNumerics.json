@@ -9,5 +9,5 @@
    "description" : "the core set of user numerics",
    "name" : "Core::UserNumerics",
    "package" : "M::Core::UserNumerics",
-   "version" : "12.01"
+   "version" : "12.31"
 }

@@ -101,8 +101,9 @@ sub new_from_string {
 
         # convert nicks or UIDs to user objects.
         if (length $param && $type == MODE_STATUS) {
-            my $user = $over_protocol ?
-                $server->uid_to_user($param): $pool->lookup_user_nick($param);
+            my $user = $over_protocol           ?
+                $server->uid_to_user($param)    :
+                $pool->lookup_user_nick($param);
             $param = $user if $user;
         }
 

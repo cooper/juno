@@ -3800,3 +3800,5 @@ CHANGES:
         Channel::Key now injects '*' as the parameter to -k when unsetting.
 
     28. added constants for mode types, exported by the modes package.
+        RPL_CHANNELMODEIS now omits mode parameters for those not in the channel.
+        RPL_CHANNELMODEIS now shows +k. closes #141.

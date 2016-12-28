@@ -615,7 +615,14 @@ sub send_names {
 # send mode information.
 sub send_modes {
     my ($channel, $user) = @_;
-    my $mode_str = $channel->mode_string($user->{server});
+
+    # create a mode string with all modes except status and list modes.
+    # remove parameters if the user is not in the channel.
+    my $mode_str = $channel->all_modes
+        ->remove(MODE_LIST, MODE_STATUS)->to_string($me);
+    $mode_str = (split ' ', $mode_str, 2)[0]
+        unless $channel->has_user($user);
+
     $user->numeric(RPL_CHANNELMODEIS =>  $channel->name, $mode_str);
     $user->numeric(RPL_CREATIONTIME  =>  $channel->name, $channel->{time});
 }

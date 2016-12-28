@@ -170,8 +170,10 @@ sub rpl_isupport {
 # core supported callback
 sub isp_core {
     my ($event, $supported, $yes) = @_;
-    my $listmodes = join '', sort map { $_->{letter} }
-        grep { ($_->{type} // -1) == MODE_LIST } values %{ $me->{cmodes} };
+    my $listmodes = join '',
+        sort map $_->{letter},
+        grep { ($_->{type} // MODE_UNKNOWN) == MODE_LIST }
+        values %{ $me->{cmodes} };
 
     # construct core tokens
     my %core_supported = (
