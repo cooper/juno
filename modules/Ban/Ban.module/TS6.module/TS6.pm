@@ -674,7 +674,10 @@ sub undline {
 
 # ENCAP RESV has a parameter before the reason which charybdis always sends
 # as '0', so we're just gonna ignore that and pop the reason off the back.
-sub encap_resv   {   resv(@_[0..3, 5], pop) }
+# [ratbox.ruin.rlygd.net] :903AAAAAY ENCAP * RESV 600 aasaddfsadf 0 :ruded
+#                :uid ENCAP   target RESV duration nick_chan_mask 0      :reason
+#    params => '-source(user) *      *    *        *              *(opt) *',
+sub encap_resv   {   resv(@_[0..3, 5..6], pop) }
 sub encap_unresv { unresv(@_[0..3, 5]     ) }
 
 # RESV
