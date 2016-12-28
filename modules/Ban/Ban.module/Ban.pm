@@ -230,18 +230,21 @@ sub create_or_update_ban {
     my %opts = @_;
     return if $opts{match} eq '*';
 
-    # find or create ban.
+    # find existing ban.
+    # disregard it if it was deleted.
     my $ban = ban_by_id($opts{id});
+    undef $ban if $ban->has_expired && $ban->expires == $ban->modified;
+
+    # create a new ban.
     if (!$ban) {
         $ban = M::Ban::Info->construct(%opts);
         return if !$ban;
     }
 
     # for existing bans, do not accept this unless the modification time
-    # is newer than what we already know. UNLESS the existing ban is expired.
+    # is newer than what we already know.
     else {
-        return if !$ban->has_expired &&
-            $ban->modified <= ($opts{modified} || 'inf');
+        return if $ban->modified <= ($opts{modified} || 'inf');
     }
 
     # update ban info. this also validates.
