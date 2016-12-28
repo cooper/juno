@@ -240,7 +240,7 @@ sub create_or_update_ban {
     # for existing bans, do not accept this unless the modification time
     # is newer than what we already know.
     else {
-        return if $opts{modified} <= $ban->modified;
+        return if $ban->modified <= ($opts{modified} || 'inf');
     }
 
     # update ban info. this also validates.

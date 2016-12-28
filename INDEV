@@ -3812,3 +3812,4 @@ CHANGES:
 
     31. added a hack to address #137 which looks for NickServ when we have to use RESV instead of NICKDELAY.
         added outgoing non-ENCAP TS6 RESV command (for use with CLUSTER capab).
+        removed old server command handler code from pool.

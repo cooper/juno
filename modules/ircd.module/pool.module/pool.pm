@@ -576,52 +576,6 @@ sub fire_wallops_local {
     return $amnt;
 }
 
-###############################
-### SERVER COMMAND HANDLERS ###
-###############################
-
-
-# register command handlers
-# ($source, $command, $callback, $forward)
-sub register_server_handler {
-    my ($pool, $source, $command) = (shift, shift, uc shift);
-
-    # does it already exist?
-    if (exists $pool->{server_commands}{$command}) {
-        L("attempted to register $command which already exists");
-        return;
-    }
-
-    # ensure that it is CODE
-    my $ref = shift;
-    if (ref $ref ne 'CODE') {
-        L("not a CODE reference for $command");
-        return;
-    }
-
-    #success
-    $pool->{server_commands}{$command} = {
-        code    => $ref,
-        source  => $source,
-        forward => shift
-    };
-
-    #L("$source registered $command");
-    return 1;
-}
-
-# unregister
-sub delete_server_handler {
-    my ($pool, $command) = (shift, uc shift);
-    #L("deleting handler $command");
-    delete $pool->{server_commands}{$command};
-}
-
-sub server_handlers {
-    my ($pool, $command) = (shift, uc shift);
-    return $pool->{server_commands}{$command} // ();
-}
-
 ################################
 ### OUTGOING SERVER COMMANDS ###
 ################################
