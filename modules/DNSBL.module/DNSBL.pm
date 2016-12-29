@@ -19,9 +19,9 @@ use 5.010;
 
 use Socket qw(AF_INET AF_INET6 SOCK_STREAM inet_pton);
 use List::Util qw(first);
-use utils qw(looks_like_ipv6);
+use utils qw(looks_like_ipv6 string_to_seconds);
 
-our ($api, $mod, $pool, $conf);
+our ($api, $mod, $pool, $conf, %cache);
 
 sub init {
     $pool->on('connection.new', \&connection_new, 'check.dnsbl');
@@ -35,6 +35,14 @@ sub connection_new {
 
     my ($expanded, $ipv6);
     my $ip = $connection->ip;
+
+    # check if the IP has already been cached
+    if (my $cached = $cache{$ip}) {
+        my ($expire_time, $list_name, $reason) = @$cached;
+        return dnsbl_bad($connection, $list_name, $reason)
+            if time < $expire_time;
+        delete $cache{$ip};
+    }
 
     # IPv6
     if ($ipv6 = looks_like_ipv6($ip)) {
@@ -103,7 +111,10 @@ sub got_reply2 {
     # if no responses are specified, any respnse works.
     # otherwise, see if any of the provided responses are the one we got.
     if (!@matches || first { $_ == $response } @matches) {
-        return dnsbl_bad($connection, $list_name, $blacklist{reason});
+        return dnsbl_bad(
+            $connection, $list_name,
+            $blacklist{reason}, $blacklist{duration}
+        );
     }
 
     dnsbl_ok($connection);
@@ -118,13 +129,19 @@ sub dnsbl_ok {
 
 # called when the connection is blacklisted.
 sub dnsbl_bad {
-    my ($connection, $list_name, $reason) = @_;
+    my ($connection, $list_name, $reason, $duration) = @_;
     L("$$connection{ip} is listed on $list_name!");
 
     # inject variables in reason
     $reason ||= "Your host is listed on $list_name.";
     $reason =~ s/%ip/$$connection{ip}/g;
     $reason =~ s/%host/$$connection{host}/g;
+
+    # store in cache
+    if ($duration) {
+        my $expire_time = time() + string_to_seconds($duration);
+        $cache{ $connection->ip } = [ $expire_time, $list_name, $reason ];
+    }
 
     # drop the connection
     $connection->done($reason);
