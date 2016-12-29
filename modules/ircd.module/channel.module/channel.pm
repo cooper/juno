@@ -533,11 +533,11 @@ sub topic {
 sub destroy_maybe {
     my $channel = shift;
 
-    # an event said not to destroy the channel.
-    return if $channel->fire('can_destroy')->stopper;
-
     # there are still users in here!
     return if $channel->users;
+
+    # an event said not to destroy the channel.
+    return if $channel->fire('can_destroy')->stopper;
 
     # delete the channel from the pool, purge events
     $pool->delete_channel($channel);

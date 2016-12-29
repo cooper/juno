@@ -3821,3 +3821,5 @@ CHANGES:
 
     34. overhaul of DNSBL module. it now supports IPv6. closes #126.
         added cache to DNSBL. closes #142.
+
+    35. added no forward channel mode (+Q). closes #48.
