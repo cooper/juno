@@ -565,6 +565,13 @@ sub setup_autoconnect {
 # already to improve the efficiency of this.
 sub misc_upgrades {
 
+    # inject missing connection information.
+    foreach my $connection ($pool->connections) {
+        next if exists $connection->{family} || !$connection->stream;
+        my $handle = $connection->stream->write_handle or next;
+        $connection->{family} = $handle->sockdomain;
+    }
+
     # inject missing server information.
     foreach my $server ($pool->servers) {
 

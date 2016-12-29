@@ -247,6 +247,17 @@
     bs = 'PRIVMSG BotServ $1-'
     gs = 'PRIVMSG GroupServ $1-'
 
+# DNS blacklists. Requires DNSBL module.
+
+[ dnsbl: EFnet RBL ]
+
+    host     = "rbl.efnetrbl.org"
+    ipv4     = on
+    ipv6     = off
+    timeout  = 3
+    duration = '1d'
+    reason   = "Your host is listed on EFnet RBL. See http://efnetrbl.org/?i=%ip"
+
 
 # Administrator information
 

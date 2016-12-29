@@ -3818,3 +3818,5 @@ CHANGES:
         fixed an issue in user ban commands where the ->set_recent_source() was called AFTER propagation.
 
     33. added Channel::JoinThrottle (+j). closes #46.
+
+    34. overhaul of DNSBL module. it now supports IPv6. closes #126.

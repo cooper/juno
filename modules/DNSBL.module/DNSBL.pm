@@ -17,82 +17,127 @@ use warnings;
 use strict;
 use 5.010;
 
+use Socket qw(AF_INET AF_INET6 SOCK_STREAM inet_pton);
+use List::Util qw(first);
+use utils qw(looks_like_ipv6);
+
 our ($api, $mod, $pool, $conf);
 
 sub init {
     $pool->on('connection.new', \&connection_new, 'check.dnsbl');
 }
 
+# on new connection, check each applicable DNSBL
 sub connection_new {
     my ($connection, $event) = @_;
     return if $connection->{goodbye};
+    my @lists = $conf->names_of_block('dnsbl') or return;
 
-    my @lists = $conf->names_of_block('dnsbl');
-    return if scalar(@lists) == 0;
-    $connection->{dnsbl_checks} = 0;
-    foreach my $name (@lists) {
-        my %blacklist = $conf->hash_of_block(['dnsbl', $name]);
-        my $host = $blacklist{host};
-        my @octets = reverse(split('\.', $$connection{ip}));
-        my $lookup = sprintf('%u.%u.%u.%u.%s', @octets, $host);
-        do_lookup($connection, $name, $lookup);
-        $connection->{dnsbl_checks}++;
+    my ($expanded, $ipv6);
+    my $ip = $connection->ip;
+
+    # IPv6
+    if ($ipv6 = looks_like_ipv6($ip)) {
+        my $addr  = inet_pton(AF_INET6, $ip);
+        $expanded = join '.', reverse map { split // } unpack('H4' x 8, $addr);
     }
+
+    # IPv4
+    else {
+        my $addr = inet_pton(AF_INET, $ip);
+        $expanded = join '.', reverse unpack('C' x 4, $addr);
+    }
+
+    check_conn_against_list($connection, $expanded, $ipv6, $_) for @lists;
 }
 
-sub do_lookup {
-    my ($connection, $dnsbl, $lookup) = @_;
-    $connection->{dnsbl_futures} //= {};
-    my $f = $connection->{dnsbl_futures}->{$dnsbl} = $::loop->resolver->getaddrinfo(
-            host => $lookup,
-            socktype => Socket::SOCK_RAW,
-            timeout => 3
+sub check_conn_against_list {
+    my ($connection, $expanded, $ipv6, $list_name) = @_;
+    my %blacklist = $conf->hash_of_block([ 'dnsbl', $list_name ]);
+    my $full_host = "$expanded.$blacklist{host}";
+
+    # stop here if the DNSBL does not support the address family
+    my $n = $ipv6 ? 6 : 4;
+    return if !$blacklist{"ipv$n"};
+
+    # postpone registration until this is done
+    $connection->reg_wait("dnsbl_$list_name");
+
+    # do the initial request
+    my $f = $::loop->resolver->getaddrinfo(
+        host     => $full_host,
+        service  => '',
+        socktype => SOCK_STREAM,
+        timeout  => $blacklist{timeout} || 3
     );
-    $f->on_done(sub { got_dnsbl_reply($connection, $dnsbl, @_); });
-    $f->on_fail(sub { no_reply($connection, $dnsbl); });
+
+    $connection->adopt_future("dnsbl1_$list_name" => $f);
+    $f->on_done(sub { got_reply1($connection, $list_name, @_) });
+    $f->on_fail(sub { dnsbl_ok($connection, $list_name)       });
 }
 
-sub got_dnsbl_reply {
-    my ($connection, $dnsbl, $addr) = @_;
-    my $f = $connection->{dnsbl_futures}->{$dnsbl} = $::loop->resolver->getnameinfo(
-            addr => $addr->{addr},
-            numerichost => 1
+# got first reply
+sub got_reply1 {
+    my ($connection, $list_name, $addr) = @_;
+
+    # do the second request
+    my $f = $::loop->resolver->getnameinfo(
+        addr => $addr->{addr},
+        numerichost => 1
     );
-    $f->on_done(sub { got_reply($connection, $dnsbl, @_); });
-    $f->on_fail(sub { no_reply($connection, $dnsbl); });
+
+    $connection->adopt_future("dnsbl2_$list_name" => $f);
+    $f->on_done(sub { got_reply2($connection, $list_name, @_) });
+    $f->on_fail(sub { dnsbl_ok($connection, $list_name)       });
 }
 
-sub got_reply {
-    my ($connection, $dnsbl, $ip) = @_;
-    delete $connection->{dnsbl_futures}->{$dnsbl};
-    my (undef, undef, undef, $response) = split('\.', $ip);
-    my @responses = @{$conf->get(['dnsbl', $dnsbl], 'responses')};
-    my $win = 0;
-    foreach (@responses) {
-        $win = 1 if $_ eq $response;
-    }
-    if (!scalar(@responses) || $win) {
-        $connection->done("You are listed on the $dnsbl blacklist.");
-    } else {
-        dnsbl_ok($connection);
-    }
-}
+# got second reply
+sub got_reply2 {
+    my ($connection, $list_name, $ip) = @_;
+    my %blacklist = $conf->hash_of_block([ 'dnsbl', $list_name ]);
 
-sub no_reply {
-    my ($connection, $dnsbl, $ip) = @_;
-    delete $connection->{dnsbl_futures}->{$dnsbl};
+    # extract the last portion of the IP address
+    my $response = (unpack('C' x 4, $ip))[-1];
+    my @matches  = ref_to_list($blacklist{matches});
+
+    # if no responses are specified, any respnse works.
+    # otherwise, see if any of the provided responses are the one we got.
+    if (!@matches || first { $_ == $response } @matches) {
+        return dnsbl_bad($connection, $list_name, $blacklist{reason});
+    }
+
     dnsbl_ok($connection);
 }
 
+# called when the connection is good-to-go.
 sub dnsbl_ok {
-    my $connection = shift;
-    $connection->{dnsbl_checks}--;
-    if ($connection->{dnsbl_checks} == 0) {
-        delete $connection->{dnsbl_futures};
-        delete $connection->{dnsbl_checks};
-        $connection->reg_continue('dnsbl');
-    }
+    my ($connection, $list_name) = @_;
+    L("$$connection{ip} is not listed on $list_name");
+    finish($connection, $list_name);
 }
 
+# called when the connection is blacklisted.
+sub dnsbl_bad {
+    my ($connection, $list_name, $reason) = @_;
+    L("$$connection{ip} is listed on $list_name!");
+
+    # inject variables in reason
+    $reason ||= "Your host is listed on $list_name.";
+    $reason =~ s/%ip/$$connection{ip}/g;
+    $reason =~ s/%host/$$connection{host}/g;
+
+    # drop the connection
+    $connection->done($reason);
+
+    finish($connection, $list_name);
+}
+
+# called when a DNSBL lookup is complete, regardless of status.
+sub finish {
+    my ($connection, $list_name) = @_;
+    $connection->abandon_future("dnsbl1_$list_name");
+    $connection->abandon_future("dnsbl2_$list_name");
+    $connection->reg_continue("dnsbl_$list_name");
+}
 
 $mod
