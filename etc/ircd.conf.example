@@ -32,12 +32,12 @@
 
     Channel::Fantasy            # Fantasy commands
     Channel::Access             # Access list mode (+A)
-    Channel::Invite             # Invitation support (INVITE, +i, +I)
+    Channel::Invite             # Invitation support (INVITE, +i, +I, +g)
     Channel::Key                # Key support (+k)
     Channel::Limit              # Member limit support (+l)
     Channel::Secret             # Secret/private channel support (+s/+p)
     Channel::OperOnly           # Oper-only channel support (+O)
-    Channel::Forward            # Channel forward support (+f)
+    Channel::Forward            # Channel forward support (+f, +F)
     Channel::Mute               # Mute/quiet bans (+Z)
     Channel::TopicAdditions     # Commands to prepend or append topic
     Channel::Permanent          # Preserve empty channels, make permanent (+P)
@@ -46,6 +46,7 @@
     Channel::NoColor            # Strip colors from messages (+c)
     Channel::OpModerate         # Sends blocked messages to chanops (+z)
     Channel::ModeSync           # Improves channel mode synchronization
+    Channel::JoinThrottle       # Prevents channel join flooding (+j)
 
     # Server management
 

@@ -1,0 +1,16 @@
+{
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
+   "depends" : {
+      "modules" : [
+         "Base::ChannelModes",
+         "Base::UserNumerics"
+      ]
+   },
+   "description" : "channel mode to prevent join flooding",
+   "name" : "Channel::JoinThrottle",
+   "package" : "M::Channel::JoinThrottle",
+   "version" : "0.7"
+}

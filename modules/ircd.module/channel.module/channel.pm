@@ -1036,7 +1036,7 @@ sub attempt_local_join {
     # if we're not forcing the join, check that the user is permitted to join.
     unless ($force) {
 
-        # fire the event and delete the callbacks.
+        # fire the event.
         my $can_fire = $user->fire(can_join => $channel, $key);
 
         # event was stopped; can't join.
@@ -1056,7 +1056,11 @@ sub attempt_local_join {
 
     # new channel. do automodes and whatnot.
     if ($new) {
-        $channel->add($user); # early join
+
+        # early join. this allows the automodes to set statuses on the user.
+        $channel->add($user);
+
+        # find automodes. replace each instance of +user with the UID.
         my $str = conf('channels', 'automodes') || '';
         $str =~ s/\+user/$$user{uid}/g;
 
