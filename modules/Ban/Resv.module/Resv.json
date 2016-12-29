@@ -9,5 +9,5 @@
    "description" : "reserve nicknames matching a mask",
    "name" : "Ban::Resv",
    "package" : "M::Ban::Resv",
-   "version" : "0.8"
+   "version" : "1.1"
 }

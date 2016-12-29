@@ -562,6 +562,12 @@ sub users_with_at_least {
     });
 }
 
+# returns users which belong to this server
+sub local_users {
+    my $channel = shift;
+    return $channel->users_satisfying(sub { shift->is_local });
+}
+
 sub id    { shift->{name}       }
 sub name  { shift->{name}       }
 sub users { @{ shift->{users} } }

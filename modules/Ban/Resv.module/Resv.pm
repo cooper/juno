@@ -15,6 +15,8 @@ use warnings;
 use strict;
 use 5.010;
 
+use utils qw(conf);
+
 our ($api, $mod, $pool);
 
 sub init {
@@ -37,6 +39,18 @@ sub _match {
 
 sub activate_resv {
     my $ban = shift;
+
+    # force local users to part if the channel exists
+    # and channels:resv_force_part is enabled.
+    my $channel = $pool->lookup_channel($ban->match);
+    if ($channel && conf('channels', 'resv_force_part')) {
+        foreach my $user ($channel->local_users) {
+            # ($user, $reason, $quiet)
+            $channel->do_part($user, $ban->hr_reason, 1);
+            $pool->fire_command_all(part => $user, $channel, $ban->hr_reason);
+        }
+    }
+
     $pool->add_resv($ban->match, $ban->expires);
 }
 

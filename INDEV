@@ -3823,3 +3823,5 @@ CHANGES:
         added cache to DNSBL. closes #142.
 
     35. added no forward channel mode (+Q). closes #48.
+
+    36. added channels:resv_force_part option to force users to part reserved channels.
