@@ -242,14 +242,7 @@ sub rcmd_ping {
     my ($connection, $event) = @_;
     my $server = $connection->server or return;
     $server->{is_burst} or return;
-
-    # how much time has elapsed?
-    my $time    = delete $server->{is_burst};
-    my $elapsed = time - $time;
-    $server->{sent_burst} = time;
-
-    L("end of burst from $$server{name}");
-    notice(server_endburst => $server->notice_info, $elapsed);
+    $server->end_burst();
     $pool->fire_command_all(endburst => $server, time);
 }
 
