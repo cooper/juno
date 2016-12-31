@@ -332,7 +332,7 @@ sub enforce_on_user {
 sub enforce_on_all_users {
     my $ban = shift;
     my @affected;
-    foreach my $user ($pool->local_users) {
+    foreach my $user ($pool->real_local_users) {
         my $affected = $ban->enforce_on_user($user);
         push @affected, $user if $affected;
     }

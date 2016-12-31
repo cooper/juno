@@ -301,13 +301,11 @@ sub users    { @{ shift->{users} }  }
 sub server   { shift                }
 sub parent   { shift->{parent}      }
 
-# actual_users = real users
-# global_users = all users which are propogated, including fake ones
-# all_users    = all user objects, including those which are not propogated
-
-sub actual_users {   grep  { !$_->{fake}       } shift->all_users }
-sub global_users {   grep  { !$_->{fake_local} } shift->all_users }
-sub all_users    {        @{ shift->{users}    }                  }
+sub all_users        {   @{ shift->{users} }                    }
+sub real_users       {   grep  { !$_->{fake}                    } shift->all_users  }
+sub all_local_users  {   grep  { $_->is_local                   } shift->all_users  }
+sub real_local_users {   grep  { $_->is_local && !$_->{fake}    } shift->all_users  }
+sub global_users     {   grep  { !$_->{fake_local}              } shift->all_users  }
 
 ############
 ### MINE ###

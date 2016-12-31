@@ -44,7 +44,7 @@ sub activate_resv {
     # and channels:resv_force_part is enabled.
     my $channel = $pool->lookup_channel($ban->match);
     if ($channel && conf('channels', 'resv_force_part')) {
-        foreach my $user ($channel->local_users) {
+        foreach my $user ($channel->all_local_users) {
             # ($user, $reason, $quiet)
             $channel->do_part($user, $ban->hr_reason, 1);
             $pool->fire_command_all(part => $user, $channel, $ban->hr_reason);

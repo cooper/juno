@@ -3825,3 +3825,6 @@ CHANGES:
     35. added no forward channel mode (+Q). closes #48.
 
     36. added channels:resv_force_part option to force users to part reserved channels.
+
+    37. replaced ->local_users with ->all_local_users and ->real_local_users.
+        renamed ->actual_users to ->real_users.

@@ -249,7 +249,7 @@
 
 # DNS blacklists. Requires DNSBL module.
 
-[ dnsbl: EFnet RBL ]
+[ dnsbl: EFnetRBL ]
 
     host     = "rbl.efnetrbl.org"
     ipv4     = on
@@ -258,6 +258,24 @@
     duration = '1d'
     reason   = "Your host is listed on EFnet RBL. See http://efnetrbl.org/?i=%ip"
 
+[ dnsbl: DroneBL ]
+
+    host     = "dnsbl.dronebl.org"
+    ipv4     = on
+    ipv6     = on
+    timeout  = 3
+    duration = '1d'
+    reason   = "Your host is listed on DroneBL. See http://dronebl.org/lookup?ip=%ip"
+
+[ dnsbl: dan.me.uk ]
+
+    host     = "tor.dan.me.uk"
+    ipv4     = on
+    ipv6     = off
+    timeout  = 3
+    matches  = [100]
+    duration = '1d'
+    reason   = "Your host is listed as a Tor node."
 
 # Administrator information
 

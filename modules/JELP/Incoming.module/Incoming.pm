@@ -873,7 +873,7 @@ sub snotice {
     (my $pretty = ucfirst $notice) =~ s/_/ /g;
 
     # send to users with this notice flag.
-    foreach my $user ($pool->actual_users) {
+    foreach my $user ($pool->real_users) {
         next unless blessed $user; # during destruction.
         next unless $user->is_mode('ircop');
         next unless $user->has_notice($notice);

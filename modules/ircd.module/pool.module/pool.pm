@@ -249,8 +249,8 @@ sub new_user {
     # update max local and global user counts.
     my $max_l = v('max_local_user_count');
     my $max_g = v('max_global_user_count');
-    my $c_l   = scalar grep { $_->is_local } $pool->all_users;
-    my $c_g   = scalar $pool->all_users;
+    my $c_l   = scalar $pool->real_local_users;
+    my $c_g   = scalar $pool->real_users;
     set_v(max_local_user_count  => $c_l) if $c_l > $max_l;
     set_v(max_global_user_count => $c_g) if $c_g > $max_g;
     notice(new_user => $user->notice_info, $user->{real}, $user->{server}{name})
@@ -351,15 +351,11 @@ sub change_user_nick {
     return 1;
 }
 
-# actual_users = real users, both local and remote
-# global_users = all users which are propogated, including fake ones
-# all_users    = all user objects, including those which are not propogated
-# local_users  = real local users
-
-sub local_users  {   grep  { $_->is_local && !$_->{fake}    } shift->all_users  }
-sub actual_users {   grep  { !$_->{fake}                    } shift->all_users  }
-sub global_users {   grep  { !$_->{fake_local}              } shift->all_users  }
-sub all_users    {   grep  { $_->isa('user') }       values %{ shift->{users} } }
+sub all_users        {   grep  { $_->isa('user') }       values %{ shift->{users} } }
+sub real_users       {   grep  { !$_->{fake}                    } shift->all_users  }
+sub all_local_users  {   grep  { $_->is_local                   } shift->all_users  }
+sub real_local_users {   grep  { $_->is_local && !$_->{fake}    } shift->all_users  }
+sub global_users     {   grep  { !$_->{fake_local}              } shift->all_users  }
 
 ################
 ### CHANNELS ###
@@ -539,7 +535,7 @@ sub fire_oper_notice {
 
     # send to users with this notice flag.
     my $server_notice = ucfirst($pretty).': '.$message;
-    foreach my $user ($pool->actual_users) {
+    foreach my $user ($pool->real_users) {
         next unless blessed $user;
 
         # not an IRC Cop or does not have this notice flag.
@@ -565,7 +561,7 @@ sub fire_wallops_local {
 
     # send to local users with wallops.
     my $amnt = 0;
-    foreach my $user ($pool->local_users) {
+    foreach my $user ($pool->real_local_users) {
         next unless blessed $user; # during destruction.
         next unless $user->is_mode('wallops');
         next if $only_opers && !$user->is_mode('ircop');

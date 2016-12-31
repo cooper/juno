@@ -563,9 +563,15 @@ sub users_with_at_least {
 }
 
 # returns users which belong to this server
-sub local_users {
+sub all_local_users {
     my $channel = shift;
     return $channel->users_satisfying(sub { shift->is_local });
+}
+
+# returns real users which belong to this server
+sub real_local_users {
+    my $channel = shift;
+    return $channel->users_satisfying(sub { shift->is_local && !$_->{fake} });
 }
 
 sub id    { shift->{name}       }

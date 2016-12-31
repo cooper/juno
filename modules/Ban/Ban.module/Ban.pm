@@ -373,7 +373,7 @@ sub handle_add_command {
     }
 
     # check if matcher is valid
-    $match = $type->{match_code}->($match);
+    $match = $type->{match_code}($match);
     if (!defined $match) {
         $user->server_notice($command => "Invalid $what format");
         return;
@@ -384,7 +384,9 @@ sub handle_add_command {
 
         # if it is expired, we will overwrite it.
         if (!$exists->has_expired) {
-            $user->server_notice($command => "$what for $match exists already");
+            $user->server_notice($command =>
+                ucfirst "$what for $match exists already"
+            );
             return;
         }
     }

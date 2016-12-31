@@ -582,7 +582,7 @@ sub misc_upgrades {
     }
 
     # inject missing local user information.
-    foreach my $user ($pool->local_users) {
+    foreach my $user ($pool->real_local_users) {
         next unless $user->{conn};
 
         # if the conn exists but is not an object, it's a ghost.
@@ -838,7 +838,7 @@ sub handle_connect {
     }
 
     # if the global user IP limit has been reached, disconnect.
-    if (scalar(grep { $_->{ip} eq $ip } $pool->actual_users)
+    if (scalar(grep { $_->{ip} eq $ip } $pool->real_users)
       > conf('limit', 'globalperip')) {
         $conn->done('Global connections per IP limit exceeded');
         return;

@@ -161,7 +161,7 @@ sub ready {
     if (length $connection->{nick} && length $connection->{ident}) {
 
         # if the client limit has been reached, hang up.
-        if (scalar $pool->local_users >= conf('limit', 'client')) {
+        if (scalar $pool->real_local_users >= conf('limit', 'client')) {
             $connection->done('Not accepting clients');
             return;
         }

@@ -438,7 +438,7 @@ sub privmsgnotice {
 
 sub smap {
     my $user  = shift;
-    my $total = scalar $pool->actual_users;
+    my $total = scalar $pool->real_users;
 
     my ($indent, $do, %done) = 0;
     $do = sub {
@@ -446,7 +446,7 @@ sub smap {
         return if $done{$server};
 
         my $spaces = ' ' x $indent;
-        my $users  = scalar $server->actual_users;
+        my $users  = scalar $server->real_users;
         my $per    = sprintf '%.f', $users / $total * 100;
 
         $user->numeric(RPL_MAP => $spaces, $server->{name}, $users, $per);
@@ -1085,23 +1085,23 @@ sub lusers {
     my $l_servers = scalar grep { $_->{conn} } $pool->servers;
 
     # get x users, x invisible, and total global
-    my @actual_users = $pool->actual_users;
+    my @real_users = $pool->real_users;
     my ($g_not_invisible, $g_invisible) = (0, 0);
-    foreach my $user (@actual_users) {
+    foreach my $user (@real_users) {
         $g_invisible++, next if $user->is_mode('invisible');
         $g_not_invisible++;
     }
     my $g_users = $g_not_invisible + $g_invisible;
 
     # get local users
-    my $l_users = scalar grep { $_->is_local } @actual_users;
+    my $l_users = scalar grep $_->is_local, @real_users;
 
     # get connection count and max connection count
     my $conn     = v('connection_count');
     my $conn_max = v('max_connection_count');
 
     # get oper count and channel count
-    my $opers = scalar grep { $_->is_mode('ircop') } @actual_users;
+    my $opers = scalar grep $_->is_mode('ircop'), @real_users;
     my $chans = scalar $pool->channels;
 
     # get max global and max local
@@ -1129,16 +1129,16 @@ sub users {
     }
 
     # get x users, x invisible, and total global
-    my @actual_users = $pool->actual_users;
+    my @real_users = $pool->real_users;
     my ($g_not_invisible, $g_invisible) = (0, 0);
-    foreach my $user (@actual_users) {
+    foreach my $user (@real_users) {
         $g_invisible++, next if $user->is_mode('invisible');
         $g_not_invisible++;
     }
     my $g_users = $g_not_invisible + $g_invisible;
 
     # get local users
-    my $l_users = scalar grep { $_->is_local } @actual_users;
+    my $l_users = scalar grep $_->is_local, @real_users;
 
     # get max global and max local
     my $m_global = v('max_global_user_count');
@@ -1347,15 +1347,15 @@ sub squit {
 
         # it's me!
         if ($server == $me) {
-            $user->server_notice(squit => "Can\'t disconnect the local server")
+            $user->server_notice(squit => "Can't disconnect the local server")
                 if @servers == 1;
             next;
         }
 
         # direct connection. use ->done().
-        if ($server->conn) {
-            $server->{conn}{dont_reconnect}++;
-            $server->{conn}->done($reason);
+        if (my $conn = $server->conn) {
+            $conn->{dont_reconnect}++;
+            $conn->done($reason);
         }
 
         # remote server. use ->quit().

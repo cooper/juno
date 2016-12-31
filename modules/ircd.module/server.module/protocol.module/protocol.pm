@@ -316,7 +316,7 @@ sub _privmsgnotice_smask {
         # if the server is me, send to all my users
         if ($serv == $me) {
             $_->sendfrom($source->full, "$command $$_{nick} :$message")
-                foreach $pool->local_users;
+                foreach $pool->real_local_users;
             $done{$me} = 1;
             next;
         }
