@@ -3829,3 +3829,5 @@ CHANGES:
     37. replaced ->local_users with ->all_local_users and ->real_local_users.
         renamed ->actual_users to ->real_users.
         update TS6/registration to use ->end_burst().
+
+    38. add handle_add() and handle_del() to Ban. this permits either a user or server source.

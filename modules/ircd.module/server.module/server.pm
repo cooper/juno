@@ -294,6 +294,7 @@ sub set_functions {
 
 sub id       { shift->{sid}         }
 sub full     { shift->{name}        }
+sub fullreal { shift->{name}        }
 sub name     { shift->{name}        }
 sub conn     { shift->{conn}        }
 sub user     { undef                }

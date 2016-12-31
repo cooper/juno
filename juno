@@ -186,40 +186,6 @@ main() {
         dev)
             case "$2" in
 
-                makemodule)
-                    mkdir -p $DIR/modules/${3}.module
-                    file=$DIR/modules/${3}.module/$(basename $3).pm
-                    touch $file
-
-                    comments="# Copyright (c) $(date +%Y), ${USER:-$(whoami)}
-#
-# Created on $(hostname)
-# $(date)
-# $(basename $file)
-#
-# @name:            '$3'
-# @package:         'M::$3'
-# @description:     ''
-#
-# @author.name:     'Mitchell Cooper'
-# @author.website:  'https://github.com/cooper'
-#
-package M::$3;
-
-use warnings;
-use strict;
-use 5.010;
-
-our (\$api, \$mod, \$pool);
-
-sub init {
-}
-
-\$mod
-"
-                    echo "$comments" >> $file
-                ;;
-
                 pullsubs)
                     oldpwd=$(pwd)
                     for MOD in $(ls $DIR/lib)

@@ -359,23 +359,28 @@ push @lines, '     on date: '.$ban->hr_lifetime;                               }
     return 1;
 }
 
+sub handle_add_command { handle_add(@_[0..2, 4..$#_]) }
+sub handle_del_command { handle_del(@_[0..2, 4..$#_]) }
+
 # if $duration is 0, the ban is permanent
-sub handle_add_command {
-    my ($type_name, $command, $user, $event, $duration, $match, $reason) = @_;
+# e.g. handle_add('kline', 'KLINE', $me, 0, '*@example.com', 'no examples')
+sub handle_add {
+    my ($type_name, $command, $source, $duration, $match, $reason) = @_;
     my $type = $ban_types{$type_name} or return;
     my $what = ucfirst($type->{hname} || 'ban');
+    my $user = $source if $source->isa('user');
 
     # check that the duration is numeric
     my $seconds = string_to_seconds($duration);
     if (!defined $seconds) {
-        $user->server_notice($command => 'Invalid duration format');
+        $user->server_notice($command => 'Invalid duration format') if $user;
         return;
     }
 
     # check if matcher is valid
     $match = $type->{match_code}($match);
     if (!defined $match) {
-        $user->server_notice($command => "Invalid $what format");
+        $user->server_notice($command => "Invalid $what format") if $user;
         return;
     }
 
@@ -386,7 +391,7 @@ sub handle_add_command {
         if (!$exists->has_expired) {
             $user->server_notice($command =>
                 ucfirst "$what for $match exists already"
-            );
+            ) if $user;
             return;
         }
     }
@@ -399,18 +404,18 @@ sub handle_add_command {
         match         => $match,
         reason        => $reason,
         duration      => $seconds,
-        auser         => $user->fullreal,
-        recent_source => $user
+        auser         => $source->fullreal,
+        recent_source => $source
     ) or return;
 
     # returned nothing
     if (!$ban) {
         $what = $type->{hname} || 'ban';
-        $user->server_notice($command => "Invalid $what");
+        $user->server_notice($command => "Invalid $what") if $user;
         return;
     }
 
-    $ban->notify_new($user);
+    $ban->notify_new($source);
     return 1;
 }
 
@@ -436,31 +441,34 @@ sub create_my_ban {
 }
 
 # $match can be a mask or a ban ID
-sub handle_del_command {
-    my ($type_name, $command, $user, $event, $match) = @_;
+# e.g. handle_del('kline', 'UNKLINE', $me, '*@example.com')
+sub handle_del {
+    my ($type_name, $command, $source, $match) = @_;
     my $type = $ban_types{$type_name} or return;
     my $what = $type->{hname} || 'ban';
+    my $user = $source if $source->isa('user');
 
     # find the ban by ID or matcher
     my $ban = ban_by_user_input($type_name, $match);
     if (!$ban) {
-        $user->server_notice($command => "No $what matches");
+        $user->server_notice($command => "No $what matches") if $user;
         return;
     }
 
     # the ban is already expired but has still has lifetime.
     # this has either already expired or already been deleted.
     if ($ban->has_expired && !$ban->has_expired_lifetime) {
-        $user->server_notice($command => "$what has already been deleted");
+        $user->server_notice($command => "$what has already been deleted")
+            if $user;
         return;
     }
 
     # disable it
     $ban->disable;
-    $ban->set_recent_source($user);
+    $ban->set_recent_source($source);
     $pool->fire_command_all(bandel => $ban);
 
-    $ban->notify_delete($user);
+    $ban->notify_delete($source);
     return 1;
 }
 
