@@ -466,6 +466,12 @@ sub recent_user {
     return $pool->lookup_user($ban->{_just_set_by});
 }
 
+# unset the recent source.
+sub clear_recent_source {
+    my $ban = shift;
+    delete $ban->{_just_set_by};
+}
+
 # the expire time relative to the modification time.
 # this is usually the same as ->duration.
 sub expires_duration {

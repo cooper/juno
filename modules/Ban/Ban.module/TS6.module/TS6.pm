@@ -333,7 +333,10 @@ sub find_from_any {
 sub out_ban {
     my $to_server = shift;
     @_ or return;
-    return map out_baninfo($to_server, $_), @_;
+    return map {
+        $_->clear_recent_source;
+        out_baninfo($to_server, $_);
+    } @_;
 }
 
 # baninfo is the advertisement of a ban. in TS6, use ENCAP K/DLINE

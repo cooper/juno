@@ -93,6 +93,7 @@ sub out_ban {
     # add IDs and modified times for each ban
     my $str = '';
     foreach my $ban (@_) {
+        $ban->clear_recent_source;
         $str .= ' ' if $str;
         $str .= $ban->id.q(,).$ban->modified;
     }
