@@ -3831,3 +3831,4 @@ CHANGES:
         update TS6/registration to use ->end_burst().
 
     38. add handle_add() and handle_del() to Ban. this permits either a user or server source.
+        on ban ->disable(), set the lifetime to 24hrs from now if it was a permanent ban.

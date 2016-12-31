@@ -147,6 +147,10 @@ sub disable {
     }
     $ban->expires = $ban->modified;
 
+    # if this was a permanent ban, set the post-disable lifetime to tomorrow
+    $ban->lifetime = time + 86400
+        if !$ban->lifetime;
+
     # disable enforcement
     $ban->deactivate_enforcement;
 
