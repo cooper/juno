@@ -438,6 +438,9 @@ sub _out_capab_ban {
     my $added_by = $ban->auser ? "$$ban{auser}\{$$ban{aserver}\}" : '*';
     $added_by = '*' if $from->isa('user');
 
+    # always send the duration as zero if the ban has been expired already
+    $deleting++ if $ban->has_expired;
+
     return sprintf ':%s BAN %s %s %s %d %d %d %s :%s',
     ts6_id($from),          # user or server
     $letter,                # ban type
@@ -614,7 +617,7 @@ sub unkline {
     # find and remove ban
     my $ban = _find_ban($server, 'kline', "$ident_mask\@$host_mask") or return;
     $ban->set_recent_source($source);
-    $ban->disable;
+    $ban->disable or return;
 
     $ban->notify_delete($source);
 
@@ -669,7 +672,7 @@ sub undline {
     # find and remove ban
     my $ban = _find_ban($server, 'dline', $ip_mask) or return;
     $ban->set_recent_source($user);
-    $ban->disable;
+    $ban->disable or return;
 
     $ban->notify_delete($user);
 
@@ -753,7 +756,7 @@ sub _unresv {
     # find and remove ban
     my $ban = _find_ban($server, 'resv', $nick_chan_mask) or return;
     $ban->set_recent_source($source);
-    $ban->disable;
+    $ban->disable or return;
 
     $ban->notify_delete($source);
 

@@ -458,8 +458,9 @@ sub handle_del {
     # the ban is already expired but has still has lifetime.
     # this has either already expired or already been deleted.
     if ($ban->has_expired && !$ban->has_expired_lifetime) {
-        $user->server_notice($command => "$what has already been deleted")
-            if $user;
+        $user->server_notice($command =>
+            ucfirst "$what has already been deleted"
+        ) if $user;
         return;
     }
 

@@ -137,6 +137,7 @@ sub activate {
 #
 sub disable {
     my $ban = shift;
+    my $already_expired = $ban->has_expired;
 
     # update the expire time
     if ($ban->modified < time) {
@@ -160,6 +161,8 @@ sub disable {
 
     # update the ban in the db
     $ban->_db_update;
+
+    return !$already_expired;
 }
 
 # $ban->validate

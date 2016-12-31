@@ -3832,3 +3832,5 @@ CHANGES:
 
     38. add handle_add() and handle_del() to Ban. this permits either a user or server source.
         on ban ->disable(), set the lifetime to 24hrs from now if it was a permanent ban.
+        always send duration 0 in TS6 BAN command when the ban has already expired.
+        Ban ->disable() now returns true only if the ban was not already disabled.
