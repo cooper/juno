@@ -189,6 +189,11 @@ my %scommands = (
     FPART => {    # :sid FPART     uid  ch_name ch_time :reason
         params => '-source(server) user channel ts      :rest(opt)',
         code   => \&fpart
+    },
+    FUMODE => {
+                  # :sid FUMODE    uid  +modes
+        params => '-source(server) user *',
+        code   => \&fumode
     }
 );
 
@@ -393,11 +398,11 @@ sub endburst {
 sub umode {
     # user any
     # :uid UMODE modestring
-    my ($server, $msg, $user, $str) = @_;
-    $user->do_mode_string_local($str, 1);
+    my ($server, $msg, $user, $mode_str) = @_;
+    my $result_mode_str = $user->do_mode_string_local($mode_str, 1);
 
     # === Forward ===
-    $msg->forward(umode => $user, $str);
+    $msg->forward(umode => $user, $result_mode_str);
 
 }
 
@@ -1057,10 +1062,26 @@ sub fpart {
     $channel->do_part($user, $reason) or return;
 
     # === Forward ===
-    #
     # forward this as a PART, plus to the source server
-    #
     $msg->forward_plus_one(part => $user, $channel, $reason);
+}
+
+# force user mode
+sub fumode {
+    my ($server, $msg, $source_serv, $user, $mode_str) = @_;
+
+    # not my user
+    if (!$user->is_local) {
+        $msg->forward_to($user, force_umode =>
+            $source_serv, $user, $mode_str);
+        return 1;
+    }
+
+    my $result_mode_str = $user->do_mode_string_local($mode_str, 1);
+
+    # === Forward ===
+    # forward this as a UMODE, plus to the source server
+    $msg->forward_plus_one(umode => $user, $result_mode_str);
 }
 
 $mod

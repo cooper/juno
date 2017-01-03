@@ -878,6 +878,7 @@ sub _do_mode_string {
     $pool->fire_command_all(umode => $user, $result)
         unless $no_prop;
 
+    return $result;
 }
 
 $mod
