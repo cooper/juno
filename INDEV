@@ -3835,3 +3835,5 @@ CHANGES:
         always send duration 0 in TS6 BAN command when the ban has already expired.
         Ban ->disable() now returns true only if the ban was not already disabled.
         added ->clear_recent_source().
+
+    39. finished the MODESYNC user command. #63.

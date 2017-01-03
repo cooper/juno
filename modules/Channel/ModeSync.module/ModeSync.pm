@@ -109,7 +109,7 @@ sub handle_modereq {
             'inf'; # inf indicates all modes
 
         # construct a mode string in the perspective of $me with these modes.
-        my $mode_str = $channel->mode_string_with($me, @mode_names);
+        my (undef, $mode_str) = $channel->mode_string_with($me, @mode_names);
         next if !length $mode_str;
 
         $source_serv->{location}->fire_command(moderep =>

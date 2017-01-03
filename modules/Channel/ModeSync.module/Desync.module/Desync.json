@@ -3,8 +3,14 @@
       "name" : "Mitchell Cooper",
       "website" : "https://github.com/cooper"
    },
+   "depends" : {
+      "modules" : [
+         "Base::UserCommands",
+         "Base::OperNotices"
+      ]
+   },
    "description" : "provides the MODESYNC user command to fix desyncs",
    "name" : "Channel::ModeSync::Desync",
    "package" : "M::Channel::ModeSync::Desync",
-   "version" : "0.3"
+   "version" : "0.5"
 }

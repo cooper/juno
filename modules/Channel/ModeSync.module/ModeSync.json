@@ -6,5 +6,5 @@
    "description" : "improves channel mode synchronization",
    "name" : "Channel::ModeSync",
    "package" : "M::Channel::ModeSync",
-   "version" : "1.9"
+   "version" : "2"
 }
