@@ -185,6 +185,10 @@ my %scommands = (
                   # :sid FJOIN     uid  ch_name ch_time
         params => '-source(server) user *       ts(opt)',
         code   => \&fjoin
+    },
+    FPART => {    # :sid FPART     uid  ch_name ch_time :reason
+        params => '-source(server) user channel ts      :rest(opt)',
+        code   => \&fpart
     }
 );
 
@@ -1035,6 +1039,30 @@ sub fjoin {
     # ($user, $new, $key, $force)
     my ($channel, $new) = $pool->lookup_or_create_channel($ch_name);
     return $channel->attempt_local_join($user, $new, undef, 1);
+}
+
+# force part
+sub fpart {
+    my ($server, $msg, $source_serv, $user, $channel, $ch_time, $reason) = @_;
+
+    # not my user
+    if (!$user->is_local) {
+        $msg->forward_to($user, force_part =>
+            $source_serv, $user, $channel, $ch_time);
+        return 1;
+    }
+
+    # check channel time
+    return if $channel->{time} != $ch_time;
+
+    # this may return false if the user was not in the channel
+    $channel->do_part($user, $reason) or return;
+
+    # === Forward ===
+    #
+    # forward this as a PART, plus to the source server
+    #
+    $msg->forward_plus_one(part => $user, $channel, $reason);
 }
 
 $mod

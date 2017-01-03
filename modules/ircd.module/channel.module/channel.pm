@@ -1108,6 +1108,7 @@ sub attempt_local_join {
 # handle a part locally for both local and remote users.
 sub do_part {
     my ($channel, $user, $reason, $quiet) = @_;
+    return if !$channel->has_user($user);
 
     # remove the user and tell the local channel users
     my $ureason = length $reason ? " :$reason" : '';
