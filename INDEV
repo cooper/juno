@@ -3842,3 +3842,5 @@ CHANGES:
     40. added JELP FPART command. #121.
 
     41. added JELP FUMODE command. #121.
+
+    42. added JELP FOPER command. closes #121.

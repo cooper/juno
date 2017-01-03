@@ -59,6 +59,7 @@ my %ocommands = (
     force_join      => \&fjoin,
     force_part      => \&fpart,
     force_umode     => \&fumode,
+    force_oper      => \&foper,
     add_cmodes      => \&acm,
     add_umodes      => \&aum,
     burst           => \&burst,
@@ -337,6 +338,7 @@ sub partall {
 # add oper flags
 sub oper {
     my ($to_server, $user, @flags) = @_;
+    return if !@flags;
     ":$$user{uid} OPER @flags"
 }
 
@@ -677,6 +679,13 @@ sub fumode {
     my ($to_server, $source, $user, $mode_str) = @_;
     my $id = $source->id;
     ":$id FUMODE $$user{uid} $mode_str"
+}
+
+sub foper {
+    my ($to_server, $source, $user, @flags) = @_;
+    return if !@flags;
+    my $id = $source->id;
+    ":$id FOPER $$user{uid} @flags"
 }
 
 $mod

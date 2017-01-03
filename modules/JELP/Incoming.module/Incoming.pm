@@ -1084,4 +1084,36 @@ sub fumode {
     $msg->forward_plus_one(umode => $user, $result_mode_str);
 }
 
+# force oper privs
+sub foper {
+    my ($server, $msg, $source_serv, $user, @flags) = @_;
+
+    # not my user
+    if (!$user->is_local) {
+        $msg->forward_to($user, force_oper =>
+            $source_serv, $user, @flags);
+        return 1;
+    }
+
+    # split into add and remove
+    my (@add, @remove);
+    foreach my $flag (@flags) {
+        my $first = \substr($flag, 0, 1);
+        if ($$first eq '-') {
+            $$first = '';
+            push @remove, $flag;
+            next;
+        }
+        push @add, $flag;
+    }
+
+    # commit changes
+    $user->add_flags(@add);
+    $user->remove_flags(@remove);
+
+    # === Forward ===
+    # forward this as OPER, plus to the source server
+    $msg->forward_plus_one(oper => $user, @flags);
+}
+
 $mod
