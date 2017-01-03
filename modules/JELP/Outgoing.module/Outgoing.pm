@@ -57,6 +57,7 @@ my %ocommands = (
     users           => \&users,
     force_nick      => \&fnick,
     force_join      => \&fjoin,
+    force_part      => \&fpart,
     add_cmodes      => \&acm,
     add_umodes      => \&aum,
     burst           => \&burst,
@@ -662,6 +663,13 @@ sub fjoin {
     my $id = $source->id;
     $ch_time = length $ch_time ? " $ch_time" : '';
     ":$id FJOIN $$user{uid} $ch_name$ch_time"
+}
+
+sub fpart {
+    my ($to_server, $source, $user, $channel, $reason) = @_;
+    my $id = $source->id;
+    $reason = length $reason ? ": $reason" : '';
+    ":$id FPART $$user{uid} $$channel{name} $$channel{time}$reason"
 }
 
 $mod

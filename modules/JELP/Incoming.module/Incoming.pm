@@ -1044,16 +1044,14 @@ sub fjoin {
 # force part
 sub fpart {
     my ($server, $msg, $source_serv, $user, $channel, $ch_time, $reason) = @_;
+    return if $channel->{time} != $ch_time;
 
     # not my user
     if (!$user->is_local) {
         $msg->forward_to($user, force_part =>
-            $source_serv, $user, $channel, $ch_time);
+            $source_serv, $user, $channel, $reason);
         return 1;
     }
-
-    # check channel time
-    return if $channel->{time} != $ch_time;
 
     # this may return false if the user was not in the channel
     $channel->do_part($user, $reason) or return;
