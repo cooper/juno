@@ -194,6 +194,11 @@ my %scommands = (
                   # :sid FUMODE    uid  +modes
         params => '-source(server) user *',
         code   => \&fumode
+    },
+    FOPER => {
+                   # :uid FOPER     uid  flag1 flag2 ...
+        params  => '-source(server) user @rest',
+        code    => \&foper
     }
 );
 
