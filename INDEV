@@ -3844,3 +3844,6 @@ CHANGES:
     41. added JELP FUMODE command. #121.
 
     42. added JELP FOPER command. closes #121.
+
+    43. greatly improve parameter matchers. #113.
+        the 'opt' attribute is now handled universally for all parameter types.

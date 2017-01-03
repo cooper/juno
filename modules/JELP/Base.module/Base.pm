@@ -15,11 +15,9 @@ use strict;
 use 5.010;
 
 use utils qw(col trim notice v conf);
-use Scalar::Util qw(looks_like_number blessed);
+use Scalar::Util qw(blessed);
 
 our ($api, $mod, $pool, $me);
-my $PARAM_BAD = $message::PARAM_BAD;
-my $props     = $Evented::Object::props;
 
 sub init {
 
@@ -203,11 +201,11 @@ sub _handle_command {
     jelp_message($msg);
 
     # figure parameters.
-    my @params;
+    my ($ok, @params);
     if (my $params = $event->callback_data('parameters')) {
         # $msg->{_event} = $event;
-        @params = $msg->parse_params($params);
-        return if defined $params[0] && $params[0] eq $message::PARAM_BAD;
+        ($ok, @params) = $msg->parse_params($params);
+        return if !$ok;
     }
 
     # call actual callback.
@@ -234,60 +232,42 @@ sub _forward_handler {
 # option server: ensure it's a server
 # option user:   ensure it's a user
 sub _param_source {
-    my ($msg, undef, $params, $opts) = @_;
-    my $source = _lookup_source($msg->{source}) or return $PARAM_BAD;
+    my ($msg, $param, $opts) = @_;
 
-    # if the source isn't there, return PARAM_BAD unless it was optional.
-    undef $source if !$source || !blessed $source;
-    return $PARAM_BAD if !$source && !$opts->{opt};
+    # make sure the source exists
+    my $source = _lookup_source($msg->{source});
+    return if !$source || !blessed $source;
 
-    if ($opts->{server}) { $source->isa('server') or return $PARAM_BAD }
-    if ($opts->{user})   { $source->isa('user')   or return $PARAM_BAD }
-    push @$params, $source;
+    # make sure the type is right, if specified
+    if ($opts->{server}) { $source->isa('server') or return }
+    if ($opts->{user})   { $source->isa('user')   or return }
+
+    return $source;
 }
 
 # server: match an SID.
 sub _param_server {
-    my ($msg, $param, $params, $opts) = @_;
-    my $server = $pool->lookup_server($param) or return $PARAM_BAD;
-
-    # if the server isn't there, return PARAM_BAD unless it was optional.
-    undef $server if !$server || !blessed $server;
-    return $PARAM_BAD if !$server && !$opts->{opt};
-
-    push @$params, $server;
+    my ($msg, $param, $opts) = @_;
+    return $pool->lookup_server($param);
 }
 
 # user: match a UID.
 sub _param_user {
-    my ($msg, $param, $params, $opts) = @_;
-    my $user = $pool->lookup_user($param);
-
-    # if the user isn't there, return PARAM_BAD unless it was optional.
-    undef $user if !$user || !blessed $user;
-    return $PARAM_BAD if !$user && !$opts->{opt};
-
-    push @$params, $user;
+    my ($msg, $param, $opts) = @_;
+    return $pool->lookup_user($param);
 }
 
 # channel: match a channel name.
 sub _param_channel {
-    my ($msg, $param, $params, $opts) = @_;
-    my $channel = $pool->lookup_channel((split ',', $param)[0]);
-
-    # if the channel isn't there, return PARAM_BAD unless it was optional.
-    undef $channel if !$channel || !blessed $channel;
-    return $PARAM_BAD if !$channel && !$opts->{opt};
-
-    push @$params, $channel;
+    my ($msg, $param, $opts) = @_;
+    return $pool->lookup_channel((split ',', $param)[0])
 }
 
 # ts: match a timestamp.
 sub _param_ts {
-    my ($msg, $param, $params, $opts) = @_;
-    looks_like_number($param) or return $PARAM_BAD;
-    return $PARAM_BAD if $param < 0;
-    push @$params, $param;
+    my ($msg, $param, $opts) = @_;
+    return if $param =~ m/\D/;
+    return $param;
 }
 
 # lookup a JELP message source.
@@ -303,17 +283,19 @@ sub _lookup_source {
 sub module_init {
     my ($mod, $event) = @_;
 
+    # register outgoing commands
     my %commands = $mod->get_symbol('%jelp_outgoing_commands');
     $mod->register_outgoing_command(
         name => $_,
         code => $commands{$_}
-    ) or return foreach keys %commands;
+    ) or return for keys %commands;
 
+    # register incoming commands
     %commands = $mod->get_symbol('%jelp_incoming_commands');
     $mod->register_jelp_command(
         name => $_,
         %{ $commands{$_} }
-    ) or return foreach keys %commands;
+    ) or return for keys %commands;
 
     return 1;
 }

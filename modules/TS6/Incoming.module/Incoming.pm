@@ -281,7 +281,7 @@ sub handle_numeric {
 
     # create the message
     # force list context
-    my (undef, $message) = $msg->parse_params('* :rest');
+    my (undef, $message) = $msg->parse_params('skip :rest');
 
     # local user.
     if ($user->is_local) {

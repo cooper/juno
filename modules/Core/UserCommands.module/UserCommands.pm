@@ -21,7 +21,7 @@ use utils qw(
     simplify ref_to_list irc_match irc_lc
 );
 
-our ($api, $mod, $me, $pool, $conf, $VERSION);
+our ($api, $mod, $me, $pool, $conf);
 
 our %user_commands = (
     CONNECT => {

@@ -24,8 +24,6 @@ use M::TS6::Utils qw(obj_from_ts6 ts6_id);
 use utils qw(col trim notice v conf);
 
 our ($api, $mod, $pool, $me);
-my $PARAM_BAD = $message::PARAM_BAD;
-my $props     = $Evented::Object::props;
 
 # TS versions
 our $TS_CURRENT  = 6;
@@ -240,11 +238,11 @@ sub _handle_command {
     my ($server, $event, $msg) = @_;
 
     # figure parameters.
-    my @params;
+    my ($ok, @params);
     if (my $params = $event->callback_data('parameters')) {
         # $msg->{_event} = $event;
-        @params = $msg->parse_params($params);
-        if (defined $params[0] && $params[0] eq $message::PARAM_BAD) {
+        ($ok, @params) = $msg->parse_params($params);
+        if (!$ok) {
             notice(server_protocol_warning =>
                 $server->notice_info,
                 "provided invalid parameters for TS6 command ".$msg->command
@@ -291,37 +289,30 @@ sub _forward_handler {
 # option server: ensure it's a server
 # option user:   ensure it's a user
 sub _param_source {
-    my ($msg, undef, $params, $opts) = @_;
-    my $source = obj_from_ts6($msg->{source});
+    my ($msg, $param, $opts) = @_;
 
-    # if the source isn't there, return PARAM_BAD unless it was optional.
-    undef $source if !$source || !blessed $source;
-    return $PARAM_BAD if !$source && !$opts->{opt};
+    # check if the source exists
+    my $source = obj_from_ts6($msg->{source}) or return;
 
-    # if the source is present and of the wrong type, bad param.
-    if ($opts->{server}) {
-        return $PARAM_BAD if $source && !$source->isa('server');
-    }
-    if ($opts->{user}) {
-        return $PARAM_BAD if $source && !$source->isa('user');
-    }
+    # check the type, if specified
+    if ($opts->{server}) { $source->isa('server') or return }
+    if ($opts->{user})   { $source->isa('user')   or return }
 
-    # note that $source might be undef here, if it was optional.
-    push @$params, $source;
+    return $source;
 }
 
 # server: match an SID.
 sub _param_server {
-    my ($msg, $param, $params, $opts) = @_;
+    my ($msg, $param, $opts) = @_;
     my $server = obj_from_ts6($param);
-    return $PARAM_BAD unless $server && $server->isa('server');
-    push @$params, $server;
+    return if !$server || !$server->isa('server');
+    return $server;
 }
 
 # hunted: like charybdis hunt_server()
 # can be a UID, SID, server mask
 sub _param_hunted {
-    my ($msg, $param, $params, $opts) = @_;
+    my ($msg, $param, $opts) = @_;
 
     # first, find either a user or a server from SID/UID
     my $target = obj_from_ts6($param);
@@ -332,32 +323,30 @@ sub _param_hunted {
     $target ||= $pool->lookup_server_mask($param);
 
     # no matches
-    return $PARAM_BAD unless $target && $target->isa('server');
+    return if !$target || !$target->isa('server');
 
-    push @$params, $target;
+    return $target;
 }
 
 # user: match a UID.
 sub _param_user {
-    my ($msg, $param, $params, $opts) = @_;
+    my ($msg, $param, $opts) = @_;
     my $user = obj_from_ts6($param);
-    return $PARAM_BAD unless $user && $user->isa('user');
-    push @$params, $user;
+    return if !$user || !$user->isa('user');
+    return $user;
 }
 
 # channel: match a channel name.
 sub _param_channel {
-    my ($msg, $param, $params, $opts) = @_;
-    my $channel = $pool->lookup_channel((split ',', $param)[0]) or return $PARAM_BAD;
-    push @$params, $channel;
+    my ($msg, $param, $opts) = @_;
+    return $pool->lookup_channel((split ',', $param)[0]);
 }
 
 # ts: match a timestamp.
 sub _param_ts {
-    my ($msg, $param, $params, $opts) = @_;
-    looks_like_number($param) or return $PARAM_BAD;
-    return $PARAM_BAD if $param < 0;
-    push @$params, $param;
+    my ($msg, $param, $opts) = @_;
+    return if $param =~ m/\D/;
+    return $param;
 }
 
 #####################

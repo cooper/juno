@@ -79,11 +79,11 @@ sub _handle_command {
     $msg->{source} = $user;
 
     # figure parameters.
-    my @params;
+    my ($ok, @params);
     if (my $params = $event->callback_data('parameters')) {
         # $msg->{_event} = $event;
-        @params = $msg->parse_params($params);
-        return if defined $params[0] && $params[0] eq $message::PARAM_BAD;
+        ($ok, @params) = $msg->parse_params($params);
+        return if !$ok;
     }
 
     # call actual callback.

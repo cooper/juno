@@ -21,7 +21,6 @@ use utils qw(trim col ref_to_list);
 
 our ($api, $mod, $pool, $me);
 our $TRUE      = \'__TAG_TRUE__';
-our $PARAM_BAD = \'__PARAM_BAD__';
 
 sub new {
     my ($class, @opts) = @_;
@@ -277,10 +276,17 @@ sub source {
 
 }
 
+# my ($ok, @params) = $msg->parse_params($param_string)
 sub parse_params {
     my ($msg, $param_string) = @_;
     my @parameters = split /\s+/, $param_string;
-    my $package    = $msg->{param_package} || __PACKAGE__;
+
+    # code to find matchers from the package.
+    my $find_code = sub {
+        my $type  = shift;
+        ($msg->{param_package} || __PACKAGE__)->can("_param_$type") ||
+            __PACKAGE__->can("_any_$type");
+    };
 
     # parse argument type attributes and required parameters.
     my $required_parameters = 0; # number of parameters that will be checked
@@ -298,7 +304,7 @@ sub parse_params {
             # get the values of each attribute.
             foreach (split ',', $2) {
                 my $attr = trim($_);
-                my ($name, $val) = split ':', $attr, 2;
+                my ($name, $val) = split /[:=]/, $attr, 2;
                 $attributes->{$name} = defined $val ? $val : 1;
                 push @keys, $name;
             }
@@ -315,30 +321,30 @@ sub parse_params {
 
         # unless there is an 'opt' (optional) attribute
         # or it is one of these fake parameters,
+        # increase the required parameter count.
         next if $match_attr[$i]{opt};
         next if substr($_, 0, 1) eq '-'; # ex: -command or -oper
 
-        # increase required parameter count.
         $required_parameters++;
-
     }
 
-    # param_i = current actual parameter index
-    # match_i = current matcher index
-    # (because a matcher might not really be a parameter matcher at all)
-    my (@final, %param_id);
-    my ($param_i, $match_i) = (-1, -1);
+    # $param_i = current actual parameter index
+    # $match_i = current matcher index
+    # @final   = the modified parameter list
+    my ($param_i, $match_i, @final) = (-1, -1);
 
     # check argument count.
     my @params = $msg->params;
     if (scalar @params < $required_parameters) {
         $msg->source->numeric(ERR_NEEDMOREPARAMS => $msg->command)
             if $msg->source && $msg->source->isa('user');
-        return $PARAM_BAD;
+        return;
     }
 
-    foreach my $_t (@parameters) {
+    foreach (@parameters) {
         $match_i++;
+        my $attrs = $match_attr[$match_i];
+        my $attr_keys = $match_attr_keys[$match_i];
 
         # so basically the dash (-) means that this will not be
         # counted in the required parameters AND that it does
@@ -347,68 +353,59 @@ sub parse_params {
         # use (opt) instead if that is the case.
 
         # is this a fake (ignored) matcher?
-        my ($type, $fake) = $_t;
-        if ($type =~ s/^-//) { $fake = 1  }
-        else                 { $param_i++ }
+        my ($type, $fake, @res);
+        if (s/^-//) { $fake = 1  }
+        else        { $param_i++ }
+        my $type  = $_;
         my $param = $params[$param_i];
 
-        # if this is not a fake matcher, and if there is no parameter,
-        # we should skip this. well, we should be done with the rest, too.
-        last if !$fake && !defined $param;
+        # if this is not a fake matcher, and if there is no REAL parameter,
+        # and the parameter is not marked as optional, give up.
+        return if !$fake && !defined $param && !$attrs->{opt};
 
-        my $param_code = $package->can("_param_$type") || __PACKAGE__->can("_any_$type");
+        # skip this parameter.
+        if ($type eq 'skip') {
+            next;
+        }
 
         # any string.
-        if ($type eq '*' || $type eq 'any') {
-            push @final, $param;
+        elsif ($type eq '*' || $type eq 'any') {
+            @res = $param;
         }
 
         # rest of the arguments as a list.
         elsif ($type eq '@rest' || $type eq '...') {
-            push @final, @params[$param_i..$#params];
+            @res = @params[$param_i..$#params];
         }
 
-        # rest of arguments, space-separated.
+        # rest of arguments, including unaltered whitespace.
         elsif ($type eq ':rest') {
-            push @final, $msg->{_rest}[$param_i];
+            @res = $msg->{_rest}[$param_i];
         }
 
         # parameter as a certain type.
-        elsif ($type =~ m/^tag\.(\w+)$/) {
+        # -tag.the_type(the_name, other opts...)
+        elsif ($type =~ m/^tag\.(\w+)$/ && @$attr_keys) {
+
+            # the parameter is the value of the tag in the message.
             $param = $msg->tag($1);
-            my $attrs = $match_attr[$match_i];
-            my @parts = @{ $match_attr_keys[$match_i] };
 
-            # it is not there and not optional.
-            if (!$attrs->{opt} && !defined $param) {
-                return $PARAM_BAD;
-            }
-
-            # it has a type.
-            if (@parts) {
-                $type       = shift @parts; delete $attrs->{$type};
-                $param_code = $package->can("_param_$type") ||
-                              __PACKAGE__->can("_any_$type");
-                my $res     = $param_code->($msg, $param, \@final, $attrs);
-                return $PARAM_BAD if ref $res && $res == $PARAM_BAD;
-            }
-
+            # the first attribute is the type
+            $type = shift @$attr_keys;
+            delete $attrs->{$type};
         }
 
-        # code-implemented type.
-        elsif ($param_code) {
-            my $res = $param_code->($msg, $param, \@final, $match_attr[$match_i]);
-            return $PARAM_BAD if ref $res && $res == $PARAM_BAD;
+        # at this point, we have to have a code to handle this.
+        if (!@res && defined $param && (my $param_code = $find_code->($type))) {
+            @res = $param_code->($msg, $param, $attrs);
         }
 
-        # unknown type.
-        else {
-            $mod->_log("unknown parameter type $type!");
-            return $PARAM_BAD;
-        }
+        # still nothing, and the parameter isn't optional.
+        return if !@res && !$attrs->{opt};
 
+        push @final, @res;
     }
-    return @final;
+    return (1, @final);
 }
 
 # object->string. returns ($string, $changed)
@@ -439,26 +436,26 @@ sub _objectify {
 
 # -message: inserts the message object.
 sub _any_message {
-    my ($msg, $param, $params, $opts) = @_;
-    push @$params, $msg;
+    my ($msg, $param, $opts) = @_;
+    return $msg;
 }
 
 # -event: inserts the event fire object.
 sub _any_event {
-    my ($msg, $param, $params, $opts) = @_;
-    push @$params, $msg->{_event};
+    my ($msg, $param, $opts) = @_;
+    return $msg->{_event};
 }
 
 # -data: inserts the raw line of data.
 sub _any_data {
-    my ($msg, $param, $params, $opts) = @_;
-    push @$params, $msg->{data};
+    my ($msg, $param, $opts) = @_;
+    return $msg->{data};
 }
 
 # -command: inserts the command name.
 sub _any_command {
-    my ($msg, $param, $params, $opts) = @_;
-    push @$params, $msg->{command};
+    my ($msg, $param, $opts) = @_;
+    return $msg->{command};
 }
 
 #######################################
@@ -467,85 +464,90 @@ sub _any_command {
 
 # -oper: checks if oper flags are present.
 sub _param_oper {
-    my ($msg, $param, $params, $opts) = @_;
+    my ($msg, $param, $opts) = @_;
     my $is_irc_cop = $msg->source->is_mode('ircop');
     my @flags = keys %$opts;
        @flags = 'do that' if !@flags;
     foreach my $flag (@flags) {
         next if $is_irc_cop && $msg->source->has_flag($flag);
         $msg->source->numeric(ERR_NOPRIVILEGES => $flag);
-        return $PARAM_BAD;
+        return;
     }
+
+    # mark it as optional to say it's ok.
+    $opts->{opt}++;
+    return;
 }
 
 # server: match a server name.
 sub _param_server {
-    my ($msg, $param, $params, $opts) = @_;
+    my ($msg, $param, $opts) = @_;
     my $server = $pool->lookup_server_name($param);
 
     # not found, send no such server.
     if (!$server) {
         $msg->source->numeric(ERR_NOSUCHSERVER => $param);
-        return $PARAM_BAD;
+        return;
     }
 
-    push @$params, $server;
+    return $server;
 }
 
 # server_mask: match a mask to a single server.
 sub _param_server_mask {
-    my ($msg, $param, $params, $opts) = @_;
+    my ($msg, $param, $opts) = @_;
 
     # if it's *, always use the local server.
     if ($param eq '*') {
-        return push @$params, $me;
+        return $me;
     }
 
+    # otherwise, find the first server to match.
     my $server = $pool->lookup_server_mask($param);
 
     # not found, send no such server.
     if (!$server) {
         $msg->source->numeric(ERR_NOSUCHSERVER => $param);
-        return $PARAM_BAD;
+        return;
     }
 
-    push @$params, $server;
+    return $server;
 }
 
 # user: match a nickname.
 sub _param_user {
-    my ($msg, $param, $params, $opts) = @_;
+    my ($msg, $param, $opts) = @_;
     my $nickname = (split ',', $param)[0];
     my $user = $pool->lookup_user_nick($nickname);
 
     # not found, send no such nick.
     if (!$user) {
         $msg->source->numeric(ERR_NOSUCHNICK => $nickname);
-        return $PARAM_BAD;
+        return;
     }
 
-    push @$params, $user;
+    return $user;
 }
 
 # channel: match a channel name.
 sub _param_channel {
-    my ($msg, $param, $params, $opts) = @_;
+    my ($msg, $param, $opts) = @_;
     my $chaname = (split ',', $param)[0];
     my $channel = $pool->lookup_channel($chaname);
 
     # not found, send no such channel.
     if (!$channel) {
         $msg->source->numeric(ERR_NOSUCHCHANNEL => $chaname);
-        return $PARAM_BAD;
+        return;
     }
 
     # if 'inchan' attribute, the requesting user must be in the channel.
     if ($opts->{inchan} && !$channel->has_user($msg->source)) {
         $msg->source->numeric(ERR_NOTONCHANNEL => $channel->name);
-        return $PARAM_BAD;
+        return;
     }
 
-    push @$params, $channel;
+    return $channel;
 }
 
 #################################
