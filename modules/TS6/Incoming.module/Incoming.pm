@@ -1580,7 +1580,7 @@ sub rsfnc {
     # forward if appropriate.
     $msg->{encap_forwarded}++;
     $msg->forward_to_mask($serv_mask,
-        svsnick => $server, $user, $new_nick, $new_nick_ts, $old_nick_ts
+        force_nick => $server, $user, $new_nick, $new_nick_ts, $old_nick_ts
     ) and return;
 
     # the target user has to be local.

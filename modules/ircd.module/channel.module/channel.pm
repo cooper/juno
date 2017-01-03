@@ -1043,7 +1043,9 @@ sub do_join {
 #
 sub attempt_local_join {
     my ($channel, $user, $new, $key, $force) = @_;
-    return unless $user->is_local;
+
+    # the user is not local or is already on the channel.
+    return if !$user->is_local || $channel->has_user($user);
 
     # if we're not forcing the join, check that the user is permitted to join.
     unless ($force) {

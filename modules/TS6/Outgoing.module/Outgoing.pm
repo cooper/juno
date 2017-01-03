@@ -72,7 +72,7 @@ our %ts6_outgoing_commands = (
      snotice        => \&snote,
      su_login       => \&su_login,
      su_logout      => \&su_logout,
-     svsnick        => \&rsfnc,
+     force_nick     => \&rsfnc,
      ircd_rehash    => \&rehash
 );
 

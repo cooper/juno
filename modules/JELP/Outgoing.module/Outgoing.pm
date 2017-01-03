@@ -55,7 +55,8 @@ my %ocommands = (
     realhost        => \&realhost,
     lusers          => \&lusers,
     users           => \&users,
-    svsnick         => \&fnick,
+    force_nick      => \&fnick,
+    force_join      => \&fjoin,
     add_cmodes      => \&acm,
     add_umodes      => \&aum,
     burst           => \&burst,
@@ -651,8 +652,16 @@ sub userinfo {
 }
 
 sub fnick {
-    my ($to_server, $server, $user, $new_nick, $new_nick_ts, $old_nick_ts) = @_;
-    ":$$server{sid} FNICK $$user{uid} $new_nick $new_nick_ts $old_nick_ts"
+    my ($to_server, $source, $user, $new_nick, $new_nick_ts, $old_nick_ts) = @_;
+    my $id = $source->id;
+    ":$id FNICK $$user{uid} $new_nick $new_nick_ts $old_nick_ts"
+}
+
+sub fjoin {
+    my ($to_server, $source, $user, $ch_name, $ch_time) = @_;
+    my $id = $source->id;
+    $ch_time = length $ch_time ? " $ch_time" : '';
+    ":$id FJOIN $$user{uid} $ch_name$ch_time"
 }
 
 $mod

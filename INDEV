@@ -3837,3 +3837,4 @@ CHANGES:
         added ->clear_recent_source().
 
     39. finished the MODESYNC user command. #63.
+        added JELP FJOIN command. #121.

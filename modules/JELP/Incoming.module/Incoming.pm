@@ -180,6 +180,11 @@ my %scommands = (
     FNICK => {    # :sid FNICK      uid  new_nick new_nick_ts old_nick_ts
         params => '-source(server)  user *        ts          ts',
         code   => \&fnick
+    },
+    FJOIN => {
+                  # :sid FJOIN     uid  ch_name ch_time
+        params => '-source(server) user *       ts(opt)',
+        code   => \&fjoin
     }
 );
 
@@ -986,9 +991,8 @@ sub fnick {
 
     # not my user
     if (!$user->is_local) {
-        $msg->forward_to($user,
-            svsnick => $server, $user, $new_nick, $new_nick_ts, $old_nick_ts
-        );
+        $msg->forward_to($user, force_nick =>
+            $source_serv, $user, $new_nick, $new_nick_ts, $old_nick_ts);
         return 1;
     }
 
@@ -996,6 +1000,41 @@ sub fnick {
         $msg, $source_serv, $user, $new_nick,
         $new_nick_ts, $old_nick_ts
     );
+}
+
+# force join
+sub fjoin {
+    my ($server, $msg, $source_serv, $user, $ch_name, $ch_time) = @_;
+
+    # not my user
+    if (!$user->is_local) {
+        $msg->forward_to($user, force_join =>
+            $source_serv, $user, $ch_name, $ch_time);
+        return 1;
+    }
+
+    # if the channel time is present, the channel must exist.
+    if (defined $ch_time) {
+        my $channel = $pool->lookup_channel($ch_name) or return;
+
+        # incorrect time
+        if ($ch_time != $channel->{time}) {
+            L(
+                "Rejecting FJOIN with incorrect channel TS from ".
+                $source_serv->notice_info
+            );
+            return;
+        }
+
+        # attempt local join. this can fail. it will notify other servers
+        # if the user did successfully join.
+        return $channel->attempt_local_join($user);
+    }
+
+    # if no channel time is provided, we are forcing the join.
+    # ($user, $new, $key, $force)
+    my ($channel, $new) = $pool->lookup_or_create_channel($ch_name);
+    return $channel->attempt_local_join($user, $new, undef, 1);
 }
 
 $mod

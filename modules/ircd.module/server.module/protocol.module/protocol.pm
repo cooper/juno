@@ -136,8 +136,7 @@ sub handle_svsnick {
 
     #=== Forward ===#
     #
-    # RSFNC has a single-server target, so the nick change must be
-    # propagated as a NICK message.
+    # send out a NICK message so that servers know we accepted this
     #
     $msg->forward_plus_one(nick_change => $user);
 
