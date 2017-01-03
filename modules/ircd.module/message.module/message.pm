@@ -298,18 +298,18 @@ sub parse_params {
         # type(attribute1,att2:val,att3)
         if (/(.+)\((.+)\)/) {
             $parameters[$i] = $1;
-            my $attributes = {};
+            my $attrs = {};
             my @keys;
 
             # get the values of each attribute.
             foreach (split ',', $2) {
                 my $attr = trim($_);
                 my ($name, $val) = split /[:=]/, $attr, 2;
-                $attributes->{$name} = defined $val ? $val : 1;
+                $attrs->{$name} = defined $val ? $val : 1;
                 push @keys, $name;
             }
 
-            $match_attr[$i]      = $attributes;
+            $match_attr[$i]      = $attrs;
             $match_attr_keys[$i] = \@keys;
         }
 
@@ -353,15 +353,14 @@ sub parse_params {
         # use (opt) instead if that is the case.
 
         # is this a fake (ignored) matcher?
-        my ($type, $fake, @res);
+        my ($fake, @res);
         if (s/^-//) { $fake = 1  }
         else        { $param_i++ }
         my $type  = $_;
         my $param = $params[$param_i];
 
-        # if this is not a fake matcher, and if there is no REAL parameter,
-        # and the parameter is not marked as optional, give up.
-        return if !$fake && !defined $param && !$attrs->{opt};
+        # this is a real parameter. check all restrictions on it.
+        return if !$fake && !_check_param($param, $attrs);
 
         # skip this parameter.
         if ($type eq 'skip') {
@@ -381,6 +380,11 @@ sub parse_params {
         # rest of arguments, including unaltered whitespace.
         elsif ($type eq ':rest') {
             @res = $msg->{_rest}[$param_i];
+        }
+
+        # last argument, independent of $param_i.
+        elsif ($type eq 'last') {
+            @res = $params[$#params];
         }
 
         # parameter as a certain type.
@@ -406,6 +410,16 @@ sub parse_params {
         push @final, @res;
     }
     return (1, @final);
+}
+
+# check a real parameter against restrictions.
+sub _check_param {
+    my ($param, $attrs) = @_;
+    return $attrs->{opt} if !defined $param;
+    return if length $param < ($attrs->{minlen} || 0);
+    return if length $param > ($attrs->{maxlen} || 'inf');
+    return if $attrs->{digit} && $param =~ m/\D/;
+    return 1;
 }
 
 # object->string. returns ($string, $changed)

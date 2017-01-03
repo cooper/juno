@@ -3847,3 +3847,7 @@ CHANGES:
 
     43. greatly improve parameter matchers. #113.
         the 'opt' attribute is now handled universally for all parameter types.
+        added 'skip' matcher which skips the parameter, pushing nothing.
+
+    44. added matcher options minlen, maxlen, and digit.
+        added 'last' matcher which always pushes the last parameter. closes #113.
