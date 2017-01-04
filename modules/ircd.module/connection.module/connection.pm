@@ -95,6 +95,9 @@ sub handle {
     # connection is being closed or empty line.
     return if $connection->{goodbye} || !length $data;
 
+my $name = $connection->type ? $connection->type->name : '(unregistered)';
+print "R[$name] $data\n";
+
     # create a message.
     my $msg = message->new(
         data            => $data,
@@ -239,8 +242,9 @@ sub send {
     return unless $connection->{stream};
     return unless $connection->{stream}->write_handle;
     return if $connection->{goodbye};
-
-    @msg = grep { defined } @msg;
+    @msg = grep defined, @msg;
+my $name = $connection->type ? $connection->type->name : '(unregistered)';
+print "S[$name] $_\n" for @msg;
     $connection->{stream}->write("$_\r\n") foreach @msg;
 }
 
