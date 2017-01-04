@@ -355,6 +355,7 @@ sub parse_params {
         my $param = $params[$param_i];
 
         # this is a real parameter. check all restrictions on it.
+        undef $param if $fake;
         return (undef, 'Parameter restriction unsatisfied '.$type)
             if !$fake && !_check_param($param, $attrs);
 

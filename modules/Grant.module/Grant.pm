@@ -43,13 +43,28 @@ our %oper_notices = (
 
 sub grant {
     my ($user, $event, $t_user, @flags) = @_;
-    @flags = simplify(@flags);
+    @flags = simplify(@flags) or return;
 
-    # send out FOPER.
-    $t_user->{location}->fire_command(force_oper => $me, $t_user, @flags);
-
+    # notice
     gnotice($user, grant =>
         $user->notice_info, $t_user->notice_info, "@flags");
+
+    # local user
+    if ($t_user->is_local) {
+
+        # add the flags
+        @flags = $user->add_flags(@flags);
+        $user->update_flags;
+
+        # tell other servers
+        $pool->fire_command_all(oper => $user, @flags);
+    }
+
+    # send out FOPER.
+    else {
+        $t_user->{location}->fire_command(force_oper => $me, $t_user, @flags);
+    }
+
     return 1;
 }
 
@@ -66,15 +81,30 @@ sub ungrant {
         return;
     }
 
-    # send out FOPER.
-    $t_user->{location}->fire_command(foper =>
-        $me, $t_user,
-        map { "-$_" } @flags
-    );
-
-    @flags = '(all)' if !scalar @{ $t_user->{flags} };
+    # notice
     gnotice($user, ungrant =>
         $user->notice_info, $t_user->notice_info, "@flags");
+
+    # local user
+    if ($t_user->is_local) {
+
+        # remove the flags
+        @flags = $user->remove_flags(@flags);
+        $user->update_flags;
+
+        # tell other servers
+        $pool->fire_command_all(oper => $user, map { "-$_" } @flags);
+    }
+    
+    # send out FOPER.
+    else {
+        $t_user->{location}->fire_command(foper =>
+            $me, $t_user,
+            map { "-$_" } @flags
+        );
+    }
+
+
     return 1;
 }
 
