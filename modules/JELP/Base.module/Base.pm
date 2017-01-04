@@ -152,7 +152,7 @@ sub send_server_server {
         L('Trying to send credentials to an unknown server?');
         return;
     }
-    $connection->send(sprintf 'SERVER %s %s %s %s :%s',
+    $connection->send(sprintf 'SERVER %s %s %s %s %s :%s',
         $me->{sid},
         $me->{name},
         v('PROTO'),
