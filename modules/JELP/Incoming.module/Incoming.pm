@@ -476,6 +476,7 @@ sub oper {
     # commit changes
     $user->add_flags(@add);
     $user->remove_flags(@remove);
+    $user->update_flags;
 
     # === Forward ===
     $msg->forward(oper => $user, @flags);
@@ -1104,17 +1105,20 @@ sub foper {
     my (@add, @remove);
     foreach my $flag (@flags) {
         my $first = \substr($flag, 0, 1);
-        if ($$first eq '-') {
-            $$first = '';
-            push @remove, $flag;
+        if (substr($flag, 0, 1) eq '-') {
+            push @remove, substr($flag, 1);
             next;
         }
         push @add, $flag;
     }
 
-    # commit changes
-    $user->add_flags(@add);
-    $user->remove_flags(@remove);
+    # commit changes locally
+    @add = $user->add_flags(@add);
+    @remove = $user->remove_flags(@remove);
+    $user->update_flags;
+
+    # nothing changed. stop here; do not propagate.
+    return if !@add && !@remove;
 
     # === Forward ===
     # forward this as OPER, plus to the source server

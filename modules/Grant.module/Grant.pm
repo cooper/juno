@@ -19,9 +19,9 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils qw(simplify notice ref_to_list);
+use utils qw(gnotice simplify);
 
-our ($api, $mod, $pool);
+our ($api, $mod, $pool, $me);
 
 our %user_commands = (
     GRANT => {
@@ -43,79 +43,38 @@ our %oper_notices = (
 
 sub grant {
     my ($user, $event, $t_user, @flags) = @_;
-
-    # add the flags.
     @flags = simplify(@flags);
-    @flags = $t_user->add_flags(@flags);
 
-    # no new flags.
-    if (!@flags) {
-        $user->server_notice(grant => 'User already has those flags');
-        return;
-    }
+    # send out FOPER.
+    $t_user->{location}->fire_command(force_oper => $me, $t_user, @flags);
 
-    # user isn't an IRC cop yet.
-    my $already_irc_cop = $t_user->is_mode('ircop');
-    if (!$already_irc_cop) {
-        my $mode = $t_user->{server}->umode_letter('ircop');
-        $t_user->do_mode_string_unsafe("+$mode", 1);
-    }
-
-    # tell other servers about the flags.
-    $pool->fire_command_all(oper => $t_user, @flags);
-
-    # note: these will come from the server the GRANT command is issued on.
-    my @all = ref_to_list($t_user->{flags});
-    $t_user->server_notice("You now have flags: @all") if @all;
-    $t_user->numeric('RPL_YOUREOPER') unless $already_irc_cop;
-
-    notice($user, grant => "$$t_user{nick} was granted: @flags");
+    gnotice($user, grant =>
+        $user->notice_info, $t_user->notice_info, "@flags");
     return 1;
 }
 
 sub ungrant {
     my ($user, $event, $t_user, @flags) = @_;
 
-    # removing all flags and unsetting oper.
-    my $unopered = $flags[0] eq '*';
-    if ($unopered) {
-        @flags   = @{ $t_user->{flags} };
-        my $mode = $t_user->{server}->umode_letter('ircop');
-        $t_user->do_mode_string_unsafe("-$mode", 1);
-    }
-
-    # remove the flags.
+    # removing all flags.
+    @flags = @{ $t_user->{flags} } if $flags[0] eq '*';
     @flags = simplify(@flags);
-    @flags = $t_user->remove_flags(@flags) unless $unopered;
 
     # none removed.
-    if (!@flags && !$unopered) {
+    if (!@flags) {
         $user->server_notice(grant => "User doesn't have any of those flags");
         return;
     }
 
-    # all removed but not unopered.
-    # show this little reminder.
-    if (!@{ $t_user->{flags} } && !$unopered) {
-        $user->server_notice(grant => 'Please note that the user will remain an IRC operator even with no flags unless you ungrant "*"');
-    }
+    # send out FOPER.
+    $t_user->{location}->fire_command(foper =>
+        $me, $t_user,
+        map { "-$_" } @flags
+    );
 
-    # tell other servers about the flags.
-    $pool->fire_command_all(oper => $t_user, map { "-$_" } @flags);
-
-    # note: these will come from the server the GRANT command is issued on.
-    my @all = ref_to_list($t_user->{flags});
-
-    # for notices
-    if (!@all) {
-        @all   = '(no flags)';
-        @flags = '(all flags)';
-    }
-
-    # notices
-    $t_user->server_notice("You now have flags: @all");
-    notice($user, ungrant => $user->{nick}, $t_user->{nick}, "@flags");
-
+    @flags = '(all)' if !scalar @{ $t_user->{flags} };
+    gnotice($user, ungrant =>
+        $user->notice_info, $t_user->notice_info, "@flags");
     return 1;
 }
 

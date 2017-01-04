@@ -3851,3 +3851,7 @@ CHANGES:
 
     44. added matcher options minlen, maxlen, and digit.
         added 'last' matcher which always pushes the last parameter. closes #113.
+
+    45. lots of work on oper flag handling.
+        added new ->update_flags() which sets +/-o when necessary.
+        updated Grant module to use the new JELP FOPER command.

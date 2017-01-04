@@ -20,7 +20,7 @@ use Scalar::Util 'blessed';
 use utils qw(trim col ref_to_list);
 
 our ($api, $mod, $pool, $me);
-our $TRUE      = \'__TAG_TRUE__';
+our $TRUE = \'__TAG_TRUE__';
 
 sub new {
     my ($class, @opts) = @_;
@@ -231,11 +231,6 @@ sub params  { @{ shift->{params} || [] }    }
 sub param   { shift->{params}[shift]        }
 sub event   { shift->{_event}               }
 
-# TODO: these
-sub source_nick  { ... }
-sub source_ident { ... }
-sub source_host  { ... }
-
 # source always returns an object.
 # if an object cannot be found, it returns undef.
 sub source {
@@ -338,7 +333,7 @@ sub parse_params {
     if (scalar @params < $required_parameters) {
         $msg->source->numeric(ERR_NEEDMOREPARAMS => $msg->command)
             if $msg->source && $msg->source->isa('user');
-        return;
+        return (undef, 'Not enough parameters');
     }
 
     foreach (@parameters) {
@@ -360,7 +355,8 @@ sub parse_params {
         my $param = $params[$param_i];
 
         # this is a real parameter. check all restrictions on it.
-        return if !$fake && !_check_param($param, $attrs);
+        return (undef, 'Parameter restriction unsatisfied '.$type)
+            if !$fake && !_check_param($param, $attrs);
 
         # skip this parameter.
         if ($type eq 'skip') {
@@ -400,12 +396,19 @@ sub parse_params {
         }
 
         # at this point, we have to have a code to handle this.
-        if (!@res && defined $param && (my $param_code = $find_code->($type))) {
+        # fake matchers are called with or without $param, but real ones
+        # require that $param is defined.
+        my $defined_ok = !$fake || defined $param;
+        if (!@res && $defined_ok && (my $param_code = $find_code->($type))) {
             @res = $param_code->($msg, $param, $attrs);
         }
 
         # still nothing, and the parameter isn't optional.
-        return if !@res && !$attrs->{opt};
+        return (undef, 'Nothing matched the parameter '.$type)
+            if !@res && !$attrs->{opt};
+
+        # this was optional, but nothing matched, so push undef
+        @res = undef if !@res;
 
         push @final, @res;
     }

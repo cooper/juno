@@ -22,7 +22,7 @@ use overload
     '0+'     => sub { shift     },
     bool     => sub { 1         };
 
-use utils qw(v notice col conf irc_time cut_to_limit irc_lc);
+use utils qw(v notice col conf irc_time cut_to_limit irc_lc simplify);
 use List::Util   'first';
 use Scalar::Util 'blessed';
 
@@ -165,31 +165,71 @@ sub has_flag {
 
 # add oper flags.
 sub add_flags {
-    my $user  = shift;
+    my $user = shift;
+    my $their_flags = $user->{flags};
+
+    # weed out duplicates
     my %has   = map  { $_ => 1   } @{ $user->{flags} };
-    my @flags = grep { !$has{$_} } @_;
-    return unless scalar @flags;
-    L("adding flags to $$user{nick}: @flags");
-    notice(user_opered => $user->notice_info, $user->{server}{name}, "@flags");
-    push @{ $user->{flags} }, @flags;
+    my @flags = grep { !$has{$_} } simplify(@_);
+    return unless @flags;
+
+    # add the flags
+    push @$their_flags, @flags;
+
+    # return the flags that were added
     return @flags;
 }
 
 # remove oper flags.
 sub remove_flags {
-    my $user   = shift;
+    my $user = shift;
+    my $their_flags = $user->{flags};
     my %remove = map { $_ => 1 } @_;
-    L("removing flags from $$user{nick}: @{[ keys %remove ]}");
     my (@new, @removed);
-    foreach my $flag (@{ $user->{flags} }) {
+    foreach my $flag (@$their_flags) {
         if ($remove{$flag}) {
             push @removed, $flag;
             next;
         }
         push @new, $flag;
     }
-    $user->{flags} = \@new;
+    @$their_flags = @new;
     return @removed;
+}
+
+sub update_flags {
+    my $user = shift;
+    my $their_flags = $user->{flags};
+
+    # our user. we may set +/-o if necessary
+    if ($user->is_local) {
+
+        # make the user an IRCop
+        my $is_ircop = $user->is_mode('ircop');
+        my $mode = $user->{server}->umode_letter('ircop');
+        if (!$is_ircop && @$their_flags) {
+            $user->do_mode_string("+$mode", 1);
+            $user->numeric('RPL_YOUREOPER');
+        }
+
+        # revoke the user of IRCop
+        elsif ($is_ircop && !@$their_flags) {
+            $user->do_mode_string("-$mode", 1);
+        }
+
+        # notify flags and notices
+        $user->server_notice("You now have flags: @$their_flags")
+            if @$their_flags;
+        my @all_notices = @{ $user->{notice_flags} || [] };
+        $user->server_notice("You now have notices: @all_notices")
+            if @all_notices;
+    }
+
+    notice(user_opered =>
+        $user->notice_info,
+        $user->{server}{name},
+        "@$their_flags"
+    ) if @$their_flags;
 }
 
 # has a notice flag
@@ -615,13 +655,10 @@ sub do_logout {
 }
 
 # handle a mode string, send to the local user, send to other servers.
-sub do_mode_string { _do_mode_string(undef, undef, @_) }
+sub do_mode_string { _do_mode_string(undef, @_) }
 
 # same as do_mode_string() except it does not send to other servers.
-sub do_mode_string_local { _do_mode_string(1, undef, @_) }
-
-# same as do_mode_string() except it works on remote users.
-sub do_mode_string_unsafe { _do_mode_string(undef, 1, @_) }
+sub do_mode_string_local { _do_mode_string(1, @_) }
 
 # $user->send_to_channels($message, %opts)
 #
@@ -859,15 +896,14 @@ sub _events_for_message {
 # handle mode string, notify user if local, tell other servers.
 #
 # $no_prop = do not propagate the mode change
-# $unsafe  = propagate even if the user is remote
 #
 sub _do_mode_string {
-    my ($no_prop, $unsafe, $user, $mode_str, $force) = @_;
+    my ($no_prop, $user, $mode_str, $force) = @_;
 
     # handle it, regardless if local or remote.
     my $result = $user->handle_mode_string($mode_str, $force) or return;
 
-    return if !$user->is_local && !$unsafe;                 # remote not allowed
+    return if !$user->is_local;                 # remote not allowed
     return if $user->is_local  && !$user->{init_complete};  # local user not done registering
 
     # tell the user himself..

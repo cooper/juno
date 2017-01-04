@@ -620,29 +620,14 @@ sub oper {
     };
     $add_class->($oper{class}) if defined $oper{class};
 
-    # remove duplicate flags.
-    @flags   = simplify(@flags);
-    @notices = simplify(@notices);
-
-    # add the flags.
-    $user->add_flags(@flags);
+    # add the flags
+    @flags = $user->add_flags(@flags);
     $user->add_notices(@notices);
+    $user->update_flags;
     $user->{oper} = $oper_name;
+
+    # tell other servers
     $pool->fire_command_all(oper => $user, @flags);
-
-    # okay, we should have a complete list of flags now.
-    my @all_flags   = ref_to_list($user->{flags});
-    my @all_notices = ref_to_list($user->{notice_flags});
-    $user->server_notice("You now have flags: @all_flags")     if @all_flags;
-    $user->server_notice("You now have notices: @all_notices") if @all_notices;
-    L(
-        "$$user{nick}!$$user{ident}\@$$user{host} has opered as " .
-        "$oper_name and was granted flags: @flags"
-    );
-
-    # set ircop.
-    $user->do_mode_string('+'.$user->{server}->umode_letter('ircop'), 1);
-    $user->numeric('RPL_YOUREOPER');
 
     return 1;
 }

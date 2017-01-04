@@ -147,6 +147,13 @@ $user->remove_flags('kill', 'gkill');
 
 * __@flags__: a list of oper flags to remove.
 
+### $user->update_flags()
+
+After committing oper flag changes, this method will set or unset the user's
+IRCop mode if necessary. It also notifies the user and other opers of the
+flags that have been granted. This method is used for both local and remote
+users.
+
 ### $user->has_notice($flag)
 
 Returns true if the user has the supplied oper notice flag enabled.
@@ -563,29 +570,6 @@ servers.
 
 ```perl
 $user->do_mode_string_local('+i');
-```
-
-* __$mode_string__: the mode string to be handled; e.g. `+iox`. this is in the
-perspective of the user's server, `$user->server`.
-* __$force__: _optional_, if true, failure of user mode blocks will be ignored,
-forcing the changes.
-
-### $user->do_mode_string_unsafe($mode_string, $force)
-
-Handles a mode string with
-[`->handle_mode_string()`](#user-handle_mode_stringmode_string-force).
-If the user is local, a MODE message
-will notify the user with the result of any changes. The mode message will then
-be forwarded and handled on child servers, regardless of whether the user is
-local.
-
-Unlike [`->do_mode_string()`](#user-do_mode_stringmode_string-force),
-linked servers will be notified of the change even if the
-user is remote. The result is that the local server forces a mode change on a
-remote user. That is why this is called unsafe and should be used with caution.
-
-```perl
-$user->do_mode_string_unsafe('+o', 1);
 ```
 
 * __$mode_string__: the mode string to be handled; e.g. `+iox`. this is in the
