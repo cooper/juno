@@ -6,5 +6,5 @@
    "description" : "JELP SASL implementation",
    "name" : "SASL::JELP",
    "package" : "M::SASL::JELP",
-   "version" : "0.7"
+   "version" : "0.8"
 }

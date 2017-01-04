@@ -3859,3 +3859,5 @@ CHANGES:
     46. update all TS6 ENCAP commands to use the new 'skip' matcher for encapsulated the command name.
 
     47. added command source checking for both JELP and TS6. closes #91.
+
+    48. fixed a bug where TS6 ENCAP LOGIN was sent out even when EUID was used.

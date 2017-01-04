@@ -123,13 +123,6 @@ sub send_burst {
         # (E)UID, ENCAP REALHOST, ENCAP LOGIN
         $server->fire_command(new_user => $user);
 
-        # ENCAP LOGIN
-        # FIXME: wouldn't this have been dealt with already?
-        $server->fire_command(login => $user, $user->{account}{name})
-            if $user->{account};
-
-        # TODO: oper flags
-
         # AWAY
         $server->fire_command(away => $user)
             if length $user->{away};
