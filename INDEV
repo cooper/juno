@@ -3861,3 +3861,4 @@ CHANGES:
     47. added command source checking for both JELP and TS6. closes #91.
 
     48. fixed a bug where TS6 ENCAP LOGIN was sent out even when EUID was used.
+        fixed a bug where SQUIT for any server mask would cancel all connection timers.

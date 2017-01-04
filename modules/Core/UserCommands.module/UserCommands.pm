@@ -1311,8 +1311,8 @@ sub squit {
     my $amnt = 0;
 
     # if there is a pending timer, cancel it.
-    # FIXME: is this literally canceling all timers, or am I reading it wrong?
     foreach my $server_name (keys %ircd::link_timers) {
+        next unless irc_match($server_name, $squit_mask);
         if (server::linkage::cancel_connection($server_name)) {
             notice($user, connect_cancel => $user->notice_info, $server_name);
             $amnt++;
@@ -1331,9 +1331,9 @@ sub squit {
 
         # it's me!
         if ($server == $me) {
-            $user->server_notice(squit => "Can't disconnect the local server")
-                if @servers == 1;
-            next;
+            next if @servers != 1;
+            $user->server_notice(squit => "Can't disconnect the local server");
+            return;
         }
 
         # direct connection. use ->done().
