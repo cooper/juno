@@ -405,10 +405,12 @@ sub parse_params {
 
         # still nothing, and the parameter isn't optional.
         return (undef, 'Nothing matched the parameter '.$type)
-            if !@res && !$attrs->{opt};
+            if !@res && !$attrs->{opt} && !$attrs->{nothing};
 
         # this was optional and fake, but nothing matched, so push undef.
-        @res = undef if $fake && !@res;
+        # {nothing} can be set by fake matchers to indicate that the matcher
+        # pushes nothing, not even undef, to the parameter list.
+        @res = undef if $fake && !@res && !$attrs->{nothing};
 
         push @final, @res;
     }
@@ -492,7 +494,7 @@ sub _param_oper {
     }
 
     # mark it as optional to say it's ok.
-    $opts->{opt}++;
+    $opts->{nothing}++;
     return;
 }
 
