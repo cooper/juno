@@ -49,19 +49,22 @@ sub register_registration_command {
     my $event_name = "connection.message_$command";
     my $params     = $opts{parameters} || $opts{params};
     $pool->on($event_name => sub {
-            my ($event, $msg) = @_;
+            my ($conn, $event, $msg) = @_;
+
+            # not the right protocol.
+            return if $opts{proto} && !$conn->possibly_protocol($opts{proto});
 
             # there are enough.
             return 1 if $msg->params >= $params;
 
             # not enough.
-            my $conn = $event->object;
             $conn->numeric(ERR_NEEDMOREPARAMS => $command);
             $event->stop;
 
         },
         name     => 'parameter.check',
         priority => 1000,
+        with_eo  => 1,
         _caller  => $mod->package
     ) or return if $params;
 
