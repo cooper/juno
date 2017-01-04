@@ -1609,7 +1609,17 @@ sub _connect {
     }
 
     # otherwise, handle it locally.
-    $source->isa('user') or return; # FIXME: what to do when not user?
+
+    # this has to be a user in order to use ->handle_unsafe().
+    if (!$source->isa('user')) {
+        notice(server_protocol_warning =>
+            $server->notice_info,
+            'sent CONNECT with source '.$source->notice_info.
+            ', but only users can issue CONNECT'
+        );
+        return;
+    }
+
     return $source->handle_unsafe("CONNECT $connect_mask");
 
 }

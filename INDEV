@@ -3862,3 +3862,5 @@ CHANGES:
 
     48. fixed a bug where TS6 ENCAP LOGIN was sent out even when EUID was used.
         fixed a bug where SQUIT for any server mask would cancel all connection timers.
+        produce a warning when receiving CONNECT from a server.
+        send out TS6 connect with 0 to indicate that the default port should be used.

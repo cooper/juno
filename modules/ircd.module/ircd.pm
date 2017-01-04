@@ -982,7 +982,7 @@ sub add_internal_channel_modes {
     $me->{cmodes} = {};
     %channel_mode_prefixes = ();
 
-    # FIXME: this is repulsive
+    # FIXME: (#104) this is repulsive
     # store prefixes as [letter, symbol, name, set_weight]
     foreach my $name ($conf->keys_of_block('prefixes')) {
         my $p = conf('prefixes', $name) or next;

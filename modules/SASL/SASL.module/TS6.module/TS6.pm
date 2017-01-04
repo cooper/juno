@@ -239,7 +239,7 @@ sub encap_svslogin {
         return 1;
     }
 
-    # FIXME: SVSLOGIN is only permitted from services. check that.
+    # FIXME: (#123) SVSLOGIN is only permitted from services. check that.
 
     # find the target connection.
     #

@@ -1117,7 +1117,7 @@ sub _connect {
     my ($to_server, $source, $connect_mask, $t_server) = @_;
     my $id  = ts6_id($source);
     my $sid = ts6_id($t_server);
-    ":$id CONNECT $connect_mask $sid"
+    ":$id CONNECT $connect_mask 0 $sid"
 }
 
 # LUSERS

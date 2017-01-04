@@ -194,7 +194,7 @@ sub isp_core {
         RFC2812     => $yes,
         FNC         => $yes,
         AWAYLEN     => conf('limit', 'away'),
-        MAXTARGETS  => 1                    # FIXME: see issue #53
+        MAXTARGETS  => 1                    # FIXME: (#53) needs work
       # ELIST       => 'flags'              # TODO: (#27) not implemented yet
     );
 
