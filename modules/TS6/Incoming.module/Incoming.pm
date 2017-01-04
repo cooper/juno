@@ -145,7 +145,7 @@ our %ts6_incoming_commands = (
     },
     ENCAP_CHGHOST => {
                   # :uid ENCAP   serv_mask  CHGHOST  new_host
-        params => '-source(user) *          *        *',
+        params => '-source(user) *          skip     *',
         code   => \&ENCAP_CHGHOST
     },
     SQUIT => {
@@ -194,8 +194,8 @@ our %ts6_incoming_commands = (
         code   => \&generic_hunted
     },
     LUSERS => {
-                # :sid|uid LUSERS   server_mask sid
-        params => '-source          *           hunted',
+                # :sid|uid LUSERS   server_mask(unused) sid
+        params => '-source          skip                hunted',
         code   => \&lusers
     },
     LINKS => {
@@ -210,17 +210,17 @@ our %ts6_incoming_commands = (
     },
     ENCAP_LOGIN => {
                   # :uid ENCAP   serv_mask  LOGIN    account_name
-        params => '-source(user) *          *        *',
+        params => '-source(user) *          skip     *',
         code   => \&login
     },
     ENCAP_SU => {
-                  # :sid ENCAP     serv_mask  SU  uid    account_name
-        params => '-source(server) *          *   user   *(opt)',
+                  # :sid ENCAP     serv_mask  SU    uid    account_name
+        params => '-source(server) *          skip  user   *(opt)',
         code   => \&su
     },
     ENCAP_REHASH => {
                   # :sid ENCAP     serv_mask REHASH type
-        params => '-source(server) *         *      *(opt)',
+        params => '-source(server) *         skip   *(opt)',
         code   => \&rehash
     },
     SAVE => {
@@ -229,8 +229,8 @@ our %ts6_incoming_commands = (
         code   => \&save
     },
     ENCAP_RSFNC => {
-                  # :sid ENCAP     serv_mask RSFNC uid  new_nick new_nick_ts old_nick_ts
-        params => '-source(server) *         *     user *        ts          ts',
+                  # :sid ENCAP     serv_mask RSFNC  uid  new_nick new_nick_ts old_nick_ts
+        params => '-source(server) *         skip   user *        ts          ts',
         code   => \&rsfnc
     },
     CONNECT => {
@@ -240,17 +240,17 @@ our %ts6_incoming_commands = (
     },
     ENCAP_GCAP => {
                   # :sid ENCAP     serv_mask GCAP  caps
-        params => '-source(server) *         *     :rest',
+        params => '-source(server) *         skip  :rest',
         code   => \&gcap
     },
     ENCAP_REALHOST => {
                   # :uid ENCAP   serv_mask REALHOST host
-        params => '-source(user) *         *        *',
+        params => '-source(user) *         skip     *',
         code   => \&realhost
     },
     ENCAP_SNOTE => {
                   # :sid ENCAP     serv_mask SNOTE    letter :message
-        params => '-source(server) *         *        *      *',
+        params => '-source(server) *         skip     *      *',
         code   => \&realhost
     }
 );
@@ -813,7 +813,7 @@ sub encap {
 # ts6-protocol.txt:505
 #
 sub login {
-    my ($server, $msg, $user, $serv_mask, undef, $act_name) = @_;
+    my ($server, $msg, $user, $serv_mask, $act_name) = @_;
     $msg->{encap_forwarded}++;
 
     # login.
@@ -834,7 +834,7 @@ sub login {
 # parameters:   target user, new login name (optional)
 #
 sub su {
-    my ($server, $msg, $source_serv, $serv_mask, undef, $user, $act_name) = @_;
+    my ($server, $msg, $source_serv, $serv_mask, $user, $act_name) = @_;
     $msg->{encap_forwarded}++;
 
     # no account name = logout.
@@ -1278,7 +1278,7 @@ sub chghost {
 }
 
 sub encap_chghost {
-    my ($server, $msg, $user, undef, undef, $new_host) = @_;
+    my ($server, $msg, $user, $serv_mask, $new_host) = @_;
     $msg->{encap_forwarded}++;
     return chghost(@_[0..2], $new_host);
 }
@@ -1462,7 +1462,7 @@ sub generic_hunted {
 # parameters:   server mask, hunted
 #
 sub lusers {
-    my ($server, $msg, $user, undef, $t_server) = @_;
+    my ($server, $msg, $user, $t_server) = @_;
 
     # if the target server is not me, forward it.
     if ($t_server != $me) {
@@ -1527,7 +1527,7 @@ sub invite {
 # parameters:   opt. rehash type
 #
 sub rehash {
-    my ($server, $msg, $user, $serv_mask, undef, $type) = @_;
+    my ($server, $msg, $user, $serv_mask, $type) = @_;
     $msg->{encap_forwarded}++;
 
     # rehash if the mask matches me.
@@ -1574,7 +1574,7 @@ sub save {
 # parameters:   target user, new nickname, new nickTS, old nickTS
 #
 sub rsfnc {
-    my ($server, $msg, $source_serv, $serv_mask, undef,
+    my ($server, $msg, $source_serv, $serv_mask,
     $user, $new_nick, $new_nick_ts, $old_nick_ts) = @_;
 
     # forward if appropriate.
@@ -1622,7 +1622,7 @@ sub _connect {
 # parameters:   space separated capability list
 #
 sub gcap {
-    my ($server, $msg, $source_serv, undef, undef, $caps) = @_;
+    my ($server, $msg, $source_serv, $serv_mask, $caps) = @_;
     # don't set $msg->{encap_forwarded} because this is TS6-specific
     $source_serv->add_cap(split /\s+/, $caps);
 }
@@ -1636,7 +1636,7 @@ sub gcap {
 # parameters:   real hostname
 #
 sub realhost {
-    my ($server, $msg, $user, undef, undef, $host) = @_;
+    my ($server, $msg, $user, $serv_mask, $host) = @_;
     $msg->{encap_forwarded}++;
     $user->{host} = $host;
     $msg->forward(realhost => $user, $host);
@@ -1667,7 +1667,7 @@ my %snomask_names = (
     Z => 'operspy'
 );
 sub snote {
-    my ($server, $msg, $source_serv, undef, undef, $letter, $message) = @_;
+    my ($server, $msg, $source_serv, $serv_mask, $letter, $message) = @_;
     my $notice = $snomask_names{$letter} || 'general';
     $msg->{encap_forwarded}++;
 

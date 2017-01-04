@@ -59,22 +59,22 @@ our %ts6_outgoing_commands = (
 our %ts6_incoming_commands = (
     ENCAP_DLINE => {
                   # :uid ENCAP    target DLINE duration ip_mask :reason
-        params => '-source(user)  *      *     *        *       :rest',
+        params => '-source(user)  *      skip  *        *       :rest',
         code   => \&encap_dline
     },
     ENCAP_UNDLINE => {
                   # :uid ENCAP    target UNDLINE ip_mask
-        params => '-source(user)  *      *       *',
+        params => '-source(user)  *      skip    *',
         code   => \&encap_undline
     },
     ENCAP_KLINE => {
                   # :<source> ENCAP <target> KLINE <time>   <user>     <host>    :<reason>
-        params => '-source(user)    *        *     *        *          *         :rest',
+        params => '-source(user)    *        skip  *        *          *         :rest',
         code   => \&encap_kline
     },
     ENCAP_UNKLINE => {
                   # :<source> ENCAP <target> UNKLINE <user>     <host>
-        params => '-source(user)    *        *       *          *',
+        params => '-source(user)    *        skip    *          *',
         code   => \&encap_unkline
     },
     KLINE => {
@@ -94,12 +94,12 @@ our %ts6_incoming_commands = (
     },
     ENCAP_RESV => {
                   # :uid ENCAP   target RESV duration nick_chan_mask 0      :reason
-        params => '-source(user) *      *    *        *              *(opt) *',
+        params => '-source(user) *      skip *        *              *(opt) *',
         code   => \&encap_resv
     },
     ENCAP_UNRESV => {
                   # :uid ENCAP   target UNRESV nick_chan_mask
-        params => '-source(user) *      *      *',
+        params => '-source(user) *      skip   *',
         code   => \&encap_unresv
     },
     RESV => {     # :uid RESV    target duration nick_chan_mask :reason
@@ -112,7 +112,7 @@ our %ts6_incoming_commands = (
     },
     ENCAP_NICKDELAY => {
                   # :sid ENCAP     target NICKDELAY duration nick
-        params => '-source(server) *      *         *        *',
+        params => '-source(server) *      skip      *        *',
         code   => \&encap_nickdelay
     }
 );
@@ -555,8 +555,8 @@ sub out_bandel {
 ### INCOMING ###
 ################
 
-sub encap_kline   {   kline(@_[0..3, 5..8]) }
-sub encap_unkline { unkline(@_[0..3, 5..6]) }
+sub encap_kline   {   kline(@_[0..8]) }
+sub encap_unkline { unkline(@_[0..6]) }
 
 # KLINE
 #
@@ -629,8 +629,8 @@ sub unkline {
 
 }
 
-sub encap_dline   {   dline(@_[0..3, 5..7]) }
-sub encap_undline { undline(@_[0..3, 5   ]) }
+sub encap_dline   {   dline(@_[0..7]) }
+sub encap_undline { undline(@_[0..5]) }
 
 # DLINE
 #
@@ -689,8 +689,8 @@ sub undline {
 # [ratbox.ruin.rlygd.net] :903AAAAAY ENCAP * RESV 600 aasaddfsadf 0 :ruded
 #                :uid ENCAP   target RESV duration nick_chan_mask 0      :reason
 #    params => '-source(user) *      *    *        *              *(opt) *',
-sub encap_resv   {   resv(@_[0..3, 5..6], pop) }
-sub encap_unresv { unresv(@_[0..3, 5]     ) }
+sub encap_resv   {   resv(@_[0..6], pop) }
+sub encap_unresv { unresv(@_[0..5]     ) }
 
 # RESV
 #
@@ -782,7 +782,7 @@ sub _unresv {
 # parameters:   duration, nickname
 #
 sub encap_nickdelay {
-    my ($server, $msg, $source, $serv_mask, undef, $duration, $nick) = @_;
+    my ($server, $msg, $source, $serv_mask, $duration, $nick) = @_;
 
     # no duration means it is a removal
     if (!$duration) {

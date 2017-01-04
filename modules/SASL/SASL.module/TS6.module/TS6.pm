@@ -25,13 +25,13 @@ our ($api, $mod, $pool, $me);
 
 our %ts6_incoming_commands = (
     ENCAP_SASL => {
-                  # :sid ENCAP     serv_mask  SASL agent_uid target_uid mode data  ip
-        params => '-source(server) *          *    *         *          *    *     *(opt)',
+                  # :sid ENCAP     serv_mask  SASL  agent_uid target_uid mode data  ip
+        params => '-source(server) *          skip  *         *          *    *     *(opt)',
         code   => \&encap_sasl
     },
     ENCAP_SVSLOGIN => {
                   # :sid ENCAP     serv_mask SVSLOGIN target_uid nick ident cloak act_name
-        params => '-source(server) *         *        *          *    *     *     *',
+        params => '-source(server) *         skip     *          *    *     *     *',
         code   => \&encap_svslogin
     }
 );
@@ -54,7 +54,6 @@ sub encap_sasl {
 
         $source_serv,   # the source server is the services server.
         $serv_mask,     # the server mask. it must be our server name ONLY.
-        undef,          # 'SASL'
         $agent_uid,     # the UID of the SASL service
         $target_uid,    # the UID of the target
 
@@ -219,7 +218,6 @@ sub encap_svslogin {
     my ($server, $msg,
         $source_serv,   # the source server is the services server
         $serv_mask,     # the server mask. it must be our server name ONLY
-        undef,          # 'SVSLOGIN'
         $target_uid,    # the UID of the target
         $nick,          # new nick  or '*' if unchanged
         $ident,         # new ident or '*' if unchanged
