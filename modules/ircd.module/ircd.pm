@@ -547,8 +547,8 @@ sub setup_timer {
 sub setup_autoconnect {
 
     # auto server connect.
-    # honestly this needs to be moved to an event for after loading the configuration;
-    # even if it's a rehash or something it should check for this.
+    # honestly this needs to be moved to an event for after loading the
+    # configuration; even if it's a rehash or something it should check for this
     foreach my $name ($conf->names_of_block('connect')) {
         next unless conf(['connect', $name], 'autoconnect');
         server::linkage::connect_server($name);
@@ -561,8 +561,6 @@ sub setup_autoconnect {
 ################################################################################
 
 # miscellaneous upgrade fixes.
-# TODO: I want each instance to be able to track which upgrades have been done
-# already to improve the efficiency of this.
 sub misc_upgrades {
 
     # inject missing connection information.
@@ -635,13 +633,17 @@ sub load_or_reload {
     # use require to load it the first time.
     if (!is_loaded($name) && !$name->VERSION) {
         L("Loading $name");
-        require $file or L("Very bad error: could not load $name!".($@ || $!)) and return;
+        require $file
+            or L("Very bad error: could not load $name!".($@ || $!))
+            and return;
         return 1;
     }
 
     # load it.
     L("Reloading package $name");
-    do $file or L("Very bad error: could not load $name! ".($@ || $!)) and return;
+    do $file
+        or L("Very bad error: could not load $name! ".($@ || $!))
+        and return;
 
     # version check.
     if ((my $v = $name->VERSION // -1) < $min_v) {

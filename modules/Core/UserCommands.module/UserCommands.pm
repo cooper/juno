@@ -279,7 +279,7 @@ sub nick {
 }
 
 sub info {
-    # TODO: does not support remote
+    # TODO: (#148) does not support remote
     my ($LNAME, $NAME, $VERSION) = (v('LNAME'), v('NAME'), v('VERSION'));
     my $user = shift;
     my $info = <<"END";
@@ -400,7 +400,7 @@ sub privmsgnotice {
     my $tuser = $pool->lookup_user_nick($t_name);
     if ($tuser) {
 
-        # TODO: here check for user modes preventing
+        # TODO: (#154) here check for user modes preventing
         # the user from sending the message.
 
         # tell them of away if set
@@ -1249,8 +1249,7 @@ sub list {
         $user->numeric(RPL_LIST => $channel->name, $number_of_users, $channel_topic);
     }
 
-    # TODO: implement list for specific channels.
-    # TODO: +s and +p (partially done, stopper in place but modes need to be added)
+    # TODO: (#27) implement list for specific channels.
 
     $user->numeric('RPL_LISTEND');
     return 1;

@@ -115,7 +115,7 @@ sub _establish_connection {
             SSL_verify_mode => IO::Socket::SSL::SSL_VERIFY_NONE(),
             on_ssl_error    => sub { ircd::_conn_close('SSL error: '.$_[1], @_) }
         );
-        # TODO: fingerprints
+        # TODO: (#28) fingerprints
     }
 
     # protocol?

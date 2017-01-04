@@ -21,7 +21,7 @@ use 5.010;
 
 our ($api, $mod, $pool);
 
-# TODO: once KNOCKing is implemented, make sure it's not permitted
+# TODO: (#34) once KNOCKing is implemented, make sure it's not permitted
 # for channels with +p set (ERR_CANNOTSENDTOCHAN) but is for +s
 
 # channel mode blocks

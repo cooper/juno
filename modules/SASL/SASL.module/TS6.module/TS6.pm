@@ -176,7 +176,7 @@ sub encap_sasl {
             # if we never received client data,
             # these are just unknown mechanism errors.
             if ($conn->{sasl_messages}) {
-                # TODO: check if they've failed 9000 times.
+                # TODO: (#153) check if they've failed 9000 times.
                 $conn->{sasl_failures}++;
             }
 
@@ -246,7 +246,7 @@ sub encap_svslogin {
     # note that the target MAY OR MAY NOT be registered as a user.
     #
     my $conn = $pool->uid_in_use($target_uid);
-    return if $conn && $conn->isa('user');          # TODO: not yet implemented
+    return if $conn && $conn->isa('user');     # TODO: (#83) not yet implemented
     if (!$conn) {
         L("could not find target connection");
         return;
@@ -258,7 +258,7 @@ sub encap_svslogin {
         return;
     }
 
-    # TODO: for reauthentication, send SIGNON if registered
+    # TODO: (#83) for reauthentication, send SIGNON if registered
 
     # update the account.
     if (!M::SASL::update_account($conn, $act_name || undef)) {

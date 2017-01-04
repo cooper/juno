@@ -428,8 +428,8 @@ sub check_new_server {
         $origin     # name of the server introducing this one
     ) = @_;
 
-    # TODO: check for bogus server name
-    # TODO: eventually check SSL, port, IP here.
+    # TODO: (#149) check for bogus server name
+    # TODO: (#149) eventually check SSL, port, IP here.
 
     # SID taken?
     if (my $other = $pool->lookup_server($sid)) {

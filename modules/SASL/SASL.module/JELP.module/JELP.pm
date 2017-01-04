@@ -155,7 +155,7 @@ sub sasldone {
         # if we never received client data,
         # these are just unknown mechanism errors.
         if ($conn->{sasl_messages}) {
-            # TODO: check if they've failed 9000 times.
+            # TODO: (#153) check if they've failed 9000 times.
             $conn->{sasl_failures}++;
         }
 
@@ -206,9 +206,9 @@ sub saslset {
         return;
     }
 
-    # TODO: for reauthentication, need to send out some broadcast command to
-    # notify other servers of several user field changes at once. this would be
-    # similar to TS6's SIGNON command. USERINFO will work.
+    # TODO: (#83) for reauthentication, need to send out some broadcast command
+    # to notify other servers of several user field changes at once. this would
+    # be similar to TS6's SIGNON command. USERINFO will work.
 
     # update the account.
     if (!M::SASL::update_account($conn, $act_name || undef)) {
@@ -364,7 +364,7 @@ sub find_connection {
     my $target_uid = shift;
     my $conn = $pool->uid_in_use($target_uid);
 
-    # TODO: not yet implemented
+    # TODO: (#83) not yet implemented
     return if $conn && $conn->isa('user');
 
     # not found

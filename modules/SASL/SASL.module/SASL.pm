@@ -41,7 +41,7 @@ sub init {
     $mod->register_capability('sasl', sticky => 1);
 
     # AUTHENTICATE command
-    # TODO: once reauthentication is possible,
+    # TODO: (#83) once reauthentication is possible,
     # this command must be available post-registration
     $mod->register_registration_command(
         name       => 'AUTHENTICATE',
@@ -69,7 +69,7 @@ sub rcmd_authenticate {
     return if !$connection->has_cap('sasl');
 
     # already authenticated successfully.
-    # TODO: when reauthentication is possible, don't do this.
+    # TODO: (#83) when reauthentication is possible, don't do this.
     if ($connection->{sasl_complete}) {
         $connection->numeric('ERR_SASLALREADY');
         return;
@@ -198,10 +198,10 @@ sub update_user_info {
     # which things are we updating?
     my $update_nick  = length $nick  && $nick  ne '*' && utils::validnick($nick, 1);
     my $update_ident = length $ident && $ident ne '*' && utils::validident($ident);
-    my $update_cloak = length $cloak && $cloak ne '*' && 1; # TODO: validhost()
+    my $update_cloak = length $cloak && $cloak ne '*' && 1; # TODO: (#157) validhost()
 
     # look for an existing user/conn by this nick.
-    # TODO: for reauth, check if $existing == the user OR the conn
+    # TODO: (#83) for reauth, check if $existing == the user OR the conn
     my $existing = $pool->nick_in_use($nick); # could be a user
     if ($update_nick && $existing && $existing != $conn) {
 
@@ -221,7 +221,7 @@ sub update_user_info {
 
     # registered user.
     if (my $user = $conn->user) {
-        # TODO: this, for SASL reauthentication
+        # TODO: (#83) this, for SASL reauthentication
         return;
     }
 
@@ -238,7 +238,7 @@ sub update_account {
     my ($conn, $act_name) = @_;
     my $cloak = $conn->{cloak} // $conn->{host};
 
-    # TODO: for SASL reauthentication, update $user->{account}
+    # TODO: (#83) for SASL reauthentication, update $user->{account}
 
     # log in
     if ($act_name) {

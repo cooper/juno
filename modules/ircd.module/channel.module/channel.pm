@@ -198,9 +198,8 @@ sub has_user {
 # low-level channel time set.
 sub set_time {
     my ($channel, $time) = @_;
-    if ($time > $channel->{time}) {
-        L("warning: setting time to a lower time from $$channel{time} to $time");
-    }
+    L("warning: setting time to a lower time from $$channel{time} to $time")
+        if $time > $channel->{time};
     $channel->{time} = $time;
 }
 
@@ -278,7 +277,7 @@ sub handle_modes {
         my ($win, $mode) = $pool->$fire_method($channel, $name, {
             channel => $channel,        # the channel
             server  => $me,             # the server perspective
-            source  => $source,         # the source of the mode change (user or server)
+            source  => $source,         # the source of the mode change
             state   => $state,          # setting or unsetting
             name    => $name,           # the mode name
             param   => $param,          # the parameter for this particular mode
@@ -599,8 +598,8 @@ sub send_names {
         # the second is the one which initiated the NAMES.
         next if $channel->fire(show_in_names => $a_user, $user)->stopper;
 
-        # if this user is invisible, do not show him unless the querier is in a common
-        # channel or has the see_invisible flag.
+        # if this user is invisible, do not show him unless the querier is in a
+        # common channel or has the see_invisible flag.
         if ($a_user->is_mode('invisible')) {
             next if !$in_channel && !$user->has_flag('see_invisible');
         }
@@ -889,12 +888,12 @@ sub do_privmsgnotice {
 
     # it's a user. fire the can_* events.
     if ($source_user && !$opts{force}) {
-        my $lccommand = lc $command;
+        my $lc_cmd = lc $command;
 
         # can_message, can_notice, can_privmsg.
         my $can_fire = $source_user->fire_events_together(
-            [  can_message     => $channel, $message, $lccommand ],
-            [ "can_$lccommand" => $channel, $message             ]
+            [  can_message  => $channel, $message, $lc_cmd ],
+            [ "can_$lc_cmd" => $channel, $message          ]
         );
 
         # the can_* events may set {new_message} to modify the message.
@@ -906,8 +905,8 @@ sub do_privmsgnotice {
 
             # if the message was blocked, fire cant_* events.
             my $cant_fire = $source_user->fire_events_together(
-                [  cant_message     => $channel, $message, $lccommand, $can_fire ],
-                [ "cant_$lccommand" => $channel, $message,             $can_fire ]
+                [  cant_message     => $channel, $message, $lc_cmd, $can_fire ],
+                [ "cant_$lc_cmd"    => $channel, $message,          $can_fire ]
             );
 
             # the cant_* events may be stopped. if this happens, the error
@@ -946,7 +945,8 @@ sub do_privmsgnotice {
 
         # the user is local.
         if ($user->is_local) {
-            # TODO: fire can_receive_* events which can modify $message or stop:
+            # TODO: (#155) fire can_receive_* events which can modify $message
+            # or stop:
             # my $my_message = $message;
             # my $my_local_data = $local_data;
             $user->sendfrom($source->full, $local_data);
@@ -1131,7 +1131,10 @@ sub user_get_kicked {
     $reason //= $source->name;
 
     # tell the local users of the channel.
-    $channel->sendfrom_all($source->full, "KICK $$channel{name} $$user{nick} :$reason");
+    $channel->sendfrom_all(
+        $source->full,
+        "KICK $$channel{name} $$user{nick} :$reason"
+    );
 
     notice(channel_kick =>
         $user->notice_info,
@@ -1179,7 +1182,10 @@ sub do_topic {
 
     # tell users.
     else {
-        $channel->sendfrom_all($source->full, "TOPIC $$channel{name} :$topic");
+        $channel->sendfrom_all(
+            $source->full,
+            "TOPIC $$channel{name} :$topic"
+        );
     }
 
     # no length, so unsetting.

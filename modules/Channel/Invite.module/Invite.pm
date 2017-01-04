@@ -47,8 +47,8 @@ our %channel_modes = (
     }
 );
 
-# TODO: clean this up. the event callbacks are quite ugly
-# TODO: invite should override bans, etc!
+# TODO: (#147) clean this up. the event callbacks are quite ugly
+# TODO: (#131) invite should override some other mode restrictions!
 
 sub init {
     &add_invite_callbacks;

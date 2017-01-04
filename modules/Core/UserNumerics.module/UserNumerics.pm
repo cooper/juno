@@ -183,7 +183,7 @@ sub isp_core {
         MODES       => conf('channels', 'client_max_mode_params'),
         CHANLIMIT   => '#:'.conf('limit', 'channel'),
         NICKLEN     => conf('limit', 'nick'),
-        MAXLIST     => "$listmodes:1000",   # TODO: currently unlimited
+        MAXLIST     => "$listmodes:1000",   # TODO: (#14) currently unlimited
         NETWORK     => conf('server', 'network') // conf('network', 'name'),
         EXCEPTS     => $me->cmode_letter('except'),
         DEAF        => $me->umode_letter('deaf'),
@@ -195,7 +195,7 @@ sub isp_core {
         FNC         => $yes,
         AWAYLEN     => conf('limit', 'away'),
         MAXTARGETS  => 1                    # FIXME: see issue #53
-      # ELIST       => 'flags'              # TODO: not implemented yet
+      # ELIST       => 'flags'              # TODO: (#27) not implemented yet
     );
 
     # inject them

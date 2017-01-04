@@ -396,7 +396,7 @@ sub handle_add {
         }
     }
 
-    # TODO: check if it matches too many people
+    # TODO: (#143) check if it matches too many people
 
     # register: validate, update, enforce, activate
     my $ban = create_my_ban(

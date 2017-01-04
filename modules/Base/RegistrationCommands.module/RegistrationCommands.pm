@@ -52,7 +52,7 @@ sub register_registration_command {
             my ($conn, $event, $msg) = @_;
 
             # not the right protocol.
-            return if $opts{proto} && !$conn->possibly_protocol($opts{proto});
+            return 1 if $opts{proto} && !$conn->possibly_protocol($opts{proto});
 
             # there are enough.
             return 1 if $msg->params >= $params;

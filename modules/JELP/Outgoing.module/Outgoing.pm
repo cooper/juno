@@ -45,8 +45,8 @@ my %ocommands = (
     time            => \&_time,
     snotice         => \&snotice,
     version         => \&version,
-    login           => \&login,                             # TODO: logout
-    su_login        => \&su_login,                          # TODO: logout
+    login           => \&login,                             # TODO: (#152) logout
+    su_login        => \&su_login,                          # TODO: (#152) logout
     part_all        => \&partall,
     invite          => \&invite,
     save_user       => \&save,
@@ -586,6 +586,7 @@ sub version {
     ":$$user{uid} VERSION \$$$t_server{sid}"
 }
 
+# FIXME: (#151)
 sub su_login {
     my ($to_server, $source_serv, $user, $actname) = @_;
     return login($to_server, $user, $actname);

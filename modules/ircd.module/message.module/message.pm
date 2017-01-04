@@ -106,8 +106,8 @@ sub parse {
         }
 
         # this is for :rest.
-        # TODO: I would like to do this without splitting again...
-        $msg->{_rest}[$word_n] = col((split m/\s+/, $msg->data, $word_i + 1)[$word_i])
+        $msg->{_rest}[$word_n] =
+            col((split m/\s+/, $msg->data, $word_i + 1)[$word_i])
             if $word_n >= 0;
 
         # sentinel-prefixed final parameter.

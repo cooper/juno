@@ -117,9 +117,8 @@ our %ts6_incoming_commands = (
     }
 );
 
-# TODO: handle the pipe in ban reasons to extract oper reason
-# TODO: handle CIDR
-# TODO: produce a warning if updating a ban by ID and the types differ
+# TODO: (#145) handle the pipe in ban reasons to extract oper reason
+# TODO: (#144) handle CIDR
 
 sub init {
 

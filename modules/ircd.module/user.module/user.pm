@@ -446,7 +446,7 @@ sub get_killed_by {
         $user->quit("Killed ($$reason)");
     }
 
-    # TODO: send KILL message to the user
+    # TODO: (#150) send KILL message to the user
     # charybdis/3c7d6fcce7a021ea7c4948a37a32aeca072e5b10/modules/core/m_kill.c#L237
 
     notice(user_killed => $user->notice_info, $source->full, $$reason);

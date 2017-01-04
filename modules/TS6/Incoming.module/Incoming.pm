@@ -619,7 +619,7 @@ sub sjoin {
 #   propagation:    broadcast
 #   Only allowed to IRC operators.
 #
-# - TODO: Complex PRIVMSG
+# - Complex PRIVMSG
 #   a message to all users with hostnames matching a mask ('$#' followed by mask).
 #   Note that this is often implemented poorly.
 #   propagation:    broadcast
