@@ -355,7 +355,6 @@ sub parse_params {
         my $param = $params[$param_i];
 
         # this is a real parameter. check all restrictions on it.
-        undef $param if $fake;
         return (undef, 'Parameter restriction unsatisfied '.$type)
             if !$fake && !_check_param($param, $attrs);
 
@@ -399,7 +398,7 @@ sub parse_params {
         # at this point, we have to have a code to handle this.
         # fake matchers are called with or without $param, but real ones
         # require that $param is defined.
-        my $defined_ok = !$fake || defined $param;
+        my $defined_ok = $fake || defined $param;
         if (!@res && $defined_ok && (my $param_code = $find_code->($type))) {
             @res = $param_code->($msg, $param, $attrs);
         }
@@ -408,8 +407,8 @@ sub parse_params {
         return (undef, 'Nothing matched the parameter '.$type)
             if !@res && !$attrs->{opt};
 
-        # this was optional, but nothing matched, so push undef
-        @res = undef if !@res;
+        # this was optional and fake, but nothing matched, so push undef.
+        @res = undef if $fake && !@res;
 
         push @final, @res;
     }

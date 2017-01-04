@@ -83,7 +83,11 @@ sub _handle_command {
     if (my $params = $event->callback_data('parameters')) {
         # $msg->{_event} = $event;
         ($ok, @params) = $msg->parse_params($params);
-        return if !$ok;
+        if (!$ok) {
+            my $cmd = $msg->command;
+            L("Unsatisfied parameters for $cmd [$params] -> [@params]");
+            return;
+        }
     }
 
     # call actual callback.
