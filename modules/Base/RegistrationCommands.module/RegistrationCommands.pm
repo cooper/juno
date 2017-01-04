@@ -47,7 +47,7 @@ sub register_registration_command {
     # parameter check callback.
     my $command    = uc delete $opts{name};
     my $event_name = "connection.message_$command";
-    my $params     = $opts{parameters};
+    my $params     = $opts{parameters} || $opts{params};
     $pool->on($event_name => sub {
             my ($event, $msg) = @_;
 
