@@ -3856,4 +3856,6 @@ CHANGES:
         added new ->update_flags() which sets +/-o when necessary.
         updated Grant module to use the new JELP FOPER command.
 
-    46. 
+    46. update all TS6 ENCAP commands to use the new 'skip' matcher for encapsulated the command name.
+
+    47. added command source checking for both JELP and TS6. closes #91.

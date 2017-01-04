@@ -14,10 +14,15 @@ There. Very good.
 This is juno-ircd, a seriously modern IRC server daemon written from scratch
 in the Perl programming language. Really.
 
-This software will hopefully surprise you with its functionality and novel
-features. Although no stable versions have been released throughout its six-year
-course, it usually only breaks when you try really fancy things. You are
-encouraged to cross your fingers and [give it a go](#installation).
+> Perl is the right language for IRC. IRC is chock full of various strings and
+> other what not, all of which is easily parsed by Perl, where the C IRC daemons
+> jump through all kinds of hoops and have really nasty looking code (have you
+> ever looked at the Undernet IRC daemon?) Whereas this is, in my opinion, very
+> clean.
+
+This software will hopefully surprise you with its novel features and
+functionality. It's super easy to install and even comes with a working
+configuration, so go ahead and [try it already](#installation).
 
 Come chat with us at [irc.notroll.net #k](irc://irc.notroll.net/k) too.
 
@@ -634,7 +639,7 @@ I use Unix-like systems, and much of my work is designed specifically for such.
 Windows.~~ Actually, it seems to work on Windows now. Somewhat.
 
 juno-ircd was my first project in Perl — ever. Luckily, it's been
-through six years of near-constant improvement. Most of my creations in Perl are
+through six years of constant improvement. Most of my creations in Perl are
 related to IRC in some way, but I have a few other projects as well. I always
 look back at things I worked on a month ago and realize how terrible they are.
 That is why there are several rewrites of the same IRCd. But don't worry. I am
