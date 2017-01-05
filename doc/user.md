@@ -417,7 +417,7 @@ Handles a kill on a local level. The user being killed does not have to be
 local.
 
 Servers are NOT notified by this method. Local kills MUST be associated with a
-`->fire_command_all()` call, and remote kills MUST be broadcasted
+`->fire_command_all()` call, and remote kills MUST be broadcast
 to other uplinks with `->forward()`.
 
 ```perl
@@ -450,7 +450,7 @@ $user->get_mask_changed($user->{ident}, 'my.vhost');
 
 ### $user->save_locally
 
-Deals with a user who was saved from a nick collisions on a local level.
+Deals with a user who was saved from a nick collision on a local level.
 Changes the user's nickname to his unique identifier.
 
 This method works under the presumption that remote servers have been notified

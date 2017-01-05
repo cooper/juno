@@ -29,7 +29,7 @@ my %ocommands = (
     join            => \&_join,
     oper            => \&oper,
     away            => \&away,
-    return_away     => \&return_away,
+    return_away     => \&away_return,
     part            => \&part,
     topic           => \&topic,
     cmode           => \&cmode,
@@ -356,9 +356,9 @@ sub away {
 
 
 # return from away
-sub return_away {
+sub away_return {
     my ($to_server, $user) = @_;
-    ":$$user{uid} RETURN"
+    ":$$user{uid} AWAY"
 }
 
 # leave a channel

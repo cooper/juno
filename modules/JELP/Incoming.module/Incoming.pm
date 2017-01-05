@@ -81,11 +81,6 @@ my %scommands = (
         params  => '-source(user) :rest',
         code    => \&away
     },
-    RETURN => {
-                   # :uid RETURN
-        params  => '-source(user)',
-        code    => \&return_away
-    },
     CMODE => {
                    # :src   channel   time   perspective   :modestr
         params  => '-source channel   ts     server        :rest',
@@ -487,28 +482,29 @@ sub oper {
 
 }
 
-# mark user as away
+# mark user as away or returned
 sub away {
     # user :rest
     # :uid AWAY  :reason
     my ($server, $msg, $user, $reason) = @_;
+
+    # if the reason is not present, the user has returned.
+    if (!length $reason) {
+        $user->do_away();
+
+        # === Forward ===
+        $msg->forward(return_away => $user);
+
+        return 1;
+    }
+
+    # otherwise, set the away reason.
     $user->do_away($reason);
 
     # === Forward ===
     $msg->forward(away => $user);
 
-}
-
-# unmark user as away
-sub return_away {
-    # user dummy
-    # :uid RETURN
-    my ($server, $msg, $user) = @_;
-    $user->do_away();
-
-    # === Forward ===
-    $msg->forward(return_away => $user);
-
+    return 1;
 }
 
 # set a mode on a channel
