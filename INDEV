@@ -3888,3 +3888,7 @@ CHANGES:
 
     53. added remote INFO request. closes #148.
         added 'semiopt' (semi-optional) matcher option. this is a more strict version of 'opt'.
+
+    54. overhaul of Base::Capabilities, adding support for IRCv3.2 cap-notify. closes #84.
+        added incomplete support for capability values in CAP LS and CAP NEW. #85 not done.
+        new ->capability_change_start() and ->capability_change_end() can be used to monitor multiple changes in capabilities.

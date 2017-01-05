@@ -195,7 +195,6 @@ sub init {
     &add_whois_callbacks;
 
     # capabilities that idk where else to put! :^)
-    $mod->register_capability('cap-notify');
     $mod->register_capability('away-notify');
     $mod->register_capability('chghost');
     $mod->register_capability('account-notify');

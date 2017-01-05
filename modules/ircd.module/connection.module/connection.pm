@@ -410,7 +410,7 @@ sub remove_cap {
     my ($obj, @flags) = (shift, map { lc } @_);
     return unless $obj->{cap_flags};
     my %all_flags = map { $_ => 1 } @{ $obj->{cap_flags} };
-    delete $all_flags{$_} foreach @flags;
+    delete @all_flags{@flags};
     @{ $obj->{cap_flags} } = keys %all_flags;
 }
 

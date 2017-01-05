@@ -70,7 +70,8 @@ sub rcmd_cap {
 # CAP LS: display the server's available caps.
 sub cap_ls {
     my ($connection, $event, @args) = @_;
-    my @flags = $pool->capabilities;
+    my @flags = grep { $pool->has_cap($_)->{enabled} }
+        $pool->capabilities;
 
     # IRCv3.2. force cap-notify
     if ($args[0] && $args[0] eq '302') {
@@ -79,12 +80,11 @@ sub cap_ls {
 
         # if the 302 version is provided, cap-notify becomes sticky.
         $connection->{cap_sticky}{'cap-notify'} = 1;
-
     }
 
     # first LS - postpone registration.
     if (!$connection->{cap_suspend}) {
-        $connection->{cap_suspend} = 1;
+        $connection->{cap_suspend}++;
         $connection->reg_wait('cap');
     }
 
