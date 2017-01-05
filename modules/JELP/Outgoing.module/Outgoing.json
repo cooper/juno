@@ -9,5 +9,5 @@
    "description" : "basic set of JELP outgoing commands",
    "name" : "JELP::Outgoing",
    "package" : "M::JELP::Outgoing",
-   "version" : "23.25"
+   "version" : "23.35"
 }

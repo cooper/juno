@@ -653,7 +653,7 @@ sub _userinfo {
     return message->new(
         source  => $source_serv ? $source_serv->id      : $user->id,
         command => $source_serv ? 'FUSERINFO'           : 'USERINFO',
-        params  => $source_serv ? [ $source_serv->id ]  : undef,
+        params  => $source_serv ? [ $user->id ]         : undef,
         tags    => \%fields
     )->data;
 }
