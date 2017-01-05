@@ -936,7 +936,6 @@ $event->{error_reply} = [ ERR_INVITEONLYCHAN => $channel->name ];
 
 You can hook onto this event using any of these:
 
------------------------------------------------------
 | Event                     | Command   | Target    |
 | ------------------------- | --------- | --------- |        
 | __can_message__           | Any       | Any       |
@@ -948,7 +947,6 @@ You can hook onto this event using any of these:
 | __can_notice__            | `NOTICE`  | Any       |
 | __can_notice_user__       | `NOTICE`  | User      |
 | __can_notice_channel__    | `NOTICE`  | Channel   |
------------------------------------------------------
 
 * __$target__: the message target. a user or channel object.
 * __\$message__: a scalar reference to the message text. callbacks may
@@ -959,7 +957,6 @@ You can hook onto this event using any of these:
 
 You can hook onto this event using any of these:
 
-------------------------------------------------------
 | Event                      | Command   | Target    |
 | -------------------------- | --------- | --------- |        
 | __cant_message__           | Any       | Any       |
@@ -971,7 +968,6 @@ You can hook onto this event using any of these:
 | __cant_notice__            | `NOTICE`  | Any       |
 | __cant_notice_user__       | `NOTICE`  | User      |
 | __cant_notice_channel__    | `NOTICE`  | Channel   |
-------------------------------------------------------
 
 * __$target__: the message target. a user or channel object.
 * __$message__: the message text.
@@ -995,7 +991,6 @@ for example.
 
 You can hook onto this event using any of these:
 
--------------------------------------------------------------
 | Event                             | Command   | Target    |
 | --------------------------------- | --------- | --------- |        
 | __can_receive_message__           | Any       | Any       |
@@ -1007,7 +1002,6 @@ You can hook onto this event using any of these:
 | __can_receive_notice__            | `NOTICE`  | Any       |
 | __can_receive_notice_user__       | `NOTICE`  | User      |
 | __can_receive_notice_channel__    | `NOTICE`  | Channel   |
--------------------------------------------------------------
 
 * __$target__: the message target. a user or channel object.
 * __\$message__: a scalar reference to the message text. callbacks may
