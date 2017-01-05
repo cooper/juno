@@ -198,6 +198,11 @@ my %scommands = (
     FLOGIN => {   # :uid FLOGIN    uid   act_name
         params => '-source(server) user  *(opt)',
         code   => \&flogin
+    },
+    FUSERINFO => {
+                  # :uid FUSERINFO uid
+        params => '-source(server) user',
+        code   => \&fuserinfo
     }
 );
 
@@ -973,9 +978,11 @@ sub save {
     return 1;
 }
 
+sub userinfo { _userinfo(undef, @_) }
+
 # change several user fields at once
-sub userinfo {
-    my ($server, $msg, $user) = @_;
+sub _userinfo {
+    my ($source_serv, $server, $msg, $user) = @_;
 
     # nick ident host nick_time account
 
@@ -991,13 +998,14 @@ sub userinfo {
         $user->get_mask_changed(
             $new_ident // $user->{ident},
             $new_host  // $user->{cloak},
-            $server->name
+            $source_serv ? $source_serv->name : $server->name
         );
     }
 
     #=== Forward ===#
     my %fields = %{ $msg->tags || {} };
-    $msg->forward(update_user => $user, %fields);
+    $msg->forward(update_user  =>  $user, %fields) if !$source_serv;
+    $msg->forward(force_update => $source_serv, $user, %fields) if $source_serv;
 
 }
 
@@ -1149,6 +1157,12 @@ sub flogin {
 
     #=== Forward ===#
     $msg->forward(su_login => $source_serv, $user, $act_name);
+}
+
+# force user field changes
+sub fuserinfo {
+    my ($server, $msg, $source_serv, $user) = @_;
+    return _userinfo($source_serv, $server, $msg, $user);
 }
 
 $mod

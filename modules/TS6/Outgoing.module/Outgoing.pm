@@ -56,7 +56,7 @@ our %ts6_outgoing_commands = (
      chghost        => \&chghost,
      realhost       => \&realhost,
      save_user      => \&save,
-     update_user    => \&userinfo,
+     update_user    => \&update_user,
      num            => \&num,
      links          => \&links,
      whois          => \&whois,
@@ -73,6 +73,7 @@ our %ts6_outgoing_commands = (
      su_login       => \&su_login,
      su_logout      => \&su_logout,
      force_nick     => \&rsfnc,
+     force_update   => \&force_update_user,
      ircd_rehash    => \&rehash
 );
 
@@ -1070,9 +1071,15 @@ sub rehash {
     } @servers;
 }
 
+sub force_update_user {
+    my ($to_server, $source_serv, @rest) = @_;
+    return _update_user($source_serv, $to_server, @rest);
+}
+
 # change user fields
-sub userinfo {
-    my ($to_server, $user, %fields) = @_;
+sub update_user  { _update_user(undef, @_) }
+sub _update_user {
+    my ($source_serv, $to_server, $user, %fields) = @_;
     my @lines;
 
     # if we have all the required fields, use SIGNON.
@@ -1083,8 +1090,10 @@ sub userinfo {
 
     # host changed
     push @lines, chghost(
-        $to_server, $user->{server}, $user,
-        safe_host($fields{host}, $to_server)
+        $to_server,
+        $source_serv || $user->{server},        # source server
+        $user,                                  # the user
+        safe_host($fields{host}, $to_server)    # TS6-safe new visible host
     ) if length $fields{host};
 
     return @lines;
@@ -1101,6 +1110,7 @@ sub signon {
     my ($to_server, $user, $new_nick, $new_ident, $new_host,
         $new_nick_time, $new_act_name) = @_;
     sprintf ':%s SIGNON %s %s %s %s %s',
+    ts6_id($user),      # source UID
     $new_nick,          # new nickname
     $new_ident,         # new username
     $new_host,          # new visible hostname

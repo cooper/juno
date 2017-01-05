@@ -638,19 +638,22 @@ sub save {
 
 sub chghost {
     my ($to_server, $source, $user, $new_host) = @_;
-    return userinfo($to_server, $user, host => $new_host);
+    return _userinfo($source, $to_server, $user, host => $new_host);
 }
 
 sub realhost {
     my ($to_server, $user, $host) = @_;
-    return userinfo($to_server, $user, real_host => $host);
+    return _userinfo(undef, $to_server, $user, real_host => $host);
 }
 
-sub userinfo {
-    my ($to_server, $user, %fields) = @_;
+sub userinfo { _userinfo(undef, @_) }
+
+sub _userinfo {
+    my ($source_serv, $to_server, $user, %fields) = @_;
     return message->new(
-        source  => $user->id,
-        command => 'USERINFO',
+        source  => $source_serv ? $source_serv->id      : $user->id,
+        command => $source_serv ? 'FUSERINFO'           : 'USERINFO',
+        params  => $source_serv ? [ $source_serv->id ]  : undef,
         tags    => \%fields
     )->data;
 }
@@ -698,6 +701,11 @@ sub flogin_logout {
     my ($to_server, $source, $user) = @_;
     my $id = $source->id;
     ":$id FLOGIN $$user{uid}"
+}
+
+sub fuserinfo {
+    my ($to_server, $source, @rest) = @_;
+    return _userinfo($source, $to_server, @rest);
 }
 
 $mod

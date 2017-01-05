@@ -3883,3 +3883,5 @@ CHANGES:
         this will allow modules to modify the text sent to specific users, or prevent specific members of a channel from receiving a message. closes #155.
         rip JELP RETURN command.
         send KILL to the user being killed. closes #150.
+
+    52. add JELP FUSERINFO. improved logic for CHGHOST and other user field changes. closes #159.

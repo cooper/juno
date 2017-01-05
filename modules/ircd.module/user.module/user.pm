@@ -465,7 +465,7 @@ sub get_mask_changed {
     my $old_host  = $user->{cloak};
 
     # nothing has changed.
-    return if $old_host eq $new_host && $old_ident eq $new_ident;;
+    return if $old_host eq $new_host && $old_ident eq $new_ident;
 
     # set the stuff.
     $user->{ident} = $new_ident;
