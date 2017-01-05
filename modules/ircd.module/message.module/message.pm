@@ -331,8 +331,9 @@ sub parse_params {
     # check argument count.
     my @params = $msg->params;
     if (scalar @params < $required_parameters) {
+        my $user = $msg->source if $msg->source->isa('user');
         $msg->source->numeric(ERR_NEEDMOREPARAMS => $msg->command)
-            if $msg->source && $msg->source->isa('user');
+            if $user && $user->is_local;
         return (undef, 'Not enough parameters');
     }
 
