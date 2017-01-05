@@ -70,22 +70,35 @@ sub rcmd_cap {
 # CAP LS: display the server's available caps.
 sub cap_ls {
     my ($connection, $event, @args) = @_;
+
+    # weed out disabled capabilities
     my @flags = grep { $pool->has_cap($_)->{enabled} }
         $pool->capabilities;
 
-    # IRCv3.2. force cap-notify
-    if ($args[0] && $args[0] eq '302') {
-        $connection->{cap_version} = '302';
-        $connection->add_cap('cap-notify');
-
-        # if the 302 version is provided, cap-notify becomes sticky.
-        $connection->{cap_sticky}{'cap-notify'} = 1;
+    # IRCv3 version
+    if ($args[0] && $args[0] !~ m/\D/) {
+        $connection->{cap_version} ||= $args[0];
     }
 
     # first LS - postpone registration.
     if (!$connection->{cap_suspend}) {
         $connection->{cap_suspend}++;
         $connection->reg_wait('cap');
+    }
+
+    # version >=302
+    if (($connection->{cap_version} || 0) >= 302) {
+
+        # cap-notify becomes enabled implicitly,
+        # and when 302 is provided, it is sticky for this user
+        $connection->add_cap('cap-notify');
+        $connection->{cap_sticky}{'cap-notify'} = 1;
+
+        # add values when present
+        @flags = map {
+            my $value = $pool->has_cap($_)->{value};
+            length $value ? "$_=$value" : $_;
+        } @flags;
     }
 
     $connection->early_reply(CAP => "LS :@flags");
@@ -102,9 +115,9 @@ sub cap_list {
 sub cap_req {
     my ($connection, $event, @args) = @_;
 
-    # first LS - postpone registration.
+    # postpone registration.
     if (!$connection->{cap_suspend}) {
-        $connection->{cap_suspend} = 1;
+        $connection->{cap_suspend}++;
         $connection->reg_wait('cap');
     }
 
@@ -117,7 +130,7 @@ sub cap_req {
 
         # no such flag.
         if (!$pool->has_cap($flag)) {
-            $nak = 1;
+            $nak++;
             last;
         }
 
@@ -127,7 +140,7 @@ sub cap_req {
             # attempted to remove a sticky flag.
             if ($pool->has_cap($flag)->{sticky} ||
               $connection->{cap_sticky}{$flag}) {
-                $nak = 1;
+                $nak++;
                 last;
             }
 

@@ -80,15 +80,8 @@ sub set_capability_value {
 
     # advertise deletion of the cap
     # introduce the cap with the new value
-    my $value_str = length $new_value ? "=$new_value" : '';
-    user::sendfrom_to_all_with_opts(
-        $me->name,
-        [
-            "CAP * DEL :$name",
-            "CAP * NEW :$name$value_str"
-        ],
-        { cap => 'cap-notify' }
-    );
+    do_cap_del($name);
+    do_cap_new([ $name, $new_value ]);
 }
 
 sub enable_capability {
@@ -104,12 +97,7 @@ sub enable_capability {
     return 1 if $pool::monitoring_cap_changes;
 
     # notify clients with cap-notify
-    my $value_str = length $cap->{value} ? "=$$cap{value}" : '';
-    user::sendfrom_to_all_with_opts(
-        $me->name,
-        "CAP * NEW :$name$value_str",
-        { cap => 'cap-notify' }
-    );
+    do_cap_new([ $name, $cap->{value} ]);
 }
 
 sub disable_capability {
@@ -128,11 +116,7 @@ sub disable_capability {
     $_->remove_cap($name) for $pool->connections;
 
     # notify clients with cap-notify
-    user::sendfrom_to_all_with_opts(
-        $me->name,
-        "CAP * DEL :$name",
-        { cap => 'cap-notify' }
-    );
+    do_cap_del($name);
 }
 
 sub _capability_change_start {
@@ -167,7 +151,7 @@ sub _capability_change_end {
         if (($new_cap->{value} // '') ne ($old_cap->{value} // '')) {
             push @del, $name
                 if $old_cap->{enabled};
-            push @new, $name
+            push @new, [ $name, $new_cap->{value} ]
                 if $new_cap->{enabled};
             next;
         }
@@ -180,30 +164,61 @@ sub _capability_change_end {
         keys %$previously_enabled;
 
     # send to clients with cap-notify.
-
     # do dels first in case some will be re-added (for a value change).
-    if (@del) {
-        $_->remove_cap(@del) for $pool->connections;
-        user::sendfrom_to_all_with_opts(
+    do_cap_del(@del) if @del;
+    do_cap_new(@new) if @new;
+}
+
+sub do_cap_del {
+    my @del = @_ or return;
+    $_->remove_cap(@del) for $pool->real_local_users;
+    user::sendfrom_to_all_with_opts(
+        $me->name,
+        "CAP * DEL :@del",
+        { cap => 'cap-notify' }
+    );
+}
+
+sub do_cap_new {
+    my @new = @_;
+
+    # for new, separate into users with IRCv3.2 and not
+    my (@no_302, @with_302);
+    foreach my $user ($pool->real_local_users) {
+        my $conn = $user->conn or next;
+        if (($conn->{cap_version} || 0) >= 302) {
+            push @with_302, $user;
+            next;
+        }
+        push @no_302, $user;
+    }
+
+    # send to clients with version <302 without values
+    if (@no_302) {
+        user::sendfrom_to_many_with_opts(
             $me->name,
-            "CAP * DEL :@del",
-            { cap => 'cap-notify' }
+            "CAP * NEW :@new",
+            { cap => 'cap-notify' },
+            @no_302
         );
     }
 
-    # now do news. add values where necessary
-    @new = map {
-        my ($name, $value) = @$_;
-        length $value ? "$name=$value" : $name;
-    } @new;
+    # now add values for clients with >=302
+    if (@with_302) {
+        my @new_with_values = map {
+            my ($name, $value) = ref $_ ? @$_ : $_;
+            length $value ? "$name=$value" : $name;
+        } @new;
 
-    # FIXME: never show values to versions <302
+        user::sendfrom_to_many_with_opts(
+            $me->name,
+            "CAP * NEW :@new_with_values",
+            { cap => 'cap-notify' },
+            @with_302
+        );
+    }
 
-    user::sendfrom_to_all_with_opts(
-        $me->name,
-        "CAP * NEW :@new",
-        { cap => 'cap-notify' }
-    ) if @new;
+    return 1;
 }
 
 sub unload_module {

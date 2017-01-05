@@ -9,5 +9,5 @@
    "description" : "provides an interface for client capabilities",
    "name" : "Base::Capabilities",
    "package" : "M::Base::Capabilities",
-   "version" : "14.8"
+   "version" : "14.9"
 }
