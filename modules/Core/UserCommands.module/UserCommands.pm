@@ -388,7 +388,8 @@ sub mode {
 
 sub privmsgnotice {
     my ($user, $event, $msg, $command, $t_name, $message) = @_;
-
+    $msg->{message} = $message;
+    
     # no text to send
     if (!length $message) {
         $user->numeric('ERR_NOTEXTTOSEND');
