@@ -843,7 +843,7 @@ User objects are listened upon by the [pool](pool.md). Most events involving
 user interaction with a channel are fired on the [channel](channel.md) object
 rather than the user object.
 
-### can_join($channel)
+### user.can_join($channel)
 
 Fired before a local user joins a channel. Callbacks of this event typically run
 checks to see if the user can join, stopping the event fire if not. For
@@ -882,7 +882,7 @@ $pool->on('user.can_join' => sub {
 
 * __$channel__: the channel the user is attempting to join.
 
-### can_invite($t_user, $ch_name, $channel)
+### user.can_invite($t_user, $ch_name, $channel)
 
 Fired before a local user invites someone to a channel. Callbacks of this event
 typically run checks to see if the user can invite, stopping the event fire if
@@ -917,7 +917,7 @@ necessary because we allow invitations to nonexistent channels
 (unless `channels:invite_must_exist` is enabled).
 * __$channel__: the channel object or `undef` if it does not yet exist.
 
-### can_message($target, \$message, $lc_cmd)
+### user.can_message($target, \$message, $lc_cmd)
 
 Fired on a local user who is attempting to send a message. The target may be
 a user or channel. This event allows modules to prevent a user from sending a
@@ -970,7 +970,7 @@ $pool->on('user.can_message_channel' => sub {
  overwrite this to modify the message.
 * __$lc_cmd__: `privmsg` or `notice`. only useful for `can_message_*` events.
 
-### cant_message($target, $message, $can_fire, $lc_cmd)
+### user.cant_message($target, $message, $can_fire, $lc_cmd)
 
 You can hook onto this event using any of these:
 
@@ -993,13 +993,14 @@ You can hook onto this event using any of these:
   blocked.
 * __$lc_cmd__: `privmsg` or `notice`. only useful for `cant_message_*` events.
 
-### can_receive_message($target, \$message, $lc_cmd)
+### user.can_receive_message($target, \$message, $lc_cmd)
 
 Fired on a local user who is about to receive a message. The message is either
 addressed directly to the user or a channel the user is a member of. By the
-time this event is fired, `->do_privmsgnotice()` has already determined that
-the source is permitted to send the message. Modifications may have been made
-to the primary message text as well.
+time this event is fired,
+[`->do_privmsgnotice()`](#user-do_privmsgnoticecommand-source-message-opts) has
+already determined that the source is permitted to send the message.
+Modifications may have been made to the primary message text as well.
 
 Modules may hook onto this to prevent a specific user from seeing the message
 by stopping the event, or they can modify the text that the specific user will
