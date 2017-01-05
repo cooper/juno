@@ -24,7 +24,7 @@ our %channel_modes = (
 sub init {
 
     # catch blocked messages
-    $pool->on('user.cant_message' => \&message_blocked,
+    $pool->on('user.cant_message_channel' => \&message_blocked,
         name    => 'op.moderate',
         with_eo => 1
     );
@@ -33,7 +33,7 @@ sub init {
 }
 
 sub message_blocked {
-    my ($user, $event, $channel, $message, $lccommand, $can_fire) = @_;
+    my ($user, $event, $channel, $message, $can_fire, $lccommand) = @_;
 
     # we only care if the user is local and the channel is +z
     return unless $channel->is_mode('op_moderated');

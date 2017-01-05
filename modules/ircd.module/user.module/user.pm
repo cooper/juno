@@ -698,11 +698,12 @@ sub do_privmsgnotice {
 
         # can_message, can_notice, can_privmsg,
         # can_message_user, can_notice_user, can_privmsg_user
+        my @args = ($user, \$message, $lc_cmd);
         my $can_fire = $source_user->fire_events_together(
-            [  can_message          => $user, \$message, $lc_cmd ],
-            [  can_message_user     => $user, \$message, $lc_cmd ],
-            [ "can_${lc_cmd}"       => $user, \$message          ],
-            [ "can_${lc_cmd}_user"  => $user, \$message          ]
+            [  can_message          => @args ],
+            [  can_message_user     => @args ],
+            [ "can_${lc_cmd}"       => @args ],
+            [ "can_${lc_cmd}_user"  => @args ]
         );
 
         # the can_* events may stop the event, preventing the message from
@@ -710,9 +711,12 @@ sub do_privmsgnotice {
         if ($can_fire->stopper) {
 
             # if the message was blocked, fire cant_* events.
+            my @base_args = ($user, $message, $can_fire, $lc_cmd);
             my $cant_fire = $source_user->fire_events_together(
-                [  cant_message     => $user, $message, $lc_cmd, $can_fire ],
-                [ "cant_$lc_cmd"    => $user, $message,          $can_fire ]
+                [  cant_message         => @args ],
+                [  cant_message_user    => @args ],
+                [ "cant_${lc_cmd}"      => @args ],
+                [ "cant_${lc_cmd}_user" => @args ]
             );
 
             # the cant_* events may be stopped. if this happens, the error
@@ -732,21 +736,22 @@ sub do_privmsgnotice {
 
         # the can_receive_* events may modify the message as it appears to the
         # target user, so we pass a scalar reference to a copy of it.
-        my $my_msg = $message;
+        my $my_message = $message;
 
         # fire can_receive_* events.
-        my $recv_fire = $source_user->fire_events_together(
-            [  can_receive_message          => $user, \$my_msg, $lc_cmd ],
-            [  can_receive_message_user     => $user, \$my_msg, $lc_cmd ],
-            [ "can_receive_${lc_cmd}"       => $user, \$my_msg          ],
-            [ "can_receive_${lc_cmd}_user"  => $user, \$my_msg          ]
+        my @args = ($user, \$my_message, $lc_cmd);
+        my $recv_fire = $user->fire_events_together(
+            [  can_receive_message          => @args ],
+            [  can_receive_message_user     => @args ],
+            [ "can_receive_${lc_cmd}"       => @args ],
+            [ "can_receive_${lc_cmd}_user"  => @args ]
         );
 
         # the can_receive_* events may stop the event, preventing the user
         # from ever seeing the message.
         return if $recv_fire->stopper;
 
-        $user->sendfrom($source->full, "$command $$user{nick} :$my_msg");
+        $user->sendfrom($source->full, "$command $$user{nick} :$my_message");
     }
 
     # the user is remote. check if dont_forward is true.

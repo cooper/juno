@@ -895,11 +895,12 @@ sub do_privmsgnotice {
 
         # can_message, can_notice, can_privmsg,
         # can_message_channel, can_notice_channel, can_privmsg_channel
+        my @args = ($channel, \$message, $lc_cmd);
         my $can_fire = $source_user->fire_events_together(
-            [  can_message            => $channel, \$message, $lc_cmd ],
-            [  can_message_channel    => $channel, \$message, $lc_cmd ],
-            [ "can_${lc_cmd}"         => $channel, \$message          ],
-            [ "can_${lc_cmd}_channel" => $channel, \$message          ]
+            [  can_message            => @args ],
+            [  can_message_channel    => @args ],
+            [ "can_${lc_cmd}"         => @args ],
+            [ "can_${lc_cmd}_channel" => @args ]
         );
 
         # the can_* events may stop the event, preventing the message from
@@ -907,9 +908,12 @@ sub do_privmsgnotice {
         if ($can_fire->stopper) {
 
             # if the message was blocked, fire cant_* events.
+            my @args = ($channel, $message, $can_fire, $lc_cmd);
             my $cant_fire = $source_user->fire_events_together(
-                [  cant_message     => $channel, $message, $lc_cmd, $can_fire ],
-                [ "cant_$lc_cmd"    => $channel, $message,          $can_fire ]
+                [  cant_message            => @args ],
+                [  cant_message_channel    => @args ],
+                [ "cant_${lc_cmd}"         => @args ],
+                [ "cant_${lc_cmd}_channel" => @args ]
             );
 
             # the cant_* events may be stopped. if this happens, the error
@@ -951,19 +955,20 @@ sub do_privmsgnotice {
 
             # the can_receive_* events may modify the message as it appears to
             # the target user, so we pass a scalar reference to a copy of it.
-            my $my_msg = $message;
+            my $my_message = $message;
 
             # fire can_receive_* events.
-            my $recv_fire = $source_user->fire_events_together(
-                [  can_receive_message            => $user, \$my_msg, $lc_cmd ],
-                [  can_receive_message_channel    => $user, \$my_msg, $lc_cmd ],
-                [ "can_receive_${lc_cmd}"         => $user, \$my_msg          ],
-                [ "can_receive_${lc_cmd}_channel" => $user, \$my_msg          ]
+            my @args = ($user, \$my_message, $lc_cmd);
+            my $recv_fire = $user->fire_events_together(
+                [  can_receive_message            => @args ],
+                [  can_receive_message_channel    => @args ],
+                [ "can_receive_${lc_cmd}"         => @args ],
+                [ "can_receive_${lc_cmd}_channel" => @args ]
             );
 
             # the can_receive_* events may stop the event, preventing the user
             # from ever seeing the message.
-            $user->sendfrom($source->full, $local_prefix.$my_msg)
+            $user->sendfrom($source->full, $local_prefix.$my_message)
                 unless $recv_fire->stopper;
 
             next USER;

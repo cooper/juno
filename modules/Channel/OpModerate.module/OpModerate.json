@@ -11,5 +11,5 @@
    "description" : "adds a channel mode to send blocked messages to ops",
    "name" : "Channel::OpModerate",
    "package" : "M::Channel::OpModerate",
-   "version" : "0.9"
+   "version" : "1"
 }

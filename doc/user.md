@@ -542,8 +542,8 @@ $user->do_logout()
 
 ### $user->do_privmsgnotice($command, $source, $message, %opts)
 
-Handles a PRIVMSG or NOTICE. This is used for both local and remote users.
-Fires events like `can_message`, `cant_message`, `can_receive_message`,
+Handles a PRIVMSG or NOTICE to `$user`. This is used for both local and remote
+users. Fires events like `can_message`, `cant_message`, `can_receive_message`,
 `privmsg`, `notice`, plus several others. These are used by modules to either
 block or modify messages.
 
@@ -551,17 +551,21 @@ This method also deals with routing of the message. If the user is local, he
 will receive the message. Otherwise, the message will be forwarded to the
 appropriate uplink.
 
-* __$command__: either 'privmsg' or 'notice'.
+```perl
+$target->do_privmsgnotice('notice', $someone, 'hi there');
+```
+
+* __$command__: either 'privmsg' or 'notice'. case-insensitive.
 * __$source__: a user or server object which is the source of the message.
 * __$message__: the message text was it was received.
 * __%opts__: _optional_, a hash of options.
 
 __%opts__
-* __force__: if specified, the can_privmsg, can_notice, and can_message
+* __force__: if specified, the `can_privmsg`, `can_notice`, and `can_message`
  events will not be fired. this means that any modules that prevent the message
  from being sent OR that modify the message will NOT have an effect on this
  message. used when receiving remote messages.
-* __dont_forward__:if specified, the message will NOT be forwarded to other
+* __dont_forward__: if specified, the message will NOT be forwarded to other
  servers if the user is not local.
 
 ### $user->do_mode_string($mode_string, $force)
@@ -912,3 +916,102 @@ $pool->on('user.can_invite' => sub {
 necessary because we allow invitations to nonexistent channels
 (unless `channels:invite_must_exist` is enabled).
 * __$channel__: the channel object or `undef` if it does not yet exist.
+
+### can_message($target, \$message, $lc_cmd)
+
+Fired on a local user who is attempting to send a message. The target may be
+a user or channel. This event allows modules to prevent a user from sending a
+message by stopping the event. Modules can also modify the message text before
+it is delivered to its target.
+
+If your callback adds a message restriction, call
+`$event->stop($reason)` with a human-readable reason as to why the message
+was blocked. This may be used for debugging purposes. If you need to send an
+error numeric to the source user, do not call `->numeric()` directly, as some
+errors are suppressed by other modules. Instead, use the `$event->{error_reply}`
+key, like so:
+```
+$event->{error_reply} = [ ERR_INVITEONLYCHAN => $channel->name ];
+```
+
+You can hook onto this event using any of these:
+
+-----------------------------------------------------
+| Event                     | Command   | Target    |
+| ------------------------- | --------- | --------- |        
+| __can_message__           | Any       | Any       |
+| __can_message_user__      | Any       | User      |
+| __can_message_channel__   | Any       | Channel   |
+| __can_privmsg__           | `PRIVMSG` | Any       |
+| __can_privmsg_user__      | `PRIVMSG` | User      |
+| __can_privmsg_channel__   | `PRIVMSG` | Channel   |
+| __can_notice__            | `NOTICE`  | Any       |
+| __can_notice_user__       | `NOTICE`  | User      |
+| __can_notice_channel__    | `NOTICE`  | Channel   |
+-----------------------------------------------------
+
+* __$target__: the message target. a user or channel object.
+* __\$message__: a scalar reference to the message text. callbacks may
+ overwrite this to modify the message.
+* __$lc_cmd__: 'privmsg' or 'notice'. only useful for `can_message_*` events.
+
+### cant_message($target, $message, $can_fire, $lc_cmd)
+
+You can hook onto this event using any of these:
+
+------------------------------------------------------
+| Event                      | Command   | Target    |
+| -------------------------- | --------- | --------- |        
+| __cant_message__           | Any       | Any       |
+| __cant_message_user__      | Any       | User      |
+| __cant_message_channel__   | Any       | Channel   |
+| __cant_privmsg__           | `PRIVMSG` | Any       |
+| __cant_privmsg_user__      | `PRIVMSG` | User      |
+| __cant_privmsg_channel__   | `PRIVMSG` | Channel   |
+| __cant_notice__            | `NOTICE`  | Any       |
+| __cant_notice_user__       | `NOTICE`  | User      |
+| __cant_notice_channel__    | `NOTICE`  | Channel   |
+------------------------------------------------------
+
+* __$target__: the message target. a user or channel object.
+* __$message__: the message text.
+* __$can_fire__: the event fire object from the `can_message` and related
+  events. this is useful for extracting information about why the message was
+  blocked.
+* __$lc_cmd__: 'privmsg' or 'notice'. only useful for `cant_message_*` events.
+
+### can_receive_message($target, \$message, $lc_cmd)
+
+Fired on a local user who is about to receive a message. The message is either
+addressed directly to the user or a channel the user is a member of. By the
+time this event is fired, `->do_privmsgnotice()` has already determined that
+the source is permitted to send the message. Modifications may have been made
+to the primary message text as well.
+
+Modules may hook onto this to prevent a specific user from seeing the message
+by stopping the event, or they can modify the text that the specific user will
+see. Modifying the message will not affect what other channel members might see,
+for example.
+
+You can hook onto this event using any of these:
+
+-------------------------------------------------------------
+| Event                             | Command   | Target    |
+| --------------------------------- | --------- | --------- |        
+| __can_receive_message__           | Any       | Any       |
+| __can_receive_message_user__      | Any       | User      |
+| __can_receive_message_channel__   | Any       | Channel   |
+| __can_receive_privmsg__           | `PRIVMSG` | Any       |
+| __can_receive_privmsg_user__      | `PRIVMSG` | User      |
+| __can_receive_privmsg_channel__   | `PRIVMSG` | Channel   |
+| __can_receive_notice__            | `NOTICE`  | Any       |
+| __can_receive_notice_user__       | `NOTICE`  | User      |
+| __can_receive_notice_channel__    | `NOTICE`  | Channel   |
+-------------------------------------------------------------
+
+* __$target__: the message target. a user or channel object.
+* __\$message__: a scalar reference to the message text. callbacks may
+ overwrite this to modify the message. unlike `can_message`, changes to it will
+ only affect what the user the event is fired on sees.
+* __$lc_cmd__: 'privmsg' or 'notice'. only useful for `can_receive_message_*`
+ events.
