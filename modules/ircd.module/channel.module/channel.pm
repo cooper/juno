@@ -890,14 +890,17 @@ sub do_privmsgnotice {
     if ($source_user && !$opts{force}) {
         my $lc_cmd = lc $command;
 
-        # can_message, can_notice, can_privmsg.
-        my $can_fire = $source_user->fire_events_together(
-            [  can_message  => $channel, $message, $lc_cmd ],
-            [ "can_$lc_cmd" => $channel, $message          ]
-        );
+        # the can_* events may modify the message, so we pass a
+        # scalar reference to it.
 
-        # the can_* events may set {new_message} to modify the message.
-        $message = $can_fire->{new_message} if length $can_fire->{new_message};
+        # can_message, can_notice, can_privmsg,
+        # can_message_channel, can_notice_channel, can_privmsg_channel
+        my $can_fire = $source_user->fire_events_together(
+            [  can_message            => $channel, \$message, $lc_cmd ],
+            [  can_message_channel    => $channel, \$message, $lc_cmd ],
+            [ "can_${lc_cmd}"         => $channel, \$message          ],
+            [ "can_${lc_cmd}_channel" => $channel, \$message          ]
+        );
 
         # the can_* events may stop the event, preventing the message from
         # being sent to users or servers.

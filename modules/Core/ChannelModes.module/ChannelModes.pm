@@ -134,8 +134,8 @@ sub register_statuses {
 sub add_message_restrictions {
 
     # not in channel and no external messages?
-    $pool->on('user.can_message' => sub {
-        my ($user, $event, $channel, $message, $type) = @_;
+    $pool->on('user.can_message_channel' => sub {
+        my ($user, $event, $channel, $message_ref, $type) = @_;
 
         # not internal only, or user is in channel.
         return unless $channel->is_mode('no_ext');
@@ -149,12 +149,13 @@ sub add_message_restrictions {
     }, name => 'no.external.messages', with_eo => 1, priority => 30);
 
     # moderation and no voice?
-    $pool->on('user.can_message' => sub {
-        my ($user, $event, $channel, $message, $type) = @_;
+    $pool->on('user.can_message_channel' => sub {
+        my ($user, $event, $channel, $message_ref, $type) = @_;
 
         # not moderated, or the user has proper status.
         return unless $channel->is_mode('moderated');
-        return if $channel->user_get_highest_level($user) >= $channel::LEVEL_SPEAK_MOD;
+        return if $channel->user_get_highest_level($user)
+            >= $channel::LEVEL_SPEAK_MOD;
 
         # no external messages.
         $event->{error_reply} =
@@ -164,11 +165,12 @@ sub add_message_restrictions {
     }, name => 'moderated', with_eo => 1, priority => 20);
 
     # banned and no voice?
-    $pool->on('user.can_message' => sub {
-        my ($user, $event, $channel, $message, $type) = @_;
+    $pool->on('user.can_message_channel' => sub {
+        my ($user, $event, $channel, $message_ref, $type) = @_;
 
         # not banned, or the user has overriding status.
-        return if $channel->user_get_highest_level($user) >= $channel::LEVEL_SPEAK_MOD;
+        return if $channel->user_get_highest_level($user)
+            >= $channel::LEVEL_SPEAK_MOD;
         return unless $channel->list_matches('ban', $user);
         return if $channel->list_matches('except', $user);
 

@@ -40,7 +40,7 @@ our %channel_modes = (
 sub init {
 
     # message blocking event - muted and no voice?
-    $pool->on('user.can_message' => \&on_user_can_message,
+    $pool->on('user.can_message_channel' => \&on_user_can_message_channel,
         name        => 'stop.muted.users',
         with_eo     => 1,
         priority    => 10
@@ -49,8 +49,8 @@ sub init {
     return 1;
 }
 
-sub on_user_can_message {
-    my ($user, $event, $channel, $message, $type) = @_;
+sub on_user_can_message_channel {
+    my ($user, $event, $channel, $message_ref, $type) = @_;
 
     # has voice.
     return if $channel->user_get_highest_level($user) >= $channel::LEVEL_SPEAK_MOD;
