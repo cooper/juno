@@ -904,11 +904,27 @@ sub sendfrom_to_many_with_opts {
             $this_message = $opts{alternative};
         }
 
-        $user->sendfrom($from, $this_message);
+        $user->sendfrom($from, $_) for ref_to_list($this_message);
         $sent_to{$user}++;
     }
 
     return \%sent_to;
+}
+
+# send to all local users
+sub sendfrom_to_all {
+    my ($from, $message) = @_;
+    return sendfrom_to_all_with_opts(
+        $from,
+        $message,
+        undef
+    );
+}
+
+# send to all local users with opts
+sub sendfrom_to_all_with_opts {
+    my ($from, $message, $opts) = @_;
+    sendfrom_to_many_with_opts($from, $message, $opts, $pool->real_local_users);
 }
 
 #########################
