@@ -150,6 +150,10 @@ sub send_burst {
         $server->fire_command(oper => $user, @flags)
             if @flags;
 
+        # LOGIN
+        $server->fire_command(login => $user, $user->{account}{name})
+            if $user->{account};
+
         # AWAY
         $server->fire_command(away => $user)
             if length $user->{away};
