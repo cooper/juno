@@ -832,7 +832,7 @@ sub _do_mode_string {
 #                       can_message events will not be fired. this means that
 #                       any modules that prevent the message from being sent OR
 #                       that modify the message will NOT have an effect on this
-#                       message. used when receiving remote PRIVMSGs.
+#                       message. used when receiving remote messages.
 #
 #       dont_forward    if specified, the message will NOT be forwarded to other
 #                       servers by this method. this is used in protocol modules
@@ -973,8 +973,8 @@ sub do_privmsgnotice {
         $sent{$location}++;
     }
 
-    # fire event.
-    $channel->fire($command => $source, $message);
+    # fire privmsg or notice event.
+    $channel->fire(lc $command => $source, $message);
 
     return 1;
 }

@@ -540,6 +540,30 @@ Servers are NOT notified by this method. Each protocol implementation must
 $user->do_logout()
 ```
 
+### $user->do_privmsgnotice($command, $source, $message, %opts)
+
+Handles a PRIVMSG or NOTICE. This is used for both local and remote users.
+Fires events like `can_message`, `can_privmsg`, `can_notice`, `cant_message`,
+`privmsg`, `notice`, plus several others. These are used by modules to either
+block or modify messages.
+
+This method also deals with routing of the message. If the user is local, he
+will receive the message. Otherwise, the message will be forwarded to the
+appropriate uplink.
+
+* __$command__: either 'privmsg' or 'notice'.
+* __$source__: a user or server object which is the source of the message.
+* __$message__: the message text was it was received.
+* __%opts__: _optional_, a hash of options.
+
+__%opts__
+* __force__: if specified, the can_privmsg, can_notice, and can_message
+ events will not be fired. this means that any modules that prevent the message
+ from being sent OR that modify the message will NOT have an effect on this
+ message. used when receiving remote messages.
+* __dont_forward__:if specified, the message will NOT be forwarded to other
+ servers if the user is not local.
+
 ### $user->do_mode_string($mode_string, $force)
 
 Handles a mode string with

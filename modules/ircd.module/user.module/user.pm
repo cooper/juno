@@ -22,9 +22,12 @@ use overload
     '0+'     => sub { shift     },
     bool     => sub { 1         };
 
-use utils qw(v notice col conf irc_time cut_to_limit irc_lc simplify);
 use List::Util   'first';
 use Scalar::Util 'blessed';
+use utils qw(
+    v notice col conf irc_time cut_to_limit irc_lc
+    simplify ref_to_list
+);
 
 our ($api, $mod, $pool, $me);
 
@@ -651,6 +654,97 @@ sub do_logout {
     );
 
     notice(user_logged_out => $user->notice_info, $old->{name});
+    return 1;
+}
+
+# ->do_privmsgnotice()
+#
+# Handles a PRIVMSG or NOTICE. Notifies local users and uplinks when necessary.
+#
+# $command  one of 'privmsg' or 'notice'.
+#
+# $source   user or server object which is the source of the method.
+#
+# $message  the message text as it was received.
+#
+# %opts     a hash of options:
+#
+#       force           if specified, the can_privmsg, can_notice, and
+#                       can_message events will not be fired. this means that
+#                       any modules that prevent the message from being sent OR
+#                       that modify the message will NOT have an effect on this
+#                       message. used when receiving remote messages.
+#
+#       dont_forward    if specified, the message will NOT be forwarded to other
+#                       servers if the user is not local.
+#
+sub do_privmsgnotice {
+    my ($user, $command, $source, $message, %opts) = @_;
+    my $source_user = $source if $source->isa('user');
+    my $source_serv = $source if $source->isa('server');
+    $command = uc $command;
+
+    # tell them of away if set
+    if ($source_user && $command eq 'PRIVMSG' && length $user->{away}) {
+        $source_user->numeric(RPL_AWAY => $user->{nick}, $user->{away});
+    }
+
+    # it's a user. fire the can_* events.
+    if ($source_user && !$opts{force}) {
+        my $lc_cmd = lc $command;
+
+        # the can_* events may modify the message, so we pass a
+        # scalar reference to it.
+
+        # can_message, can_notice, can_privmsg,
+        # can_message_user, can_notice_user, can_privmsg_user
+        my $can_fire = $source_user->fire_events_together(
+            [  can_message          => $user, \$message, $lc_cmd ],
+            [  can_message_user     => $user, \$message, $lc_cmd ],
+            [ "can_${lc_cmd}"       => $user, \$message          ],
+            [ "can_${lc_cmd}_user"  => $user, \$message          ]
+        );
+
+        # the can_* events may stop the event, preventing the message from
+        # being sent to users or servers.
+        if ($can_fire->stopper) {
+
+            # if the message was blocked, fire cant_* events.
+            my $cant_fire = $source_user->fire_events_together(
+                [  cant_message     => $user, $message, $lc_cmd, $can_fire ],
+                [ "cant_$lc_cmd"    => $user, $message,          $can_fire ]
+            );
+
+            # the cant_* events may be stopped. if this happens, the error
+            # messages as to why the message was blocked will NOT be sent.
+            my @error_reply = ref_to_list($can_fire->{error_reply});
+            if (!$cant_fire->stopper && @error_reply) {
+                $source_user->numeric(@error_reply);
+            }
+
+            # the can_* event was stopped, so don't continue.
+            return;
+        }
+    }
+
+    # the user is local.
+    if ($user->is_local) {
+        # TODO: (#155) fire can_receive_* events which can modify $message
+        # or stop
+        $user->sendfrom($source->full, "$command $$user{nick} :$message");
+    }
+
+    # the user is remote. check if dont_forward is true.
+    elsif (!$opts{dont_forward}) {
+        $user->{location}->fire_command(privmsgnotice =>
+            $command, $source, $user,
+            $message, %opts
+        );
+    }
+
+    # fire privmsg or notice event.
+    $user->fire(lc $command => $source, $message);
+
     return 1;
 }
 

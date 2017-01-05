@@ -3868,10 +3868,14 @@ CHANGES:
     49. add JELP FLOGIN command. this is used by services to login a user. closes #151.
         FLOGIN is also used for logout. closes #152.
         this should fix all existing issues with account propagation.
-
-    50. can_message will soon be used for user-to-user PRIVMSGs and NOTICEs in addition to channel messages.
+        can_message will soon be used for user-to-user PRIVMSGs and NOTICEs in addition to channel messages.
         channel message checks are now fired as can_message_channel in addition to can_message. #154.
         the {new_message} option has been removed.
         now can_message events are passed a scalar reference to the message text which can be modified directly.
         this allows multiple callbacks to modify the message in order of priority. closes #156.
         updated all modules to use can_message_channel instead of can_message and to no longer use new_message.
+
+    50. added user method ->do_privmsgnotice() which is argument-compatible with channel->do_privmsgnotice().
+        greatly simplified the PRIVMSG and NOTICE user command handler as well as geenric S2S logic for these commands in server::protocol::handle_privmsgnotice().
+        added new events can_message_user, can_notice_user, can_privmsg_user. these are fired along with can_message, etc. closes #154.
+        

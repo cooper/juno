@@ -388,52 +388,27 @@ sub mode {
 
 sub privmsgnotice {
     my ($user, $event, $msg, $command, $t_name, $message) = @_;
-    $msg->{message} = $message;
 
-    # no text to send.
+    # no text to send
     if (!length $message) {
         $user->numeric('ERR_NOTEXTTOSEND');
         return;
     }
 
-    # is it a user?
-    my $tuser = $pool->lookup_user_nick($t_name);
-    if ($tuser) {
+    # lookup user/channel
+    my $target = $pool->lookup_user_nick($t_name) ||
+        $pool->lookup_channel($t_name);
 
-        # TODO: (#154) here check for user modes preventing
-        # the user from sending the message.
-
-        # tell them of away if set
-        if ($command eq 'PRIVMSG' && length $user->{away}) {
-            $user->numeric('RPL_AWAY', $tuser->{nick}, $tuser->{away});
-        }
-
-        # if it's a local user, send it to them.
-        if ($tuser->is_local) {
-            $tuser->sendfrom($user->full, "$command $$tuser{nick} :$message");
-        }
-
-        # send it to the server holding this user.
-        else {
-            $tuser->{location}->fire_command(privmsgnotice => $command, $user, $tuser, $message);
-        }
-
-        $msg->{target} = $tuser;
+    # found
+    if ($target) {
+        $target->do_privmsgnotice($command, $user, $message);
+        $msg->{target} = $target;
         return 1;
     }
 
-    # must be a channel.
-    my $channel = $pool->lookup_channel($t_name);
-    if ($channel) {
-        $channel->do_privmsgnotice($command, $user, $message);
-        $msg->{target} = $channel;
-        return 1;
-    }
-
-    # no such nick/channel.
+    # no such nick/channel
     $user->numeric(ERR_NOSUCHNICK => $t_name);
     return;
-
 }
 
 sub smap {

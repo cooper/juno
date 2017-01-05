@@ -208,8 +208,8 @@ sub handle_privmsgnotice {
     }
 
     # - Complex PRIVMSG
-    #   a status character ('@'/'+') followed by a channel name, to send to users
-    #   with that status or higher only.
+    #   a status character ('@'/'+') followed by a channel name, to send to
+    #   users with that status or higher only.
     #   capab:          CHW
     #   propagation:    all servers with -D users with appropriate status
     # Note: Check this after all other prefixes but before user@server.
@@ -223,7 +223,10 @@ sub handle_privmsgnotice {
         my $level = $opts{chan_lvl_lookup}($prefix);
         defined $level or return;
 
-        return _privmsgnotice_status(@_[0..3], $channel, $message, $level, %opts);
+        return _privmsgnotice_status(
+            @_[0..3], $channel,
+            $message, $level, %opts
+        );
     }
 
     # - Complex PRIVMSG
@@ -240,40 +243,15 @@ sub handle_privmsgnotice {
         );
     }
 
-    # is it a user?
-    my $tuser = $opts{user_lookup}($target);
-    if ($tuser) {
-
-        # if it's mine, send it.
-        if ($tuser->is_local) {
-            $tuser->sendfrom($source->full, "$command $$tuser{nick} :$message");
-            return 1;
-        }
-
+    # find the target.
+    my $target = $opts{user_lookup}($target) || $opts{channel_lookup}($target);
+    if ($target) {
         # === Forward ===
-        #
-        # the user does not belong to us;
-        # pass this on to its physical location.
-        #
-        $msg->forward_to($tuser, privmsgnotice =>
-            $command, $source,
-            $tuser,   $message
-        );
-
-        return 1;
-    }
-
-    # must be a channel.
-    my $channel = $opts{channel_lookup}($target);
-    if ($channel) {
-
-        # === Forward ===
-        #
         #  ->do_privmsgnotice() deals with routing
-        #
-        $channel->do_privmsgnotice($command, $source, $message, force => 1);
-
-        return 1;
+        return $target->do_privmsgnotice(
+            $command, $source, $message,
+            force => 1
+        );
     }
 
     # at this point, we don't know what to do
@@ -286,7 +264,8 @@ sub handle_privmsgnotice {
 }
 
 # - Complex PRIVMSG
-#   a message to all users on server names matching a mask ('$$' followed by mask)
+#   a message to all users on server names matching a mask
+#       ('$$' followed by mask)
 #   propagation: broadcast
 #   Only allowed to IRC operators.
 #
