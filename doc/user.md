@@ -930,7 +930,7 @@ was blocked. This may be used for debugging purposes. If you need to send an
 error numeric to the source user, do not call `->numeric()` directly, as some
 errors are suppressed by other modules. Instead, use the `$event->{error_reply}`
 key, like so:
-```
+```perl
 $event->{error_reply} = [ ERR_INVITEONLYCHAN => $channel->name ];
 ```
 
@@ -948,10 +948,27 @@ You can hook onto this event using any of these:
 | __can_notice_user__       | `NOTICE`  | User      |
 | __can_notice_channel__    | `NOTICE`  | Channel   |
 
+```perl
+# not in channel and no external messages?
+$pool->on('user.can_message_channel' => sub {
+    my ($user, $event, $channel, $message_ref, $type) = @_;
+
+    # not internal only, or user is in channel.
+    return unless $channel->is_mode('no_ext');
+    return if $channel->has_user($user);
+
+    # no external messages.
+    $event->{error_reply} =
+        [ ERR_CANNOTSENDTOCHAN => $channel->name, 'No external messages' ];
+    $event->stop('no_ext');
+
+}, name => 'no.external.messages', with_eo => 1, priority => 30);
+```
+
 * __$target__: the message target. a user or channel object.
 * __\$message__: a scalar reference to the message text. callbacks may
  overwrite this to modify the message.
-* __$lc_cmd__: 'privmsg' or 'notice'. only useful for `can_message_*` events.
+* __$lc_cmd__: `privmsg` or `notice`. only useful for `can_message_*` events.
 
 ### cant_message($target, $message, $can_fire, $lc_cmd)
 
@@ -974,7 +991,7 @@ You can hook onto this event using any of these:
 * __$can_fire__: the event fire object from the `can_message` and related
   events. this is useful for extracting information about why the message was
   blocked.
-* __$lc_cmd__: 'privmsg' or 'notice'. only useful for `cant_message_*` events.
+* __$lc_cmd__: `privmsg` or `notice`. only useful for `cant_message_*` events.
 
 ### can_receive_message($target, \$message, $lc_cmd)
 
@@ -1007,5 +1024,5 @@ You can hook onto this event using any of these:
 * __\$message__: a scalar reference to the message text. callbacks may
  overwrite this to modify the message. unlike `can_message`, changes to it will
  only affect what the user the event is fired on sees.
-* __$lc_cmd__: 'privmsg' or 'notice'. only useful for `can_receive_message_*`
+* __$lc_cmd__: `privmsg` or `notice`. only useful for `can_receive_message_*`
  events.
