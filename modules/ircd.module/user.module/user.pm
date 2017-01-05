@@ -441,6 +441,7 @@ sub get_killed_by {
     # local user with conn still active, use ->done().
     if ($user->conn) {
         $user->{conn}{killed} = 1;
+        $user->sendfrom($source->full, "KILL $$user{nick} :$$reason");
         $user->{conn}->done("Killed ($$reason)");
     }
 
@@ -448,9 +449,6 @@ sub get_killed_by {
     else {
         $user->quit("Killed ($$reason)");
     }
-
-    # TODO: (#150) send KILL message to the user
-    # charybdis/3c7d6fcce7a021ea7c4948a37a32aeca072e5b10/modules/core/m_kill.c#L237
 
     notice(user_killed => $user->notice_info, $source->full, $$reason);
     return 1;
