@@ -78,7 +78,7 @@ my %scommands = (
     },
     AWAY => {
                    # :uid AWAY    :reason
-        params  => '-source(user) :rest',
+        params  => '-source(user) :rest(opt)',
         code    => \&away
     },
     CMODE => {
