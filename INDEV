@@ -3894,3 +3894,4 @@ CHANGES:
         new ->capability_change_start() and ->capability_change_end() can be used to monitor multiple changes in capabilities.
         new user functions sendfrom_to_all() and sendfrom_to_all_with_opts().
         update RELOAD to use capability change monitoring.
+        update MODLOAD and friends to use capability change monitoring. cleaned up the Modules module.

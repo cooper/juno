@@ -132,16 +132,8 @@ sub modload {
     my ($user, $event, $mod_name) = @_;
     $user->server_notice(modload => "Loading module \2$mod_name\2.");
 
-    # before loading any modules, copy the mode mapping tables.
-    my $old_modes = server::protocol::mode_change_start($me);
-
     # attempt.
-    my $cb     = $api->on(log => sub { $user->server_notice("- $_[1]") }, name => 'mm.modload');
-    my $result = $api->load_module($mod_name);
-    $api->delete_callback(log => $cb->{name});
-
-    # notify servers of mode changes
-    server::protocol::mode_change_end($me, $old_modes);
+    my $result = wrap(sub { $api->load_module($mod_name) }, $user);
 
     # failure.
     if (!$result) {
@@ -159,16 +151,8 @@ sub modunload {
     my ($user, $event, $mod_name) = @_;
     $user->server_notice(modunload => "Unloading module \2$mod_name\2.");
 
-    # before unloading any modules, copy the mode mapping tables.
-    my $old_modes = server::protocol::mode_change_start($me);
-
     # attempt.
-    my $cb     = $api->on(log => sub { $user->server_notice("- $_[1]") }, name => 'mm.modunload');
-    my $result = $api->unload_module($mod_name);
-    $api->delete_callback(log => $cb->{name});
-
-    # notify servers of mode changes
-    server::protocol::mode_change_end($me, $old_modes);
+    my $result = wrap(sub { $api->unload_module($mod_name) }, $user);
 
     # failure.
     if (!$result) {
@@ -187,9 +171,7 @@ sub modreload {
     $user->server_notice(modreload => "Reloading module \2$mod_name\2.");
 
     # attempt.
-    my $cb     = $api->on(log => sub { $user->server_notice("- $_[1]") }, name => 'mm.modreload');
-    my $result = $api->reload_module($mod_name);
-    $api->delete_callback(log => $cb->{name});
+    my $result = wrap(sub { $api->reload_module($mod_name) }, $user);
 
     # failure.
     if (!$result) {
@@ -201,6 +183,31 @@ sub modreload {
     notice($user, module_reload => $user->notice_info, $mod_name);
     return 1;
 
+}
+
+sub wrap {
+    my ($code, $user) = @_;
+
+    # attach logging callback
+    my $cb = $api->on(log => sub { $user->server_notice("- $_[1]") });
+
+    # before reloading any modules, copy the mode mapping and cap tables
+    my $old_modes = server::protocol::mode_change_start($me);
+    my $old_caps  = $pool->capability_change_start
+        if $pool->can('capability_change_start');
+
+    # do the code
+    my $result = $code->();
+
+    # notify servers of mode/cap changes
+    server::protocol::mode_change_end($me, $old_modes);
+    $pool->capability_change_end($old_caps)
+        if $pool->can('capability_change_end');
+
+    # remove logging callback
+    $api->delete_callback(log => $cb->{name});
+
+    return $result;
 }
 
 $mod
