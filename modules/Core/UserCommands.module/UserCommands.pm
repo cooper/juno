@@ -31,12 +31,12 @@ our %user_commands = (
     },
     LUSERS => {
         code   => \&lusers,
-        params => '*(opt) server_mask(opt)',
+        params => '*(opt) server_mask(semiopt)',
         desc   => 'view user statistics'
     },
     USERS => {
         code   => \&users,
-        params => 'server_mask(opt)',
+        params => 'server_mask(semiopt)',
         desc   => 'view user statistics'
     },
     REHASH => {
@@ -66,7 +66,7 @@ our %user_commands = (
     VERSION => {
         code   => \&version,
         desc   => 'view server version information',
-        params => 'server_mask(opt)'
+        params => 'server_mask(semiopt)'
     },
     LINKS => {
         code   => \&links,
@@ -155,12 +155,12 @@ our %user_commands = (
     INFO => {
         code   => \&info,
         desc   => 'display ircd license and credits',
-        params => 'server_mask(opt)'
+        params => 'server_mask(semiopt)'
     },
     MOTD => {
         code   => \&motd,
         desc   => 'display the message of the day',
-        params => 'server_mask(opt)'
+        params => 'server_mask(semiopt)'
     },
     NICK => {
         code   => \&nick,
@@ -170,12 +170,12 @@ our %user_commands = (
     ADMIN => {
         code   => \&admin,
         desc   => 'server administrative information',
-        params => 'server_mask(opt)'
+        params => 'server_mask(semiopt)'
     },
     TIME => {
         code   => \&_time,
         desc   => 'server time',
-        params => 'server_mask(opt)'
+        params => 'server_mask(semiopt)'
     },
     USERHOST => {
         code   => \&userhost,

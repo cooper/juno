@@ -314,10 +314,10 @@ sub parse_params {
             $match_attr_keys[$i] = [];
         }
 
-        # unless there is an 'opt' (optional) attribute
+        # unless there is an 'opt' (optional) or 'semiopt' attribute
         # or it is one of these fake parameters,
         # increase the required parameter count.
-        next if $match_attr[$i]{opt};
+        next if $match_attr[$i]{opt} || $match_attr[$i]{semiopt};
         next if substr($_, 0, 1) eq '-'; # ex: -command or -oper
 
         $required_parameters++;
@@ -354,6 +354,11 @@ sub parse_params {
         else        { $param_i++ }
         my $type  = $_;
         my $param = $params[$param_i];
+
+        # semi-optional attribute means that the raw parameter is optional,
+        # but if it is present, the matcher must yield something. if it is
+        # semi-optional and the parameter is not present, this is ok.
+        next if $attrs->{semiopt} && !defined $param;
 
         # this is a real parameter. check all restrictions on it.
         return (undef, 'Parameter restriction unsatisfied '.$type)
@@ -421,7 +426,7 @@ sub parse_params {
 # check a real parameter against restrictions.
 sub _check_param {
     my ($param, $attrs) = @_;
-    return $attrs->{opt} if !defined $param;
+    return $attrs->{opt} || $attrs->{semiopt} if !defined $param;
     return if length $param < ($attrs->{minlen} || 0);
     return if length $param > ($attrs->{maxlen} || 'inf');
     return if $attrs->{digit} && $param =~ m/\D/;
