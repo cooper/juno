@@ -199,6 +199,10 @@ my %scommands = (
                    # :uid FOPER     uid  flag1 flag2 ...
         params  => '-source(server) user @rest',
         code    => \&foper
+    },
+    FLOGIN => {   # :uid FLOGIN    uid   act_name
+        params => '-source(server) user  *(opt)',
+        code   => \&flogin
     }
 );
 
@@ -914,9 +918,11 @@ sub login {
     # depending on the builtin account implementation. here, we are only
     # concerned with the account name.
     # consider: if other items are present, should we ignore this entirely here?
-
     my @items = split /,/, $str;
-    $user->do_login($items[0]);
+    my $act_name = $items[0];
+
+    L("JELP login $$user{nick} as $act_name");
+    $user->do_login($act_name);
 
     # === Forward ===
     $msg->forward(login => $user, @items);
@@ -1123,6 +1129,30 @@ sub foper {
     # === Forward ===
     # forward this as OPER, plus to the source server
     $msg->forward_plus_one(oper => $user, @flags);
+}
+
+# force account login/logout
+# unlike other F* commands, this does not require acknowledgement
+sub flogin {
+    my ($server, $msg, $source_serv, $user, $act_name) = @_;
+
+    # no account name = logout.
+    if (!length $act_name) {
+        L("JELP logout $$user{nick}");
+        $user->do_logout();
+
+        #=== Forward ===#
+        $msg->forward(su_logout => $source_serv, $user);
+
+        return 1;
+    }
+
+    # login.
+    L("JELP login $$user{nick} as $act_name");
+    $user->do_login($act_name);
+
+    #=== Forward ===#
+    $msg->forward(su_login => $source_serv, $user, $act_name);
 }
 
 $mod

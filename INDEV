@@ -3864,3 +3864,7 @@ CHANGES:
         fixed a bug where SQUIT for any server mask would cancel all connection timers.
         produce a warning when receiving CONNECT from a server.
         send out TS6 connect with 0 to indicate that the default port should be used.
+
+    49. add JELP FLOGIN command. this is used by services to login a user. closes #151.
+        FLOGIN is also used for logout. closes #152.
+        this should fix all existing issues with account propagation.

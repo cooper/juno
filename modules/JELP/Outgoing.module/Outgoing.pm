@@ -45,9 +45,10 @@ my %ocommands = (
     time            => \&_time,
     snotice         => \&snotice,
     version         => \&version,
-    login           => \&login,                             # TODO: (#152) logout
-    su_login        => \&su_login,                          # TODO: (#152) logout
-    part_all        => \&partall,
+    login           => \&login,
+    su_login        => \&flogin,
+    su_logout       => \&flogin_logout,
+    part_all        => \&part_all,
     invite          => \&invite,
     save_user       => \&save,
     update_user     => \&userinfo,
@@ -330,7 +331,7 @@ sub _join {
 
 
 # part all channels
-sub partall {
+sub part_all {
     my ($to_server, $user) = @_;
     ":$$user{uid} PARTALL"
 }
@@ -586,12 +587,6 @@ sub version {
     ":$$user{uid} VERSION \$$$t_server{sid}"
 }
 
-# FIXME: (#151)
-sub su_login {
-    my ($to_server, $source_serv, $user, $actname) = @_;
-    return login($to_server, $user, $actname);
-}
-
 # :uid LOGIN accountname,others,...
 # the comma-separated list is passed as a list here.
 sub login {
@@ -687,6 +682,18 @@ sub foper {
     return if !@flags;
     my $id = $source->id;
     ":$id FOPER $$user{uid} @flags"
+}
+
+sub flogin {
+    my ($to_server, $source, $user, $act_name) = @_;
+    my $id = $source->id;
+    ":$id FLOGIN $$user{uid} $act_name"
+}
+
+sub flogin_logout {
+    my ($to_server, $source, $user) = @_;
+    my $id = $source->id;
+    ":$id FLOGIN $$user{uid}"
 }
 
 $mod
