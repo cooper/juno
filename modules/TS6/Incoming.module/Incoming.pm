@@ -189,14 +189,19 @@ our %ts6_incoming_commands = (
         code   => \&generic_hunted
     },
     USERS => {
-                  # :sid|uid   VERSION  sid
-        params => '-source     -command hunted',
+                  # :sid|uid      USERS    sid
+        params => '-source(user)  -command hunted',
         code   => \&generic_hunted
     },
     LUSERS => {
-                # :sid|uid LUSERS   server_mask(unused) sid
-        params => '-source          skip                hunted',
+                # :uid LUSERS        server_mask(unused) sid
+        params => '-source(user)     skip                hunted',
         code   => \&lusers
+    },
+    INFO => {
+                  # :uid INFO    sid
+        params => '-source(user) hunted',
+        code   => \&info
     },
     LINKS => {
                 # :uid LINKS     sid        server_mask
@@ -1473,6 +1478,24 @@ sub lusers {
     # otherwise, handle it locally.
     return $user->handle_unsafe("LUSERS");
 
+}
+
+# INFO
+#
+# source:       user
+# parameters:   hunted
+#
+sub info {
+    my ($server, $msg, $user, $t_server) = @_;
+
+    # if the target server is not me, forward it.
+    if ($t_server != $me) {
+        $msg->forward_to($t_server, info => $user, $t_server);
+        return 1;
+    }
+
+    # otherwise, handle it locally.
+    return $user->handle_unsafe("INFO");
 }
 
 # LINKS

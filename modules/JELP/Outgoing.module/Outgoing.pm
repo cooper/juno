@@ -56,6 +56,7 @@ my %ocommands = (
     realhost        => \&realhost,
     lusers          => \&lusers,
     users           => \&users,
+    info            => \&info,
     force_nick      => \&fnick,
     force_join      => \&fjoin,
     force_part      => \&fpart,
@@ -552,6 +553,11 @@ sub lusers {
     "\@for=$$t_server{sid} :$$user{uid} LUSERS"
 }
 
+sub info {
+    my ($to_server, $user, $t_server) = @_;
+    "\@for=$$t_server{sid} :$$user{uid} INFO"
+}
+
 sub burst {
     my ($to_server, $serv, $time) = @_;
     ":$$serv{sid} BURST $time"
@@ -636,19 +642,23 @@ sub save {
     ":$$source_serv{sid} SAVE $$user{uid} $nick_time"
 }
 
+# in JELP, CHGHOST uses FUSERINFO
 sub chghost {
     my ($to_server, $source, $user, $new_host) = @_;
-    return _userinfo($source, $to_server, $user, host => $new_host);
+    return _userinfo_or_f($source, $to_server, $user, host => $new_host);
 }
 
+# JELP UID includes the real host. But if another server tells us the real
+# host after introducing the user, we can update it using USERINFO.
 sub realhost {
     my ($to_server, $user, $host) = @_;
-    return _userinfo(undef, $to_server, $user, real_host => $host);
+    return _userinfo_or_f(undef, $to_server, $user, real_host => $host);
 }
 
-sub userinfo { _userinfo(undef, @_) }
+sub userinfo { _userinfo_or_f(undef, @_) }
 
-sub _userinfo {
+# wrapper for either USERINFO or FUSERINFO
+sub _userinfo_or_f {
     my ($source_serv, $to_server, $user, %fields) = @_;
     return message->new(
         source  => $source_serv ? $source_serv->id      : $user->id,
@@ -705,7 +715,7 @@ sub flogin_logout {
 
 sub fuserinfo {
     my ($to_server, $source, @rest) = @_;
-    return _userinfo($source, $to_server, @rest);
+    return _userinfo_or_f($source, $to_server, @rest);
 }
 
 $mod

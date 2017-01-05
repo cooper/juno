@@ -3885,3 +3885,5 @@ CHANGES:
         send KILL to the user being killed. closes #150.
 
     52. add JELP FUSERINFO. improved logic for CHGHOST and other user field changes. closes #159.
+
+    53. added remote INFO request. closes #148.

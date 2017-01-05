@@ -34,7 +34,7 @@ sub register_registration_command {
     my ($mod, $event, %opts) = @_;
 
     # fallback to the name of the command for the callback name.
-    $opts{cb_name} //= ($opts{proto} ? $opts{proto}.q(.) : '').$opts{name};
+    $opts{cb_name} //= ($opts{proto} ? "$opts{proto}." : '').$opts{name};
 
     # make sure all required options are present.
     foreach my $what (qw|name code|) {
@@ -62,7 +62,7 @@ sub register_registration_command {
             $event->stop;
 
         },
-        name     => 'parameter.check',
+        name     => 'parameter.check.'.$opts{cb_name},
         priority => 1000,
         with_eo  => 1,
         _caller  => $mod->package
