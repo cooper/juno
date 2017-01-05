@@ -682,7 +682,8 @@ sub do_privmsgnotice {
     my ($user, $command, $source, $message, %opts) = @_;
     my $source_user = $source if $source->isa('user');
     my $source_serv = $source if $source->isa('server');
-    $command = uc $command;
+    $command   = uc $command;
+    my $lc_cmd = lc $command;
 
     # tell them of away if set
     if ($source_user && $command eq 'PRIVMSG' && length $user->{away}) {
@@ -691,7 +692,6 @@ sub do_privmsgnotice {
 
     # it's a user. fire the can_* events.
     if ($source_user && !$opts{force}) {
-        my $lc_cmd = lc $command;
 
         # the can_* events may modify the message, so we pass a
         # scalar reference to it.
@@ -729,9 +729,24 @@ sub do_privmsgnotice {
 
     # the user is local.
     if ($user->is_local) {
-        # TODO: (#155) fire can_receive_* events which can modify $message
-        # or stop
-        $user->sendfrom($source->full, "$command $$user{nick} :$message");
+
+        # the can_receive_* events may modify the message as it appears to the
+        # target user, so we pass a scalar reference to a copy of it.
+        my $my_msg = $message;
+
+        # fire can_receive_* events.
+        my $recv_fire = $source_user->fire_events_together(
+            [  can_receive_message          => $user, \$my_msg, $lc_cmd ],
+            [  can_receive_message_user     => $user, \$my_msg, $lc_cmd ],
+            [ "can_receive_${lc_cmd}"       => $user, \$my_msg          ],
+            [ "can_receive_${lc_cmd}_user"  => $user, \$my_msg          ]
+        );
+
+        # the can_receive_* events may stop the event, preventing the user
+        # from ever seeing the message.
+        return if $recv_fire->stopper;
+
+        $user->sendfrom($source->full, "$command $$user{nick} :$my_msg");
     }
 
     # the user is remote. check if dont_forward is true.
@@ -743,7 +758,7 @@ sub do_privmsgnotice {
     }
 
     # fire privmsg or notice event.
-    $user->fire(lc $command => $source, $message);
+    $user->fire($lc_cmd => $source, $message);
 
     return 1;
 }

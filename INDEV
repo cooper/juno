@@ -3878,4 +3878,7 @@ CHANGES:
     50. added user method ->do_privmsgnotice() which is argument-compatible with channel->do_privmsgnotice().
         greatly simplified the PRIVMSG and NOTICE user command handler as well as geenric S2S logic for these commands in server::protocol::handle_privmsgnotice().
         added new events can_message_user, can_notice_user, can_privmsg_user. these are fired along with can_message, etc. closes #154.
+
+    51. added new can_receive_* events to both user and channel PRIVMSG/NOTICE handling.
+        this will allow modules to modify the text sent to specific users, or prevent specific members of a channel from receiving a message. closes #155.
         

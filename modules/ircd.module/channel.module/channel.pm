@@ -866,7 +866,8 @@ sub do_privmsgnotice {
     my ($channel, $command, $source, $message, %opts) = @_;
     my ($source_user, $source_serv) = ($source->user, $source->server);
     undef $source_serv if $source_user;
-    $command = uc $command;
+    $command   = uc $command;
+    my $lc_cmd = lc $command;
 
     # find the destinations
     my @users;
@@ -888,7 +889,6 @@ sub do_privmsgnotice {
 
     # it's a user. fire the can_* events.
     if ($source_user && !$opts{force}) {
-        my $lc_cmd = lc $command;
 
         # the can_* events may modify the message, so we pass a
         # scalar reference to it.
@@ -925,11 +925,11 @@ sub do_privmsgnotice {
     }
 
     # send to @#channel if necessary
-    my $local_data = "$command $$channel{name} :$message";
+    my $local_prefix = "$command $$channel{name} :";
     if (defined $opts{min_level}) {
         my $prefix = $ircd::channel_mode_prefixes{ $opts{min_level} } or return;
         $prefix = $prefix->[1]; # [ letter, prefix, ... ]
-        $local_data = "$command $prefix$$channel{name} :$message";
+        $local_prefix = "$command $prefix$$channel{name} :";
     }
 
     # tell channel members.
@@ -948,11 +948,24 @@ sub do_privmsgnotice {
 
         # the user is local.
         if ($user->is_local) {
-            # TODO: (#155) fire can_receive_* events which can modify $message
-            # or stop:
-            # my $my_message = $message;
-            # my $my_local_data = $local_data;
-            $user->sendfrom($source->full, $local_data);
+
+            # the can_receive_* events may modify the message as it appears to
+            # the target user, so we pass a scalar reference to a copy of it.
+            my $my_msg = $message;
+
+            # fire can_receive_* events.
+            my $recv_fire = $source_user->fire_events_together(
+                [  can_receive_message            => $user, \$my_msg, $lc_cmd ],
+                [  can_receive_message_channel    => $user, \$my_msg, $lc_cmd ],
+                [ "can_receive_${lc_cmd}"         => $user, \$my_msg          ],
+                [ "can_receive_${lc_cmd}_channel" => $user, \$my_msg          ]
+            );
+
+            # the can_receive_* events may stop the event, preventing the user
+            # from ever seeing the message.
+            $user->sendfrom($source->full, $local_prefix.$my_msg)
+                unless $recv_fire->stopper;
+
             next USER;
         }
 
@@ -974,7 +987,7 @@ sub do_privmsgnotice {
     }
 
     # fire privmsg or notice event.
-    $channel->fire(lc $command => $source, $message);
+    $channel->fire($lc_cmd => $source, $message);
 
     return 1;
 }

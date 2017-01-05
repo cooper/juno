@@ -543,7 +543,7 @@ $user->do_logout()
 ### $user->do_privmsgnotice($command, $source, $message, %opts)
 
 Handles a PRIVMSG or NOTICE. This is used for both local and remote users.
-Fires events like `can_message`, `can_privmsg`, `can_notice`, `cant_message`,
+Fires events like `can_message`, `cant_message`, `can_receive_message`,
 `privmsg`, `notice`, plus several others. These are used by modules to either
 block or modify messages.
 
