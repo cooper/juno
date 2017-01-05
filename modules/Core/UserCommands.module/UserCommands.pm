@@ -154,7 +154,8 @@ our %user_commands = (
     },
     INFO => {
         code   => \&info,
-        desc   => 'display ircd license and credits'
+        desc   => 'display ircd license and credits',
+        params => 'server_mask(opt)'
     },
     MOTD => {
         code   => \&motd,
@@ -279,9 +280,16 @@ sub nick {
 }
 
 sub info {
+    my ($user, $event, $server) = @_;
+
+    # this does not apply to me; forward it.
+    if ($server && $server != $me) {
+        $server->{location}->fire_command(info => $user, $server);
+        return 1;
+    }
+
     # TODO: (#148) does not support remote
     my ($LNAME, $NAME, $VERSION) = (v('LNAME'), v('NAME'), v('VERSION'));
-    my $user = shift;
     my $info = <<"END";
 
 \2***\2 this is \2$LNAME\2 $NAME version \2$VERSION ***\2
