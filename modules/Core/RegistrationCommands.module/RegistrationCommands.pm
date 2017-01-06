@@ -128,18 +128,21 @@ sub cap_req {
         my ($m, $flag) = ($item =~ m/^([-]?)(.+)$/);
         next unless length $flag;
 
-        # no such flag.
-        if (!$pool->has_cap($flag)) {
+        # no such flag, or the capability is not enabled
+        my $cap = $pool->has_cap($flag);
+        if (!$cap || !$cap->{enabled}) {
             $nak++;
             last;
         }
 
-        # requesting to remove it.
+        # in case the case is wrong
+        $flag = $cap->{name};
+
+        # requesting to remove it
         if ($m eq '-') {
 
-            # attempted to remove a sticky flag.
-            if ($pool->has_cap($flag)->{sticky} ||
-              $connection->{cap_sticky}{$flag}) {
+            # attempted to remove a sticky flag
+            if ($cap->{sticky} || $connection->{cap_sticky}{$flag}) {
                 $nak++;
                 last;
             }
@@ -148,9 +151,8 @@ sub cap_req {
             next;
         }
 
-        # adding.
+        # adding
         push @add, $flag;
-
     }
 
     # sending NAK; don't change anything.

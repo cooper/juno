@@ -3901,3 +3901,4 @@ CHANGES:
         update SASL to use advertise when the SASL agent availability changes.
         fire initially_set_modes for remote users.
         fixed bug where Resolve sometimes would hang until registration timeout.
+        fixed a bug where clients could CAP REQ capabilities that were disabled and not advertised.

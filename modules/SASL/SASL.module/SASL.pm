@@ -71,7 +71,7 @@ sub is_valid_agent {
     return $agent;
 }
 
-our $have_saslserv;
+my $have_saslserv;
 sub find_saslserv {
     my $saslserv = conf('services', 'saslserv') or return;
     $saslserv = $pool->lookup_user_nick($saslserv);
