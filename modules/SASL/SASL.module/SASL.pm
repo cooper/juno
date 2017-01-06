@@ -77,29 +77,28 @@ sub find_saslserv {
     my $saslserv = conf('services', 'saslserv') or return;
     $saslserv = $pool->lookup_user_nick($saslserv);
 
-    # we can't find saslserv
+    # we can't find saslserv. start monitoring new users.
     if (!is_valid_agent($saslserv)) {
-
-        # already watching
         return if $looking_for_saslserv;
         $looking_for_saslserv++;
         L('Watching for SASL agent');
-
         return;
     }
 
-    # this is the first time we've found this agent
-    if (!$saslserv->{sasl_monitoring}) {
-        $saslserv->{sasl_monitoring}++;
+    # we found the agent.
+    if ($looking_for_saslserv) {
 
         # watch SaslServ in case it disappears
         weaken(my $weak_mod = $mod);
         $saslserv->on(quit => sub {
             my ($saslserv) = @_;
             $weak_mod or return;
+
+            # disable it and start monitoring again
             $weak_mod->disable_capability('sasl');
             L('Lost SaslServ');
             find_saslserv();
+
         }, 'saslserv.monitor');
 
         # enable the capability for now
