@@ -105,6 +105,7 @@ sub find_saslserv {
         # enable the capability for now
         $mod->enable_capability('sasl');
         L('Found SASL agent');
+        undef $looking_for_saslserv;
     }
 
     return $saslserv;
@@ -310,9 +311,8 @@ sub on_user_set_modes {
     my ($user, $event) = @_;
 
     # if we're looking for the SASL agent, this might be it
-    if ($looking_for_saslserv) {
-        return if !is_valid_agent($user) || !find_saslserv();
-        undef $looking_for_saslserv;
+    if ($looking_for_saslserv && is_valid_agent($user)) {
+        find_saslserv();
     }
 
     # this might be a local user which is now ready to login
