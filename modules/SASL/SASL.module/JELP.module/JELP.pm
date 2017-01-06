@@ -155,8 +155,8 @@ sub sasldone {
         # if we never received client data,
         # these are just unknown mechanism errors.
         if ($conn->{sasl_messages}) {
-            # TODO: (#153) check if they've failed 9000 times.
             $conn->{sasl_failures}++;
+            M::SASL::check_failures($conn) or return;
         }
 
     }

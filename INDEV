@@ -3905,3 +3905,4 @@ CHANGES:
 
     56. added SASL reauthentication support. #83.
         added outgoing signon handlers. TS6 uses SIGNON; JELP uses USERINFO.
+        added options services:saslserv_allow_reauthentication and services:saslserv_max_failures. closes #153.

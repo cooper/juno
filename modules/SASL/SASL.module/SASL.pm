@@ -116,6 +116,10 @@ sub rcmd_authenticate {
 
     # already authenticated successfully, so this is a reauthentication
     if ($connection->{sasl_complete}) {
+        if (!conf('services', 'saslserv_allow_reauthentication')) {
+            $connection->numeric('ERR_SASLALREADY');
+            return;
+        }
         delete $connection->{sasl_complete};
         delete $connection->{sasl_agent};
     }
@@ -329,6 +333,14 @@ sub update_account {
     }
 
     return 1;
+}
+
+sub check_failures {
+    my $conn = shift;
+    my $max = conf('service', 'saslserv_max_failures');
+    return 1 if $conn->{sasl_failures} <= $max;
+    $conn->done('Too many SASL authentication failures');
+    return;
 }
 
 # we've already sent RPL_LOGGEDIN at this point.
