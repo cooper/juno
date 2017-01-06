@@ -3900,3 +3900,4 @@ CHANGES:
         add capability values to CAP LS for 302.
         update SASL to use advertise when the SASL agent availability changes.
         fire initially_set_modes for remote users.
+        fixed bug where Resolve sometimes would hang until registration timeout.

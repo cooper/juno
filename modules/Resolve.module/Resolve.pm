@@ -41,10 +41,12 @@ sub resolve_address {
     $connection->reg_wait('resolve');
 
     # peername -> human-readable hostname
-    my $f = $::loop->resolver->getnameinfo(
-        addr    => $connection->sock->peername,
-        timeout => 3
+    my $resolve_future = $::loop->resolver->getnameinfo(
+        addr => $connection->sock->peername
     );
+
+    my $timeout_future = $::loop->timeout_future(after => 3);
+    my $f = Future->wait_any($resolve_future, $timeout_future);
 
     $f->on_done(sub { on_got_host1($connection, @_   ) });
     $f->on_fail(sub { on_error    ($connection, shift) });
@@ -67,12 +69,15 @@ sub on_got_host1 {
     }
 
     # human readable hostname -> binary address
-    my $f = $::loop->resolver->getaddrinfo(
+    my $resolve_future = $::loop->resolver->getaddrinfo(
         host        => $host,
         service     => '',
         socktype    => SOCK_STREAM,
         timeout     => 3
     );
+
+    my $timeout_future = $::loop->timeout_future(after => 3);
+    my $f = Future->wait_any($resolve_future, $timeout_future);
 
     $f->on_done(sub { on_got_addr($connection, @_   ) });
     $f->on_fail(sub { on_error   ($connection, shift) });
@@ -85,11 +90,13 @@ sub on_got_addr {
     my ($connection, $addr) = @_;
 
     # binary address -> human-readable hostname
-    my $f = $::loop->resolver->getnameinfo(
+    my $resolve_future = $::loop->resolver->getnameinfo(
         addr        => $addr->{addr},
-        socktype    => SOCK_STREAM,
-        timeout     => 3
+        socktype    => SOCK_STREAM
     );
+
+    my $timeout_future = $::loop->timeout_future(after => 3);
+    my $f = Future->wait_any($resolve_future, $timeout_future);
 
     $f->on_done(sub { on_got_host2($connection, @_   ) });
     $f->on_fail(sub { on_error    ($connection, shift) });
