@@ -288,12 +288,14 @@ sub unset_away {
 # this does not close a connection; use $user->conn->done() for that.
 sub quit {
     my ($user, $reason, $quiet) = @_;
+    $user->fire(will_quit => $reason, $quiet);
     notice(user_quit =>
         $user->notice_info, $user->{real}, $user->{server}{name}, $reason)
         unless $quiet;
 
     # send to all users in common channels as well as himself.
     $user->send_to_channels("QUIT :$reason");
+    $user->fire(quit => $reason, $quiet);
 
     # remove from all channels.
     $_->remove($user) foreach $user->channels;

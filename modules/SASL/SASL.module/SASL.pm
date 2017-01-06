@@ -21,6 +21,7 @@ use strict;
 use 5.010;
 
 use MIME::Base64;
+use Scalar::Util qw(weaken);
 use utils qw(conf);
 
 our ($api, $mod, $pool, $me);
@@ -38,7 +39,7 @@ our %user_numerics = (
 sub init {
 
     # sasl capability
-    $mod->register_capability('sasl', sticky => 1);
+    $mod->register_capability('sasl', sticky => 1, manual_enable => 1);
 
     # AUTHENTICATE command
     # TODO: (#83) once reauthentication is possible,
@@ -58,7 +59,66 @@ sub init {
     $mod->add_companion_submodule('TS6::Base',  'TS6');
     $mod->add_companion_submodule('JELP::Base', 'JELP');
 
+    # find saslserv to immediately enable the sasl capability
+    # if it is present now
+    find_saslserv();
+
     return 1;
+}
+
+sub is_valid_agent {
+    my $agent = shift;
+    return if !$agent || !$agent->is_mode('service');
+    return $agent;
+}
+
+my $looking_for_saslserv;
+sub find_saslserv {
+    my $saslserv = conf('services', 'saslserv') or return;
+    $saslserv = $pool->lookup_user_nick($saslserv);
+
+    # we can't find saslserv
+    if (!is_valid_agent($saslserv)) {
+
+        # already watching
+        return if $looking_for_saslserv;
+        $looking_for_saslserv++;
+        L('Watching for SASL agent');
+
+        # watch for the agent
+        weaken(my $weak_pool = $pool);
+        $pool->on('user.new' => sub {
+            my ($user, $event) = @_;
+            return if !is_valid_agent($user) || !find_saslserv() || !$weak_pool;
+
+            # we found it, so delete this
+            $weak_pool->delete_callback('user.new', 'saslserv.detector');
+            undef $looking_for_saslserv;
+
+        }, 'saslserv.detector');
+
+        return;
+    }
+
+    # this is the first time we've found this agent
+    if (!$saslserv->{monitoring}) {
+        $saslserv->{monitoring}++;
+
+        # watch SaslServ in case it disappears
+        weaken(my $weak_mod = $mod);
+        $saslserv->on(quit => sub {
+            my ($saslserv) = @_;
+            $weak_mod or return;
+            $weak_mod->disable_capability('sasl');
+            L('Lost SaslServ');
+        }, 'saslserv.monitor');
+
+        # enable the capability for now
+        $mod->enable_capability('sasl');
+        L('Found SASL agent');
+    }
+
+    return $saslserv;
 }
 
 # Registration command: AUTHENTICATE
@@ -87,10 +147,9 @@ sub rcmd_authenticate {
         return;
     }
 
-    # SaslServ not found or is not a service
-    my $saslserv = conf('services', 'saslserv');
-    $saslserv = $pool->lookup_user_nick($saslserv);
-    if (!$saslserv || !$saslserv->is_mode('service') || $saslserv->is_local) {
+    # SaslServ not found
+    my $saslserv = find_saslserv();
+    if (!$saslserv) {
         abort_sasl($connection);
         return;
     }
@@ -103,14 +162,13 @@ sub rcmd_authenticate {
 
     # find this connection's SASL agent server. sasl_agent is stored only after
     # the SASL S request has been sent to the SASL agent.
-    my $agent = $pool->lookup_user($connection->{sasl_agent});
+    my $agent = is_valid_agent($pool->lookup_user($connection->{sasl_agent}));
 
     # this client has no agent.
     # send out SASL S and SASL H.
-    my $saslserv_serv = $saslserv->{server};
-    my $saslserv_loc  = $saslserv->{location};
-
     if (!$agent) {
+        my $saslserv_serv = $saslserv->{server};
+        my $saslserv_loc  = $saslserv->{location};
 
         # shared between SASL S and SASL H.
         my @common = (
@@ -141,18 +199,15 @@ sub rcmd_authenticate {
     # the client has an agent. this is the AUTHENTICATE <base64>.
     # send out SASL C.
     elsif (length $arg) {
-
-        # update this info
-        $saslserv = $agent;
-        $saslserv_serv = $saslserv->{server};
-        $saslserv_loc  = $saslserv->{location};
+        my $agent_serv = $agent->{server};
+        my $agent_loc  = $agent->{location};
 
         # send data
-        $saslserv_loc->fire_command(sasl_client_data =>
+        $agent_loc->fire_command(sasl_client_data =>
             $me,                        # source server
-            $saslserv_serv->name,       # server mask target
+            $agent_serv->name,          # server mask target
             $connection->{uid},         # the connection's temporary UID
-            $saslserv->{uid},           # UID of SASL service
+            $agent->{uid},              # UID of SASL service
             $arg                        # base64 encoded client data
         );
 
@@ -176,16 +231,16 @@ sub abort_sasl {
     $connection->numeric('ERR_SASLABORTED');
 
     # find the SASL agent.
-    my $saslserv = $pool->lookup_user($connection->{sasl_agent}) or return;
+    my $agent = $pool->lookup_user($connection->{sasl_agent}) or return;
 
     # tell the agent that the user aborted the exchange.
-    my $saslserv_serv = $saslserv->{server};
-    my $saslserv_loc  = $saslserv->{location};
-    $saslserv_loc->fire_command(sasl_done =>
+    my $agent_serv = $agent->{server};
+    my $agent_loc  = $agent->{location};
+    $agent_loc->fire_command(sasl_done =>
         $me,                        # source server
-        $saslserv_serv->name,       # server mask target
+        $agent_serv->name,          # server mask target
         $connection->{uid},         # the connection's temporary UID
-        $saslserv->{uid},           # UID of SASL service
+        $agent->{uid},              # UID of SASL service
         'A'                         # for abort
     );
 
