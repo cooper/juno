@@ -508,16 +508,16 @@ sub _join {
     }
 
     # comma-separated list.
-    foreach my $chname (split ',', $given) {
+    foreach my $ch_name (split ',', $given) {
 
         # make sure it's a valid name.
-        if (!utils::validchan($chname)) {
-            $user->numeric(ERR_NOSUCHCHANNEL => $chname);
+        if (!utils::validchan($ch_name)) {
+            $user->numeric(ERR_NOSUCHCHANNEL => $ch_name);
             next;
         }
 
         # if the channel exists, just join.
-        my ($channel, $new) = $pool->lookup_or_create_channel($chname);
+        my ($channel, $new) = $pool->lookup_or_create_channel($ch_name);
         $channel->attempt_local_join($user, $new, $channel_key);
 
     }
@@ -535,12 +535,12 @@ sub names {
         return;
     }
 
-    foreach my $chname (split ',', $given) {
+    foreach my $ch_name (split ',', $given) {
         # nonexistent channels return no error,
         # and RPL_ENDOFNAMES is sent no matter what
-        my $channel = $pool->lookup_channel($chname);
+        my $channel = $pool->lookup_channel($ch_name);
         $channel->send_names($user, 1) if $channel;
-        $user->numeric(RPL_ENDOFNAMES => $channel ? $channel->name : $chname);
+        $user->numeric(RPL_ENDOFNAMES => $channel ? $channel->name : $ch_name);
     }
 
     return 1;

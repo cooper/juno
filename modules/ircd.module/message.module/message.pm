@@ -330,10 +330,12 @@ sub parse_params {
 
     # check argument count.
     my @params = $msg->params;
+    my $local_user = $msg->source
+        if $msg->source->isa('user') && $msg->source->is_local;
     if (scalar @params < $required_parameters) {
         my $user = $msg->source if $msg->source->isa('user');
-        $msg->source->numeric(ERR_NEEDMOREPARAMS => $msg->command)
-            if $user && $user->is_local;
+        $local_user->numeric(ERR_NEEDMOREPARAMS => $msg->command)
+            if $local_user;
         return (undef, 'Not enough parameters');
     }
 
@@ -410,8 +412,12 @@ sub parse_params {
         }
 
         # still nothing, and the parameter isn't optional.
-        return (undef, 'Nothing matched the parameter '.$type)
-            if !@res && !$attrs->{opt} && !$attrs->{nothing};
+        if (!@res && !$attrs->{opt} && !$attrs->{nothing}) {
+            if (my $err = delete $msg->{error_reply} and $local_user) {
+                $local_user->numeric(@$err);
+            }
+            return (undef, 'Nothing matched the parameter '.$type);
+        }
 
         # this was optional and fake, but nothing matched, so push undef.
         # {nothing} can be set by fake matchers to indicate that the matcher
@@ -495,7 +501,7 @@ sub _param_oper {
        @flags = 'do that' if !@flags;
     foreach my $flag (@flags) {
         next if $is_irc_cop && $msg->source->has_flag($flag);
-        $msg->source->numeric(ERR_NOPRIVILEGES => $flag);
+        $msg->{error_reply} = [ ERR_NOPRIVILEGES => $flag ];
         return;
     }
 
@@ -511,7 +517,7 @@ sub _param_server {
 
     # not found, send no such server.
     if (!$server) {
-        $msg->source->numeric(ERR_NOSUCHSERVER => $param);
+        $msg->{error_reply} = [ ERR_NOSUCHSERVER => $param ];
         return;
     }
 
@@ -532,7 +538,7 @@ sub _param_server_mask {
 
     # not found, send no such server.
     if (!$server) {
-        $msg->source->numeric(ERR_NOSUCHSERVER => $param);
+        $msg->{error_reply} = [ ERR_NOSUCHSERVER => $param ];
         return;
     }
 
@@ -547,7 +553,7 @@ sub _param_user {
 
     # not found, send no such nick.
     if (!$user) {
-        $msg->source->numeric(ERR_NOSUCHNICK => $nickname);
+        $msg->{error_reply} = [ ERR_NOSUCHNICK => $nickname ];
         return;
     }
 
@@ -557,18 +563,18 @@ sub _param_user {
 # channel: match a channel name.
 sub _param_channel {
     my ($msg, $param, $opts) = @_;
-    my $chaname = (split ',', $param)[0];
-    my $channel = $pool->lookup_channel($chaname);
+    my $ch_name = (split ',', $param)[0];
+    my $channel = $pool->lookup_channel($ch_name);
 
     # not found, send no such channel.
     if (!$channel) {
-        $msg->source->numeric(ERR_NOSUCHCHANNEL => $chaname);
+        $msg->{error_reply} = [ ERR_NOSUCHCHANNEL => $ch_name ];
         return;
     }
 
     # if 'inchan' attribute, the requesting user must be in the channel.
     if ($opts->{inchan} && !$channel->has_user($msg->source)) {
-        $msg->source->numeric(ERR_NOTONCHANNEL => $channel->name);
+        $msg->{error_reply} = [ ERR_NOTONCHANNEL => $channel->name ];
         return;
     }
 

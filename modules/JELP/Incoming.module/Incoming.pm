@@ -446,8 +446,8 @@ sub privmsgnotice {
 sub _join {
     # user any     ts
     # :uid JOIN  channel time
-    my ($server, $msg, $user, $chname, $time) = @_;
-    my ($channel, $new) = $pool->lookup_or_create_channel($chname, $time);
+    my ($server, $msg, $user, $ch_name, $time) = @_;
+    my ($channel, $new) = $pool->lookup_or_create_channel($ch_name, $time);
 
     # take lower time if necessary.
     $channel->take_lower_time($time) unless $new;
