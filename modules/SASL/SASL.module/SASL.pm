@@ -46,7 +46,7 @@ sub init {
         name       => 'AUTHENTICATE',
         code       => \&rcmd_authenticate,
         after_reg  => 1,
-        paramaters => 1
+        parameters => 1
     ) or return;
 
     # log the user in once registered
