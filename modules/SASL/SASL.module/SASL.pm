@@ -284,11 +284,11 @@ sub update_user_info {
             );
         }
         $pool->fire_command_all(signon =>
-            $user,                                      # user
-            $update_nick  ? $nick    : $user->{nick},   # new nick
-            $update_ident ? $ident   : $user->{ident},  # new ident
-            $update_cloak ? $cloak   : $user->{cloak},  # new cloak
-            $update_nick  ? $nick_ts : $user->{nick_ts},    # new nick TS
+            $user,                                          # user
+            $update_nick  ? $nick    : $user->{nick},       # new nick
+            $update_ident ? $ident   : $user->{ident},      # new ident
+            $update_cloak ? $cloak   : $user->{cloak},      # new cloak
+            $update_nick  ? $nick_ts : $user->{nick_time},  # new nick TS
             $act_name                               # new account name or undef
         );
     }
