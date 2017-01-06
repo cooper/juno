@@ -96,7 +96,7 @@ sub find_saslserv {
             # disable it and start monitoring again
             $weak_mod->disable_capability('sasl');
             L('Lost SaslServ');
-            find_saslserv();
+            undef $have_saslserv;
 
         }, 'saslserv.monitor');
 
