@@ -99,6 +99,7 @@ sub find_saslserv {
             $weak_mod or return;
             $weak_mod->disable_capability('sasl');
             L('Lost SaslServ');
+            find_saslserv();
         }, 'saslserv.monitor');
 
         # enable the capability for now
