@@ -242,27 +242,24 @@ sub encap_svslogin {
     # FIXME: (#123) SVSLOGIN is only permitted from services. check that.
 
     # find the target connection.
-    #
     # note that the target MAY OR MAY NOT be registered as a user.
-    #
     my $conn = $pool->uid_in_use($target_uid);
-    return if $conn && $conn->isa('user');     # TODO: (#83) not yet implemented
+    $conn = $conn->conn if $conn && $conn->isa('user');
     if (!$conn) {
         L("could not find target connection");
         return;
     }
 
+    # undef optionals
+    undef $nick     if $nick     eq '*';
+    undef $ident    if $ident    eq '*';
+    undef $cloak    if $cloak    eq '*';
+    undef $act_name if $act_name eq '*';
+
     # update nick, ident, visual host.
-    if (!M::SASL::update_user_info($conn, $nick, $ident, $cloak)) {
+    if (!M::SASL::update_user_info($source_serv, $conn,
+      $nick, $ident, $cloak, $act_name)) {
         L("failed to update user info");
-        return;
-    }
-
-    # TODO: (#83) for reauthentication, send SIGNON if registered
-
-    # update the account.
-    if (!M::SASL::update_account($conn, $act_name || undef)) {
-        L("failed to update account");
         return;
     }
 

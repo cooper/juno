@@ -49,6 +49,7 @@ our %ts6_outgoing_commands = (
      connect         => \&_connect,
      kick           => \&kick,
      login          => \&login,
+     signon         => \&signon,
      ping           => \&ping,
      pong           => \&pong,
      topicburst     => \&topicburst,
@@ -1082,12 +1083,6 @@ sub _update_user {
     my ($source_serv, $to_server, $user, %fields) = @_;
     my @lines;
 
-    # if we have all the required fields, use SIGNON.
-    my @needed = qw(nick ident host nick_time account);
-    if (scalar(grep { defined $fields{$_} } @needed) == @needed) {
-        return signon($to_server, $user, @fields{@needed});
-    }
-
     # host changed
     push @lines, chghost(
         $to_server,
@@ -1109,6 +1104,7 @@ sub _update_user {
 sub signon {
     my ($to_server, $user, $new_nick, $new_ident, $new_host,
         $new_nick_time, $new_act_name) = @_;
+    $new_act_name = '0' if !length $new_act_name;
     sprintf ':%s SIGNON %s %s %s %s %s',
     ts6_id($user),      # source UID
     $new_nick,          # new nickname

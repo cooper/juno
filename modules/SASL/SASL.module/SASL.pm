@@ -42,11 +42,10 @@ sub init {
     $mod->register_capability('sasl', sticky => 1, manual_enable => 1);
 
     # AUTHENTICATE command
-    # TODO: (#83) once reauthentication is possible,
-    # this command must be available post-registration
     $mod->register_registration_command(
         name       => 'AUTHENTICATE',
         code       => \&rcmd_authenticate,
+        after_reg  => 1,
         paramaters => 1
     ) or return;
 
@@ -115,11 +114,10 @@ sub rcmd_authenticate {
     # if the connection does not have the sasl capability, drop the message.
     return if !$connection->has_cap('sasl');
 
-    # already authenticated successfully.
-    # TODO: (#83) when reauthentication is possible, don't do this.
+    # already authenticated successfully, so this is a reauthentication
     if ($connection->{sasl_complete}) {
-        $connection->numeric('ERR_SASLALREADY');
-        return;
+        delete $connection->{sasl_complete};
+        delete $connection->{sasl_agent};
     }
 
     # if the arg is >400, do not process.
@@ -183,8 +181,7 @@ sub rcmd_authenticate {
 
     }
 
-    # the client has an agent. this is the AUTHENTICATE <base64>.
-    # send out SASL C.
+    # the client has an agent. forward this as client data to the agent.
     elsif (length $arg) {
         my $agent_serv = $agent->{server};
         my $agent_loc  = $agent->{location};
@@ -236,17 +233,19 @@ sub abort_sasl {
 
 # update user mask. * = unchanged
 sub update_user_info {
-    my ($conn, $nick, $ident, $cloak) = @_;
+    my ($conn, $source, $nick, $ident, $cloak, $act_name) = @_;
+    my $user = $conn->user;
 
     # which things are we updating?
-    my $update_nick  = length $nick  && $nick  ne '*' && utils::validnick($nick, 1);
-    my $update_ident = length $ident && $ident ne '*' && utils::validident($ident);
-    my $update_cloak = length $cloak && $cloak ne '*' && 1; # TODO: (#157) validhost()
+    my $update_nick  = length $nick  && utils::validnick($nick, 1);
+    my $update_ident = length $ident && utils::validident($ident);
+    my $update_cloak = length $cloak && 1; # TODO: (#157) validhost()
 
     # look for an existing user/conn by this nick.
-    # TODO: (#83) for reauth, check if $existing == the user OR the conn
-    my $existing = $pool->nick_in_use($nick); # could be a user
-    if ($update_nick && $existing && $existing != $conn) {
+    my $existing = $pool->nick_in_use($nick);
+    my $is_the_user = $user == $existing if $existing && $user;
+    my $is_the_conn = $conn == $existing if $existing;
+    if ($update_nick && !$is_the_user && !$is_the_conn) {
 
         # for connections, just drop them.
         if ($existing->isa('connection')) {
@@ -263,28 +262,49 @@ sub update_user_info {
     }
 
     # registered user.
-    if (my $user = $conn->user) {
-        # TODO: (#83) this, for SASL reauthentication
-        return;
+    # each protocol implementation will send out some command to notify
+    # servers that the existing user's fields have changed.
+    if ($user) {
+        if ($update_nick) {
+            $user->send_to_channels("NICK $nick")
+                unless $nick eq $user->{nick};
+            $user->change_nick($nick, time);
+        }
+        if ($update_ident || $update_cloak) {
+            $user->get_mask_changed(
+                $update_ident ? $ident : $user->{ident},    # ident
+                $update_cloak ? $cloak : $user->{cloak},    # cloak
+                $source->name                               # setby
+            );
+        }
+        $pool->fire_command_all(signon =>
+            $user,
+            $update_nick  ? $nick  : $user->{nick},
+            $update_ident ? $ident : $user->{ident},
+            $update_cloak ? $cloak : $user->{cloak},
+            $act_name
+        );
     }
 
     # non-registered connection.
-    $conn->{nick}  = $nick  if $update_nick;
-    $conn->{ident} = $ident if $update_ident;
-    $conn->{cloak} = $cloak if $update_cloak;
+    # we don't need to send anything out because (E)UID has not been sent yet.
+    else {
+        $conn->{nick}  = $nick  if $update_nick;
+        $conn->{ident} = $ident if $update_ident;
+        $conn->{cloak} = $cloak if $update_cloak;
+    }
 
-    return 1;
+    return update_account($conn, $user, $act_name);
 }
 
 # update the account name. none = logout
 sub update_account {
-    my ($conn, $act_name) = @_;
+    my ($conn, $user, $act_name) = @_;
     my $cloak = $conn->{cloak} // $conn->{host};
-
-    # TODO: (#83) for SASL reauthentication, update $user->{account}
 
     # log in
     if ($act_name) {
+        $user->{account} = { name => $act_name } if $user;
         $conn->{sasl_account} = $act_name;
         $conn->numeric(RPL_LOGGEDIN =>
             $conn->{nick}.'!'.$conn->{ident}.'@'.$cloak,
@@ -294,6 +314,7 @@ sub update_account {
 
     # log out
     else {
+        delete $user->{account} if $user;
         delete $conn->{sasl_account};
         $conn->numeric(RPL_LOGGEDOUT =>
             $conn->{nick}.'!'.$conn->{ident}.'@'.$cloak

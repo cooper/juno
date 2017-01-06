@@ -3902,3 +3902,6 @@ CHANGES:
         fire initially_set_modes for remote users.
         fixed bug where Resolve sometimes would hang until registration timeout.
         fixed a bug where clients could CAP REQ capabilities that were disabled and not advertised.
+
+    56. added SASL reauthentication support. #83.
+        added outgoing signon handlers. TS6 uses SIGNON; JELP uses USERINFO.

@@ -200,19 +200,16 @@ sub saslset {
 
     my $conn = find_connection($target_uid) or return;
 
+    # undef optionals
+    undef $nick     if $nick     eq '*';
+    undef $ident    if $ident    eq '*';
+    undef $cloak    if $cloak    eq '*';
+    undef $act_name if $act_name eq '*';
+
     # update nick, ident, visual host.
-    if (!M::SASL::update_user_info($conn, $nick, $ident, $cloak)) {
+    if (!M::SASL::update_user_info($source_serv, $conn,
+      $nick, $ident, $cloak, $act_name)) {
         L("failed to update user info");
-        return;
-    }
-
-    # TODO: (#83) for reauthentication, need to send out some broadcast command
-    # to notify other servers of several user field changes at once. this would
-    # be similar to TS6's SIGNON command. USERINFO will work.
-
-    # update the account.
-    if (!M::SASL::update_account($conn, $act_name || undef)) {
-        L("failed to update account");
         return;
     }
 
@@ -363,9 +360,7 @@ sub out_saslmechs {
 sub find_connection {
     my $target_uid = shift;
     my $conn = $pool->uid_in_use($target_uid);
-
-    # TODO: (#83) not yet implemented
-    return if $conn && $conn->isa('user');
+    $conn = $conn->conn if $conn && $conn->isa('user');
 
     # not found
     if (!$conn) {

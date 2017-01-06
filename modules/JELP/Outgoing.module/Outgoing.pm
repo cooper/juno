@@ -48,6 +48,7 @@ my %ocommands = (
     login           => \&login,
     su_login        => \&flogin,
     su_logout       => \&flogin_logout,
+    signon          => \&signon,
     part_all        => \&part_all,
     invite          => \&invite,
     save_user       => \&save,
@@ -716,6 +717,19 @@ sub flogin_logout {
 sub fuserinfo {
     my ($to_server, $source, @rest) = @_;
     return _userinfo_or_f($source, $to_server, @rest);
+}
+
+sub signon {
+    my ($to_server, $user, $new_nick, $new_ident, $new_host,
+        $new_nick_time, $new_act_name) = @_;
+    my @lines;
+    return _userinfo_or_f($to_server, $user,
+        nick      => $new_nick,
+        ident     => $new_ident,
+        host      => $new_host,
+        nick_time => $new_nick_time,
+        account   => length $new_act_name ? $new_act_name : '*'
+    );
 }
 
 $mod

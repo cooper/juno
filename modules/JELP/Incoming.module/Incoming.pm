@@ -316,7 +316,7 @@ sub uid {
     # set modes.
     $user->handle_mode_string($mode_str, 1);
     $user->fire('initially_set_modes');
-    
+
     # === Forward ===
     #
     #   JELP:   UID
@@ -985,7 +985,13 @@ sub userinfo { _userinfo(undef, @_) }
 sub _userinfo {
     my ($source_serv, $server, $msg, $user) = @_;
 
-    # nick ident host nick_time account
+    # nick change
+    if (length(my $new_nick = $msg->tag('nick')) &&
+      length(my $new_nick_time = $msg->tag('nick_time'))) {
+        $user->send_to_channels("NICK $new_nick")
+            unless $new_nick eq $user->{nick};
+        $user->change_nick($new_nick, $new_nick_time);
+    }
 
     # real host change
     if (length(my $new_real_host = $msg->tag('real_host'))) {
@@ -1001,6 +1007,13 @@ sub _userinfo {
             $new_host  // $user->{cloak},
             $source_serv ? $source_serv->name : $server->name
         );
+    }
+
+    # account change. * is used for logout.
+    if (length(my $new_act_name = $msg->tag('account'))) {
+        undef $new_act_name if $new_act_name eq '*';
+        L("JELP login $$user{nick} as $new_act_name");
+        $user->do_login($new_act_name);
     }
 
     #=== Forward ===#
