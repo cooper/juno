@@ -233,7 +233,7 @@ sub abort_sasl {
 
 # update user mask. * = unchanged
 sub update_user_info {
-    my ($conn, $source, $nick, $ident, $cloak, $act_name) = @_;
+    my ($source, $conn, $nick, $ident, $cloak, $act_name) = @_;
     my $user = $conn->user;
 
     # which things are we updating?
