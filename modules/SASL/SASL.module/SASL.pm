@@ -235,6 +235,7 @@ sub abort_sasl {
 sub update_user_info {
     my ($source, $conn, $nick, $ident, $cloak, $act_name) = @_;
     my $user = $conn->user;
+    my $nick_ts = time;
 
     # which things are we updating?
     my $update_nick  = length $nick  && utils::validnick($nick, 1);
@@ -273,7 +274,7 @@ sub update_user_info {
         if ($update_nick) {
             $user->send_to_channels("NICK $nick")
                 unless $nick eq $user->{nick};
-            $user->change_nick($nick, time);
+            $user->change_nick($nick, $nick_ts);
         }
         if ($update_ident || $update_cloak) {
             $user->get_mask_changed(
@@ -283,11 +284,12 @@ sub update_user_info {
             );
         }
         $pool->fire_command_all(signon =>
-            $user,
-            $update_nick  ? $nick  : $user->{nick},
-            $update_ident ? $ident : $user->{ident},
-            $update_cloak ? $cloak : $user->{cloak},
-            $act_name
+            $user,                                      # user
+            $update_nick  ? $nick    : $user->{nick},   # new nick
+            $update_ident ? $ident   : $user->{ident},  # new ident
+            $update_cloak ? $cloak   : $user->{cloak},  # new cloak
+            $update_nick  ? $nick_ts : $user->{nick_ts},    # new nick TS
+            $act_name                               # new account name or undef
         );
     }
 
