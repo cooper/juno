@@ -51,9 +51,8 @@ sub init {
     ) or return;
 
     # log the user in once registered
-    $pool->on('user.initially_set_modes' => \&on_user_set_modes,
-        with_eo => 1
-    );
+    $pool->on('user.initially_set_modes' =>
+        \&on_user_set_modes, 'sasl.monitor');
 
     # protocol submodules
     $mod->add_companion_submodule('TS6::Base',  'TS6');
@@ -72,21 +71,21 @@ sub is_valid_agent {
     return $agent;
 }
 
-my $looking_for_saslserv = 1;
+my $have_saslserv;
 sub find_saslserv {
     my $saslserv = conf('services', 'saslserv') or return;
     $saslserv = $pool->lookup_user_nick($saslserv);
+    undef $saslserv if !is_valid_agent($saslserv);
 
-    # we can't find saslserv. start monitoring new users.
-    if (!is_valid_agent($saslserv)) {
-        return if $looking_for_saslserv;
-        $looking_for_saslserv++;
+    # we can't find the agent, so start looking for it.
+    if (!$saslserv) {
+        undef $have_saslserv;
         L('Watching for SASL agent');
-        return;
     }
 
     # we found the agent.
-    if ($looking_for_saslserv) {
+    if (!$have_saslserv && $saslserv) {
+        $have_saslserv++;
 
         # watch SaslServ in case it disappears
         weaken(my $weak_mod = $mod);
@@ -104,7 +103,6 @@ sub find_saslserv {
         # enable the capability for now
         $mod->enable_capability('sasl');
         L('Found SASL agent');
-        undef $looking_for_saslserv;
     }
 
     return $saslserv;
@@ -310,7 +308,7 @@ sub on_user_set_modes {
     my ($user, $event) = @_;
 
     # if we're looking for the SASL agent, this might be it
-    if ($looking_for_saslserv && is_valid_agent($user)) {
+    if (!$have_saslserv && is_valid_agent($user)) {
         find_saslserv();
     }
 
