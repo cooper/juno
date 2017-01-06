@@ -723,7 +723,7 @@ sub signon {
     my ($to_server, $user, $new_nick, $new_ident, $new_host,
         $new_nick_time, $new_act_name) = @_;
     my @lines;
-    return _userinfo_or_f($to_server, $user,
+    return _userinfo_or_f(undef, $to_server, $user,
         nick      => $new_nick,
         ident     => $new_ident,
         host      => $new_host,

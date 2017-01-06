@@ -241,24 +241,29 @@ sub update_user_info {
     my $update_ident = length $ident && utils::validident($ident);
     my $update_cloak = length $cloak && 1; # TODO: (#157) validhost()
 
-    # look for an existing user/conn by this nick.
-    my $existing = $pool->nick_in_use($nick);
-    my $is_the_user = $user == $existing if $existing && $user;
-    my $is_the_conn = $conn == $existing if $existing;
-    if ($update_nick && !$is_the_user && !$is_the_conn) {
+    # updating nick. we may have to deal with a collision.
+    if ($update_nick) {
 
-        # for connections, just drop them.
-        if ($existing->isa('connection')) {
-            $existing->done('Overriden');
+        # look for an existing user/conn by this nick.
+        my $existing = $pool->nick_in_use($nick);
+        my $is_the_user = $user == $existing if $existing && $user;
+        my $is_the_conn = $conn == $existing if $existing;
+
+        # unless the nick belongs to the existing user, we have to kill it.
+        if (!$is_the_user && !$is_the_conn) {
+
+            # for connections, just drop them.
+            if ($existing->isa('connection')) {
+                $existing->done('Overriden');
+            }
+
+            # for users, kill locally or remotely.
+            else {
+                my $reason = 'Nickname regained by services';
+                $existing->get_killed_by($me, $reason);
+                $pool->fire_command_all(kill => $me, $existing, $reason);
+            }
         }
-
-        # for users, kill locally or remotely.
-        else {
-            my $reason = 'Nickname regained by services';
-            $existing->get_killed_by($me, $reason);
-            $pool->fire_command_all(kill => $me, $existing, $reason);
-        }
-
     }
 
     # registered user.
