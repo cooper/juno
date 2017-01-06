@@ -423,6 +423,7 @@ sub euid {
     # create a new user with the given modes.
     my $user = $pool->new_user(%$new_usr_temp);
     $user->handle_mode_string($mode_str, 1);
+    $user->fire('initially_set_modes');
 
     # log the user in
     my $act_name = delete $user->{account_name};

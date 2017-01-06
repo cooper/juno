@@ -315,7 +315,8 @@ sub uid {
 
     # set modes.
     $user->handle_mode_string($mode_str, 1);
-
+    $user->fire('initially_set_modes');
+    
     # === Forward ===
     #
     #   JELP:   UID

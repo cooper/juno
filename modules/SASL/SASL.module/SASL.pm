@@ -85,24 +85,12 @@ sub find_saslserv {
         $looking_for_saslserv++;
         L('Watching for SASL agent');
 
-        # watch for the agent
-        weaken(my $weak_pool = $pool);
-        $pool->on('user.new' => sub {
-            my ($user, $event) = @_;
-            return if !is_valid_agent($user) || !find_saslserv() || !$weak_pool;
-
-            # we found it, so delete this
-            $weak_pool->delete_callback('user.new', 'saslserv.detector');
-            undef $looking_for_saslserv;
-
-        }, 'saslserv.detector');
-
         return;
     }
 
     # this is the first time we've found this agent
-    if (!$saslserv->{monitoring}) {
-        $saslserv->{monitoring}++;
+    if (!$saslserv->{sasl_monitoring}) {
+        $saslserv->{sasl_monitoring}++;
 
         # watch SaslServ in case it disappears
         weaken(my $weak_mod = $mod);
@@ -230,7 +218,8 @@ sub abort_sasl {
     # tell the user it's over.
     $connection->numeric('ERR_SASLABORTED');
 
-    # find the SASL agent.
+    # find the SASL agent. if no SASL agent is set, that's fine.
+    # that means abort_sasl() was called before even determining it.
     my $agent = $pool->lookup_user($connection->{sasl_agent}) or return;
 
     # tell the agent that the user aborted the exchange.
@@ -318,6 +307,15 @@ sub update_account {
 # we've already sent RPL_LOGGEDIN at this point.
 sub on_user_set_modes {
     my ($user, $event) = @_;
+
+    # if we're looking for the SASL agent, this might be it
+    if ($looking_for_saslserv) {
+        return if !is_valid_agent($user) || !find_saslserv();
+        undef $looking_for_saslserv;
+    }
+
+    # this might be a local user which is now ready to login
+    $user->is_local or return;
     my $act_name = delete $user->{sasl_account} or return;
     L("SASL login $$user{nick} as $act_name");
     $user->do_login($act_name, 1); # the 1 means no RPL_LOGGED*

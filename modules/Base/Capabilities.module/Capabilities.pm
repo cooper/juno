@@ -195,9 +195,12 @@ sub do_cap_new {
 
     # send to clients with version <302 without values
     if (@no_302) {
+        my @new_without_values = map {
+            ref $_ ? $_->[0] : $_
+        } @new;
         user::sendfrom_to_many_with_opts(
             $me->name,
-            "CAP * NEW :@new",
+            "CAP * NEW :@new_without_values",
             { cap => 'cap-notify' },
             @no_302
         );
