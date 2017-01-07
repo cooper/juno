@@ -22,22 +22,22 @@ our ($api, $mod, $me, $pool);
 our %user_commands = (
     MODULES => {
         desc   => 'display a list of loaded modules',
-        params => 'any(opt)',
+        params => '*(opt)',
         code   => \&modules
     },
     MODLOAD => {
         desc   => 'load a module',
-        params => '-oper(modules) any',
+        params => '-oper(modules) *',
         code   => \&modload
     },
     MODUNLOAD => {
         desc   => 'unload a module',
-        params => '-oper(modules) any',
+        params => '-oper(modules) *',
         code   => \&modunload
     },
     MODRELOAD => {
         desc   => 'unload and then load a module',
-        params => '-oper(modules) any',
+        params => '-oper(modules) *',
         code   => \&modreload
     }
 );

@@ -22,7 +22,7 @@ our ($api, $mod, $me, $pool);
 our %user_commands = (RELOAD => {
     code   => \&cmd_reload,
     desc   => 'reload the entire IRCd',
-    params => '-oper(reload) @rest(opt)'
+    params => '-oper(reload) ...(opt)'
 });
 
 sub init {

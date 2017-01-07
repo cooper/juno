@@ -105,7 +105,7 @@ sub register_global_command {
     # pass it on to this base's ->register_jelp_command().
     return register_jelp_command($mod, $event,
         %opts,
-        parameters => '-source(user) @rest(opt)'
+        parameters => '-source(user) ...(opt)'
     );
 
 }

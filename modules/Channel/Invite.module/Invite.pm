@@ -25,7 +25,7 @@ use utils qw(conf);
 our %user_commands = (INVITE => {
     code   => \&ucmd_invite,
     desc   => 'invite a user to a channel',
-    params => 'user any'
+    params => 'user *'
 });
 
 # numerics

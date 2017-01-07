@@ -3910,3 +3910,7 @@ CHANGES:
     57. added {error_reply} key to messages instead of calling ->numeric() directly. closes #160.
 
     58. improved message tag parameter matchers. new format is @tag_name=type(opts).
+
+    59. the '@rest' matcher was removed in favor of '...'.
+        the ':rest' matcher was removed in favor of ':'.
+        the 'any' matcher will be removed in favor of '*'.

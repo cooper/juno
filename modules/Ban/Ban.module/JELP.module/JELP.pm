@@ -42,20 +42,20 @@ our %jelp_outgoing_commands = (
 
 our %jelp_incoming_commands = (
     BAN => {
-        params  => '@rest',
+        params  => '...',
         code    => \&in_ban
     },
     BANINFO => {
                    # @from_user=uid       :sid BANINFO    id  type match :reason
-        params   => '@from_user=user(opt) -source(server) *   *    *     :rest(opt)',
+        params   => '@from_user=user(opt) -source(server) *   *    *     :(opt)',
         code     => \&in_baninfo
     },
     BANIDK => {
-        params  => '@rest',
+        params  => '...',
         code    => \&in_banidk
     },
     BANDEL => {    # @from_user=uid      :sid BANDEL     id1 id2...
-        params  => '@from_user=user(opt) -source(server) @rest',
+        params  => '@from_user=user(opt) -source(server) ...',
         code    => \&in_bandel
     }
 );

@@ -47,12 +47,12 @@ our %user_commands = (
     KILL => {
         code   => \&ukill,
         desc   => 'forcibly remove a user from the server',
-        params => 'user :rest' # oper flags handled later
+        params => 'user :' # oper flags handled later
     },
     KICK => {
         code   => \&kick,
         desc   => 'forcibly remove a user from a channel',
-        params => 'channel(inchan) user :rest(opt)'
+        params => 'channel(inchan) user :(opt)'
     },
     LIST => {
         code   => \&list,
@@ -140,12 +140,12 @@ our %user_commands = (
     PRIVMSG => {
         code   => \&privmsgnotice,
         desc   => 'send a message to a user or channel',
-        params => '-message -command * :rest'
+        params => '-message -command * :'
     },
     NOTICE => {
         code   => \&privmsgnotice,
         desc   => 'send a notice to a user or channel',
-        params => '-message -command * :rest'
+        params => '-message -command * :'
     },
     MODE => {
         code   => \&mode,
@@ -180,7 +180,7 @@ our %user_commands = (
     USERHOST => {
         code   => \&userhost,
         desc   => 'user hostmask query',
-        params => '@rest'
+        params => '...'
     },
     PING => {
         code    => \&ping,
@@ -1184,7 +1184,7 @@ sub ukill {
 # KICK #channel1,#channel2 user1,user2 :reason
 sub kick {
     # KICK             #channel        nickname :reason
-    # dummy            channel(inchan) user     :rest(opt)
+    # dummy            channel(inchan) user     :(opt)
     my ($user, $event, $channel,       $t_user, $reason) = @_;
 
     # target user is not in channel.

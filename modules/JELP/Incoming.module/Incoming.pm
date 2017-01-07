@@ -23,22 +23,22 @@ our ($api, $mod, $pool, $me);
 my %scommands = (
     SID => {
                    # :sid   SID      sid  time  name  proto_v  ircd_v  desc
-        params  => '-source(server)  any  ts    any   any      any     :rest',
+        params  => '-source(server)  *    ts    *     *        *       :',
         code    => \&sid
     },
     UID => {
                    # :sid UID       uid  time modes nick ident host cloak ip    realname
-        params  => '-source(server) any  ts   any   any  any   any  any   any   :rest',
+        params  => '-source(server) *    ts   *     *    *     *    *     *     :',
         code    => \&uid
     },
     QUIT => {
                    # @from=uid      :src QUIT  :reason
-        params  => '@from=user(opt) -source    :rest',
+        params  => '@from=user(opt) -source    :',
         code    => \&quit
     },
     NICK => {
                    # :uid NICK    newnick
-        params  => '-source(user) any',
+        params  => '-source(user) *  ',
         code    => \&nick
     },
     BURST => {
@@ -53,87 +53,87 @@ my %scommands = (
     },
     UMODE => {
                    # :uid UMODE   +modes
-        params  => '-source(user) any',
+        params  => '-source(user) *  ',
         code    => \&umode
     },
     PRIVMSG => {
                    # :src   PRIVMSG  target :message
-        params  => '-source -command any    :rest',
+        params  => '-source -command *      :',
         code    => \&privmsgnotice
     },
     NOTICE => {
                    # :src   NOTICE   target :message
-        params  => '-source -command any    :rest',
+        params  => '-source -command *      :',
         code    => \&privmsgnotice
     },
     JOIN => {
                    # :uid JOIN    ch_name time
-        params  => '-source(user) any     ts',
+        params  => '-source(user) *       ts',
         code    => \&_join
     },
     OPER => {
                    # :uid OPER    flag1 flag2 ...
-        params  => '-source(user) @rest',
+        params  => '-source(user) ...',
         code    => \&oper
     },
     AWAY => {
                    # :uid AWAY    :reason
-        params  => '-source(user) :rest(opt)',
+        params  => '-source(user) :(opt)',
         code    => \&away
     },
     CMODE => {
                    # :src   channel   time   perspective   :modestr
-        params  => '-source channel   ts     server        :rest',
+        params  => '-source channel   ts     server        :',
         code    => \&cmode
     },
     PART => {
                    # :uid PART    channel time :reason
-        params  => '-source(user) channel ts   :rest',
+        params  => '-source(user) channel ts   :',
         code    => \&part
     },
     TOPIC => {
                    # :src TOPIC     ch_time topic_time :topic
-        params  => '-source channel ts      ts         :rest',
+        params  => '-source channel ts      ts         :',
         code    => \&topic
     },
     TOPICBURST => {
                    # :sid TOPICBURST channel ch_time setby topic_time :topic
-        params  => '-source(server)  channel ts      any   ts         :rest',
+        params  => '-source(server)  channel ts      *     ts         :',
         code    => \&topicburst
     },
     KILL => {
                    # :src KILL uid  :reason
-        params  => '-source    user :rest',
+        params  => '-source    user :',
         code    => \&_kill
     },
     AUM => {
                    # :sid AUM       name1:letter1 name2:letter2 ...
-        params  => '-source(server) @rest',
+        params  => '-source(server) ...',
         code    => \&aum
     },
     ACM => {
                    # :sid ACM       name1:letter1:type1 name2:letter2:type2 ...
-        params  => '-source(server) @rest',
+        params  => '-source(server) ...',
         code    => \&acm
     },
     SJOIN => {
                    # :sid SJOIN     ch_name time modes... :user_list
-        params  => '-source(server) any     ts   @rest',
+        params  => '-source(server) *       ts   ...',
         code    => \&sjoin
     },
     KICK => {
                    # :src KICK channel uid  :reason
-        params  => '-source    channel user :rest',
+        params  => '-source    channel user :',
         code    => \&kick
     },
     NUM => {
                    # :sid NUM       uid  integer :message
-        params  => '-source(server) user any     :rest',
+        params  => '-source(server) user *       :',
         code    => \&num
     },
     LINKS => {
                    # @for=sid   :uid    LINKS  serv_mask  query_mask
-        params  => '@for=server -source(user)  any        any',
+        params  => '@for=server -source(user)  *          *  ',
         code    => \&links
     },
     WHOIS => {     # @for=sid   :uid   WHOIS   target_user
@@ -141,16 +141,16 @@ my %scommands = (
         code    => \&whois
     },
     SNOTICE => {  # @from_user=uid          :sid SNOTICE    flag  :message
-        params => '@from_user=user(opt)     -source(server) any   :rest',
+        params => '@from_user=user(opt)     -source(server) *     :',
         code   => \&snotice
     },
     LOGIN => {
                   # :uid LOGIN      actname,...
-        params => '-source(user)    any',
+        params => '-source(user)    *  ',
         code   => \&login
     },
     PING => {
-        params => 'any',
+        params => '*  ',
         code   => \&ping
     },
     PARTALL => {
@@ -160,7 +160,7 @@ my %scommands = (
     },
     INVITE => {
                   # :uid INVITE  uid  ch_name
-        params => '-source(user) user any',
+        params => '-source(user) user *  ',
         code   => \&invite
     },
     SAVE => {
@@ -182,7 +182,7 @@ my %scommands = (
         code   => \&fjoin
     },
     FPART => {    # :sid FPART     uid  ch_name ch_time :reason
-        params => '-source(server) user channel ts      :rest(opt)',
+        params => '-source(server) user channel ts      :(opt)',
         code   => \&fpart
     },
     FUMODE => {
@@ -192,7 +192,7 @@ my %scommands = (
     },
     FOPER => {
                    # :uid FOPER     uid  flag1 flag2 ...
-        params  => '-source(server) user @rest',
+        params  => '-source(server) user ...',
         code    => \&foper
     },
     FLOGIN => {   # :uid FLOGIN    uid   act_name
@@ -229,7 +229,7 @@ sub init {
 
 # new server
 sub sid {
-    # server any    ts any  any   any  :rest
+    # server *      ts *    *     *    :
     # :sid   SID   newsid ts name proto ircd :desc
     my ($server, $msg, @args) = @_;
 
@@ -268,7 +268,7 @@ sub sid {
 
 # new user
 sub uid {
-    # server any ts any   any  any   any  any   any :rest
+    # server *   ts *     *    *     *    *     *   :
     # :sid   UID   uid ts modes nick ident host cloak ip  :realname
     my ($server, $msg, @args) = @_;
 
@@ -329,7 +329,7 @@ sub uid {
 
 # user or server quit
 sub quit {
-    # source   :rest
+    # source   :
     # :source QUIT   :reason
     my ($server, $msg, $from, $source, $reason) = @_;
 
@@ -362,7 +362,7 @@ sub quit {
 
 # nick change
 sub nick {
-    # user any
+    # user *
     # :uid NICK  newnick
     my ($server, $msg, $user, $newnick) = @_;
 
@@ -406,7 +406,7 @@ sub endburst {
 
 # user mode change
 sub umode {
-    # user any
+    # user *
     # :uid UMODE modestring
     my ($server, $msg, $user, $mode_str) = @_;
     my $result_mode_str = $user->do_mode_string_local($mode_str, 1);
@@ -444,7 +444,7 @@ sub privmsgnotice {
 
 # channel join
 sub _join {
-    # user any     ts
+    # user *       ts
     # :uid JOIN  channel time
     my ($server, $msg, $user, $ch_name, $time) = @_;
     my ($channel, $new) = $pool->lookup_or_create_channel($ch_name, $time);
@@ -462,7 +462,7 @@ sub _join {
 
 # add user flags
 sub oper {
-    # user @rest
+    # user ...
     # :uid OPER  flag flag flag
     my ($server, $msg, $user, @flags) = @_;
 
@@ -490,7 +490,7 @@ sub oper {
 
 # mark user as away or returned
 sub away {
-    # user :rest
+    # user :
     # :uid AWAY  :reason
     my ($server, $msg, $user, $reason) = @_;
 
@@ -515,7 +515,7 @@ sub away {
 
 # set a mode on a channel
 sub cmode {
-    #                   source   channel   ts     server        :rest
+    #                   source   channel   ts     server        :
     #                  :source   channel   time   perspective   :modestr
     my ($server, $msg, $source, $channel, $time, $perspective, $mode_str) = @_;
 
@@ -540,7 +540,7 @@ sub cmode {
 
 # channel part
 sub part {
-    # user channel ts   :rest
+    # user channel ts   :
     # :uid PART  channel time :reason
     my ($server, $msg, $user, $channel, $time, $reason) = @_;
 
@@ -568,7 +568,7 @@ sub part {
 
 # add user mode, compact AUM
 sub aum {
-    # server @rest
+    # server ...
     # :sid   AUM   name:letter -name
     #
     my ($server, $msg, $serv, @pieces) = @_;
@@ -605,7 +605,7 @@ sub aum {
 
 # add channel mode, compact ACM
 sub acm {
-    # server @rest
+    # server ...
     # :sid   ACM   name:letter:type -name
     my ($server, $msg, $serv, @pieces) = @_;
 
@@ -644,7 +644,7 @@ sub acm {
 
 # channel burst
 sub sjoin {
-    # server         any     ts   any   :rest
+    # server         *       ts   *     :
     # :sid   SJOIN   channel time users :modestr
     my $nicklist = pop;
     my ($server, $msg, $source_serv, $ch_name, $ts,
@@ -765,7 +765,7 @@ sub sjoin {
 }
 
 sub topic {
-    # source  channel ts ts   :rest
+    # source  channel ts ts   :
     # :source TOPIC channel ts time :topic
     my ($server, $msg, $source, $channel, $ts, $time, $topic) = @_;
 
@@ -784,7 +784,7 @@ sub topic {
 }
 
 sub topicburst {
-    # source            channel ts   any   ts   :rest
+    # source            channel ts   *     ts   :
     # :sid   TOPICBURST channel ts   setby time :topic
     my ($server, $msg, $s_serv, $channel, $ts, $setby, $topic_ts, $topic) = @_;
 
@@ -816,7 +816,7 @@ sub topicburst {
 }
 
 sub _kill {
-    # user  user :rest
+    # user  user :
     # :uid  KILL  uid  :reason
     my ($server, $msg, $source, $tuser, $reason) = @_;
 
@@ -828,7 +828,7 @@ sub _kill {
 }
 
 sub kick {
-    # source channel user :rest
+    # source channel user :
     # :id    KICK  channel uid  :reason
     my ($server, $msg, $source, $channel, $t_user, $reason) = @_;
 
@@ -841,7 +841,7 @@ sub kick {
 }
 
 # remote numeric.
-# server user any :rest
+# server user *   :
 sub num {
     my ($server, $msg, $source, $user, $num, $message) = @_;
 

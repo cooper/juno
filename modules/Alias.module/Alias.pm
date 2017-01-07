@@ -88,9 +88,9 @@ sub add_alias {
         # we are in a variable.
         if ($in_variable) {
 
-            # - in a variable indicates it should be :rest.
+            # - in a variable indicates it should be :
             if ($char eq '-') {
-                $var_type = ':rest';
+                $var_type = ':';
                 next;
             }
 
@@ -105,8 +105,8 @@ sub add_alias {
                 $variables{$var_name} = $var_type ||= '*';
 
                 # add to the format.
-                # if it's :rest, it needs the sentinel.
-                $sprintf_fmt .= $var_type eq ':rest' ? ':%s' : '%s';
+                # if it's :, it needs the sentinel.
+                $sprintf_fmt .= $var_type eq ':' ? ':%s' : '%s';
                 $sprintf_fmt .= $char if $is_whitespace;
 
                 $var_name = $var_type = '';

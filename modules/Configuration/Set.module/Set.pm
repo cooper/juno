@@ -32,7 +32,7 @@ our %user_commands = (
     CONFSET => {
         code    => \&cmd_confset,
         desc    => 'set a configuration value',
-        params  => '-oper(confset) *           *        :rest'
+        params  => '-oper(confset) *           *        :'
                   #                server_mask location value
     },
     CONFDEL => {
@@ -60,7 +60,7 @@ sub forwarder {
 
     # if no dot in server, it's not a server.
     # it's the first argument. use the local server.
-    # this might cause problems for CONFSET because of :rest
+    # this might cause problems for CONFSET because of :
     my @servers;
     if ($server_mask_maybe =~ m/[\.\*\$]/) {
         @servers = $pool->lookup_server_mask($server_mask_maybe);

@@ -32,65 +32,65 @@ our ($api, $mod, $pool, $me);
 our %ts6_incoming_commands = (
     SID => {
                   # :sid SID       name hops sid :desc
-        params => '-source(server) *    *    *   :rest',
+        params => '-source(server) *    *    *   :',
         code   => \&sid
     },
     EUID => {
                    # :sid EUID      nick hopcount nick_ts umodes ident cloak ip  uid host act :realname
-        params  => '-source(server) *    *        ts      *      *     *     *   *   *    *   :rest',
+        params  => '-source(server) *    *        ts      *      *     *     *   *   *    *   :',
         code    => \&euid
     },
     UID => {
                   # :sid UID       nick hopcount nick_ts umodes ident cloak ip uid :realname
-        params => '-source(server) *    *        ts      *      *     *     *  *   :rest',
+        params => '-source(server) *    *        ts      *      *     *     *  *   :',
         code   => \&uid
     },
     SJOIN => {
                   # :sid SJOIN     ch_time ch_name mode_str mode_params... :nicklist
-        params => '-source(server) ts      *       *        @rest',
+        params => '-source(server) ts      *       *        ...',
         code   => \&sjoin
     },
     PRIVMSG => {
                    # :src   PRIVMSG  target :message
-        params  => '-source -command any    :rest',
+        params  => '-source -command *      :',
         code    => \&privmsgnotice
     },
     NOTICE => {
                    # :src   NOTICE   target :message
-        params  => '-source -command any    :rest',
+        params  => '-source -command *      :',
         code    => \&privmsgnotice
     },
     TMODE => {     # :src TMODE ch_time ch_name      mode_str mode_params...
-        params  => '-source     ts      channel      :rest', # just to join them together
+        params  => '-source     ts      channel      :', # just to join them together
         code    => \&tmode
     },
     JOIN => {
-                  # :src          JOIN  ch_time  ch_name
-        params => '-source(user)        ts       *(opt)',
+                  # :src JOIN     ch_time  ch_name
+        params => '-source(user)  ts       *(opt)',
         code   => \&_join
     },
     ENCAP => {    # :src   ENCAP serv_mask  sub_cmd  sub_params...
-        params => '-source       *          *        @rest',
+        params => '-source       *          *        ...',
         code   => \&encap
     },
     KILL => {
                    # :src   KILL    uid     :path
-        params  => '-source         user    :rest',
+        params  => '-source         user    :',
         code    => \&_kill
     },
     PART => {
                    # :uid PART    ch_name_multi  :reason
-        params  => '-source(user) *              :rest(opt)',
+        params  => '-source(user) *              :(opt)',
         code    => \&part
     },
     QUIT => {
                    # :src QUIT   :reason
-        params  => '-source      :rest',
+        params  => '-source      :',
         code    => \&quit
     },
     KICK => {
                    # :source KICK channel  target_user :reason
-        params  => '-source       channel  user        :rest(opt)',
+        params  => '-source       channel  user        :(opt)',
         code    => \&kick
     },
     NICK => {
@@ -110,32 +110,32 @@ our %ts6_incoming_commands = (
     },
     AWAY => {
                    # :uid AWAY    :reason
-        params  => '-source(user) :rest(opt)',
+        params  => '-source(user) :(opt)',
         code    => \&away
     },
     ETB => {
                   # :sid|uid ETB channelTS channel topicTS setby extensions topic
-        params => '-source       ts        channel ts      *     @rest',
+        params => '-source       ts        channel ts      *     ...',
         code   => \&etb
     },
     TB => {
                    # :sid TB        channel topic_ts setby    :topic
-        params  => '-source(server) channel ts       *(opt)   :rest',
+        params  => '-source(server) channel ts       *(opt)   :',
         code    => \&tb
     },
     TOPIC => {
                   # :uid   TOPIC channel :topic
-        params => '-source(user) channel :rest',
+        params => '-source(user) channel :',
         code   => \&topic
     },
     WALLOPS => {
                   # :source WALLOPS :message
-        params => '-source          :rest',
+        params => '-source          :',
         code   => \&wallops
     },
     OPERWALL => {
                   # :uid OPERWALL  :message
-        params => '-source(user)   :rest',
+        params => '-source(user)   :',
         code   => \&operwall
     },
     CHGHOST => {
@@ -150,17 +150,17 @@ our %ts6_incoming_commands = (
     },
     SQUIT => {
                   # :sid SQUIT     sid    :reason
-        params => '-source(opt)    server :rest',
+        params => '-source(opt)    server :',
         code   => \&squit
     },
     WHOIS => {
                   # :uid WHOIS   sid|uid    :query(e.g. nickname)
-        params => '-source(user) hunted     :rest',
+        params => '-source(user) hunted     :',
         code   => \&whois
     },
     MODE => {
                   # :source MODE uid|channel +modes params
-        params => '-source @rest',
+        params => '-source ...',
         code   => \&mode
     },
     ADMIN => {
@@ -245,7 +245,7 @@ our %ts6_incoming_commands = (
     },
     ENCAP_GCAP => {
                   # :sid ENCAP     serv_mask GCAP  caps
-        params => '-source(server) *         skip  :rest',
+        params => '-source(server) *         skip  :',
         code   => \&gcap
     },
     ENCAP_REALHOST => {
@@ -286,7 +286,7 @@ sub handle_numeric {
 
     # create the message
     # force list context
-    my (undef, $message) = $msg->parse_params('skip :rest');
+    my (undef, $message) = $msg->parse_params('skip :');
 
     # local user.
     if ($user->is_local) {
@@ -875,7 +875,7 @@ sub su {
 # ts6-protocol.txt:444
 #
 sub _kill {
-    # source            user  :rest
+    # source            user  :
     # :source     KILL  uid   :path
     # path is the source and the reason; e.g. server!host!iuser!nick (go away)
     my ($server, $msg, $source, $tuser, $path) = @_;
@@ -928,7 +928,7 @@ sub part {
 # ts6-protocol.txt:696
 #
 sub quit {
-    # source   :rest
+    # source   :
     # :source QUIT   :reason
     my ($server, $msg, $source, $reason) = @_;
     return if $source == $me;
@@ -1112,7 +1112,7 @@ sub away {
 # ts6-protocol.txt:957
 #
 sub topic {
-    # -source(user) channel :rest
+    # -source(user) channel :
     # :uid TOPIC    channel :topic
     my ($server, $msg, $user, $channel, $topic) = @_;
 
@@ -1135,7 +1135,7 @@ sub topic {
 # ts6-protocol.txt:916
 #
 sub tb {
-    # -source(server)   channel ts       *(opt) :rest
+    # -source(server)   channel ts       *(opt) :
     # :sid TB           channel topic_ts setby  :topic
     my ($server, $msg, $s_serv, $channel, $topic_ts, $setby, $topic) = @_;
 
@@ -1233,7 +1233,7 @@ sub etb {
 # ts6-protocol.txt:1140
 #
 # :source WALLOPS :message
-# -source         :rest
+# -source         :
 #
 sub wallops {
     my ($server, $msg, $source, $message) = @_;

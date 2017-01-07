@@ -59,7 +59,7 @@ our %ts6_outgoing_commands = (
 our %ts6_incoming_commands = (
     ENCAP_DLINE => {
                   # :uid ENCAP    target DLINE duration ip_mask :reason
-        params => '-source(user)  *      skip  *        *       :rest',
+        params => '-source(user)  *      skip  *        *       :',
         code   => \&encap_dline
     },
     ENCAP_UNDLINE => {
@@ -69,7 +69,7 @@ our %ts6_incoming_commands = (
     },
     ENCAP_KLINE => {
                   # :<source> ENCAP <target> KLINE <time>   <user>     <host>    :<reason>
-        params => '-source(user)    *        skip  *        *          *         :rest',
+        params => '-source(user)    *        skip  *        *          *         :',
         code   => \&encap_kline
     },
     ENCAP_UNKLINE => {
@@ -79,7 +79,7 @@ our %ts6_incoming_commands = (
     },
     KLINE => {
                   # :<source> KLINE <target> <time> <user> <host> :<reason>
-        params => '-source(user)    *        *      *      *      :rest',
+        params => '-source(user)    *        *      *      *      :',
         code   => \&kline
     },
     UNKLINE => {
@@ -89,7 +89,7 @@ our %ts6_incoming_commands = (
     },
     BAN => {
                   # :source BAN type user host creationTS duration lifetime oper reason
-        params => '-source      *    *    *    ts         *        *        *    :rest',
+        params => '-source      *    *    *    ts         *        *        *    :',
         code   => \&ban
     },
     ENCAP_RESV => {
@@ -103,7 +103,7 @@ our %ts6_incoming_commands = (
         code   => \&encap_unresv
     },
     RESV => {     # :uid RESV    target duration nick_chan_mask :reason
-        params => '-source(user) *      *        *              :rest',
+        params => '-source(user) *      *        *              :',
         code   => \&resv
     },
     UNRESV => {   # :uid UNRESV   target nick_chan_mask

@@ -105,7 +105,7 @@ sub parse {
             next WORD;
         }
 
-        # this is for :rest.
+        # this is for :
         $msg->{_rest}[$word_n] =
             col((split m/\s+/, $msg->data, $word_i + 1)[$word_i])
             if $word_n >= 0;
@@ -383,6 +383,10 @@ sub parse_params {
         my $defined_ok =
             $fake && $fake ne '@' ||    # OK for fake params that aren't tags
             defined $param;             # fall back to the definedness
+
+        # the definedness doesn't matter when it's optional or fake.
+        # for semi-optionals, we've already skipped it if the raw parameter
+        # was undefined, so it has to be defined at this point.
         return (undef, 'Parameter restriction unsatisfied '.$type)
             if !$defined_ok && !$attrs->{opt};
 
@@ -397,12 +401,12 @@ sub parse_params {
         }
 
         # rest of the arguments as a list.
-        elsif ($type eq '@rest' || $type eq '...') {
+        elsif ($type eq '...') {
             @res = @params[$param_i..$#params];
         }
 
         # rest of arguments, including unaltered whitespace.
-        elsif ($type eq ':rest') {
+        elsif ($type eq ':') {
             @res = $msg->{_rest}[$param_i];
         }
 

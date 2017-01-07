@@ -132,7 +132,7 @@ sub register_ban_type {
             name        => $command1,
             code        => sub { handle_add_command($type_name, $command1, @_) },
             description => "add to $type_name ban list",
-            parameters  => "-oper($type_name) *        *     :rest(opt)"
+            parameters  => "-oper($type_name) *        *     :(opt)"
                                             # duration match :reason
         );
     }

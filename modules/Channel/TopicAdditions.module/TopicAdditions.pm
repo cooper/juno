@@ -24,12 +24,12 @@ our ($api, $mod, $pool);
 our %user_commands = (
     TOPICPREPEND => {
         desc   => 'add a phrase to the beginning of the topic',
-        params => 'channel :rest',
+        params => 'channel :',
         code   => \&cmd_prepend
     },
     TOPICAPPEND => {
         desc   => 'add a phrase to the end of a topic',
-        params => 'channel :rest',
+        params => 'channel :',
         code   => \&cmd_append
     }
 );
