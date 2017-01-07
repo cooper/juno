@@ -3932,3 +3932,7 @@ CHANGES:
 
     65. add support for ircv3 userhost-in-names.
         fixed a bug where NAMES would occasionally exceed 512 bytes.
+
+    66. got rid of user ->loc_get_invited_by().
+        now local invite handling is an event get_invited which has been moved to Channel::Invite.
+        this is better because remote invites will be ignored when invites are disabled on the local server.

@@ -955,7 +955,7 @@ sub invite {
 
     # local user.
     if ($t_user->is_local) {
-        $t_user->loc_get_invited_by($user, $ch_name);
+        $t_user->fire(get_invited => $user, $ch_name);
         return 1;
     }
 

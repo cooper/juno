@@ -863,41 +863,6 @@ sub sendme {
     $user->sendfrom($me->{name}, @_);
 }
 
-# handle an invite for a local user.
-# $channel might be an object or a channel name.
-sub loc_get_invited_by {
-    my ($user, $i_user, $ch_name) = @_;
-    return unless $user->is_local;
-
-    # the channel exists.
-    my $channel = $ch_name if ref $ch_name;
-    $channel  ||= $pool->lookup_channel($ch_name);
-    if ($channel) {
-        $ch_name = $channel->name;
-
-        # user is already in channel.
-        return if $channel->has_user($user);
-
-        # store the invite in the channel.
-        # this is what we use to actually allow the user to join.
-        $channel->{invite_pending}{ $user->id } = time;
-    }
-
-    # if the invite list is full, remove the oldest entries.
-    my @oldest_first;
-    my $list  = $user->{invite_pending};
-    my $limit = conf('limit', 'channel');
-    if ($list && $limit && scalar keys %$list >= $limit) {
-        my @newest_first = sort { $list->{$b} <=> $list->{$a} } keys %$list;
-        delete $list->{ pop @newest_first } until @newest_first < $limit;
-    }
-
-    # store the invite in the user. this is used to track the max invites.
-    # notify the user.
-    $user->{invite_pending}{ irc_lc($ch_name) } = time;
-    $user->sendfrom($i_user->full, "INVITE $$user{nick} $ch_name");
-}
-
 # CAP shortcuts.
 sub has_cap    { &_safe or return; shift->conn->has_cap(@_)    }
 sub add_cap    { &_safe or return; shift->conn->add_cap(@_)    }

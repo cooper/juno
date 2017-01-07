@@ -95,13 +95,17 @@ sub init {
         with_eo  => 1
     );
 
-    # ON JOIN,
+    # on JOIN,
     # check if the channel is invite only.
     $pool->on('user.can_join' => \&on_user_can_join,
         name     => 'has.invite',
         priority => 20,
         with_eo  => 1
     );
+
+    # on INVITE (local or remote), deliver to local user.
+    $pool->on('user.get_invited' =>
+        \&on_user_get_invited, 'deliver.invite');
 
     return 1;
 }
@@ -139,7 +143,7 @@ sub ucmd_invite {
 
     # local user.
     if ($t_user->is_local) {
-        $t_user->loc_get_invited_by($user, $channel || $ch_name);
+        $t_user->fire(get_invited => $user, $channel || $ch_name);
     }
 
     # remote user.
@@ -153,6 +157,41 @@ sub ucmd_invite {
     $user->numeric(RPL_INVITING => $t_user->{nick}, $ch_name);
 
     return 1;
+}
+
+# handle an invite for a local user.
+# $channel might be an object or a channel name.
+sub on_user_get_invited {
+    my ($user, $event, $i_user, $ch_name) = @_;
+    return unless $user->is_local;
+
+    # the channel exists.
+    my $channel = $ch_name if ref $ch_name;
+    $channel  ||= $pool->lookup_channel($ch_name);
+    if ($channel) {
+        $ch_name = $channel->name;
+
+        # user is already in channel.
+        return if $channel->has_user($user);
+
+        # store the invite in the channel.
+        # this is what we use to actually allow the user to join.
+        $channel->{invite_pending}{ $user->id } = time;
+    }
+
+    # if the invite list is full, remove the oldest entries.
+    my @oldest_first;
+    my $list  = $user->{invite_pending};
+    my $limit = conf('limit', 'channel');
+    if ($list && $limit && scalar keys %$list >= $limit) {
+        my @newest_first = sort { $list->{$b} <=> $list->{$a} } keys %$list;
+        delete $list->{ pop @newest_first } until @newest_first < $limit;
+    }
+
+    # store the invite in the user. this is used to track the max invites.
+    # notify the user.
+    $user->{invite_pending}{ irc_lc($ch_name) } = time;
+    $user->sendfrom($i_user->full, "INVITE $$user{nick} $ch_name");
 }
 
 # user must be in the channel if it exists.

@@ -1534,7 +1534,7 @@ sub invite {
 
     # this user belongs to me.
     if ($t_user->is_local) {
-        $t_user->loc_get_invited_by($user, $channel);
+        $t_user->fire(get_invited => $user, $channel);
         return 1;
     }
 
