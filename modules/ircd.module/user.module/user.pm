@@ -878,9 +878,25 @@ sub loc_get_invited_by {
         # user is already in channel.
         return if $channel->has_user($user);
 
+        # store the invite in the channel.
+        # this is what we use to actually allow the user to join.
+        $channel->{invite_pending}{ $user->id } = time;
     }
 
-    $user->{invite_pending}{ irc_lc($ch_name) } = 1;
+    # if the invite list is full, remove the oldest entry.
+    my @oldest_first;
+    my $list  = $user->{invite_pending};
+    my $limit = conf('limit', 'channel');
+    if ($list && $limit && scalar keys %$list >= $limit) {
+        my @deleted;
+        my @newest_first = sort { $list->{$b} <=> $list->{$a} } keys %$list;
+        push @deleted, pop @newest_first until @newest_first < $limit;
+        delete @$list{@deleted};
+    }
+
+    # store the invite in the user. this is used to track the max invites.
+    # notify the user.
+    $user->{invite_pending}{ irc_lc($ch_name) } = time;
     $user->sendfrom($i_user->full, "INVITE $$user{nick} $ch_name");
 }
 

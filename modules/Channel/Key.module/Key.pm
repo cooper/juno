@@ -82,6 +82,7 @@ sub fix_key {
 sub on_user_can_join {
     my ($user, $event, $channel, $key) = @_;
     return unless $channel->is_mode('key');
+    return if $channel->user_has_invite($user);
     return if defined $key && $channel->mode_parameter('key') eq $key;
     $event->{error_reply} = [ ERR_BADCHANNELKEY => $channel->name ];
     $event->stop;

@@ -103,6 +103,9 @@ sub on_user_can_join {
         return;
     }
 
+    # user has invite.
+    return if $channel->user_has_invite($user);
+
     $event->{error_reply} = [ ERR_THROTTLE => $channel->name ];
     $event->stop('join throttle active');
 }

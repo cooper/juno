@@ -42,6 +42,8 @@ sub on_user_can_join {
     my ($user, $event, $channel) = @_;
     # A user can join a channel that isn't +r
     return unless $channel->is_mode('reg_only');
+    # User has invite
+    return if $channel->user_has_invite($user);
     # User must be registered otherwise
     return if exists $user->{account};
     # Let them know they can't join if they're not registered

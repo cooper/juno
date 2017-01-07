@@ -3917,3 +3917,8 @@ CHANGES:
 
     60. added IRCv3.2 MONITOR implementation. closes #89.
         monitor list can now be limited by limit:monitor. closes #161.
+
+    61. invites now override +jklr. closes #131.
+        cleaned up Channel::Invite. closes #147.
+        added new channel methods ->user_has_invite() and ->user_clear_invite().
+        improved ->loc_get_invited_by(). max invites is now determined by limit:channel.

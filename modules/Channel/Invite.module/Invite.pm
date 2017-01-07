@@ -21,6 +21,27 @@ our ($api, $mod, $me, $pool);
 
 use utils qw(conf);
 
+# ARE WE GOING TO ALLOW AN INVITE?
+#
+# Does the channel exist?
+#   - No. Is channels:invite_must_exist enabled?
+#       - No. Invite is OK
+#       - Yes. ERR_NOSUCHCHANNEL
+#   - Yes. Is the inviter in the channel?
+#       - No. ERR_NOTONCHANNEL
+#       - Yes. Is the invitee in the channel already?
+#           - Yes. ERR_USERONCHANNEL
+#           - No. Is the inviter an op in the channel?
+#               - Yes. Invite is OK
+#               - No. Is free invite (+g) enabled?
+#                   - Yes. Invite is OK
+#                   - No. Is invite only (+i) enabled?
+#                       - Yes. ERR_CHANOPRIVSNEEDED
+#                       - No. Is channels:only_ops_invite enabled?
+#                           - No. Invite is OK
+#                           - Yes. ERR_CHANOPRIVSNEEDED
+my $INVITE_OK = my $JOIN_OK = 1;
+
 # INVITE user command
 our %user_commands = (INVITE => {
     code   => \&ucmd_invite,
@@ -47,11 +68,43 @@ our %channel_modes = (
     }
 );
 
-# TODO: (#147) clean this up. the event callbacks are quite ugly
-# TODO: (#131) invite should override some other mode restrictions!
-
 sub init {
-    &add_invite_callbacks;
+
+    # add INVEX to RPL_ISUPPORT.
+    $me->on(supported => sub {
+        my (undef, undef, $supported) = @_;
+        $supported->{INVEX} = $me->cmode_letter('invite_except');
+    }, 'invex.supported');
+
+    # first, user must be in the channel if it exists.
+    $pool->on('user.can_invite' => \&on_can_invite_source,
+        name     => 'source.in.channel',
+        priority => 30,
+        with_eo  => 1
+    );
+
+    # second, target can't be in the channel already.
+    $pool->on('user.can_invite' => \&on_can_invite_target,
+        name     => 'target.in.channel',
+        priority => 20,
+        with_eo  => 1
+    );
+
+    # finally, user must have basic status if it's invite only.
+    $pool->on('user.can_invite' => \&on_can_invite_status,
+        name     => 'has.basic.status',
+        priority => 10,
+        with_eo  => 1
+    );
+
+    # ON JOIN,
+    # check if the channel is invite only.
+    $pool->on('user.can_join' => \&on_user_can_join,
+        name     => 'has.invite',
+        priority => 20,
+        with_eo  => 1
+    );
+
     return 1;
 }
 
@@ -104,139 +157,90 @@ sub ucmd_invite {
     return 1;
 }
 
-# checks during INVITE and JOIN commands.
-sub add_invite_callbacks {
+# user must be in the channel if it exists.
+sub on_can_invite_source {
+    my ($user, $event, $t_user, $ch_name, $channel) = @_;
 
-    # add INVEX to RPL_ISUPPORT.
-    $me->on(supported => sub {
-        my (undef, undef, $supported) = @_;
-        $supported->{INVEX} = $me->cmode_letter('invite_except');
-    }, 'invex.supported');
+    # channel does not exist.
+    if (!$channel) {
 
-    # delete invitation on user join.
-    $pool->on('channel.user_joined' => sub {
-        my ($channel, undef, $user) = @_;
-        delete $user->{invite_pending}{ irc_lc($channel->name) };
-    }, 'invite.clear');
-
-    # ARE WE GOING TO ALLOW THIS INVITE?
-    #
-    # Does the channel exist?
-    #   - No. Is channels:invite_must_exist enabled?
-    #       - No. Invite is OK
-    #       - Yes. ERR_NOSUCHCHANNEL
-    #   - Yes. Is the inviter in the channel?
-    #       - No. ERR_NOTONCHANNEL
-    #       - Yes. Is the invitee in the channel already?
-    #           - Yes. ERR_USERONCHANNEL
-    #           - No. Is the inviter an op in the channel?
-    #               - Yes. Invite is OK
-    #               - No. Is free invite (+g) enabled?
-    #                   - Yes. Invite is OK
-    #                   - No. Is invite only (+i) enabled?
-    #                       - Yes. ERR_CHANOPRIVSNEEDED
-    #                       - No. Is channels:only_ops_invite enabled?
-    #                           - No. Invite is OK
-    #                           - Yes. ERR_CHANOPRIVSNEEDED
-    my $INVITE_OK = my $JOIN_OK = 1;
-
-    # first, user must be in the channel if it exists.
-    $pool->on('user.can_invite' => sub {
-        my ($event, $t_user, $ch_name, $channel) = @_;
-        my $user = $event->object;
-
-        # channel does not exist.
-        if (!$channel) {
-
-            # invite is OK if it does not have to exist.
-            return $INVITE_OK
-                if !conf('channels', 'invite_must_exist');
-
-            # invite_must_exist says to end it here.
-            $event->stop;
-            $user->numeric(ERR_NOSUCHCHANNEL => $channel->name);
-            return;
-
-        }
-
-        # user is there.
+        # invite is OK if it does not have to exist.
         return $INVITE_OK
-            if $channel->has_user($user);
+            if !conf('channels', 'invite_must_exist');
 
-        # channel exists, and user is not there.
+        # invite_must_exist says to end it here.
         $event->stop;
-        $user->numeric(ERR_NOTONCHANNEL => $ch_name);
+        $user->numeric(ERR_NOSUCHCHANNEL => $channel->name);
+        return;
+    }
 
-    }, name => 'source.in.channel', priority => 30);
+    # user is there.
+    return $INVITE_OK
+        if $channel->has_user($user);
 
-    # second, target can't be in the channel already.
-    $pool->on('user.can_invite' => sub {
-        my ($event, $t_user, $ch_name, $channel) = @_;
-        my $user = $event->object;
-        return unless $channel;
+    # channel exists, and user is not there.
+    $event->stop;
+    $user->numeric(ERR_NOTONCHANNEL => $ch_name);
+}
 
-        # target is not in there.
+# target can't be in the channel already.
+sub on_can_invite_target {
+    my ($user, $event, $t_user, $ch_name, $channel) = @_;
+    return $INVITE_OK if !$channel;
+
+    # target is not in there.
+    return $INVITE_OK
+        unless $channel->has_user($t_user);
+
+    # target is in there already.
+    $event->stop;
+    $user->numeric(ERR_USERONCHANNEL => $t_user->{nick}, $ch_name);
+}
+
+sub on_can_invite_status {
+    my ($user, $event, $t_user, $ch_name, $channel) = @_;
+    return $INVITE_OK if !$channel;
+
+    # if the user is op: +i, +g, and only_ops_invite do not apply.
+    return $INVITE_OK
+        if $channel->user_has_basic_status($user);
+
+    # if free_invite is set, anyone can invite.
+    return $INVITE_OK
+        if $channel->is_mode('free_invite');
+
+    # if the channel is -i, anyone can invite,
+    # unless the only_ops_invite option is enabled.
+    if (!$channel->is_mode('invite_only')) {
         return $INVITE_OK
-            unless $channel->has_user($t_user);
+            unless conf('channels', 'only_ops_invite');
+    }
 
-        # target is in there already.
-        $event->stop;
-        $user->numeric(ERR_USERONCHANNEL => $t_user->{nick}, $ch_name);
+    # permission denied.
+    $event->stop;
+    $user->numeric(ERR_CHANOPRIVSNEEDED => $ch_name);
+}
 
-    }, name => 'target.in.channel', priority => 20);
+# check if a user can join an invite-only channel
+sub on_user_can_join {
+    my ($user, $event, $channel) = @_;
 
-    # finally, user must have basic status if it's invite only.
-    $pool->on('user.can_invite' => sub {
-        my ($event, $t_user, $ch_name, $channel) = @_;
-        my $user = $event->object;
-        return unless $channel;
+    # channel is not invite-only.
+    return $JOIN_OK
+        unless $channel->is_mode('invite_only');
 
-        # if the user is op: +i, +g, and only_ops_invite do not apply.
-        return $INVITE_OK
-            if $channel->user_has_basic_status($user);
+    # user has been invited.
+    return $JOIN_OK
+        if $channel->user_has_invite($user);
 
-        # if free_invite is set, anyone can invite.
-        return $INVITE_OK
-            if $channel->is_mode('free_invite');
+    # user matches the exception list.
+    return $JOIN_OK
+        if $channel->list_matches('invite_except', $user);
 
-        # if the channel is -i, anyone can invite,
-        # unless the only_ops_invite option is enabled.
-        if (!$channel->is_mode('invite_only')) {
-            return $INVITE_OK
-                unless conf('channels', 'only_ops_invite');
-        }
-
-        # permission denied.
-        $event->stop;
-        $user->numeric(ERR_CHANOPRIVSNEEDED => $ch_name);
-
-    }, name => 'has.basic.status', priority => 10);
-
-    # ON JOIN,
-    # check if the channel is invite only.
-    $pool->on('user.can_join' => sub {
-        my ($event, $channel) = @_;
-        my $user = $event->object;
-
-        # channel is not invite-only.
-        return $JOIN_OK
-            unless $channel->is_mode('invite_only');
-
-        # user has been invited.
-        return $JOIN_OK
-            if $user->{invite_pending}{ irc_lc($channel->name) };
-
-        # user matches the exception list.
-        return $JOIN_OK
-            if $channel->list_matches('invite_except', $user);
-
-        # sorry, not invited, no exception.
-        $event->{error_reply} =
-            [ ERR_INVITEONLYCHAN => $channel->name ];
-        $event->stop('not_invited');
-
-    }, name => 'has.invite', priority => 20);
-
+    # sorry, not invited, no exception.
+    $event->{error_reply} =
+        [ ERR_INVITEONLYCHAN => $channel->name ];
+    $event->stop('not_invited');
 }
 
 $mod

@@ -18,7 +18,7 @@ use 5.010;
 use parent 'Evented::Object';
 
 use modes;
-use utils qw(conf v notice match ref_to_list cut_to_length);
+use utils qw(conf v notice match ref_to_list cut_to_length irc_lc);
 use List::Util qw(first max);
 use Scalar::Util qw(blessed looks_like_number);
 
@@ -741,6 +741,20 @@ sub prefixes {
     return $prefixes;
 }
 
+# true if the user has an invite outstanding
+sub user_has_invite {
+    my ($channel, $user) = @_;
+    return 1 if $channel->{invite_pending}{ $user->id };
+    return;
+}
+
+# clear the outstanding invite for a user
+sub user_clear_invite {
+    my ($channel, $user) = @_;
+    delete $channel->{invite_pending}{ $user->id };
+    delete $user->{invite_pending}{ irc_lc($channel->name) };
+}
+
 # handle named modes, tell our local users, and tell other servers.
 sub do_modes { _do_modes(undef, @_) }
 
@@ -1018,6 +1032,9 @@ sub do_join {
     # add the user.
     return if $already && !$allow_already;
     $channel->add($user) unless $already;
+
+    # remove pending invites.
+    $channel->user_clear_invite($user);
 
     # for each user in the channel, send a JOIN message.
     my $act_name = $user->{account} ? $user->{account}{name} : '*';
