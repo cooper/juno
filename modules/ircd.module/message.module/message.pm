@@ -375,9 +375,10 @@ sub parse_params {
             next;
         }
 
-        # this is a real parameter. check all restrictions on it.
+        # this is a real parameter or a message tag.
+        # check all restrictions on it.
         return (undef, 'Parameter restriction unsatisfied '.$type)
-            if !$fake && !_check_param($param, $attrs);
+            if !($fake || $fake eq '@') && !_check_param($param, $attrs);
 
         # skip this parameter.
         if ($type eq 'skip') {
