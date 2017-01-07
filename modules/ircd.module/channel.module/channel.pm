@@ -518,12 +518,19 @@ sub _get_status_mode {
     return $what;
 }
 
+# true if user has a ban and no exempt
+sub user_is_banned {
+    my ($channel, $user) = @_;
+    my $banned = $channel->list_matches('ban', $user);
+    return $banned && !$channel->list_matches('except', $user);
+}
+
 # fetch the topic or return undef if none.
 sub topic {
     my $channel = shift;
     return $channel->{topic} if
-      defined $channel->{topic}{topic} &&
-      length $channel->{topic}{topic};
+        defined $channel->{topic}{topic} &&
+        length  $channel->{topic}{topic};
     delete $channel->{topic};
     return;
 }

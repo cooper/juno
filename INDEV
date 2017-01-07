@@ -3925,3 +3925,5 @@ CHANGES:
 
     62. added channel ->clear_all_invites().
         called on ->take_lower_time() and in SJOIN. closes #162.
+
+    63. added Channel::Knock. closes #39.

@@ -484,14 +484,11 @@ sub add_join_callbacks {
         my ($event, $channel) = @_;
         my $user = $event->object;
 
-        my $banned = $channel->list_matches('ban',    $user);
-        my $exempt = $channel->list_matches('except', $user);
+        return $JOIN_OK if !$channel->user_is_banned($user);
 
         # sorry, banned.
-        if ($banned && !$exempt) {
-            $event->{error_reply} = [ ERR_BANNEDFROMCHAN => $channel->name ];
-            $event->stop('banned');
-        }
+        $event->{error_reply} = [ ERR_BANNEDFROMCHAN => $channel->name ];
+        $event->stop('banned');
 
     }, name => 'is.banned', priority => 10);
 

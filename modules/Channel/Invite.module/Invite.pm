@@ -15,11 +15,9 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils qw(irc_lc);
+use utils qw(irc_lc conf);
 
 our ($api, $mod, $me, $pool);
-
-use utils qw(conf);
 
 # ARE WE GOING TO ALLOW AN INVITE?
 #
