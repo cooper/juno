@@ -377,8 +377,16 @@ sub parse_params {
 
         # this is a real parameter or a message tag.
         # check all restrictions on it.
+        $param = _check_param($param, $attrs);
+
+        # check if the definedness of the parameter is OK.
+        my $defined_ok =
+            $fake && $fake ne '@' ||    # OK for fake params
+            $attrs->{opt}         ||    # OK if it's optional
+            $attrs->{semiopt}     ||    # OK if it's semi-optional
+            defined $param;             # fall back to the definedness
         return (undef, 'Parameter restriction unsatisfied '.$type)
-            if (!$fake || $fake eq '@') && !_check_param($param, $attrs);
+            if !$defined_ok;
 
         # skip this parameter.
         if ($type eq 'skip') {
@@ -407,8 +415,7 @@ sub parse_params {
 
         # at this point, we have to have a code to handle this.
         # fake matchers are called with or without $param, but real ones
-        # require that $param is defined.
-        my $defined_ok = $fake || defined $param;
+        # and message tags require that $param is defined ($defined_ok).
         if (!@res && $defined_ok && (my $param_code = $find_code->($type))) {
             @res = $param_code->($msg, $param, $attrs);
         }
@@ -434,11 +441,13 @@ sub parse_params {
 # check a real parameter against restrictions.
 sub _check_param {
     my ($param, $attrs) = @_;
-    return $attrs->{opt} || $attrs->{semiopt} if !defined $param;
-    return if length $param < ($attrs->{minlen} || 0);
-    return if length $param > ($attrs->{maxlen} || 'inf');
-    return if $attrs->{digit} && $param =~ m/\D/;
-    return 1;
+    undef $param
+        if length $param < ($attrs->{minlen} || 0);
+    undef $param
+        if length $param > ($attrs->{maxlen} || 'inf');
+    undef $param
+        if defined $param && $attrs->{digit} && $param =~ m/\D/;
+    return $param;
 }
 
 # object->string. returns ($string, $changed)
