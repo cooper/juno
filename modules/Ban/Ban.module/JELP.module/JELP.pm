@@ -46,16 +46,16 @@ our %jelp_incoming_commands = (
         code    => \&in_ban
     },
     BANINFO => {
-                    # @from_user=uid          :sid BANINFO    id  type match :reason
-        params   => '-tag.from_user(user,opt) -source(server) *   *    *     :rest(opt)',
+                   # @from_user=uid       :sid BANINFO    id  type match :reason
+        params   => '@from_user=user(opt) -source(server) *   *    *     :rest(opt)',
         code     => \&in_baninfo
     },
     BANIDK => {
         params  => '@rest',
         code    => \&in_banidk
     },
-    BANDEL => {    # @from_user=uid          :sid BANDEL     id1 id2...
-        params  => '-tag.from_user(user,opt) -source(server) @rest',
+    BANDEL => {    # @from_user=uid      :sid BANDEL     id1 id2...
+        params  => '@from_user=user(opt) -source(server) @rest',
         code    => \&in_bandel
     }
 );

@@ -319,6 +319,7 @@ sub parse_params {
         # increase the required parameter count.
         next if $match_attr[$i]{opt} || $match_attr[$i]{semiopt};
         next if substr($_, 0, 1) eq '-'; # ex: -command or -oper
+        next if substr($_, 0, 1) eq '@'; # ex: @from=user (message tags)
 
         $required_parameters++;
     }
@@ -331,7 +332,7 @@ sub parse_params {
     # check argument count.
     my @params = $msg->params;
     my $local_user = $msg->source
-        if $msg->source->isa('user') && $msg->source->is_local;
+        if $msg->source && $msg->source->isa('user') && $msg->source->is_local;
     if (scalar @params < $required_parameters) {
         my $user = $msg->source if $msg->source->isa('user');
         $local_user->numeric(ERR_NEEDMOREPARAMS => $msg->command)
@@ -351,11 +352,18 @@ sub parse_params {
         # use (opt) instead if that is the case.
 
         # is this a fake (ignored) matcher?
-        my ($fake, @res);
-        if (s/^-//) { $fake = 1  }
-        else        { $param_i++ }
+        my ($fake, @res) = '';
+        if (s/^([-@])//) { $fake = $1 }
+        else             { $param_i++ }
         my $type  = $_;
         my $param = $params[$param_i];
+
+        # if this is a tag in the form @tag_name=matcher(opts),
+        # extract $param and $type from that.
+        if ($fake eq '@' && $type =~ m/^(\w+)=(.+)$/) {
+            $param = $msg->tag($1);
+            $type  = $2;
+        }
 
         # semi-optional attribute means that the raw parameter is optional,
         # but if it is present, the matcher must yield something. if it is
@@ -389,18 +397,6 @@ sub parse_params {
         # last argument, independent of $param_i.
         elsif ($type eq 'last') {
             @res = $params[$#params];
-        }
-
-        # parameter as a certain type.
-        # -tag.the_type(the_name, other opts...)
-        elsif ($type =~ m/^tag\.(\w+)$/ && @$attr_keys) {
-
-            # the parameter is the value of the tag in the message.
-            $param = $msg->tag($1);
-
-            # the first attribute is the type
-            $type = shift @$attr_keys;
-            delete $attrs->{$type};
         }
 
         # at this point, we have to have a code to handle this.

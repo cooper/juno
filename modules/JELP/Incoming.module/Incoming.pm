@@ -32,8 +32,8 @@ my %scommands = (
         code    => \&uid
     },
     QUIT => {
-                   # @from=uid          :src QUIT  :reason
-        params  => '-tag.from(user,opt) -source    :rest',
+                   # @from=uid      :src QUIT  :reason
+        params  => '@from=user(opt) -source    :rest',
         code    => \&quit
     },
     NICK => {
@@ -132,16 +132,16 @@ my %scommands = (
         code    => \&num
     },
     LINKS => {
-                   # @for=sid        :uid    LINKS  serv_mask  query_mask
-        params  => '-tag.for(server) -source(user)  any        any',
+                   # @for=sid   :uid    LINKS  serv_mask  query_mask
+        params  => '@for=server -source(user)  any        any',
         code    => \&links
     },
-    WHOIS => {     # @for=sid        :uid   WHOIS   target_user
-        params  => '-tag.for(server) -source(user)  user',
+    WHOIS => {     # @for=sid   :uid   WHOIS   target_user
+        params  => '@for=server -source(user)  user',
         code    => \&whois
     },
     SNOTICE => {  # @from_user=uid          :sid SNOTICE    flag  :message
-        params => '-tag.from_user(user,opt) -source(server) any   :rest',
+        params => '@from_user=user(opt)     -source(server) any   :rest',
         code   => \&snotice
     },
     LOGIN => {

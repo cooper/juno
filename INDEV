@@ -3908,3 +3908,5 @@ CHANGES:
         added options services:saslserv_allow_reauthentication and services:saslserv_max_failures. closes #153.
 
     57. added {error_reply} key to messages instead of calling ->numeric() directly. closes #160.
+
+    58. improved message tag parameter matchers. new format is @tag_name=type(opts).
