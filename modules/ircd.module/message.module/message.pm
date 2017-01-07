@@ -442,9 +442,9 @@ sub parse_params {
 sub _check_param {
     my ($param, $attrs) = @_;
     undef $param
-        if length $param < ($attrs->{minlen} || 0);
+        if defined $param && length $param < ($attrs->{minlen} || 0);
     undef $param
-        if length $param > ($attrs->{maxlen} || 'inf');
+        if defined $param && length $param > ($attrs->{maxlen} || 'inf');
     undef $param
         if defined $param && $attrs->{digit} && $param =~ m/\D/;
     return $param;
