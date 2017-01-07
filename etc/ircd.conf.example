@@ -65,7 +65,8 @@
 
     # Extras
 
-    #DNSBL                      # Built-in host blacklist checking
+    Monitor                     # IRCv3 client availability notifications
+    DNSBL                       # Built-in host blacklist checking
     #LOLCAT                     # SPEEK LIEK A LOLCATZ!
 
 
@@ -107,6 +108,7 @@
 
     automodes = '+ix'                           # set these modes on users at connect
                                                 # the default is invisible and cloaked
+    monitor_limit = '100'                       # max monitors; off means unlimited
 
 # Channel options
 

@@ -1,0 +1,16 @@
+{
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
+   "depends" : {
+      "modules" : [
+         "Base::UserCommands",
+         "Base::UserNumerics"
+      ]
+   },
+   "description" : "provides client availability notifications",
+   "name" : "Monitor",
+   "package" : "M::Monitor",
+   "version" : "1"
+}

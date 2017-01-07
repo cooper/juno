@@ -262,11 +262,21 @@ sub add_notices {
 
 # low-level nick change.
 sub change_nick {
-    my ($user, $newnick, $time) = @_;
-    $pool->change_user_nick($user, $newnick) or return;
-    notice(user_nick_change => $user->notice_info, $newnick);
-    $user->{nick} = $newnick;
-    $user->{nick_time} = $time if $time;
+    my ($user, $new_nick, $new_time) = @_;
+    my ($old_nick, $old_time) = @$user{ qw(nick nick_time) };
+    $new_time ||= $old_time;
+    my @args = ($old_nick, $new_nick, $old_time, $new_time);
+
+    # update the user table
+    $pool->change_user_nick($user, $new_nick) or return;
+    $user->fire(will_change_nick => @args);
+
+    # do the change
+    $user->{nick}      = $new_nick;
+    $user->{nick_time} = $new_time;
+
+    $user->fire(change_nick => @args);
+    notice(user_nick_change => $user->notice_info, $new_nick);
 }
 
 # set away msg.
@@ -295,12 +305,14 @@ sub quit {
 
     # send to all users in common channels as well as himself.
     $user->send_to_channels("QUIT :$reason");
-    $user->fire(quit => $reason, $quiet);
 
     # remove from all channels.
     $_->remove($user) foreach $user->channels;
 
+    # remove from pool.
     $pool->delete_user($user) if $user->{pool};
+
+    $user->fire(quit => $reason, $quiet);
     $user->delete_all_events();
 }
 
@@ -421,6 +433,31 @@ sub numeric {
 
     return 1;
 
+}
+
+sub simulate_numeric {
+    my ($user, $const, @response) = (shift, shift);
+
+    # does not exist.
+    if (!$pool->numeric($const)) {
+        L("attempted to emulate nonexistent numeric $const");
+        return;
+    }
+
+    my ($num, $val) = @{ $pool->numeric($const) };
+    my $prefix = ":$$me{name} $num $$user{nick} ";
+
+    # CODE reference for numeric response.
+    if (ref $val eq 'CODE') {
+        @response = map $prefix.$_, $val->($user, @_);
+    }
+
+    # formatted string.
+    else {
+        @response = $prefix.sprintf($val, @_);
+    }
+
+    return wantarray ? @response : $response[0];
 }
 
 # handle incoming data or emulate it.

@@ -3914,3 +3914,5 @@ CHANGES:
     59. the '@rest' matcher was removed in favor of '...'.
         the ':rest' matcher was removed in favor of ':'.
         the 'any' matcher will be removed in favor of '*'.
+
+    60. added IRCv3.2 MONITOR implementation. closes #89. 
