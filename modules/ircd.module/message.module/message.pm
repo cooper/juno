@@ -384,7 +384,7 @@ sub parse_params {
             $fake && $fake ne '@' ||    # OK for fake params that aren't tags
             defined $param;             # fall back to the definedness
         return (undef, 'Parameter restriction unsatisfied '.$type)
-            if !$defined_ok && $attrs->{opt} && !$attrs->{semiopt};
+            if !$defined_ok && !$attrs->{opt} && !$attrs->{semiopt};
 
         # skip this parameter.
         if ($type eq 'skip') {
