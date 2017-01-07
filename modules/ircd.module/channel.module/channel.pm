@@ -711,6 +711,7 @@ sub take_lower_time {
     unless ($ignore_modes) {
         # ($source, $modes, $force, $organize)
         $channel->do_modes_local($me, $channel->all_modes->invert, 1, 1);
+        $channel->clear_all_invites;
     }
 
     # tell local users.
@@ -753,6 +754,12 @@ sub user_clear_invite {
     my ($channel, $user) = @_;
     delete $channel->{invite_pending}{ $user->id };
     delete $user->{invite_pending}{ irc_lc($channel->name) };
+}
+
+# clear all channel invites.
+sub clear_all_invites {
+    my $channel = shift;
+    delete $channel->{invite_pending};
 }
 
 # handle named modes, tell our local users, and tell other servers.

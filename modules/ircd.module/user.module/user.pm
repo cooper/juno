@@ -883,15 +883,13 @@ sub loc_get_invited_by {
         $channel->{invite_pending}{ $user->id } = time;
     }
 
-    # if the invite list is full, remove the oldest entry.
+    # if the invite list is full, remove the oldest entries.
     my @oldest_first;
     my $list  = $user->{invite_pending};
     my $limit = conf('limit', 'channel');
     if ($list && $limit && scalar keys %$list >= $limit) {
-        my @deleted;
         my @newest_first = sort { $list->{$b} <=> $list->{$a} } keys %$list;
-        push @deleted, pop @newest_first until @newest_first < $limit;
-        delete @$list{@deleted};
+        delete $list->{ pop @newest_first } until @newest_first < $limit;
     }
 
     # store the invite in the user. this is used to track the max invites.

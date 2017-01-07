@@ -3922,3 +3922,6 @@ CHANGES:
         cleaned up Channel::Invite. closes #147.
         added new channel methods ->user_has_invite() and ->user_clear_invite().
         improved ->loc_get_invited_by(). max invites is now determined by limit:channel.
+
+    62. added channel ->clear_all_invites().
+        called on ->take_lower_time() and in SJOIN. closes #162.

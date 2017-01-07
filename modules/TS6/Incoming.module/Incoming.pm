@@ -563,6 +563,8 @@ sub sjoin {
         # ($source, $modes, $force, $organize)
         $channel->do_modes_local($source_serv, $changes, 1, 1);
 
+        # clear invites if we lost our modes.
+        $channel->clear_all_invites if $clear_old_modes;
     }
 
     # delete the channel if no users
