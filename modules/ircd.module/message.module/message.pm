@@ -368,7 +368,12 @@ sub parse_params {
         # semi-optional attribute means that the raw parameter is optional,
         # but if it is present, the matcher must yield something. if it is
         # semi-optional and the parameter is not present, this is ok.
-        next if $attrs->{semiopt} && !defined $param;
+        if ($attrs->{semiopt} && !defined $param) {
+
+            # if it's fake and semi-optional, push undef.
+            push @final, undef if $fake;
+            next;
+        }
 
         # this is a real parameter. check all restrictions on it.
         return (undef, 'Parameter restriction unsatisfied '.$type)
