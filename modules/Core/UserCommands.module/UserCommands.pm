@@ -199,6 +199,7 @@ sub init {
     $mod->register_capability('chghost');
     $mod->register_capability('account-notify');
     $mod->register_capability('extended-join');
+    $mod->register_capability('userhost-in-names');
 
     return 1;
 }

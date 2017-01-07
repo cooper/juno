@@ -3929,3 +3929,6 @@ CHANGES:
     63. added Channel::Knock. closes #39.
 
     64. prevent knocking on private channels. closes #34.
+
+    65. add support for ircv3 userhost-in-names.
+        fixed a bug where NAMES would occasionally exceed 512 bytes.

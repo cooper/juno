@@ -596,8 +596,15 @@ sub send_names {
     my $in_channel = $channel->has_user($user);
     my $prefixes   = $user->has_cap('multi-prefix') ? 'prefixes' : 'prefix';
 
-    my @str;
-    my $curr = 0;
+    # fire an event which allows modules to change the character.
+    my $c = '=';
+    $channel->fire(names_character => \$c);
+
+    my ($i, @str) = -1;
+    my $base_len = length $user->simulate_numeric(
+        RPL_NAMREPLY => $c, $channel->name, ''
+    );
+
     foreach my $a_user ($channel->users) {
 
         # some extension said not to show this user.
@@ -611,17 +618,19 @@ sub send_names {
             next if !$in_channel && !$user->has_flag('see_invisible');
         }
 
-        # add him.
-        $str[$curr] .= $channel->$prefixes($a_user).$a_user->{nick}.q( );
+        my $nick_or_mask =
+            $user->has_cap('userhost-in-names') ? $a_user->full : $a_user->name;
+        my $new = $channel->$prefixes($a_user).$nick_or_mask;
 
-        # if the current string is over 500 chars, start a new one.
-        $curr++ if length $str[$curr] > 500;
+        # check if we need to start a new line
+        my $new_len = $base_len + length($new) + length($str[$i] // '');
+        if ($i == -1 || $new_len + 3 > 512) {
+            $str[++$i] = $new;
+            next;
+        }
 
+        $str[$i] .= " $new";
     }
-
-    # fire an event which allows modules to change the character.
-    my $c = '=';
-    $channel->fire(names_character => \$c);
 
     # send out the NAMREPLYs, if any. if no users matched, none will be sent.
     # then, send out ENDOFNAMES unless told not to by the caller.

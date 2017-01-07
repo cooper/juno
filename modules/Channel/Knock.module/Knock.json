@@ -12,5 +12,5 @@
    "description" : "request to join a restricted channel",
    "name" : "Channel::Knock",
    "package" : "M::Channel::Knock",
-   "version" : "0.8"
+   "version" : "0.9"
 }

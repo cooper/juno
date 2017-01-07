@@ -72,7 +72,7 @@ sub knock {
         return;
     }
 
-    # TODO: check for ridiculous knocking behavior.
+    # TODO: (#153) check for ridiculous knocking behavior.
     # too many knocks to the channel or too many from this user.
     # send ERR_TOOMANYKNOCK on fail.
 
