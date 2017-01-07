@@ -44,7 +44,7 @@ sub init {
         my (undef, undef, $supported) = @_;
 
         # if it is 0 or undef, this is unlimited
-        my $limit = conf('users', 'monitor_limit') or return;
+        my $limit = conf('limit', 'monitor') or return;
 
         $supported->{MONITOR} = $limit;
     }, 'monitor.limit');
@@ -101,12 +101,19 @@ sub monitor {
 sub monitor_add {
     my ($user, $targets) = @_;
     $targets = check_targets($user, $targets) or return;
+    my $limit = conf('limit', 'monitor');
 
     # add each nick
-    my (@good, @bad);
+    my (@good, @bad, @limited);
     my $their_monitor = $user->{monitor} ||= [];
     my %already_have  = map { $_ => 1 } @$their_monitor;
-    foreach my $nick (@$targets) {
+    while (my $nick = shift @$targets) {
+
+        # limit reached
+        if (@$their_monitor >= $limit) {
+            push @limited, $nick, @$targets;
+            last;
+        }
 
         # skip nicks already being monitored
         $nick = irc_lc($nick);
@@ -125,6 +132,8 @@ sub monitor_add {
 
     split_numeric($user, RPL_MONONLINE  => @good);
     split_numeric($user, RPL_MONOFFLINE => @bad);
+    $user->numeric(ERR_MONLISTFULL => $limit, join(',', @limited))
+        if @limited;
     return 1;
 }
 

@@ -83,6 +83,7 @@
     bytes_line  = 2048                          # bytes per line
     lines_sec   = 30                            # lines per second
     channel     = 100                           # channels a user can be in at once
+    monitor     = 100                           # monitor entries; off = unlimited
 
     # the maximum number of characters in:
 
@@ -108,7 +109,6 @@
 
     automodes = '+ix'                           # set these modes on users at connect
                                                 # the default is invisible and cloaked
-    monitor_limit = '100'                       # max monitors; off means unlimited
 
 # Channel options
 

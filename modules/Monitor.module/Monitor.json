@@ -12,5 +12,5 @@
    "description" : "provides client availability notifications",
    "name" : "Monitor",
    "package" : "M::Monitor",
-   "version" : "1"
+   "version" : "1.4"
 }
