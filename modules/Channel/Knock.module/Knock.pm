@@ -16,6 +16,7 @@ use strict;
 use 5.010;
 
 use List::Util qw(first);
+use utils qw(ref_to_list);
 
 our ($api, $mod, $me, $pool);
 
@@ -42,7 +43,7 @@ sub init {
 
     # knock events
     $pool->on('user.can_knock' => \&on_user_can_knock, 'check.banned');
-    $pool->on('channel.knock' => \&on_channel_knock, 'notify.channel');
+    $pool->on('channel.knock'  => \&on_channel_knock,  'notify.channel');
 
     return 1;
 }

@@ -21,9 +21,6 @@ use 5.010;
 
 our ($api, $mod, $pool);
 
-# TODO: (#34) once KNOCKing is implemented, make sure it's not permitted
-# for channels with +p set (ERR_CANNOTSENDTOCHAN) but is for +s
-
 # channel mode blocks
 our %channel_modes = (
     secret  => { type => 'normal' },
@@ -48,6 +45,12 @@ sub init {
     $pool->on('channel.names_character' =>
         \&names_character,
         'channel.secret.names_character'
+    );
+
+    # prevent users from knocking on private channels.
+    $pool->on('user.can_knock' =>
+        \&on_user_can_knock,
+        'private.channel'
     );
 
     return 1;
@@ -118,6 +121,14 @@ sub names_character {
     # $c is a string reference with the current character
     $$c = "*" if $channel->is_mode('private');
     $$c = "@" if $channel->is_mode('secret'); # more important than private
+}
+
+sub on_user_can_knock {
+    my ($user, $event, $channel) = @_;
+    return unless $channel->is_mode('private');
+    $event->{error_reply} =
+        [ ERR_CANNOTSENDTOCHAN => $channel->name, 'Channel is private' ];
+    $event->stop('banned');
 }
 
 $mod

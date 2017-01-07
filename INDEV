@@ -3927,3 +3927,5 @@ CHANGES:
         called on ->take_lower_time() and in SJOIN. closes #162.
 
     63. added Channel::Knock. closes #39.
+
+    64. prevent knocking on private channels. closes #34.
