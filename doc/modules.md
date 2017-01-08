@@ -312,6 +312,28 @@ Note that, in addition to politely asking a user to join, invitations can also
 override certain restrictions which could have otherwise prevented a user from
 joining such as user limit (+l), keyword (+k), and join throttle (+j).
 
+## Channel::JoinThrottle
+
+__Channel::JoinThrottle__ adds a channel join rate limit (+j).
+
+The format for the mode is `joins:period` or `joins:period:locktime`.
+* __joins__: the max number of joins that can occur in _period_ seconds.
+* __period__: the amount of time, in seconds, that _joins_ can occur.
+* __locktime__: _optional_, how long, in seconds, to lock the channel when
+  the throttle is activated. defaults to 60 seconds.
+
+Example which locks the channel for one minute if more than 5 joins occur
+within a ten-second time lapse.
+```
+MODE #k +j 5:10
+```
+
+Example which locks the channel for 30 seconds if more than 3 joins occur
+within a five-second time lapse.
+```
+MODE #k +j 3:5:30
+```
+
 ## Channel::Key
 
 __Channel::Key__ adds channel keyword (+k) support.
