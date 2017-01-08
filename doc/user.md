@@ -719,27 +719,6 @@ $user->server_notice('Hi!');
 
 * __$line__: a line of data WITHOUT a suffixing newline and carriage return.
 
-### $user->loc_get_invited_by($inviter, $ch_or_name)
-
-Handles an invitation for a local user. If the user is not local or is already
-in the channel, this method returns `undef` and fails. Otherwise, an INVITE
-message will be sent to the user, and the invitation will be recorded locally.  
-
-This method accepts either a channel name or a channel object. This is due to
-the fact that users may be invited to channels which are not yet existent
-(unless `channels:invite_must_exist` is enabled).
-
-Servers are NOT notified by this method. Each protocol implementation must
-handle invitation routing manually with `->forward_to()`.
-
-```perl
-$user->loc_get_invited_by($other_user, '#staff');
-```
-
-* __$inviter__: the user offering the invitation.
-* __$ch_or_name__: a channel object or channel name string to which the user was
-invited.
-
 ### $user->has_cap($flag)
 
 Returns true if the user has a particular client capability enabled.

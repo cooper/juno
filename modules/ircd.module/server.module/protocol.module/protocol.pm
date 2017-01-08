@@ -244,11 +244,13 @@ sub handle_privmsgnotice {
     }
 
     # find the target.
-    my $target = $opts{user_lookup}($target) || $opts{channel_lookup}($target);
-    if ($target) {
+    my $target_object =
+        $opts{user_lookup}($target) ||
+        $opts{channel_lookup}($target);
+    if ($target_object) {
         # === Forward ===
         #  ->do_privmsgnotice() deals with routing
-        return $target->do_privmsgnotice(
+        return $target_object->do_privmsgnotice(
             $command, $source, $message,
             force => 1
         );

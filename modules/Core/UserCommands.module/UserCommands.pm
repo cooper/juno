@@ -707,7 +707,7 @@ sub add_whois_callbacks {
             sub { shift->is_local },
             sub {
                 my $user = shift;
-                my $idle = time - ($user->{conn}{last_command} || 0);
+                my $idle = time - ($user->conn->{last_command} || 0);
                 return ($idle, $user->{time});
             },
 
@@ -820,7 +820,7 @@ sub away {
 sub quit {
     my ($user, $event, $reason) = @_;
     $reason //= 'leaving';
-    $user->{conn}->done("~ $reason");
+    $user->conn->done("~ $reason");
 }
 
 sub part {
@@ -1048,7 +1048,7 @@ sub lusers {
 
     # get server count
     my $servers   = scalar $pool->servers;
-    my $l_servers = scalar grep { $_->{conn} } $pool->servers;
+    my $l_servers = scalar grep { $_->conn } $pool->servers;
 
     # get x users, x invisible, and total global
     my @real_users = $pool->real_users;

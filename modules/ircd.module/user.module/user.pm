@@ -389,7 +389,7 @@ sub server_notice {
 
     # user is local.
     if ($user->is_local) {
-        $user->sendfrom($server->name, "NOTICE $$user{nick} :$msg");
+        $user->sendfrom($server->full, "NOTICE $$user{nick} :$msg");
         return 1;
     }
 
@@ -479,9 +479,9 @@ sub get_killed_by {
 
     # local user with conn still active, use ->done().
     if ($user->conn) {
-        $user->{conn}{killed} = 1;
+        $user->conn->{killed} = 1;
         $user->sendfrom($source->full, "KILL $$user{nick} :$$reason");
-        $user->{conn}->done("Killed ($$reason)");
+        $user->conn->done("Killed ($$reason)");
     }
 
     # remote user, use ->quit().
@@ -841,14 +841,9 @@ sub handle_with_opts        { _handle_with_opts(undef, @_)      }
 
 # send data to a local user.
 sub send {
-    &_safe or return;
+    &_check_local or return;
     my $user = shift;
-    if (!$user->{conn}) {
-        my $sub = (caller 1)[3];
-        L("can't send data to a nonlocal or disconnected user! $$user{nick}");
-        return;
-    }
-    $user->{conn}->send(@_);
+    $user->conn->send(@_);
 }
 
 # send data with a source.
@@ -864,11 +859,15 @@ sub sendme {
 }
 
 # CAP shortcuts.
-sub has_cap    { &_safe or return; shift->conn->has_cap(@_)    }
-sub add_cap    { &_safe or return; shift->conn->add_cap(@_)    }
-sub remove_cap { &_safe or return; shift->conn->remove_cap(@_) }
+sub has_cap    { &_check_local or return; shift->conn->has_cap(@_)    }
+sub add_cap    { &_check_local or return; shift->conn->add_cap(@_)    }
+sub remove_cap { &_check_local or return; shift->conn->remove_cap(@_) }
 
-sub conn       { shift->{conn} }
+sub conn {
+    my $conn = shift->{conn};
+    return if !$conn || !blessed $conn;
+    return $conn;
+}
 
 ############################
 ### PROCEDURAL FUNCTIONS ###
@@ -950,7 +949,7 @@ sub sendfrom_to_all_with_opts {
 ################################################################################
 
 # check for local user
-sub _safe {
+sub _check_local {
     my $user = $_[0];
     if (!$user->is_local) {
         my $sub = (caller 1)[3];
@@ -963,7 +962,7 @@ sub _safe {
 
 # send welcomes
 sub _new_connection {
-    &_safe or return;
+    &_check_local or return;
     my $user = shift;
     $user->fire('welcoming');
 

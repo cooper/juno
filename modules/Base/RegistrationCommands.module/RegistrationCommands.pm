@@ -8,6 +8,8 @@
 # @package:         'M::Base::RegistrationCommands'
 # @description:     'provides an interface for client registration commands'
 #
+# @depends.modules: 'API::Methods'
+#
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'
 #

@@ -575,13 +575,13 @@ sub misc_upgrades {
 
         # servers with connections need a link_type.
         # all connected servers without link_type are JELP.
-        next unless $server->{conn};
+        next unless $server->conn;
         $server->{link_type} //= 'jelp';
     }
 
     # inject missing local user information.
     foreach my $user ($pool->real_local_users) {
-        next unless $user->{conn};
+        next unless $user->conn;
 
         # if the conn exists but is not an object, it's a ghost.
         if (!blessed $user->{conn}) {
@@ -591,7 +591,7 @@ sub misc_upgrades {
         }
 
         # local users need a last_command time.
-        $user->{conn}{last_command} ||= time;
+        $user->conn->{last_command} ||= time;
     }
 
     # inject missing user information.

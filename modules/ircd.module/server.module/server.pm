@@ -367,7 +367,7 @@ sub send_children {
         }
 
         # don't try to send to non-locals
-        next unless exists $server->{conn};
+        next unless $server->conn;
 
         # don't send to servers who haven't received my burst.
         next unless $server->{i_sent_burst};
@@ -387,12 +387,12 @@ sub sendfrom_children {
 # send data to MY servers.
 sub send {
     my $server = shift;
-    if (!$server->{conn}) {
+    if (!$server->conn) {
         my $sub = (caller 1)[3];
         L("can't send data to unconnected server $$server{name}!");
         return;
     }
-    $server->{conn}->send(@_);
+    $server->conn->send(@_);
 }
 
 # send data to a server from THIS server.

@@ -8,9 +8,11 @@
 # @package:         'M::Ban'
 # @description:     'provides an interface for user and server banning'
 #
+#
+# @depends.modules: ['Base::UserCommands', 'Base::OperNotices', 'API::Methods']
+#
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'
-# @depends.modules: ['Base::UserCommands', 'Base::OperNotices']
 #
 package M::Ban;
 
@@ -24,7 +26,6 @@ use utils qw(notice string_to_seconds pretty_time pretty_duration);
 
 our ($api, $mod, $pool, $conf, $me);
 my $loop;
-my $debug;
 
 our (
     $table,         # Evented::Database bans table
@@ -653,12 +654,6 @@ sub get_next_id {
     my $id = $table->meta('last_id');
     $table->set_meta(last_id => ++$id);
     return "$$me{sid}.$id";
-}
-
-# debug
-sub D {
-    return if !$debug;
-    L(@_);
 }
 
 $mod

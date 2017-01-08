@@ -6,11 +6,12 @@
    "depends" : {
       "modules" : [
          "Base::UserCommands",
-         "Base::OperNotices"
+         "Base::OperNotices",
+         "API::Methods"
       ]
    },
    "description" : "provides an interface for user and server banning",
    "name" : "Ban",
    "package" : "M::Ban",
-   "version" : "22.9"
+   "version" : "23.6"
 }

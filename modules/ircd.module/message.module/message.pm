@@ -641,7 +641,7 @@ sub forward_to {
 
     # directly to a server or its location.
     if ($target->isa('server')) {
-        $target = $target->{conn} ? $target : $target->{location};
+        $target = $target->conn ? $target : $target->{location};
         return 0 if $msg->{_physical_server} == $target;
         $amnt++  if $target->fire_command($e_name => @args);
         return $amnt;

@@ -397,7 +397,7 @@ sub endburst {
     $server->end_burst();
 
     # if we haven't sent our own burst yet, do so.
-    $serv->send_burst if $serv->{conn} && !$serv->{i_sent_burst};
+    $serv->send_burst if $serv->conn && !$serv->{i_sent_burst};
 
     # === Forward ===
     $msg->forward(endburst => $serv, $their_time);
