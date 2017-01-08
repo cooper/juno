@@ -3942,3 +3942,5 @@ CHANGES:
     68. fixed #165.
 
     69. update Evented::Object. fixes #140.
+
+    70. fixed crash bug in DNSBL module. it affected 12.34-12.69.

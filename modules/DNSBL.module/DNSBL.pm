@@ -19,7 +19,7 @@ use 5.010;
 
 use Socket qw(AF_INET AF_INET6 SOCK_STREAM inet_pton);
 use List::Util qw(first);
-use utils qw(looks_like_ipv6 string_to_seconds);
+use utils qw(looks_like_ipv6 string_to_seconds ref_to_list);
 
 our ($api, $mod, $pool, $conf, %cache);
 
@@ -108,7 +108,7 @@ sub got_reply2 {
     my $response = (unpack('C' x 4, $ip))[-1];
     my @matches  = ref_to_list($blacklist{matches});
 
-    # if no responses are specified, any respnse works.
+    # if no responses are specified, any response works.
     # otherwise, see if any of the provided responses are the one we got.
     if (!@matches || first { $_ == $response } @matches) {
         return dnsbl_bad(
