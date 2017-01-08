@@ -7,11 +7,11 @@ of standalone code. The
 entire remainder consists of reloadable modules, all but one of which are
 optional.
 
-## Essentials
+# Essentials
 
 This category includes the barebones of the IRC server.
 
-### ircd
+## ircd
 
 The __ircd__ module does not have to be explicitly loaded from the
 configuration. It is the one and only module which is loaded directly from the
@@ -30,7 +30,7 @@ __Submodules__ (all of which are automatically loaded)
 * __user__ - object representing an IRC user.
 * __utils__ - useful utility functions used throughout the IRCd.
 
-### Core
+## Core
 
 The set of Core modules includes all of the essential commands, modes, and
 other features needed for the most basic configuration of an IRC server.
@@ -60,22 +60,22 @@ module namespace, most are dependencies of at least one core module.
 * __Base::UserCommands__ - user command support.
 * __Base::UserNumerics__ - numeric registration support.
 
-## Basics
+# Basics
 
 This category includes almost-essential modules.
 
-### Resolve
+## Resolve
 
 The __Resolve__ module provides asynchronous hostname resolving using the
 system's buit-in resolving mechanisms.
 
-### Ident
+## Ident
 
 The __Ident__ module implements a client of the Ident protocol within the
 IRC server. Upon the connection of a user, the server will attempt to identify
 the user.
 
-### Cloak
+## Cloak
 
 The __Cloak__ module provides a programming interface for user host cloaking.
 Each cloaking implementation is a submodule of the main Cloak module. Currently
@@ -88,7 +88,7 @@ the preferred cloaking schema as new implementations become available. Currently
 the Cloak module is hard-coded to load Cloak::Charybdis, so no configuration is
 needed beyond enabling the Cloak module.
 
-### Alias
+## Alias
 
 The __Alias__ module provides user command aliases. The module reads from the
 `[aliases]` configuration block and registers user commands for each of them.
@@ -114,7 +114,7 @@ Below is an excerpt of the default alias configuration.
     gs = 'PRIVMSG GroupServ $1-'
 ```
 
-### SASL
+## SASL
 
 The SASL module provides SASL authentication support through external services.
 
@@ -161,7 +161,7 @@ S: :k.notroll.net 001 mitch :Welcome to the NoTrollPLzNet IRC Network mitch
 [SASL reauthentication](http://ircv3.net/specs/extensions/sasl-3.2.html#sasl-reauthentication)
 is also supported.
 
-### JELP
+## JELP
 
 The set of JELP modules comprise the Juno Extensible Linking protocol
 implementation. This is the preferred protocol to be used when linking juno-ircd
@@ -178,7 +178,7 @@ entire JELP implementation at once.
   set of JELP commands.
 * __JELP::Registration__ - provides essential JELP registration commands.
 
-### TS6
+## TS6
 
 The set of TS6 modules comprise the TS6 linking protocol implementation. These
 modules allow juno-ircd to establish connections with IRC servers and running
@@ -203,11 +203,11 @@ juno-ircd's TS6 implementation is [thoroughly documented](ts6.md).
   implementation, particularly for the translation of internal identifiers to
   those in the TS format.
 
-## Channel features
+# Channel features
 
 This category includes modules providing optional channel features.
 
-### Channel::Access
+## Channel::Access
 
 __Channel::Access__ provides a channel access list mode (+A). This is
 particularly useful in the absence of an external service package. It also
@@ -232,7 +232,7 @@ extmask to auto-owner any users logged into the services account `mitch`.
 MODE #k +A q:$r:mitch
 ```
 
-### Channel::Fantasy
+## Channel::Fantasy
 
 __Channel::Fantasy__ allows channel-related user commands to be used as fantasy
 commands. Fantasy commands are sent as normal PRIVMSGs to the channel prefixed
@@ -271,7 +271,7 @@ or disable specific fantasy commands, add your own `[channels: fantasy]` block
 to `ircd.conf`. Use the form `command = off` to explicitly disable a
 fantasy command.
 
-### Channel::Forward
+## Channel::Forward
 
 __Channel::Forward__ provides a channel forward mode (+f). This allows
 chanops to specify another channel to where users will be forwarded upon
@@ -289,7 +289,7 @@ Scenarios where one may be forwarded to another channel are when the channel
 limit has been reached, the user is banned, or the channel is invite-only while
 the user does not have a pending invitation.
 
-### Channel::Invite
+## Channel::Invite
 
 __Channel::Invite__ adds invite only (+i), free invite (+g), and invite
 exception (+I) channel modes. It also adds the **INVITE** user command.
@@ -312,7 +312,7 @@ Note that, in addition to politely asking a user to join, invitations can also
 override certain restrictions which could have otherwise prevented a user from
 joining such as user limit (+l), keyword (+k), and join throttle (+j).
 
-### Channel::Key
+## Channel::Key
 
 __Channel::Key__ adds channel keyword (+k) support.
 
@@ -325,7 +325,7 @@ JOIN <channel> [<keyword>]
 
 An invitation to the channel permits the user to join without the keyword.
 
-### Channel::Knock
+## Channel::Knock
 
 __Channel::Knock__ allows users to "knock" on restricted channels. This
 notifies chanops that the user would appreciate an invitation.
@@ -338,14 +338,14 @@ KNOCK <channel>
 ```
 * __channel__ - the channel you would like an invitation to.
 
-### Channel::Limit
+## Channel::Limit
 
 __Channel::Limit__ adds channel user limit (+l) support.
 
 When a limit is set, users cannot join if the channel is at capacity. An
 invitation to the channel can override this.
 
-### Channel::ModeSync
+## Channel::ModeSync
 
 __Channel::ModeSync__ offers improved channel mode synchronization.
 
@@ -369,7 +369,7 @@ MODESYNC <channel>
 See [issue #63](https://github.com/cooper/juno/issues/63) for more information
 on MODESYNC.
 
-### Channel::Mute
+## Channel::Mute
 
 __Channel::Mute__ adds a muteban channel mode (+Z).
 
@@ -387,7 +387,7 @@ To view the channel mute list
 MODE #apple Z
 ```
 
-### Channel::NoColor
+## Channel::NoColor
 
 __Channel::NoColor__ adds a channel mode which strips messages of mIRC color
 codes (+c).
@@ -396,7 +396,7 @@ PRIVMSG and NOTICE messages containing mIRC color codes are not blocked when
 this mode is enabled. Instead, the text is sent unformatted to other users in
 the channel.
 
-### Channel::OperOnly
+## Channel::OperOnly
 
 __Channel::OperOnly__ adds a channel mode to prevent normal users from joining
 channels marked as oper-only (+O). Channels marked as oper-only can only be
@@ -404,7 +404,7 @@ joined by IRC operators.
 
 Moreover, this mode can only be set by IRC operators.
 
-### Channel::OpModerate
+## Channel::OpModerate
 
 __Channel::OpModerate__ adds a channel mode which, if enabled, allows channel
 operators to see PRIVMSG and NOTICE messages which would have otherwise been
@@ -418,7 +418,7 @@ an error reply to notify them that their message was blocked.
 Only channel operators see the messages which would have been blocked. Other
 users in the channel still cannot.
 
-### Channel::Permanent
+## Channel::Permanent
 
 __Channel::Permanent__ provides a channel mode to mark channels as permanent
 (+P).
@@ -430,7 +430,7 @@ their names list becomes empty, but this mode prevents that from happening.
 This mode can only be set by IRC operators with the
 [`set_permanent`](oper_flags.md#set_permanent) flag.
 
-### Channel::RegisteredOnly
+## Channel::RegisteredOnly
 
 __Channel::RegisteredOnly__ adds a channel mode to prevent unregistered users
 from joining a channel marked as registered-only (+r).
@@ -442,7 +442,7 @@ an invitation allows unregistered users to join.
 Users may be marked as registered by logging into IRC services. Without some
 form of IRC services in use, this mode is probably useless.
 
-### Channel::Secret
+## Channel::Secret
 
 __Channel::Secret__ provides two channel modes for making channels more obscure:
 secret (+s) and private (+p).
@@ -460,7 +460,7 @@ can.
 
 See [issue #34](https://github.com/cooper/juno/issues/34) for more info.
 
-### Channel::SSLOnly
+## Channel::SSLOnly
 
 __Channel::SSLOnly__ adds a channel mode which prevents users that did not
 connect to the IRC server via a secure protocol from joining channels marked
@@ -472,7 +472,7 @@ networks use self-signed certificates which require users to set their clients
 to not care to verify certificate authenticity. This would allow for
 man-in-the-middle attacks.
 
-### Channel::TopicAdditions
+## Channel::TopicAdditions
 
 __Channel::TopicAdditions__ provides two user commands,
 TOPICPREPEND and TOPICAPPEND, which make it easier to add new segments to the
@@ -497,12 +497,12 @@ TOPICAPPEND <channel> :<text>
 * __channel__ - the channel whose topic will be updated.
 * __text__ - the text which will be appended to the existing topic.
 
-## Global ban support
+# Global ban support
 
 This category includes modules providing or extending juno's network-wide
 ban support.
 
-### Ban
+## Ban
 
 The __Ban__ module itself does not provide any type of ban. However, it provides
 the common framework used for all global network bans. This includes the
@@ -517,7 +517,7 @@ This module does provide one user command, BANS, which lists all global bans
 or bans of the specified type. Its use requires the
 [`list_bans`](oper_flags.md#list_bans) flag.
 
-### Ban::Dline
+## Ban::Dline
 
 __Ban::Dline__ adds global D-Line support.
 
@@ -545,7 +545,7 @@ UNDLINE <ip>
 ```
 * __ip__ - the IP address or mask to unban.
 
-### Ban::Kline
+## Ban::Kline
 
 __Ban::Kline__ adds global K-Line support.
 
@@ -571,7 +571,7 @@ UNKLINE <mask>
 ```
 * __mask__ - the `user@host` mask to unban.
 
-### Ban::Resv
+## Ban::Resv
 
 __Ban::Resv__ adds global channel and nickname reservation support.
 
@@ -598,12 +598,12 @@ UNRESV <mask>
 * __mask__ - an absolute channel name or nickname mask to unreserve. wildcards
   are accepted for nickname masks only.
 
-## Server management
+# Server management
 
 This category includes modules that make it easier for server administrators to
 manage an IRC server or network.
 
-### Configuration::Set
+## Configuration::Set
 
 __Configuration::Set__ allows IRC operators to view and modify the server
 configuration directly from IRC.
@@ -642,7 +642,7 @@ The responses to both of these commands will display the value at the given
 location. For remote servers, the server name will appear after the value, so
 that you know which server the reply belongs to.
 
-### Eval
+## Eval
 
 Provides the `EVAL` command, which allows you to evaluate some Perl code.
 ```
@@ -676,7 +676,7 @@ It is also possible to evaluate multiple lines of code using `BLOCK..END`:
 * `Dump()`: returns the Data::Dumper output for the provided arg
   (Maxdepth = 1).
 
-### Git
+## Git
 
 Provides two commands for managing the IRCd git repository:
 `UPDATE` and `CHECKOUT`.
@@ -701,7 +701,7 @@ CHECKOUT [<server_mask>] <branch/tag/commit>
   the local server.
 * __branch/tag/commit__ - what you wish to check out; e.g. `juno12-mihret`.
 
-### Grant
+## Grant
 
 Allows the dynamic addition and removal of oper permissions directly from IRC.
 
@@ -727,7 +727,7 @@ Note that by giving an oper the `grant` flag, you are essentially giving him
 complete and total control over the IRC server, as he could easily grant
 himself all oper flags.
 
-### Modules
+## Modules
 
 **Modules** allows the dynamic loading and unloading of server modules
 directly from IRC.
@@ -768,7 +768,7 @@ Example response
 10:53:54 PM           ERR_SASLTOOLONG, RPL_SASLMECHS, RPL_SASLSUCCESS
 ```
 
-### Monitor
+## Monitor
 
 **Monitor** provides a mechanism by which users can subscribe to client
 availability notifications. Its intention is to replace the legacy `ISON` query.
@@ -806,7 +806,7 @@ MONITOR C
 MONITOR S
 ```
 
-### Reload
+## Reload
 
 **Reload** allows you to reload the entire IRCd code without restarting the
 server or dropping any connections. It is often used in conjunction with
@@ -830,11 +830,11 @@ It is also possible to check out a past version and perform a downgrade. This
 may be useful as a temporary solution to revert back to a version before a
 significant bug was introduced.
 
-## Extras
+# Extras
 
 This category includes non-essential modules that may not appeal to all users.
 
-### DNSBL
+## DNSBL
 
 **DNSBL** provides built-in blacklist checking. It supports both IPv4 and IPv6.
 
@@ -864,7 +864,7 @@ in the following format:
 * __reason__ - _optional_, a human-readable reason for terminating offending
   connections. all instances of `%ip` are replaced with the IP address.
 
-### LOLCAT
+## LOLCAT
 
 **LOLCAT** ALLOWS YOO T SPEKK LIKES AN LOLCATZ.
 
