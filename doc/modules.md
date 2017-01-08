@@ -124,6 +124,42 @@ __Submodules__ (loaded automatically as needed)
 * __SASL::JELP__ - provides the JELP SASL implementation.
 * __SASL::TS6__ - provides the TS6 SASL implementation.
 
+Clients authenticate via SASL using the **AUTHENTICATE** command. This
+command is only available to clients that have enabled the `sasl` capability.
+
+```
+AUTHENTICATE <mechanism>
+```
+```
+AUTHENTICATE <data>
+```
+* __mechanism__: the authentication method to be used.
+* __data__: some data to transmit to the SASL agent.
+
+Example session:
+```
+S: :k.notroll.net NOTICE * :*** Looking up your hostname...
+S: :k.notroll.net NOTICE * :*** Checking ident...
+S: :k.notroll.net NOTICE * :*** Couldn't resolve your hostname
+S: :k.notroll.net NOTICE * :*** No ident response
+C: CAP LS 302
+C: NICK mitch
+C: USER mitch * * :mitch
+S: :k.notroll.net CAP * LS :away-notify chghost sasl userhost-in-names
+C: CAP REQ :sasl
+S: :k.notroll.net CAP * ACK :sasl
+C: AUTHENTICATE PLAIN
+S: AUTHENTICATE +
+C: AUTHENTICATE amlsbGVzAGppbGxlcwBzZXNhbWU=
+S: :k.notroll.net 900 mitch mitch!mitch@notroll.net mitch :You are now logged in as mitch
+S: :k.notroll.net 903 mitch :SASL authentication successful
+C: CAP END
+S: :k.notroll.net 001 mitch :Welcome to the NoTrollPLzNet IRC Network mitch
+```
+
+[SASL reauthentication](http://ircv3.net/specs/extensions/sasl-3.2.html#sasl-reauthentication)
+is also supported.
+
 ### JELP
 
 The set of JELP modules comprise the Juno Extensible Linking protocol
@@ -188,7 +224,7 @@ MODE #googleplex A
 
 There is no requirement that masks in the access list are in the standard IRC
 POSIX-like format. They can also include any extmasks or other user matchers
-provided by modules. For example the following example utilitzes the `$r`
+provided by modules. For example the following example utilizes the `$r`
 extmask to auto-owner any users logged into the services account `mitch`.
 
 ```
@@ -236,12 +272,17 @@ fantasy command.
 
 ### Channel::Forward
 
-__Channel::Forward__ provides a channel forward mode (+F). This allows
+__Channel::Forward__ provides a channel forward mode (+f). This allows
 chanops to specify another channel to where users will be forwarded upon
 failure to join the original channel.
 
+
 In order to set a channel as the forward target of another, you must be an
 op in _both_ channels. This prevents unwanted overflow.
+
+The free forward mode (+F) allows non-ops to set the channel as a forward
+target of another channel. The no forward mode (+Q) disallows forwarding
+to the channel regardless of any other factors.
 
 Scenarios where one may be forwarded to another channel are when the channel
 limit has been reached, the user is banned, or the channel is invite-only while
@@ -250,7 +291,13 @@ the user does not have a pending invitation.
 ### Channel::Invite
 
 __Channel::Invite__ adds invite only (+i), free invite (+g), and invite
-exception (+I) channel modes. It also adds the INVITE user command.
+exception (+I) channel modes. It also adds the **INVITE** user command.
+
+```
+INVITE <nick> <channel>
+```
+* __nick__: the nickname of the user you wish to invite.
+* __channel__: the channel to which the user will be invited.
 
 If a channel is marked as invite-only, users cannot join without an invitation
 initiated by the INVITE command. An exception to this is if a mask matching the
@@ -260,6 +307,10 @@ In order to use the INVITE command, a user has to have basic status in a channel
 (typically halfop or higher). If free invite is enabled, however, any user can
 use the INVITE command.
 
+Note that, in addition to politely asking a user to join, invitations can also
+override certain restrictions which could have otherwise prevented a user from
+joining such as user limit (+l), keyword (+k), and join throttle (+j).
+
 ### Channel::Key
 
 __Channel::Key__ adds channel keyword (+k) support.
@@ -267,11 +318,31 @@ __Channel::Key__ adds channel keyword (+k) support.
 When a channel keyword is set, users cannot join without providing the keyword
 as a parameter to the JOIN command.
 
+```
+JOIN <channel> [<keyword>]
+```
+
+An invitation to the channel permits the user to join without the keyword.
+
+### Channel::Knock
+
+__Channel::Knock__ allows users to "knock" on restricted channels. This
+notifies chanops that the user would appreciate an invitation.
+
+The **KNOCK** command can be used on channels with any of these modes:
+invite only (+i), keyword (+k), user limit (+l). However, if the channel is
+private (+p), knocking is never permitted.
+```
+KNOCK <channel>
+```
+* __channel__: the channel you would like an invitation to.
+
 ### Channel::Limit
 
 __Channel::Limit__ adds channel user limit (+l) support.
 
-When a limit is set, users cannot join if the channel is at capacity.
+When a limit is set, users cannot join if the channel is at capacity. An
+invitation to the channel can override this.
 
 ### Channel::ModeSync
 
@@ -284,9 +355,15 @@ providing a means of negotiation when new channel modes are dynamically
 introduced to a server.
 
 This module will seamlessly keep channel modes in sync globally upon the loading
-and unloading of modules which add additional modes. It also adds the MODESYNC
-user command which can be used to force a mode synchronization in the case of a
-desync.
+and unloading of modules which add additional modes.
+
+The module also adds the **MODESYNC** user command which can be used to force a
+mode synchronization in the rare case of a desync. This requires the `modesync`
+oper flag.
+```
+MODESYNC <channel>
+```
+* __channel__: the channel where a desync was spotted.
 
 See [issue #63](https://github.com/cooper/juno/issues/63) for more information
 on MODESYNC.
@@ -298,6 +375,16 @@ __Channel::Mute__ adds a muteban channel mode (+Z).
 Mutebans do not prevent users from joining the channel, but they do stop them
 from sending PRIVMSGs and NOTICEs to the channel. Like normal bans, mutebans
 can be overridden with voice or higher status.
+
+To add a mask to the mute list
+```
+MODE #apple +Z bill!*@microsoft.com
+```
+
+To view the channel mute list
+```
+MODE #apple Z
+```
 
 ### Channel::NoColor
 
@@ -314,7 +401,7 @@ __Channel::OperOnly__ adds a channel mode to prevent normal users from joining
 channels marked as oper-only (+O). Channels marked as oper-only can only be
 joined by IRC operators.
 
-This mode can only be set by IRC operators.
+Moreover, this mode can only be set by IRC operators.
 
 ### Channel::OpModerate
 
@@ -322,7 +409,7 @@ __Channel::OpModerate__ adds a channel mode which, if enabled, allows channel
 operators to see PRIVMSG and NOTICE messages which would have otherwise been
 blocked (+z).
 
-This applies to mutebans, regular bans, channel moderation, and any other
+This applies to mutebans, regular bans, channel moderation, and almost any other
 condition which may have prevented a user from messaging the channel. When
 this mode is enabled, the user sending the blocked message will NOT receive
 an error reply to notify them that their message was blocked.
@@ -348,7 +435,8 @@ __Channel::RegisteredOnly__ adds a channel mode to prevent unregistered users
 from joining a channel marked as registered-only (+r).
 
 This may be useful as an alternative to invite-only (+i) to prevent spambots
-from entering the channel while still allowing verified users to join.
+from entering the channel while still allowing verified users to join. As such,
+an invitation allows unregistered users to join.
 
 Users may be marked as registered by logging into IRC services. Without some
 form of IRC services in use, this mode is probably useless.
@@ -394,8 +482,19 @@ often not useful when other services are present. It was created back when
 juno did not support external services packages and relied on internal account
 management in conjunction with the Channel::Access module.
 
-The TOPICPREPEND command adds a new segment to the beginning of the topic.
-Likewise, TOPICAPPEND adds a new segment to the end of the topic.
+The **TOPICPREPEND** command adds a new segment to the beginning of the topic.
+```
+TOPICPREPEND <channel> :<text>
+```
+* __channel__: the channel whose topic will be updated.
+* __text__: the text which will be prepended to the existing topic.
+
+Likewise, **TOPICAPPEND** adds a new segment to the end of the topic.
+```
+TOPICAPPEND <channel> :<text>
+```
+* __channel__: the channel whose topic will be updated.
+* __text__: the text which will be appended to the existing topic.
 
 ## Global ban support
 
@@ -431,6 +530,20 @@ partial addresses with POSIX-style wildcards; e.g. `123.456.789.*`.
 Ban::Dline adds the DLINE and UNDLINE commands, both which require the
 [`dline`](oper_flags.md#dline) oper flag.
 
+**DLINE** adds a D-Line.
+```
+DLINE <duration> <ip> <reason>
+```
+* __ip__: the IP address to deny connections from. wildcards accepted.
+* __duration__: how long until the ban expires. `0` for permanent.
+* __reason__: a comment to display to users that justifies the ban.
+
+**UNDLINE** removes a D-Line.
+```
+UNDLINE <ip>
+```
+* __ip__: the IP address or mask to unban.
+
 ### Ban::Kline
 
 __Ban::Kline__ adds global K-Line support.
@@ -443,17 +556,46 @@ partial masks with POSIX-style wildcards; e.g. `*@microsoft.com`.
 Ban::Kline adds the KLINE and UNKLINE commands, both which require the
 [`kline`](oper_flags.md#kline) oper flag.
 
+**KLINE** adds a K-Line.
+```
+KLINE <duration> <mask> <reason>
+```
+* __mask__: the `user@host` mask to deny users from. wildcards accepted.
+* __duration__: how long until the ban expires. `0` for permanent.
+* __reason__: a comment to display to users that justifies the ban.
+
+**UNKLINE** removes a K-Line.
+```
+UNKLINE <mask>
+```
+* __mask__: the `user@host` mask to unban.
+
 ### Ban::Resv
 
 __Ban::Resv__ adds global channel and nickname reservation support.
 
 Unlike other ban types, reserves do not prevent connections to the server.
-Instead, they are used to prohibit nicknames or channel names. Reserve masks
-can be complete channel names or nicknames, or they can contain POSIX-style
-wildcards; e.g. `bill*` or `#*sex*`.
+Instead, they are used to prohibit nicknames or channel names. Reserves can be
+applied to complete channel names or nickname masks; e.g. `bill*` or `#sex`.
 
 Ban::Resv adds the RESV and UNRESV commands, both which require the
 [`resv`](oper_flags.md#resv) oper flag.
+
+**RESV** adds a reserve.
+```
+RESV <duration> <mask> <reason>
+```
+* __mask__: an absolute channel name or nickname mask to reserve. wildcards are
+  accepted for nickname masks only.
+* __duration__: how long until the reserve expires. `0` for permanent.
+* __reason__: a comment that justifies the reserve.
+
+**UNRESV** removes a reserve.
+```
+UNRESV <mask>
+```
+* __mask__: an absolute channel name or nickname mask to unreserve. wildcards
+  are accepted for nickname masks only.
 
 ## Server management
 
