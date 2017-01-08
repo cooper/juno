@@ -49,8 +49,9 @@ of these essential modules at once.
 
 __Bases__ are modules which provide programming interfaces for adding commands,
 modes, and other features. While they are not technically part of the Core
-module namespace, each is a dependency of at least one core module.
+module namespace, most are dependencies of at least one core module.
 
+* __Base::AddUser__ - virtual user interface.
 * __Base::Capabilities__ - IRCv3 capability support.
 * __Base::ChannelModes__ - channel mode support.
 * __Base::Matchers__ - user mask matching support.
@@ -133,8 +134,8 @@ AUTHENTICATE <mechanism>
 ```
 AUTHENTICATE <data>
 ```
-* __mechanism__: the authentication method to be used.
-* __data__: some data to transmit to the SASL agent.
+* __mechanism__ - the authentication method to be used.
+* __data__ - some data to transmit to the SASL agent.
 
 Example session:
 ```
@@ -296,8 +297,8 @@ exception (+I) channel modes. It also adds the **INVITE** user command.
 ```
 INVITE <nick> <channel>
 ```
-* __nick__: the nickname of the user you wish to invite.
-* __channel__: the channel to which the user will be invited.
+* __nick__ - the nickname of the user you wish to invite.
+* __channel__ - the channel to which the user will be invited.
 
 If a channel is marked as invite-only, users cannot join without an invitation
 initiated by the INVITE command. An exception to this is if a mask matching the
@@ -335,7 +336,7 @@ private (+p), knocking is never permitted.
 ```
 KNOCK <channel>
 ```
-* __channel__: the channel you would like an invitation to.
+* __channel__ - the channel you would like an invitation to.
 
 ### Channel::Limit
 
@@ -363,7 +364,7 @@ oper flag.
 ```
 MODESYNC <channel>
 ```
-* __channel__: the channel where a desync was spotted.
+* __channel__ - the channel where a desync was spotted.
 
 See [issue #63](https://github.com/cooper/juno/issues/63) for more information
 on MODESYNC.
@@ -486,15 +487,15 @@ The **TOPICPREPEND** command adds a new segment to the beginning of the topic.
 ```
 TOPICPREPEND <channel> :<text>
 ```
-* __channel__: the channel whose topic will be updated.
-* __text__: the text which will be prepended to the existing topic.
+* __channel__ - the channel whose topic will be updated.
+* __text__ - the text which will be prepended to the existing topic.
 
 Likewise, **TOPICAPPEND** adds a new segment to the end of the topic.
 ```
 TOPICAPPEND <channel> :<text>
 ```
-* __channel__: the channel whose topic will be updated.
-* __text__: the text which will be appended to the existing topic.
+* __channel__ - the channel whose topic will be updated.
+* __text__ - the text which will be appended to the existing topic.
 
 ## Global ban support
 
@@ -534,15 +535,15 @@ Ban::Dline adds the DLINE and UNDLINE commands, both which require the
 ```
 DLINE <duration> <ip> <reason>
 ```
-* __ip__: the IP address to deny connections from. wildcards accepted.
-* __duration__: how long until the ban expires. `0` for permanent.
-* __reason__: a comment to display to users that justifies the ban.
+* __ip__ - the IP address to deny connections from. wildcards accepted.
+* __duration__ - how long until the ban expires. `0` for permanent.
+* __reason__ - a comment to display to users that justifies the ban.
 
 **UNDLINE** removes a D-Line.
 ```
 UNDLINE <ip>
 ```
-* __ip__: the IP address or mask to unban.
+* __ip__ - the IP address or mask to unban.
 
 ### Ban::Kline
 
@@ -560,15 +561,15 @@ Ban::Kline adds the KLINE and UNKLINE commands, both which require the
 ```
 KLINE <duration> <mask> <reason>
 ```
-* __mask__: the `user@host` mask to deny users from. wildcards accepted.
-* __duration__: how long until the ban expires. `0` for permanent.
-* __reason__: a comment to display to users that justifies the ban.
+* __mask__ - the `user@host` mask to deny users from. wildcards accepted.
+* __duration__ - how long until the ban expires. `0` for permanent.
+* __reason__ - a comment to display to users that justifies the ban.
 
 **UNKLINE** removes a K-Line.
 ```
 UNKLINE <mask>
 ```
-* __mask__: the `user@host` mask to unban.
+* __mask__ - the `user@host` mask to unban.
 
 ### Ban::Resv
 
@@ -585,16 +586,16 @@ Ban::Resv adds the RESV and UNRESV commands, both which require the
 ```
 RESV <duration> <mask> <reason>
 ```
-* __mask__: an absolute channel name or nickname mask to reserve. wildcards are
+* __mask__ - an absolute channel name or nickname mask to reserve. wildcards are
   accepted for nickname masks only.
-* __duration__: how long until the reserve expires. `0` for permanent.
-* __reason__: a comment that justifies the reserve.
+* __duration__ - how long until the reserve expires. `0` for permanent.
+* __reason__ - a comment that justifies the reserve.
 
 **UNRESV** removes a reserve.
 ```
 UNRESV <mask>
 ```
-* __mask__: an absolute channel name or nickname mask to unreserve. wildcards
+* __mask__ - an absolute channel name or nickname mask to unreserve. wildcards
   are accepted for nickname masks only.
 
 ## Server management
@@ -612,30 +613,30 @@ Each configuration option can located using the form:
 * `block_type/key`                  (for unnamed blocks)
 
 Values are encoded in these formats:
-* __Number__: `0`
-* __String__: `"it's some text"`
-* __List__: `[ 1, 2, "text" ]`
-* __Map__: `{ "key": "value", "other": "another" }`
-* __Bool__: `on` or `off`
+* __Number__ - `0`
+* __String__ - `"it's some text"`
+* __List__ - `[ 1, 2, "text" ]`
+* __Map__ - `{ "key": "value", "other": "another" }`
+* __Bool__ - `on` or `off`
 
 **CONFGET** fetches and displays the current configuration value at a
 specified location. Requires the `confget` oper flag.
 ```
 CONFGET <server_mask> <location>
 ```
-* __server_mask__: an absolute server name or server name mask with wildcards.
+* __server_mask__ - an absolute server name or server name mask with wildcards.
   all matching servers will respond to the request.
-* __location__: the location of the desired configuration value. see above.
+* __location__ - the location of the desired configuration value. see above.
 
 **CONFSET** overwrites the current configuration value at the specified
 location. Requires the `confset` oper flag.
 ```
 CONFSET <server_mask> <location> <value>
 ```
-* __server_mask__: an absolute server name or server name mask with wildcards.
+* __server_mask__ - an absolute server name or server name mask with wildcards.
   all matching servers will respond to the request.
-* __location__: the location of the desired configuration value. see above.
-* __value__: the desired value in Evented::Configuration format. see above.
+* __location__ - the location of the desired configuration value. see above.
+* __value__ - the desired value in Evented::Configuration format. see above.
 
 The responses to both of these commands will display the value at the given
 location. For remote servers, the server name will appear after the value, so
@@ -647,10 +648,10 @@ Provides the `EVAL` command, which allows you to evaluate some Perl code.
 ```
 EVAL [<channel>] <code>
 ```
-* __channel__: _optional_, a channel to where the results should be sent. if
+* __channel__ - _optional_, a channel to where the results should be sent. if
   omitted, the user receives the results as server notices. note that the
   fantasy command can be used within channels.
-* __code__: some Perl code to evaluate.
+* __code__ - some Perl code to evaluate.
 
 This module should not be loaded on a production server. It shouldn't even
 be loaded on a test server if you don't know what you're doing.
@@ -685,7 +686,7 @@ repository from the remote. Requires the `update` oper flag.
 ```
 UPDATE [<server_mask>]
 ```
-* __server_mask__: _optional_, an absolute server name or server name mask with
+* __server_mask__ - _optional_, an absolute server name or server name mask with
   wildcards. all matching servers will respond to the request. defaults to
   the local server.
 
@@ -695,10 +696,10 @@ Requires the `checkout` oper flag.
 ```
 CHECKOUT [<server_mask>] <branch/tag/commit>
 ```
-* __server_mask__: _optional_, an absolute server name or server name mask with
+* __server_mask__ - _optional_, an absolute server name or server name mask with
   wildcards. all matching servers will respond to the request. defaults to
   the local server.
-* __branch/tag/commit__: what you wish to check out; e.g. `juno12-mihret`.
+* __branch/tag/commit__ - what you wish to check out; e.g. `juno12-mihret`.
 
 ### Grant
 
@@ -710,8 +711,8 @@ depending on the uplink privileges. Requires the `grant` oper flag.
 ```
 GRANT <nick> <flag> [<flag> ...]
 ```
-* __nick__: the nickname of the target user.
-* __flag__: an oper flag to be granted. any number of flags can be provided in
+* __nick__ - the nickname of the target user.
+* __flag__ - an oper flag to be granted. any number of flags can be provided in
   a space-separated list.
 
 **UNGRANT** does the opposite. Requires the `grant` oper flag.
@@ -719,7 +720,7 @@ GRANT <nick> <flag> [<flag> ...]
 UNGRANT <nick> <flag> [<flag> ...]
 ```
 * __nick__ the nickname of the target user.
-* __flag__: an oper flag to be revoked. any number of flags can be provided in
+* __flag__ - an oper flag to be revoked. any number of flags can be provided in
   a space-separated list.
 
 Note that by giving an oper the `grant` flag, you are essentially giving him
@@ -735,25 +736,26 @@ directly from IRC.
 ```
 MODLOAD <mod_name>
 ```
-* __mod_name__: the name of the module to be loaded.
+* __mod_name__ - the name of the module to be loaded.
 
 **MODUNLOAD** attempts to unload a module. Requires the `modules` oper flag.
 ```
 MODUNLOAD <mod_name>
 ```
-* __mod_name__: the name of the module to be unloaded.
+* __mod_name__ - the name of the module to be unloaded.
 
 **MODRELOAD** attempts to reload a module. Requires the `modules` oper flag.
 ```
 MODRELOAD <mod_name>
 ```
-* __mod_name__: the name of the module to be reloaded.
+* __mod_name__ - the name of the module to be reloaded.
 
 **MODULES** lists information about the loaded server modules. This command
 is available to all users.
 ```
 MODULES
 ```
+Example response
 ```
 10:53:54 PM   SASL 7.1
 10:53:54 PM       Provides SASL authentication
@@ -764,6 +766,44 @@ MODULES
 10:53:54 PM       USER NUMERICS
 10:53:54 PM           ERR_SASLABORTED, ERR_SASLALREADY, ERR_SASLFAIL
 10:53:54 PM           ERR_SASLTOOLONG, RPL_SASLMECHS, RPL_SASLSUCCESS
+```
+
+### Monitor
+
+**Monitor** provides a mechanism by which users can subscribe to client
+availability notifications. Its intention is to replace the legacy `ISON` query.
+This implementation complies with the
+[IRCv3.2 monitor specification](http://ircv3.net/specs/core/monitor-3.2.html).
+
+The module adds one command, MONITOR, which itself has a number of subcommands.
+
+**MONITOR +** adds one or more nicknames to the monitor list.
+```
+MONITOR + <nick>[,<nick2> ...]
+```
+* __nick__ - the nickname to watch for. multiple nicknames can be provided at
+  once, separated by commas.
+
+**MONITOR -** remove one or more nicknames from your monitor list.
+```
+MONITOR - <nick>[,<nick2> ...]
+```
+* __nick__ - the nickname to stop watching for. multiple nicknames can be
+  provided at once, separated by commas.
+
+**MONITOR L** displays the current monitor list.
+```
+MONITOR L
+```
+
+**MONITOR C** clears the current monitor list.
+```
+MONITOR C
+```
+
+**MONITOR S** resynchronizes the current monitor list with the client.
+```
+MONITOR S
 ```
 
 ### Reload
@@ -780,9 +820,9 @@ have checked out stable releases. Requires the `reload` oper flag.
 RELOAD [<verbosity>] [<server_mask>]
 ```
 
-* __verbosity__: _optional_, verbosity flag.
+* __verbosity__ - _optional_, verbosity flag.
   'v' for verbose or 'd' for debug. note that debug output is extremely lengthy.
-* __server_mask__: _optional_, an absolute server name or server name mask with
+* __server_mask__ - _optional_, an absolute server name or server name mask with
   wildcards. all matching servers will respond to the request. defaults to
   the local server.
 
@@ -811,17 +851,17 @@ in the following format:
     reason   = "Your host is listed on EFnet RBL. See http://efnetrbl.org/?i=%ip"
 ```
 
-* __host__: the hostname of the blacklist. the reversed incoming connection
+* __host__ - the hostname of the blacklist. the reversed incoming connection
   address will be prepended to it before performing a DNS query.
-* __ipv4__: _optional_, true if the blacklist supports IPv4.
-* __ipv6__: _optional_, true if the blacklist supports IPv6.
-* __timeout__: _optional_, number of seconds before giving up each query related
+* __ipv4__ - _optional_, true if the blacklist supports IPv4.
+* __ipv6__ - _optional_, true if the blacklist supports IPv6.
+* __timeout__ - _optional_, number of seconds before giving up each query related
   to this blacklist. higher numbers are more effective but may slow the
   registration proccess, especially if the blacklist is at a high load. defaults
   to three seconds.
-* __duration__: _optional_, how long to remember offending IP addresses. if not
+* __duration__ - _optional_, how long to remember offending IP addresses. if not
   provided, DNSBL caching is disabled.
-* __reason__: _optional_, a human-readable reason for terminating offending
+* __reason__ - _optional_, a human-readable reason for terminating offending
   connections. all instances of `%ip` are replaced with the IP address.
 
 ### LOLCAT
