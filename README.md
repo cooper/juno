@@ -438,7 +438,7 @@ to the
 
 * [__vulpia__](https://github.com/cooper/juno/tree/juno7-vulpia) (juno7):
 Romanian for a female wolf, vulpia was named after the alias of a dear friend,
-[Ruin](https://soundcloud.com/ruuuuuuuuuuuuin). It included several
+[Ruin](https://github.com/RuinIsProbablyTaken). It included several
 improvements, making the IRCd more extensible than ever before. The
 [Evented::API::Engine](https://github.com/cooper/evented-api-engine)
 replaced the former
@@ -448,12 +448,12 @@ any event that occurs within juno. vulpia completed the relocation of JELP
 [an optional module](https://github.com/cooper/juno/tree/master/modules/JELP),
 opening the doors for additional linking protocols
 in the future. Additionally, it established
-[fantasy command](https://github.com/cooper/juno/tree/master/modules/Fantasy.module)
+[fantasy command](https://github.com/cooper/juno/blob/master/modules/Channel/Fantasy.module/Fantasy.pm)
 support; the
 [Reload](https://github.com/cooper/juno/tree/master/modules/Reload.module)
 module, which makes it possible to upgrade the IRCd to the latest version
 without restarting or disconnecting users; and a new
-[Account](https://github.com/cooper/juno/tree/master/modules/Account.module)
+[Account](https://github.com/cooper/juno/tree/juno7-vulpia/modules/Account.module)
 module, helping users to better manage nicknames and channels.
 
 * [__kylie__](https://github.com/cooper/juno/tree/juno8-kylie) (juno8):
@@ -483,7 +483,7 @@ Named after the beautiful and talented [Agnes](http://agnes.mac-mini.org), agnie
 introduced lots of new functionality: the ability to
 [manage oper flags](https://github.com/cooper/juno/blob/master/modules/Grant.module/Grant.pm)
 from IRC, much-improved
-[account management](https://github.com/cooper/juno/tree/master/modules/Account.module),
+[account management](https://github.com/cooper/juno/tree/juno9-agnie/modules/Account.module),
 and
 [command aliases](https://github.com/cooper/juno/blob/master/modules/Alias.module/Alias.pm)
 to name a few. It opened a new door of possibility by adding partial
@@ -559,11 +559,11 @@ makes it easier to release patches.
 A lot was accomplished during the short-lived development of mihret.
 Several new channel features were introduced, including
 IRCv3 [extended-join](http://ircv3.net/specs/extensions/extended-join-3.1.html),
-[permanent channels (+P)](modules/Channel/Permanent.module/Permanent.pm),
-[op moderation (+z)](modules/Channel/OpModerate.module/OpModerate.pm),
-[color stripping (+c)](modules/Channel/NoColor.module/NoColor.pm),
-[registered only (+r)](modules/Channel/RegisteredOnly.module/RegisteredOnly.pm),
-and [SSL only (+S)](modules/Channel/SSLOnly.module/SSLOnly.pm),
+[permanent channels](modules/Channel/Permanent.module/Permanent.pm) (+P),
+[op moderation](modules/Channel/OpModerate.module/OpModerate.pm) (+z),
+[color stripping](modules/Channel/NoColor.module/NoColor.pm) (+c),
+[registered only](modules/Channel/RegisteredOnly.module/RegisteredOnly.pm) (+r),
+and [SSL only](modules/Channel/SSLOnly.module/SSLOnly.pm) (+S),
 all implemented as modules.
 Internal support for new user modes, deafness (+D) and bot status (+B), was also
 added. mihret furthered the support of external IRC services packages by
@@ -577,8 +577,8 @@ interface with a
 implementation. The [netban](modules/Ban) module was
 rewritten from the ground up in an objective fashion. New APIs make it very easy
 to extend netban functionality from additional modules. The
-[TS6 netban](modules/Ban/TS6.module/TS6.pm) implementation was mostly completed
-too. A new IRCd support
+[TS6 netban](modules/Ban/Ban.module/TS6.module/TS6.pm) implementation was mostly
+completed too. A new IRCd support
 interface makes it easy to add special rules for certain IRC software and also
 features inheritance of properties for derivative software.
 As usual, there were astounding improvements to [TS6](doc/ts6.md)
