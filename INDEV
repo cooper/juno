@@ -3940,3 +3940,5 @@ CHANGES:
     67. new Base::AddUser adds a basic virtual user interface.
 
     68. fixed #165.
+
+    69. update Evented::Object. fixes #140.
