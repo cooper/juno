@@ -7,6 +7,49 @@ of standalone code. The
 entire remainder consists of reloadable modules, all but one of which are
 optional.
 
+Module                                              | Provides
+---------------------------                         | ----------------------------
+[ircd](#ircd)                                       | IRC objects and socket management
+[Core](#core)                                       | Core IRC client protocol
+[Resolve](#resolve)                                 | Hostname resolution
+[Ident](#ident)                                     | Ident resolution
+[Cloak](#cloak)                                     | Hostname cloaking
+[Alias](#alias)                                     | Command alises
+[SASL](#sasl)                                       | Simple Authentication and Security Layer
+[JELP](#jelp)                                       | Juno Extensible Linking Protocol
+[TS6](#ts6)                                         | TS6 server linking protocol
+[Channel::Access](#channelaccess)                   | Built-in channel access list
+[Channel::Fantasy](#channelfantasy)                 | Channel fantasy commands
+[Channel::Forward](#channelforward)                 | Channel forwarding (+FQf)
+[Channel::Invite](#channelinvite)                   | Channel invitations (INVITE, +Iig)
+[Channel::JoinThrottle](#channeljoin)               | Channel join throttle (+j)
+[Channel::Key](#channelkey)                         | Channel keyword (+k)
+[Channel::Knock](#channelknock)                     | Channel knocking (KNOCK)
+[Channel::Limit](#channellimit)                     | Channel user limit (+l)
+[Channel::ModeSync](#channelmodesync)               | Channel mode synchronization (MODESYNC)
+[Channel::Mute](#channelmute)                       | Channel mutes (+Z)
+[Channel::NoColor](#channelnocolor)                 | Channel message color stripping (+c)
+[Channel::OperOnly](#channeloperonly)               | Channel oper-only restriction (+O)
+[Channel::OpModerate](#channelopmoderate)           | Channel op moderation (+z)
+[Channel::Permanent](#channelpermanent)             | Channel permanence (+P)
+[Channel::RegisteredOnly](#channelregisteredonly)   | Channel register
+[Channel::Secret](#channelsecret)                   | Channel secret and private (+ps)
+[Channel::SSLOnly](#channelsslonly)                 | Channel SSL-only restriction (+S)
+[Channel::TopicAdditions](#channeltopicadditions)   | Channel topic extras (TOPICPREPEND, TOPICAPPEND)
+[Ban](#ban)                                         | Global netban interface
+[Ban::Dline](#bandline)                             | D-Lines: bans on IP addresses
+[Ban::Kline](#bankline)                             | K-Lines: bans on user masks
+[Ban::Resv](#banresv)                               | Reserves: bans on nickname masks and channels
+[Configuration::Set](#configurationset)             | Manage configuration from IRC (CONFGET, CONFSET)
+[Eval](#eval)                                       | Evaluate Perl code from IRC (EVAL)
+[Git](#git)                                         | Manage Git repository from IRC (UPDATE, CHECKOUT)
+[Grant](#grant)                                     | Manage oper privileges from IRC (GRANT)
+[Modules](#modules-1)                               | Manage modules from IRC (MODLOAD, MODULES)
+[Monitor](#monitor)                                 | Client availability notifications (MONITOR)
+[Reload](#reload)                                   | Reload the entire server code from IRC
+[DNSBL](#dnsbl)                                     | Built-in DNS blacklist checking
+[LOLCAT](#lolcat)                                   | SPEEK LIEK A LOLCATZ
+
 # Essentials
 
 This category includes the barebones of the IRC server.
