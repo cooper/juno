@@ -351,7 +351,14 @@ sub change_user_nick {
     return 1;
 }
 
-sub all_users        {   grep  { $_->isa('user') }       values %{ shift->{users} } }
+sub all_users {
+    return grep {
+        $_         &&
+        blessed $_ &&
+        $_->isa('user')
+    } values %{ shift->{users} };
+}
+
 sub real_users       {   grep  { !$_->{fake}                    } shift->all_users  }
 sub all_local_users  {   grep  { $_->is_local                   } shift->all_users  }
 sub real_local_users {   grep  { $_->is_local && !$_->{fake}    } shift->all_users  }

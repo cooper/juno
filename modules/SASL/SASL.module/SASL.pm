@@ -337,7 +337,7 @@ sub update_account {
 
 sub check_failures {
     my $conn = shift;
-    my $max = conf('service', 'saslserv_max_failures');
+    my $max = conf('services', 'saslserv_max_failures');
     return 1 if $conn->{sasl_failures} <= $max;
     $conn->done('Too many SASL authentication failures');
     return;

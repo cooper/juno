@@ -3938,3 +3938,5 @@ CHANGES:
         this is better because remote invites will be ignored when invites are disabled on the local server.
 
     67. new Base::AddUser adds a basic virtual user interface.
+
+    68. fixed #165.
