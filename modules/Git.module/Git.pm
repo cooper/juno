@@ -24,7 +24,7 @@ our ($api, $mod, $pool, $me);
 our %user_commands = (
     CHECKOUT => {
         desc   => 'switch branches or commits in the IRCd git repository',
-        params => '-oper(checkout) *',
+        params => '-oper(checkout) * *(opt)',
         code   => \&ucmd_checkout
     },
     UPDATE => {

@@ -465,23 +465,230 @@ manage an IRC server or network.
 __Configuration::Set__ allows IRC operators to view and modify the server
 configuration directly from IRC.
 
-The CONFGET command 
+Each configuration option can located using the form:
+* `block_type/block_name/key`       (for named blocks)
+* `block_type/key`                  (for unnamed blocks)
+
+Values are encoded in these formats:
+* __Number__: `0`
+* __String__: `"it's some text"`
+* __List__: `[ 1, 2, "text" ]`
+* __Map__: `{ "key": "value", "other": "another" }`
+* __Bool__: `on` or `off`
+
+**CONFGET** fetches and displays the current configuration value at a
+specified location. Requires the `confget` oper flag.
+```
+CONFGET <server_mask> <location>
+```
+* __server_mask__: an absolute server name or server name mask with wildcards.
+  all matching servers will respond to the request.
+* __location__: the location of the desired configuration value. see above.
+
+**CONFSET** overwrites the current configuration value at the specified
+location. Requires the `confset` oper flag.
+```
+CONFSET <server_mask> <location> <value>
+```
+* __server_mask__: an absolute server name or server name mask with wildcards.
+  all matching servers will respond to the request.
+* __location__: the location of the desired configuration value. see above.
+* __value__: the desired value in Evented::Configuration format. see above.
+
+The responses to both of these commands will display the value at the given
+location. For remote servers, the server name will appear after the value, so
+that you know which server the reply belongs to.
 
 ### Eval
 
+Provides the `EVAL` command, which allows you to evaluate some Perl code.
+```
+EVAL [<channel>] <code>
+```
+* __channel__: _optional_, a channel to where the results should be sent. if
+  omitted, the user receives the results as server notices. note that the
+  fantasy command can be used within channels.
+* __code__: some Perl code to evaluate.
+
+This module should not be loaded on a production server. It shouldn't even
+be loaded on a test server if you don't know what you're doing.
+
+The `EVAL` command does not require an oper flag. Instead, the name of the
+accepted opers must appear in `etc/evalers.conf`, one per line.
+
+It is also possible to evaluate multiple lines of code using `BLOCK..END`:
+```
+10:33:18 PM <~mitch> !eval BLOCK
+10:33:48 PM <~mitch> !eval if (3 > 2) {
+10:33:53 PM <~mitch> !eval    "yes"
+10:33:55 PM <~mitch> !eval }
+10:33:56 PM <~mitch> !eval END
+10:33:57 PM Result: yes
+```
+
+**Convenience functions**
+* `nick()`: returns the user associated with the provided nickname.
+* `serv()`: returns all servers whose names match the provided mask.
+* `chan()`: returns the channel associated with the provided channel name.
+* `Dump()`: returns the Data::Dumper output for the provided arg
+  (Maxdepth = 1).
+
 ### Git
+
+Provides two commands for managing the IRCd git repository:
+`UPDATE` and `CHECKOUT`.
+
+**UPDATE** runs `git pull` and `git submodule update`. This updates the local
+repository from the remote. Requires the `update` oper flag.
+```
+UPDATE [<server_mask>]
+```
+* __server_mask__: _optional_, an absolute server name or server name mask with
+  wildcards. all matching servers will respond to the request. defaults to
+  the local server.
+
+**CHECKOUT** runs `git checkout` in order to switch between branches and such.
+This is particularly useful when upgrading from one stable release to the next.
+Requires the `checkout` oper flag.
+```
+CHECKOUT [<server_mask>] <branch/tag/commit>
+```
+* __server_mask__: _optional_, an absolute server name or server name mask with
+  wildcards. all matching servers will respond to the request. defaults to
+  the local server.
+* __branch/tag/commit__: what you wish to check out; e.g. `juno12-mihret`.
 
 ### Grant
 
+Allows the dynamic addition and removal of oper permissions directly from IRC.
+
+The **GRANT** command grants privileges to a user. Note that, if the target user
+is remote, the remote server may choose to silently reject the grant request,
+depending on the uplink privileges. Requires the `grant` oper flag.
+```
+GRANT <nick> <flag> [<flag> ...]
+```
+* __nick__: the nickname of the target user.
+* __flag__: an oper flag to be granted. any number of flags can be provided in
+  a space-separated list.
+
+**UNGRANT** does the opposite. Requires the `grant` oper flag.
+```
+UNGRANT <nick> <flag> [<flag> ...]
+```
+* __nick__ the nickname of the target user.
+* __flag__: an oper flag to be revoked. any number of flags can be provided in
+  a space-separated list.
+
+Note that by giving an oper the `grant` flag, you are essentially giving him
+complete and total control over the IRC server, as he could easily grant
+himself all oper flags.
+
 ### Modules
+
+**Modules** allows the dynamic loading and unloading of server modules
+directly from IRC.
+
+**MODLOAD** attempts to load a module. Requires the `modules` oper flag.
+```
+MODLOAD <mod_name>
+```
+* __mod_name__: the name of the module to be loaded.
+
+**MODUNLOAD** attempts to unload a module. Requires the `modules` oper flag.
+```
+MODUNLOAD <mod_name>
+```
+* __mod_name__: the name of the module to be unloaded.
+
+**MODRELOAD** attempts to reload a module. Requires the `modules` oper flag.
+```
+MODRELOAD <mod_name>
+```
+* __mod_name__: the name of the module to be reloaded.
+
+**MODULES** lists information about the loaded server modules. This command
+is available to all users.
+```
+MODULES
+```
+```
+10:53:54 PM   SASL 7.1
+10:53:54 PM       Provides SASL authentication
+10:53:54 PM       REGISTRATION COMMANDS
+10:53:54 PM           AUTHENTICATE
+10:53:54 PM       CAPABILITIES
+10:53:54 PM           sasl
+10:53:54 PM       USER NUMERICS
+10:53:54 PM           ERR_SASLABORTED, ERR_SASLALREADY, ERR_SASLFAIL
+10:53:54 PM           ERR_SASLTOOLONG, RPL_SASLMECHS, RPL_SASLSUCCESS
+```
 
 ### Reload
 
+**Reload** allows you to reload the entire IRCd code without restarting the
+server or dropping any connections. It is often used in conjunction with
+`UPDATE` and/or `CHECKOUT` provided by the [Git](#git) module.
+
+There is always *some* risk when using **RELOAD**. However, it is usually
+successful, especially when you have checked out a stable release. The command
+is useful both for test servers on devel branches and on production servers that
+have checked out stable releases. Requires the `reload` oper flag.
+```
+RELOAD [<verbosity>] [<server_mask>]
+```
+
+* __verbosity__: _optional_, verbosity flag.
+  'v' for verbose or 'd' for debug. note that debug output is extremely lengthy.
+* __server_mask__: _optional_, an absolute server name or server name mask with
+  wildcards. all matching servers will respond to the request. defaults to
+  the local server.
+
+It is also possible to check out a past version and perform a downgrade. This
+may be useful as a temporary solution to revert back to a version before a
+significant bug was introduced.
+
 ## Extras
 
-This category includes modules that are not enabled in the default
-configuration because they may not appeal to the typical user.
+This category includes non-essential modules that may not appeal to all users.
 
 ### DNSBL
 
+**DNSBL** provides built-in blacklist checking. It supports both IPv4 and IPv6.
+
+You can have any number of blacklists in your configuration. They are configured
+in the following format:
+```
+[ dnsbl: EFnetRBL ]
+
+    host     = "rbl.efnetrbl.org"
+    ipv4     = on
+    ipv6     = off
+    timeout  = 3
+    duration = '1d'
+    reason   = "Your host is listed on EFnet RBL. See http://efnetrbl.org/?i=%ip"
+```
+
+* __host__: the hostname of the blacklist. the reversed incoming connection
+  address will be prepended to it before performing a DNS query.
+* __ipv4__: _optional_, true if the blacklist supports IPv4.
+* __ipv6__: _optional_, true if the blacklist supports IPv6.
+* __timeout__: _optional_, number of seconds before giving up each query related
+  to this blacklist. higher numbers are more effective but may slow the
+  registration proccess, especially if the blacklist is at a high load. defaults
+  to three seconds.
+* __duration__: _optional_, how long to remember offending IP addresses. if not
+  provided, DNSBL caching is disabled.
+* __reason__: _optional_, a human-readable reason for terminating offending
+  connections. all instances of `%ip` are replaced with the IP address.
+
 ### LOLCAT
+
+**LOLCAT** ALLOWS YOO T SPEKK LIKES AN LOLCATZ.
+
+TEH **LOLCAT** COMMAN CAN BE USED TO SEN TRANSLAYTED MESSUJ 2 CHANNEL.
+```
+LOLCAT <CHANNEL> <MESSUJ>
+```
+
+TEH TRANSLAYTED MESSUJ WILL ALSO BE ECHOD BACK 2 TEH SOURCE USR.
