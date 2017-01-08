@@ -159,7 +159,8 @@ Below is an excerpt of the default alias configuration.
 
 ## SASL
 
-The SASL module provides SASL authentication support through external services.
+The **SASL** module provides Simple Authentication and Security Layer
+support through external services.
 
 Each server-to-server protocol SASL implementation exists in the form of a
 submodule.
@@ -168,7 +169,7 @@ __Submodules__ (loaded automatically as needed)
 * __SASL::JELP__ - provides the JELP SASL implementation.
 * __SASL::TS6__ - provides the TS6 SASL implementation.
 
-Clients authenticate via SASL using the **AUTHENTICATE** command. This
+Clients authenticate via SASL using the **`AUTHENTICATE`** command. This
 command is only available to clients that have enabled the `sasl` capability.
 
 ```
@@ -206,11 +207,11 @@ is also supported.
 
 ## JELP
 
-The set of JELP modules comprise the Juno Extensible Linking protocol
+The set of __JELP__ modules comprise the Juno Extensible Linking protocol
 implementation. This is the preferred protocol to be used when linking juno-ircd
 to other instances of juno-ircd.
 
-The primary __JELP__ module itself does not provide any functionality. However,
+The primary JELP module itself does not provide any functionality. However,
 it depends on several other modules, providing a convenient way to load the
 entire JELP implementation at once.
 
@@ -256,6 +257,7 @@ __Channel::Access__ provides a channel access list mode (+A). This is
 particularly useful in the absence of an external service package. It also
 provides built-in `UP` and `DOWN` commands.
 
+
 To automatically set mode `o` on any user matching the mask `*!*@google.com`
 ```
 MODE #googleplex +A o:*!*@google.com
@@ -274,6 +276,18 @@ extmask to auto-owner any users logged into the services account `mitch`.
 ```
 MODE #k +A q:$r:mitch
 ```
+
+**`UP`** grants you all the permissions that apply to you
+```
+UP <channel>
+```
+* __channel__: the channel to apply your status modes in.
+
+**`DOWN`** removes all of your channel privileges.
+```
+DOWN <channel>
+```
+* __channel__: the channel where your status modes will be removed.
 
 ## Channel::Fantasy
 
@@ -361,7 +375,7 @@ __Channel::JoinThrottle__ adds a channel join rate limit (+j).
 
 The format for the mode is `joins:period` or `joins:period:locktime`.
 * __joins__: the max number of joins that can occur in _period_ seconds.
-* __period__: the amount of time, in seconds, that _joins_ can occur.
+* __period__: the amount of time, in seconds, in which _joins_ joins can occur.
 * __locktime__: _optional_, how long, in seconds, to lock the channel when
   the throttle is activated. defaults to 60 seconds.
 
@@ -382,7 +396,7 @@ MODE #k +j 3:5:30
 __Channel::Key__ adds channel keyword (+k) support.
 
 When a channel keyword is set, users cannot join without providing the keyword
-as a parameter to the JOIN command.
+as a parameter to the `JOIN` command.
 
 ```
 JOIN <channel> [<keyword>]
@@ -548,14 +562,14 @@ often not useful when other services are present. It was created back when
 juno did not support external services packages and relied on internal account
 management in conjunction with the Channel::Access module.
 
-The **TOPICPREPEND** command adds a new segment to the beginning of the topic.
+**`TOPICPREPEND`** adds a new segment to the beginning of the topic.
 ```
 TOPICPREPEND <channel> :<text>
 ```
 * __channel__ - the channel whose topic will be updated.
 * __text__ - the text which will be prepended to the existing topic.
 
-Likewise, **TOPICAPPEND** adds a new segment to the end of the topic.
+Likewise, **`TOPICAPPEND`** adds a new segment to the end of the topic.
 ```
 TOPICAPPEND <channel> :<text>
 ```
@@ -578,8 +592,8 @@ The current Ban implementation is a major improvement over previous ones. It
 allows modules to very easily add new types of bans with only a few lines of
 code. Bans are represented by Ban::Info objects.
 
-This module does provide one user command, BANS, which lists all global bans
-or bans of the specified type. Its use requires the
+This module does provide one user command, **`BANS`**, which lists all global
+bans or bans of the specified type. Its use requires the
 [`list_bans`](oper_flags.md#list_bans) flag.
 
 ## Ban::Dline
@@ -596,7 +610,7 @@ partial addresses with POSIX-style wildcards; e.g. `123.456.789.*`.
 Ban::Dline adds the DLINE and UNDLINE commands, both which require the
 [`dline`](oper_flags.md#dline) oper flag.
 
-**DLINE** adds a D-Line.
+**`DLINE`** adds a D-Line.
 ```
 DLINE <duration> <ip> <reason>
 ```
@@ -604,7 +618,7 @@ DLINE <duration> <ip> <reason>
 * __duration__ - how long until the ban expires. `0` for permanent.
 * __reason__ - a comment to display to users that justifies the ban.
 
-**UNDLINE** removes a D-Line.
+**`UNDLINE`** removes a D-Line.
 ```
 UNDLINE <ip>
 ```
@@ -622,7 +636,7 @@ partial masks with POSIX-style wildcards; e.g. `*@microsoft.com`.
 Ban::Kline adds the KLINE and UNKLINE commands, both which require the
 [`kline`](oper_flags.md#kline) oper flag.
 
-**KLINE** adds a K-Line.
+**`KLINE`** adds a K-Line.
 ```
 KLINE <duration> <mask> <reason>
 ```
@@ -630,7 +644,7 @@ KLINE <duration> <mask> <reason>
 * __duration__ - how long until the ban expires. `0` for permanent.
 * __reason__ - a comment to display to users that justifies the ban.
 
-**UNKLINE** removes a K-Line.
+**`UNKLINE`** removes a K-Line.
 ```
 UNKLINE <mask>
 ```
@@ -647,7 +661,7 @@ applied to complete channel names or nickname masks; e.g. `bill*` or `#sex`.
 Ban::Resv adds the RESV and UNRESV commands, both which require the
 [`resv`](oper_flags.md#resv) oper flag.
 
-**RESV** adds a reserve.
+**`RESV`** adds a reserve.
 ```
 RESV <duration> <mask> <reason>
 ```
@@ -656,7 +670,7 @@ RESV <duration> <mask> <reason>
 * __duration__ - how long until the reserve expires. `0` for permanent.
 * __reason__ - a comment that justifies the reserve.
 
-**UNRESV** removes a reserve.
+**`UNRESV`** removes a reserve.
 ```
 UNRESV <mask>
 ```
@@ -684,7 +698,7 @@ Values are encoded in these formats:
 * __Map__ - `{ "key": "value", "other": "another" }`
 * __Bool__ - `on` or `off`
 
-**CONFGET** fetches and displays the current configuration value at a
+**`CONFGET`** fetches and displays the current configuration value at a
 specified location. Requires the `confget` oper flag.
 ```
 CONFGET <server_mask> <location>
@@ -693,7 +707,7 @@ CONFGET <server_mask> <location>
   all matching servers will respond to the request.
 * __location__ - the location of the desired configuration value. see above.
 
-**CONFSET** overwrites the current configuration value at the specified
+**`CONFSET`** overwrites the current configuration value at the specified
 location. Requires the `confset` oper flag.
 ```
 CONFSET <server_mask> <location> <value>
@@ -709,7 +723,7 @@ that you know which server the reply belongs to.
 
 ## Eval
 
-Provides the `EVAL` command, which allows you to evaluate some Perl code.
+Provides the **`EVAL`** command, which allows you to evaluate some Perl code.
 ```
 EVAL [<channel>] <code>
 ```
@@ -746,7 +760,7 @@ It is also possible to evaluate multiple lines of code using `BLOCK..END`:
 Provides two commands for managing the IRCd git repository:
 `UPDATE` and `CHECKOUT`.
 
-**UPDATE** runs `git pull` and `git submodule update`. This updates the local
+**`UPDATE`** runs `git pull` and `git submodule update`. This updates the local
 repository from the remote. Requires the `update` oper flag.
 ```
 UPDATE [<server_mask>]
@@ -755,7 +769,7 @@ UPDATE [<server_mask>]
   wildcards. all matching servers will respond to the request. defaults to
   the local server.
 
-**CHECKOUT** runs `git checkout` in order to switch between branches and such.
+**`CHECKOUT`** runs `git checkout` in order to switch between branches and such.
 This is particularly useful when upgrading from one stable release to the next.
 Requires the `checkout` oper flag.
 ```
@@ -770,7 +784,7 @@ CHECKOUT [<server_mask>] <branch/tag/commit>
 
 Allows the dynamic addition and removal of oper permissions directly from IRC.
 
-The **GRANT** command grants privileges to a user. Note that, if the target user
+**`GRANT`** applies privileges to a user. Note that, if the target user
 is remote, the remote server may choose to silently reject the grant request,
 depending on the uplink privileges. Requires the `grant` oper flag.
 ```
@@ -780,7 +794,7 @@ GRANT <nick> <flag> [<flag> ...]
 * __flag__ - an oper flag to be granted. any number of flags can be provided in
   a space-separated list.
 
-**UNGRANT** does the opposite. Requires the `grant` oper flag.
+**`UNGRANT`** does the opposite. Requires the `grant` oper flag.
 ```
 UNGRANT <nick> <flag> [<flag> ...]
 ```
@@ -797,25 +811,25 @@ himself all oper flags.
 **Modules** allows the dynamic loading and unloading of server modules
 directly from IRC.
 
-**MODLOAD** attempts to load a module. Requires the `modules` oper flag.
+**`MODLOAD`** attempts to load a module. Requires the `modules` oper flag.
 ```
 MODLOAD <mod_name>
 ```
 * __mod_name__ - the name of the module to be loaded.
 
-**MODUNLOAD** attempts to unload a module. Requires the `modules` oper flag.
+**`MODUNLOAD`** attempts to unload a module. Requires the `modules` oper flag.
 ```
 MODUNLOAD <mod_name>
 ```
 * __mod_name__ - the name of the module to be unloaded.
 
-**MODRELOAD** attempts to reload a module. Requires the `modules` oper flag.
+**`MODRELOAD`** attempts to reload a module. Requires the `modules` oper flag.
 ```
 MODRELOAD <mod_name>
 ```
 * __mod_name__ - the name of the module to be reloaded.
 
-**MODULES** lists information about the loaded server modules. This command
+**`MODULES`** lists information about the loaded server modules. This command
 is available to all users.
 ```
 MODULES
@@ -842,31 +856,31 @@ This implementation complies with the
 
 The module adds one command, MONITOR, which itself has a number of subcommands.
 
-**MONITOR +** adds one or more nicknames to the monitor list.
+**`MONITOR +`** adds one or more nicknames to the monitor list.
 ```
 MONITOR + <nick>[,<nick2> ...]
 ```
 * __nick__ - the nickname to watch for. multiple nicknames can be provided at
   once, separated by commas.
 
-**MONITOR -** remove one or more nicknames from your monitor list.
+**`MONITOR -`** removes one or more nicknames from your monitor list.
 ```
 MONITOR - <nick>[,<nick2> ...]
 ```
 * __nick__ - the nickname to stop watching for. multiple nicknames can be
   provided at once, separated by commas.
 
-**MONITOR L** displays the current monitor list.
+**`MONITOR L`** displays the current monitor list.
 ```
 MONITOR L
 ```
 
-**MONITOR C** clears the current monitor list.
+**`MONITOR C`** clears the current monitor list.
 ```
 MONITOR C
 ```
 
-**MONITOR S** resynchronizes the current monitor list with the client.
+**`MONITOR S`** resynchronizes the current monitor list with the client.
 ```
 MONITOR S
 ```
@@ -877,7 +891,7 @@ MONITOR S
 server or dropping any connections. It is often used in conjunction with
 `UPDATE` and/or `CHECKOUT` provided by the [Git](#git) module.
 
-There is always *some* risk when using **RELOAD**. However, it is usually
+There is always *some* risk when using **`RELOAD`**. However, it is usually
 successful, especially when you have checked out a stable release. The command
 is useful both for test servers on devel branches and on production servers that
 have checked out stable releases. Requires the `reload` oper flag.
@@ -933,7 +947,7 @@ in the following format:
 
 **LOLCAT** ALLOWS YOO T SPEKK LIKES AN LOLCATZ.
 
-TEH **LOLCAT** COMMAN CAN BE USED TO SEN TRANSLAYTED MESSUJ 2 CHANNEL.
+TEH **`LOLCAT`** COMMAN CAN BE USED TO SEN TRANSLAYTED MESSUJ 2 CHANNEL.
 ```
 LOLCAT <CHANNEL> <MESSUJ>
 ```
