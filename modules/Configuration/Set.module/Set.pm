@@ -122,36 +122,63 @@ sub cmd_confget {
     my ($user, $event, $server_mask, $location) = @_;
 
     # if not for me, forward
-    forwarder('CONFGET', $user, $server_mask, 'gconfget', $location)
-        and return 1;
+    forwarder(
+        'CONFGET',
+        $user, $server_mask, 'gconfget', $location
+    ) and return 1;
+
+    my $serv_name = $user->is_local ? '' : " <$$me{name}>";
 
     # find location
     $location  //= $server_mask;
-    my @location = parse_location($location);
-    if (!@location) {
-        $user->server_notice(confget => "Invalid location '$location'");
-        return;
-    }
-    my $pretty = pretty_location(@location);
-
-    # get the value
-    my ($ok, $value_str) = pretty_value($conf->_get(1, @location));
-    if (!$ok) {
-        chomp $value_str;
-        $user->server_notice(confget => $value_str);
+    my ($block, $key) = parse_location($location);
+    if (!$block) {
+        $user->server_notice(confget =>
+            "Invalid location '$location'$serv_name");
         return;
     }
 
-    my $serv_name = $user->is_local ? '' : " <$$me{name}>";
-    $user->server_notice(confget => "$pretty = $value_str$serv_name");
+    # use all keys of the key is '*'
+    my @locations = [ $block, $key ];
+    if ($key eq '*') {
+        my @keys = $conf->keys_of_block($block);
+        @locations = map [ $block, $_ ], @keys;
+    }
+
+    # no keys were found
+    if (!@locations) {
+        $user->server_notice(confget => "Nothing matches$serv_name");
+        return;
+    }
+
+    # send each result
+    foreach (@locations) {
+        my @location = @$_;
+        my $pretty   = pretty_location(@location);
+
+        # get the value
+        my ($ok, $value_str) = pretty_value($conf->_get(1, @location));
+        if (!$ok) {
+            chomp $value_str;
+            $user->server_notice(confget => $value_str);
+            return;
+        }
+
+        $user->server_notice(confget => "$pretty = $value_str$serv_name");
+    }
 }
 
 sub cmd_confset {
     my ($user, $event, $server_mask, $location, $value_str) = @_;
 
     # if not for me, forward
-    forwarder('CONFSET', $user, $server_mask, 'gconfset', $location, ":$value_str")
-        and return 1;
+    forwarder(
+        'CONFSET',
+        $user, $server_mask, 'gconfset', $location,
+        ":$value_str"
+    ) and return 1;
+
+    my $serv_name = $user->is_local ? '' : " <$$me{name}>";
 
     # find location
     $location  //= $server_mask;

@@ -3952,3 +3952,4 @@ CHANGES:
     72. added additional error checking in CONFGET.
         removed unused Evented::Properties.
         update Evented::Database.
+        CONFGET now accepts '*' to list all config values in a block.
