@@ -3948,3 +3948,6 @@ CHANGES:
     71. fixed Configuration::Set crash bug.
         update Evented::Configuration.
         update Evented::Database.
+
+    72. added additional error checking in CONFGET.
+        removed unused Evented::Properties.

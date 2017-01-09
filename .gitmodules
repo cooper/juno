@@ -10,6 +10,3 @@
 [submodule "lib/evented-api-engine"]
 	path = lib/evented-api-engine
 	url = https://github.com/cooper/evented-api-engine.git
-[submodule "lib/evented-properties"]
-	path = lib/evented-properties
-	url = https://github.com/cooper/evented-properties.git

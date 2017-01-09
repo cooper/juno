@@ -12,5 +12,5 @@
    "description" : "set and fetch configuration values across servers",
    "name" : "Configuration::Set",
    "package" : "M::Configuration::Set",
-   "version" : "4.8"
+   "version" : "5.1"
 }

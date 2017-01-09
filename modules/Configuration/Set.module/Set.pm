@@ -132,10 +132,14 @@ sub cmd_confget {
         $user->server_notice(confget => "Invalid location '$location'");
         return;
     }
+    my $pretty = pretty_location(@location);
 
-    # get
-    my $pretty    = pretty_location(@location);
-    my $value_str = pretty_value($conf->_get(1, @location));
+    # get the value
+    my ($ok, $value_str) = pretty_value($conf->_get(1, @location));
+    if (!$ok) {
+        chomp $value_str;
+        $user->server_notice(confget => $value_str);
+    }
 
     my $serv_name = $user->is_local ? '' : " <$$me{name}>";
     $user->server_notice(confget => "$pretty = $value_str$serv_name");
@@ -185,8 +189,8 @@ sub cmd_confdel {
 # block_type/block_name/key -> ([block_type, block_name], key)
 sub parse_location {
     my ($block_type, $block_name, $key) = split /\//, shift, 3;
-    return unless defined $block_name;
-    return defined $key ?
+    return unless length $block_name;
+    return length $key ?
         ([ $block_type, $block_name ], $key)
     : ($block_type, $block_name);
 }
@@ -210,10 +214,11 @@ sub parse_value {
 
 sub pretty_value {
     my $value = edb_encode(shift);
-    return "\2undef\2" if $value eq 'null';
-    return "\2on\2"    if $value eq 'true';
-    return "\2off\2"   if $value eq 'false';
-    return $value;
+    return (undef, $@) if $@;
+    $value = "\2undef\2" if $value eq 'null';
+    $value = "\2on\2"    if $value eq 'true';
+    $value = "\2off\2"   if $value eq 'false';
+    return (1, $value);
 }
 
 sub out_confget {
