@@ -163,6 +163,9 @@ sub lookup_server_mask {
     my ($pool, $mask) = @_;
     my (@matches, %done);
 
+    # special mask . always matches the local server only
+    return $me if $mask eq '.';
+
     # find servers by $sid
     while ($mask =~ s/^\$(\d+)//) {
         my $server = $pool->lookup_server($1);

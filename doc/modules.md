@@ -1,6 +1,6 @@
 # Modules
 
-This is a (hopefully) complete list of the official modules packaged with the
+This is a complete list of the official modules packaged with the
 juno-ircd repository. juno consists of
 [under 30 lines](https://github.com/cooper/juno/blob/master/bin/ircd)
 of standalone code. The
@@ -21,12 +21,12 @@ Module                                              | Provides
 [Channel::Access](#channelaccess)                   | Built-in channel access list (+A)
 [Channel::Fantasy](#channelfantasy)                 | Channel fantasy commands
 [Channel::Forward](#channelforward)                 | Channel forwarding (+f, +F, +Q)
-[Channel::Invite](#channelinvite)                   | Channel invitations (INVITE, +i, +I, +g)
+[Channel::Invite](#channelinvite)                   | Channel invitations (`INVITE`, +i, +I, +g)
 [Channel::JoinThrottle](#channeljoin)               | Channel join throttle (+j)
 [Channel::Key](#channelkey)                         | Channel keyword (+k)
-[Channel::Knock](#channelknock)                     | Channel knocking (KNOCK)
+[Channel::Knock](#channelknock)                     | Channel knocking (`KNOCK`)
 [Channel::Limit](#channellimit)                     | Channel user limit (+l)
-[Channel::ModeSync](#channelmodesync)               | Channel mode synchronization (MODESYNC)
+[Channel::ModeSync](#channelmodesync)               | Channel mode synchronization (`MODESYNC`)
 [Channel::Mute](#channelmute)                       | Channel mutes (+Z)
 [Channel::NoColor](#channelnocolor)                 | Channel message color stripping (+c)
 [Channel::OperOnly](#channeloperonly)               | Channel oper-only restriction (+O)
@@ -35,20 +35,20 @@ Module                                              | Provides
 [Channel::RegisteredOnly](#channelregisteredonly)   | Channel registered only restriction (+r)
 [Channel::Secret](#channelsecret)                   | Channel secret and private (+s, +p)
 [Channel::SSLOnly](#channelsslonly)                 | Channel SSL-only restriction (+S)
-[Channel::TopicAdditions](#channeltopicadditions)   | Channel topic extras (TOPICPREPEND, TOPICAPPEND)
-[Ban](#ban)                                         | Global netban interface (BANS)
-[Ban::Dline](#bandline)                             | D-Lines: bans on IP addresses (DLINE, UNDLINE)
-[Ban::Kline](#bankline)                             | K-Lines: bans on user masks (KLINE, UNKLINE)
-[Ban::Resv](#banresv)                               | Reserves: bans on nickname masks and channels (RESV, UNRESV)
-[Configuration::Set](#configurationset)             | Manage configuration from IRC (CONFGET, CONFSET)
-[Eval](#eval)                                       | Evaluate Perl code from IRC (EVAL)
-[Git](#git)                                         | Manage Git repository from IRC (UPDATE, CHECKOUT)
-[Grant](#grant)                                     | Manage oper privileges from IRC (GRANT, UNGRANT)
-[Modules](#modules-1)                               | Manage modules from IRC (MODLOAD, MODUNLOAD, MODRELOAD, MODULES)
-[Monitor](#monitor)                                 | Client availability notifications (MONITOR)
-[Reload](#reload)                                   | Reload the entire server code from IRC (RELOAD)
+[Channel::TopicAdditions](#channeltopicadditions)   | Channel topic extras (`TOPICPREPEND`, `TOPICAPPEND`)
+[Ban](#ban)                                         | Global netban interface (`BANS`)
+[Ban::Dline](#bandline)                             | D-Lines: bans on IP addresses (`DLINE`, `UNDLINE`)
+[Ban::Kline](#bankline)                             | K-Lines: bans on user masks (`KLINE`, `UNKLINE`)
+[Ban::Resv](#banresv)                               | Reserves: bans on nickname masks and channels (`RESV`, `UNRESV`)
+[Configuration::Set](#configurationset)             | Manage configuration from IRC (`CONFGET`, `CONFSET`)
+[Eval](#eval)                                       | Evaluate Perl code from IRC (`EVAL`)
+[Git](#git)                                         | Manage Git repository from IRC (`UPDATE`, `CHECKOUT`)
+[Grant](#grant)                                     | Manage oper privileges from IRC (`GRANT`, `UNGRANT`)
+[Modules](#modules-1)                               | Manage modules from IRC (`MODLOAD`, `MODUNLOAD`, `MODRELOAD`, `MODULES`)
+[Monitor](#monitor)                                 | Client availability notifications (`MONITOR`)
+[Reload](#reload)                                   | Reload the entire server code from IRC (`RELOAD`)
 [DNSBL](#dnsbl)                                     | Built-in DNS blacklist checking
-[LOLCAT](#lolcat)                                   | SPEEK LIEK A LOLCATZ (LOLCAT)
+[LOLCAT](#lolcat)                                   | SPEEK LIEK A LOLCATZ (`LOLCAT`)
 
 # Essentials
 
@@ -225,7 +225,7 @@ entire JELP implementation at once.
 ## TS6
 
 The set of TS6 modules comprise the TS6 linking protocol implementation. These
-modules allow juno-ircd to establish connections with IRC servers and running
+modules allow juno-ircd to establish connections with IRC servers running
 different software, as well as many IRC services packages.
 
 When linking juno-ircd to other instances of juno-ircd, the Juno Extensible
@@ -696,7 +696,8 @@ Values are encoded in these formats:
 * __String__ - `"it's some text"`
 * __List__ - `[ 1, 2, "text" ]`
 * __Map__ - `{ "key": "value", "other": "another" }`
-* __Bool__ - `on` or `off`
+* __Boolean__ - `on` or `off`
+* __Null__ - `undef`
 
 **`CONFGET`** fetches and displays the current configuration value at a
 specified location. Requires the `confget` oper flag.

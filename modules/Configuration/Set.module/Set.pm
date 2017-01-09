@@ -20,6 +20,7 @@ use strict;
 use 5.010;
 
 use utils qw(conf);
+use Evented::Database qw(edb_encode edb_decode);
 
 our ($api, $mod, $pool, $me, $conf);
 
@@ -44,9 +45,20 @@ our %user_commands = (
     CONFGET => {
         code    => \&cmd_confget,
         desc    => 'get a configuration value',
-        params  => '-oper(confget) *(opt)      *'
+        params  => '-oper(confget) *           *'
                   #                server_mask location
     }
+);
+
+my @help_text = (
+    'Incorrect value syntax. Please refer to these examples:',
+    '| ----------- | ------------ | --------- |',
+    '| Number      | String       | Boolean   |',
+    '| 3.14        | "some text"  | on/off    |',
+    '| ----------- | ------------ | --------- |',
+    '| List        | Map          | Null      |',
+    '| [ 1, "hi" ] | { "a": "b" } | undef     |',
+    '| ----------- | ------------ | --------- |'
 );
 
 sub init {
@@ -123,7 +135,7 @@ sub cmd_confget {
 
     # get
     my $pretty    = pretty_location(@location);
-    my $value_str = encode_value(conf(@location)) // "\2undef\2";
+    my $value_str = pretty_value($conf->_get(1, @location));
 
     my $serv_name = $user->is_local ? '' : " <$$me{name}>";
     $user->server_notice(confget => "$pretty = $value_str$serv_name");
@@ -145,17 +157,19 @@ sub cmd_confset {
     }
 
     # handle input
-    my $value  = parse_value($value_str);
-    if (defined $value && $value eq '_BAD_INPUT_') {
-        $user->server_notice(
-            confset => 'Invalid value; must be encoded in Evented::Database format'
+    my ($ok, $value) = parse_value($value_str);
+    if (!$ok) {
+        chomp $value;
+        $user->server_notice(confset => $_) for (
+            $value,
+            @help_text
         );
         return;
     }
 
     # store
     my $pretty = pretty_location(@location);
-    $value_str = encode_value($value) // "\2undef\2";
+    $value_str = pretty_value($value);
     $conf->store(@location, $value);
 
     my $serv_name = $user->is_local ? '' : " <$$me{name}>";
@@ -184,15 +198,22 @@ sub pretty_location {
 
 sub parse_value {
     my $str = shift;
-    return undef if $str eq 'undef' || $str eq 'off';
-    return 1 if $str eq 'on';
-    return eval { $Evented::Database::json->decode($str) } // '_BAD_INPUT_';
+
+    # convert EDB undef/on/off
+    return (1, undef) if $str eq 'undef';
+    return (1, Evented::Configuration::on)  if $str eq 'on';
+    return (1, Evented::Configuration::off) if $str eq 'off';
+
+    my $decoded = edb_decode($str);
+    return (!$@, $@ || $decoded);
 }
 
-sub encode_value {
-    my $value = shift;
-    return undef if !defined $value;
-    return eval { Evented::Database::edb_encode($value) };
+sub pretty_value {
+    my $value = edb_encode(shift);
+    return "\2undef\2" if $value eq 'null';
+    return "\2on\2"    if $value eq 'true';
+    return "\2off\2"   if $value eq 'false';
+    return $value;
 }
 
 sub out_confget {
