@@ -139,6 +139,7 @@ sub cmd_confget {
     if (!$ok) {
         chomp $value_str;
         $user->server_notice(confget => $value_str);
+        return;
     }
 
     my $serv_name = $user->is_local ? '' : " <$$me{name}>";
