@@ -306,11 +306,11 @@ sub load_dependencies {
         [ 'Evented::API::Engine',          4.01 ],
         [ 'Evented::API::Module',          4.01 ],
 
-        [ 'Evented::Configuration',        3.96 ],
+        [ 'Evented::Configuration',        3.97 ],
 
-        [ 'Evented::Database',             1.12 ],
-        [ 'Evented::Database::Rows',       1.12 ],
-        [ 'Evented::Database::Table',      1.12 ],
+        [ 'Evented::Database',             1.13 ],
+        [ 'Evented::Database::Rows',       1.13 ],
+        [ 'Evented::Database::Table',      1.13 ],
 
         [ 'Scalar::Util',                  1.00 ],
         [ 'List::Util',                    1.00 ]
