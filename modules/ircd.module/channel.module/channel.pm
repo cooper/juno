@@ -18,7 +18,7 @@ use 5.010;
 use parent 'Evented::Object';
 
 use modes;
-use utils qw(conf v notice match ref_to_list cut_to_length irc_lc);
+use utils qw(conf v notice match ref_to_list cut_to_length irc_lc broadcast);
 use List::Util qw(first max);
 use Scalar::Util qw(blessed looks_like_number);
 
@@ -827,7 +827,7 @@ sub _do_modes {
     # cmode => ($source, $channel, $time, $perspective, $mode_str)
     #
     my $mode_str = $changes->to_string($me, 1, $organize, 1);
-    $pool->fire_command_all(cmode =>
+    broadcast(cmode =>
         $source, $channel, $channel->{time},
         $me, $mode_str
     ) if length $mode_str;
@@ -1154,10 +1154,10 @@ sub attempt_local_join {
 
     # tell other servers
     if ($new) {
-        $pool->fire_command_all(channel_burst => $channel, $me, $user);
+        broadcast(channel_burst => $channel, $me, $user);
     }
     else {
-        $pool->fire_command_all(join => $user, $channel, $channel->{time});
+        broadcast(join => $user, $channel, $channel->{time});
     }
 
     # do the actual join. the $new means to allow the ->do_join() even though

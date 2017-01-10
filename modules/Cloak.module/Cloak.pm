@@ -16,8 +16,9 @@ use warnings;
 use strict;
 use 5.010;
 
-our ($api, $mod, $pool, $me);
+use utils qw(broadcast);
 
+our ($api, $mod, $pool, $me);
 my $cloak_func;
 
 sub init {
@@ -62,7 +63,7 @@ sub enable_cloak {
         $user->get_mask_changed($user->{ident}, $new_host);
 
         # tell other servers if the user has been propagated
-        $pool->fire_command_all(chghost => $me, $user, $new_host)
+        broadcast(chghost => $me, $user, $new_host)
             if $user->{init_complete};
     }
 
@@ -80,7 +81,7 @@ sub disable_cloak {
         $user->get_mask_changed(@$user{'ident', 'host'});
 
         # tell other servers if the user has been propagated
-        $pool->fire_command_all(chghost => $me, $user, $user->{host})
+        broadcast(chghost => $me, $user, $user->{host})
             if $user->{init_complete};
 
     }

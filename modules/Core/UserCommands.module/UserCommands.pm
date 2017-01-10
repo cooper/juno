@@ -18,7 +18,7 @@ use 5.010;
 use Scalar::Util qw(blessed);
 use utils qw(
     col match cut_to_limit conf v notice gnotice
-    simplify ref_to_list irc_match irc_lc
+    simplify ref_to_list irc_match irc_lc broadcast
 );
 
 our ($api, $mod, $me, $pool, $conf);
@@ -275,7 +275,7 @@ sub nick {
 
     # change it.
     $user->change_nick($newnick, time);
-    $pool->fire_command_all(nick_change => $user);
+    broadcast(nick_change => $user);
 
 }
 
@@ -501,7 +501,7 @@ sub _join {
     # part all channels.
     if ($given eq '0') {
         $user->do_part_all();
-        $pool->fire_command_all(part_all => $user);
+        broadcast(part_all => $user);
         return 1;
     }
 
@@ -608,7 +608,7 @@ sub oper {
     $user->{oper} = $oper_name;
 
     # tell other servers
-    $pool->fire_command_all(oper => $user, @flags);
+    broadcast(oper => $user, @flags);
 
     return 1;
 }
@@ -811,8 +811,8 @@ sub away {
     my $ok = $user->do_away($reason);
 
     # status 1 = set away, 2 = unset away
-    $pool->fire_command_all(away        => $user) if $ok && $ok == 1;
-    $pool->fire_command_all(return_away => $user) if $ok && $ok == 2;
+    broadcast(away        => $user) if $ok && $ok == 1;
+    broadcast(return_away => $user) if $ok && $ok == 2;
 
     return 1;
 }
@@ -828,7 +828,7 @@ sub part {
 
     # tell channel's users and servers.
     $channel->do_part($user, $reason);
-    $pool->fire_command_all(part => $user, $channel, $reason);
+    broadcast(part => $user, $channel, $reason);
 
     return 1;
 }
@@ -1011,7 +1011,7 @@ sub topic {
         my $time = time;
         # ($source, $topic, $setby, $time, $check_text)
         $channel->do_topic($user, $new_topic, $user->full, $time);
-        $pool->fire_command_all(topic => $user, $channel, $time, $new_topic);
+        broadcast(topic => $user, $channel, $time, $new_topic);
     }
 
     # viewing topic
@@ -1172,7 +1172,7 @@ sub ukill {
 
     # kill
     $tuser->get_killed_by($user, $reason);
-    $pool->fire_command_all(kill => $user, $tuser, $reason);
+    broadcast(kill => $user, $tuser, $reason);
 
     $user->server_notice('kill', "$$tuser{nick} has been killed");
     return 1
@@ -1210,7 +1210,7 @@ sub kick {
     $channel->user_get_kicked($t_user, $user, $reason);
 
     # tell the other servers.
-    $pool->fire_command_all(kick => $user, $channel, $t_user, $reason);
+    broadcast(kick => $user, $channel, $t_user, $reason);
 
     return 1;
 }
@@ -1330,7 +1330,7 @@ sub squit {
                 next;
             }
             $server->quit($reason);
-            $pool->fire_command_all(quit => $server, $reason, $user);
+            broadcast(quit => $server, $reason, $user);
         }
 
         $amnt++;

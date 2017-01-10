@@ -19,7 +19,7 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils qw(conf irc_match notice ref_to_list irc_lc);
+use utils qw(conf irc_match notice ref_to_list irc_lc broadcast);
 use M::TS6::Utils qw(
     ts6_id sid_from_ts6 user_from_ts6
     server_from_ts6 ts6_uid ts6_sid
@@ -243,7 +243,7 @@ sub rcmd_ping {
     my $server = $connection->server or return;
     $server->{is_burst} or return;
     $server->end_burst();
-    $pool->fire_command_all(endburst => $server, time);
+    broadcast(endburst => $server, time);
 }
 
 sub server_ready {
@@ -300,7 +300,7 @@ sub server_propagated {
     notice(server_burst => $server->notice_info);
 
     # tell other servers
-    $pool->fire_command_all(burst => $server, time);
+    broadcast(burst => $server, time);
 }
 
 $mod

@@ -17,10 +17,15 @@ use strict;
 use 5.010;
 
 use Scalar::Util qw(blessed);
-use utils qw(import ref_to_list notice gnotice conf);
+use utils qw(import ref_to_list notice gnotice conf broadcast);
 
 our ($api, $mod, $pool, $me, $conf);
 our %ircd_support;
+
+sub init {
+    $pool->on(rehash_success => sub { %ircd_support = () });
+    return 1;
+}
 
 #################################
 ### PROTOCOL-GENERIC HANDLERS ###
@@ -59,13 +64,13 @@ sub handle_nick_collision {
 
         # if we can't save the new user, kill him.
         if ($kill_new) {
-            $pool->fire_command_all(kill => $me, $new, 'Nick collision');
+            broadcast(kill => $me, $new, 'Nick collision');
         }
 
         # if we can't save the old user, kill him.
         if ($kill_old) {
             $old->get_killed_by($me, 'Nick collision');
-            $pool->fire_command_all(kill => $me, $old, 'Nick collision');
+            broadcast(kill => $me, $old, 'Nick collision');
         }
 
         return 1; # true value = return the handler
@@ -80,7 +85,7 @@ sub handle_nick_collision {
     # Send out a SAVE for the existing user
     # and broadcast a local nick change to his UID.
     if ($kill_old) {
-        $pool->fire_command_all(save_user => $me, $old, $old->{nick_time});
+        broadcast(save_user => $me, $old, $old->{nick_time});
         $old->save_locally;
     }
 
@@ -126,7 +131,7 @@ sub handle_svsnick {
     elsif ($existing && $existing != $user) {
         my $reason = 'Nickname regained by services';
         $existing->get_killed_by($source_serv, $reason);
-        $pool->fire_command_all(kill => $source_serv, $existing, $reason);
+        broadcast(kill => $source_serv, $existing, $reason);
     }
 
     # change the nickname.
@@ -563,7 +568,7 @@ sub cmode_change_end {
     my @removed = keys %$previously_enabled;
 
     return if !@added && !@removed;
-    $pool->fire_command_all(add_cmodes => $server, \@added, \@removed);
+    broadcast(add_cmodes => $server, \@added, \@removed);
     $pool->fire(cmodes_changed => \@added, \@removed);
 }
 
@@ -618,7 +623,7 @@ sub umode_change_end {
     my @removed = keys %$previously_enabled;
 
     return if !@added && !@removed;
-    $pool->fire_command_all(add_umodes => $server, \@added, \@removed);
+    broadcast(add_umodes => $server, \@added, \@removed);
     $pool->fire(umodes_changed => \@added, \@removed);
 }
 

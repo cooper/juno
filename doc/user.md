@@ -417,7 +417,7 @@ Handles a kill on a local level. The user being killed does not have to be
 local.
 
 Servers are NOT notified by this method. Local kills MUST be associated with a
-`->fire_command_all()` call, and remote kills MUST be broadcast
+`broadcast()` call, and remote kills MUST be broadcast
 to other uplinks with `->forward()`.
 
 ```perl

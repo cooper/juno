@@ -12,5 +12,5 @@
    "description" : "provides the MODESYNC user command to fix desyncs",
    "name" : "Channel::ModeSync::Desync",
    "package" : "M::Channel::ModeSync::Desync",
-   "version" : "0.5"
+   "version" : "0.6"
 }

@@ -431,6 +431,12 @@ sub gnotice {
     return $message;
 }
 
+# shortcut to ->fire_command_all()
+sub broadcast {
+    return unless pool->can('fire_command_all') && $::pool;
+    return $::pool->fire_command_all(@_);
+}
+
 # convert a string list of channels to channel objects.
 # e.g. "#a,#b,#c"
 # nonexistent channels are ignored

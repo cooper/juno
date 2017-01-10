@@ -19,7 +19,7 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils qw(gnotice simplify);
+use utils qw(gnotice simplify broadcast);
 
 our ($api, $mod, $pool, $me);
 
@@ -57,7 +57,7 @@ sub grant {
         $user->update_flags;
 
         # tell other servers
-        $pool->fire_command_all(oper => $user, @flags);
+        broadcast(oper => $user, @flags);
     }
 
     # send out FOPER.
@@ -93,9 +93,9 @@ sub ungrant {
         $user->update_flags;
 
         # tell other servers
-        $pool->fire_command_all(oper => $user, map { "-$_" } @flags);
+        broadcast(oper => $user, map { "-$_" } @flags);
     }
-    
+
     # send out FOPER.
     else {
         $t_user->{location}->fire_command(foper =>

@@ -12,5 +12,5 @@
    "description" : "grant privileges to a user",
    "name" : "Grant",
    "package" : "M::Grant",
-   "version" : "3.3"
+   "version" : "3.4"
 }

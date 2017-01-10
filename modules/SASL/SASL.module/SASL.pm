@@ -22,7 +22,7 @@ use 5.010;
 
 use MIME::Base64;
 use Scalar::Util qw(weaken);
-use utils qw(conf);
+use utils qw(conf broadcast);
 
 our ($api, $mod, $pool, $me);
 
@@ -266,7 +266,7 @@ sub update_user_info {
             else {
                 my $reason = 'Nickname regained by services';
                 $existing->get_killed_by($me, $reason);
-                $pool->fire_command_all(kill => $me, $existing, $reason);
+                broadcast(kill => $me, $existing, $reason);
             }
         }
     }
@@ -287,7 +287,7 @@ sub update_user_info {
                 $source->name                               # setby
             );
         }
-        $pool->fire_command_all(signon =>
+        broadcast(signon =>
             $user,                                          # user
             $update_nick  ? $nick    : $user->{nick},       # new nick
             $update_ident ? $ident   : $user->{ident},      # new ident

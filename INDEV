@@ -3958,3 +3958,5 @@ CHANGES:
         new startup_error() prevents the IRCd from booting in the case of a configuration or dependency error.
         update Evented::Configuration.
         update Evented::API::Engine.
+
+    74. new broadcast() utility replaces ->fire_command_all().

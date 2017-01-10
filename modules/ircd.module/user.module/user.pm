@@ -26,7 +26,7 @@ use List::Util   'first';
 use Scalar::Util 'blessed';
 use utils qw(
     v notice col conf irc_time cut_to_limit irc_lc
-    simplify ref_to_list
+    simplify ref_to_list broadcast
 );
 
 our ($api, $mod, $pool, $me);
@@ -973,7 +973,7 @@ sub _new_connection {
     $user->fire('initially_set_modes');
 
     # tell other servers
-    $pool->fire_command_all(new_user => $user);
+    broadcast(new_user => $user);
     $user->fire('initially_propagated');
     $user->{initially_propagated}++;
 
@@ -1056,7 +1056,7 @@ sub _do_mode_string {
         if $user->is_local && length $result > 1;
 
     # tell other servers.
-    $pool->fire_command_all(umode => $user, $result)
+    broadcast(umode => $user, $result)
         unless $no_prop;
 
     return $result;

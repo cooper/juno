@@ -15,7 +15,7 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils qw(gnotice);
+use utils qw(gnotice broadcast);
 
 our ($api, $mod, $pool, $me);
 
@@ -35,12 +35,12 @@ sub modesync {
 
     # send a MODEREQ to *
     # ($source_serv, $ch_maybe, $serv_maybe, $modes_maybe)
-    $pool->fire_command_all(modereq => $me, $channel, undef, undef);
+    broadcast(modereq => $me, $channel, undef, undef);
 
     # send a MODEREP with my own modes to *
     # ($source_serv, $channel, $serv_maybe, $mode_string)
     my (undef, $mode_str) = $channel->mode_string_all($me);
-    $pool->fire_command_all(moderep =>
+    broadcast(moderep =>
         $me, $channel,
         undef, # reply to *
         $mode_str

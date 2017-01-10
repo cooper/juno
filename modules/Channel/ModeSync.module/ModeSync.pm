@@ -17,6 +17,8 @@ use warnings;
 use strict;
 use 5.010;
 
+use utils qw(broadcast);
+
 our ($api, $mod, $pool, $me);
 
 sub init {
@@ -70,7 +72,7 @@ sub cmodes_changed {
         $letters .= $letter;
     }
 
-    $pool->fire_command_all(modereq => $me, undef, undef, $letters)
+    broadcast(modereq => $me, undef, undef, $letters)
         if length $letters;
 }
 

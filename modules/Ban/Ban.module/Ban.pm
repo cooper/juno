@@ -22,7 +22,7 @@ use 5.010;
 
 use IO::Async::Timer::Absolute;
 use Scalar::Util qw(weaken);
-use utils qw(notice string_to_seconds pretty_time pretty_duration);
+use utils qw(notice string_to_seconds pretty_time pretty_duration broadcast);
 
 our ($api, $mod, $pool, $conf, $me);
 my $loop;
@@ -436,7 +436,7 @@ sub create_my_ban {
     $ban->set_recent_source($source) if $source;
 
     # forward it
-    $pool->fire_command_all(baninfo => $ban);
+    broadcast(baninfo => $ban);
 
     return $ban;
 }
@@ -468,7 +468,7 @@ sub handle_del {
     # disable it
     $ban->disable;
     $ban->set_recent_source($source);
-    $pool->fire_command_all(bandel => $ban);
+    broadcast(bandel => $ban);
 
     $ban->notify_delete($source);
     return 1;

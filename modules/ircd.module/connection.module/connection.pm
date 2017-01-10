@@ -19,7 +19,7 @@ use parent 'Evented::Object';
 
 use Socket::GetAddrInfo;
 use Scalar::Util qw(weaken blessed looks_like_number);
-use utils qw(conf v notice);
+use utils qw(conf v notice broadcast);
 
 our ($api, $mod, $me, $pool);
 
@@ -217,7 +217,7 @@ sub ready {
         $connection->fire(server_ready => $server);
 
         # tell other servers.
-        $pool->fire_command_all(new_server => $server);
+        broadcast(new_server => $server);
         $server->fire('initially_propagated');
         $server->{initially_propagated}++;
     }
@@ -282,7 +282,7 @@ sub done {
     if ($connection->{type} && !$connection->{type}{did_quit}) {
 
         # share this quit with the children.
-        $pool->fire_command_all(quit => $connection, $reason)
+        broadcast(quit => $connection, $reason)
             if $connection->{type}{initially_propagated} &&
             !$connection->{killed};
 
