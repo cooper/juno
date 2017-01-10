@@ -344,7 +344,6 @@ sub setup_config {
         db       => $dbh,
         conffile => "$::run_dir/etc/default.conf"
     );
-    $conf = $new_conf if !$conf;
 
     # this can return nothing in the case of error
     return startup_error("Failed to initialize Evented::Database", 2)
@@ -364,10 +363,10 @@ sub setup_config {
     return startup_error($err, 2) if !$ok;
 
     # developer mode?
-    $api->{developer} = conf('server', 'developer');
+    $api->{developer} = $new_conf->get('server', 'developer');
 
     # casemapping - only set ONCE.
-    $::casemapping ||= conf('server', 'casemapping');
+    $::casemapping ||= $new_conf->get('server', 'casemapping');
 
     # remove expired RESVs.
     $pool->expire_resvs() if $pool;
@@ -504,14 +503,14 @@ sub setup_sockets {
         my %listen = $conf->hash_of_block(['listen', $addr]);
 
         KEY: foreach my $key (keys %listen) {
-            $key =~ m/^(.*?)(ssl)?port$/ or next;
+            $key =~ m/^(.*?)(ssl)?port$/ or next KEY;
             my ($prefix, $is_ssl) = ($1, $2);
             my @ports  = ref_to_list($listen{$key});
 
             # SSL?
             if ($is_ssl) {
-                load_or_reload('IO::Async::SSL',       0.14) or next;
-                load_or_reload('IO::Async::SSLStream', 0.14) or next;
+                load_or_reload('IO::Async::SSL',       0.14) or next KEY;
+                load_or_reload('IO::Async::SSLStream', 0.14) or next KEY;
             }
 
              # listen.
@@ -1089,7 +1088,7 @@ sub rehash {
 
 # handle a HUP
 sub signalhup {
-    notice(rehash => 'HUP signal', 'someone', 'localhost');
+    notice(rehash => 'HUP signal');
     rehash();
 }
 

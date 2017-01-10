@@ -16,7 +16,7 @@ use strict;
 use 5.010;
 
 use List::Util qw(first);
-use utils qw(ref_to_list);
+use utils qw(ref_to_list broadcast);
 
 our ($api, $mod, $me, $pool);
 
@@ -77,6 +77,7 @@ sub knock {
     # send ERR_TOOMANYKNOCK on fail.
 
     $channel->fire(knock => $user);
+    broadcast(knock => $user, $channel);
 }
 
 sub on_user_can_knock {
@@ -96,7 +97,11 @@ sub on_channel_knock {
         unless $channel->is_mode('free_invite');
     $_->numeric(RPL_KNOCK => $channel->name, $user->full) for @notify;
 
-    $user->numeric(RPL_KNOCKDLVR => $channel->name) if $user->is_local;
+    # TODO: (#153) increment the knock count on this channel
+
+    # notify the user that the knock was delivered if he's local
+    $user->numeric(RPL_KNOCKDLVR => $channel->name)
+        if $user->is_local;
 }
 
 $mod

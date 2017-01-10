@@ -47,6 +47,7 @@ our %ts6_capabilities = (
     CLUSTER     => { required => 0 },   # KLINE, XLINE, RESV, LOCOPS
     EOPMOD      => { required => 0 },   # extended topic burst (ETB), +z stuff
     CHW         => { required => 0 },   # messages to @#channel
+    KNOCK       => { required => 0 },   # request for channel invitation
 );
 
 our %registration_commands = (

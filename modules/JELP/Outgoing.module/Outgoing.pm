@@ -58,6 +58,7 @@ my %ocommands = (
     lusers          => \&lusers,
     users           => \&users,
     info            => \&info,
+    knock           => \&knock,
     force_nick      => \&fnick,
     force_join      => \&fjoin,
     force_part      => \&fpart,
@@ -730,6 +731,11 @@ sub signon {
         nick_time => $new_nick_time,
         account   => length $new_act_name ? $new_act_name : '*'
     );
+}
+
+sub knock {
+    my ($to_server, $user, $channel) = @_;
+    ":$$user{uid} KNOCK $$channel{name}"
 }
 
 $mod

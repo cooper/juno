@@ -22,7 +22,7 @@ use Scalar::Util 'blessed';
 our ($api, $mod);
 
 # fetch a configuration file.
-sub conf { $ircd::conf->get(@_) }
+sub conf { ($ircd::conf or return)->get(@_) }
 
 # store something in the database.
 sub db_store {
@@ -139,7 +139,7 @@ sub validchan {
 
 sub irc_lc {
     my ($name, $map) = @_;
-    $map ||= $::casemapping || conf('server', 'casemapping');
+    $map ||= $::casemapping;
 
     # rfc1459
     # A-Z   -> a-z

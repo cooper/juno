@@ -257,6 +257,11 @@ our %ts6_incoming_commands = (
                   # :sid ENCAP     serv_mask SNOTE    letter :message
         params => '-source(server) *         skip     *      *',
         code   => \&realhost
+    },
+    KNOCK => {
+                  # :uid KNOCK   channel
+        params => '-source(user) channel',
+        code   => \&knock
     }
 );
 
@@ -1717,6 +1722,20 @@ sub snote {
 
     # === Forward ===
     $msg->forward(snotice => $server, $notice, $message, undef, $letter);
+}
+
+# KNOCK
+#
+# capab:        KNOCK
+# source:       user
+# parameters:   channel
+# propagation:  broadcast
+#
+sub knock {
+    my ($server, $msg, $user, $channel) = @_;
+    $channel->fire(knock => $user);
+    # === Forward ===
+    $msg->forward(knock => $user, $channel);
 }
 
 $mod

@@ -69,7 +69,7 @@ our %oper_notices = (
     exception               => '%s',
     rehash                  => '%s is rehashing the server',
     rehash_fail             => 'Configuration error: %s',
-    rehash_success          => 'Server configuration reloaded successfully'
+    rehash_success          => 'Server configuration rehashed successfully'
 
 );
 

@@ -3960,3 +3960,5 @@ CHANGES:
         update Evented::API::Engine.
 
     74. new broadcast() utility replaces ->fire_command_all().
+
+    75. added KNOCK in TS6 and JELP. closes #166.

@@ -70,6 +70,7 @@ our %ts6_outgoing_commands = (
      lusers         => \&lusers,
      users          => \&users,
      invite         => \&invite,
+     knock          => \&knock,
      snotice        => \&snote,
      su_login       => \&su_login,
      su_logout      => \&su_logout,
@@ -1181,6 +1182,24 @@ sub rsfnc {
     $new_nick,              # new nickname
     $new_nick_ts,           # new nick TS
     $old_nick_ts;           # old nick TS
+}
+
+# KNOCK
+#
+# capab:        KNOCK
+# source:       user
+# parameters:   channel
+# propagation:  broadcast
+#
+sub knock {
+    my ($to_server, $user, $channel) = @_;
+
+    # KNOCK not supported
+    return if !$to_server->has_cap('KNOCK');
+
+    sprintf ':%s KNOCK %s',
+    ts6_id($user),
+    $channel->name;
 }
 
 $mod

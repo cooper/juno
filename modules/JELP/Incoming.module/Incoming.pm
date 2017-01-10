@@ -203,6 +203,11 @@ my %scommands = (
                   # :uid FUSERINFO uid
         params => '-source(server) user',
         code   => \&fuserinfo
+    },
+    KNOCK => {
+                  # :uid KNOCK   channel
+        params => '-source(user) channel',
+        code   => \&knock
     }
 );
 
@@ -1179,6 +1184,14 @@ sub flogin {
 sub fuserinfo {
     my ($server, $msg, $source_serv, $user) = @_;
     return _userinfo($source_serv, $server, $msg, $user);
+}
+
+# request channel invitation
+sub knock {
+    my ($server, $msg, $user, $channel) = @_;
+    $channel->fire(knock => $user);
+    # === Forward ===
+    $msg->forward(knock => $user, $channel);
 }
 
 $mod
