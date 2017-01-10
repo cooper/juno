@@ -3962,3 +3962,7 @@ CHANGES:
     74. new broadcast() utility replaces ->fire_command_all().
 
     75. added KNOCK in TS6 and JELP. closes #166.
+
+    76. cleaned up Core::UserCommands for 2017.
+        fixed a bug where remote VERSION query would send RPL_ISUPPORT.
+        update Evented::Database.

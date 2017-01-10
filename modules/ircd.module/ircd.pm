@@ -323,9 +323,9 @@ sub load_dependencies {
 
         [ 'Evented::Configuration',        4.00 ],
 
-        [ 'Evented::Database',             1.14 ],
-        [ 'Evented::Database::Rows',       1.14 ],
-        [ 'Evented::Database::Table',      1.14 ],
+        [ 'Evented::Database',             1.15 ],
+        [ 'Evented::Database::Rows',       1.15 ],
+        [ 'Evented::Database::Table',      1.15 ],
 
         [ 'Scalar::Util',                  1.00 ],
         [ 'List::Util',                    1.00 ]

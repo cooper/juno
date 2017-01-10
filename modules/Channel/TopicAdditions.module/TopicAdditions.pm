@@ -37,13 +37,13 @@ our %user_commands = (
 sub cmd_prepend {
     my ($user, $event, $channel, $new) = @_;
     $new = "$new | $$channel{topic}{topic}" if $channel->{topic};
-    return $user->handle_unsafe("TOPIC $$channel{name} :$new");
+    return $user->handle("TOPIC $$channel{name} :$new");
 }
 
 sub cmd_append {
     my ($user, $event, $channel, $new) = @_;
     $new = "$$channel{topic}{topic} | $new" if $channel->{topic};
-    return $user->handle_unsafe("TOPIC $$channel{name} :$new");
+    return $user->handle("TOPIC $$channel{name} :$new");
 }
 
 $mod
