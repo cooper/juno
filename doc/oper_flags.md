@@ -9,12 +9,12 @@ Those with all are gods, capable of anything.
 
 ### grant
 
-Use GRANT command. Note that this allows the user to apply any flags to himself,
-even "all."
+Use `GRANT` to add and remove oper privileges from a user. Note that this allows
+the user to apply any flags to himself as well.
 
 ### (g)rehash
 
-Reload the local server configuration or remote servers (g)lobally.
+Reload the server configuration with `REHASH`.
 
 ### see_invisible
 
@@ -22,66 +22,68 @@ See invisible (+i) users where they would otherwise be hidden.
 
 ### see_hosts
 
-Show users' hostnames and IP addresses in WHOIS.
+Show users' hostnames and IP addresses in `WHOIS`.
 
 ### see_secret
 
-See secret and private channels where they would otherwise be hidden.
+See secret (+s) and private (+p) channels where they would otherwise be hidden.
 
 ### (g)squit
 
-Disconnect links to the local server or issue SQUIT command (g)lobally.
+Disconnect uplinks from the server with `SQUIT`.
 
 ### (g)connect
 
-Establish links to the local server or issue CONNECT command (g)lobally.
+Establish uplinks to the server with `CONNECT`.
 
 ### (g)kill
 
-Kill users locally or (g)lobally.
+Remove a user from the server with the `KILL` command.
 
 ### modules
 
-Use MODLOAD, MODUNLOAD, and MODRELOAD commands.
+Use `MODLOAD`, `MODUNLOAD`, and `MODRELOAD` commands.
 
 ### (g)update
 
-Update the git repository on the local server or (g)lobally.
+Update the server git repository with `UPDATE`.
 
 ### (g)checkout
 
-Switch branches or commits on the git repository of the local server or
-(g)lobally.
+Switch the server git repository to a different release with `CHECKOUT`.
 
 ### (g)reload
 
-Issue a RELOAD command locally or (g)lobally.
+Reload the server with the `RELOAD` command.
 
 ### kline
 
-Add and remove K-Lines.
+Add and remove K-Lines with `KLINE` and `UNKLINE`.
 
 ### dline
 
-Add and remove D-Lines.
+Add and remove D-Lines with `DLINE` and `UNDLINE`.
 
 ### resv
 
-Add and remove channel and nickname reservations.
+Add and remove channel and nickname reservations with `RESV` and `UNRESV`.
 
 ### list_bans
 
-View K-Lines, D-Lines, etc.
+View K-Lines, D-Lines, etc. with the `BANS` command.
 
 ### (g)confget
 
-Use CONFGET command to view the server configuration locally or (g)lobally.
+Use `CONFGET` to view the server configuration.
 
 ### (g)confset
 
-Use CONFSET command to dynamically modify the server configuration locally or
-(g)lobally.
+Use `CONFSET` to dynamically modify the server configuration.
 
 ### set_permanent
 
-Mark channels as permanent (+P) or temporary.
+Mark channels as permanent (+P).
+
+### modesync
+
+Fix channel desyncs with the `MODESYNC` command.
