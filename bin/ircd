@@ -13,7 +13,7 @@ BEGIN {
         /evented-api-engine/lib))) { unshift @INC, $_ }
     require Evented::API::Engine;
 }
-sub get_version { $_ = $api->_slurp(undef, undef, "$run_dir/VERSION"); chomp; $_ }
+sub get_version { $_ = $api->_slurp('ircd', "$run_dir/VERSION"); chomp; $_ }
 sub safe_call   { my $f = shift; (ircd->can($f) or return)->(@_) }
 $api = Evented::API::Engine->new(
     mod_inc => ['modules', 'lib/evented-api-engine/mod'],

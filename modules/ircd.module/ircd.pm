@@ -124,6 +124,7 @@ sub init {
     &misc_upgrades;         # miscellaneous upgrade fixes
 
     L('server initialization complete');
+    $::has_booted = 1;
     return 1;
 }
 
@@ -205,21 +206,22 @@ sub set_variables {
 # boot
 sub boot {
     return if $::has_booted;
-    $boot = 1;
+    $boot++;
     $::VERSION = $VERSION;
     $::notice_warnings = 1;
 
-    # load mandatory boot stuff.
+    # load mandatory boot stuff
     require POSIX;
     require IO::Async;
     require IO::Async::Loop;
 
+    # create loop
     $::loop = $loop = IO::Async::Loop->new;
 
+    # daemonize
     become_daemon();
 
     undef $boot;
-    $::has_booted = 1;
 }
 
 # daemonize
@@ -264,6 +266,18 @@ sub become_daemon {
     }
 }
 
+# startup_error() will prevent the IRCd from starting, should it be called
+# during the initial boot. If the IRCd has already booted (in which case it is
+# like being reloaded), this function only produces a warning: a strongly-worded
+# one, unless $minor is true. $minor == 2 means no warning at all.
+sub startup_error {
+    my ($msg, $minor) = @_;
+    die "\nSTARTUP ERROR\n$msg" if !$::has_booted;
+    $msg = "Very bad error: $msg" unless $minor;
+    warn $msg unless ($minor || 0) == 2;
+    return wantarray ? (undef, $msg) : undef;
+}
+
 # loop indefinitely
 sub loop {
     $loop->loop_forever;
@@ -303,10 +317,11 @@ sub load_dependencies {
         [ 'Evented::Object::Collection',   5.63 ],
         [ 'Evented::Object::EventFire',    5.63 ],
 
-        [ 'Evented::API::Engine',          4.01 ],
-        [ 'Evented::API::Module',          4.01 ],
+        [ 'Evented::API::Engine',          4.02 ],
+        [ 'Evented::API::Module',          4.02 ],
+        [ 'Evented::API::Events',          4.02 ],
 
-        [ 'Evented::Configuration',        3.97 ],
+        [ 'Evented::Configuration',        4.00 ],
 
         [ 'Evented::Database',             1.14 ],
         [ 'Evented::Database::Rows',       1.14 ],
@@ -325,30 +340,28 @@ sub setup_config {
     my $dbh    = DBI->connect("dbi:SQLite:dbname=$dbfile", '', '');
 
     # set up the configuration/database.
-    $conf = Evented::Database->new(
+    my $new_conf = Evented::Database->new(
         db       => $dbh,
         conffile => "$::run_dir/etc/default.conf"
     );
+    $conf = $new_conf if !$conf;
 
-    my $new = !$conf->table('configuration')->exists;
-    $conf->create_tables_maybe;
+    # this can return nothing in the case of error
+    return startup_error("Failed to initialize Evented::Database", 2)
+        if !$new_conf;
+
+    # create Evented::Configuration table if we haven't already.
+    $new_conf->create_tables_maybe;
 
     # parse the default configuration.
-    unless ($new) {
-        $conf->{conffile} = "$::run_dir/etc/default.conf";
-        $conf->parse_config or return;
-    }
+    $new_conf->{conffile} = "$::run_dir/etc/default.conf";
+    my ($ok, $err) = $new_conf->parse_config;
+    return startup_error($err, 2) if !$ok;
 
     # parse the actual configuration.
-    $conf->{conffile} = "$::run_dir/etc/ircd.conf";
-    $conf->parse_config or return;
-
-    # if upgrading, parse default configuration after.
-    if ($new) {
-        $conf->{conffile} = "$::run_dir/etc/default.conf";
-        $conf->parse_config or return;
-        $conf->{conffile} = "$::run_dir/etc/ircd.conf";
-    }
+    $new_conf->{conffile} = "$::run_dir/etc/ircd.conf";
+    ($ok, $err) = $new_conf->parse_config;
+    return startup_error($err, 2) if !$ok;
 
     # developer mode?
     $api->{developer} = conf('server', 'developer');
@@ -359,6 +372,7 @@ sub setup_config {
     # remove expired RESVs.
     $pool->expire_resvs() if $pool;
 
+    $conf = $new_conf;
     return 1;
 }
 
@@ -634,21 +648,18 @@ sub load_or_reload {
     if (!is_loaded($name) && !$name->VERSION) {
         L("Loading $name");
         require $file
-            or L("Very bad error: could not load $name!".($@ || $!))
-            and return;
+            or return startup_error("Could not load $name!".($@ || $!));
         return 1;
     }
 
     # load it.
     L("Reloading package $name");
     do $file
-        or L("Very bad error: could not load $name! ".($@ || $!))
-        and return;
+        or return startup_error("Could not load $name!".($@ || $!));
 
     # version check.
     if ((my $v = $name->VERSION // -1) < $min_v) {
-        L("Very bad error: $name is outdated ($min_v required, $v loaded)");
-        return;
+        return startup_error("$name is outdated ($min_v required, $v loaded)");
     }
 
     return 1;
@@ -1054,10 +1065,11 @@ sub rehash {
         if blessed $user_maybe && $user_maybe->isa('user');
 
     # rehash
-    if (!eval { &setup_config }) {
+    my ($ok, $err) = eval { setup_config() };
+    if (!$ok) {
         $pool->fire('rehash_fail');
         $pool->fire('rehash_after');
-        gnotice(@arg, rehash_fail => $@ || $!);
+        gnotice(@arg, rehash_fail => $err);
         return;
     }
 
@@ -1120,8 +1132,8 @@ sub _L {
 
     # this will call the log_sub which is an anonymous subroutine in
     # the main package which literally just calls say() and nothing else.
-    return unless $obj->can('_log');
-    $obj->_log($line);
+    return unless $obj->can('Log');
+    $obj->Log($line);
 
 }
 

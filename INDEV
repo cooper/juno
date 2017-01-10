@@ -3953,3 +3953,8 @@ CHANGES:
         removed unused Evented::Properties.
         update Evented::Database.
         CONFGET now accepts '*' to list all config values in a block.
+
+    73. greatly improved configuration error handling.
+        new startup_error() prevents the IRCd from booting in the case of a configuration or dependency error.
+        update Evented::Configuration.
+        update Evented::API::Engine.

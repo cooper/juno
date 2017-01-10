@@ -8,5 +8,5 @@
    "no_bless" : 1,
    "package" : "ircd",
    "preserve_sym" : 1,
-   "version" : "1.5"
+   "version" : "1.7"
 }
