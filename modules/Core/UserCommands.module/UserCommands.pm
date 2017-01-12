@@ -1102,7 +1102,7 @@ sub who {
         # RFC 2812 WHO <mask> o
         my $opers_only = length $flag_str && $flag_str eq 'o' ? 'o' : '';
 
-        $flag_str = $opers_only.$default_filter.$default_fields;
+        $flag_str = $opers_only.$default_filter.'%'.$default_fields;
         $who->{old}++;
     }
     $who->{num} = $who->{old} ? 'RPL_WHOREPLY' : 'RPL_WHOSPCRPL';
@@ -1139,7 +1139,14 @@ sub who_users {
     my ($user, $who, @users) = @_;
     foreach my $quser (@users) {
 
-        # unless this is WHO 0, filter the users
+        # skip invisible users, unless we have the see_invisible flag
+        # or share a channel with them
+        next if
+            $quser->is_mode('invisible')            &&
+            !$user->has_flag('see_invisible')       &&
+            !$pool->channel_in_common($user, $quser);
+
+        # unless this is WHO 0, filter the users by the mask
         unless ($who->{show_all}) {
 
             # find the fields we are allowed to match
@@ -1164,13 +1171,6 @@ sub who_users {
             # skip the user if he doesn't match
             next if !first { irc_match($_, $who->{mask}) } @match;
         }
-
-        # skip invisible users, unless we have the see_invisible flag
-        # or share a channel with them
-        next if
-            $quser->is_mode('invisible')            &&
-            !$user->has_flag('see_invisible')       &&
-            !$pool->channel_in_common($user, $quser);
 
         who_query($user, $quser, $who);
     }
