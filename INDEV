@@ -3966,3 +3966,6 @@ CHANGES:
     76. cleaned up Core::UserCommands for 2017.
         fixed a bug where remote VERSION query would send RPL_ISUPPORT.
         update Evented::Database.
+
+    77. rewrote WHO command using who_query event. closes #95.
+        added WHOX support, not quite complete.

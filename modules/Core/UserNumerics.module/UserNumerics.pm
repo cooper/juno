@@ -80,8 +80,9 @@ our %user_numerics = (
     RPL_EXCEPTLIST       => [348, '%s %s'                                                                 ],
     RPL_ENDOFEXCEPTLIST  => [349, '%s :End of channel exception list'                                     ],
     RPL_VERSION          => [351, '%s-%s. %s :started at version %s; currently running %s'                ],
-    RPL_WHOREPLY         => [352, '%s %s %s %s %s %s :%d %s'                                              ],
+    RPL_WHOREPLY         => [352, '%s'                                                                    ],
     RPL_NAMREPLY         => [353, '%s %s :%s'                                                             ],
+    RPL_WHOSPCRPL        => [354, '%s'                                                                    ],
     RPL_LINKS            => [364, '%s %s :%d %s'                                                          ],
     RPL_ENDOFLINKS       => [365, '%s :End of LINKS list'                                                 ],
     RPL_ENDOFNAMES       => [366, '%s :End of NAMES list'                                                 ],
@@ -194,6 +195,7 @@ sub isp_core {
         RFC2812     => $yes,
         FNC         => $yes,
         AWAYLEN     => conf('limit', 'away'),
+        WHOX        => $yes,
         MAXTARGETS  => 1                    # FIXME: (#53) needs work
       # ELIST       => 'flags'              # TODO: (#27) not implemented yet
     );

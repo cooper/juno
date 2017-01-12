@@ -92,7 +92,7 @@ our %user_commands = (
     WHO => {
         code   => \&who,
         desc   => 'familiarize your client with users matching a pattern',
-        params => '*(opt) *(opt)'
+        params => '* ...'
     },
     PART => {
         code   => \&part,
@@ -194,6 +194,7 @@ sub init {
 
     &add_join_callbacks;
     &add_whois_callbacks;
+    &add_who_callbacks;
 
     # capabilities that idk where else to put! :^)
     $mod->register_capability('away-notify');
@@ -924,90 +925,186 @@ sub _connect {
     return 1;
 }
 
-#########################################################################
-#                           WHO query :(                                #
-#-----------------------------------------------------------------------#
-#                                                                       #
-# I'll try to do what rfc2812 says this time.                           #
-#                                                                       #
-# The WHO command is used by a client to generate a query which returns #
-# a list of information which 'matches' the <mask> parameter given by   #
-# the client.  In the absence of the <mask> parameter, all visible      #
-# (users who aren't invisible (user mode +i) and who don't have a       #
-# common channel with the requesting client) are listed.  The same      #
-# result can be achieved by using a <mask> of "0" or any wildcard which #
-# will end up matching every visible user.                              #
-#                                                                       #
-# by the looks of it, we can match a username, nickname, real name,     #
-# host, or server name.                                                 #
-#########################################################################
-# TODO: (#95) clean this up
+# WHO query
 sub who {
-    my ($user, $event, @args) = @_;
-    my $query                = $args[0];
-    my $match_pattern        = '*';
-    my %matches;
+    my ($user, $event, $mask, $flag_str, $whox_mask) = @_;
+    my $who = { users => my $users = [] };
 
-    # match all, like the above note says
-    if ($query eq '0') {
-        foreach my $quser ($pool->all_users) {
-            $matches{ $quser->{uid} } = $quser
-        }
-        # I used UIDs so there are no duplicates
+    # TODO: use $whox_mask when specified, leaving it unaltered.
+    # spaces and commas are permitted in it. useful for realname matching.
+
+    # no flags provided, or the "%" is absent. use old-fashioned who.
+    if (!length $flag_str || index($flag_str, '%') == -1) {
+
+        # RFC 2812 WHO <mask> o
+        my $opers_only = length $flag_str && $flag_str eq 'o';
+
+        $flag_str = ($opers_only ? 'o' : '').'nuhs%cuhsnfdr';
+        $who->{old}++;
     }
 
-    # match an exact channel name
-    elsif (my $channel = $pool->lookup_channel($query)) {
+    # split up, find type, add flags
+    my ($filter_str, $field_str, $type_str) = split /[%,]/, $flag_str, 3;
+    $who->{type} = $type_str if length $type_str;
+    $who->{$_}++ for split //, $field_str;
 
-        # multi-prefix support?
-        my $prefixes = $user->has_cap('multi-prefix') ? 'prefixes' : 'prefix';
-
-        $match_pattern = $channel->name;
-        foreach my $quser ($channel->users) {
-            $matches{ $quser->{uid} } = $quser;
-            $quser->{who_flags}       = $channel->$prefixes($quser);
-        }
+    # the mask may be a channel
+    if (my $channel = $pool->lookup_channel($mask)) {
+        $who->{channel} = $channel;
+        @$users = $channel->users;
     }
 
-    # match a pattern
-    else {
-        foreach my $quser ($pool->all_users) {
-            foreach my $pattern ($quser->{nick}, $quser->{ident}, $quser->{host},
-              $quser->{real}, $quser->{server}{name}) {
-                $matches{ $quser->{uid} } = $quser if match($pattern, $query);
+    # no mask or 0, use all users
+    elsif ($mask eq '0') {
+        @$users = $pool->all_users;
+    }
+
+    # TODO: other masks to match whatever fields are permitted by
+    # the $filter_str.
+
+    # remove invisible users where appropriate
+    @$users = grep {
+        !$_->is_mode('invisible')           ||  # OK - not invisible
+        $user->has_flag('see_invisible')    ||  # OK - can see invisible
+        $pool->channel_in_common($user, $_)     # OK - common channel
+    } @$users;
+
+    # do the query.
+    # NOTE: these handlers must not assume $quser to be local.
+    my $num = $who->{old} ? 'RPL_WHOREPLY' : 'RPL_WHOSPCRPL';
+    foreach my $quser (@$users) {
+        my @fields;
+        $user->fire_event(who_query => $quser, $who, \@fields);
+        my $reply = join ' ', map { length() ? $_ : '*' } @fields;
+        $user->numeric($num => $reply);
+    }
+
+    $user->numeric(RPL_ENDOFWHO => $mask);
+    return 1;
+}
+
+# default callbacks for who_query
+sub add_who_callbacks {
+    my $p = 100;
+    my @who_fields = (
+
+        # type
+        t => sub {
+            my ($ruser, $quser, $who, $fields) = @_;
+            push @$fields, $who->{type};
+        },
+
+        # channel name
+        c => sub {
+            my ($ruser, $quser, $who, $fields) = @_;
+            push @$fields, $who->{channel} ? $who->{channel}{name} : undef;
+        },
+
+        # username
+        u => sub {
+            my ($ruser, $quser, $who, $fields) = @_;
+            push @$fields, $quser->{ident};
+        },
+
+        # IP address
+        i => sub {
+            my ($ruser, $quser, $who, $fields) = @_;
+            my $ip = $ruser->has_flag('see_hosts') ?
+                $quser->{ip} : '255.255.255.255';
+            push @$fields, $ip;
+        },
+
+        # visible hostname
+        h => sub {
+            my ($ruser, $quser, $who, $fields) = @_;
+            push @$fields, $quser->{cloak};
+        },
+
+        # real hostname. fall back to cloak without see_hosts.
+        H => sub {
+            my ($ruser, $quser, $who, $fields) = @_;
+            my $host = $ruser->has_flag('see_hosts') ?
+                $quser->{host} : $quser->{cloak};
+            push @$fields, $host;
+        },
+
+        # server name
+        s => sub {
+            my ($ruser, $quser, $who, $fields) = @_;
+            push @$fields, $quser->server->full;
+        },
+
+        # nickname
+        n => sub {
+            my ($ruser, $quser, $who, $fields) = @_;
+            push @$fields, $quser->{nick};
+        },
+
+        # flags (statuses)
+        f => sub {
+            my ($ruser, $quser, $who, $fields) = @_;
+
+            # gone/here
+            my $flags = length $quser->{away} ? 'G' : 'H';
+
+            # IRCop
+            $flags .= '*' if $quser->is_mode('ircop');
+
+            # channel
+            if (my $channel = $who->{channel}) {
+                my $prefixes = $ruser->has_cap('multi-prefix') ?
+                    'prefixes' : 'prefix';
+                $flags .= $channel->$prefixes($quser);
             }
+
+            push @$fields, $flags;
+        },
+
+        # distance to the user (hops)
+        d => sub {
+            my ($ruser, $quser, $who, $fields) = @_;
+            push @$fields, $ruser->hops_to($quser);
+        },
+
+        # idle time
+        l => sub {
+            my ($ruser, $quser, $who, $fields) = @_;
+            my $last = $quser->conn->{last_command} if $quser->conn;
+            my $idle = time - ($last || 0);
+            push @$fields, $idle;
+        },
+
+        # account name
+        a => sub {
+            my ($ruser, $quser, $who, $fields) = @_;
+            push @$fields, $quser->{account} ? $quser->{account}{name} : undef;
+        },
+
+        # op level
+        o => sub {
+            my ($ruser, $quser, $who, $fields) = @_;
+            push @$fields, undef; #TODO
+        },
+
+        # real name
+        r => sub {
+            my ($ruser, $quser, $who, $fields) = @_;
+            push @$fields, ':'.$quser->{real};
         }
-        # this doesn't have to match anyone
-    }
 
-    # weed out invisibles
-    foreach my $uid (keys %matches) {
-        my $quser     = $matches{$uid};
-        my $who_flags = delete $quser->{who_flags} || '';
+    );
 
-        # weed out invisibles
-        next if
-          $quser->is_mode('invisible')             &&
-          !$pool->channel_in_common($user, $quser) &&
-          !$user->has_flag('see_invisible');
-
-        # rfc2812:
-        # If the "o" parameter is passed only operators are returned according
-        # to the <mask> supplied.
-        next if ($args[2] && index($args[2], 'o') != -1 && !$quser->is_mode('ircop'));
-
-        # found a match
-        $who_flags = (length $quser->{away}  ? 'G' : 'H') .
-                     ($quser->is_mode('bot') ? 'B' : '' ) .
-                     $who_flags . ($quser->is_mode('ircop') ? '*' : q||);
-        $user->numeric(RPL_WHOREPLY =>
-            $match_pattern, $quser->{ident}, $quser->{host}, $quser->{server}{name},
-            $quser->{nick}, $who_flags, $user->hops_to($quser), $quser->{real}
+    while (my ($flag, $code) = splice @who_fields, 0, 2) {
+        $pool->on('user.who_query' => sub {
+            my ($ruser, $event, $quser, $who, $fields) = @_;
+            return unless $who->{$flag};
+            $code->($ruser, $quser, $who, $fields);
+        },
+            name     => "who.$flag",
+            priority => $p -= 5,
+            with_eo  => 1
         );
     }
-
-    $user->numeric(RPL_ENDOFWHO => $query);
-    return 1;
 }
 
 # view/set a channel topic
