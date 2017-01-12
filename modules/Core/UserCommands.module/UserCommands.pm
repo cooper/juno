@@ -92,7 +92,7 @@ our %user_commands = (
     WHO => {
         code   => \&who,
         desc   => 'familiarize your client with users matching a pattern',
-        params => '* ...'
+        params => '* ...(opt)'
     },
     PART => {
         code   => \&part,
@@ -925,63 +925,6 @@ sub _connect {
     return 1;
 }
 
-# WHO query
-sub who {
-    my ($user, $event, $mask, $flag_str, $whox_mask) = @_;
-    my $who = { users => my $users = [] };
-
-    # TODO: use $whox_mask when specified, leaving it unaltered.
-    # spaces and commas are permitted in it. useful for realname matching.
-
-    # no flags provided, or the "%" is absent. use old-fashioned who.
-    if (!length $flag_str || index($flag_str, '%') == -1) {
-
-        # RFC 2812 WHO <mask> o
-        my $opers_only = length $flag_str && $flag_str eq 'o';
-
-        $flag_str = ($opers_only ? 'o' : '').'nuhs%cuhsnfdr';
-        $who->{old}++;
-    }
-
-    # split up, find type, add flags
-    my ($filter_str, $field_str, $type_str) = split /[%,]/, $flag_str, 3;
-    $who->{type} = $type_str if length $type_str;
-    $who->{$_}++ for split //, $field_str;
-
-    # the mask may be a channel
-    if (my $channel = $pool->lookup_channel($mask)) {
-        $who->{channel} = $channel;
-        @$users = $channel->users;
-    }
-
-    # no mask or 0, use all users
-    elsif ($mask eq '0') {
-        @$users = $pool->all_users;
-    }
-
-    # TODO: other masks to match whatever fields are permitted by
-    # the $filter_str.
-
-    # remove invisible users where appropriate
-    @$users = grep {
-        !$_->is_mode('invisible')           ||  # OK - not invisible
-        $user->has_flag('see_invisible')    ||  # OK - can see invisible
-        $pool->channel_in_common($user, $_)     # OK - common channel
-    } @$users;
-
-    # do the query.
-    # NOTE: these handlers must not assume $quser to be local.
-    my $num = $who->{old} ? 'RPL_WHOREPLY' : 'RPL_WHOSPCRPL';
-    foreach my $quser (@$users) {
-        my @fields;
-        $user->fire_event(who_query => $quser, $who, \@fields);
-        my $reply = join ' ', map { length() ? $_ : '*' } @fields;
-        $user->numeric($num => $reply);
-    }
-
-    $user->numeric(RPL_ENDOFWHO => $mask);
-    return 1;
-}
 
 # default callbacks for who_query
 sub add_who_callbacks {
@@ -991,7 +934,9 @@ sub add_who_callbacks {
         # type
         t => sub {
             my ($ruser, $quser, $who, $fields) = @_;
-            push @$fields, $who->{type};
+            my $type = $who->{type};
+            $type = 0 if !$type || length $type > 3;
+            push @$fields, $type;
         },
 
         # channel name
@@ -1097,7 +1042,7 @@ sub add_who_callbacks {
     while (my ($flag, $code) = splice @who_fields, 0, 2) {
         $pool->on('user.who_query' => sub {
             my ($ruser, $event, $quser, $who, $fields) = @_;
-            return unless $who->{$flag};
+            return unless $who->{"field_$flag"};
             $code->($ruser, $quser, $who, $fields);
         },
             name     => "who.$flag",
@@ -1105,6 +1050,147 @@ sub add_who_callbacks {
             with_eo  => 1
         );
     }
+}
+
+# WHO query
+sub who {
+    my ($user, $event, $mask, $flag_str, $whox_mask) = @_;
+    my ($default_filter, $default_fields) = ('nuhs', 'cuhsnfdr');
+    my $who = {};
+
+    # STEP 1: Find unfiltered users and channels
+
+    # use $whox_mask when specified, leaving it unaltered.
+    # spaces and commas are permitted in it. useful for realname matching.
+    if (length $whox_mask) {
+        $mask = $whox_mask;
+        undef $whox_mask;
+    }
+
+    # otherwise, use $mask, separating each mask by comma.
+    # like other servers, we only allow one mask per query now.
+    else {
+        $mask = (split /,/, $mask, 2)[0];
+    }
+
+    # now find users and channels from each mask
+    my (@channels, @users);
+
+    # maybe a channel
+    if (my $channel = $pool->lookup_channel($mask)) {
+        push @channels, $channel;
+    }
+
+    # for *, only show users sharing a channel with the source user
+    elsif ($mask eq '*') {
+        push @channels, $user->channels;
+    }
+
+    # other mask or 0, use all users
+    else {
+        $who->{show_all}++ if $mask eq '0';
+        push @users, $pool->all_users;
+    }
+
+    $who->{mask} = $mask;
+
+    # STEP 2: Find who filters, fields, and type.
+
+    # no flags provided, or the "%" is absent. use old-fashioned who.
+    if (!length $flag_str || index($flag_str, '%') == -1) {
+
+        # RFC 2812 WHO <mask> o
+        my $opers_only = length $flag_str && $flag_str eq 'o' ? 'o' : '';
+
+        $flag_str = $opers_only.$default_filter.$default_fields;
+        $who->{old}++;
+    }
+    $who->{num} = $who->{old} ? 'RPL_WHOREPLY' : 'RPL_WHOSPCRPL';
+
+    # split up, find type, add flags
+    my ($filter_str, $field_str, $type_str) = split /[%,]/, $flag_str, 3;
+    $filter_str  = $default_filter if !length $filter_str;
+    $field_str   = $default_fields if !length $field_str;
+    $who->{type} = $type_str       if  length $type_str;
+    $who->{"filter_$_"}++          for split //, $filter_str;
+    $who->{"field_$_"}++           for split //, $field_str;
+
+    # STEP 3: Do the queries.
+
+    who_channel($user, $who, $_)   for @channels;
+    who_users($user, $who, @users) if  @users;
+    $user->numeric(RPL_ENDOFWHO => $mask);
+
+    return 1;
+}
+
+# perform a who query on a channel
+sub who_channel {
+    my ($user, $who, $channel) = @_;
+    $who->{channel} = $channel;
+    foreach my $quser ($channel->users) {
+        who_query($user, $quser, $who);
+    }
+    delete $who->{channel};
+}
+
+# perform a who query on a list of users
+sub who_users {
+    my ($user, $who, @users) = @_;
+    foreach my $quser (@users) {
+
+        # unless this is WHO 0, filter the users
+        unless ($who->{show_all}) {
+
+            # find the fields we are allowed to match
+            my @match;
+            push @match, $quser->{nick}
+                if $who->{filter_n};
+            push @match, $quser->{ident}
+                if $who->{filter_u};
+            push @match, $quser->{cloak}
+                if $who->{filter_h};
+            push @match, $quser->{host}
+                if $who->{filter_H} && $user->has_flag('see_hosts');
+            push @match, $quser->{ip}
+                if $who->{filter_i} && $user->has_flag('see_hosts');
+            push @match, $quser->{real}
+                if $who->{filter_r};
+            push @match, $quser->server->full
+                if $who->{filter_s};
+            push @match, $quser->{account}{name}
+                if $who->{filter_a} && $quser->{account};
+
+            # skip the user if he doesn't match
+            next if !first { irc_match($_, $who->{mask}) } @match;
+        }
+
+        # skip invisible users, unless we have the see_invisible flag
+        # or share a channel with them
+        next if
+            $quser->is_mode('invisible')            &&
+            !$user->has_flag('see_invisible')       &&
+            !$pool->channel_in_common($user, $quser);
+
+        who_query($user, $quser, $who);
+    }
+}
+
+# perform a who query using the who_query event.
+# this is not used directly but is used by who_channel() and who_users().
+sub who_query {
+    my ($user, $quser, $who) = @_;
+
+    # special check that applies to all who queries -
+    # if the 'o' filter is specified, skip all non-opers.
+    return if $who->{filter_o} && !$quser->is_mode('ircop');
+
+    # fire who_query event
+    my @fields;
+    $user->fire_event(who_query => $quser, $who, \@fields);
+    my $reply = join ' ', map { length() ? $_ : '*' } @fields;
+
+    $user->numeric($who->{num} => $reply);
 }
 
 # view/set a channel topic

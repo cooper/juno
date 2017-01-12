@@ -3969,3 +3969,5 @@ CHANGES:
 
     77. rewrote WHO command using who_query event. closes #95.
         added WHOX support, not quite complete.
+
+    78. finished WHOX implementation by adding support for field filters.
