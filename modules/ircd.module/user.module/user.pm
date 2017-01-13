@@ -757,6 +757,7 @@ sub do_privmsgnotice {
     my $source_serv = $source if $source->isa('server');
     $command   = uc $command;
     my $lc_cmd = lc $command;
+    my $remote_message = $message;
 
     # tell them of away if set
     if ($source_user && $command eq 'PRIVMSG' && length $user->{away}) {
@@ -831,7 +832,7 @@ sub do_privmsgnotice {
     elsif (!$opts{dont_forward}) {
         $user->forward(privmsgnotice =>
             $command, $source, $user,
-            $message, %opts
+            $remote_message, %opts
         );
     }
 

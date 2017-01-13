@@ -982,6 +982,7 @@ sub do_privmsgnotice {
     undef $source_serv if $source_user;
     $command   = uc $command;
     my $lc_cmd = lc $command;
+    my $remote_message = $message;
 
     # find the destinations
     my @users;
@@ -1100,7 +1101,7 @@ sub do_privmsgnotice {
         next USER if $sent{$location};
 
         $location->forward(privmsgnotice =>
-            $command, $source, $channel, $message, %opts
+            $command, $source, $channel, $remote_message, %opts
         );
         $sent{$location}++;
     }
