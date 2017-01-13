@@ -30,12 +30,13 @@ sub add_user {
     my $user = $pool->new_user(
       # nick  => defaults to UID
       # cloak => defaults to host
-        ident => 'user',
-        host  => ($opts{server} || $me)->name,
-        real  => 'realname',
-        ip    => '0',
-        time  => time,
-        fake  => 1,
+        ident  => 'user',
+        host   => ($opts{server} || $me)->name,
+        real   => 'realname',
+        source => $me->id,
+        ip     => '0',
+        time   => time,
+        fake   => 1,
         %opts
     );
     L('New virtual user '.$user->full);
