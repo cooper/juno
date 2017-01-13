@@ -22,7 +22,7 @@ See invisible (+i) users where they would otherwise be hidden.
 
 ### see_hosts
 
-Show users' hostnames and IP addresses in `WHOIS`.
+Show users' hostnames and IP addresses in `WHO` and `WHOIS`.
 
 ### see_secret
 
