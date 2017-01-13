@@ -458,7 +458,7 @@ sub _join {
     $channel->take_lower_time($time) unless $new;
 
     # do the join.
-    $channel->do_join($user);
+    $channel->do_join_local($user);
 
     # === Forward ===
     $msg->forward(join => $user, $channel, $channel->{time});
@@ -501,7 +501,7 @@ sub away {
 
     # if the reason is not present, the user has returned.
     if (!length $reason) {
-        $user->do_away();
+        $user->do_away_local();
 
         # === Forward ===
         $msg->forward(return_away => $user);
@@ -510,7 +510,7 @@ sub away {
     }
 
     # otherwise, set the away reason.
-    $user->do_away($reason);
+    $user->do_away_local($reason);
 
     # === Forward ===
     $msg->forward(away => $user);
@@ -563,7 +563,7 @@ sub part {
     }
 
     # remove the user and tell others
-    $channel->do_part($user, $reason);
+    $channel->do_part_local($user, $reason);
 
     # === Forward ===
     $msg->forward(part => $user, $channel, $reason);
@@ -710,7 +710,7 @@ sub sjoin {
 
         # join the new user
         push @good_users, $user;
-        $channel->do_join($user);
+        $channel->do_join_local($user);
 
         # no prefixes or not accepting the prefixes.
         next unless length $modes && $accept_new_modes;
@@ -782,7 +782,7 @@ sub topic {
     }
 
     # ($source, $topic, $setby, $time, $check_text)
-    $channel->do_topic($source, $topic, $source->full, time);
+    $channel->do_topic_local($source, $topic, $source->full, time);
 
     # === Forward ===
     $msg->forward(topic => $source, $channel, $channel->{time}, $topic);
@@ -809,7 +809,7 @@ sub topicburst {
 
     # ($source, $topic, $setby, $time, $check_text)
     my $old = $channel->{topic};
-    $channel->do_topic($s_serv, $topic, $setby, $topic_ts, 1);
+    $channel->do_topic_local($s_serv, $topic, $setby, $topic_ts, 1);
 
     # === Forward ===
     $msg->forward(topicburst =>
@@ -839,7 +839,7 @@ sub kick {
     # :id    KICK  channel uid  :reason
     my ($server, $msg, $source, $channel, $t_user, $reason) = @_;
 
-    $channel->user_get_kicked($t_user, $source, $reason);
+    $channel->do_kick_local($t_user, $source, $reason);
 
     # === Forward ===
     $msg->forward(kick => $source, $channel, $t_user, $reason);
@@ -931,7 +931,7 @@ sub login {
     my $act_name = $items[0];
 
     L("JELP login $$user{nick} as $act_name");
-    $user->do_login($act_name);
+    $user->do_login_local($act_name);
 
     # === Forward ===
     $msg->forward(login => $user, @items);
@@ -946,7 +946,7 @@ sub ping {
 
 sub partall {
     my ($server, $msg, $user) = @_;
-    $user->do_part_all();
+    $user->do_part_all_local();
 
     # === Forward ===
     $msg->forward(part_all => $user);
@@ -1020,7 +1020,7 @@ sub _userinfo {
     if (length(my $new_act_name = $msg->tag('account'))) {
         undef $new_act_name if $new_act_name eq '*';
         L("JELP login $$user{nick} as $new_act_name");
-        $user->do_login($new_act_name);
+        $user->do_login_local($new_act_name);
     }
 
     #=== Forward ===#
@@ -1074,13 +1074,13 @@ sub fjoin {
 
         # attempt local join. this can fail. it will notify other servers
         # if the user did successfully join.
-        return $channel->attempt_local_join($user);
+        return $channel->attempt_join($user);
     }
 
     # if no channel time is provided, we are forcing the join.
     # ($user, $new, $key, $force)
     my ($channel, $new) = $pool->lookup_or_create_channel($ch_name);
-    return $channel->attempt_local_join($user, $new, undef, 1);
+    return $channel->attempt_join($user, $new, undef, 1);
 }
 
 # force part
@@ -1096,7 +1096,7 @@ sub fpart {
     }
 
     # this may return false if the user was not in the channel
-    $channel->do_part($user, $reason) or return;
+    $channel->do_part_local($user, $reason) or return;
 
     # === Forward ===
     # forward this as a PART, plus to the source server
@@ -1164,7 +1164,7 @@ sub flogin {
     # no account name = logout.
     if (!length $act_name) {
         L("JELP logout $$user{nick}");
-        $user->do_logout();
+        $user->do_logout_local();
 
         #=== Forward ===#
         $msg->forward(su_logout => $source_serv, $user);
@@ -1174,7 +1174,7 @@ sub flogin {
 
     # login.
     L("JELP login $$user{nick} as $act_name");
-    $user->do_login($act_name);
+    $user->do_login_local($act_name);
 
     #=== Forward ===#
     $msg->forward(su_login => $source_serv, $user, $act_name);

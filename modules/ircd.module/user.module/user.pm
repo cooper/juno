@@ -599,6 +599,9 @@ sub save_locally {
     return 1;
 }
 
+# ->do_away()
+# ->do_away_local()
+#
 # handles and sets an AWAY locally for both local and remote users.
 #
 # to unset, $reason should be undef or ''
@@ -608,7 +611,16 @@ sub save_locally {
 #   1 (set away successfully),
 #   2 (unset away successfully)
 #
+
 sub do_away {
+    my ($user, $reason) = (shift, @_);
+    my $ret = $user->do_away_local(@_) or return;
+    broadcast(away => $user)        if $ret == 1;
+    broadcast(return_away => $user) if $ret == 2;
+    return $ret;
+}
+
+sub do_away_local {
     my ($user, $reason) = @_;
 
     # setting
@@ -646,18 +658,33 @@ sub do_away {
     return 2; # means unset
 }
 
-# handles a JOIN 0 or like locally for both local and remote users.
 sub do_part_all {
     my $user = shift;
+    my $ret = $user->do_part_all_local(@_);
+    broadcast(part_all => $user);
+    return $ret;
+}
+
+# handles a JOIN 0 or like locally for both local and remote users.
+sub do_part_all_local {
+    my $user = shift;
     my @channels = $user->channels;
-    $_->do_part($user, undef, 1) foreach @channels;
+    $_->do_part_local($user, undef, 1) foreach @channels;
     notice(user_part_all =>
         $user->notice_info, join(' ', map $_->{name}, @channels));
     return 1;
 }
 
-# handles an account login locally for both local and remote users.
+# note that this uses su_login
 sub do_login {
+    my ($user, $act_name) = (shift, @_);
+    my $ret = $user->do_login_local(@_) or return;
+    broadcast(su_login => $me, $user, $act_name);
+    return $ret;
+}
+
+# handles an account login locally for both local and remote users.
+sub do_login_local {
     my ($user, $act_name, $no_num) = @_;
     $user->{account} = { name => $act_name };
 
@@ -675,8 +702,16 @@ sub do_login {
     return 1;
 }
 
-# handles an account logout locally for both local and remote users.
+# note that this uses su_logout
 sub do_logout {
+    my $user = shift;
+    my $ret = $user->do_logout_local(@_) or return;
+    broadcast(su_logout => $me, $user);
+    return $ret;
+}
+
+# handles an account logout locally for both local and remote users.
+sub do_logout_local {
     my ($user, $no_num) = @_;
     my $old = delete $user->{account} or return;
 
@@ -803,6 +838,14 @@ sub do_privmsgnotice {
     $user->fire($lc_cmd => $source, $message);
 
     return 1;
+}
+
+sub do_privmsgnotice_local {
+    my ($user, $command, $source, $message, %opts) = @_;
+    return $user->do_privmsgnotice(
+        $command, $source, $message, %opts,
+        dont_forward => 1
+    );
 }
 
 # handle a mode string, send to the local user, send to other servers.

@@ -434,7 +434,7 @@ sub euid {
     my $act_name = delete $user->{account_name};
     if (length $act_name && $act_name ne '*') {
         L("TS6 login $$user{nick} as $act_name");
-        $user->do_login($act_name);
+        $user->do_login_local($act_name);
     }
 
     # === Forward ===
@@ -527,7 +527,7 @@ sub sjoin {
 
         # join the new user.
         push @good_users, $user;
-        $channel->do_join($user);
+        $channel->do_join_local($user);
 
         # no prefixes or not accepting the prefixes.
         next unless length $prefixes && $accept_new_modes;
@@ -726,7 +726,7 @@ sub _join {
 
     # JOIN 0 - part all channels.
     if ($ts eq '0' && !length $ch_name) {
-        $user->do_part_all();
+        $user->do_part_all_local();
         $msg->forward(part_all => $user);
         return 1;
     }
@@ -741,7 +741,7 @@ sub _join {
     $channel->take_lower_time($ts) unless $new;
 
     # do the join.
-    $channel->do_join($user);
+    $channel->do_join_local($user);
 
     # === Forward ===
     $msg->forward(join => $user, $channel, $ts);
@@ -831,7 +831,7 @@ sub login {
 
     # login.
     L("TS6 login $$user{nick} as $act_name");
-    $user->do_login($act_name);
+    $user->do_login_local($act_name);
 
     #=== Forward ===#
     $msg->forward_to_mask($serv_mask, login => $user, $act_name);
@@ -853,7 +853,7 @@ sub su {
     # no account name = logout.
     if (!length $act_name) {
         L("TS6 logout $$user{nick}");
-        $user->do_logout();
+        $user->do_logout_local();
 
         #=== Forward ===#
         $msg->forward_to_mask($serv_mask, su_logout => $source_serv, $user);
@@ -863,7 +863,7 @@ sub su {
 
     # login.
     L("TS6 login $$user{nick} as $act_name");
-    $user->do_login($act_name);
+    $user->do_login_local($act_name);
 
     #=== Forward ===#
     $msg->forward_to_mask($serv_mask, su_login =>
@@ -918,7 +918,7 @@ sub part {
         }
 
         # remove the user and tell others
-        $channel->do_part($user, $reason);
+        $channel->do_part_local($user, $reason);
 
     }
 
@@ -963,7 +963,7 @@ sub kick {
     # note: we're technically supposed to check for $source's op if
     # it's a user, iff the channel TS is zero.
 
-    $channel->user_get_kicked($t_user, $source, $reason);
+    $channel->do_kick_local($t_user, $source, $reason);
 
     # === Forward ===
     $msg->forward(kick => $source, $channel, $t_user, $reason);
@@ -1093,7 +1093,7 @@ sub away {
 
     # if the reason is not present, the user has returned.
     if (!length $reason) {
-        $user->do_away();
+        $user->do_away_local();
 
         # === Forward ===
         $msg->forward(return_away => $user);
@@ -1102,7 +1102,7 @@ sub away {
     }
 
     # otherwise, set the away reason.
-    $user->do_away($reason);
+    $user->do_away_local($reason);
 
     # === Forward ===
     $msg->forward(away => $user);
@@ -1124,7 +1124,7 @@ sub topic {
     my ($server, $msg, $user, $channel, $topic) = @_;
 
     # ($source, $topic, $setby, $time, $check_text)
-    $channel->do_topic($user, $topic, $user->full, time);
+    $channel->do_topic_local($user, $topic, $user->full, time);
 
     # === Forward ===
     $msg->forward(topic => $user, $channel, $channel->{time}, $topic);
@@ -1169,7 +1169,7 @@ sub tb {
 
     # set the topic
     my $old = $channel->{topic};    # don't propagate if unchanged
-    $channel->do_topic($s_serv, $topic, $setby, $topic_ts) or return;
+    $channel->do_topic_local($s_serv, $topic, $setby, $topic_ts) or return;
 
     # === Forward ===
     $msg->forward(topicburst =>
@@ -1205,7 +1205,7 @@ sub etb {
 
     # set the topic.
     my $old = $channel->{topic};
-    $channel->do_topic($source, $topic, $setby, $topic_ts, 1);
+    $channel->do_topic_local($source, $topic, $setby, $topic_ts, 1);
 
     # === Forward ===
     #

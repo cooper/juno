@@ -620,7 +620,7 @@ sub misc_upgrades {
                     else { $user->quit('Ghost')         }
 
         # account name cannot be *
-        $user->do_logout() if $user->{account} && $user->{account}{name} eq '*';
+        $user->do_logout_local() if $user->{account} && $user->{account}{name} eq '*';
 
     }
 

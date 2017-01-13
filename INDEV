@@ -3971,3 +3971,16 @@ CHANGES:
         added WHOX support, not quite complete.
 
     78. finished WHOX implementation by adding support for field filters.
+
+    79. new local/global versions of many user and channel methods. closes #164.
+        added user and channel method ->do_privmsgnotice_local().
+        rename ->do_join() to ->do_join_local().
+        rename ->attempt_local_join() to ->attempt_join().
+        rename ->do_part() to ->do_part_local(). add global ->do_part().
+        rename ->do_part_all() to ->do_part_all_local(). add global ->do_part_all().
+        rename ->do_topic() to ->do_topic_local(). add global ->do_topic().
+        rename ->do_away() to ->do_away_local(). add global ->do_away().
+        rename ->do_login() to ->do_login_local(). add global ->do_login().
+        rename ->do_logout() to ->do_logout_local(). add global ->do_logout().
+        rename ->user_get_kicked() to ->do_kick_local(). add global ->do_kick().
+        used mass replace to update all existing code which used these methods.

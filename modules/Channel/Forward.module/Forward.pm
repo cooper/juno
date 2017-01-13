@@ -130,7 +130,7 @@ sub on_user_cant_join {
     $user->numeric(ERR_LINKCHAN => $channel->name, $f_chan->name);
 
     # force the join.
-    $f_chan->attempt_local_join($user, $new, undef, 1);
+    $f_chan->attempt_join($user, $new, undef, 1);
 
     # stopping cant_join cancels the original channel's error message.
     $event->stop;

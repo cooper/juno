@@ -356,7 +356,7 @@ sub on_user_set_modes {
     $user->is_local or return;
     my $act_name = delete $user->{sasl_account} or return;
     L("SASL login $$user{nick} as $act_name");
-    $user->do_login($act_name, 1); # the 1 means no RPL_LOGGED*
+    $user->do_login_local($act_name, 1); # the 1 means no RPL_LOGGED*
 }
 
 $mod

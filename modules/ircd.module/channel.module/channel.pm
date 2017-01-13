@@ -778,6 +778,82 @@ sub clear_all_invites {
     delete $channel->{invite_pending};
 }
 
+# ->attempt_join()
+# see issue #76 for background information
+#
+# this is essentially a JOIN command handler - it checks that a local user can
+# join a channel, deals with channel creation, set automodes, and more.
+#
+# this method CANNOT be used on remote users. note that this method MAY
+# send out join and/or channel burst messages to servers.
+#
+# $new      = whether it's a new channel; this will deal with automodes
+# $key      = provided channel key, if any. does nothing when $force
+# $force    = do not check if the user is actually allowed to join
+#
+sub attempt_join {
+    my ($channel, $user, $new, $key, $force) = @_;
+
+    # the user is not local or is already on the channel.
+    return if !$user->is_local || $channel->has_user($user);
+
+    # if we're not forcing the join, check that the user is permitted to join.
+    unless ($force) {
+
+        # fire the event.
+        my $can_fire = $user->fire(can_join => $channel, $key);
+
+        # event was stopped; can't join.
+        if ($can_fire->stopper) {
+            my $cant_fire = $user->fire(cant_join => $channel, $can_fire);
+
+            # if cant_join is canceled, do NOT send out the error reply.
+            my @error_reply = ref_to_list($can_fire->{error_reply});
+            if (!$cant_fire->stopper && @error_reply) {
+                $user->numeric(@error_reply);
+            }
+
+            # can_join was stopped; don't continue.
+            return;
+        }
+    }
+
+    # new channel. do automodes and whatnot.
+    if ($new) {
+
+        # early join. this allows the automodes to set statuses on the user.
+        $channel->add($user);
+
+        # find automodes. replace each instance of +user with the UID.
+        my $str = conf('channels', 'automodes') || '';
+        $str =~ s/\+user/$$user{uid}/g;
+
+        # we're using ->handle_mode_string() because ->do_mode_string()
+        # does only two other things:
+        #
+        # 1. sends the mode change to other servers
+        # (we're doing that below with channel_burst)
+        #
+        # 2. sends the mode change to other users
+        # (at this point, no one is in the new channel yet)
+        #
+        $channel->handle_mode_string($me, $me, $str, 1, 1);
+    }
+
+    # tell other servers
+    if ($new) {
+        broadcast(channel_burst => $channel, $me, $user);
+    }
+    else {
+        broadcast(join => $user, $channel, $channel->{time});
+    }
+
+    # do the actual join. the $new means to allow the ->do_join_local() even
+    # though the user might already be in there from the previous ->add().
+    return $channel->do_join_local($user, $new);
+
+}
+
 # handle named modes, tell our local users, and tell other servers.
 sub do_modes { _do_modes(undef, @_) }
 
@@ -854,6 +930,7 @@ sub _do_mode_string {
 }
 
 # ->do_privmsgnotice()
+# ->do_privmsgnotice_local()
 #
 # Handles a PRIVMSG or NOTICE. Notifies local users and uplinks when necessary.
 #
@@ -1034,7 +1111,17 @@ sub do_privmsgnotice {
     return 1;
 }
 
-# ->do_join()
+# this is just a wrapper that enables dont_forward
+sub do_privmsgnotice_local {
+    my ($channel, $command, $source, $message, %opts) = @_;
+    return $channel->do_privmsgnotice(
+        $command, $source, $message, %opts,
+        dont_forward => 1
+    );
+}
+
+# ->do_join_local()
+#
 # see issue #76 for background information
 #
 # 1. joins a user to the channel with ->add().
@@ -1042,13 +1129,13 @@ sub do_privmsgnotice {
 # 3. fires the user_joined event.
 #
 # note that this method is permitted for both local and remote users.
-# it DOES NOT send join messages to servers; it is up to the server
-# protocol implementation to do so with ->forward().
+# it DOES NOT send join messages to servers. for local users whose joins
+# should be broadcast, ->attempt_join() must be used.
 #
 # $allow_already = do not consider whether the user is already in the channel.
 # this is useful for local channel creation.
 #
-sub do_join {
+sub do_join_local {
     my ($channel, $user, $allow_already) = @_;
     my $already = $channel->has_user($user);
 
@@ -1087,87 +1174,28 @@ sub do_join {
     # fire after join event.
     $channel->fire(user_joined => $user);
 
+    return 1;
 }
 
-# ->attempt_local_join()
-# see issue #76 for background information
+# ->do_part()
+# ->do_part_local()
 #
-# this is essentially a JOIN command handler - it checks that a local user can
-# join a channel, deals with channel creation, set automodes, and more.
+# handle a part for either a local or remote user.
 #
-# this method CANNOT be used on remote users. note that this method MAY
-# send out join and/or channel burst messages to servers.
+#   $user       the parting user
+#   $reason     part comment or undef for none
 #
-# $new      = whether it's a new channel; this will deal with automodes
-# $key      = provided channel key, if any. does nothing when $force
-# $force    = do not check if the user is actually allowed to join
-#
-sub attempt_local_join {
-    my ($channel, $user, $new, $key, $force) = @_;
 
-    # the user is not local or is already on the channel.
-    return if !$user->is_local || $channel->has_user($user);
-
-    # if we're not forcing the join, check that the user is permitted to join.
-    unless ($force) {
-
-        # fire the event.
-        my $can_fire = $user->fire(can_join => $channel, $key);
-
-        # event was stopped; can't join.
-        if ($can_fire->stopper) {
-            my $cant_fire = $user->fire(cant_join => $channel, $can_fire);
-
-            # if cant_join is canceled, do NOT send out the error reply.
-            my @error_reply = ref_to_list($can_fire->{error_reply});
-            if (!$cant_fire->stopper && @error_reply) {
-                $user->numeric(@error_reply);
-            }
-
-            # can_join was stopped; don't continue.
-            return;
-        }
-    }
-
-    # new channel. do automodes and whatnot.
-    if ($new) {
-
-        # early join. this allows the automodes to set statuses on the user.
-        $channel->add($user);
-
-        # find automodes. replace each instance of +user with the UID.
-        my $str = conf('channels', 'automodes') || '';
-        $str =~ s/\+user/$$user{uid}/g;
-
-        # we're using ->handle_mode_string() because ->do_mode_string()
-        # does only two other things:
-        #
-        # 1. sends the mode change to other servers
-        # (we're doing that below with channel_burst)
-        #
-        # 2. sends the mode change to other users
-        # (at this point, no one is in the new channel yet)
-        #
-        $channel->handle_mode_string($me, $me, $str, 1, 1);
-
-    }
-
-    # tell other servers
-    if ($new) {
-        broadcast(channel_burst => $channel, $me, $user);
-    }
-    else {
-        broadcast(join => $user, $channel, $channel->{time});
-    }
-
-    # do the actual join. the $new means to allow the ->do_join() even though
-    # the user might already be in there from the previous ->add().
-    return $channel->do_join($user, $new);
-
+# handle a part and tell uplinks.
+sub do_part {
+    my ($channel, $user, $reason) = (shift, @_);
+    my $ret = $channel->do_part_local(@_) or return;
+    broadcast(part => $user, $channel, $reason);
+    return $ret;
 }
 
 # handle a part locally for both local and remote users.
-sub do_part {
+sub do_part_local {
     my ($channel, $user, $reason, $quiet) = @_;
     return if !$channel->has_user($user);
 
@@ -1184,29 +1212,9 @@ sub do_part {
     return 1;
 }
 
-# handle a kick. send it to local users.
-sub user_get_kicked {
-    my ($channel, $user, $source, $reason) = @_;
-
-    # fallback reason to source.
-    $reason //= $source->name;
-
-    # tell the local users of the channel.
-    $channel->sendfrom_all(
-        $source->full,
-        "KICK $$channel{name} $$user{nick} :$reason"
-    );
-
-    notice(channel_kick =>
-        $user->notice_info,
-        $channel->name,
-        $source->notice_info,
-        $reason
-    );
-
-    return $channel->remove($user);
-}
-
+# ->do_topic()
+# ->do_topic_local()
+#
 # handles a topic change. ignores newer topics.
 # if the topic is an empty string or undef, it is unset.
 # notifies users only if the text has actually changed.
@@ -1220,7 +1228,15 @@ sub user_get_kicked {
 # returns true if the topic changed in any way, whether that be the text,
 # setby, or topicTS.
 #
+
 sub do_topic {
+    my ($channel, $source, $topic, $setby, $time) = (shift, @_);
+    my $ret = $channel->do_topic_local(@_) or return;
+    broadcast(topic => $source, $channel, $time, $topic);
+    return $ret;
+}
+
+sub do_topic_local {
     my ($channel, $source, $topic, $setby, $time, $check_text) = @_;
     $topic //= '';
 
@@ -1264,6 +1280,44 @@ sub do_topic {
     };
 
     return 1;
+}
+
+# ->do_kick()
+# ->do_kick_local()
+#
+# handle a kick locally.
+# remove the user from the channel.
+#
+
+# handle a kick and notify other servers.
+sub do_kick {
+    my ($channel, $user, $source, $reason) = (shift, @_);
+    my $ret = $channel->do_kick_local(@_);
+    broadcast($source, $channel, $user, $reason);
+    return $ret;
+}
+
+# handle a kick. send it to local users.
+sub do_kick_local {
+    my ($channel, $user, $source, $reason) = @_;
+
+    # fallback reason to source.
+    $reason //= $source->name;
+
+    # tell the local users of the channel.
+    $channel->sendfrom_all(
+        $source->full,
+        "KICK $$channel{name} $$user{nick} :$reason"
+    );
+
+    notice(channel_kick =>
+        $user->notice_info,
+        $channel->name,
+        $source->notice_info,
+        $reason
+    );
+
+    return $channel->remove($user);
 }
 
 $mod
