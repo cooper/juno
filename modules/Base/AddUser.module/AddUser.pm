@@ -25,6 +25,8 @@ sub init {
 
 sub add_user {
     my ($mod, $event, %opts) = @_;
+
+    # create
     my $user = $pool->new_user(
       # nick  => defaults to UID
       # cloak => defaults to host
@@ -37,7 +39,13 @@ sub add_user {
         %opts
     );
     L('New virtual user '.$user->full);
+
+    # propagate
     broadcast(new_user => $user);
+    $user->fire('initially_propagated');
+    $user->{initially_propagated}++;
+    $user->{init_complete}++;
+
     return $user;
 }
 

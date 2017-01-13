@@ -4001,3 +4001,4 @@ CHANGES:
 
     83. broadcast new_user in Base::AddUser.
         use location's ircd/proto info in oper notices for new servers.
+        fix WHOIS on fake user. fixed AddUser to fire initially_propagated.

@@ -712,7 +712,7 @@ sub add_whois_callbacks {
 
         # Idle time. Local only.
         RPL_WHOISIDLE =>
-            sub { shift->is_local },
+            sub { shift->conn },
             sub {
                 my $user = shift;
                 my $idle = time - ($user->conn->{last_command} || 0);
