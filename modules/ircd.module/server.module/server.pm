@@ -301,6 +301,7 @@ sub user     { undef                }
 sub users    { @{ shift->{users} }  }
 sub server   { shift                }
 sub parent   { shift->{parent}      }
+sub location { shift->{location}    }
 
 sub all_users        {   @{ shift->{users} }                    }
 sub real_users       {   grep  { !$_->{fake}                    } shift->all_users  }
@@ -408,9 +409,9 @@ sub sendfrom {
 }
 
 # convenient for $server->fire_command
-sub fire_command {
+sub forward {
     my $server = shift;
-    return $pool->fire_command($server, @_);
+    return $pool->fire_command($server->location, @_);
 }
 
 sub notice_info {

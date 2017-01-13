@@ -62,7 +62,7 @@ sub grant {
 
     # send out FOPER.
     else {
-        $t_user->{location}->fire_command(force_oper => $me, $t_user, @flags);
+        $t_user->forward(force_oper => $me, $t_user, @flags);
     }
 
     return 1;
@@ -98,7 +98,7 @@ sub ungrant {
 
     # send out FOPER.
     else {
-        $t_user->{location}->fire_command(foper =>
+        $t_user->forward(foper =>
             $me, $t_user,
             map { "-$_" } @flags
         );

@@ -103,7 +103,7 @@ sub init {
 
 sub send_startburst {
     my ($server, $fire, $time) = @_;
-    $server->fire_command(burst => $me, $time);
+    $server->forward(burst => $me, $time);
 }
 
 sub send_burst {
@@ -113,8 +113,8 @@ sub send_burst {
     my ($do, %done);
 
     # first, send modes of this server.
-    $server->fire_command(add_umodes => $me);
-    $server->fire_command(add_cmodes => $me);
+    $server->forward(add_umodes => $me);
+    $server->forward(add_cmodes => $me);
 
     # don't send info for this server or the server we're sending to.
     $done{$server} = $done{$me} = 1;
@@ -134,7 +134,7 @@ sub send_burst {
         }
 
         # fire the command.
-        $server->fire_command(new_server => $serv);
+        $server->forward(new_server => $serv);
         $done{$serv} = 1;
 
     }; $do->($_) foreach $pool->all_servers;
@@ -146,19 +146,19 @@ sub send_burst {
         next if $user->{server} == $server || $user->{source} == $server->{sid};
 
         # UID
-        $server->fire_command(new_user => $user);
+        $server->forward(new_user => $user);
 
         # OPER
         my @flags = @{ $user->{flags} };
-        $server->fire_command(oper => $user, @flags)
+        $server->forward(oper => $user, @flags)
             if @flags;
 
         # LOGIN
-        $server->fire_command(login => $user, $user->{account}{name})
+        $server->forward(login => $user, $user->{account}{name})
             if $user->{account};
 
         # AWAY
-        $server->fire_command(away => $user)
+        $server->forward(away => $user)
             if length $user->{away};
     }
 
@@ -166,17 +166,17 @@ sub send_burst {
     foreach my $channel ($pool->channels) {
 
         # SJOIN
-        $server->fire_command(channel_burst => $channel, $me, $channel->users);
+        $server->forward(channel_burst => $channel, $me, $channel->users);
 
         # TOPICBURST
-        $server->fire_command(topicburst => $channel)
+        $server->forward(topicburst => $channel)
             if $channel->topic;
     }
 
 }
 
 sub send_endburst {
-    shift->fire_command(endburst => $me, time);
+    shift->forward(endburst => $me, time);
 }
 
 # this can take a server object, user object, or connection object.
@@ -432,7 +432,7 @@ sub sjoin {
     foreach my $user (@members) {
 
         # this is the server that told us about the user. it already knows.
-        next if $user->{location} == $server;
+        next if $user->location == $server;
 
         my $str = $user->{uid};
         $str .= '!'.$prefixes{$user} if exists $prefixes{$user};

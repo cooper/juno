@@ -164,7 +164,7 @@ sub add {
     # core_scommands.pm: for nonlocals.
 
     notice(channel_join => $user->notice_info, $channel->name)
-        unless $user->{location}{is_burst};
+        unless $user->location->{is_burst};
     return $channel->{time};
 }
 
@@ -1089,17 +1089,17 @@ sub do_privmsgnotice {
         }
 
         # Safe point - the user is remote.
-        my $location = $user->{location};
+        my $location = $user->location;
 
         # the source user is reached through this user's server,
         # or the source is the server we know the user from.
-        next USER if $source_user && $location == $source_user->{location};
+        next USER if $source_user && $location == $source_user->location;
         next USER if $source_serv && $location->{sid} == $source_serv->{sid};
 
         # already sent to this server.
         next USER if $sent{$location};
 
-        $location->fire_command(privmsgnotice =>
+        $location->forward(privmsgnotice =>
             $command, $source, $channel, $message, %opts
         );
         $sent{$location}++;

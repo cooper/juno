@@ -233,10 +233,10 @@ sub _burst_bans {
     $fake_user->set_mode('service');
 
     # send out bans
-    $server->fire_command(ban => @bans);
+    $server->forward(ban => @bans);
 
     # delete fake user
-    $server->fire_command(quit => $fake_user, 'Bans set')
+    $server->forward(quit => $fake_user, 'Bans set')
         if $fake_user->{agent_introduced};
     delete $server->{ban_fake_user};
     %$fake_user = ();
@@ -251,7 +251,7 @@ sub get_fake_user {
 
     # it hasn't been introduced
     if (!$fake_user->{agent_introduced}++) {
-        $to_server->fire_command(new_user => $fake_user);
+        $to_server->forward(new_user => $fake_user);
     }
 
     return $fake_user;
@@ -593,7 +593,7 @@ sub kline {
     # we ignore the target mask. juno bans are global, so let's pretend
     # this was intended to be global too.
     #
-    $msg->forward(baninfo => $ban);
+    $msg->broadcast(baninfo => $ban);
 }
 
 # UNKLINE
@@ -624,7 +624,7 @@ sub unkline {
     $ban->notify_delete($source);
 
     #=== Forward ===#
-    $msg->forward(bandel => $ban);
+    $msg->broadcast(bandel => $ban);
 
 }
 
@@ -657,7 +657,7 @@ sub dline {
     # we ignore the target mask. juno bans are global, so let's pretend
     # this was intended to be global too.
     #
-    $msg->forward(baninfo => $ban);
+    $msg->broadcast(baninfo => $ban);
 }
 
 # UNDLINE
@@ -679,7 +679,7 @@ sub undline {
     $ban->notify_delete($user);
 
     #=== Forward ===#
-    $msg->forward(bandel => $ban);
+    $msg->broadcast(bandel => $ban);
 
 }
 
@@ -729,7 +729,7 @@ sub _resv {
     # the _is_nickdelay is used for TS6 outgoing.
     #
     $ban->{_is_nickdelay} = $is_nickdelay;
-    $msg->forward(baninfo => $ban);
+    $msg->broadcast(baninfo => $ban);
 
     return 1;
 }
@@ -767,7 +767,7 @@ sub _unresv {
     # the _is_nickdelay is used for TS6 outgoing.
     #
     $ban->{_is_nickdelay} = $is_nickdelay;
-    $msg->forward(bandel => $ban);
+    $msg->broadcast(bandel => $ban);
 
     return 1;
 }
@@ -896,7 +896,7 @@ sub ban {
     $ban->notify_new($source);
 
     #=== Forward ===#
-    $msg->forward(baninfo => $ban);
+    $msg->broadcast(baninfo => $ban);
 
     return 1;
 }

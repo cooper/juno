@@ -212,7 +212,7 @@ sub motd {
 
     # this does not apply to me; forward it.
     if ($server && $server != $me) {
-        $server->{location}->fire_command(motd => $user, $server);
+        $server->forward(motd => $user, $server);
         return 1;
     }
 
@@ -280,7 +280,7 @@ sub info {
 
     # this does not apply to me; forward it.
     if ($server && $server != $me) {
-        $server->{location}->fire_command(info => $user, $server);
+        $server->forward(info => $user, $server);
         return 1;
     }
 
@@ -792,9 +792,9 @@ sub whois {
     }
 
     # this does not apply to me; forward it.
-    my $location = $server->{location};
+    my $location = $server->location;
     if ($location != $me) {
-        $location->fire_command(whois => $user, $quser, $server);
+        $location->forward(whois => $user, $quser, $server);
         return 1;
     }
 
@@ -868,7 +868,7 @@ sub _connect {
                 return;
             }
 
-            $target_server->fire_command(
+            $target_server->forward(
                 connect => $user, $connect_mask, $target_server);
             return 1;
         }
@@ -1222,7 +1222,7 @@ sub lusers {
 
     # this does not apply to me; forward it.
     if ($server && $server != $me) {
-        $server->{location}->fire_command(lusers => $user, $server);
+        $server->forward(lusers => $user, $server);
         return 1;
     }
 
@@ -1278,7 +1278,7 @@ sub users {
 
     # this does not apply to me; forward it.
     if ($server && $server != $me) {
-        $server->{location}->fire_command(users => $user, $server);
+        $server->forward(users => $user, $server);
         return 1;
     }
 
@@ -1465,7 +1465,7 @@ sub version {
 
     # if the server isn't me, forward it.
     if ($server != $me) {
-        $server->{location}->fire_command(version => $user, $server);
+        $server->forward(version => $user, $server);
         return 1;
     }
 
@@ -1569,7 +1569,7 @@ sub links {
 
     # if it's not the local server, pass this on.
     if (!$server->is_local) {
-        $server->{location}->fire_command(links => $user, $server, $query_mask);
+        $server->forward(links => $user, $server, $query_mask);
         return 1;
     }
 
@@ -1602,7 +1602,7 @@ sub admin {
 
     # this does not apply to me; forward it.
     if ($server && $server != $me) {
-        $server->{location}->fire_command(admin => $user, $server);
+        $server->forward(admin => $user, $server);
         return 1;
     }
 
@@ -1626,7 +1626,7 @@ sub _time {
 
     # this does not apply to me; forward it.
     if ($server && $server != $me) {
-        $server->{location}->fire_command(time => $user, $server);
+        $server->forward(time => $user, $server);
         return 1;
     }
 

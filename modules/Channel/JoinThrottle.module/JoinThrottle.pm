@@ -66,7 +66,7 @@ sub on_user_joined {
     my ($channel, $event, $user) = @_;
 
     # we're not interested in joins during burst.
-    return if $user->{location}{is_burst};
+    return if $user->location->{is_burst};
 
     # we're not interested if the channel has no throttle
     # or if the channel is already locked.

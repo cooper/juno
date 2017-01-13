@@ -114,7 +114,7 @@ sub handle_modereq {
         my (undef, $mode_str) = $channel->mode_string_with($me, @mode_names);
         next if !length $mode_str;
 
-        $source_serv->{location}->fire_command(moderep =>
+        $source_serv->forward(moderep =>
             $me, $channel,
             defined $modes ? $source_serv : undef, # reply to the server or *
             $mode_str
@@ -122,7 +122,7 @@ sub handle_modereq {
     }
 
     # unless this was addressed specifically to me, forward.
-    $msg->forward(@forward_args) if !defined $target;
+    $msg->broadcast(@forward_args) if !defined $target;
 
     return 1;
 }
@@ -162,7 +162,7 @@ sub handle_moderep {
     $channel->do_modes_local($source_serv, $changes, 1, 1);
 
     # unless this was addressed specifically to me, forward.
-    $msg->forward(@forward_args) if !defined $target;
+    $msg->broadcast(@forward_args) if !defined $target;
 
     return 1;
 }

@@ -96,7 +96,7 @@ sub handle_nick_collision {
     # all other servers will be notified when the user introduction is sent.
     #
     if ($kill_new) {
-        $server->fire_command(save_user => $me, $new, $new->{nick_time});
+        $server->forward(save_user => $me, $new, $new->{nick_time});
         my $old_nick      = $new->{nick};
         $new->{nick}      = $new->{uid};
         $new->{nick_time} = 100;
@@ -292,7 +292,7 @@ sub _privmsgnotice_smask {
     # consider each server that matches
     my %done;
     foreach my $serv ($pool->lookup_server_mask($mask)) {
-        my $location = $serv->{location} || $serv; # for $me, location = nil
+        my $location = $serv->location || $serv; # for $me, location = nil
 
         # already did or the server is connected via the source server
         next if $done{$location};
@@ -456,11 +456,11 @@ sub forward_global_command {
         # if there is no connection (whether direct or not),
         # uh, I don't know what to do at this point!
         next if $serv->is_local;
-        next unless $serv->{location};
+        next unless $serv->location;
 
         # add to the list of servers to send to this location.
-        push @send_locations, $serv->{location};
-        push @{ $send_to{ $serv->{location} } ||= [] }, $serv;
+        push @send_locations, $serv->location;
+        push @{ $send_to{ $serv->location } ||= [] }, $serv;
 
     }
 
@@ -481,7 +481,7 @@ sub forward_global_command {
         }
 
         # fire the command.
-        $location->fire_command(@args);
+        $location->forward(@args);
         $loc_done{$location}++;
 
     }

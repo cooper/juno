@@ -148,7 +148,7 @@ sub ucmd_invite {
 
     # remote user.
     else {
-        $t_user->{location}->fire_command(invite => $user, $t_user, $ch_name);
+        $t_user->forward(invite => $user, $t_user, $ch_name);
     }
 
     # tell the source the target's being invited.

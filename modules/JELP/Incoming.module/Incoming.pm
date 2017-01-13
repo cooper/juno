@@ -266,7 +266,7 @@ sub sid {
     my $serv = $pool->new_server(%serv);
 
     # === Forward ===
-    $msg->forward(new_server => $serv);
+    $msg->broadcast(new_server => $serv);
 
     return 1;
 }
@@ -327,7 +327,7 @@ sub uid {
     #   JELP:   UID
     #   TS6:    EUID
     #
-    $msg->forward(new_user => $user);
+    $msg->broadcast(new_user => $user);
 
     return 1;
 }
@@ -360,7 +360,7 @@ sub quit {
     $source->quit($reason);
 
     # === Forward ===
-    $msg->forward(quit => $source, $reason);
+    $msg->broadcast(quit => $source, $reason);
 
     return 1;
 }
@@ -376,7 +376,7 @@ sub nick {
     $user->change_nick($newnick, time);
 
     # === Forward ===
-    $msg->forward(nick_change => $user);
+    $msg->broadcast(nick_change => $user);
 
 }
 
@@ -390,7 +390,7 @@ sub burst {
     notice(server_burst => $serv->notice_info);
 
     # === Forward ===
-    $msg->forward(burst => $serv, $their_time);
+    $msg->broadcast(burst => $serv, $their_time);
 
 }
 
@@ -405,7 +405,7 @@ sub endburst {
     $serv->send_burst if $serv->conn && !$serv->{i_sent_burst};
 
     # === Forward ===
-    $msg->forward(endburst => $serv, $their_time);
+    $msg->broadcast(endburst => $serv, $their_time);
 
 }
 
@@ -417,7 +417,7 @@ sub umode {
     my $result_mode_str = $user->do_mode_string_local($mode_str, 1);
 
     # === Forward ===
-    $msg->forward(umode => $user, $result_mode_str);
+    $msg->broadcast(umode => $user, $result_mode_str);
 
 }
 
@@ -461,7 +461,7 @@ sub _join {
     $channel->do_join_local($user);
 
     # === Forward ===
-    $msg->forward(join => $user, $channel, $channel->{time});
+    $msg->broadcast(join => $user, $channel, $channel->{time});
 
 }
 
@@ -489,7 +489,7 @@ sub oper {
     $user->update_flags;
 
     # === Forward ===
-    $msg->forward(oper => $user, @flags);
+    $msg->broadcast(oper => $user, @flags);
 
 }
 
@@ -504,7 +504,7 @@ sub away {
         $user->do_away_local();
 
         # === Forward ===
-        $msg->forward(return_away => $user);
+        $msg->broadcast(return_away => $user);
 
         return 1;
     }
@@ -513,7 +513,7 @@ sub away {
     $user->do_away_local($reason);
 
     # === Forward ===
-    $msg->forward(away => $user);
+    $msg->broadcast(away => $user);
 
     return 1;
 }
@@ -538,7 +538,7 @@ sub cmode {
     # JELP: CMODE
     # TS6:  TMODE
     #
-    $msg->forward(cmode => $source, $channel, $time, $perspective, $mode_str);
+    $msg->broadcast(cmode => $source, $channel, $time, $perspective, $mode_str);
 
     return 1;
 }
@@ -566,7 +566,7 @@ sub part {
     $channel->do_part_local($user, $reason);
 
     # === Forward ===
-    $msg->forward(part => $user, $channel, $reason);
+    $msg->broadcast(part => $user, $channel, $reason);
 
     return 1;
 }
@@ -603,7 +603,7 @@ sub aum {
     #
     # this will probably only be used for JELP
     #
-    $msg->forward(add_umodes => $serv, \@added, \@removed);
+    $msg->broadcast(add_umodes => $serv, \@added, \@removed);
 
     return 1;
 }
@@ -642,7 +642,7 @@ sub acm {
     #
     # this will probably only be used for JELP
     #
-    $msg->forward(add_cmodes => $serv, \@added, \@removed);
+    $msg->broadcast(add_cmodes => $serv, \@added, \@removed);
 
     return 1;
 }
@@ -706,7 +706,7 @@ sub sjoin {
         my $user = $pool->lookup_user($uid) or next USER;
 
         # this user does not physically belong to this server; ignore.
-        next if $user->{location} != $server;
+        next if $user->location != $server;
 
         # join the new user
         push @good_users, $user;
@@ -766,7 +766,7 @@ sub sjoin {
     #   JELP:   SJOIN
     #   TS6:    SJOIN
     #
-    $msg->forward(channel_burst => $channel, $source_serv, @good_users);
+    $msg->broadcast(channel_burst => $channel, $source_serv, @good_users);
 
     return 1;
 }
@@ -785,7 +785,7 @@ sub topic {
     $channel->do_topic_local($source, $topic, $source->full, time);
 
     # === Forward ===
-    $msg->forward(topic => $source, $channel, $channel->{time}, $topic);
+    $msg->broadcast(topic => $source, $channel, $channel->{time}, $topic);
 
     return 1
 }
@@ -812,7 +812,7 @@ sub topicburst {
     $channel->do_topic_local($s_serv, $topic, $setby, $topic_ts, 1);
 
     # === Forward ===
-    $msg->forward(topicburst =>
+    $msg->broadcast(topicburst =>
         $channel,
         source      => $s_serv,
         old         => $old,
@@ -830,7 +830,7 @@ sub _kill {
     $tuser->get_killed_by($source, $reason);
 
     # === Forward ===
-    $msg->forward(kill => $source, $tuser, $reason);
+    $msg->broadcast(kill => $source, $tuser, $reason);
 
 }
 
@@ -842,7 +842,7 @@ sub kick {
     $channel->do_kick_local($t_user, $source, $reason);
 
     # === Forward ===
-    $msg->forward(kick => $source, $channel, $t_user, $reason);
+    $msg->broadcast(kick => $source, $channel, $t_user, $reason);
 
     return 1;
 }
@@ -915,7 +915,7 @@ sub snotice {
     }
 
     # === Forward ===
-    $msg->forward(snotice => $s_serv, $notice, $message, $from_user);
+    $msg->broadcast(snotice => $s_serv, $notice, $message, $from_user);
 
     return 1;
 }
@@ -934,7 +934,7 @@ sub login {
     $user->do_login_local($act_name);
 
     # === Forward ===
-    $msg->forward(login => $user, @items);
+    $msg->broadcast(login => $user, @items);
 
     return 1;
 }
@@ -949,7 +949,7 @@ sub partall {
     $user->do_part_all_local();
 
     # === Forward ===
-    $msg->forward(part_all => $user);
+    $msg->broadcast(part_all => $user);
 
     return 1;
 }
@@ -981,7 +981,7 @@ sub save {
     $t_user->save_locally;
 
     #=== Forward ===#
-    $msg->forward(save_user => $source_serv, $t_user, $time);
+    $msg->broadcast(save_user => $source_serv, $t_user, $time);
 
     return 1;
 }
@@ -1025,8 +1025,8 @@ sub _userinfo {
 
     #=== Forward ===#
     my %fields = %{ $msg->tags || {} };
-    $msg->forward(update_user  =>  $user, %fields) if !$source_serv;
-    $msg->forward(force_update => $source_serv, $user, %fields) if $source_serv;
+    $msg->broadcast(update_user  =>  $user, %fields) if !$source_serv;
+    $msg->broadcast(force_update => $source_serv, $user, %fields) if $source_serv;
 
 }
 
@@ -1167,7 +1167,7 @@ sub flogin {
         $user->do_logout_local();
 
         #=== Forward ===#
-        $msg->forward(su_logout => $source_serv, $user);
+        $msg->broadcast(su_logout => $source_serv, $user);
 
         return 1;
     }
@@ -1177,7 +1177,7 @@ sub flogin {
     $user->do_login_local($act_name);
 
     #=== Forward ===#
-    $msg->forward(su_login => $source_serv, $user, $act_name);
+    $msg->broadcast(su_login => $source_serv, $user, $act_name);
 }
 
 # force user field changes
@@ -1191,7 +1191,7 @@ sub knock {
     my ($server, $msg, $user, $channel) = @_;
     $channel->fire(knock => $user);
     # === Forward ===
-    $msg->forward(knock => $user, $channel);
+    $msg->broadcast(knock => $user, $channel);
 }
 
 $mod

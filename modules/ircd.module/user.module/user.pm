@@ -364,10 +364,11 @@ sub hops_to {
     return $server1->hops_to($server2);
 }
 
-sub id            { shift->{uid}    }
-sub name          { shift->{nick}   }
-sub server        { shift->{server} }
-sub user          { shift           }
+sub id            { shift->{uid}      }
+sub name          { shift->{nick}     }
+sub server        { shift->{server}   }
+sub location      { shift->{location} }
+sub user          { shift             }
 
 ##########################
 ### HIGH-LEVEL METHODS ###
@@ -394,7 +395,7 @@ sub server_notice {
     }
 
     # not local; pass it on.
-    $user->{location}->fire_command(privmsgnotice => 'NOTICE', $server, $user, $msg);
+    $user->forward(privmsgnotice => 'NOTICE', $server, $user, $msg);
 
 }
 
@@ -427,7 +428,7 @@ sub numeric {
 
     # remote user.
     else {
-        $user->{location}->fire_command(num => $me, $user, $num, $_)
+        $user->forward(num => $me, $user, $num, $_)
             foreach @response;
     }
 
@@ -828,7 +829,7 @@ sub do_privmsgnotice {
 
     # the user is remote. check if dont_forward is true.
     elsif (!$opts{dont_forward}) {
-        $user->{location}->fire_command(privmsgnotice =>
+        $user->forward(privmsgnotice =>
             $command, $source, $user,
             $message, %opts
         );
@@ -899,6 +900,12 @@ sub sendfrom {
 sub sendme {
     my $user = shift;
     $user->sendfrom($me->{name}, @_);
+}
+
+# convenient for $server->fire_command
+sub forward {
+    my $user = shift;
+    $user->location->forward(@_);
 }
 
 # CAP shortcuts.

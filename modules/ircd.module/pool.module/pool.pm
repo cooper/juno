@@ -257,7 +257,7 @@ sub new_user {
     set_v(max_local_user_count  => $c_l) if $c_l > $max_l;
     set_v(max_global_user_count => $c_g) if $c_g > $max_g;
     notice(new_user => $user->notice_info, $user->{real}, $user->{server}{name})
-        unless $user->{location}{is_burst};
+        unless $user->location->{is_burst};
 
     $user->fire('new');
     return $user;
@@ -649,7 +649,7 @@ sub fire_command_all {
         # don't send to servers who haven't received my burst.
         next unless $_->{i_sent_burst};
 
-        $_->fire_command($command => @args);
+        $_->forward($command => @args);
     }
 
     return 1;
@@ -666,7 +666,7 @@ sub fire_command_almost_all {
         # don't send to servers who haven't received my burst.
         next unless $_->{i_sent_burst};
 
-        $_->fire_command($command => @args);
+        $_->forward($command => @args);
     }
 
     return 1;

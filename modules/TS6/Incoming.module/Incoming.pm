@@ -358,7 +358,7 @@ sub sid {
     server::protocol::ircd_register_modes($serv);
 
     # === Forward ===
-    $msg->forward(new_server => $serv);
+    $msg->broadcast(new_server => $serv);
 
     return 1;
 }
@@ -442,7 +442,7 @@ sub euid {
     #   JELP:   UID
     #   TS6:    EUID
     #
-    $msg->forward(new_user => $user);
+    $msg->broadcast(new_user => $user);
 
     return 1;
 }
@@ -523,7 +523,7 @@ sub sjoin {
         my @prefixes = split //, $prefixes;
 
         # this user does not physically belong to this server; ignore.
-        next if $user->{location} != $server;
+        next if $user->location != $server;
 
         # join the new user.
         push @good_users, $user;
@@ -587,7 +587,7 @@ sub sjoin {
     #   JELP:   SJOIN
     #   TS6:    SJOIN
     #
-    $msg->forward(channel_burst => $channel, $source_serv, @good_users);
+    $msg->broadcast(channel_burst => $channel, $source_serv, @good_users);
 
     return 1;
 }
@@ -703,7 +703,7 @@ sub tmode {
     # $source, $channel, $time, $perspective, $mode_str
     # the perspective is $me because it was converted.
     #
-    $msg->forward(cmode => $source, $channel, $channel->{time}, $me, $mode_str);
+    $msg->broadcast(cmode => $source, $channel, $channel->{time}, $me, $mode_str);
 
 }
 
@@ -727,7 +727,7 @@ sub _join {
     # JOIN 0 - part all channels.
     if ($ts eq '0' && !length $ch_name) {
         $user->do_part_all_local();
-        $msg->forward(part_all => $user);
+        $msg->broadcast(part_all => $user);
         return 1;
     }
 
@@ -744,7 +744,7 @@ sub _join {
     $channel->do_join_local($user);
 
     # === Forward ===
-    $msg->forward(join => $user, $channel, $ts);
+    $msg->broadcast(join => $user, $channel, $ts);
 
     return 1;
 }
@@ -801,7 +801,7 @@ sub encap {
 
     # find servers matching the mask.
     foreach my $serv ($pool->lookup_server_mask($serv_mask)) {
-        my $location = $serv->{location} || $serv;  # for $me, location = nil
+        my $location = $serv->location || $serv;  # for $me, location = nil
 
         next if $done{$location};                   # already did this location
         $done{$location} = 1;                       # remember sent/checked
@@ -894,7 +894,7 @@ sub _kill {
     $tuser->get_killed_by($source, $reason);
 
     # === Forward ===
-    $msg->forward(kill => $source, $tuser, $reason);
+    $msg->broadcast(kill => $source, $tuser, $reason);
 
 }
 
@@ -923,7 +923,7 @@ sub part {
     }
 
     # === Forward ===
-    $msg->forward(part => $user, \@channels, $reason);
+    $msg->broadcast(part => $user, \@channels, $reason);
 
 }
 
@@ -939,13 +939,13 @@ sub quit {
     # :source QUIT   :reason
     my ($server, $msg, $source, $reason) = @_;
     return if $source == $me;
-    return unless $source->{location} == $server->{location};
+    return unless $source->location == $server->location;
 
     # delete the server or user
     $source->quit($reason);
 
     # === Forward ===
-    $msg->forward(quit => $source, $reason);
+    $msg->broadcast(quit => $source, $reason);
 
     return 1;
 }
@@ -966,7 +966,7 @@ sub kick {
     $channel->do_kick_local($t_user, $source, $reason);
 
     # === Forward ===
-    $msg->forward(kick => $source, $channel, $t_user, $reason);
+    $msg->broadcast(kick => $source, $channel, $t_user, $reason);
 
     return 1;
 }
@@ -997,7 +997,7 @@ sub nick {
     $user->change_nick($newnick, $newts);
 
     # === Forward ===
-    $msg->forward(nick_change => $user);
+    $msg->broadcast(nick_change => $user);
 
     return 1;
 }
@@ -1021,16 +1021,16 @@ sub ping {
     # no destination or destination is me.
     # I get to reply to this with a PONG.
     if (!$source_serv || !$dest_serv || $dest_serv == $me) {
-        $server->fire_command(pong => $me, $server);
+        $server->forward(pong => $me, $server);
         return 1;
     }
 
     # the destination is another non-TS6 server connected through me.
     # JELP PING/PONG only work on a direct connection. see issue #62.
     # here we emulate a reply from the target server.
-    my $loc = $dest_serv->{location};
+    my $loc = $dest_serv->location;
     if ($loc && $loc->conn && $loc->{link_type} ne 'ts6') {
-        $server->fire_command(pong => $dest_serv, $server);
+        $server->forward(pong => $dest_serv, $server);
         return 1;
     }
 
@@ -1055,7 +1055,7 @@ sub pong {
         $source_serv->end_burst();
 
         # === Forward ===
-        $msg->forward(endburst => $source_serv, time);
+        $msg->broadcast(endburst => $source_serv, time);
 
         return 1;
     }
@@ -1096,7 +1096,7 @@ sub away {
         $user->do_away_local();
 
         # === Forward ===
-        $msg->forward(return_away => $user);
+        $msg->broadcast(return_away => $user);
 
         return 1;
     }
@@ -1105,7 +1105,7 @@ sub away {
     $user->do_away_local($reason);
 
     # === Forward ===
-    $msg->forward(away => $user);
+    $msg->broadcast(away => $user);
 
     return 1;
 }
@@ -1127,7 +1127,7 @@ sub topic {
     $channel->do_topic_local($user, $topic, $user->full, time);
 
     # === Forward ===
-    $msg->forward(topic => $user, $channel, $channel->{time}, $topic);
+    $msg->broadcast(topic => $user, $channel, $channel->{time}, $topic);
 
     return 1;
 }
@@ -1172,7 +1172,7 @@ sub tb {
     $channel->do_topic_local($s_serv, $topic, $setby, $topic_ts) or return;
 
     # === Forward ===
-    $msg->forward(topicburst =>
+    $msg->broadcast(topicburst =>
         $channel,
         source      => $s_serv,
         old         => $old
@@ -1213,7 +1213,7 @@ sub etb {
     # Services uses channelTS '0' to force a topic change. The channelTS
     # must be propagated as it was received.
     #
-    $msg->forward(topicburst =>
+    $msg->broadcast(topicburst =>
         $channel,
         source      => $source,
         old         => $old,
@@ -1251,7 +1251,7 @@ sub wallops {
     $pool->fire_wallops_local($source, $message, $oper_only);
 
     #=== Forward ===#
-    $msg->forward(wallops => $source, $message, $oper_only);
+    $msg->broadcast(wallops => $source, $message, $oper_only);
 
     return 1;
 }
@@ -1268,7 +1268,7 @@ sub operwall {
     $pool->fire_wallops_local($user, $message, 1);
 
     #=== Forward ===#
-    $msg->forward(wallops => $user, $message, 1);
+    $msg->broadcast(wallops => $user, $message, 1);
 
     return 1;
 }
@@ -1285,7 +1285,7 @@ sub chghost {
     $user->get_mask_changed($user->{ident}, $new_host, $source->name);
 
     #=== Forward ===#
-    $msg->forward(chghost => $source, $user, $new_host);
+    $msg->broadcast(chghost => $source, $user, $new_host);
 
     return 1;
 }
@@ -1328,7 +1328,7 @@ sub squit {
         $t_serv->quit($comment);
 
         #=== Forward ===#
-        $msg->forward(quit => $t_serv, $comment, $real_source);
+        $msg->broadcast(quit => $t_serv, $comment, $real_source);
 
     }
 
@@ -1346,7 +1346,7 @@ sub whois {
     # $query is the raw query itself, such as a nickname
 
     # forward this onto physical location.
-    my $loc = $target->{location} || $target;
+    my $loc = $target->location || $target;
 
     # it's me!
     if ($loc == $me) {
@@ -1420,7 +1420,7 @@ sub mode {
         # $source, $channel, $time, $perspective, $mode_str
         # the perspective is $me because it was converted.
         #
-        $msg->forward(cmode => $source, $target, $target->{time}, $me, $mode_str);
+        $msg->broadcast(cmode => $source, $target, $target->{time}, $me, $mode_str);
 
         return 1;
     }
@@ -1440,7 +1440,7 @@ sub mode {
     $target->do_mode_string_local($mode_str, 1);
 
     # === Forward ===
-    $msg->forward(umode => $target, $mode_str);
+    $msg->broadcast(umode => $target, $mode_str);
 
     return 1;
 }
@@ -1591,7 +1591,7 @@ sub save {
     $t_user->save_locally;
 
     #=== Forward ===#
-    $msg->forward(save_user => $source_serv, $t_user, $time);
+    $msg->broadcast(save_user => $source_serv, $t_user, $time);
 
     return 1;
 }
@@ -1680,7 +1680,7 @@ sub realhost {
     my ($server, $msg, $user, $serv_mask, $host) = @_;
     $msg->{encap_forwarded}++;
     $user->{host} = $host;
-    $msg->forward(realhost => $user, $host);
+    $msg->broadcast(realhost => $user, $host);
 }
 
 # SNOTE
@@ -1721,7 +1721,7 @@ sub snote {
     }
 
     # === Forward ===
-    $msg->forward(snotice => $server, $notice, $message, undef, $letter);
+    $msg->broadcast(snotice => $server, $notice, $message, undef, $letter);
 }
 
 # KNOCK
@@ -1735,7 +1735,7 @@ sub knock {
     my ($server, $msg, $user, $channel) = @_;
     $channel->fire(knock => $user);
     # === Forward ===
-    $msg->forward(knock => $user, $channel);
+    $msg->broadcast(knock => $user, $channel);
 }
 
 $mod

@@ -106,10 +106,10 @@ sub forwarder {
         # if there is no connection (whether direct or not),
         # uh, I don't know what to do at this point!
         next if $serv->is_local;
-        next unless $serv->{location};
+        next unless $serv->location;
 
         # pass it on :)
-        $serv->{location}->fire_command(lc $command => $user, $serv, @cmd_args);
+        $serv->forward(lc $command => $user, $serv, @cmd_args);
 
     }
 

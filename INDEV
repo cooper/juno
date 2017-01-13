@@ -3986,3 +3986,11 @@ CHANGES:
         used mass replace to update all existing code which used these methods.
 
     80. update user command handlers to use new global versions methods where appropriate.
+
+    81. rename $server->fire_command() to $server->forward().
+        ->forward() can now also be used on users, as well as non-uplink servers.
+        ->forward() will find the actual uplink associated with remote objects,
+        using the new ->location method, which is available for users and servers.
+        to prevent confusion, $msg->forward() was renamed to $msg->broadcast().
+        this is now consistent with the broadcast() utility.
+        mass replaced all existing uses of these methods with the new names.

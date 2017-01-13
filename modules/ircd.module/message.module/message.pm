@@ -599,7 +599,7 @@ sub _param_channel {
 #################################
 
 # forward to all servers except the source.
-sub forward {
+sub broadcast {
     my ($msg, $e_name, $amnt) = (shift, shift, 0);
     my $server = $msg->{_physical_server} or return;
 
@@ -612,7 +612,7 @@ sub forward {
         # don't send to the server we got it from.
         next if $_ == $server;
 
-        $amnt++ if $_->fire_command($e_name => @_);
+        $amnt++ if $_->forward($e_name => @_);
     }
     return $amnt;
 }
@@ -628,7 +628,7 @@ sub forward_plus_one {
         # don't send to servers who haven't received my burst.
         next unless $_->{i_sent_burst};
 
-        $amnt++ if $_->fire_command($e_name => @_);
+        $amnt++ if $_->forward($e_name => @_);
     }
     return $amnt;
 }
@@ -641,17 +641,17 @@ sub forward_to {
 
     # directly to a server or its location.
     if ($target->isa('server')) {
-        $target = $target->conn ? $target : $target->{location};
+        $target = $target->conn ? $target : $target->location;
         return 0 if $msg->{_physical_server} == $target;
-        $amnt++  if $target->fire_command($e_name => @args);
+        $amnt++  if $target->forward($e_name => @args);
         return $amnt;
     }
 
     # to a user's server location.
     if ($target->isa('user')) {
-        $target = $target->{location};
+        $target = $target->location;
         return 0 if $msg->{_physical_server} == $target;
-        $amnt++  if $target->fire_command($e_name => @args);
+        $amnt++  if $target->forward($e_name => @args);
         return $amnt;
     }
 
@@ -659,9 +659,9 @@ sub forward_to {
     if ($target->isa('channel')) {
         my %sent = ( $msg->{_physical_server} => 1 );
         foreach my $user ($target->users) {
-            next if $sent{ $user->{location} };
-            $amnt++ if $user->{location}->fire_command($e_name => @args);
-            $sent{ $user->{location} }++;
+            next if $sent{ $user->location };
+            $amnt++ if $user->forward($e_name => @args);
+            $sent{ $user->location }++;
         }
     }
 
@@ -685,7 +685,7 @@ sub forward_to_mask {
         next if $_ == $server;
 
         $matches_me++, next if $_ == $me;
-        $amnt++ if $_->fire_command($e_name => @args);
+        $amnt++ if $_->forward($e_name => @args);
     }
 
     return ($amnt, !$matches_me) if wantarray;

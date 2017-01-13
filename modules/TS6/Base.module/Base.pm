@@ -300,7 +300,7 @@ sub _param_source {
 
     # make sure the source is reached via the physical server
     my $from_server = $msg->{_physical_server};
-    if ($source->{location} != $from_server) {
+    if ($source->location != $from_server) {
         notice(server_protocol_warning =>
             $from_server->notice_info,
             'sent '.$msg->command.' with source '.$source->notice_info.

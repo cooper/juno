@@ -79,7 +79,7 @@ sub burst_bans {
     return 1 if $server->{bans_negotiated}++;
     my @bans = M::Ban::all_bans() or return 1;
 
-    $server->fire_command(ban => @bans);
+    $server->forward(ban => @bans);
 }
 
 # Outgoing
@@ -168,7 +168,7 @@ sub in_ban {
 
         push @idk, $id;
     }
-    $server->fire_command(banidk => @idk) if @idk;
+    $server->forward(banidk => @idk) if @idk;
 }
 
 # BANINFO: share ban data
@@ -203,7 +203,7 @@ sub in_baninfo {
     #=== Forward ===#
     $ban->set_recent_source($from || $source_serv);
     $ban->notify_new($ban->recent_source);
-    $msg->forward(baninfo => $ban);
+    $msg->broadcast(baninfo => $ban);
 
     return 1;
 }
@@ -215,7 +215,7 @@ sub in_banidk {
     # send out ban info for each requested ID
     foreach my $id (@ids) {
         my $ban = M::Ban::ban_by_id($id) or next;
-        $server->fire_command(baninfo => $ban);
+        $server->forward(baninfo => $ban);
     }
 
     return 1;
@@ -240,7 +240,7 @@ sub in_bandel {
     }
 
     #=== Forward ===#
-    $msg->forward(bandel => @bans) if @bans;
+    $msg->broadcast(bandel => @bans) if @bans;
 
     return 1;
 }

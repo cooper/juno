@@ -112,7 +112,7 @@ sub send_burst {
         }
 
         # SID
-        $server->fire_command(new_server => $serv);
+        $server->forward(new_server => $serv);
         $done{$serv} = 1;
 
     }; $do->($_) foreach $pool->all_servers;
@@ -124,10 +124,10 @@ sub send_burst {
         next if $user->{server} == $server || $user->{source} == $server->{sid};
 
         # (E)UID, ENCAP REALHOST, ENCAP LOGIN
-        $server->fire_command(new_user => $user);
+        $server->forward(new_user => $user);
 
         # AWAY
-        $server->fire_command(away => $user)
+        $server->forward(away => $user)
             if length $user->{away};
     }
 
@@ -135,10 +135,10 @@ sub send_burst {
     foreach my $channel ($pool->channels) {
 
         # SJOIN
-        $server->fire_command(channel_burst => $channel, $me, $channel->users);
+        $server->forward(channel_burst => $channel, $me, $channel->users);
 
         # (E)TB, TOPIC
-        $server->fire_command(topicburst => $channel)
+        $server->forward(topicburst => $channel)
             if $channel->topic;
     }
 

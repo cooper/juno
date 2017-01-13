@@ -157,7 +157,7 @@ sub rcmd_authenticate {
     # send out SASL S and SASL H.
     if (!$agent) {
         my $saslserv_serv = $saslserv->{server};
-        my $saslserv_loc  = $saslserv->{location};
+        my $saslserv_loc  = $saslserv->location;
 
         # shared between SASL S and SASL H.
         my @common = (
@@ -168,14 +168,14 @@ sub rcmd_authenticate {
         );
 
         # send SASL H.
-        $saslserv_loc->fire_command(sasl_host_info =>
+        $saslserv_loc->forward(sasl_host_info =>
             @common,                    # common parameters
             $connection->{host},        # connection host
             $connection->{ip}           # connection IP address
         );
 
         # send SASL S.
-        $saslserv_loc->fire_command(sasl_initiate =>
+        $saslserv_loc->forward(sasl_initiate =>
             @common,                    # common parameters
             $arg                        # authentication method; e.g. PLAIN
         );
@@ -188,10 +188,10 @@ sub rcmd_authenticate {
     # the client has an agent. forward this as client data to the agent.
     elsif (length $arg) {
         my $agent_serv = $agent->{server};
-        my $agent_loc  = $agent->{location};
+        my $agent_loc  = $agent->location;
 
         # send data
-        $agent_loc->fire_command(sasl_client_data =>
+        $agent_loc->forward(sasl_client_data =>
             $me,                        # source server
             $agent_serv->name,          # server mask target
             $connection->{uid},         # the connection's temporary UID
@@ -224,8 +224,8 @@ sub abort_sasl {
 
     # tell the agent that the user aborted the exchange.
     my $agent_serv = $agent->{server};
-    my $agent_loc  = $agent->{location};
-    $agent_loc->fire_command(sasl_done =>
+    my $agent_loc  = $agent->location;
+    $agent_loc->forward(sasl_done =>
         $me,                        # source server
         $agent_serv->name,          # server mask target
         $connection->{uid},         # the connection's temporary UID
