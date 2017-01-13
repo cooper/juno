@@ -3996,4 +3996,8 @@ CHANGES:
         mass replaced all existing uses of these methods with the new names.
 
     82. remove ->fire_command_all(), which was deprecated.
+        remove ->fire_command_almost_all(), which I have no memory of adding.
         update SASL to use new ->forward() stuff.
+
+    83. broadcast new_user in Base::AddUser.
+        use location's ircd/proto info in oper notices for new servers.

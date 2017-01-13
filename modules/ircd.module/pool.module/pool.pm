@@ -123,9 +123,10 @@ sub new_server {
     # become an event listener.
     $server->add_listener($pool, 'server');
 
-    my $ircd = $server->{ircd} == -1 ?
-        $server->{ircd_name} : v('SNAME').' '.$server->{ircd};
-    my $proto = ($server->{link_type}.' ' || '').$server->{proto};
+    my $loc  = $server->location;
+    my $ircd = $loc->{ircd} == -1 ?
+        $loc->{ircd_name} : v('SNAME').' '.$loc->{ircd};
+    my $proto = $loc->{link_type}.$loc->{proto};
 
     notice(new_server =>
         $server->notice_info,

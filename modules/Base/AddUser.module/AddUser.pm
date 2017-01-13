@@ -15,6 +15,8 @@ use warnings;
 use strict;
 use 5.010;
 
+use utils qw(broadcast);
+
 our ($api, $mod, $pool, $me);
 
 sub init {
@@ -35,6 +37,7 @@ sub add_user {
         %opts
     );
     L('New virtual user '.$user->full);
+    broadcast(new_user => $user);
     return $user;
 }
 
