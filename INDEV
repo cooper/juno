@@ -3994,3 +3994,6 @@ CHANGES:
         to prevent confusion, $msg->forward() was renamed to $msg->broadcast().
         this is now consistent with the broadcast() utility.
         mass replaced all existing uses of these methods with the new names.
+
+    82. remove ->fire_command_all(), which was deprecated.
+        update SASL to use new ->forward() stuff.

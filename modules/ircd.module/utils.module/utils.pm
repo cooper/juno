@@ -416,7 +416,6 @@ sub notice {
 
 # send a notice that propagates.
 sub gnotice {
-    return unless pool->can('fire_command_all') && $::pool;
 
     # first arg might be a user.
     my ($to_user, $flag);
@@ -427,14 +426,19 @@ sub gnotice {
     $flag = shift;
 
     my $message = notice([caller 1], $to_user, $flag, @_);
-    $::pool->fire_command_all(snotice => $ircd::me, $flag, $message, $to_user);
+    broadcast(snotice => $ircd::me, $flag, $message, $to_user);
     return $message;
 }
 
-# shortcut to ->fire_command_all()
+# forward something to all uplinks
 sub broadcast {
-    return unless pool->can('fire_command_all') && $::pool;
-    return $::pool->fire_command_all(@_);
+    my $command = shift;
+    my $me = $ircd::me or return;
+    foreach ($me->children) {
+        next unless $_->{i_sent_burst};
+        $_->forward($command => @_);
+    }
+    return 1;
 }
 
 # convert a string list of channels to channel objects.
