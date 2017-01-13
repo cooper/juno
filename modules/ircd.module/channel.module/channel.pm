@@ -1293,7 +1293,7 @@ sub do_topic_local {
 sub do_kick {
     my ($channel, $user, $source, $reason) = (shift, @_);
     my $ret = $channel->do_kick_local(@_);
-    broadcast($source, $channel, $user, $reason);
+    broadcast(kick => $source, $channel, $user, $reason);
     return $ret;
 }
 

@@ -509,8 +509,7 @@ sub _join {
 
     # JOIN 0 = part all channels.
     if ($given eq '0') {
-        $user->do_part_all_local();
-        broadcast(part_all => $user);
+        $user->do_part_all();
         return 1;
     }
 
@@ -823,13 +822,7 @@ sub ison {
 # set away status
 sub away {
     my ($user, $event, $reason) = @_;
-    my $ok = $user->do_away_local($reason);
-
-    # status 1 = set away, 2 = unset away
-    broadcast(away        => $user) if $ok && $ok == 1;
-    broadcast(return_away => $user) if $ok && $ok == 2;
-
-    return 1;
+    return $user->do_away($reason);
 }
 
 # disconnect from the server
@@ -842,12 +835,7 @@ sub quit {
 # leave a channel
 sub part {
     my ($user, $event, $channel, $reason) = @_;
-
-    # tell channel's users and servers.
-    $channel->do_part_local($user, $reason);
-    broadcast(part => $user, $channel, $reason);
-
-    return 1;
+    return $channel->do_part($user, $reason);
 }
 
 # connect to a server
@@ -1208,13 +1196,8 @@ sub topic {
             return;
         }
 
-        # set the topic and broadcast it.
-        my $time = time;
         # ($source, $topic, $setby, $time, $check_text)
-        $channel->do_topic_local($user, $new_topic, $user->full, $time);
-        broadcast(topic => $user, $channel, $time, $new_topic);
-
-        return 1;
+        return $channel->do_topic($user, $new_topic, $user->full, time);
     }
 
     # viewing topic.
@@ -1411,13 +1394,7 @@ sub kick {
     # determine the reason.
     $reason //= $user->{nick};
 
-    # tell the local users of the channel.
-    $channel->do_kick_local($t_user, $user, $reason);
-
-    # tell the other servers.
-    broadcast(kick => $user, $channel, $t_user, $reason);
-
-    return 1;
+    return $channel->do_kick($t_user, $user, $reason);
 }
 
 # view channel directory

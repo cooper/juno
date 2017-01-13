@@ -15,7 +15,7 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils qw(conf broadcast);
+use utils qw(conf);
 
 our ($api, $mod, $pool);
 
@@ -46,8 +46,7 @@ sub activate_resv {
     if ($channel && conf('channels', 'resv_force_part')) {
         foreach my $user ($channel->all_local_users) {
             # ($user, $reason, $quiet)
-            $channel->do_part_local($user, $ban->hr_reason, 1);
-            broadcast(part => $user, $channel, $ban->hr_reason);
+            $channel->do_part($user, $ban->hr_reason, 1);
         }
     }
 

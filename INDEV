@@ -3984,3 +3984,5 @@ CHANGES:
         rename ->do_logout() to ->do_logout_local(). add global ->do_logout().
         rename ->user_get_kicked() to ->do_kick_local(). add global ->do_kick().
         used mass replace to update all existing code which used these methods.
+
+    80. update user command handlers to use new global versions methods where appropriate.
