@@ -4,6 +4,10 @@
       "website" : "https://github.com/mattwb65"
    },
    "depends" : {
+      "bases" : [
+         "ChannelModes",
+         "UserNumerics"
+      ],
       "modules" : [
          "Base::ChannelModes",
          "Base::UserNumerics"
@@ -12,5 +16,5 @@
    "description" : "Adds mode to allow only registered users to join",
    "name" : "Channel::RegisteredOnly",
    "package" : "M::Channel::RegisteredOnly",
-   "version" : "0.6"
+   "version" : "0.7"
 }

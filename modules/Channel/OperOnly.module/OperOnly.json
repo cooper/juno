@@ -4,6 +4,10 @@
       "website" : "https://github.com/mattwb65"
    },
    "depends" : {
+      "bases" : [
+         "ChannelModes",
+         "UserNumerics"
+      ],
       "modules" : [
          "Base::ChannelModes",
          "Base::UserNumerics"
@@ -12,5 +16,5 @@
    "description" : "adds oper only mode",
    "name" : "Channel::OperOnly",
    "package" : "M::Channel::OperOnly",
-   "version" : "1.8"
+   "version" : "1.9"
 }

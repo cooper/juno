@@ -4,6 +4,7 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
+      "bases" : "UserModes",
       "modules" : [
          "Base::UserModes"
       ]
@@ -11,5 +12,5 @@
    "description" : "hostname cloaking",
    "name" : "Cloak",
    "package" : "M::Cloak",
-   "version" : "0.9"
+   "version" : "1"
 }

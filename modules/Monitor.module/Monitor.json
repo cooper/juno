@@ -4,6 +4,10 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
+      "bases" : [
+         "UserNumerics",
+         "UserCommands"
+      ],
       "modules" : [
          "Base::UserCommands",
          "Base::UserNumerics"
@@ -12,5 +16,5 @@
    "description" : "provides client availability notifications",
    "name" : "Monitor",
    "package" : "M::Monitor",
-   "version" : "1.4"
+   "version" : "1.5"
 }

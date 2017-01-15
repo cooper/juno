@@ -4,7 +4,7 @@
 # @package:         "M::Core::UserModes"
 # @description:     "the core set of user modes"
 #
-# @depends.modules: "Base::UserModes"
+# @depends.bases:   'UserModes'
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

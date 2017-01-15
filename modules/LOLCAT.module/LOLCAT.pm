@@ -4,7 +4,7 @@
 # @package:         "M::LOLCAT"
 # @description:     "SPEEK LIEK A LOLCATZ!"
 #
-# @depends.modules: "Base::UserCommands"
+# @depends.bases:   'UserCommands'
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

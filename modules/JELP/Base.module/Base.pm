@@ -3,7 +3,7 @@
 # @name:            "JELP::Base"
 # @package:         "M::JELP::Base"
 #
-# @depends.modules: ['API::Methods']
+# @depends.modules: 'API::Methods'
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

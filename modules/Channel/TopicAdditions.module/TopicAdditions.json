@@ -4,13 +4,10 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
-      "modules" : [
-         "Core::UserCommands",
-         "Base::UserCommands"
-      ]
+      "modules" : "Core::UserCommands"
    },
    "description" : "additional topic management commands",
    "name" : "Channel::TopicAdditions",
    "package" : "M::Channel::TopicAdditions",
-   "version" : "0.8"
+   "version" : "0.9"
 }

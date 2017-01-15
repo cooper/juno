@@ -8,7 +8,7 @@
 # @package:         'M::Channel::SSLOnly'
 # @description:     'Adds mode to allow only ssl users to join'
 #
-# @depends.modules: ['Base::ChannelModes']
+# @depends.bases:   'ChannelModes'
 #
 # @author.name:     'Matt Barksdale'
 # @author.website:  'https://github.com/mattwb65'

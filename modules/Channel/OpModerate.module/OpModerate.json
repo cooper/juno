@@ -4,6 +4,7 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
+      "bases" : "ChannelModes",
       "modules" : [
          "Base::ChannelModes"
       ]
@@ -11,5 +12,5 @@
    "description" : "adds a channel mode to send blocked messages to ops",
    "name" : "Channel::OpModerate",
    "package" : "M::Channel::OpModerate",
-   "version" : "1"
+   "version" : "1.1"
 }

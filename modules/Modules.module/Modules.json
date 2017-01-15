@@ -4,6 +4,10 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
+      "bases" : [
+         "UserCommands",
+         "OperNotices"
+      ],
       "modules" : [
          "Base::UserCommands",
          "Base::OperNotices"
@@ -12,5 +16,5 @@
    "description" : "manage modules from IRC",
    "name" : "Modules",
    "package" : "M::Modules",
-   "version" : "7.3"
+   "version" : "7.4"
 }

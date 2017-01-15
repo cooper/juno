@@ -4,6 +4,11 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
+      "bases" : [
+         "UserCommands",
+         "ChannelModes",
+         "UserNumerics"
+      ],
       "modules" : [
          "Base::UserCommands",
          "Base::ChannelModes",
@@ -13,5 +18,5 @@
    "description" : "channel invitations",
    "name" : "Channel::Invite",
    "package" : "M::Channel::Invite",
-   "version" : "5.5"
+   "version" : "5.6"
 }

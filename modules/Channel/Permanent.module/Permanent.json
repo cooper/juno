@@ -4,6 +4,7 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
+      "bases" : "ChannelModes",
       "modules" : [
          "Base::ChannelModes"
       ]
@@ -11,5 +12,5 @@
    "description" : "adds permanent channel support",
    "name" : "Channel::Permanent",
    "package" : "M::Channel::Permanent",
-   "version" : "0.5"
+   "version" : "0.6"
 }

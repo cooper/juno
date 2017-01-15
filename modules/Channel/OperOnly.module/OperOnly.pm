@@ -8,7 +8,7 @@
 # @package:         'M::Channel::OperOnly'
 # @description:     'adds oper only mode'
 #
-# @depends.modules: ['Base::ChannelModes', 'Base::UserNumerics']
+# @depends.bases:   [ 'ChannelModes', 'UserNumerics' ]
 #
 # @author.name:     'Matthew Barksdale'
 # @author.website:  'https://github.com/mattwb65'

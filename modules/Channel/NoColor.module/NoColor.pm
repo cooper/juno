@@ -8,7 +8,7 @@
 # @package:         'M::Channel::NoColor'
 # @description:     'Adds mode to strip colors from channel messages'
 #
-# @depends.modules: ['Base::ChannelModes']
+# @depends.bases:   'ChannelModes'
 #
 # @author.name:     'Matt Barksdale'
 # @author.website:  'https://github.com/mattwb65'

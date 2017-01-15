@@ -4,7 +4,7 @@
 # @package:         "M::Core::ChannelModes"
 # @description:     "the core set of channel modes"
 #
-# @depends.modules: ['Base::ChannelModes', 'Base::Capabilities']
+# @depends.bases:   [ 'ChannelModes', 'Capabilities' ]
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

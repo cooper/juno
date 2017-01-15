@@ -4,7 +4,8 @@
 # @package:         "M::Reload"
 # @description:     "reload the entire IRCd in one command"
 #
-# @depends.modules: ['Base::UserCommands', 'Base::OperNotices', 'JELP::Base']
+# @depends.bases:   [ 'UserCommands', 'OperNotices' ]
+# @depends.modules: 'JELP::Base'
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

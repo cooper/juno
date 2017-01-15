@@ -4,7 +4,8 @@
 # @package:         "M::Git"
 # @description:     "git repository management"
 #
-# @depends.modules: ['Base::UserCommands', 'JELP::Base', 'Base::OperNotices']
+# @depends.bases:   [ 'UserCommands', 'OperNotices' ]
+# @depends.modules: 'JELP::Base'
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

@@ -4,6 +4,7 @@
       "website" : "https://github.com/mattwb65"
    },
    "depends" : {
+      "bases" : "ChannelModes",
       "modules" : [
          "Base::ChannelModes"
       ]
@@ -11,5 +12,5 @@
    "description" : "Adds mode to allow only ssl users to join",
    "name" : "Channel::SSLOnly",
    "package" : "M::Channel::SSLOnly",
-   "version" : "0.3"
+   "version" : "0.4"
 }

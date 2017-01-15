@@ -4,8 +4,8 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
+      "bases" : "RegistrationCommands",
       "modules" : [
-         "Base::RegistrationCommands",
          "TS6::Utils",
          "TS6::Base"
       ]
@@ -13,5 +13,5 @@
    "description" : "registration commands for TS6 protocol",
    "name" : "TS6::Registration",
    "package" : "M::TS6::Registration",
-   "version" : "8"
+   "version" : "8.1"
 }

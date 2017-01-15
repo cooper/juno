@@ -11,7 +11,8 @@
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'
 #
-# @depends.modules: ['JELP::Base', 'Base::UserCommands']
+# @depends.bases:   'UserCommands'
+# @depends.modules: 'JELP::Base'
 #
 package M::Configuration::Set;
 

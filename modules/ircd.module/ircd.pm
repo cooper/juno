@@ -317,9 +317,9 @@ sub load_dependencies {
         [ 'Evented::Object::Collection',   5.63 ],
         [ 'Evented::Object::EventFire',    5.63 ],
 
-        [ 'Evented::API::Engine',          4.02 ],
-        [ 'Evented::API::Module',          4.02 ],
-        [ 'Evented::API::Events',          4.02 ],
+        [ 'Evented::API::Engine',          4.03 ],
+        [ 'Evented::API::Module',          4.03 ],
+        [ 'Evented::API::Events',          4.03 ],
 
         [ 'Evented::Configuration',        4.00 ],
 

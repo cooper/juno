@@ -4,7 +4,7 @@
 # @package:         "M::Channel::Invite"
 # @description:     "channel invitations"
 #
-# @depends.modules: ['Base::UserCommands', 'Base::ChannelModes', 'Base::UserNumerics']
+# @depends.bases:   [ 'UserCommands', 'ChannelModes', 'UserNumerics' ]
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

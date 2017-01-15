@@ -4,7 +4,7 @@
 # @package:         "M::Channel::Knock"
 # @description:     "request to join a restricted channel"
 #
-# @depends.modules: ['Base::UserCommands', 'Base::UserNumerics']
+# @depends.bases:   [ 'UserCommands', 'UserNumerics' ]
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

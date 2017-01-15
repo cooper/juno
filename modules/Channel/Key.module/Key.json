@@ -4,6 +4,10 @@
       "website" : "https://github.com/mattwb65"
    },
    "depends" : {
+      "bases" : [
+         "ChannelModes",
+         "UserNumerics"
+      ],
       "modules" : [
          "Base::ChannelModes",
          "Base::UserNumerics"
@@ -12,5 +16,5 @@
    "description" : "adds channel key mode",
    "name" : "Channel::Key",
    "package" : "M::Channel::Key",
-   "version" : "3.1"
+   "version" : "3.2"
 }

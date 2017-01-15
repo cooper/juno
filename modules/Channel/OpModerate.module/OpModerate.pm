@@ -4,7 +4,7 @@
 # @package:         'M::Channel::OpModerate'
 # @description:     'adds a channel mode to send blocked messages to ops'
 #
-# @depends.modules: ['Base::ChannelModes']
+# @depends.bases:   'ChannelModes'
 #
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'

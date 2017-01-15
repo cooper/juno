@@ -4,6 +4,11 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
+      "bases" : [
+         "ChannelModes",
+         "UserCommands",
+         "UserNumerics"
+      ],
       "modules" : [
          "Base::ChannelModes",
          "Base::UserCommands",
@@ -13,5 +18,5 @@
    "description" : "implements channel access mode",
    "name" : "Channel::Access",
    "package" : "M::Channel::Access",
-   "version" : "5.6"
+   "version" : "5.7"
 }

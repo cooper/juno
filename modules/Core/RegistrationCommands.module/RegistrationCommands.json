@@ -4,6 +4,10 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
+      "bases" : [
+         "RegistrationCommands",
+         "UserNumerics"
+      ],
       "modules" : [
          "Base::RegistrationCommands",
          "Base::UserNumerics"
@@ -12,5 +16,5 @@
    "description" : "the core set of pre-registration commands",
    "name" : "Core::RegistrationCommands",
    "package" : "M::Core::RegistrationCommands",
-   "version" : "9.8"
+   "version" : "9.9"
 }

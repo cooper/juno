@@ -4,6 +4,10 @@
       "website" : "https://github.com/mattwb65"
    },
    "depends" : {
+      "bases" : [
+         "ChannelModes",
+         "UserNumerics"
+      ],
       "modules" : [
          "Base::ChannelModes",
          "Base::UserNumerics"
@@ -12,5 +16,5 @@
    "description" : "adds channel forwarding abilities",
    "name" : "Channel::Forward",
    "package" : "M::Channel::Forward",
-   "version" : "3.6"
+   "version" : "3.7"
 }

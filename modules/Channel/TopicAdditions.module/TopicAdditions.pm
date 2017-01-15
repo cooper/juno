@@ -8,7 +8,7 @@
 # @package:         'M::Channel::TopicAdditions'
 # @description:     'additional topic management commands'
 #
-# @depends.modules: ['Core::UserCommands', 'Base::UserCommands']
+# @depends.modules: 'Core::UserCommands'
 #
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'

@@ -4,7 +4,7 @@
 # @package:         'M::Channel::ModeSync::Desync'
 # @description:     'provides the MODESYNC user command to fix desyncs'
 #
-# @depends.modules: ['Base::UserCommands', 'Base::OperNotices']
+# @depends.bases:   [ 'UserCommands', 'OperNotices' ]
 #
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'

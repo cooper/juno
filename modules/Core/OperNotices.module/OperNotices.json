@@ -4,10 +4,11 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
+      "bases" : "OperNotices",
       "modules" : "Base::OperNotices"
    },
    "description" : "the core set of oper notices",
    "name" : "Core::OperNotices",
    "package" : "M::Core::OperNotices",
-   "version" : "12.35"
+   "version" : "12.45"
 }
