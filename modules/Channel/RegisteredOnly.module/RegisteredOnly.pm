@@ -8,7 +8,7 @@
 # @package:         'M::Channel::RegisteredOnly'
 # @description:     'Adds mode to allow only registered users to join'
 #
-# @depends.bases:   [ 'ChannelModes', 'UserNumerics' ]
+# @depends.bases+   'ChannelModes', 'UserNumerics'
 #
 # @author.name:     'Matt Barksdale'
 # @author.website:  'https://github.com/mattwb65'

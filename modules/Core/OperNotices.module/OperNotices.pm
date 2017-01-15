@@ -4,7 +4,7 @@
 # @package:         "M::Core::OperNotices"
 # @description:     "the core set of oper notices"
 #
-# @depends.bases:   'OperNotices'
+# @depends.bases+   'OperNotices'
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

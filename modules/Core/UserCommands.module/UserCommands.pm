@@ -4,7 +4,7 @@
 # @package:         "M::Core::UserCommands"
 # @description:     "the core set of user commands"
 #
-# @depends.bases:   [ 'UserCommands', 'Capabilities' ]
+# @depends.bases+   'UserCommands', 'Capabilities'
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

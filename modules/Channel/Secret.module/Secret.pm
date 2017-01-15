@@ -8,7 +8,7 @@
 # @package:         'M::Channel::Secret'
 # @description:     'allows a channel to be marked secret or private'
 #
-# @depends.bases:   'ChannelModes'
+# @depends.bases+   'ChannelModes'
 #
 # @author.name:     'Matthew Barksdale'
 # @author.website:  'https://github.com/mattwb65'

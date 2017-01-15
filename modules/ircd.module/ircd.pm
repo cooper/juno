@@ -3,8 +3,9 @@
 # @name:            "ircd"
 # @package:         "ircd"
 # @description:     "main IRCd module"
-# @no_bless:        1
-# @preserve_sym:    1
+#
+# @no_bless
+# @preserve_sym
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"
@@ -317,9 +318,9 @@ sub load_dependencies {
         [ 'Evented::Object::Collection',   5.63 ],
         [ 'Evented::Object::EventFire',    5.63 ],
 
-        [ 'Evented::API::Engine',          4.03 ],
-        [ 'Evented::API::Module',          4.03 ],
-        [ 'Evented::API::Events',          4.03 ],
+        [ 'Evented::API::Engine',          4.05 ],
+        [ 'Evented::API::Module',          4.05 ],
+        [ 'Evented::API::Events',          4.05 ],
 
         [ 'Evented::Configuration',        4.00 ],
 

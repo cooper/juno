@@ -9,8 +9,8 @@
 # @description:     'provides an interface for user and server banning'
 #
 #
-# @depends.bases:   [ 'UserCommands', 'OperNotices' ]
-# @depends.modules: 'API::Methods'
+# @depends.bases+   'UserCommands', 'OperNotices'
+# @depends.modules+ 'API::Methods'
 #
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'

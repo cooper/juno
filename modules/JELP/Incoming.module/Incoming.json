@@ -4,10 +4,12 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
-      "modules" : "JELP::Base"
+      "modules" : [
+         "JELP::Base"
+      ]
    },
    "description" : "basic set of JELP command handlers",
    "name" : "JELP::Incoming",
    "package" : "M::JELP::Incoming",
-   "version" : "32.03"
+   "version" : "32.13"
 }

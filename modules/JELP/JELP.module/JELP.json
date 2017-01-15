@@ -13,5 +13,5 @@
    "description" : "juno extensible linking protocol",
    "name" : "JELP",
    "package" : "M::JELP",
-   "version" : "7.94"
+   "version" : "8.04"
 }

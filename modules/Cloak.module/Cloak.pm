@@ -5,7 +5,7 @@
 # @package:         'M::Cloak'
 # @description:     'hostname cloaking'
 #
-# @depends.bases:   'UserModes'
+# @depends.bases+   'UserModes'
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

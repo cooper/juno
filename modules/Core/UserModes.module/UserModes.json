@@ -4,11 +4,12 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
-      "bases" : "UserModes",
-      "modules" : "Base::UserModes"
+      "bases" : [
+         "UserModes"
+      ]
    },
    "description" : "the core set of user modes",
    "name" : "Core::UserModes",
    "package" : "M::Core::UserModes",
-   "version" : "11.53"
+   "version" : "11.63"
 }

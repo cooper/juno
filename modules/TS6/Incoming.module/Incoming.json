@@ -4,10 +4,12 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
-      "modules" : "TS6::Base"
+      "modules" : [
+         "TS6::Base"
+      ]
    },
    "description" : "basic set of TS6 command handlers",
    "name" : "TS6::Incoming",
    "package" : "M::TS6::Incoming",
-   "version" : "30.4"
+   "version" : "30.5"
 }

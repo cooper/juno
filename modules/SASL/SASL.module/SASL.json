@@ -4,14 +4,14 @@
       "website" : "https://github.com/mattwb65"
    },
    "depends" : {
-      "modules" : [
-         "Base::Capabilities",
-         "Base::RegistrationCommands",
-         "Base::UserNumerics"
+      "bases" : [
+         "Capabilities",
+         "RegistrationCommands",
+         "UserNumerics"
       ]
    },
    "description" : "Provides SASL authentication",
    "name" : "SASL",
    "package" : "M::SASL",
-   "version" : "7.8"
+   "version" : "7.9"
 }

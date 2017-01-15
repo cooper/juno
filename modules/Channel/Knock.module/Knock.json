@@ -7,14 +7,10 @@
       "bases" : [
          "UserCommands",
          "UserNumerics"
-      ],
-      "modules" : [
-         "Base::UserCommands",
-         "Base::UserNumerics"
       ]
    },
    "description" : "request to join a restricted channel",
    "name" : "Channel::Knock",
    "package" : "M::Channel::Knock",
-   "version" : "1.1"
+   "version" : "1.2"
 }

@@ -4,7 +4,7 @@
 # @package:         'M::Channel::Permanent'
 # @description:     'adds permanent channel support'
 #
-# @depends.bases:   'ChannelModes'
+# @depends.bases+   'ChannelModes'
 #
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'

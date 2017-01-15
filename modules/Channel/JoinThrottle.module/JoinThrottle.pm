@@ -4,7 +4,7 @@
 # @package:         "M::Channel::JoinThrottle"
 # @description:     "channel mode to prevent join flooding"
 #
-# @depends.bases:   [ 'ChannelModes', 'UserNumerics' ]
+# @depends.bases+   'ChannelModes', 'UserNumerics'
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

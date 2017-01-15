@@ -8,7 +8,7 @@
 # @package:         'M::TS6::Outgoing'
 # @description:     'basic set of TS6 outgoing commands'
 #
-# @depends.modules: ['TS6::Utils', 'TS6::Base']
+# @depends.modules+ 'TS6::Utils', 'TS6::Base'
 #
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'

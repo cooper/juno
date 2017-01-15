@@ -3,7 +3,7 @@
 # @name:            "Base::Matchers"
 # @package:         "M::Base::Matchers"
 #
-# @depends.modules: "API::Methods"
+# @depends.modules+ "API::Methods"
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

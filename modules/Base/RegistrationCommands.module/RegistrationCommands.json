@@ -4,10 +4,12 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
-      "modules" : "API::Methods"
+      "modules" : [
+         "API::Methods"
+      ]
    },
    "description" : "provides an interface for client registration commands",
    "name" : "Base::RegistrationCommands",
    "package" : "M::Base::RegistrationCommands",
-   "version" : "12.14"
+   "version" : "12.24"
 }

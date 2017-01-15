@@ -4,7 +4,7 @@
 # @package:         "M::Monitor"
 # @description:     "provides client availability notifications"
 #
-# @depends.bases:   [ 'UserNumerics', 'UserCommands' ]
+# @depends.bases+   'UserNumerics', 'UserCommands'
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

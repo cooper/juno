@@ -8,7 +8,7 @@
 # @package:         'M::Channel::Mute'
 # @description:     'adds channel mute ban'
 #
-# @depends.bases:   [ 'ChannelModes', 'UserNumerics' ]
+# @depends.bases+   'ChannelModes', 'UserNumerics'
 #
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'

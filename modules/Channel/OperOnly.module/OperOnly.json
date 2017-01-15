@@ -7,14 +7,10 @@
       "bases" : [
          "ChannelModes",
          "UserNumerics"
-      ],
-      "modules" : [
-         "Base::ChannelModes",
-         "Base::UserNumerics"
       ]
    },
    "description" : "adds oper only mode",
    "name" : "Channel::OperOnly",
    "package" : "M::Channel::OperOnly",
-   "version" : "1.9"
+   "version" : "2"
 }

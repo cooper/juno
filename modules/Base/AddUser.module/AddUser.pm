@@ -4,7 +4,7 @@
 # @package:         "M::Base::AddUser"
 # @description:     "virtual user support"
 #
-# @depends.modules: "API::Methods"
+# @depends.modules+ "API::Methods"
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

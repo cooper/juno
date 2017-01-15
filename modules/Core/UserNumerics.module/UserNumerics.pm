@@ -4,7 +4,7 @@
 # @package:         "M::Core::UserNumerics"
 # @description:     "the core set of user numerics"
 #
-# @depends.bases:   'UserNumerics'
+# @depends.bases+   'UserNumerics'
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

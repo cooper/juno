@@ -8,7 +8,7 @@
 # @package:         'M::Channel::Forward'
 # @description:     'adds channel forwarding abilities'
 #
-# @depends.bases:   [ 'ChannelModes', 'UserNumerics' ]
+# @depends.bases+   'ChannelModes', 'UserNumerics'
 #
 # @author.name:     'Matthew Barksdale'
 # @author.website:  'https://github.com/mattwb65'

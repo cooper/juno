@@ -4,7 +4,7 @@
 # @package:         "M::JELP"
 # @description:     "juno extensible linking protocol"
 #
-# @depends.modules: ['JELP::Incoming', 'JELP::Outgoing', 'JELP::Registration']
+# @depends.modules+ 'JELP::Incoming', 'JELP::Outgoing', 'JELP::Registration'
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

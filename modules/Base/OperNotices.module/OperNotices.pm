@@ -3,7 +3,7 @@
 # @name:            "Base::OperNotices"
 # @package:         "M::Base::OperNotices"
 #
-# @depends.modules: "API::Methods"
+# @depends.modules+ "API::Methods"
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

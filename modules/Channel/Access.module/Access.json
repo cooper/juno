@@ -8,15 +8,10 @@
          "ChannelModes",
          "UserCommands",
          "UserNumerics"
-      ],
-      "modules" : [
-         "Base::ChannelModes",
-         "Base::UserCommands",
-         "Base::UserNumerics"
       ]
    },
    "description" : "implements channel access mode",
    "name" : "Channel::Access",
    "package" : "M::Channel::Access",
-   "version" : "5.7"
+   "version" : "5.8"
 }

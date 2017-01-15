@@ -4,11 +4,15 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
-      "bases" : "RegistrationCommands",
-      "modules" : "JELP::Base"
+      "bases" : [
+         "RegistrationCommands"
+      ],
+      "modules" : [
+         "JELP::Base"
+      ]
    },
    "description" : "JELP registration commands",
    "name" : "JELP::Registration",
    "package" : "M::JELP::Registration",
-   "version" : "2.7"
+   "version" : "2.8"
 }

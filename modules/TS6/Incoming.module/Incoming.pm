@@ -8,7 +8,7 @@
 # @package:         'M::TS6::Incoming'
 # @description:     'basic set of TS6 command handlers'
 #
-# @depends.modules: 'TS6::Base'
+# @depends.modules+ 'TS6::Base'
 #
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'

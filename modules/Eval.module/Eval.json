@@ -4,13 +4,12 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
-      "bases" : "UserCommands",
-      "modules" : [
-         "Base::UserCommands"
+      "bases" : [
+         "UserCommands"
       ]
    },
    "description" : "evaluate Perl code",
    "name" : "Eval",
    "package" : "M::Eval",
-   "version" : "8"
+   "version" : "8.1"
 }

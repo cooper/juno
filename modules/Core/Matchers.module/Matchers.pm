@@ -4,7 +4,7 @@
 # @package:         "M::Core::Matchers"
 # @description:     "the core set of mask matchers"
 #
-# @depends.bases:   'Matchers'
+# @depends.bases+   'Matchers'
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

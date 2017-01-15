@@ -3,7 +3,7 @@
 # @name:            "Base::ChannelModes"
 # @package:         "M::Base::ChannelModes"
 #
-# @depends.modules: "API::Methods"
+# @depends.modules+ "API::Methods"
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

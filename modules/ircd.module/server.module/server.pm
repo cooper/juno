@@ -5,8 +5,9 @@
 # @package:         "server"
 # @description:     "represents an IRC server"
 # @version:         ircd->VERSION
-# @no_bless:        1
-# @preserve_sym:    1
+#
+# @no_bless
+# @preserve_sym
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

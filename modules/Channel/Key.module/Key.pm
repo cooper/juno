@@ -8,7 +8,7 @@
 # @package:         'M::Channel::Key'
 # @description:     'adds channel key mode'
 #
-# @depends.bases:   [ 'ChannelModes', 'UserNumerics' ]
+# @depends.bases+   'ChannelModes', 'UserNumerics'
 #
 # @author.name:     'Matthew Barksdale'
 # @author.website:  'https://github.com/mattwb65'

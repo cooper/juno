@@ -15,5 +15,5 @@
    "description" : "TS version 6 linking protocol",
    "name" : "TS6",
    "package" : "M::TS6",
-   "version" : "0.2"
+   "version" : "0.3"
 }

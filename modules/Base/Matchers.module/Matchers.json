@@ -4,9 +4,11 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
-      "modules" : "API::Methods"
+      "modules" : [
+         "API::Methods"
+      ]
    },
    "name" : "Base::Matchers",
    "package" : "M::Base::Matchers",
-   "version" : "11.04"
+   "version" : "11.14"
 }

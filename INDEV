@@ -4007,3 +4007,6 @@ CHANGES:
 
     85. update Evented::API::Engine.
         make use of new @depends.bases.
+
+    86. update Evented::API::Engine.
+        make use of new syntax for lists and booleans.

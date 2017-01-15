@@ -4,11 +4,15 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
-      "bases" : "UserCommands",
-      "modules" : "JELP::Base"
+      "bases" : [
+         "UserCommands"
+      ],
+      "modules" : [
+         "JELP::Base"
+      ]
    },
    "description" : "set and fetch configuration values across servers",
    "name" : "Configuration::Set",
    "package" : "M::Configuration::Set",
-   "version" : "5.8"
+   "version" : "6.1"
 }

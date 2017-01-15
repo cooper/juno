@@ -8,8 +8,8 @@
 # @package:         'M::JELP::Registration'
 # @description:     'JELP registration commands'
 #
-# @depends.bases:   'RegistrationCommands'
-# @depends.modules: 'JELP::Base'
+# @depends.bases+   'RegistrationCommands'
+# @depends.modules+ 'JELP::Base'
 #
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'

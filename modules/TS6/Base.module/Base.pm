@@ -8,7 +8,7 @@
 # @package:         'M::TS6::Base'
 # @description:     'programming interface for TS6'
 #
-# @depends.modules: ['API::Methods', 'TS6::Utils']
+# @depends.modules+ 'API::Methods', 'TS6::Utils'
 #
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'

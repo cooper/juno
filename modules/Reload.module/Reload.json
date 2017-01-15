@@ -8,10 +8,12 @@
          "UserCommands",
          "OperNotices"
       ],
-      "modules" : "JELP::Base"
+      "modules" : [
+         "JELP::Base"
+      ]
    },
    "description" : "reload the entire IRCd in one command",
    "name" : "Reload",
    "package" : "M::Reload",
-   "version" : "7.3"
+   "version" : "7.4"
 }

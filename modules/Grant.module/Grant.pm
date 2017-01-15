@@ -8,7 +8,7 @@
 # @package:         'M::Grant'
 # @description:     'grant privileges to a user'
 #
-# @depends.bases:   [ 'UserCommands', 'OperNotices' ]
+# @depends.bases+   'UserCommands', 'OperNotices'
 #
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'

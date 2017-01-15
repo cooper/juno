@@ -8,7 +8,7 @@
 # @package:         'M::Alias'
 # @description:     'support for command aliases'
 #
-# @depends.bases:   'UserCommands'
+# @depends.bases+   'UserCommands'
 #
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'

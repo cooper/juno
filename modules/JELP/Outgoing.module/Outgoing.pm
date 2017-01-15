@@ -4,7 +4,7 @@
 # @package:         "M::JELP::Outgoing"
 # @description:     "basic set of JELP outgoing commands"
 #
-# @depends.modules: "JELP::Base"
+# @depends.modules+ "JELP::Base"
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

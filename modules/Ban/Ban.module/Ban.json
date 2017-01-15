@@ -8,10 +8,12 @@
          "UserCommands",
          "OperNotices"
       ],
-      "modules" : "API::Methods"
+      "modules" : [
+         "API::Methods"
+      ]
    },
    "description" : "provides an interface for user and server banning",
    "name" : "Ban",
    "package" : "M::Ban",
-   "version" : "23.8"
+   "version" : "23.9"
 }

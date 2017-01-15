@@ -4,10 +4,12 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
-      "modules" : "Ban"
+      "modules" : [
+         "Ban"
+      ]
    },
    "description" : "ban connections from server by IP",
    "name" : "Ban::Dline",
    "package" : "M::Ban::Dline",
-   "version" : "1.7"
+   "version" : "1.8"
 }

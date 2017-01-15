@@ -8,10 +8,12 @@
          "UserCommands",
          "OperNotices"
       ],
-      "modules" : "JELP::Base"
+      "modules" : [
+         "JELP::Base"
+      ]
    },
    "description" : "git repository management",
    "name" : "Git",
    "package" : "M::Git",
-   "version" : "4.6"
+   "version" : "4.7"
 }

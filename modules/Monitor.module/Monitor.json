@@ -7,14 +7,10 @@
       "bases" : [
          "UserNumerics",
          "UserCommands"
-      ],
-      "modules" : [
-         "Base::UserCommands",
-         "Base::UserNumerics"
       ]
    },
    "description" : "provides client availability notifications",
    "name" : "Monitor",
    "package" : "M::Monitor",
-   "version" : "1.5"
+   "version" : "1.6"
 }

@@ -4,9 +4,11 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
-      "modules" : "API::Methods"
+      "modules" : [
+         "API::Methods"
+      ]
    },
    "name" : "Base::UserModes",
    "package" : "M::Base::UserModes",
-   "version" : "10.94"
+   "version" : "11.04"
 }

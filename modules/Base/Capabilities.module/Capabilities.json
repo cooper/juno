@@ -4,10 +4,12 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
-      "modules" : "API::Methods"
+      "modules" : [
+         "API::Methods"
+      ]
    },
    "description" : "provides an interface for client capabilities",
    "name" : "Base::Capabilities",
    "package" : "M::Base::Capabilities",
-   "version" : "15.1"
+   "version" : "15.2"
 }

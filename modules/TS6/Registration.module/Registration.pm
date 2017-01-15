@@ -8,8 +8,8 @@
 # @package:         'M::TS6::Registration'
 # @description:     'registration commands for TS6 protocol'
 #
-# @depends.bases:   'RegistrationCommands'
-# @depends.modules: [ 'TS6::Utils', 'TS6::Base' ]
+# @depends.bases+   'RegistrationCommands'
+# @depends.modules+ 'TS6::Utils', 'TS6::Base'
 #
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'

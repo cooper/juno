@@ -8,7 +8,7 @@
 # @package:         'M::Base::Capabilities'
 # @description:     'provides an interface for client capabilities'
 #
-# @depends.modules: 'API::Methods'
+# @depends.modules+ 'API::Methods'
 #
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'

@@ -4,11 +4,12 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
-      "bases" : "UserCommands",
-      "modules" : "Base::UserCommands"
+      "bases" : [
+         "UserCommands"
+      ]
    },
    "description" : "support for command aliases",
    "name" : "Alias",
    "package" : "M::Alias",
-   "version" : "2.9"
+   "version" : "3"
 }

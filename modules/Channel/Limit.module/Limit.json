@@ -7,14 +7,10 @@
       "bases" : [
          "ChannelModes",
          "UserNumerics"
-      ],
-      "modules" : [
-         "Base::ChannelModes",
-         "Base::UserNumerics"
       ]
    },
    "description" : "adds channel user limit mode",
    "name" : "Channel::Limit",
    "package" : "M::Channel::Limit",
-   "version" : "3"
+   "version" : "3.1"
 }

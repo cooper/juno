@@ -7,7 +7,7 @@
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'
 #
-# @depends.modules: 'Ban'
+# @depends.modules+ 'Ban'
 #
 package M::Ban::Resv;
 

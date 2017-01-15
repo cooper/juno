@@ -8,7 +8,7 @@
 # @package:         'M::Channel::Limit'
 # @description:     'adds channel user limit mode'
 #
-# @depends.bases:   [ 'ChannelModes', 'UserNumerics' ]
+# @depends.bases+   'ChannelModes', 'UserNumerics'
 #
 # @author.name:     'Matthew Barksdale'
 # @author.website:  'https://github.com/mattwb65'

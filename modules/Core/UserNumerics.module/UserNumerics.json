@@ -4,11 +4,12 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
-      "bases" : "UserNumerics",
-      "modules" : "Base::UserNumerics"
+      "bases" : [
+         "UserNumerics"
+      ]
    },
    "description" : "the core set of user numerics",
    "name" : "Core::UserNumerics",
    "package" : "M::Core::UserNumerics",
-   "version" : "12.91"
+   "version" : "13.01"
 }

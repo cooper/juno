@@ -4,11 +4,12 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
-      "bases" : "Matchers",
-      "modules" : "Base::Matchers"
+      "bases" : [
+         "Matchers"
+      ]
    },
    "description" : "the core set of mask matchers",
    "name" : "Core::Matchers",
    "package" : "M::Core::Matchers",
-   "version" : "11.53"
+   "version" : "11.63"
 }

@@ -4,9 +4,11 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
-      "modules" : "API::Methods"
+      "modules" : [
+         "API::Methods"
+      ]
    },
    "name" : "JELP::Base",
    "package" : "M::JELP::Base",
-   "version" : "15.73"
+   "version" : "15.83"
 }

@@ -4,7 +4,7 @@
 # @package:         "M::JELP::Incoming"
 # @description:     "basic set of JELP command handlers"
 #
-# @depends.modules: "JELP::Base"
+# @depends.modules+ "JELP::Base"
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

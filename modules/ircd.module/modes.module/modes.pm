@@ -4,8 +4,9 @@
 # @package:         "modes"
 # @description:     "represents a sequence of IRC mode changes"
 # @version:         ircd->VERSION
-# @no_bless:        1
-# @preserve_sym:    1
+#
+# @no_bless
+# @preserve_sym
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

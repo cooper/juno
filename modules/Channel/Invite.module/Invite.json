@@ -8,15 +8,10 @@
          "UserCommands",
          "ChannelModes",
          "UserNumerics"
-      ],
-      "modules" : [
-         "Base::UserCommands",
-         "Base::ChannelModes",
-         "Base::UserNumerics"
       ]
    },
    "description" : "channel invitations",
    "name" : "Channel::Invite",
    "package" : "M::Channel::Invite",
-   "version" : "5.6"
+   "version" : "5.7"
 }

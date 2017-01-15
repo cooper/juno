@@ -4,11 +4,12 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
-      "bases" : "UserCommands",
-      "modules" : "Base::UserCommands"
+      "bases" : [
+         "UserCommands"
+      ]
    },
    "description" : "SPEEK LIEK A LOLCATZ!",
    "name" : "LOLCAT",
    "package" : "M::LOLCAT",
-   "version" : "0.9"
+   "version" : "1"
 }

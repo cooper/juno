@@ -4,7 +4,7 @@
 # @package:         "M::Modules"
 # @description:     "manage modules from IRC"
 #
-# @depends.bases:   [ 'UserCommands', 'OperNotices' ]
+# @depends.bases+   'UserCommands', 'OperNotices'
 #
 # @author.name:     "Mitchell Cooper"
 # @author.website:  "https://github.com/cooper"

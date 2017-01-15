@@ -4,13 +4,12 @@
       "website" : "https://github.com/mattwb65"
    },
    "depends" : {
-      "bases" : "ChannelModes",
-      "modules" : [
-         "Base::ChannelModes"
+      "bases" : [
+         "ChannelModes"
       ]
    },
    "description" : "Adds mode to strip colors from channel messages",
    "name" : "Channel::NoColor",
    "package" : "M::Channel::NoColor",
-   "version" : "0.5"
+   "version" : "0.6"
 }

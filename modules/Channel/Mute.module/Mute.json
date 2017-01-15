@@ -7,14 +7,10 @@
       "bases" : [
          "ChannelModes",
          "UserNumerics"
-      ],
-      "modules" : [
-         "Base::ChannelModes",
-         "Base::UserNumerics"
       ]
    },
    "description" : "adds channel mute ban",
    "name" : "Channel::Mute",
    "package" : "M::Channel::Mute",
-   "version" : "1.4"
+   "version" : "1.5"
 }

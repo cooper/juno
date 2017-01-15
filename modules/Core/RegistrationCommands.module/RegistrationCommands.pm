@@ -8,7 +8,7 @@
 # @package:         'M::Core::RegistrationCommands'
 # @description:     'the core set of pre-registration commands'
 #
-# @depends.bases:   [ 'RegistrationCommands', 'UserNumerics' ]
+# @depends.bases+   'RegistrationCommands', 'UserNumerics'
 #
 # @author.name:     'Mitchell Cooper'
 # @author.website:  'https://github.com/cooper'

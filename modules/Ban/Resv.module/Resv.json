@@ -4,10 +4,12 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
-      "modules" : "Ban"
+      "modules" : [
+         "Ban"
+      ]
    },
    "description" : "reserve nicknames matching a mask",
    "name" : "Ban::Resv",
    "package" : "M::Ban::Resv",
-   "version" : "1.5"
+   "version" : "1.6"
 }

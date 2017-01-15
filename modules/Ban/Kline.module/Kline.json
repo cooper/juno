@@ -4,10 +4,12 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
-      "modules" : "Ban"
+      "modules" : [
+         "Ban"
+      ]
    },
    "description" : "ban users from server by hostmask",
    "name" : "Ban::Kline",
    "package" : "M::Ban::Kline",
-   "version" : "1.6"
+   "version" : "1.7"
 }
