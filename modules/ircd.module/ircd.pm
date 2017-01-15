@@ -353,6 +353,16 @@ sub setup_config {
     # create Evented::Configuration table if we haven't already.
     $new_conf->create_tables_maybe;
 
+    # export constants to the config
+    Evented::Object::Hax::set_symbol('Evented::Configuration', {
+        '*mode_normal'  => sub () { 0 },
+        '*mode_param'   => sub () { 1 },
+        '*mode_pset'    => sub () { 2 },
+        '*mode_list'    => sub () { 3 },
+       #'*mode_status'  => sub () { 4 },
+        '*mode_key'     => sub () { 5 }
+    });
+
     # parse the default configuration.
     $new_conf->{conffile} = "$::run_dir/etc/default.conf";
     my ($ok, $err) = $new_conf->parse_config;

@@ -4010,3 +4010,6 @@ CHANGES:
 
     86. update Evented::API::Engine.
         make use of new syntax for lists and booleans.
+
+    87. export mode type constants for configuration.
+        update default.conf accordingly.
