@@ -508,10 +508,6 @@ sub get_mask_changed {
     # nothing has changed.
     return if $old_host eq $new_host && $old_ident eq $new_ident;
 
-    # set the stuff.
-    $user->{ident} = $new_ident;
-    $user->{cloak} = $new_host;
-
     # tell the user his host has changed.
     # only do so if welcoming is done because otherwise it's postponed.
     if ($new_host ne $old_host && $user->is_local && $user->{init_complete}) {
@@ -542,6 +538,7 @@ sub get_mask_changed {
     $sent_chghost{$user}++;
 
     # for clients not supporting CHGHOST, we have to emulate a reconnect.
+    my $new_full = "$$user{nick}!$new_ident\@$new_host";
     foreach my $channel ($user->channels) {
 
         # this was explicitly disabled.
@@ -569,7 +566,7 @@ sub get_mask_changed {
             #
             $usr->sendfrom($user->full, "QUIT :Changing host")
                 unless $sent_quit{$usr};
-            $usr->sendfrom($user->full, "JOIN $$channel{name}");
+            $usr->sendfrom($new_full, "JOIN $$channel{name}");
 
             # MODE for statuses.
             $usr->sendfrom($me->full, "MODE $$channel{name} +$letters")
@@ -578,6 +575,10 @@ sub get_mask_changed {
             $sent_quit{$usr}++;
         }
     }
+
+    # set the stuff.
+    $user->{ident} = $new_ident;
+    $user->{cloak} = $new_host;
 
     notice(user_mask_change => $user->{nick},
         $old_ident, $old_host, $new_ident, $new_host)

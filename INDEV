@@ -4013,3 +4013,5 @@ CHANGES:
 
     87. export mode type constants for configuration.
         update default.conf accordingly.
+
+    88. fixed #167 where QUIT or CHGHOST was sent to users with the new host in the source.
