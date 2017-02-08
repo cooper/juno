@@ -26,21 +26,6 @@ configuration, so go ahead and [try it already](#installation).
 
 Come chat with us at [`#k` on `irc.notroll.net`](irc://irc.notroll.net/k) too.
 
-* [Introduction](#introduction)
-  * [Features](#features)
-  * [Concepts](#concepts)
-* [Installation and operation](#installation-and-operation)
-  * [Installation](#installation)
-    * [SSL setup](#ssl-setup)
-  * [Configuration](#configuration)
-  * [Starting, stopping, etc\.](#starting-stopping-etc)
-  * [Upgrading](#upgrading)
-* [Information](#information)
-  * [History](doc/history.md)
-  * [Contact](#contact)
-  * [Author](#author)
-  * [License](#license)
-
 ## Features
 
 There are a lot! But here are some things that make juno-ircd stand out.
@@ -158,7 +143,7 @@ Real-time modification of the configuration is also feasible, thanks to
 Utilizing the wonderful [IO::Async](http://search.cpan.org/perldoc/IO::Async)
 framework, juno is quite reactive.
 
-# Installation and operation
+# Setup and operation
 
 ## Installation
 
@@ -222,7 +207,7 @@ Note that, because juno ships with a configuration suitable for fiddling, the
 default values in the `limit` block are rather low. A production IRC server will
 likely require less strict limits on connection and client count, for example.
 
-## Starting, stopping, etc.
+## Operation
 
 Most actions for managing the IRC server are committed with the `juno` script.
 
