@@ -26,6 +26,21 @@ configuration, so go ahead and [try it already](#installation).
 
 Come chat with us at [`#k` on `irc.notroll.net`](irc://irc.notroll.net/k) too.
 
+* [Introduction](#introduction)
+  * [Features](#features)
+  * [Concepts](#concepts)
+* [Installation and operation](#installation-and-operation)
+  * [Installation](#installation)
+    * [SSL setup](#ssl-setup)
+  * [Configuration](#configuration)
+  * [Starting, stopping, etc\.](#starting-stopping-etc)
+  * [Upgrading](#upgrading)
+* [Information](#information)
+  * [History](doc/history.md)
+  * [Contact](#contact)
+  * [Author](#author)
+  * [License](#license)
+
 ## Features
 
 There are a lot! But here are some things that make juno-ircd stand out.
@@ -62,7 +77,6 @@ events. Just about any operation that occurs is represented as an event. This
 is made possible by
 [Evented::Object](https://github.com/cooper/evented-object),
 the base of every class within the IRCd.
-
 ```perl
 # if it's a server, add the $PROTO_message events
 if (my $server = $connection->server) {
@@ -80,7 +94,6 @@ my $fire = $connection->prepare(@events)->fire('safe');
 extensibility is another important guideline around which juno is designed. It
 should not be assumed that any commands, modes, prefixes, etc. are fixed or
 finite. They should be changeable, replaceable, and unlimited.
-
 ```
 [ modes: channel ]
     no_ext        = [ mode_normal, 'n' ]    # no external channel messages
@@ -99,7 +112,6 @@ code. Modules work together to create a single functioning body whose parts can
 be added, removed, and modified dynamically. This is made possible by the
 [Evented::API::Engine](https://github.com/cooper/evented-api-engine),
 a class that manages modules and automatically tracks their events.
-
 ```
 Ban::TS6 10.6
    TS6 ban propagation
@@ -120,12 +132,9 @@ restarting it. With the help of the
 modularity as a central principle, juno aims to do exactly that. With just one
 command, you can jump up one or one hundred versions, all without your users
 disconnecting.
-
 ```
-*** Update: k.notroll.net git repository updated to version 12.88
-    (juno12-mihret-209-g269c83c) by mad (uid28518@ealing.irccloud.com)
-*** Reload: k.notroll.net upgraded from 12.48 to 12.88
-    (up 88 versions since start) by mad (uid28518@ealing.irccloud.com)
+*** Update: k.notroll.net git repository updated to version 12.88 (juno12-mihret-209-g269c83c)
+*** Reload: k.notroll.net upgraded from 12.48 to 12.88 (up 88 versions since start)
 ```
 
 * __Configurability__: Very few values are hard coded. Many have defaults, but
@@ -134,7 +143,6 @@ configuration is minimal and easy-to-follow. This is made possible by
 [Evented::Configuration](https://github.com/cooper/evented-configuration).
 Real-time modification of the configuration is also feasible, thanks to
 [Evented::Database](https://github.com/cooper/evented-database).
-
 ```
 [ listen: 0.0.0.0 ]
     port    = [6667..6669, 7000]
@@ -203,8 +211,8 @@ on more port(s) using the format: `<protocol name>sslport`; e.g. `ts6sslport`.
 
 ## Configuration
 
-juno actually comes with a working example configuration. If you want to try it
-for the first time, simply copy `etc/ircd.conf.example` in to `etc/ircd.conf`.
+juno comes with a working example configuration. So if you want to try it with
+next to no effort, just copy `etc/ircd.conf.example` to `etc/ircd.conf`.
 The password for the default oper account `admin` is `k`.  
 
 The configuration is, for the most part, self-explanitory. Anything that might
@@ -288,7 +296,7 @@ without error.
 
 ## Contact
 
-Go to `#k` on `irc.notroll.net`.
+Go to [`#k` on `irc.notroll.net`](irc://irc.notroll.net/k).
 
 If you discover a reproducible bug, please
 [file an issue](https://github.com/cooper/juno/issues).
