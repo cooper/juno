@@ -4015,3 +4015,5 @@ CHANGES:
         update default.conf accordingly.
 
     88. fixed #167 where QUIT or CHGHOST was sent to users with the new host in the source.
+
+    89. fixed a bug where sometimes new users weren't added to the server's {users} list.

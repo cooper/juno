@@ -248,8 +248,10 @@ sub new_user {
     # become an event listener.
     $user->add_listener($pool, 'user');
 
-    # add the user to the server.
-    push @{ $opts{server}{users} }, $user;
+    # weakly add the user to the server.
+    my $users = $user->{server}{users};
+    push @$users, $user;
+    weaken($users->[$#$users]);
 
     # update max local and global user counts.
     my $max_l = v('max_local_user_count');
