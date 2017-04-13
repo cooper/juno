@@ -4018,4 +4018,4 @@ CHANGES:
 
     89. fixed a bug where sometimes new users weren't added to the server's {users} list.
     
-    90. possibly fixed #168 where notices sometimes were routed back to the source.
+    90. fixed #168 where notices sometimes were routed back to the source.
