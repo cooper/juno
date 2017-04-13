@@ -63,6 +63,7 @@ sub new {
 #
 sub new_from_string {
     my ($class, $server, $mode_str, $over_protocol) = @_;
+    return modes->new if !length $mode_str;
     my @changes;
 
     # split into +modes, arguments.
