@@ -1096,8 +1096,8 @@ sub do_privmsgnotice {
         # the source user is reached through this user's server,
         # or the source is the server we know the user from.
         next USER if $source_user && $location == $source_user->location;
-        next USER if $source_serv && $location->{sid} == $source_serv->{sid};
-
+        next USER if $source_serv && $location == $source_serv->location;
+        
         # already sent to this server.
         next USER if $sent{$location};
 

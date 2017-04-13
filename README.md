@@ -12,7 +12,7 @@ There. Very good.
 # Introduction
 
 This is juno-ircd, a seriously modern IRC server daemon written from scratch
-in the Perl programming language. Really.
+in Perl. Really.
 
 > Perl is the right language for IRC. IRC is chock full of various strings and
 > other what not, all of which is easily parsed by Perl, where the C IRC daemons
@@ -250,6 +250,8 @@ oper and connect blocks in the server configuration.
 
 * __dev__: Includes a number of subcommand tools for developers; see
 `./juno dev help`.
+
+On Windows, start juno with `juno-start.bat`.
 
 ## Upgrading
 

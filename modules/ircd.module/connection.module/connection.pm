@@ -363,16 +363,20 @@ sub numeric {
 # what protocols might this be, according to the port?
 sub possible_protocols {
     my ($connection, @protos) = shift;
+    
+    # established server
+    return $connection->{link_type}
+        if defined $connection->{link_type};
+        
+    # established user
+    return 'client'
+        if $connection->user;
+        
+    # unregistered client, so we have to guess based on the port.
+    # client connections are currently permitted on all ports,
+    # and JELP connections are permitted on all ports which are not
+    # explicitly associated with another linking protocol.
     my $port = $connection->{localport};
-    return $connection->{link_type} if defined $connection->{link_type};
-    #
-    # maybe a protocol has been specified.
-    # this means that JELP will not be permitted,
-    # unless of course $proto eq 'jelp'
-    #
-    # if no protocol is specified, fall back
-    # to JELP always for compatibility.
-    #
     return ('client', $ircd::listen_protocol{$port} || 'jelp');
 }
 
@@ -380,6 +384,14 @@ sub possible_protocols {
 sub possibly_protocol {
     my ($connection, $proto) = @_;
     return grep { $_ eq $proto } $connection->possible_protocols;
+}
+
+# returns the protocol associated with this connection
+# if it is absolutely certain, undef otherwise
+sub protocol {
+    my @protos = shift->possible_protocols;
+    return $protos[0] if @protos == 1;
+    return undef;
 }
 
 ####################

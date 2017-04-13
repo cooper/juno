@@ -4017,3 +4017,5 @@ CHANGES:
     88. fixed #167 where QUIT or CHGHOST was sent to users with the new host in the source.
 
     89. fixed a bug where sometimes new users weren't added to the server's {users} list.
+    
+    90. possibly fixed #168 where notices sometimes were routed back to the source.
