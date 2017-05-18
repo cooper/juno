@@ -56,6 +56,7 @@ sub cmode_throttle {
 
     # normalize/check if valid.
     if ($mode->{param} =~ m/^(\d+):(\d+)(?::(\d+))?$/) {
+        return if !$1 || !$2;
         $mode->{param} = {
             joins => $1,
             secs  => $2,
