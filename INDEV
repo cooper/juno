@@ -4027,3 +4027,4 @@ CHANGES:
     92. fix mixmatched 'throttle' vs 'join_throttle' mode names.
         fix bug that allowed zero for joins per second in join throttle.
         misc. cleanup channel.pm.
+        misc. cleanup server.pm.

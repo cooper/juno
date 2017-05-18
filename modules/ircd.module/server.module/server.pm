@@ -1,5 +1,4 @@
-
-# Copyright (c) 2009-16, Mitchell Cooper
+# Copyright (c) 2009-17, Mitchell Cooper
 #
 # @name:            "ircd::server"
 # @package:         "server"
@@ -31,6 +30,7 @@ sub init {
     return 1;
 }
 
+# creates a server
 sub new {
     my ($class, %opts) = @_;
 
@@ -51,34 +51,37 @@ sub new {
 # handle a server quit.
 # does not close a connection; use $server->conn->done() for that.
 #
-# $reason = the actual reason to log and show to opers
-# $why = the reason to send in user quit messages
-# $quiet = do not send out notices
+# $reason   = the actual reason to log and show to opers
+# $why      = the reason to send in user quit messages
+# $quiet    = if true, do not send out notices
 #
 sub quit {
     my ($server, $reason, $why, $quiet) = @_;
     $why //= "$$server{parent}{name} $$server{name}";
 
+    # tell ppl
     notice(server_quit =>
         $server->notice_info,
         $server->{parent}->notice_info,
         $reason
     ) unless $quiet;
 
-    # all children must be disposed of.
+    # all children must be disposed of
     foreach my $serv ($server->children) {
         next if $serv == $server;
         $serv->quit('parent server has disconnected', $why);
     }
 
-    # delete all of the server's users.
+    # delete all of the server's users
     my @users = $server->all_users;
     foreach my $user (@users) {
         $user->quit($why, 1);
     }
 
+    # remove from pool
     $pool->delete_server($server) if $server->{pool};
     $server->delete_all_events();
+    
     return 1;
 }
 
@@ -90,6 +93,7 @@ sub add_umode {
     return 1;
 }
 
+# remove a umode association
 sub remove_umode {
     my ($server, $name) = @_;
     my $u = delete $server->{umodes}{$name} or return;
@@ -179,8 +183,9 @@ sub cmode_name {
     my ($server, $mode) = @_;
     return unless defined $mode;
     foreach my $name (keys %{ $server->{cmodes} }) {
-        next unless defined $server->{cmodes}{$name}{letter};
-        return $name if $mode eq $server->{cmodes}{$name}{letter};
+        my $ref = $server->{cmodes}{$name};
+        next unless length $ref->{letter};
+        return $name if $mode eq $ref->{letter};
     }
     return;
 }
@@ -193,6 +198,7 @@ sub cmode_letter {
 }
 
 # get cmode type.
+# returns -1 on failure (since 0, a false value, is a valid type)
 sub cmode_type {
     my ($server, $name) = @_;
     return -1 if !defined $name;
@@ -231,6 +237,7 @@ sub cmode_takes_parameter {
     return $params{ $server->{cmodes}{$name}{type} || -1 };
 }
 
+# true only for the local server
 sub is_local { shift == $me }
 
 # sub DESTROY {
@@ -238,6 +245,7 @@ sub is_local { shift == $me }
 #     L("$server destroyed");
 # }
 
+# servers which are direct children of this one
 sub children {
     my $server = shift;
     my @a;
@@ -249,7 +257,7 @@ sub children {
     return @a;
 }
 
-# hops to server.
+# number of hops to another server
 sub hops_to {
     my ($server1, $server2) = @_;
     my $hops = 0;
@@ -262,30 +270,35 @@ sub hops_to {
     return $hops;
 }
 
+# UID to user object
 sub uid_to_user {
     my ($server, $uid) = @_;
     return $server->{uid_to_user}($uid) if $server->{uid_to_user};
     return $pool->lookup_user($uid);
 }
 
+# user object to UID
 sub user_to_uid {
     my ($server, $user) = @_;
     return $server->{user_to_uid}($user) if $server->{user_to_uid};
     return $user->{uid};
 }
 
+# SID to server object
 sub sid_to_server {
     my ($server, $sid) = @_;
     return $server->{sid_to_server}($sid) if $server->{sid_to_server};
     return $pool->lookup_server($sid);
 }
 
+# server object to SID
 sub server_to_sid {
     my ($server, $serv) = @_;
     return $server->{server_to_sid}($serv) if $server->{server_to_sid};
     return $serv->{sid};
 }
 
+# set the above conversion functions
 sub set_functions {
     my ($server, %functions) = @_;
     @$server{ keys %functions } = values %functions;
@@ -293,59 +306,75 @@ sub set_functions {
 
 # shortcuts
 
-sub id       { shift->{sid}         }
-sub full     { shift->{name}        }
-sub fullreal { shift->{name}        }
-sub name     { shift->{name}        }
-sub conn     { shift->{conn}        }
-sub user     { undef                }
-sub users    { @{ shift->{users} }  }
-sub server   { shift                }
-sub parent   { shift->{parent}      }
-sub location { shift->{location}    }
+sub id       { shift->{sid}         }   # server ID (SID)
+sub full     { shift->{name}        }   # server name
+sub fullreal { shift->{name}        }   # server name
+sub name     { shift->{name}        }   # server name
+sub conn     { shift->{conn}        }   # for uplinks, the connection object
+sub user     { undef                }   # false for servers
+sub users    { @{ shift->{users} }  }   # list of users belonging to this server
+sub server   { shift                }   # the server itself
+sub parent   { shift->{parent}      }   # parent server
+sub location { shift->{location}    }   # uplink this server is reached through
 
+# ->all_users           every single user on the server
+#
+# ->real_users          all REAL users on the server (those which are not
+#                       created via IRCd modules)
+#
+# ->all_local_users     all LOCAL users (those belonging to the local server).
+#                       for servers, this method is not particularly useful,
+#                       but it is consistent with the pool method.
+#
+# ->real_local_users    all REAL, LOCAL users on the server
+#
+# ->global_users        all users on the server which are NOT local-only
+#                       fake users created via IRCd modules
+#
 sub all_users        {   @{ shift->{users} }                    }
 sub real_users       {   grep  { !$_->{fake}                    } shift->all_users  }
 sub all_local_users  {   grep  { $_->is_local                   } shift->all_users  }
 sub real_local_users {   grep  { $_->is_local && !$_->{fake}    } shift->all_users  }
 sub global_users     {   grep  { !$_->{fake_local}              } shift->all_users  }
 
-############
-### MINE ###
-############
-
 # handle incoming server data.
-sub handle {}
+sub handle { L("Server ->handle() is deprecated!") }
 
-# send burst to a connected server.
+# send the local server's burst to an uplink
+# uplinks only!
 sub send_burst {
     my $server = shift;
     return if $server->{i_sent_burst};
 
+    # mark the server as bursting
     my $time = time;
     $server->{i_am_burst} = $time;
 
-    # fire burst events.
+    # fire burst events
     my $proto = $server->{link_type};
     $server->prepare(
-        [ send_burst            => $time ],
-        [ "send_${proto}_burst" => $time ]
+        [ send_burst            => $time ], # generic burst
+        [ "send_${proto}_burst" => $time ]  # proto-specific burst
     )->fire;
 
+    # remove burst state
     delete $server->{i_am_burst};
     $server->{i_sent_burst} = time;
+    
     return 1;
 }
 
+# called when a remote server burst is ending
 sub end_burst {
     my $server  = shift;
     my $time    = delete $server->{is_burst};
     my $elapsed = time - $time;
     $server->{sent_burst} = time;
 
+    # tell ppl
     notice(server_endburst => $server->notice_info, $elapsed);
 
-    # fire end burst events.
+    # fire end burst events
     my $proto = $server->{link_type};
     $server->prepare(
         [ end_burst            => $time ],
@@ -355,12 +384,10 @@ sub end_burst {
     return 1;
 }
 
-# send data to all of my children.
-# this actually sends it to all connected servers.
-# it is only intended to be called with this server object.
+# send data to all of my uplinks.
+# local server only!
 sub send_children {
     my $ignore = shift;
-
     foreach my $server ($pool->servers) {
 
         # don't send to ignored
@@ -376,17 +403,20 @@ sub send_children {
 
         $server->send(@_);
     }
-
-    return 1
+    return 1;
 }
 
+# like ->send_children, but each passed string will be prefixed
+# with the initial argument as its source.
+# local server only!
 sub sendfrom_children {
     my ($ignore, $from) = (shift, shift);
     send_children($ignore, map { ":$from $_" } @_);
     return 1;
 }
 
-# send data to MY servers.
+# send data to a server.
+# uplinks only!
 sub send {
     my $server = shift;
     if (!$server->conn) {
@@ -397,19 +427,22 @@ sub send {
     $server->conn->send(@_);
 }
 
-# send data to a server from THIS server.
+# send data to an uplink with the local server as the source.
+# uplinks only!
 sub sendme {
     my $server = shift;
     $server->sendfrom($me->{sid}, @_);
 }
 
-# send data from a UID or SID.
+# send data to an uplink from a UID or SID.
+# uplinks only!
 sub sendfrom {
     my ($server, $from) = (shift, shift);
     $server->send(map { ":$from $_" } @_);
 }
 
-# convenient for $server->fire_command
+# forward a server command to a specific server.
+# it may be an uplink or a descendant of an uplink.
 sub forward {
     my $server = shift;
     return $pool->fire_command($server->location, @_);
@@ -430,6 +463,7 @@ sub ircd_opt {
 }
 
 # CAP shortcuts.
+# uplinks only!
 *has_cap = *connection::has_cap;
 *add_cap = *connection::add_cap;
 *remove_cap = *connection::remove_cap;
