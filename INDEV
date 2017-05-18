@@ -4020,3 +4020,6 @@ CHANGES:
     
     90. fixed #168 where notices sometimes were routed back to the source.
         fixed #170, warnings on join when mode string is of zero length.
+        
+    91. it is now possible to specify protocol-specific mode parameter formatters. closes #169.
+        updated Channel::JoinThrottle to use this.

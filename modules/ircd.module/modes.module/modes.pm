@@ -329,7 +329,7 @@ sub _to_strings {
 
         # push the parameter.
         push @params, _stringify_cmode_parameter(
-            $server, $param, $state, $over_protocol
+            $server, $name, $param, $state, $over_protocol
         ) if defined $param;
 
     }
@@ -342,10 +342,36 @@ sub _to_strings {
 }
 
 sub _stringify_cmode_parameter {
-    my ($server, $param, $state, $over_protocol) = @_;
+    my ($server, $name, $param, $state, $over_protocol) = @_;
 
-    # already a string.
-    return $param if !blessed $param;
+    # it's a string already
+    return $param if !ref $param;
+    
+    # not blessed, so it ought to be a hashref
+    if (!blessed $param) {
+        
+        # always fire the 1459 stringifier
+        my @events = [ "cmode.stringify.$name.1459" => $param ];
+        
+        # if this is over server protocol, also fire the proto-specific one
+        push @events, [ "cmode.stringify.$name.$$server{link_type}" => $param ]
+            if $over_protocol && defined $server->{link_type};
+            
+        # if this is over client protocol, add 'client' one
+        push @events, [ "cmode.stringify.$name.client" => $param ]
+            if !$over_protocol;
+
+        my $fire = $pool->fire_events_together(@events);
+        my ($string, $proto) = @$fire{'string', 'proto'};
+        
+        # nothing returned?!
+        if (!length $string) {
+            L("Mode '$name' stringifier for '$proto' protocol failed!");
+            return $param;
+        }
+        
+        return $string;
+    }
 
     # for users, use UID or nickname.
     if ($param->isa('user')) {

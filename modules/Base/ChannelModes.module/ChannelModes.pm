@@ -139,6 +139,22 @@ sub register_channel_mode_block {
         $mod->name,
         $opts{code}
     );
+    
+    # register stringifiers
+    foreach (keys %opts) {
+        next unless m/^str_(\w+)$/;
+        my ($proto, $code) = ($1, $opts{$_});
+        $pool->on("cmode.stringify.$opts{name}.$proto" => sub {
+                my ($event, $channel, $param) = @_;
+                $event->{proto}  = $proto;
+                $event->{string} = $code->($channel, $param);
+                $event->stop; # the first one wins
+            },
+            priority    => $proto eq '1459' ? 0 : 100, # 1459 comes last
+            name        => $proto,
+            _caller     => $mod->{package}
+        );
+    }
 
     L("'$opts{name}' registered");
     $mod->list_store_add('channel_modes', $opts{name});
@@ -169,14 +185,12 @@ sub module_init {
             $mode_types{ $hashref->{type} } ||
             \&cmode_normal;
 
-        # remove these. the rest are type-specific options.
-        delete @$hashref{'code', 'type'};
-        my $code = sub { $real_code->(@_, %$hashref) };
 
         # store it.
         $mod->register_channel_mode_block(
             name => $name,
-            code => $code
+            code => sub { $real_code->(@_, %$hashref) },
+            %$hashref
         ) or return;
 
     }

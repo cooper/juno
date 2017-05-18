@@ -1,4 +1,4 @@
-# Copyright (c) 2009-16, Mitchell Cooper
+# Copyright (c) 2009-17, Mitchell Cooper
 #
 # @name:            "Channel::JoinThrottle"
 # @package:         "M::Channel::JoinThrottle"
@@ -17,13 +17,15 @@ use 5.010;
 
 our ($api, $mod, $me, $pool);
 
-our %channel_modes = (
-    join_throttle => { code => \&cmode_throttle },
-);
+our %channel_modes = (join_throttle => {
+    code       => \&cmode_throttle,
+    str_1459   => \&cmode_throttle_str,
+    str_client => \&cmode_throttle_str_jelp,
+    str_jelp   => \&cmode_throttle_str_jelp
+});
 
-our %user_numerics = (
-    ERR_THROTTLE => [ 480,
-        '%s :Cannot join channel - throttle exceeded, try again later' ]
+our %user_numerics = (ERR_THROTTLE =>
+    [ 480, '%s :Cannot join channel - throttle exceeded, try again later' ]
 );
 
 sub init {
@@ -34,7 +36,7 @@ sub init {
     return 1;
 }
 
-# $channel->{throttle} = {
+# $channel->mode_parameter('throttle') = {
 #   joins       => number of joins permitted
 #   secs        => in this number of seconds
 #   time        => number of seconds to lock the channel (optional)
@@ -49,17 +51,34 @@ sub cmode_throttle {
 
     # always allow unsetting.
     if (!$mode->{state}) {
-        delete $channel->{throttle};
         return 1;
     }
 
     # normalize/check if valid.
     if ($mode->{param} =~ m/^(\d+):(\d+)(?::(\d+))?$/) {
-        @{ $channel->{throttle} }{ qw(joins secs time) } = ($1, $2, $3);
+        $mode->{param} = {
+            joins => $1,
+            secs  => $2,
+            time  => $3
+        };
         return 1;
     }
 
     return;
+}
+
+# for RFC1459, joins:sec
+sub cmode_throttle_str {
+    my ($throttle) = @_;
+    return "$$throttle{joins}:$$throttle{secs}";
+}
+
+# for JELP and client protocol, joins:sec:locktime
+sub cmode_throttle_str_jelp {
+    my ($throttle) = @_;
+    return &cmode_throttle_str
+        if !length $throttle->{time};
+    return "$$throttle{joins}:$$throttle{secs}:$$throttle{time}";
 }
 
 sub on_user_joined {
@@ -70,7 +89,7 @@ sub on_user_joined {
 
     # we're not interested if the channel has no throttle
     # or if the channel is already locked.
-    my $throttle = $channel->{throttle};
+    my $throttle = $channel->mode_parameter('throttle');
     return if !$throttle || $throttle->{locked};
 
     # time to reset the counter.
@@ -93,7 +112,7 @@ sub on_user_can_join {
     my ($user, $event, $channel, $key) = @_;
 
     # we're only interested when the channel is locked.
-    my $throttle = $channel->{throttle};
+    my $throttle = $channel->mode_parameter('throttle');
     return if !$throttle || !$throttle->{locked};
 
     # time to unlock the channel.

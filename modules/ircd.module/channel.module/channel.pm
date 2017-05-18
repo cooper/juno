@@ -342,7 +342,6 @@ sub handle_modes {
 
         # add it to the list of changes.
         $changes->push_stated_mode($state, $name => $param);
-
     }
 
     return $changes;
@@ -401,7 +400,6 @@ sub _modes_with {
         # otherwise it has either zero or one parameters.
         # either the value of the parameter or undef will be pushed.
         $modes->push_mode($name => $ref->{parameter});
-
     }
 
     return $modes;
