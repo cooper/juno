@@ -36,7 +36,7 @@ sub init {
     return 1;
 }
 
-# $channel->mode_parameter('throttle') = {
+# $channel->mode_parameter('join_throttle') = {
 #   joins       => number of joins permitted
 #   secs        => in this number of seconds
 #   time        => number of seconds to lock the channel (optional)
@@ -89,7 +89,7 @@ sub on_user_joined {
 
     # we're not interested if the channel has no throttle
     # or if the channel is already locked.
-    my $throttle = $channel->mode_parameter('throttle');
+    my $throttle = $channel->mode_parameter('join_throttle');
     return if !$throttle || $throttle->{locked};
 
     # time to reset the counter.
@@ -112,7 +112,7 @@ sub on_user_can_join {
     my ($user, $event, $channel, $key) = @_;
 
     # we're only interested when the channel is locked.
-    my $throttle = $channel->mode_parameter('throttle');
+    my $throttle = $channel->mode_parameter('join_throttle');
     return if !$throttle || !$throttle->{locked};
 
     # time to unlock the channel.

@@ -4023,3 +4023,5 @@ CHANGES:
         
     91. it is now possible to specify protocol-specific mode parameter formatters. closes #169.
         updated Channel::JoinThrottle to use this.
+        
+    92. fix mixmatched 'throttle' vs 'join_throttle' mode names.
