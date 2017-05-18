@@ -65,6 +65,7 @@ sub is_mode {
 }
 
 # current parameter for a set mode, if any.
+# note that this may be an object, string, or hash reference.
 sub mode_parameter {
     my ($channel, $name) = @_;
     return $channel->{modes}{$name}{parameter};
@@ -73,6 +74,7 @@ sub mode_parameter {
 # low-level mode set.
 # takes an optional parameter.
 # $channel->set_mode('moderated');
+# $channel->set_mode(limit => 15);
 sub set_mode {
     my ($channel, $name, $parameter) = @_;
     $channel->{modes}{$name} = {
@@ -85,6 +87,7 @@ sub set_mode {
 }
 
 # low-level mode unset.
+# $channel->unset_mode('moderated');
 sub unset_mode {
     my ($channel, $name) = @_;
     return unless $channel->is_mode($name);
@@ -93,7 +96,8 @@ sub unset_mode {
     return 1;
 }
 
-# list has something.
+# returns true if a list has something.
+# $what may be a string or object with string overload (e.g. user).
 sub list_has {
     my ($channel, $name, $what) = @_;
     return unless $channel->{modes}{$name};
@@ -102,6 +106,7 @@ sub list_has {
 
 # something matches in an expression list.
 # returns the match if there is one.
+# $what may be a real mask or a user object.
 sub list_matches {
     my ($channel, $name, $what) = @_;
     return unless $channel->{modes}{$name};
@@ -121,55 +126,58 @@ sub list_elements {
 sub add_to_list {
     my ($channel, $name, $parameter, %opts) = @_;
 
-    # first item. wow.
-    $channel->{modes}{$name} = {
-        time => time,
-        list => []
-    } unless $channel->{modes}{$name};
-
-    # no duplicates plz.
+    # no duplicates plz
     return if $channel->list_has($name, $parameter);
 
-    # add it.
+    # first item
+    $channel->{modes}{$name} ||= {
+        time => time,
+        list => []
+    };
+
+    # add it
     L("$$channel{name}: adding $parameter to $name list");
-    my $array = [$parameter, \%opts];
-    push @{ $channel->{modes}{$name}{list} }, $array;
+    my $ref = [ $parameter, \%opts ];
+    push @{ $channel->{modes}{$name}{list} }, $ref;
 
     return 1;
 }
 
 # removes something from a list.
+# returns true if something was removed.
 sub remove_from_list {
     my ($channel, $name, $what) = @_;
+    
+    # it's not there
     return unless $channel->list_has($name, $what);
 
-    my @new = grep {
-        $_->[0] ne $what
-    } ref_to_list($channel->{modes}{$name}{list});
+    # grep it out
+    my @old = ref_to_list($channel->{modes}{$name}{list});
+    my @new = grep { $_->[0] ne $what } @old;
+    
+    # nothing changed
+    return if @old == @new;
+    
     $channel->{modes}{$name}{list} = \@new;
-
     L("$$channel{name}: removing $what from $name list");
     return 1;
 }
 
-# user joins channel
+# low-level user join
 sub add {
     my ($channel, $user) = @_;
     return if $channel->has_user($user);
 
-    # add the user to the channel.
+    # add the user to the channel
     push @{ $channel->{users} }, $user;
-
-    # note: as of 5.91, after-join (user_joined) event is fired in
-    # mine.pm:           for locals
-    # core_scommands.pm: for nonlocals.
-
+    
+    # notify ppl
     notice(channel_join => $user->notice_info, $channel->name)
         unless $user->location->{is_burst};
     return $channel->{time};
 }
 
-# remove a user.
+# low-level user remove.
 # this could be due to any of part, quit, kick, server quit, etc.
 sub remove {
     my ($channel, $user) = @_;
@@ -524,7 +532,7 @@ sub user_is_banned {
     return $banned && !$channel->list_matches('except', $user);
 }
 
-# fetch the topic or return undef if none.
+# fetch the topic ref or return nothing if none is set.
 sub topic {
     my $channel = shift;
     return $channel->{topic} if
@@ -541,7 +549,7 @@ sub destroy_maybe {
     # there are still users in here!
     return if $channel->users;
 
-    # an event said not to destroy the channel.
+    # an event said not to destroy the channel
     return if $channel->fire('can_destroy')->stopper;
 
     # delete the channel from the pool, purge events
@@ -579,13 +587,9 @@ sub real_local_users {
     return $channel->users_satisfying(sub { shift->is_local && !$_->{fake} });
 }
 
-sub id    { shift->{name}       }
-sub name  { shift->{name}       }
-sub users { @{ shift->{users} } }
-
-############
-### MINE ###
-############
+sub id    { shift->{name}       }   # channel name
+sub name  { shift->{name}       }   # channel name
+sub users { @{ shift->{users} } }   # list of users
 
 # send NAMES.
 sub send_names {
