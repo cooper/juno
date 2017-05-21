@@ -121,7 +121,8 @@ sub umode_letter {
 # convert umodes
 sub convert_umode_string {
     my ($server1, $server2, $mode_str) = @_;
-
+    return '+' if !length $mode_str;
+    
     my $string = '+';                               # new (+/-)modes
     my $modes  = (split /\s+/, $mode_str, 2)[0];    # old (+/-)modes
     my $state  = 1;                                 # current state

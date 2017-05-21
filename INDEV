@@ -4028,3 +4028,7 @@ CHANGES:
         fix bug that allowed zero for joins per second in join throttle.
         misc. cleanup channel.pm.
         misc. cleanup server.pm.
+        channel->id now returns the irc_lc()'d channel name.
+        fix bug in channel->send_all().
+        
+13. ava.

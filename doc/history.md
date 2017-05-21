@@ -129,7 +129,7 @@ any event that occurs within juno. vulpia completed the relocation of JELP
 [an optional module](https://github.com/cooper/juno/tree/master/modules/JELP),
 opening the doors for additional linking protocols
 in the future. Additionally, it established
-[fantasy command](https://github.com/cooper/juno/blob/master/modules/Channel/Fantasy.module/Fantasy.pm)
+[fantasy command](doc/modules.md#channelfantasy)
 support; the
 [Reload](https://github.com/cooper/juno/tree/master/modules/Reload.module)
 module, which makes it possible to upgrade the IRCd to the latest version
@@ -141,10 +141,10 @@ module, helping users to better manage nicknames and channels.
 Named after the adored [Kyle](http://mac-mini.org), kylie introduced
 several previously-missing core components including
 [ident](http://en.wikipedia.org/wiki/Ident_protocol) support and channel modes:
-[limit](https://github.com/cooper/juno/blob/master/modules/Channel/Limit.module/Limit.pm),
-[secret](https://github.com/cooper/juno/blob/master/modules/Channel/Secret.module/Secret.pm),
+[limit](doc/modules.md#channellimit),
+[secret](doc/modules.md#channelsecret),
 and
-[key](https://github.com/cooper/juno/blob/master/modules/Channel/Key.module/Key.pm).
+[key](doc/modules.md#channelkey).
 APIs for [IRCv3](http://ircv3.org) extensions were added, leading to
 [SASL](http://ircv3.org/extensions/sasl-3.1),
 [multi-prefix](http://ircv3.org/extensions/multi-prefix-3.1), and
@@ -162,54 +162,34 @@ of the IRCd.
 * [__agnie__](https://github.com/cooper/juno/tree/juno9-agnie) (juno9):
 Named after the beautiful and talented [Agnes](http://agnes.mac-mini.org), agnie
 introduced lots of new functionality: the ability to
-[manage oper flags](https://github.com/cooper/juno/blob/master/modules/Grant.module/Grant.pm)
-from IRC, much-improved
+[manage oper flags](doc/modules.md#grant) from IRC, much-improved
 [account management](https://github.com/cooper/juno/tree/juno9-agnie/modules/Account.module),
-and
-[command aliases](https://github.com/cooper/juno/blob/master/modules/Alias.module/Alias.pm)
+and [command aliases](doc/modules.md#alias)
 to name a few. It opened a new door of possibility by adding partial
-[TS6 protocol](https://github.com/charybdis-ircd/charybdis/blob/master/doc/technical/ts6-protocol.txt)
-support, and
-it even supports [Atheme](http://atheme.net) now to some extent. New
-channel modes include
-[invite exception](https://github.com/cooper/juno/blob/master/modules/Channel/Invite.module/Invite.pm)
-(+I),
-[free invite](https://github.com/cooper/juno/blob/master/modules/Channel/Invite.module/Invite.pm)
-(+g),
-[channel forward](https://github.com/cooper/juno/blob/master/modules/Channel/Forward.module/Forward.pm)
-(+F),
-[oper only channel](https://github.com/cooper/juno/tree/master/modules/Channel/OperOnly.module)
-(+O),
-and
-[mute ban](https://github.com/cooper/juno/blob/master/modules/Channel/Mute.module/Mute.pm)
-(+Z, missing since juno2); also, the
-[TopicAdditions](https://github.com/cooper/juno/blob/master/modules/Channel/TopicAdditions.module/TopicAdditions.pm)
+[TS6 protocol](doc/ts6.md) support, and it even supports
+[Atheme](http://atheme.net) now to some extent. New channel modes include
+[invite exception](doc/modules.md#channelinvite) (+I),
+[free invite](doc/modules.md#channelinvite) (+g),
+[channel forward](doc/modules.md#channelforward) (+F),
+[oper only channel](doc/modules.md#channeloperonly) (+O), and
+[mute ban](doc/modules.md#channelmute) (+Z, missing since juno2); also, the
+[TopicAdditions](doc/modules.md#channeltopicadditions)
 module added convenient commands to prepend or append the topic. Some missing
-commands were added:
-[ADMIN](https://github.com/cooper/juno/blob/juno9-agnie/modules/Core/UserCommands.module/UserCommands.pm#L1272),
-[TIME](https://github.com/cooper/juno/blob/juno9-agnie/modules/Core/UserCommands.module/UserCommands.pm#L1296),
-and
-[USERHOST](https://github.com/cooper/juno/blob/juno9-agnie/modules/Core/UserCommands.module/UserCommands.pm#L1311);
-and several commands that previously did not work remotely now do. agnie
-introduced a
-[new mechanism](https://github.com/cooper/juno/tree/master/modules/Ban/Ban.module/Ban.pm)
+commands were added: ADMIN, TIME, USERHOST; and several commands that previously
+did not work remotely now do. agnie introduced a
+[new mechanism](doc/modules.md#ban)
 for storing and enforcing bans (functionality missing since juno2), followed by
-[K-Line](https://github.com/cooper/juno/blob/master/modules/Ban/Kline.module/Kline.pm)
-and
-[D-Line](https://github.com/cooper/juno/blob/master/modules/Ban/Dline.module/Dline.pm)
+[K-Line](doc/modules.md#bankline) and [D-Line](doc/modules.md#bandline)
 support in the form of independent modules. In addition to the existing
-[RELOAD](https://github.com/cooper/juno/blob/master/modules/Reload.module/Reload.pm)
-command, agnie
+[RELOAD](doc/modules.md#Reload) command, agnie
 includes new ways to manage servers remotely, including
-[repository](https://github.com/cooper/juno/blob/master/modules/Git.module/Git.pm)
-and
-[configuration](https://github.com/cooper/juno/blob/master/modules/Configuration/Set.module/Set.pm)
-management directly from IRC.
+[repository](doc/modules.md#git) and
+[configuration](doc/modules.md#configurationset) management directly from IRC.
 
 * [__yiria__](https://github.com/cooper/juno/tree/juno10-yiria) (juno10):
 An acronym for our slogan (Yes. It really is an IRC daemon.), yiria's primary
 goal was to complete the implementation of the
-[TS6 protocol](https://github.com/charybdis-ircd/charybdis/blob/master/doc/technical/ts6-protocol.txt).
+[TS6 protocol](doc/ts6.md).
 Doing so while retaining support for the Juno Extensible Linking
 Protocol (JELP) involved efficient TS6<->JELP command conversion and vigorous
 [mode translation](https://github.com/cooper/juno/blob/eab5acca7645f3d460ba0fb84de9e58c6e39e3d5/modules/ircd.module/server.module/server.pm#L185),
@@ -222,10 +202,8 @@ many pseudoserver packages like
 Adding TS6 resulted in a positive side effect: several improvements within JELP
 in order to stay competitive with the newly-supported protocol. Aside from
 server-to-server improvements, new noteworthy features in yiria include built-in
-[DNSBL](https://github.com/cooper/juno/blob/master/modules/DNSBL.module/DNSBL.pm)
-checking,
-[private channels](https://github.com/cooper/juno/blob/master/modules/Channel/Secret.module/Secret.pm),
-and IRCv3
+[DNSBL](doc/modules.md#dnsbl) checking,
+[private channels](doc/modules.md#channelsecret), and IRCv3
 [away-notify](http://ircv3.net/specs/extensions/away-notify-3.1.html) support.
 As always, there were lots of bug fixes and efficiency improvements too.
 
@@ -240,31 +218,47 @@ makes it easier to release patches.
 A lot was accomplished during the short-lived development of mihret.
 Several new channel features were introduced, including
 IRCv3 [extended-join](http://ircv3.net/specs/extensions/extended-join-3.1.html),
-[permanent channels](modules/Channel/Permanent.module/Permanent.pm) (+P),
-[op moderation](modules/Channel/OpModerate.module/OpModerate.pm) (+z),
-[color stripping](modules/Channel/NoColor.module/NoColor.pm) (+c),
-[registered only](modules/Channel/RegisteredOnly.module/RegisteredOnly.pm) (+r),
-and [SSL only](modules/Channel/SSLOnly.module/SSLOnly.pm) (+S),
-all implemented as modules.
+[permanent channels](doc/modules.md#channelpermanent) (+P),
+[op moderation](doc/modules.md#channelopmoderate) (+z),
+[color stripping](doc/modules.md#channelnocolor) (+c),
+[registered only](doc/modules.md#channelregisteredonly) (+r),
+and [SSL only](doc/modules.md#channelsslonly) (+S), all implemented as modules.
 Internal support for new user modes, deafness (+D) and bot status (+B), was also
 added. mihret furthered the support of external IRC services packages by
-reworking the [SASL](modules/SASL/SASL.module)
+reworking the [SASL](https://github.com/cooper/juno/blob/master/modules/SASL/SASL.module)
 module to support relaying authentication over both
 server protocols. Nickname enforcement, nickname reservations, and
 channel reservations are now supported as well. For the first time in its
-history, juno now has a decent [hostname cloaking](modules/Cloak.module/Cloak.pm)
+history, juno now has a decent [hostname cloaking](doc/modules.md#cloak)
 interface with a
-[charybdis-compatible](modules/Cloak.module/Charybdis.module/Charybdis.pm)
-implementation. The [netban](modules/Ban) module was
+[charybdis-compatible](https://github.com/cooper/juno/blob/master/modules/Cloak.module/Charybdis.module/Charybdis.pm)
+implementation. The [netban](https://github.com/cooper/juno/blob/master/modules/Ban) module was
 rewritten from the ground up in an objective fashion. New APIs make it very easy
 to extend netban functionality from additional modules. The
-[TS6 netban](modules/Ban/Ban.module/TS6.module/TS6.pm) implementation was mostly
+[TS6 netban](https://github.com/cooper/juno/blob/master/modules/Ban/Ban.module/TS6.module/TS6.pm) implementation was mostly
 completed too. A new IRCd support
 interface makes it easy to add special rules for certain IRC software and also
 features inheritance of properties for derivative software.
 As usual, there were astounding improvements to [TS6](doc/ts6.md)
 and even some enhancements to JELP.
 
-* [__dev__](https://github.com/cooper/juno) (juno13): Yet to be named, the next
-release will be based on the current git, a continuation of mihret under active
+* [ava](https://github.com/cooper/juno/tree/juno13-ava) (juno13):
+Several new IRCv3 features were added, particularly the improved IRCv3.2
+[capability negotiation](http://ircv3.net/specs/core/capability-negotiation-3.2.html),
+[cap-notify](http://ircv3.net/specs/extensions/cap-notify-3.2.html),
+[userhost-in-names](http://ircv3.net/specs/extensions/userhost-in-names-3.2.html),
+[SASL reauthentication](http://ircv3.net/specs/extensions/sasl-3.2.html),
+and the [MONITOR](http://ircv3.net/specs/core/monitor-3.2.html)
+client notification system. Additional new channel features include
+[WHOX](http://faerion.sourceforge.net/doc/irc/whox.var) support,
+KNOCKing, join throttle mode (+j), no forward-mode (+Q), and the long-planned
+[MODESYNC](https://github.com/cooper/juno/issues/63)
+mechanism, which helps maintain network-wide channel mode synchrony even when
+some modes are not enabled on all servers. The built-in DNS blacklist checker
+now supports IPv6 blacklists and has improved caching helping to decrease the
+effects of malicious attacks. Further work on TS6 and JELP includes improved ban
+propagation and more S2S security measures.
+
+* [__dev__](https://github.com/cooper/juno) (juno14): Yet to be named, the next
+release will be based on the current git, a continuation of ava under active
 development.

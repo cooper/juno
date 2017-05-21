@@ -330,6 +330,9 @@ sub handle_modes {
         #
         $param = $mode->{param};
         next MODE if !defined $param && $takes;
+        
+        # the mode name may have been changed by the handler
+        $name = $mode->{name};
 
         # SAFE POINT:
         # from here we can assume that the mode will be set or unset.
@@ -587,9 +590,9 @@ sub real_local_users {
     return $channel->users_satisfying(sub { shift->is_local && !$_->{fake} });
 }
 
-sub id    { shift->{name}       }   # channel name
-sub name  { shift->{name}       }   # channel name
-sub users { @{ shift->{users} } }   # list of users
+sub id    { irc_lc(shift->{name})   }   # channel ID, which is lc'd name
+sub name  { shift->{name}           }   # channel name
+sub users { @{ shift->{users} }     }   # list of users
 
 # send NAMES.
 sub send_names {
@@ -663,7 +666,7 @@ sub send_all {
 
     # $ignore can be either a user object or a codref
     # which returns true when the user should be ignored
-    if ($ignore && !ref $ignore) {
+    if ($ignore && ref $ignore ne 'CODE') {
         my $ignore_user = $ignore;
         $ignore = sub { shift() == $ignore_user };
     }
@@ -772,7 +775,7 @@ sub user_has_invite {
 sub user_clear_invite {
     my ($channel, $user) = @_;
     delete $channel->{invite_pending}{ $user->id };
-    delete $user->{invite_pending}{ irc_lc($channel->name) };
+    delete $user->{invite_pending}{ $channel->id };
 }
 
 # clear all channel invites.

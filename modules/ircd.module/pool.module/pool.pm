@@ -440,7 +440,7 @@ sub delete_channel {
 
     # forget it.
     delete $channel->{pool};
-    delete $pool->{channels}{ irc_lc($channel->name) };
+    delete $pool->{channels}{ $channel->id };
 
     L("deleted channel $$channel{name}");
     return 1;
