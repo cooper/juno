@@ -1080,7 +1080,11 @@ sub do_privmsgnotice {
     USER: foreach my $user (@users) {
 
         # this is the source!
-        next USER if $source_user && $source_user == $user;
+        # skip it unless it has the echo-message capability enabled.
+        # (this will never be true for a nonlocal source user)
+        if ($source_user && $source_user == $user) {
+            next USER unless $source_user->has_cap('echo-message');
+        }
 
         # not telling remotes.
         next USER if !$user->is_local && $opts{dont_forward};

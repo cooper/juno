@@ -827,7 +827,14 @@ sub do_privmsgnotice {
         # from ever seeing the message.
         return if $recv_fire->stopper;
 
-        $user->sendfrom($source->full, "$command $$user{nick} :$my_message");
+        # send to the target
+        my $data = "$command $$user{nick} :$my_message";
+        $user->sendfrom($source->full, $data);
+        
+        # send to source if echo-message enabled
+        $source_user->sendfrom($source->full, $data)
+            if $source_user && $source_user != $user &&
+            $source_user->has_cap('echo-message');
     }
 
     # the user is remote. check if dont_forward is true.

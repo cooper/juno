@@ -47,7 +47,7 @@
     Channel::OpModerate         # Sends blocked messages to chanops (+z)
     Channel::ModeSync           # Improves channel mode synchronization
     Channel::JoinThrottle       # Prevents channel join flooding (+j)
-    Channel::LargeList
+    Channel::LargeList          # Enable large ban lists (+L)
     
     # Server management
 

@@ -202,6 +202,7 @@ sub init {
     $mod->register_capability('account-notify');
     $mod->register_capability('extended-join');
     $mod->register_capability('userhost-in-names');
+    $mod->register_capability('echo-message');
 
     return 1;
 }
