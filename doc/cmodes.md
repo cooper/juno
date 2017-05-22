@@ -26,6 +26,7 @@ strip_colors  = [0, 'c']           # strip mIRC color codes from messages (c)
 op_moderated  = [0, 'z']           # send blocked messages to channel ops (z)
 join_throttle = [2, 'j']           # limit join frequency N:T             (j)
 no_forward    = [0, 'Q']           # do not forward users to this channel (Q)
+large_banlist = [0, 'L']           # allow lots of entries on lists       (L)
 owner         = ['q', '~',  2    ] # channel owner                        (q)
 admin         = ['a', '&',  1    ] # channel administrator                (a)
 op            = ['o', '@',  0    ] # channel operator                     (o)
@@ -35,7 +36,6 @@ voice         = ['v', '+', -2    ] # voiced channel member                (v)
 
 ## Not yet supported
 ```
-large_banlist = [0, 'L'] # allow lots of entries on lists       (L)
 no_nicks      = [0, 'N'] # no nick changes                      (N)
 admin_only    = [0, 'W'] # only administrators can join         (W)
 censor        = [3, 'g'] # censor list                          (g)

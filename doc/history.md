@@ -242,7 +242,7 @@ features inheritance of properties for derivative software.
 As usual, there were astounding improvements to [TS6](ts6.md)
 and even some enhancements to JELP.
 
-* [ava](https://github.com/cooper/juno/tree/juno13-ava) (juno13):
+* [__ava__](https://github.com/cooper/juno/tree/juno13-ava) (juno13):
 Several new IRCv3 features were added, particularly the improved IRCv3.2
 [capability negotiation](http://ircv3.net/specs/core/capability-negotiation-3.2.html),
 [cap-notify](http://ircv3.net/specs/extensions/cap-notify-3.2.html),

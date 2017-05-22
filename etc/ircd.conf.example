@@ -47,7 +47,8 @@
     Channel::OpModerate         # Sends blocked messages to chanops (+z)
     Channel::ModeSync           # Improves channel mode synchronization
     Channel::JoinThrottle       # Prevents channel join flooding (+j)
-
+    Channel::LargeList
+    
     # Server management
 
     Modules                     # Manage IRCd modules directly from IRC
@@ -126,7 +127,8 @@
     max_modes_per_server_line   = 10            # same as above, except for servers
     max_param_length            = 50            # number of characters permitted for parameters
     max_ban_length              = 195           # number of characters permitted for a ban
-
+    max_bans                    = 100           # number of bans permitted per channel
+    max_bans_large              = 500           # number of bans permitted with Channel::LargeList (+L)
 
 # Services options
 

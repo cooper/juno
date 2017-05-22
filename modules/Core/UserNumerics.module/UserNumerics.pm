@@ -120,6 +120,7 @@ our %user_numerics = (
     ERR_NEEDMOREPARAMS   => [461, '%s :Not enough parameters'                                             ],
     ERR_ALREADYREGISTRED => [462, ':You may not reregister'                                               ],
     ERR_BANNEDFROMCHAN   => [474, '%s :You\'re banned'                                                    ],
+    ERR_BANLISTFULL      => [478, '%s %s :Channel %s list is full'                                        ],
     ERR_NOPRIVILEGES     => [481, ':Permission denied - You can\'t %s'                                    ],
     ERR_CHANOPRIVSNEEDED => [482, '%s :You do not have the required status to perform this action'        ],
     ERR_NOOPERHOST       => [491, ':No oper blocks for your host'                                         ],
@@ -184,7 +185,7 @@ sub isp_core {
         MODES       => conf('channels', 'client_max_mode_params'),
         CHANLIMIT   => '#:'.conf('limit', 'channel'),
         NICKLEN     => conf('limit', 'nick'),
-        MAXLIST     => "$listmodes:1000",   # TODO: (#14) currently unlimited
+        MAXLIST     => $listmodes.q(:).conf('channels', 'max_bans'),
         NETWORK     => conf('server', 'network') // conf('network', 'name'),
         EXCEPTS     => $me->cmode_letter('except'),
         DEAF        => $me->umode_letter('deaf'),

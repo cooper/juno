@@ -66,9 +66,11 @@ sub cmode_banlike {
 #
 sub _cmode_banlike {
     my ($list, $reply, $show_letter, $channel, $mode) = @_;
-
-    # view list.
-    if (!length $mode->{param} && $mode->{source}->isa('user')) {
+    my $local_user = $mode->{source};
+    undef $local_user if !$local_user->isa('user') || !$local_user->is_local;
+    
+    # local user viewing the list
+    if ($local_user && !length $mode->{param}) {
 
         # consider the numeric reply names and whether to send the mode letter.
         my $name = uc($reply)."LIST";
@@ -76,7 +78,7 @@ sub _cmode_banlike {
         push @channel_letter, $me->cmode_letter($list) if $show_letter;
 
         # send each list item.
-        $mode->{source}->numeric("RPL_$name" =>
+        $local_user->numeric("RPL_$name" =>
             @channel_letter,
             $_->[0],
             $_->[1]{setby},
@@ -84,35 +86,43 @@ sub _cmode_banlike {
         ) foreach $channel->list_elements($list, 1);
 
         # end of list.
-        $mode->{source}->numeric("RPL_ENDOF$name" => @channel_letter);
+        $local_user->numeric("RPL_ENDOF$name" => @channel_letter);
 
         return 1;
     }
 
-    # needs privs.
+    # needs privs from this point on
     if (!$mode->{has_basic_status}) {
         $mode->{send_no_privs} = 1;
         return;
     }
 
-    # remove prefixing colon.
+    # remove prefixing colons
     $mode->{param} = cols($mode->{param});
     if (!length $mode->{param}) {
         return;
     }
-
-    # setting.
-    if ($mode->{state}) {
-        $channel->add_to_list($list, $mode->{param},
-            setby => $mode->{source}->full,
-            time  => time
-        );
-    }
-
-    # unsetting.
-    else {
+    
+    # removing an entry
+    if (!$mode->{state}) {
         $channel->remove_from_list($list, $mode->{param});
+        return 1;
     }
+
+    # adding an entry
+
+    # it's full! this limitation only applies to local users
+    if ($local_user && $channel->list_is_full($list)) {
+        $local_user->numeric(ERR_BANLISTFULL =>
+            $channel->name, $mode->{param}, $list);
+        return;
+    }
+    
+    # add it
+    $channel->add_to_list($list, $mode->{param},
+        setby => $mode->{source}->full,
+        time  => time
+    );
 
     return 1;
 }

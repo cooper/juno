@@ -122,6 +122,24 @@ sub list_elements {
     return map { $_->[0]      } @list;
 }
 
+# returns the number of elements in a list
+sub list_count {
+    my ($channel, $name) = @_;
+    my @items = $channel->list_elements($name, 1);
+    return scalar @items;
+}
+
+# returns true if a list is full.
+# hooks to the channel.max_list_entries can set the {max} return value.
+# the last-called one will take precedence, so use 'before' hints in
+# conjunction with ->stop
+sub list_is_full {
+    my ($channel, $name) = @_;
+    my $fire = $channel->fire(max_list_entries => $name);
+    my $max = $fire->{max} // conf('channels', 'max_bans');
+    return $channel->list_count($name) >= $max;
+}
+
 # adds something to a list mode.
 sub add_to_list {
     my ($channel, $name, $parameter, %opts) = @_;
