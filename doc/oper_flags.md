@@ -84,6 +84,10 @@ Use `CONFSET` to dynamically modify the server configuration.
 
 Mark channels as permanent (+P).
 
+### set_large_banlist
+
+Enable large channel ban lists (+L).
+
 ### modesync
 
 Fix channel desyncs with the `MODESYNC` command.

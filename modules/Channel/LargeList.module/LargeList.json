@@ -1,0 +1,10 @@
+{
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
+   "description" : "increase the number of bans permitted in a channel",
+   "name" : "Channel::LargeList",
+   "package" : "M::Channel::LargeList",
+   "version" : "0.4"
+}

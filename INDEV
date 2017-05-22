@@ -4034,3 +4034,4 @@ CHANGES:
 13. ava.
 
     01. new configuration option channels:max_bans dictates the max entry count for channel list modes.
+        new Channel::LargeList adds support for large ban lists (+L).
