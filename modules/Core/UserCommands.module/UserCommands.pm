@@ -203,6 +203,7 @@ sub init {
     $mod->register_capability('extended-join');
     $mod->register_capability('userhost-in-names');
     $mod->register_capability('echo-message');
+    $mod->register_capability('account-tag');
 
     return 1;
 }

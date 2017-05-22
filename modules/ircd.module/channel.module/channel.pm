@@ -1068,11 +1068,11 @@ sub do_privmsgnotice {
     }
 
     # send to @#channel if necessary
-    my $local_prefix = "$command $$channel{name} :";
+    my $target_name = $channel->name;
     if (defined $opts{min_level}) {
         my $prefix = $ircd::channel_mode_prefixes{ $opts{min_level} } or return;
         $prefix = $prefix->[1]; # [ letter, prefix, ... ]
-        $local_prefix = "$command $prefix$$channel{name} :";
+        $target_name = $prefix.$target_name;
     }
 
     # tell channel members.
@@ -1111,9 +1111,22 @@ sub do_privmsgnotice {
 
             # the can_receive_* events may stop the event, preventing the user
             # from ever seeing the message.
-            $user->sendfrom($source->full, $local_prefix.$my_message)
-                unless $recv_fire->stopper;
+            next USER if $recv_fire->stopper;
+            
+            # construct the message
+            my $msg = message->new(
+                source      => $source,
+                command     => $command,
+                params      => [ $target_name, $my_message ],
+                sentinel    => 1 # force sentinel on final parameter
+            );
+            
+            # add the account name if the target has account-tag
+            $msg->set_tag(account => $source_user->{account}{name})
+                if $user->has_cap('account-tag') &&
+                $source_user && $source_user->{account};
 
+            $user->send($msg->data);
             next USER;
         }
 

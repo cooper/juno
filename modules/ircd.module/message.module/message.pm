@@ -114,6 +114,7 @@ sub parse {
         # sentinel-prefixed final parameter.
         if ($$f_char_ref eq ':') {
             push @params, $msg->{_rest}[$word_n];
+            $msg->{sentinel}++;
             last WORD;
         }
 
@@ -215,13 +216,30 @@ sub data {
         }
 
         # handle sentinel-prefixed final parameter.
-        $param = ":$param" if $p == $#params && $param =~ m/\s+/;
+        $param = ":$param"
+            if $p == $#params && ($msg->{sentinel} || $param =~ m/\s+/);
 
         push @parts, $param;
         $p++;
     }
 
     return "@parts";
+}
+
+# force data to be regenerated
+sub reset_data {
+    my $msg = shift;
+    delete $msg->{data};
+    return $msg;
+}
+
+sub set_tag {
+    my ($msg, $key, $val) = @_;
+    $msg->{tags}{$key} = $val;
+}
+
+sub copy {
+    return __PACKAGE__->new(data => shift->data)->reset_data;
 }
 
 sub raw_cmd {    shift->{command}           }

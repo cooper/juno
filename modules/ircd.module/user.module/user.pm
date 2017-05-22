@@ -826,15 +826,34 @@ sub do_privmsgnotice {
         # the can_receive_* events may stop the event, preventing the user
         # from ever seeing the message.
         return if $recv_fire->stopper;
-
-        # send to the target
-        my $data = "$command $$user{nick} :$my_message";
-        $user->sendfrom($source->full, $data);
+        
+        # construct the message
+        my $msg = message->new(
+            source      => $source,
+            command     => $command,
+            params      => [ $user->{nick}, $my_message ],
+            sentinel    => 1 # force sentinel on final parameter
+        );
         
         # send to source if echo-message enabled
-        $source_user->sendfrom($source->full, $data)
+        my @targets = $user;
+        push @targets, $source_user
             if $source_user && $source_user != $user &&
             $source_user->has_cap('echo-message');
+        
+        # send to each target
+        foreach my $t_user (@targets) {
+            my $my_msg = $msg;
+            
+            # if account-tag is enabled, consider that
+            if ($t_user->has_cap('account-tag') &&
+            $source_user && $source_user->{account}) {
+                $my_msg = $msg->copy;
+                $my_msg->set_tag(account => $source_user->{account}{name});
+            }
+            
+            $t_user->send($my_msg->data);
+        }
     }
 
     # the user is remote. check if dont_forward is true.

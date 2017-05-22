@@ -4033,5 +4033,9 @@ CHANGES:
         
 13. ava.
 
-    01. new configuration option channels:max_bans dictates the max entry count for channel list modes.
+    01. new configuration option channels:max_bans dictates the max entry count for channel list modes. closes #14.
         new Channel::LargeList adds support for large ban lists (+L).
+        
+    02. add support for IRCv3.2 echo-message. closes #173.
+    
+    03. add support for IRCv3.2 account-tag. closes #177.
