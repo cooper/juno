@@ -162,8 +162,9 @@ sub ucmd_invite {
 # handle an invite for a local user.
 # $channel might be an object or a channel name.
 sub on_user_get_invited {
-    my ($user, $event, $i_user, $ch_name) = @_;
-    return unless $user->is_local;
+    my ($t_user, $event, $i_user, $ch_name) = @_;
+    return unless $t_user->is_local;
+    my @notify_users = $t_user;
 
     # the channel exists.
     my $channel = $ch_name if ref $ch_name;
@@ -172,16 +173,19 @@ sub on_user_get_invited {
         $ch_name = $channel->name;
 
         # user is already in channel.
-        return if $channel->has_user($user);
+        return if $channel->has_user($t_user);
 
         # store the invite in the channel.
         # this is what we use to actually allow the user to join.
-        $channel->{invite_pending}{ $user->id } = time;
+        $channel->{invite_pending}{ $t_user->id } = time;
+        
+        # possibly notify members of the channel
+        push @notify_users, $channel->users;
     }
 
     # if the invite list is full, remove the oldest entries.
     my @oldest_first;
-    my $list  = $user->{invite_pending};
+    my $list  = $t_user->{invite_pending};
     my $limit = conf('limit', 'channel');
     if ($list && $limit && scalar keys %$list >= $limit) {
         my @newest_first = sort { $list->{$b} <=> $list->{$a} } keys %$list;
@@ -189,14 +193,32 @@ sub on_user_get_invited {
     }
 
     # store the invite in the user. this is used to track the max invites.
-    # notify the user.
-    $user->{invite_pending}{ irc_lc($ch_name) } = time;
-    $user->sendfrom($i_user->full, "INVITE $$user{nick} $ch_name");
+    $t_user->{invite_pending}{ irc_lc($ch_name) } = time;
+    $t_user->sendfrom($i_user->full, "INVITE $$t_user{nick} $ch_name");
+    
+    # notify the user and any other qualifying member with invite-notify
+    # notify other users of the channel
+    foreach my $user ($channel->users) {
+
+        # if this is not the target user
+        if ($user != $t_user) {
+            
+            # they must have invite-notify
+            next unless $user->has_cap('invite-notify');
+            
+            # they must have the privs to invite people
+            next if $user->fire(can_invite =>
+                $t_user, $ch_name, $channel, 1)->stopper;
+        }
+        
+        # notify the user
+        $user->sendfrom($i_user->full, "INVITE $$t_user{nick} $ch_name");
+    }
 }
 
 # user must be in the channel if it exists.
 sub on_can_invite_source {
-    my ($user, $event, $t_user, $ch_name, $channel) = @_;
+    my ($user, $event, $t_user, $ch_name, $channel, $quiet) = @_;
 
     # channel does not exist.
     if (!$channel) {
@@ -207,7 +229,8 @@ sub on_can_invite_source {
 
         # invite_must_exist says to end it here.
         $event->stop;
-        $user->numeric(ERR_NOSUCHCHANNEL => $channel->name);
+        $user->numeric(ERR_NOSUCHCHANNEL => $channel->name)
+            unless $quiet;
         return;
     }
 
@@ -217,12 +240,13 @@ sub on_can_invite_source {
 
     # channel exists, and user is not there.
     $event->stop;
-    $user->numeric(ERR_NOTONCHANNEL => $ch_name);
+    $user->numeric(ERR_NOTONCHANNEL => $ch_name)
+        unless $quiet;
 }
 
 # target can't be in the channel already.
 sub on_can_invite_target {
-    my ($user, $event, $t_user, $ch_name, $channel) = @_;
+    my ($user, $event, $t_user, $ch_name, $channel, $quiet) = @_;
     return $INVITE_OK if !$channel;
 
     # target is not in there.
@@ -231,11 +255,12 @@ sub on_can_invite_target {
 
     # target is in there already.
     $event->stop;
-    $user->numeric(ERR_USERONCHANNEL => $t_user->{nick}, $ch_name);
+    $user->numeric(ERR_USERONCHANNEL => $t_user->{nick}, $ch_name)
+        unless $quiet;
 }
 
 sub on_can_invite_status {
-    my ($user, $event, $t_user, $ch_name, $channel) = @_;
+    my ($user, $event, $t_user, $ch_name, $channel, $quiet) = @_;
     return $INVITE_OK if !$channel;
 
     # if the user is op: +i, +g, and only_ops_invite do not apply.
@@ -255,7 +280,8 @@ sub on_can_invite_status {
 
     # permission denied.
     $event->stop;
-    $user->numeric(ERR_CHANOPRIVSNEEDED => $ch_name);
+    $user->numeric(ERR_CHANOPRIVSNEEDED => $ch_name)
+        unless $quiet;
 }
 
 # check if a user can join an invite-only channel

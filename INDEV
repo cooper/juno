@@ -4039,3 +4039,5 @@ CHANGES:
     02. add support for IRCv3.2 echo-message. closes #173.
     
     03. add support for IRCv3.2 account-tag. closes #177.
+    
+    04. add support for IRCv3.2 invite-notify. closes #174.

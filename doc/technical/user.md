@@ -861,7 +861,7 @@ $pool->on('user.can_join' => sub {
 
 * __$channel__: the channel the user is attempting to join.
 
-### user.can_invite($t_user, $ch_name, $channel)
+### user.can_invite($t_user, $ch_name, $channel, $quiet)
 
 Fired before a local user invites someone to a channel. Callbacks of this event
 typically run checks to see if the user can invite, stopping the event fire if
@@ -895,6 +895,7 @@ $pool->on('user.can_invite' => sub {
 necessary because we allow invitations to nonexistent channels
 (unless `channels:invite_must_exist` is enabled).
 * __$channel__: the channel object or `undef` if it does not yet exist.
+* __$quiet__: if true, the handler MUST NOT send error replies to the user.
 
 ### user.can_message($target, \$message, $lc_cmd)
 
