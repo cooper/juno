@@ -4056,4 +4056,5 @@ CHANGES:
         new oper flag see_hidden allows opers to see hidden servers regardless of that option.
         closes #31.
         
-    08. added internal MLOCK support. #79.
+    08. added internal MLOCK support.
+        added TS6 MLOCK.

@@ -262,6 +262,11 @@ our %ts6_incoming_commands = (
                   # :uid KNOCK   channel
         params => '-source(user) channel',
         code   => \&knock
+    },
+    MLOCK => {
+                  # :sid MLOCK     ch_time channel   modes
+        params => '-source(server) ts      channel   *',
+        code   => \&mlock
     }
 );
 
@@ -1736,6 +1741,32 @@ sub knock {
     $channel->fire(knock => $user);
     # === Forward ===
     $msg->broadcast(knock => $user, $channel);
+}
+
+# MLOCK
+#
+# charybdis TS6
+# source:       services server
+# parameters:   channelTS, channel, mode letters
+# propagation:  broadcast (restricted)
+#
+sub mlock {
+    my ($server, $msg, $source_serv, $ts, $channel, $letters) = @_;
+    
+    # bad TS; drop the message
+    return if $ts > $channel->{time};
+    
+    # create mode ref with dummy parameters
+    my @names = grep defined,
+        map $source_serv->mode_name($_), split //, $letters;
+    my $modes = modes->new(map { $_ => 'dummy' } @names);
+    
+    # apply it
+    $channel->set_mlock($modes);
+    
+    # == Forward ==
+    # ($source, $channel, $mode_str)
+    $msg->broadcast(mlock => $source_serv, $channel, $letters);
 }
 
 $mod

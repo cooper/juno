@@ -72,6 +72,7 @@ our %ts6_outgoing_commands = (
      invite         => \&invite,
      knock          => \&knock,
      snotice        => \&snote,
+     mlock          => \&mlock,
      su_login       => \&su_login,
      su_logout      => \&su_logout,
      force_nick     => \&rsfnc,
@@ -140,6 +141,13 @@ sub send_burst {
         # (E)TB, TOPIC
         $server->forward(topicburst => $channel)
             if $channel->topic;
+            
+        # MLOCK
+        if ($channel->mlock) {
+            my $letters = $channel->mlock->to_string($server, 1);
+            $letters = (split ' ', $letters, 2)[0];
+            $server->forward(mlock => $me, $channel, $letters);
+        }
     }
 
 }
@@ -1163,6 +1171,32 @@ sub snote {
         $message = "$pretty: $message";
     }
     ":$sid ENCAP * SNOTE $ts6_letter :$message"
+}
+
+# MLOCK
+#
+# charybdis TS6
+# source:       services server
+# parameters:   channelTS, channel, mode letters
+# propagation:  broadcast (restricted)
+#
+sub mlock {
+    my ($to_server, $source_serv, $channel, $mode_str) = @_;
+    
+    # not supported
+    return if !$to_server->has_cap('MLOCK');
+    
+    # convert to our perspective
+    $mode_str = $source_serv->convert_cmode_string($to_server, $mode_str, 1);
+    
+    # drop the parameters
+    my $letters = (split $mode_str, ' ', 2)[0];
+    
+    sprintf ':%s MLOCK %d %s %s',
+    ts6_id($source_serv),
+    $channel->{time},
+    $channel->name,
+    $letters;
 }
 
 # RSFNC

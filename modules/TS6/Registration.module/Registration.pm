@@ -49,6 +49,7 @@ our %ts6_capabilities = (
     EOPMOD      => { required => 0 },   # extended topic burst (ETB), +z stuff
     CHW         => { required => 0 },   # messages to @#channel
     KNOCK       => { required => 0 },   # request for channel invitation
+    MLOCK       => { required => 0 },   # mode lock
 );
 
 our %registration_commands = (

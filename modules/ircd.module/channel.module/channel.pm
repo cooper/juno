@@ -100,12 +100,14 @@ sub unset_mode {
 # the parameters of these modes do not matter at all
 # (in some cases it cannot be known what they really even are)
 # except for list modes, in which case they are significant (juno-only feature)
-sub set_mode_lock {
+sub set_mlock {
     my ($channel, $mlock) = @_;
     $channel->{mlock} = $mlock;
     my $str = $mlock->to_string($me, 1);
     L("$$channel{name} $str");
 }
+
+sub mlock { shift->{mlock} }
 
 # returns true if a list has something.
 # $what may be a string or object with string overload (e.g. user).
@@ -290,8 +292,9 @@ sub handle_modes {
         }
 
         # check mlock for local users without force
+        # for list modes, this is checked in cmode_banlike handler
         if (!$force && $mlock && $type != MODE_LIST &&
-            $mlock->has($name) && $local_user) {
+            $local_user && $mlock->has($name)) {
             my $letter = $me->cmode_letter($name);
             $source->numeric(ERR_MLOCKRESTRICTED => $letter, $channel->name);
             next MODE;
