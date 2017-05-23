@@ -1757,11 +1757,15 @@ sub mlock {
     return if $ts > $channel->{time};
     
     # create mode ref with dummy parameters
-    my @names = grep defined,
-        map $source_serv->mode_name($_), split //, $letters;
-    my $modes = modes->new(map { $_ => 'dummy' } @names);
+    my $modes;
+    if (length $letters) {
+        my @names = grep defined,
+            map $source_serv->mode_name($_), split //, $letters;
+        $modes = modes->new(map { $_ => '*' } @names);
+    }
     
     # apply it
+    # $modes will be undef if $letters is empty, unsetting it
     $channel->set_mlock($modes);
     
     # == Forward ==

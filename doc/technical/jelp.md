@@ -241,7 +241,7 @@ Channel mode change.
 [Propagation](#propagation): _conditional broadcast_
 
 ```
-:<source> CMODE <channel> <TS> <perspective> <modes>
+:<source> CMODE <channel> <TS> <perspective> <modes> [<parameters> ...]
 ```
 
 * __source__ - user or server committing the mode change
@@ -611,7 +611,7 @@ for existing channels as a means to grant status modes upon join.
 [Propagation](#propagation): _broadcast_
 
 ```
-:<SID> SJOIN <channel> <TS> <modes> ... :<user list>
+:<SID> SJOIN <channel> <TS> <modes> [<parameters> ...] :<user list>
 ```
 
 * __SID__ - server bursting the channel
@@ -1011,6 +1011,31 @@ Remote `LUSERS` request.
 
 * __for__ - server target (determines propagation)
 * __UID__ - user committing the request
+
+### MLOCK
+
+Sets a channel mode lock.
+
+```
+:<source> MLOCK <channel> <TS> <modes> [<parameters> ...]
+```
+
+* __source__ - user or server committing the mode lock
+* __channel__ - channel to lock the modes on
+* __TS__ - channel TS
+* __modes__ - _optional_, modes to lock. each mode parameter is a separate
+parameter of the command. for status modes, the parameter should be the mask
+which is locked. for all other modes with parameters, the parameter value does
+not matter but must be present. `*` is used as a filler
+
+If `<TS>` is newer than the internal channel TS, drop the message and do not
+propagate it.
+
+Otherwise, if `<modes>` is omitted, unset the current mode lock and propagate
+the message with the current channel TS.
+
+Otherwise, set the mode lock locally and propagate the message with the current
+channel TS and the mode string exactly as it was received.
 
 ### MOTD
 

@@ -1186,6 +1186,10 @@ sub mlock {
     # not supported
     return if !$to_server->has_cap('MLOCK');
     
+    # TS6 only supports server source
+    $source_serv = $source_serv->server
+        if $source_serv->isa('user');
+    
     # convert to our perspective
     $mode_str = $source_serv->convert_cmode_string($to_server, $mode_str, 1);
     

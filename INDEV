@@ -4058,3 +4058,5 @@ CHANGES:
         
     08. added internal MLOCK support.
         added TS6 MLOCK.
+        added JELP MLOCK.
+        closes #79.

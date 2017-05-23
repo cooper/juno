@@ -59,6 +59,7 @@ my %ocommands = (
     users           => \&users,
     info            => \&info,
     knock           => \&knock,
+    mlock           => \&mlock,
     force_nick      => \&fnick,
     force_join      => \&fjoin,
     force_part      => \&fpart,
@@ -735,6 +736,12 @@ sub signon {
 sub knock {
     my ($to_server, $user, $channel) = @_;
     ":$$user{uid} KNOCK $$channel{name}"
+}
+
+sub mlock {
+    my ($to_server, $source, $channel, $mode_str) = @_;
+    my $id = $source->id;
+    ":$id MLOCK $$channel{name} $$channel{time} $mode_str"
 }
 
 $mod

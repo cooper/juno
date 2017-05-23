@@ -208,6 +208,11 @@ my %scommands = (
                   # :uid KNOCK   channel
         params => '-source(user) channel',
         code   => \&knock
+    },
+    MLOCK => {
+                  # :source MLOCK  channel  ch_time  modes...
+        params => '-source         channel  ts       ...',
+        code   => \&mlock
     }
 );
 
@@ -1188,6 +1193,30 @@ sub knock {
     $channel->fire(knock => $user);
     # === Forward ===
     $msg->broadcast(knock => $user, $channel);
+}
+
+# mode lock set
+sub mlock {
+    my ($server, $msg, $source, $channel, $ts, @modes) = @_;
+    my $source_serv = $source->isa('user') ? $source->server : $source;
+    
+    # bad TS
+    return if $ts > $channel->{time};
+
+    # create mode ref
+    my $modes;
+    my $mode_str = join ' ', @modes;
+    if (length $mode_str) {
+        $modes = modes->new_from_string($source_serv, $mode_str);
+    }
+    
+    # apply it
+    # $modes will be undef if @modes is empty, unsetting it
+    $channel->set_mlock($modes);
+    
+    # === Forward ===
+    # ($source, $channel, $modes)
+    $msg->broadcast(mlock => $source, $channel, $mode_str);
 }
 
 $mod
