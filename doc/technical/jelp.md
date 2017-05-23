@@ -490,34 +490,34 @@ Sends a message.
 `<target>` can be any of the following:
 
 - a user
-  - [[Propagation](#propagation):](#propagation) _one-to-one_
+  - [Propagation](#propagation): _one-to-one_
 - a channel
-  - [[Propagation](#propagation):](#propagation) all servers with non-deaf users on the channel
+  - [Propagation](#propagation): all servers with non-deaf users on the channel
 - `@` followed by a status mode letter and a channel name, to message all users
   on the channel with that status or higher
-  - [[Propagation](#propagation):](#propagation) all servers with -D users of appropriate status
+  - [Propagation](#propagation): all servers with -D users of appropriate status
   - Example: `@o#channel` - all users on #channel with `+o` or higher
 - `=` followed by a channel name, to send to channel ops only, for
   [op moderation](../modules.md#channelopmoderate)
-  - [[Propagation](#propagation):](#propagation) all servers with -D channel ops
+  - [Propagation](#propagation): all servers with -D channel ops
 - a `user@server.name` message, to send to users on a specific server. the exact
   meaning of the part before the `@` is not prescribed, except that "opers"
   allows IRC operators to send to all IRC operators on the server in an
   unspecified format. this can also be used for more secure communications to
   external services
 - a message to all users on server names matching a mask (`$$` followed by mask)
-  - [[Propagation](#propagation):](#propagation) _broadcast_
+  - [Propagation](#propagation): _broadcast_
   - Only allowed to IRC operators
 - a message to all users with hostnames matching a mask (`$#` followed by mask)
   - Unimplemented
-  - [[Propagation](#propagation):](#propagation) _broadcast_
+  - [Propagation](#propagation): _broadcast_
   - Only allowed to IRC operators
 
 ### QUIT
 
 Propagates a user or server quit.
 
-[[Propagation](#propagation):](#propagation) _broadcast_
+[Propagation](#propagation): _broadcast_
 
 Form 1
 ```
