@@ -102,9 +102,14 @@ sub unset_mode {
 # except for list modes, in which case they are significant (juno-only feature)
 sub set_mlock {
     my ($channel, $mlock) = @_;
+    if (!$mlock) {
+        undef $channel->{mlock};
+        L("$$channel{name} MLOCK disabled");
+        return;
+    }
     $channel->{mlock} = $mlock;
     my $str = $mlock->to_string($me, 1);
-    L("$$channel{name} $str");
+    L("$$channel{name} MLOCK $str");
 }
 
 sub mlock { shift->{mlock} }

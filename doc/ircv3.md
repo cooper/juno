@@ -5,6 +5,7 @@ juno supports the following [IRCv3](http://ircv3.net) extensions.
 ### IRCv3.2
 
 * [capability negotiation](http://ircv3.net/specs/core/capability-negotiation-3.2.html)
+* [cap-notify](http://ircv3.net/specs/extensions/cap-notify-3.2.html)
 * [monitor](http://ircv3.net/specs/core/monitor-3.2.html)
 * [message-tags](http://ircv3.net/specs/core/message-tags-3.2.html)
 * [account-tag](http://ircv3.net/specs/extensions/account-tag-3.2.html)

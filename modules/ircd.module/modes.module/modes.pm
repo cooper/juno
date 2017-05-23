@@ -420,7 +420,6 @@ sub difference {
 
         # no parameter.
          $o_modes{$name}++;
-
     }
 
     # determine the new values.

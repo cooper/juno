@@ -4060,3 +4060,5 @@ CHANGES:
         added TS6 MLOCK.
         added JELP MLOCK.
         closes #79.
+
+    09. fixed some bugs in new MLOCK.

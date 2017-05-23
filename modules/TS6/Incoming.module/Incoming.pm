@@ -1760,7 +1760,7 @@ sub mlock {
     my $modes;
     if (length $letters) {
         my @names = grep defined,
-            map $source_serv->mode_name($_), split //, $letters;
+            map $source_serv->cmode_name($_), split //, $letters;
         $modes = modes->new(map { $_ => '*' } @names);
     }
     

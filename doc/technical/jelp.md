@@ -905,13 +905,13 @@ Forces a user mode change.
 :<SID> FUMODE <UID> <modes>
 ```
 
-Remove the user from the channel and acknowledge the change by broadcasting a
-[`UMODE`](#umode) message to all servers including the one which issued
-`FUMODE`.
-
 * __SID__ - server forcing the mode change
 * __UID__ - user whose modes should be changed (determines propagation)
 * __modes__ - modes in the perspective of `<UID>` (no parameters)
+
+Remove the user from the channel and acknowledge the change by broadcasting a
+[`UMODE`](#umode) message to all servers including the one which issued
+`FUMODE`.
 
 ### FUSERINFO
 
