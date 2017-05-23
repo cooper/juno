@@ -424,7 +424,14 @@ sub _map {
     my ($do, %done) = 0;
     $do = sub {
         my ($indent, $server) = @_;
+        
+        # already did this one
         return if $done{$server}++;
+        
+        # it's hidden
+        return if $server->{hidden} && !$user->has_flag('see_hidden') &&
+            conf('servers', 'allow_hidden');
+            
         my $users = scalar $server->real_users;
 
         # do this server
@@ -1578,12 +1585,21 @@ sub links {
     # it's a request for this server.
     $query_mask //= '*';
 
-    $user->numeric(RPL_LINKS =>
-        $_->{name},
-        $_->{parent}{name},
-        $me->hops_to($_),
-        $_->{desc}
-    ) foreach $pool->lookup_server_mask($query_mask);
+    
+    # reply for all servers matching the mask
+    foreach ($pool->lookup_server_mask($query_mask)) {
+        
+        # skip hidden server
+        next if $_->{hidden} && !$user->has_flag('see_hidden') &&
+            conf('servers', 'allow_hidden');
+        
+        $user->numeric(RPL_LINKS =>
+            $_->{name},
+            $_->{parent}{name},
+            $me->hops_to($_),
+            $_->{desc}
+        );
+    }
 
     $user->numeric(RPL_ENDOFLINKS => $query_mask);
     return 1;

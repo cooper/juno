@@ -20,6 +20,10 @@ Reload the server configuration with `REHASH`.
 
 See invisible (+i) users where they would otherwise be hidden.
 
+### see_hidden
+
+Show hidden servers in commands like `MAP` and `LINKS`.
+
 ### see_hosts
 
 Show users' hostnames and IP addresses in `WHO` and `WHOIS`.

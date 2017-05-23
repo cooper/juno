@@ -214,7 +214,7 @@ Marks a user as away.
 
 * __UID__ - user to mark as away
 * __reason__ - _optional_, reason for being away. if omitted, the user is
-  returning from away state.
+  returning from away state
 
 ### BURST
 
@@ -362,7 +362,7 @@ Sends a numeric reply to a remote user.
 ```
 
 * __SID__ - source server
-* __UID__ - target user
+* __UID__ - target user (determines propagation)
 * __num__ - numeric, a three-digit sequence
 * __message__ - numeric message
 
@@ -796,7 +796,7 @@ Forces a user to join a channel.
 ```
 
 * __SID__ - server committing the force join
-* __UID__ - user to force to join
+* __UID__ - user to force to join (determines propagation)
 * __channel__ - channel to force the user to join
 * __TS__ - _optional_, channel TS
 
@@ -842,7 +842,7 @@ Forces a nick change.
 ```
 
 * __SID__ - server forcing the nick change
-* __UID__ - user whose nick should be changed
+* __UID__ - user whose nick should be changed (determines propagation)
 * __new nick__ - new nick
 * __new nick TS__ - new nick TS
 * __old nick TS__ - old nick TS
@@ -868,7 +868,7 @@ Forces an oper privilege change.
 ```
 
 * __SID__ - server forcing the privilege change
-* __UID__ - user whose privileges will be changed
+* __UID__ - user whose privileges will be changed (determines propagation)
 * __flag__ - any number of [oper flags](../oper_flags.md) may be added or
   removed in a single message, each as a separate parameter. those being removed
   are prefixed by `-`; those being added have
@@ -887,7 +887,7 @@ Forces a user to part a channel.
 ```
 
 * __SID__ - server forcing the user to part
-* __UID__ - user to force to part
+* __UID__ - user to force to part (determines propagation)
 * __TS__ - channel TS
 * __reason__ - _optional_, part reason
 
@@ -909,7 +909,7 @@ Remove the user from the channel and acknowledge the change by broadcasting a
 `FUMODE`.
 
 * __SID__ - server forcing the mode change
-* __UID__ - user whose modes should be changed
+* __UID__ - user whose modes should be changed (determines propagation)
 * __modes__ - modes in the perspective of `<UID>` (no parameters)
 
 ### FUSERINFO
@@ -948,7 +948,7 @@ Invites a remove user to a channel.
 ```
 
 * __UID__ - user offering the invitation
-* __target UID__ - user to be invited
+* __target UID__ - user to be invited (determines propagation)
 * __channel__ - channel to which the user should be invited
 
 `<channel>` does not necessarily have to exist, but servers MAY silently discard
