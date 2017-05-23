@@ -82,13 +82,13 @@ my %scommands = (
         code    => \&away
     },
     CMODE => {
-                   # :src   channel   time   perspective   :modestr
-        params  => '-source channel   ts     server        :',
+                   # :src   channel   time   perspective   modes
+        params  => '-source channel   ts     server        ...',
         code    => \&cmode
     },
     PART => {
-                   # :uid PART    channel time :reason
-        params  => '-source(user) channel ts   :',
+                   # :uid PART    channel :reason
+        params  => '-source(user) channel :',
         code    => \&part
     },
     TOPIC => {
@@ -521,10 +521,11 @@ sub away {
 
 # set a mode on a channel
 sub cmode {
-    #                   source   channel   ts     server        :
-    #                  :source   channel   time   perspective   :modestr
-    my ($server, $msg, $source, $channel, $time, $perspective, $mode_str) = @_;
-
+    #                   source   channel   ts     server        ...
+    #                  :source   channel   time   perspective   modes
+    my ($server, $msg, $source, $channel, $time, $perspective, @mode_strs) = @_;
+    my $mode_str = join ' ', @mode_strs;
+    
     # ignore if time is newer
     return if $time > $channel->{time};
 
@@ -545,9 +546,9 @@ sub cmode {
 
 # channel part
 sub part {
-    # user channel ts   :
-    # :uid PART  channel time :reason
-    my ($server, $msg, $user, $channel, $time, $reason) = @_;
+    # user channel   :
+    # :uid PART  channel :reason
+    my ($server, $msg, $user, $channel, $reason) = @_;
 
     # ?!?!!?!
     if (!$channel->has_user($user)) {

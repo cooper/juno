@@ -369,9 +369,8 @@ sub part {
     my ($to_server, $user, $channel, $reason) = @_;
     $reason //= '';
     my @channels = ref $channel eq 'ARRAY' ? @$channel : $channel;
-    map ":$$user{uid} PART $$_{name} $$_{time} :$reason", @channels;
+    map ":$$user{uid} PART $$_{name} :$reason", @channels;
 }
-
 
 sub topic {
     my ($to_server, $source, $channel, $time, $topic) = @_;
@@ -400,7 +399,7 @@ sub cmode {
     return unless length $mode_str;
     my $id  = $source->id;
     my $pid = $perspective->id;
-    ":$id CMODE $$channel{name} $time $pid :$mode_str"
+    ":$id CMODE $$channel{name} $time $pid $mode_str"
 }
 
 # kill

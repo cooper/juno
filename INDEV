@@ -4046,3 +4046,7 @@ CHANGES:
         add nick TS parameter to NICK command.
         move TS parameter in SID command so that it is the same as SERVER.
         do not clear modes on bad channel time for CMODE, PART, TOPIC.
+
+    06. JELP 22.00:
+        CMODE now accepts a variable number of parameters, like other commands involving modes.
+        remove TS from PART command.

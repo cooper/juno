@@ -241,20 +241,20 @@ Channel mode change.
 [Propagation](#propagation): _conditional broadcast_
 
 ```
-:<source> CMODE <channel> <TS> :<modes>
+:<source> CMODE <channel> <TS> <perspective> <modes>
 ```
 
 * __source__ - user or server committing the mode change
 * __channel__ - channel to change modes on
 * __TS__ - channel TS
-* __modes__ - mode string, in the perspective of `<source>`
+* __perspective__ - mode perspective server
+* __modes__ - mode changes. each mode parameter is a
+  separate parameter of the command
 
 If `<TS>` is newer than the internal channel TS, drop the message and do not
 propagate it.
 
 Otherwise, accept and propagate the incoming modes.
-
-Note that the entire mode string is a single parameter.
 
 ### ENDBURST
 
@@ -401,15 +401,11 @@ Propagates a channel part.
 [Propagation](#propagation): _broadcast_
 
 ```
-:<UID> PART <channel> <TS> :<reason>
+:<UID> PART <channel> :<reason>
 ```
 
 * __UID__ - user to be removed
 * __channel__ - channel to remove the user from
-* __TS__ - channel TS
-
-Regardless of `<TS>`, remove the user from the channel and propagate the message
-with the CURRENT channel TS.
 
 ### PARTALL
 
@@ -736,7 +732,7 @@ Propagates a user mode change.
 ```
 
 * __UID__ - user whose modes are to be changed
-* __modes__ - mode string in the perspective of `<UID>` (no parameters)
+* __modes__ - modes in the perspective of `<UID>` (no parameters)
 
 ### USERINFO
 
@@ -914,7 +910,7 @@ Remove the user from the channel and acknowledge the change by broadcasting a
 
 * __SID__ - server forcing the mode change
 * __UID__ - user whose modes should be changed
-* __modes__ - mode string in the perspective of `<UID>` (no parameters)
+* __modes__ - modes in the perspective of `<UID>` (no parameters)
 
 ### FUSERINFO
 
