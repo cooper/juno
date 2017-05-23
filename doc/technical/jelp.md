@@ -219,10 +219,19 @@ Propagates a user mode change.
 
 Propagates the changing of one or more user fields.
 
+
 ## Optional core commands
 
-These commands SHOULD be implemented by servers, but failure to do so will not
-substantially affect network continuity.
+These commands SHOULD be implemented by servers when applicable, but failure to
+do so will not substantially affect network continuity.
+
+### ADMIN
+
+Remote `ADMIN` request.
+
+### CONNECT
+
+Remote `CONNECT`.
 
 ### FJOIN
 
@@ -254,6 +263,10 @@ Forces a user mode change.
 
 Forces the changing of one or more user fields.
 
+### INFO
+
+Remote `INFO` request.
+
 ### INVITE
 
 Invites a remove user to a channel.
@@ -270,9 +283,33 @@ Remote `LINKS` request.
 
 Propagates a user account login.
 
+### LUSERS
+
+Remote `LUSERS` request.
+
+### MOTD
+
+Remote `MOTD` request.
+
+### REHASH
+
+Remote `REHASH`.
+
+### TIME
+
+Remote `TIME` request.
+
+### USERS
+
+Remote `USERS` request.
+
+### VERSION
+
+Remote `VERSION` request.
+
 ### WHOIS
 
-Remote `WHOIS` request.
+Remote `WHOIS` query.
 
 ## Extension commands
 
