@@ -211,7 +211,7 @@ my %scommands = (
     },
     MLOCK => {
                   # :source MLOCK  channel  ch_time  modes...
-        params => '-source         channel  ts       ...',
+        params => '-source         channel  ts       ...(opt)',
         code   => \&mlock
     }
 );
