@@ -7,5 +7,7 @@
 * [Operator privilege flags](oper_flags.md) - list of operator capabilities
 * [Operator notice flags](oper_notices.md) - list of server notices
 * [TS6 linking protocol](ts6.md) - details about the TS6 protocol implementation
-* Technical - programming interfaces
-  * [user](technical/user.md)
+* Technical
+  * [user](technical/user.md) - user API
+  * [JELP](technical/jelp.md) - JELP linking protocol specification
+  * [TS6](technical/ts6.md) - TS6 linking protocol specification

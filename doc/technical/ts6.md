@@ -7,7 +7,7 @@ Based on
 [`ts6-protocol.txt`](https://github.com/charybdis-ircd/charybdis/blob/release/3.5/doc/technical/ts6-protocol.txt)
 from the charybdis technical documentation. Written by Jilles Tjoelker.
 
-## Glossary
+# Glossary
 
 * __SID__ - a server's unique ID. It is configured in each server and consists of
 a digit and two alphanumerics. Sending SIDs with lowercase letters is
@@ -37,7 +37,7 @@ servers on EFnet.
 
 * __service__ - client with umode +S. This implies that it is on a services server.
 
-## Propagation
+# Propagation
 
 For all commands with a _hunted_ parameter, the propagation is determined by
 that, and not otherwise specified.
@@ -59,7 +59,7 @@ received.
 For some other commands, the propagation depends on the parameters and is
 described in text.
 
-## Connection setup
+# Connection setup
 
 The initiator sends the `PASS`, `CAPAB` and `SERVER` messages. Upon receiving the
 `SERVER`, the listener will check the information, and if it is valid, it will
@@ -72,7 +72,7 @@ messages for all propagated bans, `UID` or `EUID` messages for all known users
 (possibly followed by `ENCAP REALHOST`, `ENCAP LOGIN` and/or `AWAY`) and `SJOIN`
 messages for all known channels (possibly followed by `BMASK` and/or `TB`).
 
-## Modes
+# Modes
 
 user modes:
 
@@ -122,14 +122,14 @@ channel modes:
     +g (allow any member to `INVITE`)
     +z (send messages blocked by +m to chanops)
 
-## Commands
+# Commands
 
 General format: much like rfc1459.
 
 Maximum parameters for a command: 15 (this does not include the prefix
 and command name).
 
-### Numerics
+## Numerics
     source: server
     parameters: target, any...
 
@@ -152,13 +152,13 @@ The target can be:
 
 Numerics to channels are broken in some older servers.
 
-### ADMIN
+## ADMIN
     source: user
     parameters: hunted
 
 Remote ADMIN request.
 
-### AWAY
+## AWAY
     source: user
     propagation: broadcast
     parameters: opt. away reason
@@ -169,7 +169,7 @@ Otherwise, mark the user as away.
 Changing away reason from one non-empty string to another non-empty string
 may not be propagated.
 
-### BAN
+## BAN
     charybdis TS6
     capab: BAN
     source: any
@@ -208,7 +208,7 @@ The reason field indicates the reason for the ban. Any part after a | (vertical
 bar) MUST NOT be shown to normal users. The rest of the field and the creation
 TS and duration MAY be shown to normal users.
 
-### BMASK
+## BMASK
     source: server
     propagation: broadcast
     parameters: channelTS, channel, type, space separated masks
@@ -223,7 +223,7 @@ Add all the masks to the given list of the channel.
 
 All ban-like modes must be bursted using this command, not using MODE or TMODE.
 
-### CAPAB
+## CAPAB
     source: unregistered server
     propagation: none
     parameters: space separated capability list
@@ -236,7 +236,7 @@ services, `SERVICES` and `RSFNC` are strongly recommended.
 The capabilities may depend on the configuration for the server they are sent
 to.
 
-### CHGHOST
+## CHGHOST
     charybdis TS6
     source: any
     propagation: broadcast
@@ -246,7 +246,7 @@ Changes the visible hostname of a client.
 
 Opers are notified unless the source is a server or a service.
 
-### CONNECT
+## CONNECT
     source: any
     parameters: server to connect to, port, hunted
 
@@ -255,7 +255,7 @@ server.
 
 The port can be 0 for the default port.
 
-### DLINE
+## DLINE
     charybdis TS6
     encap only
     source: user
@@ -265,7 +265,7 @@ Sets a D:line (IP ban checked directly after accepting connection).
 
 The mask must be an IP address or CIDR mask.
 
-### ENCAP
+## ENCAP
     source: any
     parameters: target server mask, subcommand, opt. parameters...
 
@@ -274,7 +274,7 @@ understanding the subcommand.
 
 Subcommands are listed elsewhere with "encap only".
 
-### ERROR
+## ERROR
     source: server or unregistered server
     propagation: none
     parameters: error message
@@ -284,7 +284,7 @@ Reports a (usually fatal) error with the connection.
 Error messages may contain IP addresses and have a negative effect on server
 IP hiding.
 
-### ETB
+## ETB
     capab: EOPMOD
     source: any
     propagation: broadcast
@@ -321,7 +321,7 @@ later on.
 This document does not document the optional extensions between topic setter
 and topic.
 
-### ETRACE
+## ETRACE
     encap only
     encap target: single server
     source: oper
@@ -329,7 +329,7 @@ and topic.
 
 Remote ETRACE information request.
 
-### EUID
+## EUID
     charybdis TS6
     capab: EUID
     source: server
@@ -350,7 +350,7 @@ Nick TS rules apply.
 EUID is similar to UID but includes the ENCAP REALHOST and ENCAP LOGIN
 information.
 
-### GCAP
+## GCAP
     encap only
     encap target: *
     source: server
@@ -358,7 +358,7 @@ information.
 
 Capability list of remote server.
 
-### GLINE
+## GLINE
     efnet TS6
     capab: GLN
     source: user
@@ -377,7 +377,7 @@ already exist locally must still be propagated.
 
 Of course, servers are free to reject gline requests from their own operators.
 
-### GUNGLINE
+## GUNGLINE
     efnet TS6
     encap only
     encap target: *
@@ -393,13 +393,13 @@ Pending G:line removals do not interact with pending G:lines. Triggering a
 G:line does not affect a pending G:line removal. Triggering a G:line removal
 does not affect a pending G:line.
 
-### INFO
+## INFO
     source: user
     parameters: hunted
 
 Remote INFO request.
 
-### INVITE
+## INVITE
     source: user
     parameters: target user, channel, opt. channelTS
     propagation: one-to-one
@@ -411,7 +411,7 @@ the message.
 
 Not sending the channelTS parameter is deprecated.
 
-### JOIN
+## JOIN
     1.
     source: user
     parameters: '0' (one ASCII zero)
@@ -432,7 +432,7 @@ ban-like modes remain intact; invites may or may not be cleared).
 
 A JOIN is propagated with the new TS of the channel.
 
-### JUPE
+## JUPE
     capab: JUPE
     source: any
     propagation: broadcast (restricted)
@@ -447,7 +447,7 @@ is the initial propagation of a removal, it SHOULD be sent as * (an asterisk).
 The reason field indicates the reason for the jupe.  It SHOULD be displayed
 as the linking error message to the juped server if it tries to reconnect.
 
-### KICK
+## KICK
     source: any
     parameters: channel, target user, opt. reason
     propagation: broadcast
@@ -458,7 +458,7 @@ Unless the channel's TS is 0, no check is done whether the source user has ops.
 
 Not sending the reason parameter is questionable.
 
-### KILL
+## KILL
     source: any
     parameters: target user, path
     propagation: broadcast
@@ -469,7 +469,7 @@ The format of the path parameter is some sort of description of the source of
 the kill followed by a space and a parenthesized reason. To avoid overflow,
 it is recommended not to add anything to the path.
 
-### KLINE
+## KLINE
     1.
     encap only
     source: user
@@ -484,7 +484,7 @@ Sets a K:line (ban on user@host).
 
 As form 1, deprecated.
 
-### KNOCK
+## KNOCK
     capab: KNOCK
     source: user
     parameters: channel
@@ -497,13 +497,13 @@ notified.)
 This is broadcast so that each server can store when KNOCK was used last on
 a channel.
 
-### LINKS
+## LINKS
     source: user
     parameters: hunted, server mask
 
 Remote LINKS request. The server mask limits which servers are listed.
 
-### LOCOPS
+## LOCOPS
     1.
     encap only
     source: user
@@ -519,14 +519,14 @@ used for strict subsets of the network.
 
 As form 1, deprecated.
 
-### LOGIN
+## LOGIN
     encap only
     source: user
     parameters: account name
 
 In a burst, states that the source user is logged in as the account.
 
-### LUSERS
+## LUSERS
     source: user
     parameters: server mask, hunted
 
@@ -550,7 +550,7 @@ removing mode parameters.
 An MLOCK message with no modes disables the MLOCK, therefore the MLOCK message
 always contains the literal MLOCK for simplicity.
 
-### MODE
+## MODE
     1.
     source: user
     parameters: client, umode changes
@@ -570,13 +570,13 @@ Propagates a channel mode change.
 This is deprecated because the channelTS is not included. If it is received,
 it should be propagated as TMODE.
 
-### MOTD
+## MOTD
     source: user
     parameters: hunted
 
 Remote MOTD request.
 
-### NICK
+## NICK
     1.
     source: user
     parameters: new nickname, new nickTS
@@ -591,7 +591,7 @@ Propagates a nick change.
 Historic TS5 user introduction. The user is on the server indicated by the
 server parameter; the source server is meaningless (local link).
 
-### NICKDELAY
+## NICKDELAY
     charybdis TS6
     encap only
     encap target: *
@@ -606,7 +606,7 @@ If duration is 0, removes a nick delay entry for the given nickname.
 There may or may not be a client with the given nickname; this does not affect
 the operation.
 
-### NOTICE
+## NOTICE
     source: any
     parameters: msgtarget, message
 
@@ -616,7 +616,7 @@ and most error messages are suppressed.
 Servers may not send '$$', '$#' and opers@server notices. Older servers may
 not allow servers to send to specific statuses on a channel.
 
-### OPERSPY
+## OPERSPY
     encap only
     encap target: *
     source: user
@@ -624,26 +624,26 @@ not allow servers to send to specific statuses on a channel.
 
 Reports operspy usage.
 
-### OPERWALL
+## OPERWALL
     source: user
     parameters: message
     propagation: broadcast
 
 Sends a message to operators (with umode +z set).
 
-### PART
+## PART
     source: user
     parameters: comma separated channel list, message
 
 Parts the source user from the given channels.
 
-### PASS
+## PASS
     source: unregistered server
     parameters: password, 'TS', TS version, SID
 
 Sends the server link password, TS version and SID.
 
-### PING
+## PING
     source: any
     parameters: origin, opt. destination server
 
@@ -657,13 +657,13 @@ The origin field is not used in the server protocol. It is sent as the name
 Remote PINGs are used for end-of-burst detection, therefore all servers must
 implement them.
 
-### PONG
+## PONG
     source: server
     parameters: origin, destination
 
 Routes a PONG back to the destination that originally sent the PING.
 
-### PRIVMSG
+## PRIVMSG
     source: user
     parameters: msgtarget, message
 
@@ -699,7 +699,7 @@ The target can be:
 In charybdis TS6, services may send to any channel and to statuses on any
 channel.
 
-### PRIVS
+## PRIVS
     charybdis TS6
     encap only
     encap target: single server
@@ -708,14 +708,14 @@ channel.
 
 Remote PRIVS information request.
 
-### QUIT
+## QUIT
     source: user
     parameters: comment
 
 Propagates quitting of a client. No QUIT should be sent for a client that
 has been removed as result of a KILL message.
 
-### REALHOST
+## REALHOST
     charybdis TS6
     encap only
     encap target: *
@@ -724,7 +724,7 @@ has been removed as result of a KILL message.
 
 In a burst, propagates the real host of a dynamically-spoofed user.
 
-### REHASH
+## REHASH
     charybdis TS6
     encap only
     source: user
@@ -733,7 +733,7 @@ In a burst, propagates the real host of a dynamically-spoofed user.
 Remote `REHASH` request. If the rehash type is omitted, it is equivalent to
 a regular `REHASH`, otherwise it is equivalent to `REHASH <rehash type>`.
 
-### RESV
+## RESV
     1.
     encap only
     source: user
@@ -748,7 +748,7 @@ Sets a RESV, making a nickname mask or exact channel unavailable.
 
 As form 1, deprecated.
 
-### RSFNC
+## RSFNC
     encap only
     capab: RSFNC
     encap target: single server
@@ -761,7 +761,7 @@ The command is ignored if the nick TS of the user is not equal to the old
 nickTS parameter. If the new nickname already exists (and is not the target
 user), it is killed first.
 
-### SASL
+## SASL
     charybdis TS6
     encap only
     1.
@@ -783,7 +783,7 @@ Part of a SASL authentication exchange. The mode is 'C' to send some data
 termination: 'A' for abort, 'F' for authentication failure, 'S' for
 authentication success).
 
-### SAVE
+## SAVE
     capab: SAVE
     source: server
     propagation: broadcast
@@ -798,7 +798,7 @@ nickTS. If not, drop the message.
 SAVE should be propagated as a regular NICK change to links without SAVE capab.
 present.
 
-### SERVER
+## SERVER
     1.
     source: unregistered server
     parameters: server name, hopcount, server description
@@ -819,14 +819,14 @@ This is propagated as a SID message.
 Introduces a new TS5 server, directly connected to the source of this command.
 This is only used for jupes as TS5 servers may do little else than existing.
 
-### SID
+## SID
     source: server
     propagation: broadcast
     parameters: server name, hopcount, sid, server description
 
 Introduces a new server, directly connected to the source of this command.
 
-### SIGNON
+## SIGNON
     source: user
     propagation: broadcast
     parameters: new nickname, new username, new visible hostname, new nickTS, new login name
@@ -835,7 +835,7 @@ Broadcasts a change of several user parameters at once.
 
 Currently only sent after an SVSLOGIN.
 
-### SJOIN
+## SJOIN
     source: server
     propagation: broadcast
     parameters: channelTS, channel, simple modes, opt. mode parameters..., nicklist
@@ -863,7 +863,7 @@ SJOIN must be used to propagate channel creation and in netbursts. For regular
 users joining channels, JOIN must be used. Pseudoservers may use SJOIN to join
 a user with ops.
 
-### SNOTE
+## SNOTE
     charybdis TS6
     encap only
     source: server
@@ -872,7 +872,7 @@ a user with ops.
 Sends the text as a server notice from the source server to opers with the
 given snomask set.
 
-### SQUIT
+## SQUIT
     parameters: target server, comment
 
 Removes the target server and all servers and users behind it from the network.
@@ -883,14 +883,14 @@ this is an announcement that the link is being closed.
 Otherwise, if the target server is locally connected, the server should send
 a WALLOPS announcing the SQUIT.
 
-### STATS
+## STATS
     source: user
     parameters: stats letter, hunted
 
 Remote STATS request. Privileges are checked on the server executing the
 actual request.
 
-### SU
+## SU
     encap only
     encap target: *
     source: services server
@@ -899,7 +899,7 @@ actual request.
 If the new login name is not present or empty, mark the target user as not
 logged in, otherwise mark the target user as logged in as the given account.
 
-### SVINFO
+## SVINFO
     source: server
     propagation: none
     parameters: current TS version, minimum TS version, '0', current time
@@ -912,7 +912,7 @@ and the minimum TS version is the lowest version supported.
 
 The current time is sent as a TS in the usual way.
 
-### SVSLOGIN
+## SVSLOGIN
     charybdis TS6
     encap only
     encap target: single server
@@ -930,7 +930,7 @@ If the UID is registered on the network, a SIGNON with the changes will be
 broadcast, otherwise the changes will be stored, to be used when registration
 completes.
 
-### TB
+## TB
     capab: TB
     source: server
     propagation: broadcast
@@ -945,13 +945,13 @@ ignore the message and do not propagate it.
 
 If the topic setter is not present, use a server name instead.
 
-### TIME
+## TIME
     source: user
     parameters: hunted
 
 Remote TIME request.
 
-### TMODE
+## TMODE
     source: any
     parameters: channelTS, channel, cmode changes, opt. cmode parameters...
 
@@ -971,7 +971,7 @@ The parameter for mode -k (removing a key) shall be ignored.
 On output, at most ten cmode parameters should be sent; if there are more,
 multiple TMODE messages should be sent.
 
-### TOPIC
+## TOPIC
     source: user
     propagation: broadcast
     parameters: channel, topic
@@ -983,7 +983,7 @@ The topicTS shall be set to the current time and the topic setter shall be
 set indicating the source user. Note that this means that the topicTS of a
 topic set with TOPIC is not necessarily consistent across the network.
 
-### TRACE
+## TRACE
     source: user
     1.
     parameters: hunted
@@ -1002,7 +1002,7 @@ should be executed on.
 Executes a trace command on the target server. No 200 numerics are sent.
 The target name is a name, not a UID, and should be on the target server.
 
-### UID
+## UID
     source: server
     propagation: broadcast
     parameters: nickname, hopcount, nickTS, umodes, username, visible hostname, IP address, UID, gecos
@@ -1016,7 +1016,7 @@ REALHOST, charybdis TS6 only), the IP address MAY be shown to normal users.
 
 Nick TS rules apply.
 
-### UNDLINE
+## UNDLINE
     charybdis TS6
     encap only
     source: user
@@ -1026,7 +1026,7 @@ Removes a D:line (IP ban checked directly after accepting connection).
 
 The mask must be an IP address or CIDR mask.
 
-### UNKLINE
+## UNKLINE
     1.
     encap only
     source: user
@@ -1041,7 +1041,7 @@ Removes a K:line (ban on user@host).
 
 As form 1, deprecated.
 
-### UNRESV
+## UNRESV
     1.
     encap only
     source: user
@@ -1056,7 +1056,7 @@ Removes a RESV.
 
 As form 1, deprecated.
 
-### UNXLINE
+## UNXLINE
     1.
     encap only
     source: user
@@ -1071,19 +1071,19 @@ Removes an X:line (ban on realname).
 
 As form 1, deprecated.
 
-### USERS
+## USERS
     source: user
     parameters: hunted
 
 Remote USERS request.
 
-### VERSION
+## VERSION
     source: any
     parameters: hunted
 
 Remote VERSION request.
 
-### WALLOPS
+## WALLOPS
     1.
     source: user
     parameters: message
@@ -1106,13 +1106,13 @@ indication that WALLOPS messages should be sent).
 In efnet TS6 this may include non-opers, in charybdis TS6 this may only be
 sent to opers.
 
-### WHOIS
+## WHOIS
     source: user
     parameters: hunted, target nick
 
 Remote WHOIS request.
 
-### WHOWAS
+## WHOWAS
     source: user
     parameters: nickname, limit, hunted
 
@@ -1121,7 +1121,7 @@ Remote WHOWAS request. Not implemented in all servers.
 Different from a local WHOWAS request, the limit is mandatory and servers should
 apply a maximum to it.
 
-### XLINE
+## XLINE
     1.
     encap only
     source: user
