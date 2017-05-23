@@ -7,11 +7,12 @@
       "bases" : [
          "UserCommands",
          "ChannelModes",
-         "UserNumerics"
+         "UserNumerics",
+         "Capabilities"
       ]
    },
    "description" : "channel invitations",
    "name" : "Channel::Invite",
    "package" : "M::Channel::Invite",
-   "version" : "6"
+   "version" : "6.1"
 }
