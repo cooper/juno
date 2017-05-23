@@ -7,7 +7,7 @@ As of writing, the only implementation known to exist is that of juno itself,
 but future applications may choose to implement JELP for better compatibility
 with juno.
 
-This documentation is to be used as reference when implementing IRC servers and
+This document is to be used as reference when implementing IRC servers and
 pseudoservers.
 
 ## Format
@@ -82,7 +82,7 @@ respects, except that the IRCv3 limitation of 512 bytes does not apply.
 * _server mask_ - command is propagated based on a server mask parameter.
 The command is sent to all servers with names matching the given mask
 (for example `*`, `*.example.com`, `irc.example.com`). Those servers do not
-have to be directly connected. Targets cannot be SIDs.
+have to be directly connected.
 
 * _broadcast_ - command is sent to all servers.
 
@@ -170,7 +170,7 @@ network discontinuity.
 
 Maps channel mode letters and types to mode names.
 
-Propagation: _broadcast_
+[Propagation](#propagation): _broadcast_
 
 ```
 :<SID> ACM <name>:<letter>:<type> [<more modes> ...]
@@ -192,7 +192,7 @@ Propagation: _broadcast_
 
 Maps user mode letters to mode names.
 
-Propagation: _broadcast_
+[Propagation](#propagation): _broadcast_
 
 ```
 :<SID> AUM <name>:<letter> [<more modes> ...]
@@ -206,7 +206,7 @@ Propagation: _broadcast_
 
 Marks a user as away.
 
-Propagation: _broadcast_
+[Propagation](#propagation): _broadcast_
 
 ```
 :<UID> AWAY [:<reason>]
@@ -225,7 +225,7 @@ servers introduced later.
 
 The corresponding [`ENDBURST`](#endburst) terminates the burst.
 
-Propagation: _broadcast_
+[Propagation](#propagation): _broadcast_
 
 ```
 :<SID> BURST <TS>
@@ -238,7 +238,7 @@ Propagation: _broadcast_
 
 Channel mode change.
 
-Propagation: _conditional broadcast_
+[Propagation](#propagation): _conditional broadcast_
 
 ```
 :<source> CMODE <channel> <TS> :<modes>
@@ -264,7 +264,7 @@ Note that the entire mode string is a single parameter.
 
 Sent to indicate the end of a burst.
 
-Propagation: _broadcast_
+[Propagation](#propagation): _broadcast_
 
 ```
 :<SID> ENDBURST <TS>
@@ -280,7 +280,7 @@ already.
 
 Channel join. Used when a user joins an existing channel with no status modes.
 
-Propagation: _broadcast_
+[Propagation](#propagation): _broadcast_
 
 ```
 :<UID> JOIN <channel> <TS>
@@ -304,7 +304,7 @@ See also [`SJOIN`](#sjoin).
 
 Propagates a channel kick. Removes a user from a channel.
 
-Propagation: _broadcast_
+[Propagation](#propagation): _broadcast_
 
 ```
 :<source> KICK <channel> <target UID> :<reason>
@@ -319,7 +319,7 @@ Propagation: _broadcast_
 
 Temporarily removes a user from the network.
 
-Propagation: _broadcast_
+[Propagation](#propagation): _broadcast_
 
 ```
 :<source> KILL <target UID> :<reason>
@@ -338,7 +338,7 @@ user to uplinks.
 
 Propagates a nick change.
 
-Propagation: _broadcast_
+[Propagation](#propagation): _broadcast_
 
 ```
 :<UID> NICK <nick>
@@ -354,13 +354,13 @@ Update the nick and set the nick TS to the current time.
 To the extent that concerns JELP, equivalent to [`PRIVMSG`](#privmsg) in all
 ways other than the command name.
 
-Propagation: _conditional_
+[Propagation](#propagation): _conditional_
 
 ### NUM
 
 Sends a numeric reply to a remote user.
 
-Propagation: _one-to-one_
+[Propagation](#propagation): _one-to-one_
 
 ```
 :<SID> NUM <UID> <num> :<message>
@@ -388,7 +388,7 @@ Propagates oper privileges.
 The setting of the `ircop` user mode (+o) is used to indicate that a user has
 opered-up; this command may be used to modify their permissions list.
 
-Propagation: _broadcast_
+[Propagation](#propagation): _broadcast_
 
 ```
 :<UID> OPER [-]<flag> [<flag> ...]
@@ -397,13 +397,13 @@ Propagation: _broadcast_
 * __UID__ - user whose privileges are to be changed
 * __flag__ - any number of [oper flags](../oper_flags.md) may be added or
   removed in a single message, each as a separate parameter. those being removed
-  are prefixed by `-`; those being added have no prefix.
+  are prefixed by `-`; those being added have no prefix
 
 ### PART
 
 Propagates a channel part.
 
-Propagation: _broadcast_
+[Propagation](#propagation): _broadcast_
 
 ```
 :<UID> PART <channel> <TS> :<reason>
@@ -425,7 +425,7 @@ Used when a user leaves all channels.
 
 This is initiated on the client protocol with the `JOIN 0` command.
 
-Propagation: _broadcast_
+[Propagation](#propagation): _broadcast_
 
 ```
 :<UID> PARTALL
@@ -437,7 +437,7 @@ Propagation: _broadcast_
 
 During [registration](#connection-setup), sends the connection password.
 
-Propagation: _none_
+[Propagation](#propagation): _none_
 
 ```
 PASS <password>
@@ -451,7 +451,7 @@ See [connection setup](#connection-setup).
 
 Verifies uplink reachability.
 
-Propagation: _none_
+[Propagation](#propagation): _none_
 
 ```
 PING <message>
@@ -464,7 +464,7 @@ PING <message>
 
 Reply for [`PING`](#ping).
 
-Propagation: _none_
+[Propagation](#propagation): _none_
 
 ```
 :<SID> PONG <message>
@@ -477,7 +477,7 @@ Propagation: _none_
 
 Sends a message.
 
-Propagation: _conditional_
+[Propagation](#propagation): _conditional_
 
 ```
 :<source> PRIVMSG <target> :<message>
@@ -490,34 +490,34 @@ Propagation: _conditional_
 `<target>` can be any of the following:
 
 - a user
-  - Propagation: _one-to-one_
+  - [[Propagation](#propagation):](#propagation) _one-to-one_
 - a channel
-  - Propagation: all servers with non-deaf users on the channel
+  - [[Propagation](#propagation):](#propagation) all servers with non-deaf users on the channel
 - `@` followed by a status mode letter and a channel name, to message all users
   on the channel with that status or higher
-  - Propagation: all servers with -D users of appropriate status
+  - [[Propagation](#propagation):](#propagation) all servers with -D users of appropriate status
   - Example: `@o#channel` - all users on #channel with `+o` or higher
 - `=` followed by a channel name, to send to channel ops only, for
   [op moderation](../modules.md#channelopmoderate)
-  - Propagation: all servers with -D channel ops
+  - [[Propagation](#propagation):](#propagation) all servers with -D channel ops
 - a `user@server.name` message, to send to users on a specific server. the exact
   meaning of the part before the `@` is not prescribed, except that "opers"
   allows IRC operators to send to all IRC operators on the server in an
   unspecified format. this can also be used for more secure communications to
   external services
 - a message to all users on server names matching a mask (`$$` followed by mask)
-  - Propagation: _broadcast_
+  - [[Propagation](#propagation):](#propagation) _broadcast_
   - Only allowed to IRC operators
 - a message to all users with hostnames matching a mask (`$#` followed by mask)
   - Unimplemented
-  - Propagation: _broadcast_
+  - [[Propagation](#propagation):](#propagation) _broadcast_
   - Only allowed to IRC operators
 
 ### QUIT
 
 Propagates a user or server quit.
 
-Propagation: _broadcast_
+[[Propagation](#propagation):](#propagation) _broadcast_
 
 Form 1
 ```
@@ -540,7 +540,7 @@ Form 2
 
 Sent to indicate that the initiator should send its [burst](#burst).
 
-Propagation: _none_
+[Propagation](#propagation): _none_
 
 ```
 READY
@@ -552,13 +552,27 @@ See [connection setup](#connection-setup).
 
 Used to resolve nick collisions without casualty.
 
-Propagation: _broadcast_
+[Propagation](#propagation): _broadcast_
+
+```
+:<SID> SAVE <UID> <nick TS>
+```
+
+* __SID__ - server saving the user
+* __UID__ - user to be saved
+* __nick TS__ - user's nick TS, as known by the saving server
+
+If the user target already has their UID as their nick or `<nick TS>` does not
+match the internal nick TS, drop the message and do not propagate.
+
+Otherwise, change the user's nickname to their UID, set their nick TS to 100,
+and propagate the message.
 
 ### SERVER
 
 During [registration](#connection-setup), introduces the server.
 
-Propagation: _none_
+[Propagation](#propagation): _none_
 
 ```
 SERVER <SID> <name> <proto version> <version> <TS> :<description>
@@ -581,7 +595,7 @@ See [connection setup](#connection-setup).
 
 Introduces a server.
 
-Propagation: _broadcast_
+[Propagation](#propagation): _broadcast_
 
 ```
 :<source SID> SID <SID> <TS> <name> <proto version> <version> :<description>
@@ -606,7 +620,7 @@ Bursts a channel.
 This command MUST be used for channel creation and during burst. It MAY be used
 for existing channels as a means to grant status modes upon join.
 
-Propagation: _broadcast_
+[Propagation](#propagation): _broadcast_
 
 ```
 :<SID> SJOIN <channel> <TS> <modes> ... :<user list>
@@ -627,7 +641,7 @@ Propagation: _broadcast_
 
 Propagates a server notice to remote opers.
 
-Propagation: _broadcast_
+[Propagation](#propagation): _broadcast_
 
 ```
 [@from_user=] :<SID> SNOTICE <flag> :<message>
@@ -642,7 +656,7 @@ Propagation: _broadcast_
 
 Propagates a channel topic change.
 
-Propagation: _broadcast_
+[Propagation](#propagation): _broadcast_
 
 ```
 :<source> TOPIC <channel> <TS> <topic TS> :<topic text>
@@ -664,7 +678,7 @@ TS.
 
 Bursts a channel topic.
 
-Propagation: _broadcast_
+[Propagation](#propagation): _broadcast_
 
 ```
 :<SID> TOPICBURST <channel> <TS> <set by> <topic TS> :<topic text>
@@ -689,7 +703,7 @@ Otherwise, drop the message and do not propagate.
 
 Introduces a user.
 
-Propagation: _broadcast_
+[Propagation](#propagation): _broadcast_
 
 ```
 :<SID> UID <UID> <nick TS> <modes> <nick> <ident> <host> <cloak> <ip> :<realname>
@@ -711,7 +725,7 @@ Propagation: _broadcast_
 
 Propagates a user mode change.
 
-Propagation: _broadcast_
+[Propagation](#propagation): _broadcast_
 
 ```
 :<UID> UMODE <modes>
@@ -724,7 +738,7 @@ Propagation: _broadcast_
 
 Propagates the changing of one or more user fields.
 
-Propagation: _broadcast_
+[Propagation](#propagation): _broadcast_
 
 ```
 [@nick=][;nick_time=][;real_host=][;host=][;ident=][;account=] :<UID> USERINFO
@@ -747,19 +761,56 @@ do so will not substantially affect network continuity.
 
 Remote `ADMIN` request.
 
-Propagation: _one-to-one_
+[Propagation](#propagation): _one-to-one_
+
+```
+:<UID> ADMIN <server>
+```
+
+* __UID__ - user making the request
+* __server__ - server name or `$`-prefixed SID (determines propagation)
 
 ### CONNECT
 
 Remote `CONNECT`.
 
-Propagation: _one-to-one_
+[Propagation](#propagation): _one-to-one_
+
+```
+:<source> CONNECT <mask> <server>
+```
+
+* __source__ - user or server initiating the CONNECT
+* __mask__ - parameter for CONNECT command. this may be an absolute server name
+  or a mask matching zero or more servers
+* __server__ - server name or `$`-prefixed SID (determines propagation)
 
 ### FJOIN
 
 Forces a user to join a channel.
 
-Propagation: _one-to-one_
+[Propagation](#propagation): _one-to-one_
+
+```
+:<SID> FJOIN <UID> <channel> [<TS>]
+```
+
+* __SID__ - server committing the force join
+* __UID__ - user to force to join
+* __channel__ - channel to force the user to join
+* __TS__ - _optional_, channel TS
+
+If `<TS>` is provided, the channel must exist, and the internal channel TS
+must match the provided one. If this is not the case, drop the message. The
+server must handle the request as though it were a normal JOIN message from the
+client, taking bans and other restrictions into account.
+
+If `<TS>` is omitted, the join should be forced regardless of whether the
+channel is preexisting or has restrictions to prevent the user from joining.
+
+In either case, if the join was successful, the server must acknowledge the
+join with either [`SJOIN`](#sjoin) (if the channel was just created) or
+[`JOIN`](#join) (otherwise).
 
 ### FLOGIN
 
@@ -767,107 +818,268 @@ Forces a user to login to an account.
 
 Used by external services.
 
-Propagation: _broadcast_
+[Propagation](#propagation): _broadcast_
+
+```
+:<SID> FLOGIN <UID> <account>
+```
+
+* __SID__ - server forcing the login
+* __UID__ - user to force to login
+* __account__ - name of the account
+
+Unlike other force commands, `FLOGIN` cannot fail and therefore does not need to
+be acknowledged.
 
 ### FNICK
 
 Forces a nick change.
 
-Propagation: _one-to-one_
+[Propagation](#propagation): _one-to-one_
+
+```
+:<SID> FNICK <UID> <new nick> <new nick TS> <old nick TS>
+```
+
+* __SID__ - server forcing the nick change
+* __UID__ - user whose nick should be changed
+* __new nick__ - new nick
+* __new nick TS__ - new nick TS
+* __old nick TS__ - old nick TS
+
+If `<old nick TS>` is not equal to the internal nick TS, drop the message.
+
+Otherwise, if the new nick is already in use by an unregistered connection,
+cancel registration and drop that connection.
+
+If the new nick is already in use by a user, kill the user.
+
+Update the nick and nick TS and acknowledge the change by broadcasting a
+[`NICK`](#nick) message to all servers including the one which issued `FNICK`.
 
 ### FOPER
 
 Forces an oper privilege change.
 
-Propagation: _one-to-one_
+[Propagation](#propagation): _one-to-one_
 
+```
+:<SID> FOPER <UID> [-]<flag> [<flag> ...]
+```
+
+* __SID__ - server forcing the privilege change
+* __UID__ - user whose privileges will be changed
+* __flag__ - any number of [oper flags](../oper_flags.md) may be added or
+  removed in a single message, each as a separate parameter. those being removed
+  are prefixed by `-`; those being added have
+  
+Update the flags and acknowledge the change by broadcasting an
+[`OPER`](#oper) message to all servers including the one which issued `FOPER`.
+  
 ### FPART
 
 Forces a user to part a channel.
 
-Propagation: _one-to-one_
+[Propagation](#propagation): _one-to-one_
+
+```
+:<SID> FPART <UID> <channel> <TS> [:<reason>]
+```
+
+* __SID__ - server forcing the user to part
+* __UID__ - user to force to part
+* __TS__ - channel TS
+* __reason__ - _optional_, part reason
+
+Commit the mode change and acknowledge it by broadcasting a
+[`PART`](#part) message to all servers including the one which issued `FPART`.
 
 ### FUMODE
 
 Forces a user mode change.
 
-Propagation: _one-to-one_
+[Propagation](#propagation): _one-to-one_
+
+```
+:<SID> FUMODE <UID> <modes>
+```
+
+Remove the user from the channel and acknowledge the change by broadcasting a
+[`UMODE`](#umode) message to all servers including the one which issued
+`FUMODE`.
+
+* __SID__ - server forcing the mode change
+* __UID__ - user whose modes should be changed
+* __modes__ - mode string in the perspective of `<UID>` (no parameters)
 
 ### FUSERINFO
 
 Forces the changing of one or more user fields.
 
+Propagation: _one-to-one_
+
+See [`USERINFO`](#userinfo) for fields.
+
+The receiver may accept or reject any of the changes. Acknowledge those which
+were accepted with a [`USERINFO`](#userinfo) message broadcast to all servers
+including the one which issued `FUSERINFO`.
+
 ### INFO
 
 Remote `INFO` request.
 
-Propagation: _one-to-one_
+[Propagation](#propagation): _one-to-one_
+
+```
+@for= :<UID> INFO
+```
+
+* __for__ - server target (determines propagation)
+* __UID__ - user committing the request
 
 ### INVITE
 
 Invites a remove user to a channel.
 
-Propagation: _one-to-one_
+[Propagation](#propagation): _one-to-one_
+
+```
+:<UID> INVITE <target UID> <channel>
+```
+
+* __UID__ - user offering the invitation
+* __target UID__ - user to be invited
+* __channel__ - channel to which the user should be invited
+
+`<channel>` does not necessarily have to exist, but servers MAY silently discard
+invitations to nonexistent channels to prevent spam.
 
 ### KNOCK
 
 Propagates a channel knock.
 
-Propagation: _broadcast_
+[Propagation](#propagation): _broadcast_
+
+```
+:<UID> KNOCK <channel>
+```
+
+* __UID__ - user knocking
+* __channel__ - channel to knock on
 
 ### LINKS
 
 Remote `LINKS` request.
 
-Propagation: _one-to-one_
+[Propagation](#propagation): _one-to-one_
+
+```
+@for= :<UID> LINKS
+```
+
+* __for__ - server target (determines propagation)
+* __UID__ - user committing the request
 
 ### LOGIN
 
 Propagates a user account login.
 
-Propagation: _broadcast_
+[Propagation](#propagation): _broadcast_
+
+```
+:<UID> LOGIN <account info>
+```
+
+* __UID__ - user to login
+* __account info__ - comma-separated account info. the format is unspecified
+  except that the first field is always the account name
+
+Currently, `<account info>` is only the account name. In previous built-in
+account mechanisms, other data was also sent. For compatibility in case a future
+account mechanism makes use of other fields, the account name should be
+extracted as the sequence terminated by either `,` or the end of the string.
 
 ### LUSERS
 
 Remote `LUSERS` request.
 
-Propagation: _one-to-one_
+[Propagation](#propagation): _one-to-one_
+
+```
+@for= :<UID> LUSERS
+```
+
+* __for__ - server target (determines propagation)
+* __UID__ - user committing the request
 
 ### MOTD
 
 Remote `MOTD` request.
 
-Propagation: _one-to-one_
+[Propagation](#propagation): _one-to-one_
+
+```
+:<UID> MOTD <server>
+```
+
+* __UID__ - user committing the request
+* __server__ - server name or `$`-prefixed SID (determines propagation)
 
 ### REHASH
 
 Remote `REHASH`.
 
-Propagation: _one-to-one_
+[Propagation](#propagation): _server mask_
+
+```
+:<UID> REHASH <mask>
+```
+
+* __UID__ - user committing the request
+* __mask__ - server mask target. all matching servers will respond
+  (determines propagation)
 
 ### TIME
 
 Remote `TIME` request.
 
-Propagation: _one-to-one_
+[Propagation](#propagation): _one-to-one_
+
+```
+:<UID> TIME <server>
+```
+
+* __UID__ - user committing the request
+* __server__ - server name or `$`-prefixed SID (determines propagation)
 
 ### USERS
 
 Remote `USERS` request.
 
-Propagation: _one-to-one_
+[Propagation](#propagation): _one-to-one_
+
+```
+@for= :<UID> USERS
+```
+
+* __for__ - server target (determines propagation)
+* __UID__ - user committing the request
 
 ### VERSION
 
 Remote `VERSION` request.
 
-Propagation: _one-to-one_
+[Propagation](#propagation): _one-to-one_
+
+* __server__ - server name or `$`-prefixed SID (determines propagation)
 
 ### WHOIS
 
 Remote `WHOIS` query.
 
-Propagation: _one-to-one_
+[Propagation](#propagation): _one-to-one_
+
+* __server__ - server name or `$`-prefixed SID (determines propagation)
 
 ## Extension commands
 
@@ -881,20 +1093,20 @@ uplink.
 During burst, lists all known global ban identifiers and the times at which
 they were last modified.
 
-Propagation: _none_
+[Propagation](#propagation): _none_
 
 ### BANDEL
 
 Propagates a global ban deletion.
 
-Propagation: _broadcast_
+[Propagation](#propagation): _broadcast_
 
 ### BANIDK
 
 In response to [`BAN`](#ban) during burst, requests information for a ban the
 receiving server is not familiar with.
 
-Propagation: _none_
+[Propagation](#propagation): _none_
 
 ### BANINFO
 
@@ -902,27 +1114,18 @@ Propagates a global ban.
 
 Used upon adding a new ban and during burst in response to [`BANIDK`](#banidk).
 
-Propagation: _broadcast_
+[Propagation](#propagation): _broadcast_
 
 ### MODEREP
-
-Reply for [`MODEREQ`](#modereq).
-
 ### MODEREQ
 
-Initiates [MODESYNC](https://github.com/cooper/juno/issues/63).
+Used for [MODESYNC](https://github.com/cooper/juno/issues/63).
 
 ### SASLDATA
-
-Transmits data between a client and a remote SASL agent.
-
 ### SASLDONE
-
-Indicates SASL completion.
-
 ### SASLHOST
 ### SASLMECHS
 ### SASLSET
 ### SASLSTART
 
-Indicates SASL initiation.
+Used for SASL authentication.

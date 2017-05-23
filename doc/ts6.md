@@ -2,10 +2,10 @@
 
 This is a summary of juno's
 [implementation](https://github.com/cooper/juno/tree/master/modules/TS6) of the
-TS6 protocol. This protocol module can be used to link juno with a
-[variety](#supported-software) of IRC servers and other software. While it is
-also possible to link juno servers via TS6, the native Extensible Linking
-Protocol is strongly preferred for such.
+[TS6 protocol](technical/ts6.md). This protocol module can be used to link juno
+with a [variety](#supported-software) of IRC servers and other software. While
+it is also possible to link juno servers via TS6, the native
+[Extensible Linking Protocol](technical/jelp.md) is strongly preferred for such.
 
 ## Listening for TS6
 
