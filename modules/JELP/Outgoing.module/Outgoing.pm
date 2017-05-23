@@ -172,6 +172,10 @@ sub send_burst {
         # TOPICBURST
         $server->forward(topicburst => $channel)
             if $channel->topic;
+            
+        # MLOCK
+        $server->forward(mlock => $me, $channel,
+            $channel->mlock->to_string($me, 1)) if $channel->mlock;
     }
 
 }

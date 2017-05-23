@@ -138,6 +138,7 @@ A server burst consists of the following:
 5. Burst channels
    - [`SJOIN`](#sjoin) - bursts modes, membership
    - [`TOPICBURST`](#topicburst) - bursts topic
+   - [`MLOCK`](#mlock) - bursts mode lock
 6. Extensions
    - Any extension burst commands occur here, such as [`BAN`](#ban)
 7. Terminate the burst with [`ENDBURST`](#endburst)
