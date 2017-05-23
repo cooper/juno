@@ -693,6 +693,7 @@ The target can be:
   - Only allowed to IRC operators.
 - a message to all users with hostnames matching a mask ('$#' followed by mask).
   Note that this is often implemented poorly.
+  - Unimplemented
   - propagation: broadcast
   - Only allowed to IRC operators.
 
