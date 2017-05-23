@@ -213,13 +213,13 @@ sub sid {
     my ($to_server, $serv) = @_;
     return if $to_server == $serv;
 
-    sprintf ':%s SID %s %d %s %s %s :%s%s',
+    sprintf ':%s SID %s %s %s %s %d :%s%s',
     $serv->parent->id,  # parent server SID
     $serv->id,          # SID
-    $serv->{time},      # server creation time
     $serv->name,        # server name
     $serv->{proto},     # server protocol version
     $serv->{ircd},      # server IRCd version
+    $serv->{time},      # server creation time
     $serv->{hidden} ? '(H) ' : '', # hidden?
     $serv->{desc};      # server description
 }

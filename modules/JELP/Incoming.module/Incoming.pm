@@ -22,8 +22,8 @@ our ($api, $mod, $pool, $me);
 
 my %scommands = (
     SID => {
-                   # :sid   SID      sid  time  name  proto_v  ircd_v  desc
-        params  => '-source(server)  *    ts    *     *        *       :',
+                   # :sid   SID      sid  name  proto_v  ircd_v  time  desc
+        params  => '-source(server)  *    *     *        *       ts    :',
         code    => \&sid
     },
     UID => {
@@ -240,7 +240,8 @@ sub sid {
 
     # info.
     my %serv;
-    $serv{$_}       = shift @args for qw(parent sid time name proto ircd desc);
+    $serv{desc}     = pop @args;
+    $serv{$_}       = shift @args for qw(parent sid name proto ircd time);
     $serv{source}   = $server->{sid}; # SID we learned about the server from
     $serv{location} = $server;
 

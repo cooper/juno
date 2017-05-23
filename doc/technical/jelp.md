@@ -597,18 +597,18 @@ Introduces a server.
 [Propagation](#propagation): _broadcast_
 
 ```
-:<source SID> SID <SID> <TS> <name> <proto version> <version> :<description>
+:<source SID> SID <SID> <name> <proto version> <version> <TS> :<description>
 ```
 
 * __source SID__ - parent server
 * __SID__ - [server ID](#entity-ids)
-* __TS__ - current UNIX TS
 * __name__ - server name
 * __proto version__ - JELP protocol version (checked for compatibility)
 * __version__ - IRCd or package version (not checked)
+* __TS__ - current UNIX TS
 * __description__ - server description to show in `LINKS`, `MAP`, etc. This
   MUST be the last parameter, regardless of any additional parameters which may
-  be added in between the `<version>` and `<description>` at a later date. If
+  be added in between the `<TS>` and `<description>` at a later date. If
   the description starts with the sequence `(H) ` (including the trailing
   space), the server should be marked as hidden
 
