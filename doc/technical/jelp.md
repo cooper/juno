@@ -317,3 +317,46 @@ These commands MAY be implemented by servers but are not required. They are not
 part of the core JELP protocol implementation. If any unknown command is
 received, servers MAY choose to produce a warning but SHOULD NOT terminate the
 uplink.
+
+### BAN
+
+During burst, lists all known global ban identifiers and the times at which
+they were last modified.
+
+### BANDEL
+
+Propagates a global ban deletion.
+
+### BANIDK
+
+In response to [`BAN`](#ban) during burst, requests information for a ban the
+receiving server is not familiar with.
+
+### BANINFO
+
+Propagates a global ban.
+
+Used upon adding a new ban and during burst in response to [`BANIDK`](#banidk).
+
+### MODEREP
+
+Reply for [`MODEREQ`](#modereq).
+
+### MODEREQ
+
+Initiates [MODESYNC](https://github.com/cooper/juno/issues/63).
+
+### SASLDATA
+
+Transmits data between a client and a remote SASL agent.
+
+### SASLDONE
+
+Indicates SASL completion.
+
+### SASLHOST
+### SASLMECHS
+### SASLSET
+### SASLSTART
+
+Indicates SASL initiation.
