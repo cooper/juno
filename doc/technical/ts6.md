@@ -1,35 +1,43 @@
 # TS6
 
-This is a description of the TS6 protocol. For less technical info on how to use
-TS6 with juno, see [this document](../ts6.md).
+This is a description of the TS6 server linking protocol. For less technical
+info on how to use TS6 with juno, see [this document](../ts6.md).
 
-Written by Jilles Tjoelker.
+Based on
+[`ts6-protocol.txt`](https://github.com/charybdis-ircd/charybdis/blob/release/3.5/doc/technical/ts6-protocol.txt)
+from the charybdis technical documentation. Written by Jilles Tjoelker.
 
-General format: much like rfc1459
-Maximum parameters for a command: 15 (this does not include the prefix
-and command name)
+## Glossary
 
-* __SID__: a server's unique ID. It is configured in each server and consists of
+* __SID__ - a server's unique ID. It is configured in each server and consists of
 a digit and two alphanumerics. Sending SIDs with lowercase letters is
 questionable.
 
-* __UID__: a client's unique ID. It consists of the server's SID and six
+* __UID__ - a client's unique ID. It consists of the server's SID and six
 alphanumerics (so it is nine characters long). The first of the alphanumerics
 should be a letter, numbers are legal but reserved for future use.
 
-* __hunted__: a parameter type used for various remote requests. From local users,
+* __hunted__ - a parameter type used for various remote requests. From local users,
 nicknames and server names are accepted, possibly with wildcards; from servers,
 UIDs/SIDs (sending names or even wildcards is deprecated). This is done with
 the function hunt_server(). Any rate limiting should be done locally.
 
-* __duration__: a parameter type used for ban durations. It is a duration in seconds.
+* __duration__ - a parameter type used for ban durations. It is a duration in seconds.
 A value of 0 means a permanent ban.
 
-* __IP addresses__: IP addresses are converted to text in the usual way, including
+* __IP addresses__ - IP addresses are converted to text in the usual way, including
 '::' shortening in IPv6, with the exception that a zero is prepended to any
 IP address that starts with a colon.
 
-* __propagation__: to which other servers the command is sent
+* __propagation__ - to which other servers the command is sent.
+see [propagation](#propagation).
+
+* __services server__ - server mentioned in a service{} block. There are no services
+servers on EFnet.
+
+* __service__ - client with umode +S. This implies that it is on a services server.
+
+## Propagation
 
 For all commands with a _hunted_ parameter, the propagation is determined by
 that, and not otherwise specified.
@@ -51,11 +59,6 @@ received.
 For some other commands, the propagation depends on the parameters and is
 described in text.
 
-* __services server__: server mentioned in a service{} block. There are no services
-servers on EFnet.
-
-* __service__: client with umode +S. This implies that it is on a services server.
-
 ## Connection setup
 
 The initiator sends the `PASS`, `CAPAB` and `SERVER` messages. Upon receiving the
@@ -72,6 +75,7 @@ messages for all known channels (possibly followed by `BMASK` and/or `TB`).
 ## Modes
 
 user modes:
+
     +D (deaf: does not receive channel messages)
     +S (network service) (only settable on burst from a services server)
     +a (appears as server administrator)
@@ -84,6 +88,7 @@ user modes:
     possibly more added by modules
 
 channel modes:
+
     statuses
     +o (prefix @) (ops)
     +v (prefix +) (voice)
@@ -119,6 +124,11 @@ channel modes:
 
 ## Commands
 
+General format: much like rfc1459.
+
+Maximum parameters for a command: 15 (this does not include the prefix
+and command name).
+
 ### Numerics
     source: server
     parameters: target, any...
@@ -136,9 +146,9 @@ To avoid infinite loops, servers should not send any replies to numerics.
 
 The target can be:
 - a client
-  propagation: one-to-one
+  - propagation: one-to-one
 - a channel name
-  propagation: all servers with -D users on the channel
+  - propagation: all servers with -D users on the channel
 
 Numerics to channels are broken in some older servers.
 
@@ -407,7 +417,7 @@ Not sending the channelTS parameter is deprecated.
     parameters: '0' (one ASCII zero)
     propagation: broadcast
 
-    Parts the source user from all channels.
+Parts the source user from all channels.
 
     2.
     source: user
@@ -465,7 +475,7 @@ it is recommended not to add anything to the path.
     source: user
     parameters: duration, user mask, host mask, reason
 
-    Sets a K:line (ban on user@host).
+Sets a K:line (ban on user@host).
 
     2.
     capab: KLN
@@ -499,8 +509,8 @@ Remote LINKS request. The server mask limits which servers are listed.
     source: user
     parameters: text
 
-    Sends a message to operators (with umode +l set). This is intended to be
-    used for strict subsets of the network.
+Sends a message to operators (with umode +l set). This is intended to be
+used for strict subsets of the network.
 
     2.
     capab: CLUSTER
@@ -661,30 +671,30 @@ Sends a normal message (PRIVMSG) to the given target.
 
 The target can be:
 - a client
-  propagation: one-to-one
+  - propagation: one-to-one
 - a channel name
-  propagation: all servers with -D users on the channel
-  (cmode +m/+n should be checked everywhere, bans should not be checked
-  remotely)
+  - propagation: all servers with -D users on the channel
+  - cmode +m/+n should be checked everywhere, bans should not be checked
+    remotely
 - a status character ('@'/'+') followed by a channel name, to send to users
   with that status or higher only.
-  capab: CHW
-  propagation: all servers with -D users with appropriate status
+  - capab: CHW
+  - propagation: all servers with -D users with appropriate status
 - '=' followed by a channel name, to send to chanops only, for cmode +z.
-  capab: CHW and EOPMOD
-  propagation: all servers with -D chanops
+  - capab: CHW and EOPMOD
+  - propagation: all servers with -D chanops
 - a user@server message, to send to users on a specific server. The exact
   meaning of the part before the '@' is not prescribed, except that "opers"
   allows IRC operators to send to all IRC operators on the server in an
   unspecified format.
-  propagation: one-to-one
+  - propagation: one-to-one
 - a message to all users on server names matching a mask ('$$' followed by mask)
-  propagation: broadcast
-  Only allowed to IRC operators.
+  - propagation: broadcast
+  - Only allowed to IRC operators.
 - a message to all users with hostnames matching a mask ('$#' followed by mask).
   Note that this is often implemented poorly.
-  propagation: broadcast
-  Only allowed to IRC operators.
+  - propagation: broadcast
+  - Only allowed to IRC operators.
 
 In charybdis TS6, services may send to any channel and to statuses on any
 channel.
