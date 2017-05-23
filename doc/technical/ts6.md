@@ -97,13 +97,13 @@ channel modes:
     +e (ban exception) (capab: EX)
     +I (invite exception) (capab: IE)
     type B
-    +k (key: password required to join, <= 23 ascii chars, no : or , or whitespace)
+    +k (key: password required to join, <= 23 ascii chars, no `:` or `,` or whitespace)
     type C
     +l (limit: maximum number of members before further joins are disallowed)
     type D
     +m (moderated)
     +n (no external messages)
-    +p (private: does not appear in /whois to non-members, no /knock allowed)
+    +p (private: does not appear in `WHOIS` to non-members, no `KNOCK` allowed)
     +r (only registered users may join) (only if a services server exists) (capab: SERVICES)
     +s (secret)
     +t (only chanops may change topic)
@@ -119,7 +119,7 @@ channel modes:
     +P (permanent: does not disappear when empty)
     +Q (ignore forwards to this)
     +c (strip colours)
-    +g (allow any member to /invite)
+    +g (allow any member to `INVITE`)
     +z (send messages blocked by +m to chanops)
 
 ## Commands
@@ -228,10 +228,10 @@ All ban-like modes must be bursted using this command, not using MODE or TMODE.
     propagation: none
     parameters: space separated capability list
 
-Sends capabilities of the server. This must include QS and ENCAP, and for
-charybdis TS6 also EX and IE. It is also strongly recommended to include EX,
-CHW, IE and KNOCK, and for charybdis TS6 also SAVE and EUID. For use with
-services, SERVICES and RSFNC are strongly recommended.
+Sends capabilities of the server. This must include `QS` and `ENCAP`, and for
+charybdis TS6 also `EX` and `IE`. It is also strongly recommended to include `EX`,
+`CHW`, `IE` and `KNOCK`, and for charybdis TS6 also `SAVE` and `EUID`. For use with
+services, `SERVICES` and `RSFNC` are strongly recommended.
 
 The capabilities may depend on the configuration for the server they are sent
 to.
@@ -730,8 +730,8 @@ In a burst, propagates the real host of a dynamically-spoofed user.
     source: user
     parameters: opt. rehash type
 
-Remote REHASH request. If the rehash type is omitted, it is equivalent to
-a regular /rehash, otherwise it is equivalent to /rehash <rehash type>.
+Remote `REHASH` request. If the rehash type is omitted, it is equivalent to
+a regular `REHASH`, otherwise it is equivalent to `REHASH <rehash type>`.
 
 ### RESV
     1.
