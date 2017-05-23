@@ -98,32 +98,126 @@ These commands MUST be implemented by servers. Failure to do so may result in
 network discontinuity.
 
 ### ACM
+
+Maps channel mode letters and types to mode names.
+
 ### AUM
+
+Maps user mode letters to mode names.
+
 ### AWAY
+
+Marks a user as away.
+
 ### BURST
+
+Sent to indicate the start of a burst.
+
 ### CMODE
+
+Channel mode change.
+
 ### ENDBURST
+
+Sent to indicate the end of a burst.
+
 ### JOIN
+
+Channel join. Used when a user joins an existing channel with no status modes.
+
+See also [`SJOIN`](#sjoin).
+
 ### KICK
+
+Propagates a channel kick. Removes a user from a channel.
+
 ### KILL
+
+Temporarily removes a user from the network.
+
 ### NICK
+
+Propagates a nick change.
+
 ### NOTICE
+
+Like [`PRIVMSG`](#privmsg).
+
 ### NUM
+
+Sends a numeric reply to a remote user.
+
 ### OPER
+
+Propagates oper privileges.
+
+The setting of the `ircop` user mode (+o) is used to indicate that a user has
+opered-up; this command may be used to modify their permissions list.
+
 ### PART
+
+Propagates a channel part.
+
 ### PARTALL
+
+Used when a user leaves all channels.
+
+This is initiated on the client protocol with the `JOIN 0` command.
+
 ### PING
+
+Verifies uplink reachability.
+
+### PONG
+
+Reply for [`PING`](#ping).
+
 ### PRIVMSG
+
+Sends a message to a remote target.
+
 ### QUIT
+
+Propagates a user quit.
+
 ### SAVE
+
+Used to resolve nick collisions without casualty.
+
 ### SID
+
+Introduces a server.
+
 ### SJOIN
+
+Bursts a channel.
+
+This command MUST be used for channel creation and during burst. It MAY be used
+for existing channels as a means to grant status modes upon join.
+
 ### SNOTICE
+
+Propagates a server notice to remote opers.
+
 ### TOPIC
+
+Propagates a channel topic change.
+
 ### TOPICBURST
+
+Bursts a channel topic.
+
 ### UID
+
+Introduces a user.
+
 ### UMODE
+
+Propagates a user mode change.
+
 ### USERINFO
+
+Propagates the changing of one or more user fields.
 
 ## Optional core commands
 
@@ -131,17 +225,54 @@ These commands SHOULD be implemented by servers, but failure to do so will not
 substantially affect network continuity.
 
 ### FJOIN
+
+Forces a user to join a channel.
+
 ### FLOGIN
+
+Forces a user to login to an account.
+
+Used by external services.
+
 ### FNICK
+
+Forces a nick change.
+
 ### FOPER
+
+Forces an oper privilege change.
+
 ### FPART
+
+Forces a user to part a channel.
+
 ### FUMODE
+
+Forces a user mode change.
+
 ### FUSERINFO
+
+Forces the changing of one or more user fields.
+
 ### INVITE
+
+Invites a remove user to a channel.
+
 ### KNOCK
+
+Propagates a channel knock.
+
 ### LINKS
+
+Remote `LINKS` request.
+
 ### LOGIN
+
+Propagates a user account login.
+
 ### WHOIS
+
+Remote `WHOIS` request.
 
 ## Extension commands
 
