@@ -24,7 +24,8 @@ This software will hopefully surprise you with its novel features and
 functionality. It's super easy to install and even comes with a working
 configuration, so go ahead and [try it already](#installation).
 
-Come chat with us at [`#k` on `irc.notroll.net`](irc://irc.notroll.net/k) too.
+Come chat with us at
+[`#k` on `irc.notroll.net`](http://juno.notroll.net/page/chat) too.
 
 ## Features
 
@@ -32,12 +33,17 @@ There are a lot! But here are some things that make juno-ircd stand out.
 
 You can
 
-* Upgrade an entire network without restarting any servers.
-* Check out the latest version from git via IRC, even remotely.
-* Modify server configuration dynamically from IRC, even remotely.
-* Link a complex network of various IRCds spanning multiple server protocols.
-* Write modules for the easy-to-use and event-based module API.
-* Or rather, [beg us](irc://irc.notroll.net/k) to add the features you want.
+* [Upgrade](doc/modules.md#reload) an entire network without restarting any
+  servers.
+* [Check out](doc/modules.md#git) the latest version from git via IRC.
+* [Modify](doc/modules.md#configurationset) server configuration dynamically
+  from IRC.
+* [Link](doc/ts6.md#supported-software) a complex network of various IRCds and
+  services packages spanning multiple server protocols.
+* [Write](doc/index.md#technical) modules for the easy-to-use and event-based
+  module API.
+* Or rather, [beg us](http://juno.notroll.net/page/chat) to add the features you
+  want.
 
 Plus, juno-ircd
 
@@ -47,10 +53,10 @@ Plus, juno-ircd
 * Despite that, ships with a working configuration and runs out-of-the-box.
 * Consists entirely of [modules](doc/modules.md) and therefore can be as minimal
   or as bloated as you're comfortable with.
-* Supports the latest [IRCv3](http://ircv3.net) standards.
+* Supports the latest [IRCv3](doc/ircv3.md) standards.
 * Supports multiple linking protocols, including several
-  [TS6 implementations](doc/ts6.md)
-  and a custom [user-extensible protocol](doc/technical/jelp.md).
+  [TS variants](doc/ts6.md) and a custom
+  [user-extensible protocol](doc/technical/jelp.md).
 * Supports [Atheme](http://atheme.net),
   [PyLink](https://github.com/GLolol/PyLink) and probably other IRC services
   packages.
@@ -114,9 +120,9 @@ Ban::TS6 10.6
 possible for an entire piece of software to be upgraded or reloaded without
 restarting it. With the help of the
 [Evented::API::Engine](https://github.com/cooper/evented-api-engine) and with
-modularity as a central principle, juno aims to do exactly that. With just one
-command, you can jump up one or one hundred versions, all without your users
-disconnecting.
+modularity as a central principle, juno aims to do exactly that. With just
+[one command](doc/modules.md#reload), you can jump up one or one hundred
+versions, all without your users disconnecting.
 ```
 *** Update: k.notroll.net git repository updated to version 12.88 (juno12-mihret-209-g269c83c)
 *** Reload: k.notroll.net upgraded from 12.48 to 12.88 (up 88 versions since start)
@@ -126,7 +132,8 @@ disconnecting.
 nearly everything is configurable. In spite of that, the included working
 configuration is minimal and easy-to-follow. This is made possible by
 [Evented::Configuration](https://github.com/cooper/evented-configuration).
-Real-time modification of the configuration is also feasible, thanks to
+[Real-time modification](doc/modules.md#configurationset) of the configuration
+is also feasible, thanks to
 [Evented::Database](https://github.com/cooper/evented-database).
 ```
 [ listen: 0.0.0.0 ]
@@ -139,9 +146,9 @@ Real-time modification of the configuration is also feasible, thanks to
     key  = 'etc/ssl/key.pem'    
 ```
 
-* __Efficiency__: Modern IRC servers must be prompt at fulfilling requests.
-Utilizing the wonderful [IO::Async](http://search.cpan.org/perldoc/IO::Async)
-framework, juno is quite reactive.
+* __Efficiency__: Modern IRC servers have a higher per-user load and therefore
+must be prompt at fulfilling requests. Utilizing the wonderful [IO::Async](http://search.cpan.org/perldoc/IO::Async) framework, juno is quite
+reactive.
 
 # Setup and operation
 
@@ -283,7 +290,7 @@ without error.
 
 ## Contact
 
-Go to [`#k` on `irc.notroll.net`](irc://irc.notroll.net/k).
+Go to [`#k` on `irc.notroll.net`](http://juno.notroll.net/page/chat).
 
 If you discover a reproducible bug, please
 [file an issue](https://github.com/cooper/juno/issues).

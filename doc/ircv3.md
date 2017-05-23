@@ -1,6 +1,6 @@
 # IRCv3
 
-juno supports the following IRCv3 extensions.
+juno supports the following [IRCv3](http://ircv3.net) extensions.
 
 ### IRCv3.2
 
