@@ -4045,4 +4045,4 @@ CHANGES:
     05. JELP 21.00:
         add nick TS parameter to NICK command.
         move TS parameter in SID command so that it is the same as SERVER.
-        do not clear modes on bad channel time for CMODE, PART.
+        do not clear modes on bad channel time for CMODE, PART, TOPIC.

@@ -776,11 +776,6 @@ sub topic {
     # bad channel time
     return if $ts > $channel->{time};
 
-    if ($channel->take_lower_time($ts) != $ts) {
-        # bad channel time
-        return
-    }
-
     # ($source, $topic, $setby, $time, $check_text)
     $channel->do_topic_local($source, $topic, $source->full, time);
 

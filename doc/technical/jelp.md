@@ -629,6 +629,21 @@ for existing channels as a means to grant status modes upon join.
   space-separated of `UID!modes`, where `modes` are the status modes that the
   user has in the channel. if a user has no modes, the `!` may be omitted
 
+If the channel does not exist, create it.
+
+Otherwise:
+
+If `<TS>` is older than the internal channel TS, clear all modes and invites,
+accept new modes and statuses, and forward as-is.
+
+If `<TS>` is equal to the current internal channel TS, accept new modes and
+statuses and forward as-is.
+
+If `<TS>` is newer than the current internal channel TS, disregard modes and
+statuses and forward the message without them.
+
+In any case, add the listed users to the channel.
+
 ### SNOTICE
 
 Propagates a server notice to remote opers.
