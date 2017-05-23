@@ -77,21 +77,23 @@ respects, except that the IRCv3 limitation of 512 bytes does not apply.
 1. __Server negotiation__ - The initiating server sends the [`SERVER`](#server)
 command. The receiver should verify the server name, SID, TS, peer address, and
 versions. If unacceptable, the connection should be dropped before password
-negotiation; otherwise, the receiver should reply with its own `SERVER` command.
+negotiation; otherwise, the receiver should reply with its own
+[`SERVER`](#server) command.
 
-2. __Password negotiation__ - If the incoming `SERVER` passes verification, the
-initiator should then send [`PASS`](#pass). The receiver should verify the
-password, dropping the connection if invalid. If the password is correct, the
-receiver should reply with its own `PASS` command, followed by
-[`READY`](#ready).
+2. __Password negotiation__ - If the incoming [`SERVER`](#server) passes
+verification, the initiator should then send [`PASS`](#pass). The receiver
+should verify the password, dropping the connection if invalid. If the password
+is correct, the receiver should reply with its own [`PASS`](#pass) command,
+followed by [`READY`](#ready).
 
-3. __Initiator burst__ - Upon receiving `READY`, the initiator should send its
-[burst](#burst), delimited by [`BURST`](#burst-1) and [`ENDBURST`](#endburst).
+3. __Initiator burst__ - Upon receiving [`READY`](#ready), the initiator should
+send its [burst](#burst), delimited by [`BURST`](#burst-1) and
+[`ENDBURST`](#endburst).
 
-4. __Receiver burst__ - Upon receiving `ENDBURST`, the receiver should reply
-with its own [burst](#burst). `ENDBURST` and `READY` should both be handled the
-same way: in the case that either is received, the server should send its burst
-if it has not already done so.
+4. __Receiver burst__ - Upon receiving [`ENDBURST`](#endburst), the receiver
+should reply with its own [burst](#burst). [`ENDBURST`](#endburst) and
+[`READY`](#ready) should both be handled the same way: in the case that either
+is received, the server should send its burst if it has not already done so.
 
 ### Burst
 
@@ -114,7 +116,7 @@ A server burst consists of the following:
    - [`SJOIN`](#sjoin) - bursts modes, membership
    - [`TOPICBURST`](#topicburst) - bursts topic
 6. Extensions
-   - Any extension burst commands occur here, such as `BAN`
+   - Any extension burst commands occur here, such as [`BAN`](#ban)
 7. Terminate the burst with [`ENDBURST`](#endburst)
 
 ## Modes
@@ -207,6 +209,10 @@ Used when a user leaves all channels.
 
 This is initiated on the client protocol with the `JOIN 0` command.
 
+### PASS
+
+During [registration](#connection-setup), sends the connection password.
+
 ### PING
 
 Verifies uplink reachability.
@@ -223,9 +229,17 @@ Sends a message to a remote target.
 
 Propagates a user quit.
 
+### READY
+
+Sent to indicate that the initiator should send its [burst](#burst).
+
 ### SAVE
 
 Used to resolve nick collisions without casualty.
+
+### SERVER
+
+During [registration](#connection-setup), introduces the server.
 
 ### SID
 
