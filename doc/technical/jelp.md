@@ -660,9 +660,6 @@ Propagates a channel topic change.
 * __topic TS__ - new topic TS
 * __topic text__ - new topic text
 
-If `<TS>` is older than the internal channel TS, reset all channel modes and
-invitations.
-
 Regardless of `<TS>`, set the topic and propagate it with the CURRENT channel
 TS.
 
