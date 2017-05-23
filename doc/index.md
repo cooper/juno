@@ -6,7 +6,8 @@
 * [User modes](umodes.md) - list of user modes
 * [Operator privilege flags](oper_flags.md) - list of operator capabilities
 * [Operator notice flags](oper_notices.md) - list of server notices
-* [TS6 linking protocol](ts6.md) - details about the TS6 protocol implementation
+* [IRCv3](ircv3.md) - list of supported client protocol extensions
+* [Using juno with TS6](ts6.md) - details about the TS6 protocol implementation
 * Technical
   * [user](technical/user.md) - user API
   * [JELP](technical/jelp.md) - JELP linking protocol specification
