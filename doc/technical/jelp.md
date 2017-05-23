@@ -252,11 +252,7 @@ Channel mode change.
 If `<TS>` is newer than the internal channel TS, drop the message and do not
 propagate it.
 
-If `<TS>` is older than the internal channel TS, accept and propagate the
-incoming modes, resetting all previous channel modes and invitations.
-
-If `<TS>` is equal to the internal channel TS, accept and propagate the incoming
-modes.
+Otherwise, accept and propagate the incoming modes.
 
 Note that the entire mode string is a single parameter.
 

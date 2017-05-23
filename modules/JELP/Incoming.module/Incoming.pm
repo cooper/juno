@@ -525,9 +525,8 @@ sub cmode {
     #                  :source   channel   time   perspective   :modestr
     my ($server, $msg, $source, $channel, $time, $perspective, $mode_str) = @_;
 
-    # ignore if time is older and take lower time
-    my $new_ts = $channel->take_lower_time($time);
-    return unless $time == $new_ts;
+    # ignore if time is newer
+    return if $time > $channel->{time};
 
     # handle the mode string and send to local users.
     $channel->do_mode_string_local($perspective, $source, $mode_str, 1, 1);
