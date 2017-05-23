@@ -129,6 +129,7 @@ our %user_numerics = (
                           # [================================ EXTENSIONS =================================],
                           # [                                                                             ],
     RPL_WHOISSECURE      => [671, '%s :is using a secure connection'                                      ],
+    ERR_MLOCKRESTRICTED  => [742, '%s %s :MLOCK policy does not allow this mode to be changed'            ],
     RPL_LOGGEDIN         => [900, '%s %s :You are now logged in as %s'                                    ],
     RPL_LOGGEDOUT        => [901, '%s :You are now logged out'                                            ],
     ERR_NICKLOCKED       => [902, ':You must use a nick assigned to you'                                  ],

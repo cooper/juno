@@ -96,6 +96,17 @@ sub unset_mode {
     return 1;
 }
 
+# set the mlock to a moderef
+# the parameters of these modes do not matter at all
+# (in some cases it cannot be known what they really even are)
+# except for list modes, in which case they are significant (juno-only feature)
+sub set_mode_lock {
+    my ($channel, $mlock) = @_;
+    $channel->{mlock} = $mlock;
+    my $str = $mlock->to_string($me, 1);
+    L("$$channel{name} $str");
+}
+
 # returns true if a list has something.
 # $what may be a string or object with string overload (e.g. user).
 sub list_has {
@@ -243,7 +254,10 @@ sub handle_modes {
     my ($channel, $source, $modes, $force, $unloaded) = @_;
     my ($param_length, $ban_length);
     my $changes = modes->new;
-
+    my $mlock = $channel->{mlock};
+    my $local_user = $source;
+    undef $local_user if !$source->isa('user') || !$source->is_local;
+    
     # apply each mode.
     MODE: foreach ($modes->stated) {
         my ($state, $name, $param) = @$_;
@@ -275,10 +289,17 @@ sub handle_modes {
             next MODE;
         }
 
+        # check mlock for local users without force
+        if (!$force && $mlock && $type != MODE_LIST &&
+            $mlock->has($name) && $local_user) {
+            my $letter = $me->cmode_letter($name);
+            $source->numeric(ERR_MLOCKRESTRICTED => $letter, $channel->name);
+            next MODE;
+        }
+
         # status mode parameters must be user objects at this point.
         if ($type == MODE_STATUS and !blessed $param || !$param->isa('user')) {
-            $source->numeric(ERR_NOSUCHNICK => $param)
-                if $source->isa('user') && $source->is_local;
+            $source->numeric(ERR_NOSUCHNICK => $param) if $local_user;
             next MODE;
         }
 
@@ -328,7 +349,7 @@ sub handle_modes {
         #                   Yes.................... DO NOT SEND
         #                   No..................... SEND
         #
-        if ($source->isa('user') && $source->is_local) {
+        if ($local_user) {
             my $no_status = !$win && !$mode->{has_basic_status}
                 && !$mode->{hide_no_privs};
             my $yes = $mode->{send_no_privs} || $no_status;

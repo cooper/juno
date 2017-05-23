@@ -532,7 +532,7 @@ In a burst, states that the source user is logged in as the account.
 
 Remote LUSERS request. Most servers ignore the server mask, treating it as '\*'.
 
-MLOCK
+### MLOCK
     charybdis TS6
     source: services server
     parameters: channelTS, channel, mode letters

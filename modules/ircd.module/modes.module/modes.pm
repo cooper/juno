@@ -192,6 +192,12 @@ sub filter {
     return $modes;
 }
 
+# true if the given mode name or type is present
+sub has {
+    my ($modes, $name) = @_;
+    return $modes->filter($name)->count;
+}
+
 sub _matching_not_matching {
     my ($matching, $modes, @matchers) = @_;
     @matchers = map _get_matcher($_), @matchers;

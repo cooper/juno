@@ -4055,3 +4055,5 @@ CHANGES:
         new option servers:allow_hidden is enabled by default but can be set to 'off' to prevent servers from hiding themselves. this is only locally effective.
         new oper flag see_hidden allows opers to see hidden servers regardless of that option.
         closes #31.
+        
+    08. added internal MLOCK support. #79.
