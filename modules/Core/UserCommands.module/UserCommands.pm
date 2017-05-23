@@ -204,7 +204,6 @@ sub init {
     $mod->register_capability('userhost-in-names');
     $mod->register_capability('echo-message');
     $mod->register_capability('account-tag');
-    $mod->register_capability('invite-notify');
 
     return 1;
 }

@@ -241,7 +241,7 @@ sub topicburst {
 # nick change
 sub nick {
     my ($to_server, $user) = @_;
-    ":$$user{uid} NICK $$user{nick}"
+    ":$$user{uid} NICK $$user{nick} $$user{nick_time}"
 }
 
 # user mode change

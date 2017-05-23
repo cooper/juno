@@ -50,7 +50,7 @@ Plus, juno-ircd
 * Supports the latest [IRCv3](http://ircv3.net) standards.
 * Supports multiple linking protocols, including several
   [TS6 implementations](doc/ts6.md)
-  and a custom user-extensible protocol.
+  and a custom [user-extensible protocol](doc/technical/jelp.md).
 * Supports [Atheme](http://atheme.net),
   [PyLink](https://github.com/GLolol/PyLink) and probably other IRC services
   packages.

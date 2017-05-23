@@ -37,8 +37,8 @@ my %scommands = (
         code    => \&quit
     },
     NICK => {
-                   # :uid NICK    newnick
-        params  => '-source(user) *  ',
+                   # :uid NICK    new_nick new_nick_ts
+        params  => '-source(user) *        ts',
         code    => \&nick
     },
     BURST => {
@@ -369,11 +369,11 @@ sub quit {
 sub nick {
     # user *
     # :uid NICK  newnick
-    my ($server, $msg, $user, $newnick) = @_;
+    my ($server, $msg, $user, $new_nick, $new_nick_ts) = @_;
 
     # tell ppl
-    $user->send_to_channels("NICK $newnick");
-    $user->change_nick($newnick, time);
+    $user->send_to_channels("NICK $new_nick");
+    $user->change_nick($new_nick, $new_nick_ts);
 
     # === Forward ===
     $msg->broadcast(nick_change => $user);

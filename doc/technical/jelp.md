@@ -341,13 +341,12 @@ Propagates a nick change.
 [Propagation](#propagation): _broadcast_
 
 ```
-:<UID> NICK <nick>
+:<UID> NICK <nick> <nick TS>
 ```
 
 * __UID__ - user changing nicks
 * __nick__ - new nick
-
-Update the nick and set the nick TS to the current time.
+* __nick TS__ - new nick TS
 
 ### NOTICE
 
@@ -1071,6 +1070,11 @@ Remote `VERSION` request.
 
 [Propagation](#propagation): _one-to-one_
 
+```
+:<UID> VERSION <server>
+```
+
+* __UID__ - user committing the request
 * __server__ - server name or `$`-prefixed SID (determines propagation)
 
 ### WHOIS
@@ -1079,7 +1083,13 @@ Remote `WHOIS` query.
 
 [Propagation](#propagation): _one-to-one_
 
-* __server__ - server name or `$`-prefixed SID (determines propagation)
+```
+@for= :<UID> WHOIS <target UID>
+```
+
+* __for__ - server target (determines propagation)
+* __UID__ - user committing the request
+* __target UID__ - user whose information is being requested
 
 ## Extension commands
 

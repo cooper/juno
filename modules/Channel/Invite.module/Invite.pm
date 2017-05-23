@@ -107,6 +107,9 @@ sub init {
     $pool->on('user.get_invited' =>
         \&on_user_get_invited, 'deliver.invite');
 
+    # IRCv3.2 invite-notify
+    $mod->register_capability('invite-notify');
+
     return 1;
 }
 

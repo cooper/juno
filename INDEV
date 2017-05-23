@@ -4041,3 +4041,6 @@ CHANGES:
     03. add support for IRCv3.2 account-tag. closes #177.
     
     04. add support for IRCv3.2 invite-notify. closes #174.
+    
+    05. JELP 21.00:
+        add nick TS parameter to NICK command.
