@@ -408,9 +408,6 @@ Propagates a channel part.
 * __channel__ - channel to remove the user from
 * __TS__ - channel TS
 
-If `<TS>` is older than the internal channel TS, reset all channel modes and
-invitations.
-
 Regardless of `<TS>`, remove the user from the channel and propagate the message
 with the CURRENT channel TS.
 

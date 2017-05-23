@@ -549,9 +549,6 @@ sub part {
     # :uid PART  channel time :reason
     my ($server, $msg, $user, $channel, $time, $reason) = @_;
 
-    # take the lower time
-    $channel->take_lower_time($time);
-
     # ?!?!!?!
     if (!$channel->has_user($user)) {
         notice(server_protocol_warning =>
