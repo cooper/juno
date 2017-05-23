@@ -1,9 +1,9 @@
 # JELP
 
 The Juno Extensible Linking Protocol (__JELP__) is the preferred
-server linking protocol for juno-to-juno links. As of writing, the only known
-implementation to exist is that of juno itself, but future applications may
-choose to implement JELP for better compatibility with juno.
+server linking protocol for juno-to-juno links. As of writing, the only
+implementation known to exist is that of juno itself, but future applications
+may choose to implement JELP for better compatibility with juno.
 
 This documentation is to be used as reference when implementing IRC servers and
 pseudoservers.
@@ -73,6 +73,49 @@ implementation of message tags is compatible with that specification in all
 respects, except that the IRCv3 limitation of 512 bytes does not apply.
 
 ## Connection setup
+
+1. __Server negotiation__ - The initiating server sends the [`SERVER`](#server)
+command. The receiver should verify the server name, SID, TS, peer address, and
+versions. If unacceptable, the connection should be dropped before password
+negotiation; otherwise, the receiver should reply with its own `SERVER` command.
+
+2. __Password negotiation__ - If the incoming `SERVER` passes verification, the
+initiator should then send [`PASS`](#pass). The receiver should verify the
+password, dropping the connection if invalid. If the password is correct, the
+receiver should reply with its own `PASS` command, followed by
+[`READY`](#ready).
+
+3. __Initiator burst__ - Upon receiving `READY`, the initiator should send its
+[burst](#burst), delimited by [`BURST`](#burst-1) and [`ENDBURST`](#endburst).
+
+4. __Receiver burst__ - Upon receiving `ENDBURST`, the receiver should reply
+with its own [burst](#burst). `ENDBURST` and `READY` should both be handled the
+same way: in the case that either is received, the server should send its burst
+if it has not already done so.
+
+### Burst
+
+A server burst consists of the following:
+
+1. Initiate the burst with [`BURST`](#burst-1)
+2. Send out this server's mode mappings
+   - [`AUM`](#aum) - our user modes
+   - [`ACM`](#acm) - our channel modes
+3. Introduce descendant servers
+   - [`SID`](#sid) - child server introduction
+   - [`AUM`](#aum) - add each server's user modes
+   - [`ACM`](#acm) - add each server's channel modes
+4. Introduce users
+   - [`UID`](#uid) - user introduction
+   - [`OPER`](#oper) - oper flag propagation
+   - [`LOGIN`](#login) - account name propagation
+   - [`AWAY`](#away) - mark user as away
+5. Burst channels
+   - [`SJOIN`](#sjoin) - bursts modes, membership
+   - [`TOPICBURST`](#topicburst) - bursts topic
+6. Extensions
+   - Any extension burst commands occur here, such as `BAN`
+7. Terminate the burst with [`ENDBURST`](#endburst)
 
 ## Modes
 
