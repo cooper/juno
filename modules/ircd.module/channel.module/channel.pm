@@ -709,9 +709,14 @@ sub send_modes {
 }
 
 # send a message to all the local members.
-sub send_all  { _send_all(undef, @_) }
-sub _send_all {
-    my ($from, $channel, $message, %opts) = @_;
+sub send_all  {
+    my $channel = shift;
+    return $channel->sendfrom_all(undef, @_);
+}
+
+# send to members with a source.
+sub sendfrom_all {
+    my ($channel, $from, $message, %opts) = @_;
     return user::sendfrom_to_many_with_opts(
         $from,
         $message,
@@ -720,17 +725,11 @@ sub _send_all {
     );
 }
 
-# send to members with a source.
-sub sendfrom_all {
-    my ($channel, $from, $message, %opts) = @_;
-    return _send_all($from, $channel, $message, %opts);
-}
-
 # send to members with a capability.
 # $alt = send this if the user doesn't have the cap
 sub sendfrom_all_cap {
     my ($channel, $from, $message, $alt, $cap, %opts) = @_;
-    return _send_all($from, $channel, $message,
+    return $channel->sendfrom_all($from, $message,
         %opts,
         cap => $cap,
         alt => $alt
@@ -1197,13 +1196,20 @@ sub do_join_local {
     # remove pending invites.
     $channel->user_clear_invite($user);
 
+    # for netjoin batch, prefer the one specific to the user's server,
+    # but fall back to the one of the server's location. the latter will always
+    # be used during initial burst; the first may be used for later netjoins
+    my $batch = $user->server->{netjoin_batch} ||
+        $user->location->{netjoin_batch};
+
     # for each user in the channel, send a JOIN message.
     my $act_name = $user->{account} ? $user->{account}{name} : '*';
     $channel->sendfrom_all_cap(
         $user->full,
         "JOIN $$channel{name} $act_name :$$user{real}",     # IRCv3.1
         "JOIN $$channel{name}",                             # RFC1459
-        'extended-join'
+        'extended-join',
+        batch => $batch
     );
 
     # tell the users who care whether this person is away.

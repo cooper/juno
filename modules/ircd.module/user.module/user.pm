@@ -298,32 +298,14 @@ sub unset_away {
 # handle a user quit.
 # this does not close a connection; use $user->conn->done() for that.
 sub quit {
-    my ($user, $reason, $quiet, $batch_msg) = @_;
+    my ($user, $reason, $quiet, $batch) = @_;
     $user->fire(will_quit => $reason, $quiet);
     notice(user_quit =>
         $user->notice_info, $user->{real}, $user->{server}{name}, $reason)
         unless $quiet;
 
-    # send to all users in common channels as well as himself.
-    my $msg = message->new(
-        source  => $user,
-        command => 'QUIT',
-        params  => $reason
-    );
-    
-    # if there is a batch for this, use it
-    if ($batch_msg) {
-        $user->send_to_channels(
-            $msg->copy->set_batch($batch_msg),
-            cap => 'batch',
-            alt => $msg->data
-        );
-    }
-    
-    # no batch
-    else {
-        $user->send_to_channels($msg);
-    }
+    # send to all users in common channels as well as himself
+    $user->send_to_channels("QUIT :$reason", batch => $batch);
     
     # remove from all channels.
     $_->remove($user) foreach $user->channels;
@@ -1043,8 +1025,9 @@ sub sendfrom_to_many {
 #
 #       ignore          skip a specific user that may be in @users
 #       no_self         skip the source user if he's in @users
-#       cap             skip users without the specified capability
+#       cap             skip users without the specified caps
 #       alt             if 'cap' is provided, this is sent to users without it
+#       batch           batch message object
 #
 sub sendfrom_to_many_with_opts {
     my ($from, $message, $opts, @users) = @_;
@@ -1052,27 +1035,37 @@ sub sendfrom_to_many_with_opts {
 
     # consider each provided user
     my %sent_to;
-    foreach my $user (@users) {
+    USER: foreach my $user (@users) {
         my $this_message = $message;
 
         # not a local user or already sent to
-        next if !$user->is_local;
-        next if $sent_to{$user};
+        next USER if !$user->is_local;
+        next USER if $sent_to{$user};
         
         # told not to sent to self
-        next if $opts{no_self} && $from && $user->full eq $from;
+        next USER if $opts{no_self} && $from && $user->full eq $from;
 
         # told to ignore this person
         if ($opts{ignore}) {
-            next if ref $opts{ignore} eq 'CODE' && $opts{ignore}($user);
-            next if $opts{ignore} == $user;
+            next USER if ref $opts{ignore} eq 'CODE' && $opts{ignore}($user);
+            next USER if $opts{ignore} == $user;
         }
 
-        # lacks the required cap. if there's an alternative, use that.
-        # otherwise, skip over this person.
-        if (defined $opts{cap} && !$user->has_cap($opts{cap})) {
-            next unless defined $opts{alt};
+        # lacks the required caps. if there's an alternative, use that.
+        # otherwise, skip this person.
+        CAP: foreach my $cap (ref_to_list($opts{cap})) {
+            next CAP  if $user->has_cap($cap);
+            next USER if !defined $opts{alt};
             $this_message = $opts{alt};
+            last CAP;
+        }
+
+        # Safe point - we will send $this_message to the user
+
+        # we're in a batch. add it
+        if ($opts{batch} && $user->has_cap('batch')) {
+            $this_message = message->new($this_message) if !ref $this_message;
+            $this_message->set_batch($opts{batch});
         }
 
         $user->sendfrom($from, $this_message);

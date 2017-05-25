@@ -15,5 +15,5 @@
    "description" : "registration commands for TS6 protocol",
    "name" : "TS6::Registration",
    "package" : "M::TS6::Registration",
-   "version" : "8.3"
+   "version" : "8.4"
 }

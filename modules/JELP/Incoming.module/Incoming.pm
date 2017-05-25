@@ -391,13 +391,10 @@ sub burst {
     # server dummy
     # :sid   BURST
     my ($server, $msg, $serv, $their_time) = @_;
-    $serv->{is_burst} = time;
-    L("$$serv{name} is bursting information");
-    notice(server_burst => $serv->notice_info);
+    $serv->start_burst();
 
     # === Forward ===
     $msg->broadcast(burst => $serv, $their_time);
-
 }
 
 # indicates the end of server burst
@@ -405,7 +402,7 @@ sub endburst {
     # server dummy
     # :sid   ENDBURST
     my ($server, $msg, $serv, $their_time) = @_;
-    $server->end_burst();
+    $serv->end_burst();
 
     # if we haven't sent our own burst yet, do so.
     $serv->send_burst if $serv->conn && !$serv->{i_sent_burst};

@@ -298,9 +298,7 @@ sub server_propagated {
 
     # at this point, we will say that the server is starting its burst.
     # however, it still may deny our own credentials.
-    $server->{is_burst} = time;
-    L("$$server{name} is bursting information");
-    notice(server_burst => $server->notice_info);
+    $server->start_burst();
 
     # tell other servers
     broadcast(burst => $server, time);
