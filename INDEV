@@ -4068,3 +4068,7 @@ CHANGES:
     11. add support for IRCv3.2 batch.
         add support for IRCv3.2 netsplit batch type.
         all user send functions can now take a message object instead of data string.
+        
+    12. fix bug with batch IDs.
+        fix bug in TS6 MLOCK.
+        fix bug with channel->mode_parameter that caused ghosts to show up in moderefs.

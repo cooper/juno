@@ -68,6 +68,7 @@ sub is_mode {
 # note that this may be an object, string, or hash reference.
 sub mode_parameter {
     my ($channel, $name) = @_;
+    return if !$channel->{modes}{$name};
     return $channel->{modes}{$name}{parameter};
 }
 

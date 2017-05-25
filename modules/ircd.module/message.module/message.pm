@@ -508,7 +508,7 @@ sub _objectify {
 
 # IRCv3.2 batch
 
-my $current_batch_id = 'aaaaaa';
+my $current_batch_id = 'AAAAAA';
 
 # message->new_batch($batch_type, @batch_params)
 sub new_batch {

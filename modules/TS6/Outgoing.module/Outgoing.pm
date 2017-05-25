@@ -1194,7 +1194,7 @@ sub mlock {
     $mode_str = $source_serv->convert_cmode_string($to_server, $mode_str, 1);
     
     # drop the parameters
-    my $letters = (split $mode_str, ' ', 2)[0];
+    my $letters = (split ' ', $mode_str, 2)[0];
     
     sprintf ':%s MLOCK %d %s %s',
     ts6_id($source_serv),

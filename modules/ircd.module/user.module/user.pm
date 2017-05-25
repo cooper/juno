@@ -990,6 +990,7 @@ sub sendfrom {
         my $data = $_;
         if (ref $data)  { $data = $$data            }
         else            { $data = ":$source $data"  }
+        $data;
     } $user->_get_data($source, @_));
 }
 
