@@ -1308,7 +1308,7 @@ for more info.
 
 ## K-Lines, D-Lines, etc.
 
-[Ban::TS](https://github.com/cooper/juno/blob/master/modules/Ban/Ban.module/TS6.module)
+[Ban::TS6](https://github.com/cooper/juno/blob/master/modules/Ban/Ban.module/TS6.module)
 provides the TS6 server ban implementation. It is loaded automatically when TS6
 and Ban are both loaded.
 
@@ -1335,7 +1335,7 @@ the ban expires, it will be revived the next time the servers link.
 
 ### Command preference
 
-Ban::TS6 uses the charybdis-style BAN command when possible. Legacy commands
+Ban::TS6 uses the charybdis-style `BAN` command when possible. Legacy commands
 are used when this is unavailable. Below are the commands used for each type
 of ban in order of preference.
 
@@ -1359,6 +1359,6 @@ for more information about the TS6 ban implementation.
 
 ## SASL
 
-juno supports SASL authentication over TS6 using the ENCAP SASL mechanism. This
-is useful for authenticating to services packages linked via TS6. See issue
+juno supports SASL authentication over TS6 using the `ENCAP` SASL mechanism.
+This is useful for authenticating to services packages linked via TS6. See issue
 [#9](https://github.com/cooper/juno/issues/9) for details.

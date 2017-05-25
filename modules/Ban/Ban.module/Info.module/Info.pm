@@ -60,7 +60,10 @@ my ($table, %unordered_format, @format);
 # aserver       name of server where ban was added
 #               e.g. s1.example.com
 #
-# reason        user-set reason for ban
+# reason        user-set reason for ban, visible to everyone
+#
+# oreason       additional info to show to opers. both 'reason' and this, if
+#               present, will be showed in oper notices
 #
 #   NOT RECORDED IN DATABASE
 #
@@ -379,7 +382,7 @@ sub notify_new {
         $source->notice_info,
         $ban->hr_expires,
         $ban->hr_duration,
-        $ban->hr_reason
+        $ban->hr_full_reason
     );
 }
 
@@ -391,7 +394,7 @@ sub notify_delete {
         ucfirst $ban->hr_ban_type,
         $ban->{match},
         $source->notice_info,
-        $ban->hr_reason
+        $ban->hr_full_reason
     );
 }
 
@@ -444,6 +447,7 @@ sub duration : lvalue { shift->{duration}   }   # ban duration in seconds
 
 # strings (all of these are optional and may be undef)
 sub reason  : lvalue { shift->{reason}      }   # reason text
+sub oreason : lvalue { shift->{oreason}     }   # oper reason
 sub aserver : lvalue { shift->{aserver}     }   # server name where ban originated
 sub auser   : lvalue { shift->{auser}       }   # nick!ident@host that added it
 
@@ -553,6 +557,14 @@ sub hr_remaining_lifetime {
 sub hr_reason {
     my $reason = shift->{reason};
     return 'no reason' if !length $reason;
+    return $reason;
+}
+
+# reason plus oper reason
+sub hr_full_reason {
+    my $ban = shift;
+    my $reason = $ban->hr_reason;
+    $reason .= ' | '.$ban->oreason if length $ban->oreason;
     return $reason;
 }
 

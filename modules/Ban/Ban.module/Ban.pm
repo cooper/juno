@@ -23,7 +23,10 @@ use 5.010;
 
 use IO::Async::Timer::Absolute;
 use Scalar::Util qw(weaken);
-use utils qw(notice string_to_seconds pretty_time pretty_duration broadcast);
+use utils qw(
+    notice string_to_seconds pretty_time
+    pretty_duration broadcast trim
+);
 
 our ($api, $mod, $pool, $conf, $me);
 my $loop;
@@ -38,6 +41,7 @@ our (
 );
 
 # Evented::Database bans table format
+# see Ban::Info for what each of these are
 my %unordered_format = our @format = (
     id          => 'TEXT',
     type        => 'TEXT',
@@ -49,7 +53,8 @@ my %unordered_format = our @format = (
     lifetime    => 'INTEGER',
     aserver     => 'TEXT',
     auser       => 'TEXT',
-    reason      => 'TEXT'
+    reason      => 'TEXT',
+    oreason     => 'TEXT'
 );
 
 sub init {
@@ -341,6 +346,7 @@ sub ucmd_bans {
         my @lines = "\2$type\2 $$ban{match} ($$ban{id})";
 
 push @lines, '      Reason: '.$ban->reason          if length $ban->reason;
+push @lines, ' Oper reason: '.$ban->oreason         if length $ban->oreason;
 push @lines, '       Added: '.$ban->hr_added        if $ban->added;
 push @lines, '     by user: '.$ban->auser           if length $ban->auser;
 push @lines, '   on server: '.$ban->aserver         if length $ban->aserver;
@@ -365,7 +371,7 @@ sub handle_add_command { handle_add(@_[0..2, 4..$#_]) }
 sub handle_del_command { handle_del(@_[0..2, 4..$#_]) }
 
 # if $duration is 0, the ban is permanent
-# e.g. handle_add('kline', 'KLINE', $me, 0, '*@example.com', 'no examples')
+# e.g. handle_add('kline', 'KLINE', $me, 0, '*@example.com', 'no examples | blah')
 sub handle_add {
     my ($type_name, $command, $source, $duration, $match, $reason) = @_;
     my $type = $ban_types{$type_name} or return;
@@ -399,12 +405,16 @@ sub handle_add {
     }
 
     # TODO: (#143) check if it matches too many people
+    
+    # split up oper reason
+    ($reason, my $oreason) = map trim($_), split m/\|/, $reason, 2;
 
     # register: validate, update, enforce, activate
     my $ban = create_my_ban(
         type          => $type_name,
         match         => $match,
         reason        => $reason,
+        oreason       => $oreason,
         duration      => $seconds,
         auser         => $source->fullreal,
         recent_source => $source
@@ -552,7 +562,7 @@ sub _expire_ban {
         ucfirst($ban->type('hname') || 'ban'),
         $ban->match,
         pretty_duration(time - $ban->added),
-        $ban->hr_reason
+        $ban->hr_full_reason
     ) if ($ban->lifetime == $ban->expires) || !$ban->has_expired_lifetime;
 
     return 1;

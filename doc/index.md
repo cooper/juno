@@ -1,5 +1,6 @@
 # Documentation
 
+* [README](../README.md)
 * [History](history.md) - timeline of this project
 * [Modules](modules.md) - list of modules and their functions
 * [Channel modes](cmodes.md) - list of channel modes

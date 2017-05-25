@@ -4062,3 +4062,5 @@ CHANGES:
         closes #79.
 
     09. fixed some bugs in new MLOCK.
+    
+    10. add support for ban reason to show to only opers. closes #145.
