@@ -709,52 +709,32 @@ sub send_modes {
 }
 
 # send a message to all the local members.
-sub send_all {
-    my ($channel, $what, $ignore) = @_;
-
-    # $ignore can be either a user object or a codref
-    # which returns true when the user should be ignored
-    if ($ignore && ref $ignore ne 'CODE') {
-        my $ignore_user = $ignore;
-        $ignore = sub { shift() == $ignore_user };
-    }
-
-    foreach my $user ($channel->users) {
-
-        # not local or ignored
-        next unless $user->is_local;
-        next if $ignore && $ignore->($user);
-
-        $user->send($what);
-    }
-    return 1;
+sub send_all  { _send_all(undef, @_) }
+sub _send_all {
+    my ($from, $channel, $message, %opts) = @_;
+    return user::sendfrom_to_many_with_opts(
+        $from,
+        $message,
+        \%opts,
+        $channel->users
+    );
 }
 
 # send to members with a source.
 sub sendfrom_all {
-    my ($channel, $who, $what, $ignore) = @_;
-    return send_all($channel, ":$who $what", $ignore);
+    my ($channel, $from, $message, %opts) = @_;
+    return _send_all($from, $channel, $message, %opts);
 }
 
 # send to members with a capability.
 # $alt = send this if the user doesn't have the cap
 sub sendfrom_all_cap {
-    my ($channel, $who, $what, $alt, $ignore, $cap) = @_;
-    foreach my $user ($channel->users) {
-
-        # not local or ignored
-        next unless $user->is_local;
-        next if $ignore && $ignore == $user;
-
-        # sorry, don't have it
-        if (!$user->has_cap($cap)) {
-            $user->sendfrom($who, $alt) if length $alt;
-            next;
-        }
-
-        $user->sendfrom($who, $what);
-    }
-    return 1;
+    my ($channel, $from, $message, $alt, $cap, %opts) = @_;
+    return _send_all($from, $channel, $message,
+        %opts,
+        cap => $cap,
+        alt => $alt
+    );
 }
 
 # send a notice from the server to all members.
@@ -905,7 +885,6 @@ sub attempt_join {
     # do the actual join. the $new means to allow the ->do_join_local() even
     # though the user might already be in there from the previous ->add().
     return $channel->do_join_local($user, $new);
-
 }
 
 # handle named modes, tell our local users, and tell other servers.
@@ -1224,7 +1203,6 @@ sub do_join_local {
         $user->full,
         "JOIN $$channel{name} $act_name :$$user{real}",     # IRCv3.1
         "JOIN $$channel{name}",                             # RFC1459
-        undef,
         'extended-join'
     );
 
@@ -1233,8 +1211,8 @@ sub do_join_local {
         $user->full,
         "AWAY :$$user{away}",   # IRCv3.1
         undef,                  # no alternative
-        $user,                  # don't send to the user himself
-        'away-notify'
+        'away-notify',
+        ignore => $user         # don't send to the user himself
     ) if $user->{away};
 
     # if local, send topic and names.

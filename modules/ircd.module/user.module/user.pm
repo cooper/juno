@@ -986,6 +986,7 @@ sub send {
 sub sendfrom {
     &_check_local or return;
     my ($user, $source) = (shift, shift);
+    return $user->send(@_) if !length $source;
     $user->conn->send(map {
         my $data = $_;
         if (ref $data)  { $data = $$data            }
@@ -1057,10 +1058,15 @@ sub sendfrom_to_many_with_opts {
         # not a local user or already sent to
         next if !$user->is_local;
         next if $sent_to{$user};
+        
+        # told not to sent to self
+        next if $opts{no_self} && $from && $user->full eq $from;
 
-        # told to ignore this person or not to send to self
-        next if defined $opts{ignore} && $user == $opts{ignore};
-        next if $opts{no_self} && $user->full eq $from;
+        # told to ignore this person
+        if ($opts{ignore}) {
+            next if ref $opts{ignore} eq 'CODE' && $opts{ignore}($user);
+            next if $opts{ignore} == $user;
+        }
 
         # lacks the required cap. if there's an alternative, use that.
         # otherwise, skip over this person.

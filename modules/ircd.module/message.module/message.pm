@@ -508,16 +508,15 @@ sub _objectify {
 
 # IRCv3.2 batch
 
-my $current_batch_id = 'AAAAAA';
-
 # message->new_batch($batch_type, @batch_params)
 sub new_batch {
     my ($class, $batch_type, @batch_params) = @_;
     
     # determine ID
-    $current_batch_id = 'aaaaaa' if $current_batch_id gt 'ZZZZZZ';
-    $current_batch_id = 'AAAAAA' if $current_batch_id gt 'zzzzzz';
-    my $id = $current_batch_id++;
+    $pool->{batch_i} //= 'AAAAAA';
+    $pool->{batch_i} = 'aaaaaa' if $pool->{batch_i} gt 'ZZZZZZ';
+    $pool->{batch_i} = 'AAAAAA' if $pool->{batch_i} gt 'zzzzzz';
+    my $id = $pool->{batch_i}++;
 
     return __PACKAGE__->new(
         command     => 'BATCH',

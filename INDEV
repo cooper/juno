@@ -4072,3 +4072,5 @@ CHANGES:
     12. fix bug with batch IDs.
         fix bug in TS6 MLOCK.
         fix bug with channel->mode_parameter that caused ghosts to show up in moderefs.
+        
+    13. all channel send functions are now based on sendfrom_to_many().
