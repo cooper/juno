@@ -4064,3 +4064,7 @@ CHANGES:
     09. fixed some bugs in new MLOCK.
     
     10. add support for ban reason to show to only opers. closes #145.
+    
+    11. add support for IRCv3.2 batch.
+        add support for IRCv3.2 netsplit batch type.
+        all user send functions can now take a message object instead of data string.

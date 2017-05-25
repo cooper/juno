@@ -298,15 +298,33 @@ sub unset_away {
 # handle a user quit.
 # this does not close a connection; use $user->conn->done() for that.
 sub quit {
-    my ($user, $reason, $quiet) = @_;
+    my ($user, $reason, $quiet, $batch_msg) = @_;
     $user->fire(will_quit => $reason, $quiet);
     notice(user_quit =>
         $user->notice_info, $user->{real}, $user->{server}{name}, $reason)
         unless $quiet;
 
     # send to all users in common channels as well as himself.
-    $user->send_to_channels("QUIT :$reason");
-
+    my $msg = message->new(
+        source  => $user,
+        command => 'QUIT',
+        params  => $reason
+    );
+    
+    # if there is a batch for this, use it
+    if ($batch_msg) {
+        $user->send_to_channels(
+            $msg->copy->set_batch($batch_msg),
+            cap => 'batch',
+            alt => $msg->data
+        );
+    }
+    
+    # no batch
+    else {
+        $user->send_to_channels($msg);
+    }
+    
     # remove from all channels.
     $_->remove($user) foreach $user->channels;
 
@@ -912,17 +930,67 @@ sub send_to_channels {
 sub handle                  { _handle_with_opts(undef, @_[0,1]) }
 sub handle_with_opts        { _handle_with_opts(undef, @_)      }
 
+sub _get_data {
+    my ($user, $source) = (shift, shift);
+    my @data;
+    foreach my $item (@_) {
+        next if !defined $item;
+        
+        # string
+        if (!ref $item) {
+            push @data, $item;
+            next;
+        }
+        
+        # message object
+        if (blessed $item && $item->isa('message')) {
+            
+            # we might need to send a batch start token
+            push @data, $source ? \$item->{batch}->data : $item->{batch}->data
+                if $item->{batch} && !$item->{batch}{sent_batch}{ $user->id }++;
+
+            # msg data with source
+            if ($source) {
+                $item->{source} = $source;
+                $item->reset_data;
+                push @data, \$item->data;
+            }
+            
+            # normal msg data
+            else {
+                push @data, $item->data;
+            }
+            
+            next;
+        }
+        
+        # arrayref
+        if (ref $item eq 'ARRAY') {
+            push @data, $user->_get_data(@$item);
+            next;
+        }
+        
+        L("not sure how to send '$item'");
+    }
+    return @data;
+}
+
 # send data to a local user.
 sub send {
     &_check_local or return;
     my $user = shift;
-    $user->conn->send(@_);
+    $user->conn->send($user->_get_data(undef, @_));
 }
 
 # send data with a source.
 sub sendfrom {
+    &_check_local or return;
     my ($user, $source) = (shift, shift);
-    $user->send(map { ":$source $_" } @_);
+    $user->conn->send(map {
+        my $data = $_;
+        if (ref $data)  { $data = $$data            }
+        else            { $data = ":$source $data"  }
+    } $user->_get_data($source, @_));
 }
 
 # send data with this server as the source.
@@ -969,12 +1037,12 @@ sub sendfrom_to_many {
 
 # user::sendfrom_to_many($from, $message, \%opts, @users)
 #
-# Extended version of sendfrom_to_many() with additional options:
+#       $message may be a message object or data
 #
 #       ignore          skip a specific user that may be in @users
 #       no_self         skip the source user if he's in @users
 #       cap             skip users without the specified capability
-#       alternative     if 'cap' is provided, this is an alternative message
+#       alt             if 'cap' is provided, this is sent to users without it
 #
 sub sendfrom_to_many_with_opts {
     my ($from, $message, $opts, @users) = @_;
@@ -996,11 +1064,11 @@ sub sendfrom_to_many_with_opts {
         # lacks the required cap. if there's an alternative, use that.
         # otherwise, skip over this person.
         if (defined $opts{cap} && !$user->has_cap($opts{cap})) {
-            next unless defined $opts{alternative};
-            $this_message = $opts{alternative};
+            next unless defined $opts{alt};
+            $this_message = $opts{alt};
         }
 
-        $user->sendfrom($from, $_) for ref_to_list($this_message);
+        $user->sendfrom($from, $this_message);
         $sent_to{$user}++;
     }
 

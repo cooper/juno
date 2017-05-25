@@ -736,9 +736,9 @@ sub sendfrom_all {
 }
 
 # send to members with a capability.
-# $alternative = send this if the user doesn't have the cap
+# $alt = send this if the user doesn't have the cap
 sub sendfrom_all_cap {
-    my ($channel, $who, $what, $alternative, $ignore, $cap) = @_;
+    my ($channel, $who, $what, $alt, $ignore, $cap) = @_;
     foreach my $user ($channel->users) {
 
         # not local or ignored
@@ -747,7 +747,7 @@ sub sendfrom_all_cap {
 
         # sorry, don't have it
         if (!$user->has_cap($cap)) {
-            $user->sendfrom($who, $alternative) if length $alternative;
+            $user->sendfrom($who, $alt) if length $alt;
             next;
         }
 

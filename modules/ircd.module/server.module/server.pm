@@ -56,9 +56,16 @@ sub new {
 # $quiet    = if true, do not send out notices
 #
 sub quit {
-    my ($server, $reason, $why, $quiet) = @_;
+    my ($server, $reason, $why, $quiet, $batch_msg) = @_;
     $why //= "$$server{parent}{name} $$server{name}";
-
+    
+    # if no netsplit batch exists, start one
+    my $my_batch;
+    if (!$batch_msg) {
+        $batch_msg = message->new_batch('netsplit');
+        $my_batch++;
+    }
+    
     # tell ppl
     notice(server_quit =>
         $server->notice_info,
@@ -69,19 +76,20 @@ sub quit {
     # all children must be disposed of
     foreach my $serv ($server->children) {
         next if $serv == $server;
-        $serv->quit('parent server has disconnected', $why);
+        $serv->quit('parent server has disconnected', $why, $quiet, $batch_msg);
     }
 
     # delete all of the server's users
     my @users = $server->all_users;
     foreach my $user (@users) {
-        $user->quit($why, 1);
+        $user->quit($why, 1, $batch_msg);
     }
 
     # remove from pool
     $pool->delete_server($server) if $server->{pool};
     $server->delete_all_events();
     
+    $batch_msg->end_batch if $my_batch;
     return 1;
 }
 

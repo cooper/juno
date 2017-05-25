@@ -23,6 +23,8 @@ use utils qw(trim col ref_to_list);
 our ($api, $mod, $pool, $me);
 our $TRUE = \'__TAG_TRUE__';
 
+# message->new('data')
+# message->new(command => '', params => [], tags => {})
 sub new {
     my ($class, @opts) = @_;
     my %opts;
@@ -52,6 +54,9 @@ sub new {
     return $msg;
 }
 
+# parse data
+# this is done automatically on construction,
+# but it is a public method for if the data is modified
 sub parse {
     my $msg = shift;
     return unless length $msg->data;
@@ -174,6 +179,7 @@ sub _escape_value {
     return $value;
 }
 
+# fetch or construct data
 sub data {
     my $msg = shift;
     return $msg->{data} if length $msg->{data};
@@ -219,7 +225,7 @@ sub data {
         $param = ":$param"
             if $p == $#params && ($msg->{sentinel} || $param =~ m/\s+/);
 
-        push @parts, $param;
+        push @parts, $param if length $param;
         $p++;
     }
 
@@ -233,22 +239,29 @@ sub reset_data {
     return $msg;
 }
 
+# set tag value
+# no value unset it
 sub set_tag {
     my ($msg, $key, $val) = @_;
+    if (!length $val) {
+        delete $msg->{tags}{$key};
+        return;
+    }
     $msg->{tags}{$key} = $val;
 }
 
+# new message like this one
 sub copy {
     return __PACKAGE__->new(data => shift->data)->reset_data;
 }
 
-sub raw_cmd {    shift->{command}           }
-sub command { uc shift->{command}           }
-sub tags    { shift->{tags}                 }
-sub tag     { shift->{tags}{+shift}         }
-sub params  { @{ shift->{params} || [] }    }
-sub param   { shift->{params}[shift]        }
-sub event   { shift->{_event}               }
+sub raw_cmd {    shift->{command}           }   # command
+sub command { uc shift->{command}           }   # UC'd command
+sub tags    { shift->{tags}                 }   # message tags hashref
+sub tag     { shift->{tags}{+shift}         }   # fetch a tag value by key
+sub params  { @{ shift->{params} || [] }    }   # params list
+sub param   { shift->{params}[shift]        }   # fetch a param value by index
+sub event   { shift->{_event}               }   # message event
 
 # source always returns an object.
 # if an object cannot be found, it returns undef.
@@ -491,6 +504,56 @@ sub _objectify {
     }
     my $object = $code->($possible_id);
     return wantarray ? ($object, 1) : $object;
+}
+
+# IRCv3.2 batch
+
+my $current_batch_id = 'aaaaaa';
+
+# message->new_batch($batch_type, @batch_params)
+sub new_batch {
+    my ($class, $batch_type, @batch_params) = @_;
+    
+    # determine ID
+    $current_batch_id = 'aaaaaa' if $current_batch_id gt 'ZZZZZZ';
+    $current_batch_id = 'AAAAAA' if $current_batch_id gt 'zzzzzz';
+    my $id = $current_batch_id++;
+
+    return __PACKAGE__->new(
+        command     => 'BATCH',
+        params      => [ "+$id", $batch_type, @batch_params ],
+        batch_id    => $id,
+        sent_batch  => {}
+    );
+}
+
+# $batch_msg->end_batch
+sub end_batch {
+    my $batch_msg = shift;
+    my $end_batch_msg = __PACKAGE__->new(
+        command => 'BATCH',
+        params  => "-$$batch_msg{batch_id}"
+    );
+    
+    # tell every user who we sent the start verb to that it's over
+    foreach my $uid (keys %{ $batch_msg->{sent_batch} }) {
+        my $user = $pool->lookup_user($uid) or next;
+        $user->send($end_batch_msg);
+    }
+    
+    %{ $batch_msg->{sent_batch} } = ();
+    return $end_batch_msg;
+}
+
+# my $batch_msg = message->new_batch(...)
+# $msg->set_batch($batch_msg)
+sub set_batch {
+    my ($msg, $batch_msg) = @_;
+    return if !$batch_msg || !defined $batch_msg->{batch_id};
+    $msg->reset_data;
+    $msg->set_tag(batch => $batch_msg->{batch_id});
+    $msg->{batch} = $batch_msg;
+    return $msg;
 }
 
 ############################################
