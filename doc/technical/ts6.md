@@ -1,6 +1,7 @@
 # TS6
 
-This is a description of the TS6 server linking protocol. For less technical
+This is a description of the TS6 server linking protocol and
+[our implementation](#implementation) of it. For less technical
 info on how to use TS6 with juno, see [this document](../ts6.md).
 
 Based on
@@ -1136,3 +1137,228 @@ Sets an X:line (ban on realname).
     parameters: target server mask, duration, mask, reason
 
 As form 1, deprecated.
+
+End of TS6 protocol specification.
+
+# Implementation
+
+This section makes note of noteworthy specifics of juno's implementation of the
+protocol.
+
+## Server capabilities
+
+juno supports server capability negotiation. However, it falls back to older
+commands when the new ones are unavailable, retaining support for ancient
+servers.
+
+### Required
+
+juno will terminate a connection during registration if it does not receive a
+`CAPAB` message or if any of these tokens are missing from it:
+
+* `ENCAP` - enhanced command routing
+* `QS` - quit storm
+* `EX` - ban exceptions (+e)
+* `IE` - invite exceptions (+I)
+
+### Supported
+
+In addition to the above, juno supports the following capabilities:
+
+* `EUID` - extended user introduction
+* `TB` - topic burst with added information
+* `EOB` - end of burst token
+* `SERVICES` - ratbox services extensions (umode +S and cmode +r)
+* `SAVE` - resolution of nick collisions without killing
+* `SAVETS_100` - silences warnings about nickTS inconsistency (ratbox)
+* `RSFNC` - force nick change, used for services nick enforcement
+* `BAN` - charybdis-style global ban propagation
+  (with [Ban](https://github.com/cooper/juno/tree/master/modules/Ban))
+* `KLN` - remote K-Lines
+  (with [Ban](https://github.com/cooper/juno/tree/master/modules/Ban))
+* `UKLN` - remote removal of K-Lines
+  (with [Ban](https://github.com/cooper/juno/tree/master/modules/Ban))
+
+## Mode definitions and IRCd-specific options
+
+In juno's native linking protocol, user and channel modes are negotiated during
+the initial burst. Because this is not possible in TS6, mode definitions for
+various TS-based IRCds were added to the
+[default configuration](https://github.com/cooper/juno/blob/master/etc/default.conf).
+It is also possible to add additional IRCd support through the main
+configuration. See issue [#110](https://github.com/cooper/juno/issues/110) for
+info about config-based IRCd support.
+
+```
+[ ircd: ratbox ]
+    nicklen = 16
+
+[ ircd_cmodes: ratbox ]
+    ban     = [3, 'b']
+    except  = [3, 'e']
+
+[ ircd: charybdis ]
+    extends = 'ratbox'
+    nicklen = 32
+
+[ ircd_cmodes: charybdis ]
+    quiet   = [3, 'q']
+```
+
+## Mode translation
+
+juno deals with all modes internally by name, never by letter. This makes it
+easy to apply modes from different server perspectives and then forward them
+with differing letters and parameters across the network.
+
+It works by extracting named modes from a string in a certain perspective,
+applying them, and then forwarding newly-constructed mode strings in other
+perspectives. Low-level mode handling also automatically converts UIDs and
+other variable parameters when necessary.
+See issue [#101](https://github.com/cooper/juno/issues/101) for more info.
+
+```perl
+
+# Given a TS6 mode string and a TS6 server
+my $ts6_server;
+my $some_ts6_mode_string = '+qo 000AAAABG 000AAAABG';
+
+# get the modes by their names in an arrayref
+my $modes = $ts6_server->cmodes_from_string($some_ts6_mode_string);
+
+# commit the modes without translating the mode string!
+$channel->do_modes_local($source, $modes, 1, 1, 1);
+```
+
+### Omission of unknown modes
+
+Modes which are missing on a destination server are simply omitted from the
+resulting messages. juno used to map status modes like +q (owner) and +a (admin)
+to +o (op), but in issue [#7](https://github.com/cooper/juno/issues/7), we
+decided that this was not necessary and would actually result in channel
+security issues (such as users protected by +q or +a being kicked by users with
+only +o on a TS-based server). Both external services packages and juno's
+built-in channel access feature set +o along with any higher status mode.
+
+```
+[TS6::Outgoing] convert_cmode_string(): +qo 0a 0a (k.notroll.net) -> +o 000AAAAAA (charybdis.notroll.net)
+```
+
+### Status message targets
+
+PRIVMSGs and NOTICEs can be directed to channel members with a certain status or
+higher with the `<prefix><channel>` syntax, such as `@#channel` or `+#channel`.
+To ensure that members on TS-based servers that do not have some status modes
+still receive these, juno translates them to the "nearest" status which is less
+than or equal to the original one. For example, `&#channel`
+(a message to protected members) will become `@#channel` on charybdis since it
+does not support admins.
+
+## SID, UID conversion
+
+juno's internal SIDs are 0-9 and UIDs are a-z. In TS6, SIDs can contain letters,
+and the system used for numbering UIDs differs from juno. While juno IDs have
+variable length, TS-based servers always use three characters for SIDs and nine
+characters for UIDs.
+
+```perl
+sub obj_from_ts6 {
+    my $id = shift;
+    if (length $id == 3) { return $pool->lookup_server(sid_from_ts6($id)) }
+    if (length $id == 9) { return $pool->lookup_user  (uid_from_ts6($id)) }
+    return;
+}
+```
+
+TS6 SIDs containing letters are transformed into nine-digit numeric strings
+based on the corresponding ASCII values. SIDs containing only digits are
+unchanged. In the other direction, juno SIDs which are less than three digits in
+length are prefixed with one or two zeros.
+
+The downfall is that juno SIDs with more than three digits are not supported
+when using TS6. This should be okay though, as long as your network includes
+less than one thousand servers running juno.
+
+```perl
+sub sid_from_ts6 {
+    my $sid = shift;
+    if ($sid =~ m/[A-Z]/) {
+        return join('', map { sprintf '%03d', ord } split //, $sid) + 0;
+    }
+    return $sid + 0;
+}
+```
+
+Both juno and TS-based servers construct UIDs by mending the SID for the server
+the user is on with a string of characters that is associated with an integer.
+This makes the conversion easy: simply determine which Nth TS6 ID it is and spit
+out the Nth juno ID and vice versa.
+
+```perl
+sub uid_from_ts6 {
+    my $uid = shift;
+    my ($sid, $id) = ($uid =~ m/^([0-9A-Z]{3})([0-9A-Z]{6})$/);
+    return sid_from_ts6($sid).uid_u_from_ts6($id);
+}
+```
+
+See
+[the code](https://github.com/cooper/juno/blob/master/modules/TS6/Utils.module/Utils.pm)
+for more info.
+
+## K-Lines, D-Lines, etc.
+
+[Ban::TS](https://github.com/cooper/juno/blob/master/modules/Ban/Ban.module/TS6.module)
+provides the TS6 server ban implementation. It is loaded automatically when TS6
+and Ban are both loaded.
+
+juno bans are global, but on TS-based servers, bans are generally local-only
+(unless using services, cluster, or some other extension). In order to keep a
+mixed juno/TS6 network secure, juno will do its best to globally propagate all
+bans.
+
+Bans are sent to TS6 servers on burst. Because certain ban commands only support
+a user source, a ban agent bot may be introduced to set the bans and then exit.
+
+### Durations
+
+The duration sent to TS6 servers is variable based on the difference between the
+expiration time and the duration, since we cannot propagate an expiration time.
+The TS6 server will ignore any bans which already exist for the given mask,
+which is perfect for our purposes. An exception to this is the newer BAN command
+which does allow propagation of expiry times and is used when available.
+
+A limitation of the BAN command is that it does not support global permanent
+bans. In such a case, juno will use the maximum ban duration supported by
+charybdis which, at the time of writing, is 364 days. After a year passes and
+the ban expires, it will be revived the next time the servers link.
+
+### Command preference
+
+Ban::TS6 uses the charybdis-style BAN command when possible. Legacy commands
+are used when this is unavailable. Below are the commands used for each type
+of ban in order of preference.
+
+* __KLINE__: `BAN K` (BAN capab), `KLINE`/`UNKLINE` (KLN and UNKLN capabs),
+  `ENCAP KLINE`/`ENCAP UNKLINE`
+* __RESV__: `BAN R` (BAN capab), `RESV`/`UNRESV` (CLUSTER capab),
+  `ENCAP RESV`/`ENCAP UNRESV`
+* __NICKDELAY__: `ENCAP NICKDELAY` (EUID capab), `RESV` (CLUSTER capab),
+  `ENCAP RESV`
+* __DLINE__: `ENCAP DLINE`
+
+Note that, because some server bans are local-only, the TS6 server may
+not burst its own bans to juno (such as D-Lines, or even K-Lines if the BAN
+capability is not available). However, ban commands are handled such that AKILLs
+(which have target `*`) will be effective across an entire mixed charybdis/juno
+network. AKILL is considered the most reliable way to ensure global ban
+propagation.
+
+See issue [#32](https://github.com/cooper/juno/issues/32)
+for more information about the TS6 ban implementation.
+
+## SASL
+
+juno supports SASL authentication over TS6 using the ENCAP SASL mechanism. This
+is useful for authenticating to services packages linked via TS6. See issue
+[#9](https://github.com/cooper/juno/issues/9) for details.
