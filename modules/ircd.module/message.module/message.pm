@@ -243,6 +243,7 @@ sub reset_data {
 # no value unset it
 sub set_tag {
     my ($msg, $key, $val) = @_;
+    $msg->reset_data;
     if (!length $val) {
         delete $msg->{tags}{$key};
         return;

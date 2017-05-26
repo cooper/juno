@@ -983,7 +983,7 @@ sub sendme {
     $user->sendfrom($me->{name}, @_);
 }
 
-# convenient for $server->fire_command
+# convenient for $server->forward
 sub forward {
     my $user = shift;
     $user->location->forward(@_);

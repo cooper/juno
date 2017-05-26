@@ -148,7 +148,7 @@ $user->remove_flags('kill', 'gkill');
 
 * __@flags__: a list of oper flags to remove.
 
-### $user->update_flags()
+### $user->update_flags
 
 After committing oper flag changes, this method will set or unset the user's
 IRCop mode if necessary. It also notifies the user and other opers of the
@@ -206,7 +206,7 @@ $user->set_away('Be back later.');
 
 * __$reason__: the comment for why the user is away.
 
-### $user->unset_away()
+### $user->unset_away
 
 The lowest level of marking a user as here. This method does not notify any
 other users or servers; it only handles the actual setting upon the user object.
@@ -382,6 +382,13 @@ $user->numeric(RPL_MAP => $spaces, $server->name, $users, $per);
 * __@args__: _optional_ (depending on the numeric), a list of arguments for the
 user numeric handler.
 
+### $user->simulate_numeric($const, @args)
+
+Like [`->numeric`](#user-numericconst-args), except instead of actually sending
+the numeric, return the data which would have been sent. This is useful for
+checking the length of what the base of a numeric reply will be so that the
+message byte limit is not exceeded.
+
 ### $user->handle_unsafe($data)
 
 Emulates that the user sent a piece of data to the local server. It is called
@@ -419,7 +426,7 @@ local.
 
 Servers are NOT notified by this method. Local kills MUST be associated with a
 `broadcast()` call, and remote kills MUST be broadcast
-to other uplinks with `->forward()`.
+to other uplinks with forward methods.
 
 ```perl
 my $reason = "Your behavior is not conducive to the desired environment.";
@@ -438,6 +445,8 @@ changed, the call does nothing.
 Clients with the [`chghost`](http://ircv3.net/specs/extensions/chghost-3.2.html)
 capability will receive a CHGHOST command. Others will receive a quit and
 rejoin emulation, unless `users:chghost_quit` is explicitly disabled.
+
+Servers are NOT notified by this method.
 
 ```perl
 $user->get_mask_changed('someone', 'my.vhost');
@@ -477,9 +486,6 @@ Other local clients may be notified by an AWAY message if they have the
 [`away-notify`](http://ircv3.net/specs/extensions/away-notify-3.1.html)
 capability.
 
-Servers are NOT notified by this method. Each protocol implementation must
-`->forward()` away messages appropriately.
-
 ```perl
 $user->do_away("Be back later");
 ```
@@ -490,19 +496,24 @@ $user->do_away(undef);
 * __$reason__: _optional_, the away comment. if undefined or empty string,
 the user is considered to have returned from being away.
 
-### $user->do_part_all()
+### $user->do_away_local($reason)
+
+Local version.
+
+### $user->do_part_all
 
 Parts the user from all channels, notifying local clients. This is typically
 initiated by a `JOIN 0` command.
-
-Servers are NOT notified by this method. Each protocol implementation must
-`->forward()` `JOIN 0` messages appropriately.
 
 ```perl
 if ($target eq '0') {
     $user->do_part_all();
 }
 ```
+
+### $user->do_part_all_local
+
+Local version.
 
 ### $user->do_login($act_name, $no_num)
 
@@ -513,9 +524,6 @@ Other local clients may be notified by an ACCOUNT message if they have the
 [`account-notify`](http://ircv3.net/specs/extensions/account-notify-3.1.html)
 capability.
 
-Servers are NOT notified by this method. Each protocol implementation must
-`->forward()` login messages appropriately.
-
 ```perl
 $user->do_login($act_name);
 ```
@@ -525,7 +533,11 @@ $user->do_login($act_name);
 reply. this is useful if the reply was already sent before calling this method,
 such as during SASL authentication.
 
-### $user->do_logout()
+### $user->do_login_local($act_name, $no_num)
+
+Local version.
+
+### $user->do_logout
 
 Logs the user out from their current account. If they are not logged in, the
 method does nothing. If the user is local, he receives a numeric notification.
@@ -534,12 +546,13 @@ Other local clients may be notified by an ACCOUNT message if they have the
 [`account-notify`](http://ircv3.net/specs/extensions/account-notify-3.1.html)
 capability.
 
-Servers are NOT notified by this method. Each protocol implementation must
-`->forward()` logout messages appropriately.
-
 ```perl
-$user->do_logout()
+$user->do_logout();
 ```
+
+### $user->do_logout_local
+
+Local version.
 
 ### $user->do_privmsgnotice($command, $source, $message, %opts)
 
@@ -568,6 +581,10 @@ __%opts__
  message. used when receiving remote messages.
 * __dont_forward__: if specified, the message will NOT be forwarded to other
  servers if the user is not local.
+
+### $user->do_privmsgnotice_local($command, $source, $message, %opts)
+
+Local version.
 
 ### $user->do_mode_string($mode_string, $force)
 
@@ -752,6 +769,10 @@ $user->remove_cap('multi-prefix');
 
 * __$flag__: the name of the capability.
 
+### $user->forward($event_name, @args)
+
+Convenience method for `$user->location->forward(...)`.
+
 ### $user->conn
 
 Returns the connection object associated with the user.
@@ -802,6 +823,16 @@ user::sendfrom_to_many($user->full, 'NICK steve', $opts, @users);
 * __\%opts__: _optional_, a hash reference of options.
 * __@users__: a list of users to send the data to.
 
+### sendfrom_to_all($from, $line)
+
+Like [`sendfrom_to_many()`](#sendfrom_to_manyfrom-line-users), except that it
+sends the message to all local users.
+
+### sendfrom_to_all_with_opts($from, $line, \%opts, @users)
+
+Like [`sendfrom_to_many_with_opts()`](#sendfrom_to_many_with_optsfrom-line-opts-users),
+except that it sends the message to all local users.
+
 #### Supported options
 
 * __ignore__: _optional_, a user object to ignore. if it is found in the
@@ -813,9 +844,11 @@ the user's changes but which are not necessary to send to the user himself due
 to other numeric replies.
 * __cap__: _optional_, a client capability. if provided, the message will only
 be sent to users with this capability enabled.
-* __alternative__: _optional_, if the `cap` option was provided, this option
+* __alt__: _optional_, if the `cap` option was provided, this option
 defines an alternative line of data to send to users without the specified
 capability. without `cap`, this option has no effect.
+* __batch__: _optional_, a batch that this message belongs to, as returned by
+[`message->new_batch()`](message.md#message-new_batchbatch_type-params).
 
 ## Events
 
