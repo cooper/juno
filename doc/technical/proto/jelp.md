@@ -159,8 +159,8 @@ Below are the lists of mode names, their types, and their usual associated
 letters. Servers MAY implement any or all of them, but they MUST quietly ignore
 any unrecognized incoming modes.
 
-* [User modes](../umodes.md)
-* [Channel modes](../cmodes.md)
+* [User modes](../../umodes.md)
+* [Channel modes](../../cmodes.md)
 
 ## Required core commands
 
@@ -391,7 +391,7 @@ opered-up; this command may be used to modify their permissions list.
 ```
 
 * __UID__ - user whose privileges are to be changed
-* __flag__ - any number of [oper flags](../oper_flags.md) may be added or
+* __flag__ - any number of [oper flags](../../oper_flags.md) may be added or
   removed in a single message, each as a separate parameter. those being removed
   are prefixed by `-`; those being added have no prefix
 
@@ -487,7 +487,7 @@ Sends a message.
   - [Propagation](#propagation): all servers with -D users of appropriate status
   - Example: `@o#channel` - all users on #channel with `+o` or higher
 - `=` followed by a channel name, to send to channel ops only, for
-  [op moderation](../modules.md#channelopmoderate)
+  [op moderation](../../modules.md#channelopmoderate)
   - [Propagation](#propagation): all servers with -D channel ops
 - a `user@server.name` message, to send to users on a specific server. the exact
   meaning of the part before the `@` is not prescribed, except that "opers"
@@ -653,7 +653,7 @@ Propagates a server notice to remote opers.
 
 * __from_user__ - _optional_, user whose action resulted in this notice
 * __SID__ - server producing the notice
-* __flag__ - [server notice flag](../oper_notices.md)
+* __flag__ - [server notice flag](../../oper_notices.md)
 * __message__ - notice text
 
 ### TOPIC
@@ -870,7 +870,7 @@ Forces an oper privilege change.
 
 * __SID__ - server forcing the privilege change
 * __UID__ - user whose privileges will be changed (determines propagation)
-* __flag__ - any number of [oper flags](../oper_flags.md) may be added or
+* __flag__ - any number of [oper flags](../../oper_flags.md) may be added or
   removed in a single message, each as a separate parameter. those being removed
   are prefixed by `-`; those being added have
   

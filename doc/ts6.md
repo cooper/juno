@@ -1,12 +1,12 @@
 # TS6 support
 
 This document details how to use juno with software implementing the
-[TS6 linking protocol](technical/ts6.md).
+[TS6 linking protocol](technical/proto/ts6.md).
 
 The TS6 protocol module can be used to link juno with a
 [variety](#supported-software) of IRC servers and other software. While
 it is also possible to link juno servers via TS6, the native
-[Extensible Linking Protocol](technical/jelp.md) is strongly preferred for such.
+[Extensible Linking Protocol](technical/proto/jelp.md) is strongly preferred for such.
 
 ## Listening for TS6
 
@@ -28,7 +28,7 @@ option from the list of supported software below.
 
 This is a list of IRC servers and packages that have been tested and seem to
 work well with juno TS6. Other software may also be supported using
-[custom mode mappings and options](technical/ts6.md#mode-definitions-and-ircd-specific-options).
+[custom mode mappings and options](technical/proto/ts6.md#mode-definitions-and-ircd-specific-options).
 
 ## atheme
 
@@ -134,7 +134,7 @@ forward slashes (`/`) in hosts, so they are rewritten as dots (`.`).
 * __NICKDELAY__: ratbox does not support a nick delay command, which is used by
 services to prevent users from switching back to a nickname immediately after
 services forced them to a "Guest" nick. When linking ratbox to services,
-[`RESV`](technical/ts6.md#resv) is used instead, but if ratbox reaches services
+[`RESV`](technical/proto/ts6.md#resv) is used instead, but if ratbox reaches services
 indirectly via juno, it cannot understand the encapsulated
 [`NICKDELAY`](techincal/ts6.md#nickdelay) command that would normally be
 forwarded to it. To resolve this, juno rewrites `NICKDELAY` as `RESV` and

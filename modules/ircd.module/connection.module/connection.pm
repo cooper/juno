@@ -240,13 +240,13 @@ sub send {
     my ($connection, @msg) = @_;
 
     # check that there is a writable stream.
-    return unless $connection->{stream};
-    return unless $connection->{stream}->write_handle;
+    return unless $connection->stream;
+    return unless $connection->stream->write_handle;
     return if $connection->{goodbye};
     @msg = grep defined, @msg;
 my $name = $connection->type ? $connection->type->name : '(unregistered)';
 print "S[$name] $_\n" for @msg;
-    $connection->{stream}->write("$_\r\n") foreach @msg;
+    $connection->stream->write("$_\r\n") foreach @msg;
 }
 
 # send data with a source
@@ -263,14 +263,15 @@ sub sendme {
     $connection->sendfrom($source, @_);
 }
 
-sub stream { shift->{stream} }
-sub sock   { shift->{stream}{write_handle} }
-sub ip     { shift->{ip} }
+sub stream { shift->{stream}                }
+sub sock   { shift->stream->{write_handle}  }
+sub ip     { shift->{ip}                    }
 
 # send a command to a possibly unregistered connection.
 sub early_reply {
     my ($conn, $cmd) = (shift, shift);
-    $conn->sendme("$cmd ".(defined $conn->{nick} ? $conn->{nick} : '*')." @_");
+    my $target = ($conn->user || $conn)->{nick} // '*';
+    $conn->sendme("$cmd $target @_");
 }
 
 # end a connection. this must be foolproof.
@@ -305,8 +306,8 @@ sub done {
 
     # will close it WHEN the buffer is empty
     # (if the stream still exists).
-    $connection->{stream}->close_when_empty
-        if $connection->{stream} && $connection->{stream}->write_handle;
+    $connection->stream->close_when_empty
+        if $connection->stream && $connection->stream->write_handle;
 
     # destroy these references, just in case.
     delete $connection->{type}{conn};

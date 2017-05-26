@@ -2,7 +2,7 @@
 
 This is a description of the TS6 server linking protocol and
 [our implementation](#implementation) of it. For less technical
-info on how to use TS6 with juno, see [this document](../ts6.md).
+info on how to use TS6 with juno, see [this document](../../ts6.md).
 
 Based on
 [`ts6-protocol.txt`](https://github.com/charybdis-ircd/charybdis/blob/release/3.5/doc/technical/ts6-protocol.txt)

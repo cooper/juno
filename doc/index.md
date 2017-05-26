@@ -12,6 +12,9 @@
 
 ## Technical
 
-* [JELP](technical/jelp.md) - JELP linking protocol specification
-* [TS6](technical/ts6.md) - TS6 linking protocol specification
-* [user](technical/user.md) - user API
+Linking protocols
+* [JELP](technical/proto/jelp.md) - JELP linking protocol specification
+* [TS6](technical/proto/ts6.md) - TS6 linking protocol specification
+
+APIs
+* [user](technical/api/user.md) - user API

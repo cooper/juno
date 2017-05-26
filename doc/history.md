@@ -74,7 +74,7 @@ It occurred to me one day that an IRC server incapable of linking is somewhat
 impractical (as if one written in Perl were not impractical enough already). I
 decided to put the past behind and say goodbye to juno2. Another complete
 rewrite, juno3's showcase improvement was a dazzling
-[linking protocol](technical/jelp.md).
+[linking protocol](technical/proto/jelp.md).
 It was even more extensible than ever before
 with greatly improved
 [module interfaces](https://github.com/cooper/juno/tree/master/modules/Base).
@@ -114,7 +114,7 @@ been implemented in the third juno generation. kedler reintroduced
 [hostname resolving](https://github.com/cooper/juno/tree/master/modules/Resolve.module),
 a long-broken feature that
 had not worked properly since juno2. kedler featured new APIs and improvements
-to the [linking protocol](technical/jelp.md).
+to the [linking protocol](technical/proto/jelp.md).
 
 * [__vulpia__](https://github.com/cooper/juno/tree/juno7-vulpia) (juno7):
 Romanian for a female wolf, vulpia was named after the alias of a dear friend,
@@ -124,7 +124,7 @@ improvements, making the IRCd more extensible than ever before. The
 replaced the former
 [API Engine](https://github.com/cooper/api-engine), allowing modules to react to
 any event that occurs within juno. vulpia completed the relocation of
-[JELP](technical/jelp.md) (the linking protocol) to
+[JELP](technical/proto/jelp.md) (the linking protocol) to
 [an optional module](https://github.com/cooper/juno/tree/master/modules/JELP),
 opening the doors for additional linking protocols
 in the future. Additionally, it established
@@ -239,7 +239,7 @@ completed too. A new IRCd support
 interface makes it easy to add special rules for certain IRC software and also
 features inheritance of properties for derivative software.
 As usual, there were astounding improvements to [TS6](ts6.md)
-and even some enhancements to [JELP](technical/jelp.md).
+and even some enhancements to [JELP](technical/proto/jelp.md).
 
 * [__ava__](https://github.com/cooper/juno/tree/juno13-ava) (juno13):
 Several new IRCv3 features were added, particularly the improved IRCv3.2

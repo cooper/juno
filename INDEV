@@ -4074,4 +4074,4 @@ CHANGES:
         fix bug with channel->mode_parameter that caused ghosts to show up in moderefs.
         
     13. all channel send functions are now based on sendfrom_to_many().
-        add support for IRCv3.2 netjoin batch type.
+        add support for IRCv3.2 netjoin batch type. closes #172.
