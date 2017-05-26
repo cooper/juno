@@ -491,14 +491,6 @@ Requires DNSBL module.
         duration = '1d'
         reason   = "Your host is listed as a Tor node."
 
-## Administrator information
-
-[ admin ]
-
-    line1 = 'John Doe'
-    line2 = 'Server administrator'
-    email = 'admin@example.com'
-
 ## IRCd definitions
 
 These are used for linking with many types of servers. Generally you do not need
