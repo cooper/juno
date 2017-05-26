@@ -210,7 +210,8 @@ next to no effort, just copy `etc/ircd.conf.example` to `etc/ircd.conf`.
 The password for the default oper account `admin` is `k`.  
 
 The configuration is, for the most part, self-explanitory. Anything that might
-be questionable probably has a comment that explains it.
+be questionable probably has a comment that explains it. Explanations of all
+options are available in the [configuration spec](doc/config.md).
 
 Note that, because juno ships with a configuration suitable for fiddling, the
 default values in the `limit` block are rather low. A production IRC server will
