@@ -1,5 +1,7 @@
 # IRC operator flags
 
+Listed here are all available privileges for IRC operators.
+
 Anything with (g) in front of it means that the 'g' prefix is optional to
 specify whether the privilege works remotely.
 

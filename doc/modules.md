@@ -4,8 +4,8 @@ This is a complete list of the official modules packaged with the
 juno-ircd repository. juno consists of
 [under 30 lines](https://github.com/cooper/juno/blob/master/bin/ircd)
 of standalone code. The
-entire remainder consists of reloadable modules, all but one of which are
-optional.
+entire remainder consists of reloadable modules, all but [one](#ircd) of which
+are optional.
 
 Module                                              | Provides
 ---------------------------                         | ----------------------------

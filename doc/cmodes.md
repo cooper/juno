@@ -1,6 +1,10 @@
 # Channel modes
 
+Listed here are all supported channel modes and their default letters and
+types. Letters can be changed in the [configuration](config.md#channel-modes).
+
 ## Supported
+
 ```
 no_ext        = [ mode_normal, 'n' ]  # no external channel messages         (n)
 protect_topic = [ mode_normal, 't' ]  # only operators can set the topic     (t)
@@ -35,9 +39,12 @@ voice  = [ 'v', '+', -2    ]          # voiced channel member                (v)
 ```
 
 ## Not yet supported
+
+These mode names are reserved for future use and possibly tracked by juno when
+linking to other IRCd, but they are not yet supported by juno.
+
 ```
 no_nicks    = [ mode_normal, 'N' ]
 admin_only  = [ mode_normal, 'W' ]
 censor      = [ mode_list,   'g' ]
-
 ```

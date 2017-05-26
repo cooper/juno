@@ -5,6 +5,29 @@ configurable, the less frequently used ones are omitted from the
 [example configuration](https://github.com/cooper/juno/blob/master/etc/ircd.conf.example)
 but are present here.
 
+* [Server info](#server-info)
+* [Modes](#modes)
+  * [User modes](#user-modes)
+  * [Channel modes](#channel-modes)
+  * [Channel status modes](#channel-status-modes)
+* [Modules](#modules)
+* [Maximum values](#maximum-values)
+* [File paths](#file-paths)
+* [SSL](#ssl)
+* [Administrative info](#administrative-info)
+* [Server options](#server-options)
+* [User options](#user-options)
+* [Channel options](#channel-options)
+  * [Fantasy commands](#fantasy-commands)
+* [Services options](#services-options)
+* [Listening](#listening)
+* [Server uplinks](#server-uplinks)
+* [IRC operators](#irc-operators)
+* [Command aliases](#command-aliases)
+* [DNS blacklists](#dns-blacklists)
+* [Administrator information](#administrator-information)
+* [IRCd definitions](#ircd-definitions)
+
 ## Server info
 
 Basic server info.
@@ -49,7 +72,7 @@ you can safely define modes which may not even be present on the server
 - `mode_key` - channel key (special case)
 
     [ modes: channel ]
-
+    
         no_ext        = [ mode_normal, 'n' ]        # no external channel messages         (n)
         protect_topic = [ mode_normal, 't' ]        # only operators can set the topic     (t)
         invite_only   = [ mode_normal, 'i' ]        # you must be invited to join          (i)
@@ -204,7 +227,7 @@ Limits and maximum lengths.
 ## Administrative info
 
     [ admin ]
-
+    
         line1 = 'John Doe'
         line2 = 'Server administrator'
         email = 'admin@example.com'

@@ -8,6 +8,25 @@ Based on
 [`ts6-protocol.txt`](https://github.com/charybdis-ircd/charybdis/blob/release/3.5/doc/technical/ts6-protocol.txt)
 from the charybdis technical documentation. Written by Jilles Tjoelker.
 
+* [Glossary](#glossary)
+* [Propagation](#propagation)
+* [Connection setup](#connection-setup)
+* [Modes](#modes)
+* [Commands](#commands)
+* [Implementation](#implementation)
+* [Server capabilities](#server-capabilities)
+  * [Required](#required)
+  * [Supported](#supported)
+* [Mode definitions and IRCd\-specific options](#mode-definitions-and-ircd-specific-options)
+* [Mode translation](#mode-translation)
+  * [Omission of unknown modes](#omission-of-unknown-modes)
+  * [Status message targets](#status-message-targets)
+* [SID, UID conversion](#sid-uid-conversion)
+* [K\-Lines, D\-Lines, etc\.](#k-lines-d-lines-etc)
+  * [Durations](#durations)
+  * [Command preference](#command-preference)
+* [SASL](#sasl-1)
+
 ## Glossary
 
 * __SID__ - a server's unique ID. It is configured in each server and consists of

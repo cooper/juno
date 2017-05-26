@@ -1,5 +1,8 @@
 # User modes
 
+Listed here are all available user modes and their default letters. The letters
+can be changed in the [configuration](config.md#user-modes).
+
 ```
 ircop         = 'o'  # IRC operator                         (o)
 invisible     = 'i'  # invisible mode                       (i)

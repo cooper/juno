@@ -10,6 +10,18 @@ with juno.
 This document is to be used as reference when implementing IRC servers and
 pseudoservers.
 
+* [Format](#format)
+  * [Line delimiters](#line-delimiters)
+  * [Entity identifiers](#entity-identifiers)
+  * [Message tags](#message-tags)
+* [Propagation](#propagation)
+* [Connection setup](#connection-setup)
+  * [Burst](#burst)
+* [Modes](#modes)
+* [Required core commands](#required-core-commands)
+* [Optional core commands](#optional-core-commands)
+* [Extension commands](#extension-commands)
+
 ## Format
 
 The protocol resembles [RFC1459](https://tools.ietf.org/html/rfc1459) in that

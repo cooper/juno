@@ -1,5 +1,7 @@
 # Oper notice flags
 
+Listed here are all available oper notice flags.
+
 Too lazy to write a proper description for these, so here they are. I will do
 that eventually though, probably after adding notice classes/categories.
 
