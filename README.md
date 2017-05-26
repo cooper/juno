@@ -40,7 +40,7 @@ You can
   from IRC.
 * [Link](doc/ts6.md#supported-software) a complex network of various IRCds and
   services packages spanning multiple server protocols.
-* [Write](doc/index.md#technical) modules for the easy-to-use and event-based
+* [Write](doc/index.md#technical) modules for the easy-to-use event-based
   module API.
 * Or rather, [beg us](http://juno.notroll.net/page/chat) to add the features you
   want.
@@ -49,7 +49,8 @@ Plus, juno-ircd
 
 * Is free and open-source.
 * Is written in Perl, making it fun and easy to tinker with.
-* Is extensively configurable.
+* Is extensively [documented](doc/index.md).
+* Is excessively [configurable](doc/config.md).
 * Despite that, ships with a working configuration and runs out-of-the-box.
 * Consists entirely of [modules](doc/modules.md) and therefore can be as minimal
   or as bloated as you're comfortable with.
@@ -129,8 +130,9 @@ versions, all without your users disconnecting.
 ```
 
 * __Configurability__: Very few values are hard coded. Many have defaults, but
-nearly everything is configurable. In spite of that, the included working
-configuration is minimal and easy-to-follow. This is made possible by
+nearly everything is [configurable](doc/config.md). In spite of that, the
+included working configuration is minimal and easy-to-follow. This is made
+possible by
 [Evented::Configuration](https://github.com/cooper/evented-configuration).
 [Real-time modification](doc/modules.md#configurationset) of the configuration
 is also feasible, thanks to

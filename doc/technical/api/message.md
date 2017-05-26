@@ -111,8 +111,9 @@ my $user = $msg->source or die "Can't find Nick\n";
 $user->get_killed_by($me, 'Please don\'t spam!');
 ```
 
-Returns the message source object. If a source cannot be resolved,
-returns `undef`.
+Returns the message source object. It may be a server or user object. It could
+also be a connection object if the message was received from an unregistered
+client. If a source cannot be resolved, returns `undef`.
 
 ### $msg->event
 
