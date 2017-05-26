@@ -1,7 +1,8 @@
 # user
 
-The `ircd::user` submodule of [ircd](ircd.md) provides the `user` package whose
-instances represent IRC users, both local and remote.
+Instances of the `user` package represent IRC users, both local and remote.
+The package is provided by the ircd::user submodule of
+[ircd](../../modules.md#ircd).
 
 ## Low-level methods
 

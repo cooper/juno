@@ -300,7 +300,6 @@ sub source {
 
     # it's some other object.
     return $msg->{source};
-
 }
 
 # my ($ok, @params) = $msg->parse_params($param_string)
