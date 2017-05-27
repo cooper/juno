@@ -25,6 +25,7 @@ Module                                              | Provides
 [Channel::JoinThrottle](#channeljoin)               | Channel join throttle (+j)
 [Channel::Key](#channelkey)                         | Channel keyword (+k)
 [Channel::Knock](#channelknock)                     | Channel knocking (`KNOCK`)
+[Channel::LargeList](#channellargelist)             | Channel list mode limit increase (+L)
 [Channel::Limit](#channellimit)                     | Channel user limit (+l)
 [Channel::ModeSync](#channelmodesync)               | Channel mode synchronization (`MODESYNC`)
 [Channel::Mute](#channelmute)                       | Channel mutes (+Z)
@@ -416,6 +417,17 @@ private (+p), knocking is never permitted.
 KNOCK <channel>
 ```
 * __channel__ - the channel you would like an invitation to.
+
+
+## Channel::LargeList
+
+__Channel::LargeList__ adds support for large lists (+L).
+
+It increases the maximum number of entries for list modes to the value set by
+[`channels:max_list_entries_large`](config.md#channel-options).
+
+This mode can only be set by IRC operators with the
+[`set_large_banlist`](oper_flags.md#set_large_banlist) flag.
 
 ## Channel::Limit
 

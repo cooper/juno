@@ -29,4 +29,5 @@ Linking protocols
 
 APIs
 * [user](technical/api/user.md) - Represents an IRC user
+* [channel](technical/api/channel.md) - Represents an IRC channel
 * [message](technical/api/message.md) - Represents an IRC message
