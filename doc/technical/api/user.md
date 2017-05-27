@@ -793,8 +793,6 @@ Sends a piece of data to several users at once from the specified source. Even
 if any user occurs multiple times in the list, the message will only be sent
 once to each user.  
 
-Note: A variant of this function exists for sending to
-
 ```perl
 user::sendfrom_to_many($user->full, 'NICK steve', @users, $user);
 # the above sends a NICK message as follows: :user!ident@host NICK steve

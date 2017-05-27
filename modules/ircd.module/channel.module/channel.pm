@@ -184,9 +184,6 @@ sub add_to_list {
 # returns true if something was removed.
 sub remove_from_list {
     my ($channel, $name, $what) = @_;
-    
-    # it's not there
-    return unless $channel->list_has($name, $what);
 
     # grep it out
     my @old = ref_to_list($channel->{modes}{$name}{list});
@@ -480,8 +477,7 @@ sub mode_string_with {
 # returns a +modes string.
 sub mode_string {
     my ($channel, $server) = @_;
-    # acceptable types are 0 (normal), 1 (parameter), 2 (parameter_set),
-    # and possibly 5 (hidden), if showing hidden.
+    # acceptable types are 0 (normal), 1 (parameter), 2 (parameter_set)
     return $channel->mode_string_with($server, 0, 1, 2);
 }
 
@@ -514,7 +510,7 @@ sub user_is_at_least {
 }
 
 # returns true value only if the passed user has status
-# greater than voice (halfop, op, admin, owner)
+# greater than or equal to halfop
 sub user_has_basic_status {
     my ($channel, $user) = @_;
     return $channel->user_get_highest_level($user) >= $LEVEL_SIMPLE_MODES;
