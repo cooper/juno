@@ -30,7 +30,7 @@ my $user = $pool->new_user(
 );
 ```
 
-* __%opts__: a hash of constructor options.
+* __%opts__ - a hash of constructor options.
 
 ### $user->is_mode($mode_name)
 
@@ -42,7 +42,7 @@ if ($user->is_mode('ircop')) {
 }
 ```
 
-* __$mode_name__: the name of the mode being tested.
+* __$mode_name__ - the name of the mode being tested.
 
 ### $user->set_mode($mode_name)
 
@@ -59,7 +59,7 @@ if (password_correct($pw)) {
 }
 ```
 
-* __$mode_name__: the name of the mode being set.
+* __$mode_name__ - the name of the mode being set.
 
 ### $user->unset_mode($mode_name)
 
@@ -74,7 +74,7 @@ for ways to achieve that.
 $user->unset_mode('invisible');
 ```
 
-* __$mode_name__: the name of the mode being unset.
+* __$mode_name__ - the name of the mode being unset.
 
 ### $user->handle_mode_string($mode_string, $force)
 
@@ -93,9 +93,9 @@ Returns a mode string of changes that occurred such as `+ix`.
 $user->handle_mode_string('+o', 1);
 ```
 
-* __$mode_string__: the mode string to be handled; e.g. `+iox`. this is in the
+* __$mode_string__ - the mode string to be handled; e.g. `+iox`. this is in the
 perspective of the user's server, `$user->server`.
-* __$force__: _optional_, if true, failure of user mode blocks will be ignored,
+* __$force__ - _optional_, if true, failure of user mode blocks will be ignored,
 forcing the changes.
 
 ### $user->mode_string
@@ -120,7 +120,7 @@ if (!$user->has_flag('gkill')) {
 }
 ```
 
-* __$flag__: the name of the flag being tested; e.g. `kill`.
+* __$flag__ - the name of the flag being tested; e.g. `kill`.
 
 ### $user->add_flags(@flags)
 
@@ -133,7 +133,7 @@ the change. There is currently no method for safely adding flags, so
 $user->add_flags('kill', 'gkill');
 ```
 
-* __@flags__: a list of oper flags to add.
+* __@flags__ - a list of oper flags to add.
 
 ### $user->remove_flags(@flags)
 
@@ -146,7 +146,7 @@ change. There is currently no method for safely removing flags, so
 $user->remove_flags('kill', 'gkill');
 ```
 
-* __@flags__: a list of oper flags to remove.
+* __@flags__ - a list of oper flags to remove.
 
 ### $user->update_flags
 
@@ -165,7 +165,7 @@ if ($user->has_notice('user_nick_change')) {
 }
 ```
 
-* __$flag__: the oper notice flag being tested.
+* __$flag__ - the oper notice flag being tested.
 
 ### $user->add_notices(@flags)
 
@@ -176,7 +176,7 @@ Oper notices are not propagated across servers.
 $user->add_notices('user_nick_change', 'user_killed');
 ```
 
-* __@flags__: a list of oper notice flags to enable.
+* __@flags__ - a list of oper notice flags to enable.
 
 ### $user->change_nick($new_nick)
 
@@ -190,7 +190,7 @@ Returns the new nickname if successful otherwise `undef`.
 $user->change_nick('newbie');
 ```
 
-* __$new_nick__: the nickname to replace the current nickname.
+* __$new_nick__ - the nickname to replace the current nickname.
 
 ### $user->set_away($reason)
 
@@ -204,7 +204,7 @@ local clients.
 $user->set_away('Be back later.');
 ```
 
-* __$reason__: the comment for why the user is away.
+* __$reason__ - the comment for why the user is away.
 
 ### $user->unset_away
 
@@ -234,7 +234,7 @@ disposal.
 $user->quit('~ <insert some sort of meaningless quote here>');
 ```
 
-* __$reason__: the reason for quitting.
+* __$reason__ - the reason for quitting.
 
 ### $user->channels
 
@@ -309,7 +309,7 @@ $user->hops_to($user);          # 0
 $user->hops_to($other_server);  # 1
 ```
 
-* __$target__: either a user or server object. if it's a user, the result is the
+* __$target__ - either a user or server object. if it's a user, the result is the
 same as calling with `$target->server`.
 
 ### $user->id
@@ -364,9 +364,9 @@ $user->server_notice('A client is connecting.');
 $user->server_notice(kill => $other_user->name.' was killed');
 ```
 
-* __$info__: _optional_, a brief description of the notice which will be
+* __$info__ - _optional_, a brief description of the notice which will be
 formatted in an appealing way; e.g. 'kill' for a kill command result.
-* __$message__: the notice message to send to the user.
+* __$message__ - the notice message to send to the user.
 
 ### $user->numeric($const, @args)
 
@@ -378,8 +378,8 @@ servers do not have to understand the numeric.
 $user->numeric(RPL_MAP => $spaces, $server->name, $users, $per);
 ```
 
-* __$const__: the string name of the numeric reply.
-* __@args__: _optional_ (depending on the numeric), a list of arguments for the
+* __$const__ - the string name of the numeric reply.
+* __@args__ - _optional_ (depending on the numeric), a list of arguments for the
 user numeric handler.
 
 ### $user->simulate_numeric($const, @args)
@@ -402,7 +402,7 @@ fail if the user is not connected directly to the local server.
 $user->handle_unsafe("TOPIC $ch_name :$new_topic");
 ```
 
-* __$data__: one or more _complete_ lines of data, including any possible
+* __$data__ - one or more _complete_ lines of data, including any possible
 trailing newlines or carriage returns.
 
 ### $user->handle_with_opts_unsafe($data, %opts)
@@ -414,9 +414,9 @@ options will be passed to the underlying call.
 $user->handle_with_opts_unsafe("TOPIC $ch_name :$new_topic", fantasy => 1);
 ```
 
-* __$data__: one or more _complete_ lines of data, including any possible
+* __$data__ - one or more _complete_ lines of data, including any possible
 trailing newlines or carriage returns.
-* __%opts__: _optional_, a hash of options to pass to the underlying function
+* __%opts__ - _optional_, a hash of options to pass to the underlying function
 call.
 
 ### $user->get_killed_by($murderer, $reason)
@@ -433,8 +433,8 @@ my $reason = "Your behavior is not conducive to the desired environment.";
 $user->get_killed_by($other_user, $reason);
 ```
 
-* __$murderer__: the user committing the action.
-* __$reason__: the comment for why the user was killed.
+* __$murderer__ - the user committing the action.
+* __$reason__ - the comment for why the user was killed.
 
 ### $user->get_mask_changed($new_ident, $new_host)
 
@@ -455,8 +455,8 @@ $user->get_mask_changed('someone', 'my.vhost');
 $user->get_mask_changed($user->{ident}, 'my.vhost');
 ```
 
-* __$new_ident__: the new ident. if unchanged, the current ident MUST be passed.
-* __$new_host__: the new cloak. if unchanged, the current cloak MUST be passed.
+* __$new_ident__ - the new ident. if unchanged, the current ident MUST be passed.
+* __$new_host__ - the new cloak. if unchanged, the current cloak MUST be passed.
 
 ### $user->save_locally
 
@@ -493,7 +493,7 @@ $user->do_away("Be back later");
 $user->do_away(undef);
 ```
 
-* __$reason__: _optional_, the away comment. if undefined or empty string,
+* __$reason__ - _optional_, the away comment. if undefined or empty string,
 the user is considered to have returned from being away.
 
 ### $user->do_away_local($reason)
@@ -528,8 +528,8 @@ capability.
 $user->do_login($act_name);
 ```
 
-* __$act_name__: the name of the account.
-* __$no_num__: _optional_, if provided, the user will not receive a numeric
+* __$act_name__ - the name of the account.
+* __$no_num__ - _optional_, if provided, the user will not receive a numeric
 reply. this is useful if the reply was already sent before calling this method,
 such as during SASL authentication.
 
@@ -569,17 +569,17 @@ appropriate uplink.
 $target->do_privmsgnotice('notice', $someone, 'hi there');
 ```
 
-* __$command__: either 'privmsg' or 'notice'. case-insensitive.
-* __$source__: a user or server object which is the source of the message.
-* __$message__: the message text was it was received.
-* __%opts__: _optional_, a hash of options.
+* __$command__ - either 'privmsg' or 'notice'. case-insensitive.
+* __$source__ - a user or server object which is the source of the message.
+* __$message__ - the message text was it was received.
+* __%opts__ - _optional_, a hash of options.
 
 __%opts__
-* __force__: if specified, the `can_privmsg`, `can_notice`, and `can_message`
+* __force__ - if specified, the `can_privmsg`, `can_notice`, and `can_message`
  events will not be fired. this means that any modules that prevent the message
  from being sent OR that modify the message will NOT have an effect on this
  message. used when receiving remote messages.
-* __dont_forward__: if specified, the message will NOT be forwarded to other
+* __dont_forward__ - if specified, the message will NOT be forwarded to other
  servers if the user is not local.
 
 ### $user->do_privmsgnotice_local($command, $source, $message, %opts)
@@ -598,9 +598,9 @@ be forwarded and handled on child servers.
 $user->do_mode_string('+io', 1);
 ```
 
-* __$mode_string__: the mode string to be handled; e.g. `+iox`. this is in the
+* __$mode_string__ - the mode string to be handled; e.g. `+iox`. this is in the
 perspective of the user's server, `$user->server`.
-* __$force__: _optional_, if true, failure of user mode blocks will be ignored,
+* __$force__ - _optional_, if true, failure of user mode blocks will be ignored,
 forcing the changes.
 
 ### $user->do_mode_string_local($mode_string, $force)
@@ -618,9 +618,9 @@ servers.
 $user->do_mode_string_local('+i');
 ```
 
-* __$mode_string__: the mode string to be handled; e.g. `+iox`. this is in the
+* __$mode_string__ - the mode string to be handled; e.g. `+iox`. this is in the
 perspective of the user's server, `$user->server`.
-* __$force__: _optional_, if true, failure of user mode blocks will be ignored,
+* __$force__ - _optional_, if true, failure of user mode blocks will be ignored,
 forcing the changes.
 
 ### $user->send_to_channels($line, %opts)
@@ -636,8 +636,8 @@ $user->send_to_channels('NICK steve');
 # sends :nick!user@host NICK steve to all users in a common channel with him
 ```
 
-* __$line__: a line of data WITHOUT a suffixing newline and carriage return.
-* __%opts__: _optional_, a hash of options to pass to the underlying
+* __$line__ - a line of data WITHOUT a suffixing newline and carriage return.
+* __%opts__ - _optional_, a hash of options to pass to the underlying
 `sendfrom_to_many_with_opts()` function.
 
 ## Local-only methods
@@ -664,7 +664,7 @@ from a remote user may be dangerous but can be achieved instead with
 $user->handle("MOTD $$serv{name}");
 ```
 
-* __$data__: one or more _complete_ lines of data, including any possible
+* __$data__ - one or more _complete_ lines of data, including any possible
 trailing newlines or carriage returns.
 
 ### $user->handle_with_opts($data, %opts)
@@ -676,9 +676,9 @@ be passed to the underlying call.
 $user->handle_with_opts("MODE $$channel{name}", fantasy => 1);
 ```
 
-* __$data__: one or more _complete_ lines of data, including any possible
+* __$data__ - one or more _complete_ lines of data, including any possible
 trailing newlines or carriage returns.
-* __%opts__: _optional_, a hash of options to pass to the underlying function
+* __%opts__ - _optional_, a hash of options to pass to the underlying function
 call.
 
 ### $user->send($line)
@@ -695,7 +695,7 @@ other sending methods work on remote users such as
 $user->send(':'.$me->name.' NOTICE '.$user->name.' :welcome to our server');
 ```
 
-* __$line__: a line of data WITHOUT a suffixing newline and carriage return.
+* __$line__ - a line of data WITHOUT a suffixing newline and carriage return.
 
 ### $user->sendfrom($from, $line)
 
@@ -715,8 +715,8 @@ $user->sendfrom($ouser->full, 'AWAY :gtg bye');
 $user->send(':'.$ouser->full.' AWAY :gtg bye');
 ```
 
-* __$from__: the source string of the message.
-* __$line__: a line of data WITHOUT a suffixing newline and carriage return.
+* __$from__ - the source string of the message.
+* __$line__ - a line of data WITHOUT a suffixing newline and carriage return.
 
 ### $user->sendme($line)
 
@@ -735,7 +735,7 @@ $user->send(':'.$me->name." NOTICE $$user{nick} :Hi!");
 $user->server_notice('Hi!');
 ```
 
-* __$line__: a line of data WITHOUT a suffixing newline and carriage return.
+* __$line__ - a line of data WITHOUT a suffixing newline and carriage return.
 
 ### $user->has_cap($flag)
 
@@ -747,7 +747,7 @@ if ($user->has_cap('away-notify')) {
 }
 ```
 
-* __$flag__: the name of the capability.
+* __$flag__ - the name of the capability.
 
 ### $user->add_cap($flag)
 
@@ -757,7 +757,7 @@ Enables a client capability.
 $user->add_cap('userhost-in-names');
 ```
 
-* __$flag__: the name of the capability.
+* __$flag__ - the name of the capability.
 
 ### $user->remove_cap($flag)
 
@@ -767,7 +767,7 @@ Disables a client capability.
 $user->remove_cap('multi-prefix');
 ```
 
-* __$flag__: the name of the capability.
+* __$flag__ - the name of the capability.
 
 ### $user->forward($event_name, @args)
 
@@ -799,9 +799,9 @@ user::sendfrom_to_many($user->full, 'NICK steve', @users, $user);
 # to all of the users within the list @users as well as himself.
 ```
 
-* __$from__: the source string of the message.
-* __$line__: a line of data WITHOUT a suffixing newline and carriage return.
-* __@users__: a list of users to send the data to.
+* __$from__ - the source string of the message.
+* __$line__ - a line of data WITHOUT a suffixing newline and carriage return.
+* __@users__ - a list of users to send the data to.
 
 ### sendfrom_to_many_with_opts($from, $line, \%opts, @users)
 
@@ -816,10 +816,27 @@ user::sendfrom_to_many($user->full, 'NICK steve', $opts, @users);
 # to all of the users in @users other than $user
 ```
 
-* __$from__: the source string of the message.
-* __$line__: a line of data WITHOUT a suffixing newline and carriage return.
-* __\%opts__: _optional_, a hash reference of options.
-* __@users__: a list of users to send the data to.
+* __$from__ - the source string of the message.
+* __$line__ - a line of data WITHOUT a suffixing newline and carriage return.
+* __\%opts__ - _optional_, a hash reference of options.
+* __@users__ - a list of users to send the data to.
+
+#### Supported options
+
+* __ignore__ - _optional_, a user object to ignore. if it is found in the
+provided list of users, it is skipped. the user will receive no data.
+* __no_self__ - _optional_, if true, the user identified by the mask `$from` will
+be ignored. the user will be skipped and will receive no data. this is
+particularly useful for messages intended to notify other local clients about
+the user's changes but which are not necessary to send to the user himself due
+to other numeric replies.
+* __cap__ - _optional_, a client capability. if provided, the message will only
+be sent to users with this capability enabled.
+* __alt__ - _optional_, if the `cap` option was provided, this option
+defines an alternative line of data to send to users without the specified
+capability. without `cap`, this option has no effect.
+* __batch__ - _optional_, a batch that this message belongs to, as returned by
+[`message->new_batch()`](message.md#message-new_batchbatch_type-params).
 
 ### sendfrom_to_all($from, $line)
 
@@ -830,23 +847,6 @@ sends the message to all local users.
 
 Like [`sendfrom_to_many_with_opts()`](#sendfrom_to_many_with_optsfrom-line-opts-users),
 except that it sends the message to all local users.
-
-#### Supported options
-
-* __ignore__: _optional_, a user object to ignore. if it is found in the
-provided list of users, it is skipped. the user will receive no data.
-* __no_self__: _optional_, if true, the user identified by the mask `$from` will
-be ignored. the user will be skipped and will receive no data. this is
-particularly useful for messages intended to notify other local clients about
-the user's changes but which are not necessary to send to the user himself due
-to other numeric replies.
-* __cap__: _optional_, a client capability. if provided, the message will only
-be sent to users with this capability enabled.
-* __alt__: _optional_, if the `cap` option was provided, this option
-defines an alternative line of data to send to users without the specified
-capability. without `cap`, this option has no effect.
-* __batch__: _optional_, a batch that this message belongs to, as returned by
-[`message->new_batch()`](message.md#message-new_batchbatch_type-params).
 
 ## Events
 
@@ -891,7 +891,7 @@ $pool->on('user.can_join' => sub {
 }, name => 'has.invite', priority => 20);
 ```
 
-* __$channel__: the channel the user is attempting to join.
+* __$channel__ - the channel the user is attempting to join.
 
 ### user.can_invite($t_user, $ch_name, $channel, $quiet)
 
@@ -922,12 +922,12 @@ $pool->on('user.can_invite' => sub {
 }, name => 'target.in.channel', priority => 20);
 ```
 
-* __$t_user__: the local or remote user that we are sending an invitation to.
-* __$ch_name__: the name of the channel `$t_user` is being invited to. this is
+* __$t_user__ - the local or remote user that we are sending an invitation to.
+* __$ch_name__ - the name of the channel `$t_user` is being invited to. this is
 necessary because we allow invitations to nonexistent channels
 (unless `channels:invite_must_exist` is enabled).
-* __$channel__: the channel object or `undef` if it does not yet exist.
-* __$quiet__: if true, the handler MUST NOT send error replies to the user.
+* __$channel__ - the channel object or `undef` if it does not yet exist.
+* __$quiet__ - if true, the handler MUST NOT send error replies to the user.
 
 ### user.can_message($target, \$message, $lc_cmd)
 
@@ -977,10 +977,10 @@ $pool->on('user.can_message_channel' => sub {
 }, name => 'no.external.messages', with_eo => 1, priority => 30);
 ```
 
-* __$target__: the message target. a user or channel object.
-* __\$message__: a scalar reference to the message text. callbacks may
+* __$target__ - the message target. a user or channel object.
+* __\$message__ - a scalar reference to the message text. callbacks may
  overwrite this to modify the message.
-* __$lc_cmd__: `privmsg` or `notice`. only useful for `can_message_*` events.
+* __$lc_cmd__ - `privmsg` or `notice`. only useful for `can_message_*` events.
 
 ### user.cant_message($target, $message, $can_fire, $lc_cmd)
 
@@ -998,12 +998,12 @@ You can hook onto this event using any of these:
 | __cant_notice_user__       | `NOTICE`  | User      |
 | __cant_notice_channel__    | `NOTICE`  | Channel   |
 
-* __$target__: the message target. a user or channel object.
-* __$message__: the message text.
-* __$can_fire__: the event fire object from the `can_message` and related
+* __$target__ - the message target. a user or channel object.
+* __$message__ - the message text.
+* __$can_fire__ - the event fire object from the `can_message` and related
   events. this is useful for extracting information about why the message was
   blocked.
-* __$lc_cmd__: `privmsg` or `notice`. only useful for `cant_message_*` events.
+* __$lc_cmd__ - `privmsg` or `notice`. only useful for `cant_message_*` events.
 
 ### user.can_receive_message($target, \$message, $lc_cmd)
 
@@ -1033,9 +1033,9 @@ You can hook onto this event using any of these:
 | __can_receive_notice_user__       | `NOTICE`  | User      |
 | __can_receive_notice_channel__    | `NOTICE`  | Channel   |
 
-* __$target__: the message target. a user or channel object.
-* __\$message__: a scalar reference to the message text. callbacks may
+* __$target__ - the message target. a user or channel object.
+* __\$message__ - a scalar reference to the message text. callbacks may
  overwrite this to modify the message. unlike `can_message`, changes to it will
  only affect what the user the event is fired on sees.
-* __$lc_cmd__: `privmsg` or `notice`. only useful for `can_receive_message_*`
+* __$lc_cmd__ - `privmsg` or `notice`. only useful for `can_receive_message_*`
  events.
