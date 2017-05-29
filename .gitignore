@@ -19,6 +19,7 @@ DerivedData
 
 etc/*.conf
 !etc/default.conf
+!etc/class.conf
 etc/*.db
 etc/*.pid
 etc/HUP

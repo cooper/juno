@@ -72,20 +72,9 @@
     #LOLCAT                     # SPEEK LIEK A LOLCATZ!
 
 
-# Maximum values
-
 [ limit ]
 
-    # Maximum number of:
-
-    connection  = 100                           # connections
-    perip       = 3                             # local  connections per IP address
-    globalperip = 5                             # global connections per IP address
-    client      = 80                            # users (currently unused)
-    bytes_line  = 2048                          # bytes per line
-    lines_sec   = 30                            # lines per second
-    channel     = 100                           # channels a user can be in at once
-    monitor     = 100                           # monitor entries; off = unlimited
+    connection  = 100                           # max local connections
 
     # Maximum number of characters in:
 
@@ -95,8 +84,8 @@
     channelname = 50                            # channel names
     away        = 100                           # away messages
     key         = 50                            # channel keys
-
-
+    
+    
 # File paths
 
 [ file ]
@@ -181,8 +170,9 @@
         send_password = 'k'
 
     # Incoming password and the encryption for it.
+    # Use ./juno mkpasswd to generated an encrypted password.
     # Accepted crypts: sha1, sha224, sha256, sha384, sha512, md5, none
-
+    
         receive_password = '13fbd79c3d390e5d6585a21e11ff5ec1970cff0c'
         encryption       = 'sha1'
 
@@ -215,6 +205,7 @@
 
     # The password and encryption for it.
     # Use ./juno mkpasswd to generated an encrypted password.
+    # Accepted crypts: sha1, sha224, sha256, sha384, sha512, md5, none
 
         password   = '13fbd79c3d390e5d6585a21e11ff5ec1970cff0c'
         encryption = 'sha1'
@@ -293,3 +284,7 @@
     line1 = 'John Doe'
     line2 = 'Server administrator'
     email = 'admin@example.com'
+    
+# Connection classes
+
+[ include: class.conf ]

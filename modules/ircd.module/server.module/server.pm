@@ -252,11 +252,6 @@ sub cmode_takes_parameter {
 # true only for the local server
 sub is_local { shift == $me }
 
-# sub DESTROY {
-#     my $server = shift;
-#     L("$server destroyed");
-# }
-
 # servers which are direct children of this one
 sub children {
     my $server = shift;

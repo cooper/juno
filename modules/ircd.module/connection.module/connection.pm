@@ -1,4 +1,4 @@
-# Copyright (c) 2009-16, Mitchell Cooper
+# Copyright (c) 2009-17, Mitchell Cooper
 #
 # @name:            "ircd::connection"
 # @package:         "connection"
@@ -20,15 +20,15 @@ use parent 'Evented::Object';
 
 use Socket::GetAddrInfo;
 use Scalar::Util qw(weaken blessed looks_like_number);
-use utils qw(conf v notice broadcast);
+use utils qw(conf v notice broadcast irc_match ref_to_list);
 
-our ($api, $mod, $me, $pool);
+our ($api, $mod, $me, $pool, $conf);
 
 sub init {
 
     # send unknown command. this is canceled by handlers.
     $pool->on('connection.message' => sub {
-        my ($connection, $event, $msg) = @_;
+        my ($conn, $event, $msg) = @_;
 
         # ignore things that aren't a big deal.
         return if $msg->command eq 'NOTICE' && ($msg->param(0) || '') eq '*';
@@ -36,17 +36,17 @@ sub init {
         return if looks_like_number($msg->command); # numeric
 
         # server command unknown.
-        if ($connection->server) {
-            my ($command, $name) = ($msg->command, $connection->server->name);
-            my $proto = $connection->server->{link_type};
+        if ($conn->server) {
+            my ($command, $name) = ($msg->command, $conn->server->name);
+            my $proto = $conn->server->{link_type};
             notice(server_protocol_warning =>
-                $connection->server->notice_info,
+                $conn->server->notice_info,
                 "sent $command which is unknown by $proto; ignored"
             );
             return;
         }
 
-        $connection->numeric(ERR_UNKNOWNCOMMAND => $msg->raw_cmd);
+        $conn->numeric(ERR_UNKNOWNCOMMAND => $msg->raw_cmd);
         return;
     }, name => 'ERR_UNKNOWNCOMMAND', priority => -200, with_eo => 1);
 
@@ -61,7 +61,7 @@ sub new {
     $ip = utils::safe_ip(utils::embedded_ipv4($ip) || $ip);
 
     # create the connection object.
-    bless my $connection = {
+    bless my $conn = {
         stream        => $stream,
         ip            => $ip,
         host          => $ip,
@@ -79,30 +79,30 @@ sub new {
     # two initial waits:
     # in clients - one for NICK   (id1), one for USER (id2).
     # in servers - one for SERVER (id1), one for PASS (id2).
-    $connection->reg_wait('id1');
-    $connection->reg_wait('id2');
+    $conn->reg_wait('id1');
+    $conn->reg_wait('id2');
 
-    return $connection;
+    return $conn;
 }
 
 sub handle {
-    my ($connection, $data) = @_;
+    my ($conn, $data) = @_;
 
     # update ping information.
-    $connection->{ping_in_air}   = 0;
-    $connection->{last_response} = time;
-    delete $connection->{warned_ping};
+    $conn->{ping_in_air}   = 0;
+    $conn->{last_response} = time;
+    delete $conn->{warned_ping};
 
     # connection is being closed or empty line.
-    return if $connection->{goodbye} || !length $data;
+    return if $conn->{goodbye} || !length $data;
 
-my $name = $connection->type ? $connection->type->name : '(unregistered)';
+my $name = $conn->type ? $conn->type->name : '(unregistered)';
 print "R[$name] $data\n";
 
     # create a message.
     my $msg = message->new(
         data            => $data,
-        source          => $connection,
+        source          => $conn,
         real_message    => 1
     );
     my $cmd = $msg->command;
@@ -114,14 +114,14 @@ print "R[$name] $data\n";
     );
 
     # user events.
-    if (my $user = $connection->user) {
+    if (my $user = $conn->user) {
         push @events, $user->_events_for_message($msg);
-        $connection->{last_command} = time
+        $conn->{last_command} = time
             unless $cmd eq 'PING' || $cmd eq 'PONG';
     }
 
     # server $PROTO_message events.
-    elsif (my $server = $connection->server) {
+    elsif (my $server = $conn->server) {
         my $proto = $server->{link_type};
         push @events, [ $server, "${proto}_message"        => $msg ],
                       [ $server, "${proto}_message_${cmd}" => $msg ];
@@ -129,7 +129,7 @@ print "R[$name] $data\n";
     }
 
     # fire with safe option.
-    my $fire = $connection->prepare(@events)->fire('safe');
+    my $fire = $conn->prepare(@events)->fire('safe');
 
     # an exception occurred.
     if (my $e = $fire->exception) {
@@ -143,79 +143,89 @@ print "R[$name] $data\n";
 
 # increase the wait count.
 sub reg_wait {
-    my ($connection, $name) = @_;
-    $connection->{wait} or return;
-    $connection->{wait}{$name} = 1;
+    my ($conn, $name) = @_;
+    $conn->{wait} or return;
+    $conn->{wait}{$name} = 1;
 }
 
 # decrease the wait count.
 sub reg_continue {
-    my ($connection, $name) = @_;
-    $connection->{wait} or return;
-    delete $connection->{wait}{$name};
-    $connection->ready unless scalar keys %{ $connection->{wait} };
+    my ($conn, $name) = @_;
+    $conn->{wait} or return;
+    delete $conn->{wait}{$name};
+    $conn->ready unless scalar keys %{ $conn->{wait} };
 }
 
 sub ready {
-    my $connection = shift;
-    return if $connection->{ready} || $connection->{done};
-    $connection->fire('ready');
+    my $conn = shift;
+    
+    # already ready, or connection has been closed
+    return if $conn->{ready} || $conn->{goodbye};
+
+    # guess what type of connection this is
+    $conn->{looks_like_user} =
+        length $conn->{nick} && length $conn->{ident};
+    $conn->{looks_like_server} =
+        length $conn->{name};
+
+    # check for errors
+    if (my $err = $conn->verify) {
+        $conn->done($err);
+        return;
+    }
+
+    # Safe point - ready!
+    $conn->fire('ready');
 
     # must be a user.
-    if (length $connection->{nick} && length $connection->{ident}) {
-
-        # if the client limit has been reached, hang up.
-        if (scalar $pool->real_local_users >= conf('limit', 'client')) {
-            $connection->done('Not accepting clients');
-            return;
-        }
+    if ($conn->{looks_like_user}) {
 
         # check if the ident is valid.
-        if (!utils::validident($connection->{ident})) {
-            $connection->early_reply(NOTICE =>
+        if (!utils::validident($conn->{ident})) {
+            $conn->early_reply(NOTICE =>
                 ':*** Your username is invalid.');
-            $connection->done("Invalid username [$$connection{ident}]");
+            $conn->done("Invalid username [$$conn{ident}]");
             return;
         }
 
         # at this point, if a user by this nick exists, fall back to UID.
-        delete $connection->{nick}
-            if $pool->lookup_user_nick($connection->{nick});
+        delete $conn->{nick}
+            if $pool->lookup_user_nick($conn->{nick});
 
         # create a new user.
-        my $user = $connection->{type} = $pool->new_user(
-            %$connection,
+        my $user = $conn->{type} = $pool->new_user(
+            %$conn,
             $Evented::Object::props  => {},
             $Evented::Object::events => {}
         );
 
-        weaken($user->{conn} = $connection);
-        $connection->fire(user_ready => $user);
+        weaken($user->{conn} = $conn);
+        $conn->fire(user_ready => $user);
 
         # we notify other servers of the new user in $user->_new_connection
     }
 
     # must be a server.
-    elsif (length $connection->{name}) {
-        my $name = $connection->{name};
+    elsif ($conn->{looks_like_server}) {
+        my $name = $conn->{name};
 
         # check if the server is linked already.
         if (my $err = server::protocol::check_new_server(
-        $connection->{sid}, $connection->{name}, $me->{name})) {
-            notice(connection_invalid => $connection->{ip}, 'Server exists');
-            $connection->done($err);
+        $conn->{sid}, $conn->{name}, $me->{name})) {
+            notice(connection_invalid => $conn->{ip}, 'Server exists');
+            $conn->done($err);
             return;
         }
 
         # create a new server.
-        my $server = $connection->{type} = $pool->new_server(
-            %$connection,
+        my $server = $conn->{type} = $pool->new_server(
+            %$conn,
             $Evented::Object::props  => {},
             $Evented::Object::events => {}
         );
 
-        weaken($server->{conn} = $connection);
-        $connection->fire(server_ready => $server);
+        weaken($server->{conn} = $conn);
+        $conn->fire(server_ready => $server);
 
         # tell other servers.
         broadcast(new_server => $server);
@@ -223,44 +233,37 @@ sub ready {
         $server->{initially_propagated}++;
     }
 
-    # must be an intergalactic alien.
-    else {
-        warn 'Connection ->ready called prematurely';
-        $connection->done('Alien');
-        return;
-    }
-
-    $connection->fire(ready_done => $connection->{type});
-    $connection->{type}->_new_connection if $connection->user;
-    return $connection->{ready} = 1;
+    $conn->fire(ready_done => $conn->type);
+    $conn->type->_new_connection if $conn->user;
+    return $conn->{ready} = 1;
 }
 
 # send data to the socket
 sub send {
-    my ($connection, @msg) = @_;
+    my ($conn, @msg) = @_;
 
     # check that there is a writable stream.
-    return unless $connection->stream;
-    return unless $connection->stream->write_handle;
-    return if $connection->{goodbye};
+    return unless $conn->stream;
+    return unless $conn->stream->write_handle;
+    return if $conn->{goodbye};
     @msg = grep defined, @msg;
-my $name = $connection->type ? $connection->type->name : '(unregistered)';
+my $name = $conn->type ? $conn->type->name : '(unregistered)';
 print "S[$name] $_\n" for @msg;
-    $connection->stream->write("$_\r\n") foreach @msg;
+    $conn->stream->write("$_\r\n") foreach @msg;
 }
 
 # send data with a source
 sub sendfrom {
-    my ($connection, $source) = (shift, shift);
-    $connection->send(map { ":$source $_" } @_);
+    my ($conn, $source) = (shift, shift);
+    $conn->send(map { ":$source $_" } @_);
 }
 
 # send data from ME. JELP SID if server, server name otherwise.
 sub sendme {
-    my $connection = shift;
+    my $conn = shift;
     my $source =
-        $connection->server ? $me->{sid} : $me->{name};
-    $connection->sendfrom($source, @_);
+        $conn->server ? $me->{sid} : $me->{name};
+    $conn->sendfrom($source, @_);
 }
 
 sub stream { shift->{stream}                }
@@ -276,60 +279,60 @@ sub early_reply {
 
 # end a connection. this must be foolproof.
 sub done {
-    my ($connection, $reason) = @_;
-    return if $connection->{done}++;
-    L("Closing connection from $$connection{ip}: $reason");
+    my ($conn, $reason) = @_;
+    return if $conn->{goodbye};
+    L("Closing connection from $$conn{ip}: $reason");
 
     # a user or server is associated with the connection.
-    if ($connection->{type} && !$connection->{type}{did_quit}) {
+    if ($conn->type && !$conn->type->{did_quit}) {
 
         # share this quit with the children.
-        broadcast(quit => $connection, $reason)
-            if $connection->{type}{initially_propagated} &&
-            !$connection->{killed};
+        broadcast(quit => $conn, $reason)
+            if $conn->type->{initially_propagated} &&
+            !$conn->{killed};
 
         # tell user.pm or server.pm that the connection is closed.
-        $connection->{type}->quit($reason);
-        $connection->{type}{did_quit}++;
+        $conn->type->quit($reason);
+        $conn->type->{did_quit}++;
 
     }
 
     # this is safe because ->send() is safe now.
-    $connection->send("ERROR :Closing Link: $$connection{host} ($reason)");
+    $conn->send("ERROR :Closing Link: $$conn{host} ($reason)");
 
     # remove from connection the pool if it's still there.
     # if the connection has reserved a nick, release it.
-    my $r = defined $connection->{nick} ?
-        $pool->nick_in_use($connection->{nick}) : undef;
-    $pool->release_nick($connection->{nick}) if $r && $r == $connection;
-    $pool->delete_connection($connection, $reason) if $connection->{pool};
+    my $r = defined $conn->{nick} ?
+        $pool->nick_in_use($conn->{nick}) : undef;
+    $pool->release_nick($conn->{nick}) if $r && $r == $conn;
+    $pool->delete_connection($conn, $reason) if $conn->{pool};
 
     # will close it WHEN the buffer is empty
     # (if the stream still exists).
-    $connection->stream->close_when_empty
-        if $connection->stream && $connection->stream->write_handle;
+    $conn->stream->close_when_empty
+        if $conn->stream && $conn->stream->write_handle;
 
     # destroy these references, just in case.
-    delete $connection->{type}{conn};
-    delete $connection->{$_} foreach qw(type location server stream);
+    delete $conn->type->{conn} if $conn->type;
+    delete $conn->{$_} foreach qw(type location server stream);
 
     # prevent confusion if buffer spits out more data.
-    delete $connection->{ready};
-    $connection->{goodbye} = 1;
+    delete $conn->{ready};
+    $conn->{goodbye}++;
 
     # fire done event, then
     # delete all callbacks to dispose of any possible
     # looping references within them.
-    $connection->fire(done => $reason);
-    $connection->clear_futures;
-    $connection->delete_all_events;
+    $conn->fire(done => $reason);
+    $conn->clear_futures;
+    $conn->delete_all_events;
 
     return 1;
 }
 
 # send a numeric.
 sub numeric {
-    my ($connection, $const, @response) = (shift, shift);
+    my ($conn, $const, @response) = (shift, shift);
 
     # does not exist.
     if (!$pool->numeric($const)) {
@@ -342,7 +345,7 @@ sub numeric {
     # CODE reference for numeric response.
     if (ref $val eq 'CODE') {
         $allowed or L("$const only allowed for users") and return;
-        @response = $val->($connection, @_);
+        @response = $val->($conn, @_);
     }
 
     # formatted string.
@@ -351,40 +354,39 @@ sub numeric {
     }
 
     # ignore registered servers.
-    return if $connection->server;
+    return if $conn->server;
 
     # send.
-    my $nick = ($connection->user || $connection)->{nick} // '*';
-    $connection->sendme("$num $nick $_") foreach @response;
+    my $nick = ($conn->user || $conn)->{nick} // '*';
+    $conn->sendme("$num $nick $_") foreach @response;
 
     return 1;
-
 }
 
 # what protocols might this be, according to the port?
 sub possible_protocols {
-    my ($connection, @protos) = shift;
+    my ($conn, @protos) = shift;
     
     # established server
-    return $connection->{link_type}
-        if defined $connection->{link_type};
+    return $conn->{link_type}
+        if defined $conn->{link_type};
         
     # established user
     return 'client'
-        if $connection->user;
+        if $conn->user;
         
     # unregistered client, so we have to guess based on the port.
     # client connections are currently permitted on all ports,
     # and JELP connections are permitted on all ports which are not
     # explicitly associated with another linking protocol.
-    my $port = $connection->{localport};
+    my $port = $conn->{localport};
     return ('client', $ircd::listen_protocol{$port} || 'jelp');
 }
 
 # could this connection be protocol?
 sub possibly_protocol {
-    my ($connection, $proto) = @_;
-    return grep { $_ eq $proto } $connection->possible_protocols;
+    my ($conn, $proto) = @_;
+    return grep { $_ eq $proto } $conn->possible_protocols;
 }
 
 # returns the protocol associated with this connection
@@ -429,33 +431,190 @@ sub remove_cap {
 }
 
 ###############
+### CLASSES ###
+###############
+
+our %class_cache;
+sub _class_conf {
+    # FIXME: inheritance here
+    # return hash ref or single val
+    my ($class, $key) = @_;
+    
+    # check for cached version
+    my %h;
+    if (my $cached = $class_cache{$class}) {
+        %h = %$cached;
+    }
+    
+    # fetch from config
+    else {
+        %h = $conf->hash_of_block([ 'class', $class ]);
+        my $extends = $h{extends} || 'default';
+        undef $extends if $class eq 'default';
+        if ($extends) {
+            %h = (_class_conf($extends), %h);
+            $h{priority}++;
+        }
+        $class_cache{$class} = \%h;
+    }
+    
+    return $h{$key} if $key;
+    return %h;
+}
+
+sub class_conf {
+    my ($conn, @opts) = @_;
+    my $class = $conn->class_name or return undef;
+    return _class_conf($class, @opts);
+}
+
+sub class_max {
+    my ($conn, $name) = @_;
+    
+    # prefer the one defined in the class if possible
+    my $max = $conn->class_conf("max_$name");
+    return $max if defined $max;
+    
+    # fall back to the one defined in [limit]
+    # this likely comes from default.conf
+    return conf('limit', $name);
+}
+
+sub class_name {
+    my $conn = shift;
+    return $conn->{class_name} if $conn->{class_name};
+    
+    # called before ->verify
+    if (!$conn->{verify}) {
+        L('class name requested before verify()');
+        return undef;
+    }
+    
+    # determine the class
+    my ($class_chosen, $class);
+    foreach my $maybe ($conf->names_of_block('class')) {
+        my $class_ref = { _class_conf($maybe) };
+        my @used_bits;
+        
+        # skip oper classes here
+        next if $class_ref->{requires_oper};
+        
+        # server
+        my @servers = ref_to_list($class_ref->{allow_servers});
+        if ($conn->{looks_like_server} && @servers) {
+            
+            # neither hostname nor IP match
+            next if !irc_match($conn->{host}, @servers)
+                 && !irc_match($conn->{ip},   @servers);
+                 
+            push @used_bits, @servers;
+        }
+        
+        # user
+        my @users = ref_to_list($class_ref->{allow_users});
+        if ($conn->{looks_like_user} && @users) {
+            
+            # neither user@hostname nor user@IP match
+            my $prefix = "$$conn{ident}\@";
+            next if !irc_match($prefix.$conn->{host}, @users)
+                 && !irc_match($prefix.$conn->{ip},   @users);
+                 
+             push @used_bits, @users;
+        }
+        
+        # determine priority
+        my $priority = $class_ref->{priority} += _get_priority(@used_bits);
+        
+        # current chosen one has higher priority
+        if ($class_chosen) {
+            next if $class_chosen->{priority} > $priority;
+        
+            # equal priorities...
+            L("'$class' and '$maybe' have same priority! ($priority)")
+                if $class_chosen->{priority} == $priority;
+        }
+        
+        $class_chosen = $class_ref;
+        $class = $maybe;
+    }
+    
+    return $conn->{class_name} = $class;
+}
+
+sub _get_priority {
+    my @chars = map { split // } @_;
+    return scalar grep { $_ ne '*' && $_ ne '?' } @chars;
+}
+
+# verify the connection is valid. this is checked twice, once at connect
+# and once just before registration would complete
+sub verify {
+    my $conn = shift;
+    $conn->{verify}++;
+    
+    # neither server nor user
+    my $is_serv = $conn->{looks_like_server};
+    my $is_user = $conn->{looks_like_user};
+    if (!$is_serv && !$is_user) {
+        warn 'Connection ->ready called prematurely';
+        return 'Alien';
+    }
+    
+    # connection matches no class
+    my $class = $conn->class_name;
+    return 'Not accepting connections'
+        if !$class;
+
+    # if the connection IP limit has been reached, disconnect.
+    my $ip = $conn->ip;
+    my $same_ip = scalar grep { $_->{ip} eq $ip } $pool->connections;
+    return 'Connections per IP limit exceeded'
+        if $same_ip > $conn->class_max('perip');
+        
+    # if the global user IP limit has been reached, disconnect.
+    $same_ip = scalar grep { $_->{ip} && $_->{ip} eq $ip }
+        $pool->real_users, $pool->servers;
+    return 'Global connections per IP limit exceeded'
+        if $same_ip > $conn->class_max('globalperip');
+        
+        # if the client limit has been reached, hang up.
+    my $max_client = $conn->class_max('client');
+    if (!$is_serv && scalar $pool->real_local_users >= $max_client) {
+        $conn->done('Not accepting clients');
+        return;
+    }
+        
+    return; # success
+}
+
+###############
 ### FUTURES ###
 ###############
 
 # add a future which represents a pending operation related to the connection.
 # it will automatically be removed when it completes or fails.
 sub adopt_future {
-    my ($connection, $name, $f) = @_;
-    $connection->{futures}{$name} = $f;
-    weaken(my $weak_conn = $connection);
+    my ($conn, $name, $f) = @_;
+    $conn->{futures}{$name} = $f;
+    weaken(my $weak_conn = $conn);
     $f->on_ready(sub { $weak_conn->abandon_future($name) });
 }
 
 # remove a future. this is only necessary if you want to cancel a future which
 # has not finished. however, calling it with an expired one produces no error.
 sub abandon_future {
-    my ($connection, $name) = @_;
-    my $f = delete $connection->{futures}{$name} or return;
+    my ($conn, $name) = @_;
+    my $f = delete $conn->{futures}{$name} or return;
     $f->cancel; # it may already be canceled, but that's ok
 }
 
 # clear all futures associated with a connection.
 sub clear_futures {
-    my $connection = shift;
+    my $conn = shift;
     my $count = 0;
-    $connection->{futures} or return $count;
-    foreach my $name (keys %{ $connection->{futures} }) {
-        $connection->abandon_future($name);
+    $conn->{futures} or return $count;
+    foreach my $name (keys %{ $conn->{futures} }) {
+        $conn->abandon_future($name);
         $count++;
     }
     return $count;
@@ -468,20 +627,15 @@ sub clear_futures {
 sub type { shift->{type} }
 
 sub user {
-    my $type = shift->{type};
+    my $type = shift->type;
     blessed $type && $type->isa('user') or return;
     return $type;
 }
 
 sub server {
-    my $type = shift->{type};
+    my $type = shift->type;
     blessed $type && $type->isa('server') or return;
     return $type;
 }
-
-# sub DESTROY {
-#     my $connection = shift;
-#     L("$connection destroyed");
-# }
 
 $mod

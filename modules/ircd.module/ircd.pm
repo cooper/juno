@@ -96,7 +96,7 @@ sub init {
     #   setup_server() and setup_modes() have completed in phase 7 below.
     #
 
-    &setup_api;
+    &setup_api or return;
 
     # PHASE 7: Server setup
     #
@@ -322,7 +322,7 @@ sub load_dependencies {
         [ 'Evented::API::Module',          4.05 ],
         [ 'Evented::API::Events',          4.05 ],
 
-        [ 'Evented::Configuration',        4.00 ],
+        [ 'Evented::Configuration',        4.01 ],
 
         [ 'Evented::Database',             1.15 ],
         [ 'Evented::Database::Rows',       1.15 ],
@@ -381,6 +381,7 @@ sub setup_config {
 
     # remove expired RESVs.
     $pool->expire_resvs() if $pool;
+    %connection::class_cache = ();
 
     $conf = $new_conf;
     return 1;
@@ -453,6 +454,7 @@ sub setup_api {
     $mod->load_submodule($_) or return
         foreach qw(modes message user server channel connection);
 
+    return 1;
 }
 
 #############################
@@ -588,10 +590,10 @@ sub setup_autoconnect {
 sub misc_upgrades {
 
     # inject missing connection information.
-    foreach my $connection ($pool->connections) {
-        next if exists $connection->{family} || !$connection->stream;
-        my $handle = $connection->stream->write_handle or next;
-        $connection->{family} = $handle->sockdomain;
+    foreach my $conn ($pool->connections) {
+        next if exists $conn->{family} || !$conn->stream;
+        my $handle = $conn->stream->write_handle or next;
+        $conn->{family} = $handle->sockdomain;
     }
 
     # inject missing server information.
@@ -846,25 +848,10 @@ sub handle_connect {
     configure_stream($stream);
     $loop->add($stream);
 
-    # if the connection limit has been reached, disconnect immediately.
+    # if the connection limit has been reached, disconnect immediately
     if (scalar $pool->connections > conf('limit', 'connection')) {
-        $conn->done('Total connection limit exceeded');
-        $stream->close_now; # don't even wait.
-        return;
-    }
-
-    # if the connection IP limit has been reached, disconnect.
-    my $ip = $conn->{ip};
-    if (scalar(grep { $_->{ip} eq $ip } $pool->connections)
-      > conf('limit', 'perip')) {
-        $conn->done('Connections per IP limit exceeded');
-        return;
-    }
-
-    # if the global user IP limit has been reached, disconnect.
-    if (scalar(grep { $_->{ip} eq $ip } $pool->real_users)
-      > conf('limit', 'globalperip')) {
-        $conn->done('Global connections per IP limit exceeded');
+        $conn->done('Not accepting connections');
+        $stream->close_now; # don't even wait
         return;
     }
 
@@ -878,8 +865,8 @@ sub handle_connect {
 # handle incoming data
 sub handle_data {
     my ($stream, $buffer) = @_;
-    my $connection = $pool->lookup_connection($stream) or return;
-    my $is_server  = $connection->server;
+    my $conn = $pool->lookup_connection($stream) or return;
+    my $is_server  = $conn->server;
 
     # fetch the values at which the limit was exceeded.
     my $overflow_1line   =
@@ -888,31 +875,31 @@ sub handle_data {
         (my $max_lines   = conf('limit', 'lines_sec')   // 30  ) + 1;
 
     foreach my $char (split '', $$buffer) {
-        my $length = length $connection->{current_line} || 0;
+        my $length = length $conn->{current_line} || 0;
 
         # end of line.
         if ($char eq "\n") {
 
             # a line other than the first of this second.
             my $time = int time;
-            if (exists $connection->{lines_sec}{$time}) {
-                $connection->{lines_sec}{$time}++;
+            if (exists $conn->{lines_sec}{$time}) {
+                $conn->{lines_sec}{$time}++;
             }
 
             # first line of this second; overwrite entire hash.
             else {
-                $connection->{lines_sec} = { $time => 1 };
+                $conn->{lines_sec} = { $time => 1 };
             }
 
             # too many lines!
-            my $num_lines = $connection->{lines_sec}{$time};
+            my $num_lines = $conn->{lines_sec}{$time};
             if ($num_lines == $overflow_lines && !$is_server) {
-                $connection->done("Exceeded $max_lines lines per second");
+                $conn->done("Exceeded $max_lines lines per second");
                 return;
             }
 
             # no error. handle this data.
-            $connection->handle(delete $connection->{current_line});
+            $conn->handle(delete $conn->{current_line});
             $length = 0;
 
             next;
@@ -923,7 +910,7 @@ sub handle_data {
 
         # line too long.
         if ($length == $overflow_1line && !$is_server) {
-            $connection->done("Exceeded $max_in_line bytes in line");
+            $conn->done("Exceeded $max_in_line bytes in line");
             return;
         }
 
@@ -931,7 +918,7 @@ sub handle_data {
         next if $char eq "\0" || $char eq "\r";
 
         # regular character;
-        ($connection->{current_line} //= '') .= $char;
+        ($conn->{current_line} //= '') .= $char;
 
     }
 
@@ -944,50 +931,49 @@ sub handle_data {
 
 # send out PINGs and check for timeouts
 sub ping_check {
-    foreach my $connection ($pool->connections) {
+foreach my $conn ($pool->connections) {
 
     # the socket is dead.
-    if (!$connection->stream || !$connection->sock) {
-        $connection->done('Dead socket');
+    if (!$conn->stream || !$conn->sock) {
+        $conn->done('Dead socket');
         next;
     }
 
     # not yet registered.
     # if they have been connected for 30 secs without registering, drop.
-    if (!$connection->{type}) {
-        $connection->done('Registration timeout')
-            if time - $connection->{time} > 30;
+    if (!$conn->type) {
+        $conn->done('Registration timeout')
+            if time - $conn->{time} > 30;
         next;
     }
 
-    my $type = $connection->user ? 'users' : 'servers';
-    my $since_last = time - $connection->{last_response};
 
     # this connection is OK - for now.
-    if ($since_last < conf($type, 'ping_freq')) {
+    my $since_last = time - $conn->{last_response};
+    if ($since_last < $conn->class_conf('ping_freq')) {
 
-        # if it's a server, we might need to produce a warning.
-        if ($type eq 'servers') {
-            next if $connection->{warned_ping}++;
-            my $needed_to_warn = conf($type, 'ping_warn') || 'inf';
+        # we might need to produce a warning.
+        my $needed_to_warn = $conn->class_conf('ping_warn') || 'inf';
+        if (!$conn->{warned_ping} && $since_last >= $needed_to_warn) {
             notice(server_not_responding =>
-                $connection->server->notice_info,
+                $conn->server->notice_info,
                 $since_last
-            ) if $since_last >= $needed_to_warn;
+            );
+            $conn->{warned_ping}++;
         }
 
         next;
     }
 
     # send a ping if we haven't already.
-    if (!$connection->{ping_in_air}) {
-        $connection->send("PING :$$me{name}");
-        $connection->{ping_in_air}++;
+    if (!$conn->{ping_in_air}) {
+        $conn->send("PING :$$me{name}");
+        $conn->{ping_in_air}++;
     }
 
     # ping timeout.
-    $connection->done("Ping timeout: $since_last seconds")
-        if $since_last >= conf($type, 'ping_timeout');
+    $conn->done("Ping timeout: $since_last seconds")
+        if $since_last >= $conn->class_conf('ping_timeout');
 
 } }
 
@@ -1053,8 +1039,8 @@ sub terminate {
 
     # delete all users/servers/other
     L('disposing of all connections');
-    foreach my $connection ($pool->connections) {
-        $connection->done('Shutting down');
+    foreach my $conn ($pool->connections) {
+        $conn->done('Shutting down');
     }
 
     # delete the PID file
