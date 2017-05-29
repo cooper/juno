@@ -67,7 +67,7 @@ Plus, juno-ircd
 * __Eventedness__: The core unifying policy of juno-ircd is the excessive use of
 events. Just about any operation that occurs is represented as an event. This
 is made possible by
-[Evented::Object](https://github.com/cooper/evented-object),
+[Evented::Object](https://metacpan.org/pod/Evented::Object),
 the base of every class within the IRCd.
 ```perl
 # if it's a server, add the $PROTO_message events
@@ -133,7 +133,7 @@ versions, all without your users disconnecting.
 nearly everything is [configurable](doc/config.md). In spite of that, the
 included working configuration is minimal and easy-to-follow. This is made
 possible by
-[Evented::Configuration](https://github.com/cooper/evented-configuration).
+[Evented::Configuration](https://metacpan.org/pod/Evented::Configuration).
 [Real-time modification](doc/modules.md#configurationset) of the configuration
 is also feasible, thanks to
 [Evented::Database](https://github.com/cooper/evented-database).
@@ -149,7 +149,8 @@ is also feasible, thanks to
 ```
 
 * __Efficiency__: Modern IRC servers have a higher per-user load and therefore
-must be prompt at fulfilling requests. Utilizing the wonderful [IO::Async](http://search.cpan.org/perldoc/IO::Async) framework, juno is quite
+must be prompt at fulfilling requests. Utilizing the wonderful
+[IO::Async](https://metacpan.org/pod/IO::Async) framework, juno is quite
 reactive.
 
 # Setup and operation
@@ -179,7 +180,7 @@ run `git submodule update --init` to check out the submodules.
 Next, **pick a release**. The default branch is `master` which is the
 development branch and might be broken at any given moment.
 ```bash
-git checkout juno12-mihret
+git checkout juno13-ava
 ```
 
 Now [**set up SSL**](#ssl-setup) if you want or skip to the
