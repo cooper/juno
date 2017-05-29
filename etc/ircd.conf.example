@@ -1,5 +1,5 @@
 # juno configuration file
-
+# See doc/config.md for all available options
 
 # Server info
 
@@ -9,11 +9,12 @@
     name        = 'devserver.example.com'       # server name
     description = 'juno development server'     # server description
     sex         = 'male'                        # server gender
-    id          = 0                             # server ID (must be unique and integral)
+    id          = 0                             # server ID (must be a unique integer)
     casemapping = 'rfc1459'                     # 'rfc1459' or 'ascii'
                                                 # you MUST use rfc1459 if using TS6
 
 # Modules to load automatically
+# See doc/modules.md for all available modules
 
 [ api ]
 
@@ -55,14 +56,14 @@
     Git                         # Manage IRCd git repository directly from IRC
     #Configuration::Set         # Manage IRCd configuration directly from IRC
     Reload                      # Reload or upgrade the IRCd in 1 command
-    Grant                       # grant user oper flags from IRC
+    Grant                       # Grant user oper flags from IRC
     #Eval                       # Evaluate Perl code directly from IRC
 
     # Global ban support
 
-    Ban::Dline                  # server/user IP ban (D-Line/Z-Line)
-    Ban::Kline                  # user hostmask ban (K-Line)
-    Ban::Resv                   # nick and channel reservations (required for services)
+    Ban::Dline                  # Server/user IP ban (D-Line/Z-Line)
+    Ban::Kline                  # User hostmask ban (K-Line)
+    Ban::Resv                   # Nick and channel reservations (required for services)
 
     # Extras
 
@@ -75,7 +76,7 @@
 
 [ limit ]
 
-    # the maximum number of:
+    # Maximum number of:
 
     connection  = 100                           # connections
     perip       = 3                             # local  connections per IP address
@@ -86,7 +87,7 @@
     channel     = 100                           # channels a user can be in at once
     monitor     = 100                           # monitor entries; off = unlimited
 
-    # the maximum number of characters in:
+    # Maximum number of characters in:
 
     nick        = 32                            # nicknames
     topic       = 1000                          # channel topics
@@ -212,7 +213,8 @@
 
         host = ['*@*']
 
-    # The password and encryption for it
+    # The password and encryption for it.
+    # Use ./juno mkpasswd to generated an encrypted password.
 
         password   = '13fbd79c3d390e5d6585a21e11ff5ec1970cff0c'
         encryption = 'sha1'
@@ -233,7 +235,9 @@
         notices = ['all']
 
 
-# Command aliases. Requires Alias module.
+# Command aliases
+# Requires Alias module
+#
 # $N will be replaced with the Nth parameter;
 # $N- will be replaced with the Nth parameter and all which follow it.
 
@@ -251,7 +255,8 @@
     bs = 'PRIVMSG BotServ $1-'
     gs = 'PRIVMSG GroupServ $1-'
 
-# DNS blacklists. Requires DNSBL module.
+# DNS blacklists
+# Requires DNSBL module
 
 [ dnsbl: EFnetRBL ]
 
