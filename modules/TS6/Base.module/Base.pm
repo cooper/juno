@@ -30,6 +30,13 @@ our $TS_CURRENT  = 6;
 our $TS_MIN      = 6;
 
 sub init {
+    
+    # if casemapping is not RFC1459, do not alow this
+    if (conf('server', 'casemapping') ne 'rfc1459') {
+        L('TS6 requires casemapping rfc1459');
+        return;
+    }
+    
     $mod->register_module_method('register_ts6_command'         ) or return;
     $mod->register_module_method('register_outgoing_ts6_command') or return;
     $mod->register_module_method('register_ts6_capability'      ) or return;

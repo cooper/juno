@@ -4075,3 +4075,4 @@ CHANGES:
         
     13. all channel send functions are now based on sendfrom_to_many().
         add support for IRCv3.2 netjoin batch type. closes #172.
+        refuse to load TS6::Base when server::casemapping != rfc1459.
