@@ -57,7 +57,7 @@ sub umode_ircop {
 
     # but always allow unsetting
     notice(user_deopered => $user->notice_info);
-    $user->{flags} = [];
+    $user->clear_flags;
     delete $user->{oper};
 
     return 1;

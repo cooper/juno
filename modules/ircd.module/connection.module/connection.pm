@@ -501,6 +501,7 @@ sub class_name {
         
         # server
         my @servers = ref_to_list($class_ref->{allow_servers});
+        my @users = ref_to_list($class_ref->{allow_users});
         if ($conn->{looks_like_server} && @servers) {
             
             # neither hostname nor IP match
@@ -511,15 +512,20 @@ sub class_name {
         }
         
         # user
-        my @users = ref_to_list($class_ref->{allow_users});
-        if ($conn->{looks_like_user} && @users) {
+        elsif ($conn->{looks_like_user} && @users) {
             
             # neither user@hostname nor user@IP match
             my $prefix = "$$conn{ident}\@";
             next if !irc_match($prefix.$conn->{host}, @users)
                  && !irc_match($prefix.$conn->{ip},   @users);
                  
-             push @used_bits, @users;
+            push @used_bits, @users;
+        }
+        
+        # neither user nor server
+        else {
+            L("'$maybe' has neither allow_users nor allow_servers");
+            next;
         }
         
         # determine priority

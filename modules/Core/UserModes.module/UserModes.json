@@ -11,5 +11,5 @@
    "description" : "the core set of user modes",
    "name" : "Core::UserModes",
    "package" : "M::Core::UserModes",
-   "version" : "11.63"
+   "version" : "11.73"
 }

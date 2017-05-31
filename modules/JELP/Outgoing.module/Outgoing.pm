@@ -150,7 +150,7 @@ sub send_burst {
         $server->forward(new_user => $user);
 
         # OPER
-        my @flags = @{ $user->{flags} };
+        my @flags = $user->flags;
         $server->forward(oper => $user, @flags)
             if @flags;
 

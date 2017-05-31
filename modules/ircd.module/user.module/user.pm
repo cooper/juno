@@ -157,10 +157,16 @@ sub mode_string {
 #=== Flags ===#
 #=============#
 
+# flag list
+sub flags {
+    my $user = shift;
+    return @{ $user->{flag} };
+}
+
 # has oper flag.
 sub has_flag {
     my ($user, $flag) = @_;
-    foreach (@{ $user->{flags} }) {
+    foreach ($user->flags) {
         return 1 if $_ eq $flag;
         return 1 if $_ eq 'all';
     }
@@ -173,7 +179,7 @@ sub add_flags {
     my $their_flags = $user->{flags};
 
     # weed out duplicates
-    my %has   = map  { $_ => 1   } @{ $user->{flags} };
+    my %has   = map  { $_ => 1   } $user->flags;
     my @flags = grep { !$has{$_} } simplify(@_);
     return unless @flags;
 
@@ -201,6 +207,14 @@ sub remove_flags {
     return @removed;
 }
 
+# clear all flags
+sub clear_flags {
+    my $user = shift;
+    return $user->remove_flags($user->flags);
+}
+
+# after a flag change, set and +/-ircop as needed
+# and notify opers
 sub update_flags {
     my $user = shift;
     my $their_flags = $user->{flags};

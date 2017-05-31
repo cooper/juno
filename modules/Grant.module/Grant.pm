@@ -72,7 +72,7 @@ sub ungrant {
     my ($user, $event, $t_user, @flags) = @_;
 
     # removing all flags.
-    @flags = @{ $t_user->{flags} } if $flags[0] eq '*';
+    @flags = $t_user->flags if $flags[0] eq '*';
     @flags = simplify(@flags);
 
     # none removed.

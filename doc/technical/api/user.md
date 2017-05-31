@@ -109,6 +109,10 @@ substr($all_modes, 0, 1) = '-';
 $user->handle_mode_string($all_modes, 1);
 ```
 
+### $user->flags
+
+Returns the list of oper flags this user has.
+
 ### $user->has_flag($flag)
 
 Returns true if the user has the specified oper flag enabled.
@@ -148,9 +152,13 @@ $user->remove_flags('kill', 'gkill');
 
 * __@flags__ - a list of oper flags to remove.
 
+### $user->clear_flags
+
+Removes all of the user's oper flags at a low level.
+
 ### $user->update_flags
 
-After committing oper flag changes, this method will set or unset the user's
+After committing oper flag changes, this method sets or unsets the user's
 IRCop mode if necessary. It also notifies the user and other opers of the
 flags that have been granted. This method is used for both local and remote
 users.

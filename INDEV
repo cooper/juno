@@ -4081,3 +4081,8 @@ CHANGES:
         new class.conf has default class definitions.
         update Evented::Object.
         update Evented::Configuration.
+        
+    15. warn when a connection allows neither users nor servers.
+        added user->flags.
+        added user->clear_flags.
+        updated all modules that were accessing user flags manually.
