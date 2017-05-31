@@ -966,15 +966,12 @@ foreach my $conn ($pool->connections) {
     }
 
     # send a ping if we haven't already.
-    if (!$conn->{ping_in_air}) {
-        $conn->send("PING :$$me{name}");
-        $conn->{ping_in_air}++;
-    }
+    $conn->send("PING :$$me{name}")
+        if !$conn->{ping_in_air}++;
 
     # ping timeout.
     $conn->done("Ping timeout: $since_last seconds")
         if $since_last >= $conn->class_conf('ping_timeout');
-
 } }
 
 #############

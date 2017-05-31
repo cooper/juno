@@ -49,9 +49,9 @@ sub init {
         $conn->numeric(ERR_UNKNOWNCOMMAND => $msg->raw_cmd);
         return;
     }, name => 'ERR_UNKNOWNCOMMAND', priority => -200, with_eo => 1);
-
 }
 
+# create a new connection
 sub new {
     my ($class, $stream) = @_;
     return unless $stream && $stream->{write_handle};
@@ -85,13 +85,13 @@ sub new {
     return $conn;
 }
 
+# handle incoming data
 sub handle {
     my ($conn, $data) = @_;
 
     # update ping information.
-    $conn->{ping_in_air}   = 0;
+    delete @$conn{'ping_in_air', 'warned_ping'};
     $conn->{last_response} = time;
-    delete $conn->{warned_ping};
 
     # connection is being closed or empty line.
     return if $conn->{goodbye} || !length $data;
@@ -141,14 +141,14 @@ print "R[$name] $data\n";
     return 1;
 }
 
-# increase the wait count.
+# increase the registration wait count
 sub reg_wait {
     my ($conn, $name) = @_;
     $conn->{wait} or return;
     $conn->{wait}{$name} = 1;
 }
 
-# decrease the wait count.
+# decrease the registration wait count
 sub reg_continue {
     my ($conn, $name) = @_;
     $conn->{wait} or return;
@@ -156,6 +156,7 @@ sub reg_continue {
     $conn->ready unless scalar keys %{ $conn->{wait} };
 }
 
+# called when all waits are complete and registration can continue
 sub ready {
     my $conn = shift;
     
@@ -238,7 +239,49 @@ sub ready {
     return $conn->{ready} = 1;
 }
 
-# send data to the socket
+
+# verifies the connection is valid. this is checked after the connection
+# becomes ready and registration should continue
+sub verify {
+    my $conn = shift;
+    $conn->{verify}++;
+    
+    # neither server nor user
+    my $is_serv = $conn->{looks_like_server};
+    my $is_user = $conn->{looks_like_user};
+    if (!$is_serv && !$is_user) {
+        warn 'Connection ->ready called prematurely';
+        return 'Alien';
+    }
+    
+    # connection matches no class
+    my $class = $conn->class_name;
+    return 'Not accepting connections'
+        if !$class;
+
+    # if the connection IP limit has been reached, disconnect.
+    my $ip = $conn->ip;
+    my $same_ip = scalar grep { $_->{ip} eq $ip } $pool->connections;
+    return 'Connections per IP limit exceeded'
+        if $same_ip > $conn->class_max('perip');
+        
+    # if the global user IP limit has been reached, disconnect.
+    $same_ip = scalar grep { $_->{ip} && $_->{ip} eq $ip }
+        $pool->real_users, $pool->servers;
+    return 'Global connections per IP limit exceeded'
+        if $same_ip > $conn->class_max('globalperip');
+        
+        # if the client limit has been reached, hang up.
+    my $max_client = $conn->class_max('client');
+    if (!$is_serv && scalar $pool->real_local_users >= $max_client) {
+        $conn->done('Not accepting clients');
+        return;
+    }
+        
+    return; # success
+}
+
+# send data
 sub send {
     my ($conn, @msg) = @_;
 
@@ -258,7 +301,8 @@ sub sendfrom {
     $conn->send(map { ":$source $_" } @_);
 }
 
-# send data from ME. JELP SID if server, server name otherwise.
+# send data from this server
+# JELP SID if server (for compatibility), server name otherwise
 sub sendme {
     my $conn = shift;
     my $source =
@@ -266,18 +310,18 @@ sub sendme {
     $conn->sendfrom($source, @_);
 }
 
-sub stream { shift->{stream}                }
-sub sock   { shift->stream->{write_handle}  }
-sub ip     { shift->{ip}                    }
+sub stream { shift->{stream}                }   # IO::Async::Stream
+sub sock   { shift->stream->{write_handle}  }   # IO::Socket::IP
+sub ip     { shift->{ip}                    }   # IP address
 
-# send a command to a possibly unregistered connection.
+# send a command to a possibly unregistered connection
 sub early_reply {
     my ($conn, $cmd) = (shift, shift);
     my $target = ($conn->user || $conn)->{nick} // '*';
     $conn->sendme("$cmd $target @_");
 }
 
-# end a connection. this must be foolproof.
+# terminates the connection, quitting the associated user or server, if any
 sub done {
     my ($conn, $reason) = @_;
     return if $conn->{goodbye};
@@ -330,7 +374,9 @@ sub done {
     return 1;
 }
 
-# send a numeric.
+# sends a numeric
+# this is used mostly for unregistered connections
+# user->numeric() is preferred for users
 sub numeric {
     my ($conn, $const, @response) = (shift, shift);
 
@@ -390,7 +436,8 @@ sub possibly_protocol {
 }
 
 # returns the protocol associated with this connection
-# if it is absolutely certain, undef otherwise
+# ONLY IF it is absolutely certain (due to a dedicated port or registered
+# client or server), undef otherwise
 sub protocol {
     my @protos = shift->possible_protocols;
     return $protos[0] if @protos == 1;
@@ -401,7 +448,7 @@ sub protocol {
 ### CAPABILITIES ###
 ####################
 
-# has a capability.
+# has a capability
 sub has_cap {
     my ($obj, $flag) = (shift, lc shift);
     return unless $obj->{cap_flags};
@@ -411,7 +458,7 @@ sub has_cap {
     return;
 }
 
-# add a capability.
+# add a capability
 sub add_cap {
     my ($obj, @flags) = (shift, map { lc } @_);
     foreach my $flag (@flags) {
@@ -421,7 +468,7 @@ sub add_cap {
     return 1;
 }
 
-# remove a capability.
+# remove a capability
 sub remove_cap {
     my ($obj, @flags) = (shift, map { lc } @_);
     return unless $obj->{cap_flags};
@@ -435,10 +482,20 @@ sub remove_cap {
 ###############
 
 our %class_cache;
-sub _class_conf {
-    # FIXME: inheritance here
-    # return hash ref or single val
-    my ($class, $key) = @_;
+
+# fetch connection class options
+#
+# my %opts = $conn->class_conf
+# my $val  = $conn->class_conf($key)
+# my %opts = connection::class_conf($class)
+# my $val  = connection::class_conf($class, $key)
+#
+sub class_conf {
+    my ($conn, $key) = @_;
+    
+    # determine class name
+    my $class = blessed $conn ? $conn->class_name : $conn;
+    return undef if !$class;
     
     # check for cached version
     my %h;
@@ -452,7 +509,7 @@ sub _class_conf {
         my $extends = $h{extends} || 'default';
         undef $extends if $class eq 'default';
         if ($extends) {
-            %h = (_class_conf($extends), %h);
+            %h = (class_conf($extends), %h);
             $h{priority}++;
         }
         $class_cache{$class} = \%h;
@@ -462,12 +519,7 @@ sub _class_conf {
     return %h;
 }
 
-sub class_conf {
-    my ($conn, @opts) = @_;
-    my $class = $conn->class_name or return undef;
-    return _class_conf($class, @opts);
-}
-
+# fetch connection class limits
 sub class_max {
     my ($conn, $name) = @_;
     
@@ -480,6 +532,7 @@ sub class_max {
     return conf('limit', $name);
 }
 
+# returns the class name for the connection
 sub class_name {
     my $conn = shift;
     return $conn->{class_name} if $conn->{class_name};
@@ -493,7 +546,7 @@ sub class_name {
     # determine the class
     my ($class_chosen, $class);
     foreach my $maybe ($conf->names_of_block('class')) {
-        my $class_ref = { _class_conf($maybe) };
+        my $class_ref = { class_conf($maybe) };
         my @used_bits;
         
         # skip oper classes here
@@ -552,47 +605,6 @@ sub _get_priority {
     return scalar grep { $_ ne '*' && $_ ne '?' } @chars;
 }
 
-# verify the connection is valid. this is checked twice, once at connect
-# and once just before registration would complete
-sub verify {
-    my $conn = shift;
-    $conn->{verify}++;
-    
-    # neither server nor user
-    my $is_serv = $conn->{looks_like_server};
-    my $is_user = $conn->{looks_like_user};
-    if (!$is_serv && !$is_user) {
-        warn 'Connection ->ready called prematurely';
-        return 'Alien';
-    }
-    
-    # connection matches no class
-    my $class = $conn->class_name;
-    return 'Not accepting connections'
-        if !$class;
-
-    # if the connection IP limit has been reached, disconnect.
-    my $ip = $conn->ip;
-    my $same_ip = scalar grep { $_->{ip} eq $ip } $pool->connections;
-    return 'Connections per IP limit exceeded'
-        if $same_ip > $conn->class_max('perip');
-        
-    # if the global user IP limit has been reached, disconnect.
-    $same_ip = scalar grep { $_->{ip} && $_->{ip} eq $ip }
-        $pool->real_users, $pool->servers;
-    return 'Global connections per IP limit exceeded'
-        if $same_ip > $conn->class_max('globalperip');
-        
-        # if the client limit has been reached, hang up.
-    my $max_client = $conn->class_max('client');
-    if (!$is_serv && scalar $pool->real_local_users >= $max_client) {
-        $conn->done('Not accepting clients');
-        return;
-    }
-        
-    return; # success
-}
-
 ###############
 ### FUTURES ###
 ###############
@@ -630,14 +642,17 @@ sub clear_futures {
 ### TYPES ###
 #############
 
+# user or server associated with this connection
 sub type { shift->{type} }
 
+# user associated with this connection, if any
 sub user {
     my $type = shift->type;
     blessed $type && $type->isa('user') or return;
     return $type;
 }
 
+# server associated with this connection, if any
 sub server {
     my $type = shift->type;
     blessed $type && $type->isa('server') or return;
