@@ -15,12 +15,16 @@ package ircd;
 use warnings;
 use strict;
 use 5.010;
+
 use Module::Loaded qw(is_loaded);
 use Scalar::Util   qw(weaken blessed openhandle);
 use POSIX          ();
 
 our ($api, $mod, $me, $pool, $loop, $conf, $boot, $timer, $VERSION);
 our (%channel_mode_prefixes, %listeners, %listen_protocol, $disable_warnings);
+
+our ($MODE_NORMAL,   $MODE_PARAM,    $MODE_PSET,
+     $MODE_LIST,     $MODE_STATUS,   $MODE_KEY) = 0..5;
 
 #############################
 ### Module initialization ###
@@ -77,18 +81,14 @@ sub init {
     #   exported to modules as the package variable $me. for this reason, it
     #   must be available at this point, but we are not quite ready to call
     #   $pool->new_server() because nothing is yet loaded to respond to that.
+    #   here we create the local server object manually.
     #
-    #   here we create the local server object manually. we use neither
-    #   $pool->new_server() nor server->new(); we instead bless a hash reference
-    #   with only the skeleton of the server. the default values below will also
-    #   be injected to the existing server during reload if they are undefined.
-    #
-
+    
     &create_server;         # create the server object
 
     # PHASE 6: API setup
     #
-    #   here we set up the Evented API Engine and load the submodules of ircd.
+    #   here we set up the Evented::API::Engine and load the submodules of ircd.
     #   pool is loaded first and then created before creating the rest because
     #   the pool object is exported to all modules besides utils.
     #
@@ -355,12 +355,12 @@ sub setup_config {
 
     # export constants to the config
     Evented::Object::Hax::set_symbol('Evented::Configuration', {
-        '*mode_normal'  => sub () { 0 },
-        '*mode_param'   => sub () { 1 },
-        '*mode_pset'    => sub () { 2 },
-        '*mode_list'    => sub () { 3 },
-       #'*mode_status'  => sub () { 4 },
-        '*mode_key'     => sub () { 5 }
+        '*mode_normal'  => sub () { $MODE_NORMAL },
+        '*mode_param'   => sub () { $MODE_PARAM  },
+        '*mode_pset'    => sub () { $MODE_PSET   },
+        '*mode_list'    => sub () { $MODE_LIST   },
+       #'*mode_status'  => sub () { $MODE_STATUS },
+        '*mode_key'     => sub () { $MODE_KEY    }
     });
 
     # parse the default configuration.
@@ -588,56 +588,28 @@ sub setup_autoconnect {
 
 # miscellaneous upgrade fixes.
 sub misc_upgrades {
-
-    # inject missing connection information.
-    foreach my $conn ($pool->connections) {
-        next if exists $conn->{family} || !$conn->stream;
-        my $handle = $conn->stream->write_handle or next;
-        $conn->{family} = $handle->sockdomain;
-    }
-
-    # inject missing server information.
-    foreach my $server ($pool->servers) {
-
-        # servers with connections need a link_type.
-        # all connected servers without link_type are JELP.
-        next unless $server->conn;
-        $server->{link_type} //= 'jelp';
-    }
-
-    # inject missing local user information.
+    
+    # look for local ghosts
     foreach my $user ($pool->real_local_users) {
         next unless $user->conn;
 
-        # if the conn exists but is not an object, it's a ghost.
+        # if the conn exists but is not an object, it's a ghost
         if (!blessed $user->{conn}) {
             delete $user->{conn};
             $user->quit('Ghost');
             next;
         }
-
-        # local users need a last_command time.
-        $user->conn->{last_command} ||= time;
     }
-
-    # inject missing user information.
+    
+    # look for remote ghosts
     foreach my $user ($pool->all_users) {
-
-        # nickTS otherwise equals connectTS.
-        $user->{nick_time} //= $user->{time} // time();
 
         # check for ghosts on nonexistent servers.
         next if !$user->{server};
         next if $pool->lookup_server($user->{server}{sid});
         if ($user->conn) { $user->conn->done('Ghost')   }
                     else { $user->quit('Ghost')         }
-
-        # account name cannot be *
-        $user->do_logout_local()
-            if $user->{account} && $user->{account}{name} eq '*';
-
     }
-
 }
 
 ##########################
@@ -993,7 +965,7 @@ sub add_internal_channel_modes {
     foreach my $name ($conf->keys_of_block('prefixes')) {
         my $p = conf('prefixes', $name) or next;
         next if !ref $p || ref $p ne 'ARRAY' || @$p < 3;
-        $me->add_cmode($name, $p->[0], 4);
+        $me->add_cmode($name, $p->[0], $MODE_STATUS);
         $channel_mode_prefixes{ $p->[2] } = [
             $p->[0],    # (0) mode letter
             $p->[1],    # (1) nick prefix symbol

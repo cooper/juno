@@ -26,12 +26,12 @@ our ($mod, $me, $pool);
 
 # Mode types
 sub MODE_UNKNOWN () { -1 }
-sub MODE_NORMAL  () {  0 }
-sub MODE_PARAM   () {  1 }
-sub MODE_PSET    () {  2 }
-sub MODE_LIST    () {  3 }
-sub MODE_STATUS  () {  4 }
-sub MODE_KEY     () {  5 }
+sub MODE_NORMAL  () { $ircd::MODE_NORMAL    }
+sub MODE_PARAM   () { $ircd::MODE_PARAM     }
+sub MODE_PSET    () { $ircd::MODE_PSET      }
+sub MODE_LIST    () { $ircd::MODE_LIST      }
+sub MODE_STATUS  () { $ircd::MODE_STATUS    }
+sub MODE_KEY     () { $ircd::MODE_KEY       }
 
 sub import {
     my $this_package = shift;

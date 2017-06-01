@@ -19,6 +19,7 @@ use 5.010;
 
 use Scalar::Util qw(blessed);
 use utils qw(import ref_to_list notice gnotice conf broadcast);
+use modes qw(MODE_STATUS);
 
 our ($api, $mod, $pool, $me, $conf);
 our %ircd_support;
@@ -730,7 +731,7 @@ sub ircd_register_modes {
     foreach my $name (keys %modes) {
         my ($letter, $pfx, $lvl) = @{ $modes{$name} };
         $server->{ircd_prefixes}{$pfx} = [ $letter, $lvl ];
-        $server->add_cmode($name, $letter, 4);
+        $server->add_cmode($name, $letter, MODE_STATUS);
     }
 
     return 1;

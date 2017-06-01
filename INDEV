@@ -4098,3 +4098,5 @@ CHANGES:
         moved flag stuff to connection.pm; added aliases for users and servers.
         added server matcher -priv(), which works like -oper() for users.
         move -priv() to server::protocol, to share it between TS6 and JELP.
+        
+    19. move mode type definitions to ircd.pm so they only have to be changed in one place.
