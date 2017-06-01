@@ -178,6 +178,8 @@ sub send_server_pass {
 ### Handling JELP data ###
 ##########################
 
+# jelp_message(%opts)
+# jelp_message($msg)
 sub jelp_message {
     my $msg;
     if (scalar @_ == 1 && blessed $_[0]) {
@@ -254,6 +256,27 @@ sub _param_source {
     }
 
     return $source;
+}
+
+# -priv: checks if server privs are present
+sub _param_priv {
+    my ($msg, $param, $opts) = @_;
+    my @flags = keys %$opts;
+    
+    # check for every flag
+    foreach my $flag (@flags) {
+        next if $msg->source->has_flag($flag);
+        $msg->{error_reply} = [ ERR_NOPRIVILEGES => $flag ];
+        notice(server_protocol_warning =>
+            $msg->source->notice_info,
+            'does not have priv '.$flag.' for '.$msg->command
+        );
+        return;
+    }
+
+    # mark it as optional to say it's ok.
+    $opts->{nothing}++;
+    return;
 }
 
 # server: match an SID.

@@ -4095,3 +4095,5 @@ CHANGES:
         closes #130.
     
     18. connection -> conn.
+        moved flag stuff to connection.pm; added aliases for users and servers.
+        added server matcher -priv(), which works like -oper() for users.

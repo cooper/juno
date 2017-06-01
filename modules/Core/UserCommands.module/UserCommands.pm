@@ -481,7 +481,7 @@ sub add_join_callbacks {
 
         # hasn't reached the limit.
         return $JOIN_OK
-            unless $user->channels >= conf('limit', 'channel');
+            unless $user->channels >= $user->conn->class_max('channel');
 
         # limit reached.
         $event->{error_reply} =

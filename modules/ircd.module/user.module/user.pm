@@ -157,61 +157,11 @@ sub mode_string {
 #=== Flags ===#
 #=============#
 
-# flag list
-sub flags {
-    my $user = shift;
-    return @{ $user->{flags} };
-}
-
-# has oper flag.
-sub has_flag {
-    my ($user, $flag) = @_;
-    foreach ($user->flags) {
-        return 1 if $_ eq $flag;
-        return 1 if $_ eq 'all';
-    }
-    return;
-}
-
-# add oper flags.
-sub add_flags {
-    my $user = shift;
-    my $their_flags = $user->{flags};
-
-    # weed out duplicates
-    my %has   = map  { $_ => 1   } $user->flags;
-    my @flags = grep { !$has{$_} } simplify(@_);
-    return unless @flags;
-
-    # add the flags
-    push @$their_flags, @flags;
-
-    # return the flags that were added
-    return @flags;
-}
-
-# remove oper flags.
-sub remove_flags {
-    my $user = shift;
-    my $their_flags = $user->{flags};
-    my %remove = map { $_ => 1 } @_;
-    my (@new, @removed);
-    foreach my $flag (@$their_flags) {
-        if ($remove{$flag}) {
-            push @removed, $flag;
-            next;
-        }
-        push @new, $flag;
-    }
-    @$their_flags = @new;
-    return @removed;
-}
-
-# clear all flags
-sub clear_flags {
-    my $user = shift;
-    return $user->remove_flags($user->flags);
-}
+*flags          = \&connection::flags;
+*has_flag       = \&connection::has_flag;
+*add_flags      = \&connection::add_flags;
+*remove_flags   = \&connection::remove_flags;
+*clear_flags    = \&connection::clear_flags;
 
 # after a flag change, set and +/-ircop as needed
 # and notify opers

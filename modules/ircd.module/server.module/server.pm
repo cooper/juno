@@ -491,10 +491,18 @@ sub ircd_opt {
     return $ircd{$key};
 }
 
-# CAP shortcuts.
+# CAP shortcuts
 # uplinks only!
-*has_cap = *connection::has_cap;
-*add_cap = *connection::add_cap;
-*remove_cap = *connection::remove_cap;
+*has_cap    = \&connection::has_cap;
+*add_cap    = \&connection::add_cap;
+*remove_cap = \&connection::remove_cap;
+
+# flags shortcuts
+# uplinks only!
+*flags          = \&connection::flags;
+*has_flag       = \&connection::has_flag;
+*add_flags      = \&connection::add_flags;
+*remove_flags   = \&connection::remove_flags;
+*clear_flags    = \&connection::clear_flags;
 
 $mod

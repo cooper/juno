@@ -20,7 +20,7 @@ use parent 'Evented::Object';
 
 use Socket::GetAddrInfo;
 use Scalar::Util qw(weaken blessed looks_like_number);
-use utils qw(conf v notice broadcast irc_match ref_to_list);
+use utils qw(conf v notice broadcast irc_match ref_to_list simplify);
 
 our ($api, $mod, $me, $pool, $conf);
 
@@ -475,6 +475,66 @@ sub remove_cap {
     my %all_flags = map { $_ => 1 } @{ $obj->{cap_flags} };
     delete @all_flags{@flags};
     @{ $obj->{cap_flags} } = keys %all_flags;
+}
+
+#############
+### FLAGS ###
+#############
+
+# flag list
+sub flags {
+    my $obj = shift;
+    return @{ $obj->{flags} || [] };
+}
+
+# has a flag
+sub has_flag {
+    my ($obj, $flag) = @_;
+    foreach ($obj->flags) {
+        return 1 if $_ eq $flag;
+        return 1 if $_ eq 'all';
+    }
+    return;
+}
+
+# add flags
+sub add_flags {
+    my $obj = shift;
+    my $their_flags = $obj->{flags} ||= [];
+
+    # weed out duplicates
+    my %has   = map  { $_ => 1   } $obj->flags;
+    my @flags = grep { !$has{$_} } simplify(@_);
+    return unless @flags;
+
+    # add the flags
+    push @$their_flags, @flags;
+
+    # return the flags that were added
+    return @flags;
+}
+
+# remove flags
+sub remove_flags {
+    my $obj = shift;
+    my $their_flags = $obj->{flags} or return;
+    my %remove = map { $_ => 1 } @_;
+    my (@new, @removed);
+    foreach my $flag (@$their_flags) {
+        if ($remove{$flag}) {
+            push @removed, $flag;
+            next;
+        }
+        push @new, $flag;
+    }
+    @$their_flags = @new;
+    return @removed;
+}
+
+# clear all flags
+sub clear_flags {
+    my $obj = shift;
+    return $obj->remove_flags($obj->flags);
 }
 
 ###############
