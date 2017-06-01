@@ -870,9 +870,9 @@ sub handle_data {
 
     # fetch the values at which the limit was exceeded.
     my $overflow_1line   =
-        (my $max_in_line = conf('limit', 'bytes_line')  // 2048) + 1;
+        (my $max_in_line = $conn->class_max('bytes_line') // 2048) + 1;
     my $overflow_lines   =
-        (my $max_lines   = conf('limit', 'lines_sec')   // 30  ) + 1;
+        (my $max_lines   = $conn->class_max('lines_sec')  // 30  ) + 1;
 
     foreach my $char (split '', $$buffer) {
         my $length = length $conn->{current_line} || 0;
@@ -950,7 +950,8 @@ foreach my $conn ($pool->connections) {
 
     # this connection is OK - for now.
     my $since_last = time - $conn->{last_response};
-    if ($since_last < $conn->class_conf('ping_freq')) {
+    my $freq = $conn->class_conf('ping_freq');
+    if ($since_last < $freq) {
 
         # we might need to produce a warning.
         my $needed_to_warn = $conn->class_conf('ping_warn') || 'inf';

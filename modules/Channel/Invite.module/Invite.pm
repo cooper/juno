@@ -190,7 +190,7 @@ sub on_user_get_invited {
     # if the invite list is full, remove the oldest entries.
     my @oldest_first;
     my $list  = $t_user->{invite_pending};
-    my $limit = conf('limit', 'channel');
+    my $limit = $t_user->conn->class_max('channel');
     if ($list && $limit && scalar keys %$list >= $limit) {
         my @newest_first = sort { $list->{$b} <=> $list->{$a} } keys %$list;
         delete $list->{ pop @newest_first } until @newest_first < $limit;

@@ -14,5 +14,5 @@
    "description" : "channel invitations",
    "name" : "Channel::Invite",
    "package" : "M::Channel::Invite",
-   "version" : "6.1"
+   "version" : "6.2"
 }

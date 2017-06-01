@@ -149,7 +149,7 @@ sub rpl_isupport {
 
     # fire the event
     my %things;
-    $me->fire(supported => \%things, $yes);
+    $me->fire(supported => \%things, $yes, $user);
 
     # spit out the result
     my ($curr, @lines) = (0, '');
@@ -172,7 +172,7 @@ sub rpl_isupport {
 
 # core supported callback
 sub isp_core {
-    my ($event, $supported, $yes) = @_;
+    my ($event, $supported, $yes, $user) = @_;
     my $listmodes = join '',
         sort map $_->{letter},
         grep { ($_->{type} // MODE_UNKNOWN) == MODE_LIST }
@@ -184,7 +184,7 @@ sub isp_core {
         CHANTYPES   => '#',
         CHANMODES   => &isp_chanmodes,
         MODES       => conf('channels', 'client_max_mode_params'),
-        CHANLIMIT   => '#:'.conf('limit', 'channel'),
+        CHANLIMIT   => '#:'.$user->conn->class_max('channel'),
         NICKLEN     => conf('limit', 'nick'),
         MAXLIST     => $listmodes.q(:).conf('channels', 'max_bans'),
         NETWORK     => conf('server', 'network') // conf('network', 'name'),

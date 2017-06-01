@@ -4089,3 +4089,7 @@ CHANGES:
         
     16. misc. cleanup connection.pm.
         finished transition of oper flags to the new class system. closes #179.
+
+    17. update user limits to use those defined in connection classes.
+        update server delta checks to use connection class values.
+        closes #130.

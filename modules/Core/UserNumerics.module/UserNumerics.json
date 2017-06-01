@@ -11,5 +11,5 @@
    "description" : "the core set of user numerics",
    "name" : "Core::UserNumerics",
    "package" : "M::Core::UserNumerics",
-   "version" : "13.21"
+   "version" : "13.31"
 }

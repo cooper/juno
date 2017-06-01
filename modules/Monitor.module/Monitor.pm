@@ -41,10 +41,11 @@ sub init {
 
     # add the MONITOR token to RPL_ISUPPORT
     $me->on(supported => sub {
-        my (undef, undef, $supported) = @_;
+        my ($me, $event, $supported, $yes, $user) = @_;
 
         # if it is 0 or undef, this is unlimited
-        my $limit = conf('limit', 'monitor') or return;
+        # overridden by connection class
+        my $limit = $user->conn->class_max('monitor') or return;
 
         $supported->{MONITOR} = $limit;
     }, 'monitor.limit');
@@ -101,7 +102,7 @@ sub monitor {
 sub monitor_add {
     my ($user, $targets) = @_;
     $targets = check_targets($user, $targets) or return;
-    my $limit = conf('limit', 'monitor');
+    my $limit = $user->conn->class_max('monitor');
 
     # add each nick
     my (@good, @bad, @limited);
