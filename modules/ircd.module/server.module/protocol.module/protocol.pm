@@ -641,6 +641,30 @@ sub mode_change_end {
     cmode_change_end($server, $ret->[1]);
 }
 
+##########################
+### PARAMETER MATCHERS ###
+##########################
+
+sub _param_priv {
+    my ($msg, $param, $opts) = @_;
+    my @flags = keys %$opts;
+    
+    # check for every flag
+    foreach my $flag (@flags) {
+        next if $msg->source->has_flag($flag);
+        $msg->{error_reply} = [ ERR_NOPRIVILEGES => $flag ];
+        notice(server_protocol_warning =>
+            $msg->source->notice_info,
+            'does not have priv '.$flag.' for '.$msg->command
+        );
+        return;
+    }
+
+    # mark it as optional to say it's ok.
+    $opts->{nothing}++;
+    return;
+}
+
 ####################
 ### IRCD SUPPORT ###
 ####################

@@ -259,25 +259,7 @@ sub _param_source {
 }
 
 # -priv: checks if server privs are present
-sub _param_priv {
-    my ($msg, $param, $opts) = @_;
-    my @flags = keys %$opts;
-    
-    # check for every flag
-    foreach my $flag (@flags) {
-        next if $msg->source->has_flag($flag);
-        $msg->{error_reply} = [ ERR_NOPRIVILEGES => $flag ];
-        notice(server_protocol_warning =>
-            $msg->source->notice_info,
-            'does not have priv '.$flag.' for '.$msg->command
-        );
-        return;
-    }
-
-    # mark it as optional to say it's ok.
-    $opts->{nothing}++;
-    return;
-}
+*_param_priv = \&server::protocol::_param_priv;
 
 # server: match an SID.
 sub _param_server {

@@ -319,6 +319,9 @@ sub _param_source {
     return $source;
 }
 
+# -priv: checks if server privs are present
+*_param_priv = \&server::protocol::_param_priv;
+
 # server: match an SID.
 sub _param_server {
     my ($msg, $param, $opts) = @_;
