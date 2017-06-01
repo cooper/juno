@@ -495,7 +495,10 @@ sub class_conf {
     
     # determine class name
     my $class = blessed $conn ? $conn->class_name : $conn;
-    return undef if !$class;
+    if (!$class) {
+        return if !$key;
+        return undef;
+    }
     
     # check for cached version
     my %h;
@@ -530,6 +533,14 @@ sub class_max {
     # fall back to the one defined in [limit]
     # this likely comes from default.conf
     return conf('limit', $name);
+}
+
+# fetch flags for a class
+# connection::class_flags($class, $type)
+sub class_flags {
+    my ($class, $type) = @_;
+    my %h = class_conf($class);
+    return grep { $h{$_} && s/^\Q$type\E_// } keys %h;
 }
 
 # returns the class name for the connection

@@ -596,36 +596,28 @@ sub oper {
     }
 
     # flags in their own oper block.
-    my @flags   = ref_to_list($oper{flags});
-    my @notices = ref_to_list($oper{notices});
-
-    # flags in their oper class block.
-    my $add_class;
-    $add_class = sub {
-        my $class_name = shift;
-        my %class = $conf->hash_of_block([ 'operclass', $class_name ]);
-
-        # add flags in this block.
-        push @flags,   ref_to_list($class{flags});
-        push @notices, ref_to_list($class{notices});
-
-        # add parent classes' flags too.
-        $add_class->($_) for ref_to_list($class{extends});
-    };
-    $add_class->($oper{class})
-        if defined $oper{class};
+    my @privs = ref_to_list($oper{flags});
+    my @notis = ref_to_list($oper{notices});
+        
+    # flags from oper class
+    push @privs, connection::class_flags($oper{class}, 'priv');
+    push @notis, connection::class_flags($oper{class}, 'noti');
 
     # add the flags
-    @flags = $user->add_flags(@flags);
-    $user->add_notices(@notices);
+    @privs = $user->add_flags(@privs);
+    $user->add_notices(@notis);
     $user->update_flags;
+
+    # no privileges and no notices
+    $user->numeric("Oper '$oper_name' has no privileges")
+        if !@privs && !@notis;
 
     # the last-opered-as name.
     # this should NOT be used to check if a user is an IRCop.
     $user->{oper} = $oper_name;
 
     # tell other servers
-    broadcast(oper => $user, @flags);
+    broadcast(oper => $user, @privs) if @privs;
 
     return 1;
 }

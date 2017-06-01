@@ -160,7 +160,7 @@ sub mode_string {
 # flag list
 sub flags {
     my $user = shift;
-    return @{ $user->{flag} };
+    return @{ $user->{flags} };
 }
 
 # has oper flag.
@@ -239,8 +239,9 @@ sub update_flags {
         $user->server_notice("You now have flags: @$their_flags")
             if @$their_flags;
         my @all_notices = @{ $user->{notice_flags} || [] };
-        $user->server_notice("You now have notices: @all_notices")
-            if @all_notices;
+        my $noti = scalar @all_notices; my $s = $noti == 1 ? '' : 's';
+        $user->server_notice("You are now subscribed to $noti server notice$s")
+            if $noti;
     }
 
     notice(user_opered =>

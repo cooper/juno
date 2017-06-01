@@ -4088,3 +4088,4 @@ CHANGES:
         updated all modules that were accessing user flags manually.
         
     16. misc. cleanup connection.pm.
+        finished transition of oper flags to the new class system. closes #179.
