@@ -105,8 +105,8 @@ sub init {
 # ts6-protocol.txt:209
 #
 sub rcmd_capab {
-    my ($connection, $event, @flags) = @_;
-    $connection->add_cap(map { split /\s+/ } @flags);
+    my ($conn, $event, @flags) = @_;
+    $conn->add_cap(map { split /\s+/ } @flags);
 }
 
 # PASS
@@ -117,23 +117,23 @@ sub rcmd_capab {
 # ts6-protocol.txt:623
 #
 sub rcmd_pass {
-    my ($connection, $event, $pass, undef, $ts_version, $sid) = @_;
-    $connection->{proto} = $ts_version;
+    my ($conn, $event, $pass, undef, $ts_version, $sid) = @_;
+    $conn->{proto} = $ts_version;
 
     # not supported.
     if ($ts_version != $TS_CURRENT) {
         notice(server_protocol_error =>
-            'Unregistered server from '.$connection->{host},
+            'Unregistered server from '.$conn->{host},
             "will not be linked due to an incompatible TS version ($ts_version)"
         );
-        $connection->done("Incompatible TS version ($ts_version)");
+        $conn->done("Incompatible TS version ($ts_version)");
         return;
     }
 
     # temporarily store password and SID.
-    @$connection{'ts6_sid', 'pass'} = ($sid, $pass);
+    @$conn{'ts6_sid', 'pass'} = ($sid, $pass);
 
-    $connection->reg_continue('id1');
+    $conn->reg_continue('id1');
     return 1;
 }
 
@@ -151,66 +151,66 @@ sub rcmd_pass {
 # ts6-protocol.txt:783
 #
 sub rcmd_server {
-    my ($connection, $event, $name, undef, $desc) = @_;
-    @$connection{ qw(name desc ircd) } = ($name, $desc, -1);
+    my ($conn, $event, $name, undef, $desc) = @_;
+    @$conn{ qw(name desc ircd) } = ($name, $desc, -1);
     my $s_conf = ['connect', $name];
 
     # hidden?
-    my $sub = \substr($connection->{desc}, 0, 4);
+    my $sub = \substr($conn->{desc}, 0, 4);
     if (length $sub && $$sub eq '(H) ') {
         $$sub = '';
-        $connection->{hidden} = 1;
+        $conn->{hidden} = 1;
     }
 
     # haven't gotten PASS yet.
-    if (!defined $connection->{ts6_sid}) {
-        $connection->done('Invalid credentials');
+    if (!defined $conn->{ts6_sid}) {
+        $conn->done('Invalid credentials');
         return;
     }
 
-    $connection->{sid} = sid_from_ts6($connection->{ts6_sid});
+    $conn->{sid} = sid_from_ts6($conn->{ts6_sid});
 
     # if this was by our request (as in an autoconnect or /connect or something)
     # don't accept any server except the one we asked for.
-    if (length $connection->{want} &&
-    irc_lc($connection->{want}) ne irc_lc($connection->{name})) {
-        $connection->done('Unexpected server');
+    if (length $conn->{want} &&
+    irc_lc($conn->{want}) ne irc_lc($conn->{name})) {
+        $conn->done('Unexpected server');
         return;
     }
 
     # find a matching server.
     if (defined(my $addrs = conf($s_conf, 'address'))) {
         $addrs = [$addrs] if !ref $addrs;
-        if (!irc_match($connection->{ip}, @$addrs)) {
-            $connection->done('Invalid credentials');
-            notice(connection_invalid => $connection->{ip}, 'IP does not match configuration');
+        if (!irc_match($conn->{ip}, @$addrs)) {
+            $conn->done('Invalid credentials');
+            notice(connection_invalid => $conn->{ip}, 'IP does not match configuration');
             return;
         }
     }
 
     # no such server.
     else {
-        $connection->done('Invalid credentials');
-        notice(connection_invalid => $connection->{ip}, 'No block for this server');
+        $conn->done('Invalid credentials');
+        notice(connection_invalid => $conn->{ip}, 'No block for this server');
         return;
     }
 
     # check for valid password.
     my $password = utils::crypt(
-        $connection->{pass},
+        $conn->{pass},
         conf($s_conf, 'encryption')
     );
     if ($password ne conf($s_conf, 'receive_password')) {
-        $connection->done('Invalid credentials');
-        notice(connection_invalid => $connection->{ip}, 'Received invalid password');
+        $conn->done('Invalid credentials');
+        notice(connection_invalid => $conn->{ip}, 'Received invalid password');
         return;
     }
 
     # made it.
-    $connection->fire('looks_like_server');
-    $connection->{ircd_name} = conf($s_conf, 'ircd') // 'charybdis';
-    $connection->{link_type} = 'ts6';
-    $connection->reg_continue('id2');
+    $conn->fire('looks_like_server');
+    $conn->{ircd_name} = conf($s_conf, 'ircd') // 'charybdis';
+    $conn->{link_type} = 'ts6';
+    $conn->reg_continue('id2');
 
     return 1;
 
@@ -218,8 +218,8 @@ sub rcmd_server {
 
 # server info
 sub rcmd_svinfo {
-    my ($connection, $event, $current, $min, undef, $their_time) = @_;
-    my $server = $connection->server or return;
+    my ($conn, $event, $current, $min, undef, $their_time) = @_;
+    my $server = $conn->server or return;
 
     # bad TS version
     if ($TS_CURRENT < $min || $current < $TS_MIN) {
@@ -228,12 +228,12 @@ sub rcmd_svinfo {
             $server->notice_info,
             'will not be linked due to an incompatible TS version '.$ver_str
         );
-        $connection->done("Incompatible TS version $ver_str");
+        $conn->done("Incompatible TS version $ver_str");
         return;
     }
 
     # check if the delta is enormous.
-    server::protocol::check_ts_delta($connection, time, $their_time)
+    server::protocol::check_ts_delta($conn, time, $their_time)
         or return;
 
     $server->{proto} = $current;
@@ -242,8 +242,8 @@ sub rcmd_svinfo {
 
 # the first ping here indicates end of burst.
 sub rcmd_ping {
-    my ($connection, $event) = @_;
-    my $server = $connection->server or return;
+    my ($conn, $event) = @_;
+    my $server = $conn->server or return;
     $server->{is_burst} or return;
     $server->end_burst();
     broadcast(endburst => $server, time);
@@ -268,20 +268,20 @@ sub server_ready {
 
 # connection is ready event.
 sub connection_ready {
-    my $connection = shift;
-    my $server = $connection->server or return;
+    my $conn = shift;
+    my $server = $conn->server or return;
     return unless $server->{link_type} eq 'ts6';
 
     # search for required CAPABs.
     foreach my $need (M::TS6::Base::get_required_caps()) {
         next if $server->has_cap($need);
-        $connection->done("Missing required CAPABs ($need)");
+        $conn->done("Missing required CAPABs ($need)");
         return;
     }
 
     # if I haven't already, time to send my own credentials.
-    M::TS6::Base::initiate_ts6_link($connection)
-        unless $connection->{sent_creds};
+    M::TS6::Base::initiate_ts6_link($conn)
+        unless $conn->{sent_creds};
 
     # unless I initiated this, I have to send my burst first.
     # I am to send it now, immediately after sending my registration,

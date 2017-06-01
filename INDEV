@@ -4093,3 +4093,5 @@ CHANGES:
     17. update user limits to use those defined in connection classes.
         update server delta checks to use connection class values.
         closes #130.
+    
+    18. connection -> conn.

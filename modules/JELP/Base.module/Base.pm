@@ -140,19 +140,19 @@ sub register_outgoing_command {
 #############################
 
 sub initiate_jelp_link {
-    my $connection = shift;
-    $connection->{sent_creds} = 1;
-    send_server_server($connection);
+    my $conn = shift;
+    $conn->{sent_creds} = 1;
+    send_server_server($conn);
 }
 
 sub send_server_server {
-    my $connection = shift;
-    my $name = $connection->{name} // $connection->{want};
+    my $conn = shift;
+    my $name = $conn->{name} // $conn->{want};
     if (!defined $name) {
         L('Trying to send credentials to an unknown server?');
         return;
     }
-    $connection->send(sprintf 'SERVER %s %s %s %s %s :%s',
+    $conn->send(sprintf 'SERVER %s %s %s %s %s :%s',
         $me->{sid},
         $me->{name},
         v('PROTO'),
@@ -160,18 +160,18 @@ sub send_server_server {
         time,
         ($me->{hidden} ? '(H) ' : '').$me->{desc}
     );
-    $connection->{i_sent_server} = 1;
+    $conn->{i_sent_server} = 1;
 }
 
 sub send_server_pass {
-    my $connection = shift;
-    my $name = $connection->{name} // $connection->{want};
+    my $conn = shift;
+    my $name = $conn->{name} // $conn->{want};
     if (!defined $name) {
         L('Trying to send credentials to an unknown server?');
         return;
     }
-    $connection->send('PASS '.conf([ 'connect', $name ], 'send_password'));
-    $connection->{i_sent_pass} = 1;
+    $conn->send('PASS '.conf([ 'connect', $name ], 'send_password'));
+    $conn->{i_sent_pass} = 1;
 }
 
 ##########################

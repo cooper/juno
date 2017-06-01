@@ -39,29 +39,29 @@ sub new {
 # existing objects after an IRCd reload.
 sub new_connection {
     my ($pool, %opts) = @_;
-    my $connection = connection->new($opts{stream}) or return;
+    my $conn = connection->new($opts{stream}) or return;
 
     # store it by stream.
-    $pool->{connections}{ $opts{stream} } = $connection;
+    $pool->{connections}{ $opts{stream} } = $conn;
 
     # weakly reference to the pool.
-    weaken($connection->{pool} = $pool);
+    weaken($conn->{pool} = $pool);
 
     # become an event listener.
-    $connection->add_listener($pool, 'connection');
+    $conn->add_listener($pool, 'connection');
 
     # update total connection count
-    my $connection_num = v('connection_count') + 1;
-    set_v(connection_count => $connection_num);
-    notice(new_connection => $connection->{ip}, $connection_num);
+    my $conn_num = v('connection_count') + 1;
+    set_v(connection_count => $conn_num);
+    notice(new_connection => $conn->{ip}, $conn_num);
 
     # update maximum connection count.
     if (scalar keys %{ $pool->{connections} } > v('max_connection_count')) {
         set_v(max_connection_count => scalar keys %{ $pool->{connections} });
     }
 
-    $connection->fire('new');
-    return $connection;
+    $conn->fire('new');
+    return $conn;
 }
 
 # find a connection by its stream.
@@ -72,16 +72,16 @@ sub lookup_connection {
 
 # delete a connection.
 sub delete_connection {
-    my ($pool, $connection, $reason) = @_;
+    my ($pool, $conn, $reason) = @_;
     notice(connection_terminated =>
-        $connection->{ip},
-        $connection->{type} ? $connection->{type}->full : 'unregistered',
+        $conn->{ip},
+        $conn->{type} ? $conn->{type}->full : 'unregistered',
         $reason // 'Unknown reason'
     );
 
     # forget it.
-    delete $pool->{connections}{ $connection->{stream} };
-    delete $connection->{pool};
+    delete $pool->{connections}{ $conn->{stream} };
+    delete $conn->{pool};
 
     return 1;
 }

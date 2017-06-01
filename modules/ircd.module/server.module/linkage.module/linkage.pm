@@ -250,8 +250,8 @@ sub new_server {
 # note: {type, location, server, stream} are deleted at this point
 # as well as all events
 sub connection_done {
-    my ($connection, $event, $reason) = @_;
-    my $server_name = $connection->{name} // $connection->{want};
+    my ($conn, $event, $reason) = @_;
+    my $server_name = $conn->{name} // $conn->{want};
     return unless length $server_name;
 
     # we already have a connection timer going.
@@ -264,7 +264,7 @@ sub connection_done {
     }
 
     # if we're supposed to autoconnect but don't have a timer going, start one now.
-    connect_server($server_name, 1) unless $connection->{dont_reconnect};
+    connect_server($server_name, 1) unless $conn->{dont_reconnect};
 
 }
 

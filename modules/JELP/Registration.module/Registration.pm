@@ -47,109 +47,109 @@ our %registration_commands = (
 ###########################
 
 sub rcmd_server {
-    my ($connection, $event, @args) = @_;
-    $connection->{desc} = pop   @args;
-    $connection->{$_}   = shift @args for qw(sid name proto ircd);
+    my ($conn, $event, @args) = @_;
+    $conn->{desc} = pop   @args;
+    $conn->{$_}   = shift @args for qw(sid name proto ircd);
     my $their_time      = shift @args;
 
     # check if the time delta is enormous
-    server::protocol::check_ts_delta($connection, time, $their_time)
+    server::protocol::check_ts_delta($conn, time, $their_time)
         or return;
 
     # hidden?
-    my $sub = \substr($connection->{desc}, 0, 4);
+    my $sub = \substr($conn->{desc}, 0, 4);
     if (length $sub && $$sub eq '(H) ') {
         $$sub = '';
-        $connection->{hidden} = 1;
+        $conn->{hidden} = 1;
     }
 
     # if this was by our request (as in an autoconnect or /connect or something)
     # don't accept any server except the one we asked for.
-    if (length $connection->{want} &&
-      irc_lc($connection->{want}) ne irc_lc($connection->{name})) {
-        $connection->done('Unexpected server');
+    if (length $conn->{want} &&
+      irc_lc($conn->{want}) ne irc_lc($conn->{name})) {
+        $conn->done('Unexpected server');
         return;
     }
 
     # find a matching server.
     if (defined(my $addrs =
-      conf([ 'connect', $connection->{name} ], 'address'))) {
+      conf([ 'connect', $conn->{name} ], 'address'))) {
         $addrs = [$addrs] if !ref $addrs;
-        if (!irc_match($connection->{ip}, @$addrs)) {
-            $connection->done('Invalid credentials');
+        if (!irc_match($conn->{ip}, @$addrs)) {
+            $conn->done('Invalid credentials');
             notice(connection_invalid =>
-                $connection->{ip}, 'IP does not match configuration');
+                $conn->{ip}, 'IP does not match configuration');
             return;
         }
     }
 
     # no such server.
     else {
-        $connection->done('Invalid credentials');
+        $conn->done('Invalid credentials');
         notice(connection_invalid =>
-            $connection->{ip}, 'No block for this server');
+            $conn->{ip}, 'No block for this server');
         return;
     }
 
     # send my own SERVER if I haven't already.
-    if (!$connection->{i_sent_server}) {
-        M::JELP::Base::send_server_server($connection);
+    if (!$conn->{i_sent_server}) {
+        M::JELP::Base::send_server_server($conn);
     }
 
     # otherwise, I am going to expose my password.
     # this means that I was the one that issued the connect.
     else {
-        M::JELP::Base::send_server_pass($connection);
+        M::JELP::Base::send_server_pass($conn);
     }
 
     # made it.
-    $connection->fire('looks_like_server');
-    $connection->reg_continue('id1');
+    $conn->fire('looks_like_server');
+    $conn->reg_continue('id1');
     return 1;
 
 }
 
 sub rcmd_pass {
-    my ($connection, $event, @args) = @_;
-    $connection->{pass} = shift @args;
+    my ($conn, $event, @args) = @_;
+    $conn->{pass} = shift @args;
 
     # moron hasn't sent SERVER yet.
-    my $name = $connection->{name};
+    my $name = $conn->{name};
     return if !length $name;
 
-    $connection->{link_type} = 'jelp';
+    $conn->{link_type} = 'jelp';
 
     # check for valid password.
     my $password = utils::crypt(
-        $connection->{pass},
+        $conn->{pass},
         conf(['connect', $name ], 'encryption')
     );
     if ($password ne conf(['connect', $name], 'receive_password')) {
-        $connection->done('Invalid credentials');
+        $conn->done('Invalid credentials');
         notice(connection_invalid =>
-            $connection->{ip}, 'Received invalid password');
+            $conn->{ip}, 'Received invalid password');
         return;
     }
 
     # send my own PASS if I haven't already.
     # this is postponed so that the burst will not be triggered until
     # hostname resolve, ident, etc. are done.
-    $connection->on(ready_done => sub {
+    $conn->on(ready_done => sub {
         my $c = shift;
         M::JELP::Base::send_server_pass($c);
         $c->send('READY');
     }, name => 'jelp.send.password', with_eo => 1)
-        if !$connection->{i_sent_pass};
+        if !$conn->{i_sent_pass};
 
-    $connection->reg_continue('id2');
+    $conn->reg_continue('id2');
     return 1;
 }
 
 sub _send_burst {
-    my $connection = shift;
+    my $conn = shift;
 
     # the server is registered on our end.
-    my $server = $connection->server or return;
+    my $server = $conn->server or return;
 
     # send the burst.
     if (!$server->{i_sent_burst}) {
@@ -165,14 +165,14 @@ sub _send_burst {
 
 # the server is ready to receive burst.
 sub rcmd_ready {
-    my ($connection, $event) = @_;
+    my ($conn, $event) = @_;
 
     # the server is registered, and we haven't sent burst. do so.
-    _send_burst($connection) and return;
+    _send_burst($conn) and return;
 
     # the server is not yet registered; postpone the burst.
-    $connection->on(ready_done => \&_send_burst, with_eo => 1)
-        unless $connection->{ready};
+    $conn->on(ready_done => \&_send_burst, with_eo => 1)
+        unless $conn->{ready};
 
 }
 

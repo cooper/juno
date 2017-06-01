@@ -70,18 +70,18 @@ sub init {
 ############################
 
 sub initiate_ts6_link {
-    my $connection = shift;
-    return if $connection->{sent_creds}++;
-    send_server_pass($connection);
-    send_server_server($connection);
+    my $conn = shift;
+    return if $conn->{sent_creds}++;
+    send_server_pass($conn);
+    send_server_server($conn);
 }
 
 sub send_server_pass {
-    my $connection = shift;
-    my $name = $connection->{want} // $connection->{name};
+    my $conn = shift;
+    my $name = $conn->{want} // $conn->{name};
 
     # send PASS first.
-    $connection->send(sprintf
+    $conn->send(sprintf
         'PASS %s TS %d :%s',
         conf([ 'connect', $name ], 'send_password'),
         $TS_CURRENT,
@@ -90,14 +90,14 @@ sub send_server_pass {
 
     # send CAPAB. only advertise ones that are enabled on $me.
     my @caps = grep $me->has_cap($_), get_caps();
-    $connection->send("CAPAB :@caps");
+    $conn->send("CAPAB :@caps");
 }
 
 sub send_server_server {
-    my $connection = shift;
+    my $conn = shift;
 
     # send server
-    $connection->send(sprintf
+    $conn->send(sprintf
         'SERVER %s %d :%s',
         $me->{name},
         1, # hopcount - will this ever not be one?
@@ -105,7 +105,7 @@ sub send_server_server {
     );
 
     # ask for a PONG to emulate end of burst
-    $connection->send("PING :$$me{name}");
+    $conn->send("PING :$$me{name}");
 }
 
 ########################

@@ -27,45 +27,45 @@ sub init {
 
 # on new connection, attempt to resolve
 sub connection_new {
-    my ($connection, $event) = @_;
-    $connection->early_reply(NOTICE => ':*** Looking up your hostname...');
-    resolve_address($connection);
+    my ($conn, $event) = @_;
+    $conn->early_reply(NOTICE => ':*** Looking up your hostname...');
+    resolve_address($conn);
 }
 
 # Step 1: getnameinfo()
 sub resolve_address {
-    my $connection = shift;
-    return if $connection->{goodbye};
+    my $conn = shift;
+    return if $conn->{goodbye};
 
     # prevent connection registration from completing.
-    $connection->reg_wait('resolve');
+    $conn->reg_wait('resolve');
 
     # peername -> human-readable hostname
     my $resolve_future = $::loop->resolver->getnameinfo(
-        addr => $connection->sock->peername
+        addr => $conn->sock->peername
     );
 
     my $timeout_future = $::loop->timeout_future(after => 3);
     my $f = Future->wait_any($resolve_future, $timeout_future);
 
-    $f->on_done(sub { on_got_host1($connection, @_   ) });
-    $f->on_fail(sub { on_error    ($connection, shift) });
-    $connection->adopt_future(resolve_host1 => $f);
+    $f->on_done(sub { on_got_host1($conn, @_   ) });
+    $f->on_fail(sub { on_error    ($conn, shift) });
+    $conn->adopt_future(resolve_host1 => $f);
 }
 
 # Step 2: getaddrinfo()
 # got human-readable hostname
 sub on_got_host1 {
-    my ($connection, $host) = @_;
+    my ($conn, $host) = @_;
     $host = safe_ip($host);
 
     # temporarily store the host.
-    $connection->{resolve_host} = $host;
+    $conn->{resolve_host} = $host;
 
     # getnameinfo() spit out the IP.
     # we need better IP comparison probably.
-    if ($connection->{ip} eq $host) {
-        return on_error($connection, 'getnameinfo() spit out IP');
+    if ($conn->{ip} eq $host) {
+        return on_error($conn, 'getnameinfo() spit out IP');
     }
 
     # human readable hostname -> binary address
@@ -79,15 +79,15 @@ sub on_got_host1 {
     my $timeout_future = $::loop->timeout_future(after => 3);
     my $f = Future->wait_any($resolve_future, $timeout_future);
 
-    $f->on_done(sub { on_got_addr($connection, @_   ) });
-    $f->on_fail(sub { on_error   ($connection, shift) });
-    $connection->adopt_future(resolve_addr => $f);
+    $f->on_done(sub { on_got_addr($conn, @_   ) });
+    $f->on_fail(sub { on_error   ($conn, shift) });
+    $conn->adopt_future(resolve_addr => $f);
 }
 
 # Step 3: getnameinfo()
 # got binary representation of address
 sub on_got_addr {
-    my ($connection, $addr) = @_;
+    my ($conn, $addr) = @_;
 
     # binary address -> human-readable hostname
     my $resolve_future = $::loop->resolver->getnameinfo(
@@ -98,50 +98,50 @@ sub on_got_addr {
     my $timeout_future = $::loop->timeout_future(after => 3);
     my $f = Future->wait_any($resolve_future, $timeout_future);
 
-    $f->on_done(sub { on_got_host2($connection, @_   ) });
-    $f->on_fail(sub { on_error    ($connection, shift) });
-    $connection->adopt_future(resolve_host2 => $f);
+    $f->on_done(sub { on_got_host2($conn, @_   ) });
+    $f->on_fail(sub { on_error    ($conn, shift) });
+    $conn->adopt_future(resolve_host2 => $f);
 }
 
 # Step 4: Set the host
 # got human-readable hostname
 sub on_got_host2 {
-    my ($connection, $host) = @_;
+    my ($conn, $host) = @_;
 
     # they match.
-    if ($connection->{resolve_host} eq $host) {
-        $connection->early_reply(NOTICE => ':*** Found your hostname');
-        $connection->{host} = safe_ip(delete $connection->{resolve_host});
-        $connection->fire('found_hostname');
-        _finish($connection);
+    if ($conn->{resolve_host} eq $host) {
+        $conn->early_reply(NOTICE => ':*** Found your hostname');
+        $conn->{host} = safe_ip(delete $conn->{resolve_host});
+        $conn->fire('found_hostname');
+        _finish($conn);
         return 1;
     }
 
     # not the same.
-    return on_error($connection, "No match ($host)");
+    return on_error($conn, "No match ($host)");
 
 }
 
 # called on error
 sub on_error {
-    my ($connection, $err) = (shift, shift // 'unknown error');
-    $connection->early_reply(NOTICE => ":*** Couldn't resolve your hostname");
-    L("Lookup for $$connection{ip} failed: $err");
-    _finish($connection);
+    my ($conn, $err) = (shift, shift // 'unknown error');
+    $conn->early_reply(NOTICE => ":*** Couldn't resolve your hostname");
+    L("Lookup for $$conn{ip} failed: $err");
+    _finish($conn);
     return;
 }
 
 # call with either success or failure
 sub _finish {
-    my $connection = shift;
-    return if $connection->{goodbye};
+    my $conn = shift;
+    return if $conn->{goodbye};
 
     # delete futures that might be left
-    $connection->abandon_future($_)
+    $conn->abandon_future($_)
         for qw(resolve_host1 resolve_host2 resolve_addr);
 
-    delete $connection->{resolve_host};
-    $connection->reg_continue('resolve');
+    delete $conn->{resolve_host};
+    $conn->reg_continue('resolve');
 }
 
 $mod

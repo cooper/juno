@@ -109,49 +109,49 @@ sub find_saslserv {
 
 # Registration command: AUTHENTICATE
 sub rcmd_authenticate {
-    my ($connection, $event, $arg) = @_;
+    my ($conn, $event, $arg) = @_;
 
     # if the connection does not have the sasl capability, drop the message.
-    return if !$connection->has_cap('sasl');
+    return if !$conn->has_cap('sasl');
 
     # already authenticated successfully, so this is a reauthentication
-    if ($connection->{sasl_complete}) {
+    if ($conn->{sasl_complete}) {
         if (!conf('services', 'saslserv_allow_reauthentication')) {
-            $connection->numeric('ERR_SASLALREADY');
+            $conn->numeric('ERR_SASLALREADY');
             return;
         }
-        delete $connection->{sasl_complete};
-        delete $connection->{sasl_agent};
+        delete $conn->{sasl_complete};
+        delete $conn->{sasl_agent};
     }
 
     # if the arg is >400, do not process.
     if (length $arg > 400) {
-        $connection->numeric('ERR_SASLTOOLONG');
+        $conn->numeric('ERR_SASLTOOLONG');
         return;
     }
 
     # aborted!
     if ($arg eq '*') {
-        abort_sasl($connection);
+        abort_sasl($conn);
         return;
     }
 
     # SaslServ not found
     my $saslserv = find_saslserv();
     if (!$saslserv) {
-        abort_sasl($connection);
+        abort_sasl($conn);
         return;
     }
 
     # allocate a UID if we haven't already.
-    if (!length $connection->{uid}) {
-        my $uid = $connection->{uid} = $me->{sid}.$pool->{user_i}++;
-        $pool->reserve_uid($uid, $connection);
+    if (!length $conn->{uid}) {
+        my $uid = $conn->{uid} = $me->{sid}.$pool->{user_i}++;
+        $pool->reserve_uid($uid, $conn);
     }
 
     # find this connection's SASL agent server. sasl_agent is stored only after
     # the SASL S request has been sent to the SASL agent.
-    my $agent = is_valid_agent($pool->lookup_user($connection->{sasl_agent}));
+    my $agent = is_valid_agent($pool->lookup_user($conn->{sasl_agent}));
 
     # this client has no agent.
     # send out SASL S and SASL H.
@@ -161,15 +161,15 @@ sub rcmd_authenticate {
         my @common = (
             $me,                        # source server
             $saslserv->server->name,    # server mask target
-            $connection->{uid},         # the connection's temporary UID
+            $conn->{uid},         # the connection's temporary UID
             $saslserv->{uid},           # UID of SASL service
         );
 
         # send SASL H.
         $saslserv->forward(sasl_host_info =>
             @common,                    # common parameters
-            $connection->{host},        # connection host
-            $connection->{ip}           # connection IP address
+            $conn->{host},        # connection host
+            $conn->{ip}           # connection IP address
         );
 
         # send SASL S.
@@ -179,7 +179,7 @@ sub rcmd_authenticate {
         );
 
         # store the SASL agent.
-        $connection->{sasl_agent} = $saslserv->id;
+        $conn->{sasl_agent} = $saslserv->id;
 
     }
 
@@ -188,7 +188,7 @@ sub rcmd_authenticate {
         $agent->forward(sasl_client_data =>
             $me,                        # source server
             $agent->server->name,       # server mask target
-            $connection->{uid},         # the connection's temporary UID
+            $conn->{uid},         # the connection's temporary UID
             $agent->{uid},              # UID of SASL service
             $arg                        # base64 encoded client data
         );
@@ -196,7 +196,7 @@ sub rcmd_authenticate {
 
     # not sure what to do with this.
     else {
-        abort_sasl($connection);
+        abort_sasl($conn);
         return;
     }
 
@@ -205,21 +205,21 @@ sub rcmd_authenticate {
 
 # the client has aborted authentication
 sub abort_sasl {
-    my $connection = shift;
-    return if $connection->{sasl_complete};
+    my $conn = shift;
+    return if $conn->{sasl_complete};
 
     # tell the user it's over.
-    $connection->numeric('ERR_SASLABORTED');
+    $conn->numeric('ERR_SASLABORTED');
 
     # find the SASL agent. if no SASL agent is set, that's fine.
     # that means abort_sasl() was called before even determining it.
-    my $agent = $pool->lookup_user($connection->{sasl_agent}) or return;
+    my $agent = $pool->lookup_user($conn->{sasl_agent}) or return;
 
     # tell the agent that the user aborted the exchange.
     $agent->forward(sasl_done =>
         $me,                        # source server
         $agent->server->name,       # server mask target
-        $connection->{uid},         # the connection's temporary UID
+        $conn->{uid},         # the connection's temporary UID
         $agent->{uid},              # UID of SASL service
         'A'                         # for abort
     );

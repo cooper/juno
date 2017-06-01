@@ -179,7 +179,6 @@ sub cmd_confset {
         ":$value_str"
     ) and return 1;
 
-    my $serv_name = $user->is_local ? '' : " <$$me{name}>";
 
     # find location
     $location  //= $server_mask;

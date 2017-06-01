@@ -29,17 +29,17 @@ sub init {
 
 # on new connection, check each applicable DNSBL
 sub connection_new {
-    my ($connection, $event) = @_;
-    return if $connection->{goodbye};
+    my ($conn, $event) = @_;
+    return if $conn->{goodbye};
     my @lists = $conf->names_of_block('dnsbl') or return;
 
     my ($expanded, $ipv6);
-    my $ip = $connection->ip;
+    my $ip = $conn->ip;
 
     # check if the IP has already been cached
     if (my $cached = $cache{$ip}) {
         my ($expire_time, $list_name, $reason) = @$cached;
-        return dnsbl_bad($connection, $list_name, $reason)
+        return dnsbl_bad($conn, $list_name, $reason)
             if time < $expire_time;
         delete $cache{$ip};
     }
@@ -56,11 +56,11 @@ sub connection_new {
         $expanded = join '.', reverse unpack('C' x 4, $addr);
     }
 
-    check_conn_against_list($connection, $expanded, $ipv6, $_) for @lists;
+    check_conn_against_list($conn, $expanded, $ipv6, $_) for @lists;
 }
 
 sub check_conn_against_list {
-    my ($connection, $expanded, $ipv6, $list_name) = @_;
+    my ($conn, $expanded, $ipv6, $list_name) = @_;
     my %blacklist = $conf->hash_of_block([ 'dnsbl', $list_name ]);
     my $full_host = "$expanded.$blacklist{host}";
 
@@ -69,7 +69,7 @@ sub check_conn_against_list {
     return if !$blacklist{"ipv$n"};
 
     # postpone registration until this is done
-    $connection->reg_wait("dnsbl_$list_name");
+    $conn->reg_wait("dnsbl_$list_name");
 
     # do the initial request
     my $f = $::loop->resolver->getaddrinfo(
@@ -79,14 +79,14 @@ sub check_conn_against_list {
         timeout  => $blacklist{timeout} || 3
     );
 
-    $connection->adopt_future("dnsbl1_$list_name" => $f);
-    $f->on_done(sub { got_reply1($connection, $list_name, @_) });
-    $f->on_fail(sub { dnsbl_ok($connection, $list_name)       });
+    $conn->adopt_future("dnsbl1_$list_name" => $f);
+    $f->on_done(sub { got_reply1($conn, $list_name, @_) });
+    $f->on_fail(sub { dnsbl_ok($conn, $list_name)       });
 }
 
 # got first reply
 sub got_reply1 {
-    my ($connection, $list_name, $addr) = @_;
+    my ($conn, $list_name, $addr) = @_;
 
     # do the second request
     my $f = $::loop->resolver->getnameinfo(
@@ -94,14 +94,14 @@ sub got_reply1 {
         numerichost => 1
     );
 
-    $connection->adopt_future("dnsbl2_$list_name" => $f);
-    $f->on_done(sub { got_reply2($connection, $list_name, @_) });
-    $f->on_fail(sub { dnsbl_ok($connection, $list_name)       });
+    $conn->adopt_future("dnsbl2_$list_name" => $f);
+    $f->on_done(sub { got_reply2($conn, $list_name, @_) });
+    $f->on_fail(sub { dnsbl_ok($conn, $list_name)       });
 }
 
 # got second reply
 sub got_reply2 {
-    my ($connection, $list_name, $ip) = @_;
+    my ($conn, $list_name, $ip) = @_;
     my %blacklist = $conf->hash_of_block([ 'dnsbl', $list_name ]);
 
     # extract the last portion of the IP address
@@ -112,49 +112,49 @@ sub got_reply2 {
     # otherwise, see if any of the provided responses are the one we got.
     if (!@matches || first { $_ == $response } @matches) {
         return dnsbl_bad(
-            $connection, $list_name,
+            $conn, $list_name,
             $blacklist{reason}, $blacklist{duration}
         );
     }
 
-    dnsbl_ok($connection);
+    dnsbl_ok($conn);
 }
 
 # called when the connection is good-to-go.
 sub dnsbl_ok {
-    my ($connection, $list_name) = @_;
-    L("$$connection{ip} is not listed on $list_name");
-    finish($connection, $list_name);
+    my ($conn, $list_name) = @_;
+    L("$$conn{ip} is not listed on $list_name");
+    finish($conn, $list_name);
 }
 
 # called when the connection is blacklisted.
 sub dnsbl_bad {
-    my ($connection, $list_name, $reason, $duration) = @_;
-    L("$$connection{ip} is listed on $list_name!");
+    my ($conn, $list_name, $reason, $duration) = @_;
+    L("$$conn{ip} is listed on $list_name!");
 
     # inject variables in reason
     $reason ||= "Your host is listed on $list_name.";
-    $reason =~ s/%ip/$$connection{ip}/g;
-    $reason =~ s/%host/$$connection{host}/g;
+    $reason =~ s/%ip/$$conn{ip}/g;
+    $reason =~ s/%host/$$conn{host}/g;
 
     # store in cache
     if ($duration) {
         my $expire_time = time() + string_to_seconds($duration);
-        $cache{ $connection->ip } = [ $expire_time, $list_name, $reason ];
+        $cache{ $conn->ip } = [ $expire_time, $list_name, $reason ];
     }
 
     # drop the connection
-    $connection->done($reason);
+    $conn->done($reason);
 
-    finish($connection, $list_name);
+    finish($conn, $list_name);
 }
 
 # called when a DNSBL lookup is complete, regardless of status.
 sub finish {
-    my ($connection, $list_name) = @_;
-    $connection->abandon_future("dnsbl1_$list_name");
-    $connection->abandon_future("dnsbl2_$list_name");
-    $connection->reg_continue("dnsbl_$list_name");
+    my ($conn, $list_name) = @_;
+    $conn->abandon_future("dnsbl1_$list_name");
+    $conn->abandon_future("dnsbl2_$list_name");
+    $conn->reg_continue("dnsbl_$list_name");
 }
 
 $mod

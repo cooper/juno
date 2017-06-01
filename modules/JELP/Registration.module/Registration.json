@@ -14,5 +14,5 @@
    "description" : "JELP registration commands",
    "name" : "JELP::Registration",
    "package" : "M::JELP::Registration",
-   "version" : "2.8"
+   "version" : "2.9"
 }

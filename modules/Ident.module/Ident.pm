@@ -61,23 +61,23 @@ sub init {
 
 # on new connection, perform ident lookup
 sub connection_new {
-    my ($connection, $event) = @_;
-    return if $connection->{goodbye} || $connection->{ident_skip};
-    return unless $connection->{stream}->write_handle;
+    my ($conn, $event) = @_;
+    return if $conn->{goodbye} || $conn->{ident_skip};
+    return unless $conn->{stream}->write_handle;
 
     # postpone registration.
-    $connection->early_reply(NOTICE => ':*** Checking ident...');
-    $connection->reg_wait('ident');
+    $conn->early_reply(NOTICE => ':*** Checking ident...');
+    $conn->reg_wait('ident');
 
     # create a future that attempts to connect.
-    my $family_int     = $connection->stream->write_handle->sockdomain;
+    my $family_int     = $conn->stream->write_handle->sockdomain;
     my $family_name    = $family_int == AF_INET6 ? 'inet6' : 'inet';
     my $connect_future = $::loop->connect(
         addr => {
             family   => $family_name,
             socktype => 'stream',
             port     => 113,
-            ip       => $connection->{ip}
+            ip       => $conn->{ip}
         }
     );
 
@@ -86,7 +86,7 @@ sub connection_new {
 
     # create a third future that will wait for whichever comes first.
     my $future = Future->wait_any($connect_future, $timeout_future);
-    $connection->adopt_future(ident_connect => $future);
+    $conn->adopt_future(ident_connect => $future);
 
     # on ready, either start sending data or cancel.
     $future->on_ready(sub {
@@ -95,51 +95,51 @@ sub connection_new {
         my $e = $connect_future->failure;
         if (defined $e || $connect_future->is_cancelled) {
             $e //= 'Timed out'; chomp $e;
-            ident_cancel($connection, $e);
+            ident_cancel($conn, $e);
             return;
         }
 
         # it seems to have succeeded...
         my $socket = $connect_future->get;
-        ident_write($connection, $socket);
+        ident_write($conn, $socket);
 
     });
 }
 
 # USER received.
 sub connection_user {
-    my ($connection, $event, $ident, $real) = @_;
+    my ($conn, $event, $ident, $real) = @_;
 
     # if the requested ident has ~, cancel ident check.
     if (substr($ident, 0, 1) eq '~') {
 
         # already did a lookup or it was skipped already. ignore the request.
-        return if $connection->{ident_checked};
+        return if $conn->{ident_checked};
 
-        $connection->sendfrom($me->full, 'NOTICE * :*** Skipped ident lookup');
-        $connection->{ident_skip} = 1;
-        ident_cancel($connection, 'Skipped by user');
+        $conn->sendfrom($me->full, 'NOTICE * :*** Skipped ident lookup');
+        $conn->{ident_skip} = 1;
+        ident_cancel($conn, 'Skipped by user');
     }
 
     # otherwise, add a tilde when necessary.
-    elsif ($connection->{ident_tilde}) {
-        $connection->{ident} = "~$ident";
+    elsif ($conn->{ident_tilde}) {
+        $conn->{ident} = "~$ident";
     }
 }
 
 # SERVER received. don't waste time processing this.
 sub connection_server {
-    my $connection = shift;
-    ident_cancel($connection, 'SERVER command received');
+    my $conn = shift;
+    ident_cancel($conn, 'SERVER command received');
 }
 
 # initiate the request.
 sub ident_write {
-    my ($connection, $socket) = @_;
+    my ($conn, $socket) = @_;
 
     # data and error handling.
-    my $err_cb = sub { ident_cancel($connection, @_) };
-    my $stream = $connection->{ident_stream} = IO::Async::Stream->new(
+    my $err_cb = sub { ident_cancel($conn, @_) };
+    my $stream = $conn->{ident_stream} = IO::Async::Stream->new(
         handle         => $socket,
         on_read_error  => $err_cb,
         on_write_error => $err_cb,
@@ -158,35 +158,35 @@ sub ident_write {
     my $line_future    = $stream->read_until("\n");
     my $timeout_future = $::loop->timeout_future(after => 10);
     my $future         = Future->wait_any($line_future, $timeout_future);
-    $connection->adopt_future(ident_read => $future);
+    $conn->adopt_future(ident_read => $future);
 
     # on ready, set the ident or cancel.
     $future->on_ready(sub {
 
         # we read a line successfully.
         if ($line_future->is_done) {
-            ident_read($connection, $line_future->get);
+            ident_read($conn, $line_future->get);
             return;
         }
 
         # it failed somehow.
         ident_cancel(
-            $connection,
+            $conn,
             $line_future->failure // 'Timed out'
         );
 
     });
 
     # send the request.
-    return unless $connection->{stream}->write_handle;
-    my $server_port = $connection->sock->peerport;
-    my $client_port = $connection->sock->sockport; # i.e. 6667
+    return unless $conn->{stream}->write_handle;
+    my $server_port = $conn->sock->peerport;
+    my $client_port = $conn->sock->sockport; # i.e. 6667
     $stream->write("$server_port, $client_port\r\n");
 }
 
 # read incoming data.
 sub ident_read {
-    my ($connection, $line) = @_;
+    my ($conn, $line) = @_;
     chomp $line;
 
     # parts of the response are separated by colons.
@@ -194,65 +194,65 @@ sub ident_read {
 
     # if the response is not USERID, forget it.
     if (!$items[1] || !$items[3] || $items[1] ne 'USERID') {
-        ident_cancel($connection, 'Response was not USERID');
+        ident_cancel($conn, 'Response was not USERID');
         return;
     }
 
     # is the ident valid?
     if (!utils::validident($items[3])) {
-        ident_cancel($connection, 'Bad ident');
+        ident_cancel($conn, 'Bad ident');
         return;
     }
 
     # success.
-    $connection->{ident_success} = $items[3];
-    ident_done($connection);
+    $conn->{ident_success} = $items[3];
+    ident_done($conn);
 
 }
 
 # ident lookup failed.
 sub ident_cancel {
-    my ($connection, $err) = @_;
-    return if $connection->{ident_checked};
+    my ($conn, $err) = @_;
+    return if $conn->{ident_checked};
     ident_done(@_);
     $err //= 'unknown error';
-    L("Request for $$connection{ip} terminated: $err");
+    L("Request for $$conn{ip} terminated: $err");
 }
 
 # whether succeeded or failed, we're done.
 sub ident_done {
-    my ($connection) = @_;
-    return if $connection->{ident_checked};
+    my ($conn) = @_;
+    return if $conn->{ident_checked};
 
     # close the stream.
-    my $stream = delete $connection->{ident_stream};
+    my $stream = delete $conn->{ident_stream};
     $stream->close_when_empty if $stream;
 
     # immediately cancel both futures.
-    $connection->abandon_future('ident_connect');
-    $connection->abandon_future('ident_read');
+    $conn->abandon_future('ident_connect');
+    $conn->abandon_future('ident_read');
 
     # add tilde if not successful.
-    if (!defined $connection->{ident_success}) {
-        $connection->{ident_tilde}++;
-        $connection->{ident} = '~'.$connection->{ident}
-            if length $connection->{ident}
-            && substr($connection->{ident}, 0, 1) ne '~';
-        $connection->early_reply(NOTICE => ':*** No ident response')
-            unless $connection->{ident_skip};
+    if (!defined $conn->{ident_success}) {
+        $conn->{ident_tilde}++;
+        $conn->{ident} = '~'.$conn->{ident}
+            if length $conn->{ident}
+            && substr($conn->{ident}, 0, 1) ne '~';
+        $conn->early_reply(NOTICE => ':*** No ident response')
+            unless $conn->{ident_skip};
     }
 
     # it was successful. set the ident.
     else {
-        $connection->{ident_verified}++;
-        $connection->{ident} = delete $connection->{ident_success};
-        $connection->early_reply(NOTICE => ':*** Found your ident')
-            unless $connection->{ident_skip};
-        $connection->fire('found_ident');
+        $conn->{ident_verified}++;
+        $conn->{ident} = delete $conn->{ident_success};
+        $conn->early_reply(NOTICE => ':*** Found your ident')
+            unless $conn->{ident_skip};
+        $conn->fire('found_ident');
     }
 
-    $connection->{ident_checked} = 1;
-    $connection->reg_continue('ident');
+    $conn->{ident_checked} = 1;
+    $conn->reg_continue('ident');
 }
 
 $mod
