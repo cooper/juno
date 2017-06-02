@@ -693,8 +693,8 @@ Attempts a local join.
 This is essentially a `JOIN` command handler, but it is provided here so that
 modules can initiate high-level local joins. It checks that a local user can
 join a channel (respecting bans, limits, and other restrictions), deals with
-channel creation if necessary, sets [automodes](config.md#user-options), and
-propagates everything to uplinks.
+channel creation if necessary, sets [automodes](../../config.md#user-options),
+and propagates everything to uplinks.
 
 This can only be used for local users. Use
 [`->do_join_local`](#channel-do_join_localuser-allow_already)

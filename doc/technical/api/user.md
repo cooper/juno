@@ -239,7 +239,7 @@ All event callbacks will be deleted as this method prepares the user object for
 disposal.
 
 ```perl
-$user->quit('~ <insert some sort of meaningless quote here>');
+$user->quit('~ <insert meaningless quote here>');
 ```
 
 * __$reason__ - the reason for quitting.
@@ -871,7 +871,7 @@ instance, one such callback checks if the user is banned.
 This event is never fired for remote users, as it is the responsibility of each
 server to determine whether its own users should be able to join a channel.  
 
-This event is fired by the [Core::UserCommands](mod/Core/UserCommands.md)
+This event is fired by the [Core::UserCommands](../../modules.md#core)
 module.
 
 ```perl
@@ -911,7 +911,7 @@ channel.
 This event is never fired on remote users, as it is the responsibility of each
 server to determine whether its own users should be able to invite.  
 
-This event is fired by the [Invite](mod/Invite.md) module.
+This event is fired by the [Invite](../../modules.md#channelinvite) module.
 
 ```perl
 $pool->on('user.can_invite' => sub {
