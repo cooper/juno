@@ -221,6 +221,12 @@ sub rcmd_svinfo {
     my ($conn, $event, $current, $min, undef, $their_time) = @_;
     my $server = $conn->server or return;
 
+    # check for errors
+    if (my $err = $conn->verify) {
+        $conn->done($err);
+        return;
+    }
+
     # bad TS version
     if ($TS_CURRENT < $min || $current < $TS_MIN) {
         my $ver_str = "($current,$min)";

@@ -163,12 +163,6 @@ sub ready {
     # already ready, or connection has been closed
     return if $conn->{ready} || $conn->{goodbye};
 
-    # guess what type of connection this is
-    $conn->{looks_like_user} =
-        length $conn->{nick} && length $conn->{ident};
-    $conn->{looks_like_server} =
-        length $conn->{name};
-
     # check for errors
     if (my $err = $conn->verify) {
         $conn->done($err);
@@ -246,15 +240,22 @@ sub verify {
     my $conn = shift;
     $conn->{verify}++;
     
-    # neither server nor user
+    # guess what type of connection this is
+    $conn->{looks_like_user} //=
+        length $conn->{nick} && length $conn->{ident};
+    $conn->{looks_like_server} //=
+        length $conn->{name};
     my $is_serv = $conn->{looks_like_server};
     my $is_user = $conn->{looks_like_user};
+    
+    # neither server nor user
     if (!$is_serv && !$is_user) {
         warn 'Connection ->ready called prematurely';
         return 'Alien';
     }
     
     # connection matches no class
+    delete $conn->{class_name};
     my $class = $conn->class_name;
     return 'Not accepting connections'
         if !$class;
@@ -625,7 +626,7 @@ sub class_name {
         
         # server
         my @servers = ref_to_list($class_ref->{allow_servers});
-        my @users = ref_to_list($class_ref->{allow_users});
+        my @users   = ref_to_list($class_ref->{allow_users});
         if ($conn->{looks_like_server} && @servers) {
             
             # neither hostname nor IP match

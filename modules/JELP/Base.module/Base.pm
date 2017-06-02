@@ -14,13 +14,18 @@ use warnings;
 use strict;
 use 5.010;
 
-use utils qw(col trim notice v conf);
+use utils qw(col trim notice v set_v conf);
 use Scalar::Util qw(blessed);
 
 our ($api, $mod, $pool, $me);
 
-sub init {
+# JELP versions
+our $JELP_CURRENT  = '22.00';
+our $JELP_MIN      = '22.00';
 
+sub init {
+    $me->{proto} = $JELP_CURRENT;
+    
     # register methods.
     $mod->register_module_method('register_jelp_command'    ) or return;
     $mod->register_module_method('register_global_command'  ) or return;
@@ -155,7 +160,7 @@ sub send_server_server {
     $conn->send(sprintf 'SERVER %s %s %s %s %s :%s',
         $me->{sid},
         $me->{name},
-        v('PROTO'),
+        $JELP_CURRENT,
         v('VERSION'),
         time,
         ($me->{hidden} ? '(H) ' : '').$me->{desc}

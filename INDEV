@@ -4100,3 +4100,5 @@ CHANGES:
         move -priv() to server::protocol, to share it between TS6 and JELP.
         
     19. move mode type definitions to ircd.pm so they only have to be changed in one place.
+        add JELP version checking.
+        fix some bugs with delta_max and delta_warn in server classes.

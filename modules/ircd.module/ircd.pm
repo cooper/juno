@@ -175,8 +175,7 @@ sub set_variables {
         NAME    => 'ava',           # major version name
         SNAME   => 'juno',          # short ircd name
         LNAME   => 'juno-ircd',     # long ircd name
-        VERSION => $VERSION,        # combination of these 3 in VERSION command
-        PROTO   => '22.00'
+        VERSION => $VERSION         # combination of these 3 in VERSION command
     );
     $v_replace{TNAME} = $v_replace{SNAME}.'-'.$v_replace{NAME};
 
@@ -469,7 +468,6 @@ sub setup_server {
         sid    => conf('server', 'id'),
         name   => conf('server', 'name'),
         desc   => conf('server', 'description'),
-        proto  => v('PROTO'),
         ircd   => v('VERSION'),
         time   => v('START')
     ) if not exists $me->{source};

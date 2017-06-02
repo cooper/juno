@@ -24,6 +24,11 @@ use utils qw(conf notice irc_match irc_lc);
 
 our ($api, $mod, $pool);
 
+my ($JELP_CURRENT, $JELP_MIN) =(
+    $M::JELP::Base::JELP_CURRENT,
+    $M::JELP::Base::JELP_MIN
+);
+
 our %registration_commands = (
     SERVER => {
         code   => \&rcmd_server,
@@ -48,9 +53,26 @@ our %registration_commands = (
 
 sub rcmd_server {
     my ($conn, $event, @args) = @_;
-    $conn->{desc} = pop   @args;
-    $conn->{$_}   = shift @args for qw(sid name proto ircd);
-    my $their_time      = shift @args;
+    $conn->{desc}  = pop   @args;
+    $conn->{$_}    = shift @args for qw(sid name proto ircd);
+    my $their_time = shift @args;
+
+    # check for errors
+    if (my $err = $conn->verify) {
+        $conn->done($err);
+        return;
+    }
+
+    # bad JELP version
+    if ($conn->{proto} < $JELP_MIN) {
+        my $ver_str = "($$conn{proto} < $JELP_MIN)";
+        notice(server_protocol_error =>
+            "$$conn{name} ($$conn{sid})",
+            'will not be linked due to an incompatible JELP version '.$ver_str
+        );
+        $conn->done("Incompatible JELP version $ver_str");
+        return;
+    }
 
     # check if the time delta is enormous
     server::protocol::check_ts_delta($conn, time, $their_time)
