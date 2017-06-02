@@ -12,6 +12,11 @@ but are present here.
   * [Channel status modes](#channel-status-modes)
 * [Modules](#modules)
 * [Maximum values](#maximum-values)
+* [Classes](#classes)
+  * [Default class](#default-class)
+  * [User classes](#user-classes)
+  * [Server classes](#server-classes)
+  * [IRC operator classes](#irc-operator-classes)
 * [File paths](#file-paths)
 * [SSL](#ssl)
 * [Administrative info](#administrative-info)
@@ -25,7 +30,6 @@ but are present here.
 * [IRC operators](#irc-operators)
 * [Command aliases](#command-aliases)
 * [DNS blacklists](#dns-blacklists)
-* [Administrator information](#administrator-information)
 * [IRCd definitions](#ircd-definitions)
 
 ## Server info
@@ -192,26 +196,190 @@ Limits and maximum lengths.
 
     [ limit ]
 
-        # the maximum number of:
-
-        connection  = 100                           # connections
-        perip       = 50                            # local  connections per IP address
-        globalperip = 100                           # global connections per IP address
-        client      = 80                            # users (currently unused)
-        bytes_line  = 2048                          # bytes per line
-        lines_sec   = 30                            # lines per second
-        channel     = 100                           # channels a user can be in at once
-        monitor     = 100                           # monitor entries; off = unlimited
-
-        # the maximum number of characters in:
-
+        connection  = 100                           # max local connections
+        
+        # Maximum number of characters in:
+        
         nick        = 32                            # nicknames
         topic       = 1000                          # channel topics
         kickmsg     = 300                           # kick messages
         channelname = 50                            # channel names
         away        = 100                           # away messages
         key         = 50                            # channel keys
+        
+## Classes
 
+Connection classes are used for both users and servers.
+
+Default classes are included in `etc/class.conf`.
+
+
+### Default class
+
+Example default class.
+
+This is used as a base for all connections.
+
+    [ class: default ]
+
+        # Base class for all connections
+
+        max_perip       = 3                         # local  connections per IP address
+        max_globalperip = 5                         # global connections per IP address
+        max_client      = 80                        # users
+
+### User classes
+
+Example user class.
+
+It should have `allows_users` which matches `ident@host` masks. This is used for
+all users.
+
+    [ class: users ]
+
+        # Base class for all users
+
+        extends         = 'default'                 # inherit from default
+        allow_users     = '*@*'                     # allow all users to fit this class
+        
+        max_bytes_line  = 2048                      # bytes per line
+        max_lines_sec   = 30                        # lines per second
+        max_channel     = 100                       # channels a user can be in at once
+        max_monitor     = 100                       # monitor entries; off = unlimited
+        
+        ping_freq       = 30                        # how often to send pings
+        ping_timeout    = 120                       # seconds with no pong to drop user
+
+Example restricted user class.
+
+This example allows users matching the given mask to have higher queue limits.
+
+    [ class: lanusers ]
+
+        # Example user class with increased limits, requiring a specified mask
+        # and password
+
+        extends         = 'users'                   # inherit from users
+        allow_users     = '*@192.168.*'             # allow users on LAN
+        max_bytes_line  = 4096                      # increased limits
+        max_lines_sec   = 60
+        
+        # Password (for PASS command) and encryption (NOT YET SUPPORTED)
+        # Use ./juno mkpasswd to generated an encrypted password.
+        # Accepted crypts: sha1, sha224, sha256, sha384, sha512, md5, none
+        
+        password        = '13fbd79c3d390e5d6585a21e11ff5ec1970cff0c'
+        encryption      = 'sha1'
+
+### Server classes
+
+Example server class.
+
+It should have `allows_servers` which matches server names. This is used for all
+servers. As with users, you can define additional classes with more specific
+server name masks.
+
+```
+[ class: servers ]
+
+    # Base class for all servers
+
+    extends         = 'default'                 # inherit from default
+    allow_servers   = '*'                       # allow all servers to fit this class
+    
+    ping_freq       = 20                        # how often to send pings
+    ping_timeout    = 300                       # seconds with no pong to drop server
+    ping_warn       = 60                        # seconds to warn about pings
+    
+    delta_max       = 120                       # max time delta in seconds
+    delta_warn      = 30                        # time delta to produce a warning
+```
+        
+### IRC operator classes
+
+Example IRC operator class.
+
+These should have the `requires_oper` option present so that normal connections
+can't match them. See [oper flags](oper_flags.md) and
+[oper notices](oper_notices.md) for more up-to-date lists of available flags.
+
+    [ class: locop ]
+
+        requires_oper                               # only allow with OPER command
+        extends = 'users'                           # all oper classes extend users
+        
+        # oper privs
+        
+        priv_rehash                                 # local rehash
+        priv_see_invisible                          # see invisible users
+        priv_see_hidden                             # see hidden servers
+        priv_see_hosts                              # see real hosts
+        priv_see_secret                             # see secret channels
+        priv_set_permanent                          # set permanent channels
+        priv_set_large_banlist                      # set large channel lists
+        priv_modesync                               # use MODESYNC command
+        priv_squit                                  # disconnect local uplinks
+        priv_connect                                # connect local uplinks
+        priv_kill                                   # kill local users
+        
+        # server notices
+        
+        noti_user_mode_unknown
+        noti_channel_mode_unknown
+        noti_perl_warning
+        noti_exception
+        noti_rehash
+        noti_rehash_success
+        noti_rehash_fail
+        noti_new_server
+        noti_server_closing
+        noti_server_quit
+        noti_server_burst
+        noti_server_endburst
+        noti_connect
+        noti_connect_attempt
+        noti_connect_fail
+        noti_connect_success
+        noti_squit
+        noti_server_reintroduced
+        noti_server_identifier_taken
+        noti_server_protocol_warning
+        noti_server_protocol_error
+        
+    [ class: globop ]
+
+        # inherits everything from locop
+        # (even requires_oper and extends = 'users')
+        
+        extends = 'locop'                           
+                                                
+        priv_grehash                                # global rehash
+        priv_gsquit                                 # global uplink disconnect
+        priv_gconnect                               # global uplink connect
+        priv_gkill                                  # kill global users
+        priv_modules                                # MODLOAD, MODUNLOAD, MODRELOAD
+        priv_kline                                  # set K-Lines
+        priv_dline                                  # set D-Lines
+        priv_resv                                   # set nick/channel reserves
+        priv_list_bans                              # view global bans
+        noti_kline
+        noti_kline_delete
+        noti_kline_expire
+        noti_dline
+        noti_dline_delete
+        noti_dline_expire
+        noti_resv
+        noti_resv_delete
+        noti_resv_expire
+        noti_module_load
+        noti_module_unload
+        noti_module_reload
+        noti_reload
+        noti_update
+        noti_update_fail
+        noti_grant
+        noti_ungrant
+        
 ## File paths
 
     [ file ]
@@ -415,26 +583,7 @@ client protocol.
 
             notices = ['all']
         
-IRC operator classes. These are omitted from the example configuration. The
-default ones here may be outdated; see the
-[default configuration](https://github.com/cooper/juno/blob/master/etc/default.conf)
-for up-to-date info. `[operclass]` blocks are named by the name of the oper
-class which may be specified as the `class` option in `[oper]` blocks.
-
-    [ operclass: local ]
-
-        flags = [ 'kill', 'see_invisible', 'rehash' ]
-
-    [ operclass: global ]
-
-        extends = 'local'
-        flags   = [ 'gkill', 'grehash' ]
-
-    [ operclass: netadmin ]
-
-        extends = 'global'
-        flags   = [ 'grant' ]
-        notices = [ 'all' ]
+See above for [IRC operator classes](#irc-operator-classes).
 
 ## Command aliases
 
