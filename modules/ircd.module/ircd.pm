@@ -917,7 +917,6 @@ foreach my $conn ($pool->connections) {
         next;
     }
 
-
     # this connection is OK - for now.
     my $since_last = time - $conn->{last_response};
     my $freq = $conn->class_conf('ping_freq');

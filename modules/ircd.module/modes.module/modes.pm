@@ -1,4 +1,4 @@
-# Copyright (c) 2009-16, Mitchell Cooper
+# Copyright (c) 2009-17, Mitchell Cooper
 #
 # @name:            "ircd::modes"
 # @package:         "modes"

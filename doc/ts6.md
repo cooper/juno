@@ -136,7 +136,7 @@ services to prevent users from switching back to a nickname immediately after
 services forced them to a "Guest" nick. When linking ratbox to services,
 [`RESV`](technical/proto/ts6.md#resv) is used instead, but if ratbox reaches services
 indirectly via juno, it cannot understand the encapsulated
-[`NICKDELAY`](techincal/ts6.md#nickdelay) command that would normally be
+[`NICKDELAY`](technical/proto/ts6.md#nickdelay) command that would normally be
 forwarded to it. To resolve this, juno rewrites `NICKDELAY` as `RESV` and
 attempts to find NickServ using the `services:nickserv` config option, using it
 as the source of the `RESV` command. See issue
