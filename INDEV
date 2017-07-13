@@ -4105,3 +4105,4 @@ CHANGES:
         
     20. updates to atheme protocol module. closes #181.
         fixed issue where ChanServ QUIET did not work on juno.
+        fixed bug where rehashing did not clear IRCd options.

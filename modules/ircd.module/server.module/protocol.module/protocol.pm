@@ -25,7 +25,7 @@ our ($api, $mod, $pool, $me, $conf);
 our %ircd_support;
 
 sub init {
-    $pool->on(rehash_success => sub { %ircd_support = () });
+    $pool->on(rehash_before => sub { %ircd_support = () });
     return 1;
 }
 
