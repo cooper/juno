@@ -6,7 +6,8 @@ This document details how to use juno with software implementing the
 The TS6 protocol module can be used to link juno with a
 [variety](#supported-software) of IRC servers and other software. While
 it is also possible to link juno servers via TS6, the native
-[Extensible Linking Protocol](technical/proto/jelp.md) is strongly preferred for such.
+[Extensible Linking Protocol](technical/proto/jelp.md) is strongly preferred for
+such.
 
 ## Listening for TS6
 
@@ -14,15 +15,16 @@ The current implementation requires dedicated ports for TS6 links. This is
 because it is far too complicated to try to distinguish between different server
 protocols, particularly when each is provided in the form of an optional module.
 
-This is only necessary if you intend to accept connections from TS6 servers. If
-juno will be initiating the connection (such as with CONNECT or autoconnect),
-you do not have to listen for TS6.
+Port configuration is only necessary if you intend to accept connections from
+TS6 servers. If juno will be initiating the connection
+(such as with CONNECT or autoconnect), you do not necessarily have to listen for
+TS6.
 
 In your `listen` blocks, add `ts6port` and/or `ts6sslport` options. Values are
 the same as `port`; lists and ranges are accepted.
 
 In your `connect` blocks for TS6 uplinks, you must also specify the `ircd`
-option from the list of supported software below.
+option from the list of [supported software](#supported-software) below.
 
 # Supported software
 
@@ -53,13 +55,32 @@ having a hard-coded letter `q` for quiets.
 
 ## PyLink
 
-A services framework which features a multi-network IRC relay.
+Provides a multi-network IRC relay and additional miscellaneous services.
 
-Specify the `ircd = 'elemental'` option in the `connect` block. PyLink works
-with juno by pretending to be elemental-ircd. It seems to work quite well.
+In the `connect` block of your juno configuration, specify `ircd = 'pylink'`.
 
-Use PyLink's `ts6` protocol module and enable the `use_elemental_modes` option.
-Also enable `use_owner`, `use_admin`, and `use_halfop` if appropriate.
+In the server block of your PyLink configuration, use the `protocol: ts6`.
+On PyLink 2.0+, specify `ircd: elemental`. On earlier versions, instead enable
+the `use_elemental_modes: true` option.
+
+Also enable `use_owner`, `use_admin`, and `use_halfop` if these modes are
+enabled on your juno-ircd instance
+(with juno's default configuration, these should be enabled).
+
+Example configuration for PyLink 2.0+
+```yaml
+junonet:
+	
+    protocol: ts6
+    ircd: elemental
+    
+    # Disable these if they are disabled in juno configuration
+    use_owner: true
+    use_admin: true
+    use_halfop: true
+
+    # Other options...
+```
 
 ## charybdis
 
@@ -129,21 +150,21 @@ shared {
 
 * __Hostname limitations__: ratbox has hostname length limits stricter than
 other servers, so hostnames may be truncated. Also, it does not support
-forward slashes (`/`) in hosts, so they are rewritten as dots (`.`).
+forward slashes (`/`) in hosts, so they are rewritten as dots (`.`). Each of
+these issues reduces the efficacy of bans.
 
 * __NICKDELAY__: ratbox does not support a nick delay command, which is used by
 services to prevent users from switching back to a nickname immediately after
 services forced them to a "Guest" nick. When linking ratbox to services,
-[`RESV`](technical/proto/ts6.md#resv) is used instead, but if ratbox reaches services
-indirectly via juno, it cannot understand the encapsulated
+[`RESV`](technical/proto/ts6.md#resv) is used instead, but if ratbox reaches
+services indirectly via juno, it cannot understand the encapsulated
 [`NICKDELAY`](technical/proto/ts6.md#nickdelay) command that would normally be
-forwarded to it. To resolve this, juno rewrites `NICKDELAY` as `RESV` and
-attempts to find NickServ using the `services:nickserv` config option, using it
-as the source of the `RESV` command. See issue
-[#137]( https://github.com/cooper/juno/issues/137).
+forwarded to it. To resolve this, juno attempts to find NickServ using the
+`services:nickserv` config option, using it as the source of a `RESV` command.
+See issue [#137]( https://github.com/cooper/juno/issues/137).
 
-* __Cloaking__: ratbox does not have hostname cloaking and does not handle the
-REALHOST command. The result is that, on ratbox servers, users with hidden hosts
-will show their cloak as their real host, but their underlying IP address can
-easily be exposed to any user with a simple `WHOIS` command. There are plans to
-add an option to spoof the IP address field so that this is not possible.
+* __Cloaking__: ratbox does not support hostname cloaking. Consequently, on
+ratbox servers, users with hidden hosts will show their cloak as their real
+host, but the underlying IP address can easily be exposed to regular users with
+a simple `WHOIS` command. There are plans to add an option to spoof the IP
+address field so that this is not possible.
