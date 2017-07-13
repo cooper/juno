@@ -99,7 +99,7 @@ struct extmode juno_ignore_mode_list[] = {
 };
 
 struct cmode_ juno_status_mode_list[] = {
-    { 'u', CSTATUS_OWNER        },
+    { 'y', CSTATUS_OWNER        },
     { 'a', CSTATUS_PROTECT      },
     { 'o', CSTATUS_OP           },
     { 'h', CSTATUS_HALFOP       },
