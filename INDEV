@@ -4102,3 +4102,6 @@ CHANGES:
     19. move mode type definitions to ircd.pm so they only have to be changed in one place.
         add JELP version checking.
         fix some bugs with delta_max and delta_warn in server classes.
+        
+    20. updates to atheme protocol module. closes #181.
+        fixed issue where ChanServ QUIET did not work on juno.

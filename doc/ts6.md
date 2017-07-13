@@ -42,16 +42,12 @@ Compile and install the
 [provided protocol module](https://github.com/cooper/juno/blob/master/extra/atheme/juno.c).
 
 Be sure to configure atheme to load modules that are associated with your status
-mode configuration. On the default +qaohv configuration, you will want
-`chanserv/owner`, `chanserv/protect`, and `chanserv/halfop`.
+mode configuration. If you're using juno's default `+qaohv` configuration, this
+means `chanserv/owner`, `chanserv/protect`, and `chanserv/halfop` should be
+enabled.
 
-The provided protocol module supports +qaohv, so if you want to disable certain
-statuses then you can use atheme's protocol mixin modules.
-
-### Known issues
-
-The QUIET command provided by `chanserv/quiet` does not work on juno due to it
-having a hard-coded letter `q` for quiets.
+The provided protocol module assumes `+qaohv`, so if you want to disable certain
+statuses, then you should use atheme's protocol mixin modules.
 
 ## PyLink
 
