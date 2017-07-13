@@ -653,21 +653,6 @@ statuses and forward the message without them.
 
 In any case, add the listed users to the channel.
 
-### SNOTICE
-
-Propagates a server notice to remote opers.
-
-[Propagation](#propagation): _broadcast_
-
-```
-[@from_user=] :<SID> SNOTICE <flag> :<message>
-```
-
-* __from_user__ - _optional_, user whose action resulted in this notice
-* __SID__ - server producing the notice
-* __flag__ - [server notice flag](../../oper_notices.md)
-* __message__ - notice text
-
 ### TOPIC
 
 Propagates a channel topic change.
@@ -1076,6 +1061,21 @@ Remote `REHASH`.
 * __UID__ - user committing the request
 * __mask__ - server mask target. all matching servers will respond
   (determines propagation)
+
+### SNOTICE
+
+Propagates a server notice to remote opers.
+
+[Propagation](#propagation): _broadcast_
+
+```
+[@from_user=] :<SID> SNOTICE <flag> :<message>
+```
+
+* __from_user__ - _optional_, user whose action resulted in this notice
+* __SID__ - server producing the notice
+* __flag__ - [server notice flag](../../oper_notices.md)
+* __message__ - notice text
 
 ### TIME
 
