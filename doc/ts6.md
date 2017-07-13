@@ -39,12 +39,27 @@ Provides nickname and channel registration, plus a lot of other stuff.
 Specify the `ircd = 'atheme'` option in the `connect` block.
 
 Compile and install the
-[provided protocol module](https://github.com/cooper/juno/blob/master/extra/atheme/juno.c).
+[provided protocol module](https://github.com/cooper/juno/blob/master/extra/atheme/juno.c):
+```sh
+cd /path/to/atheme
+cd modules/contrib
+cp /path/to/juno/extra/atheme/juno.c .
+make
+make install
+```
 
 Be sure to configure atheme to load modules that are associated with your status
-mode configuration. If you're using juno's default `+qaohv` configuration, this
-means `chanserv/owner`, `chanserv/protect`, and `chanserv/halfop` should be
-enabled.
+mode configuration. The below example is appropriate if you're using juno's
+default `+qaohv` configuration.
+
+```
+loadmodule "modules/contrib/juno";
+
+# Disable these if they are disabled in juno configuration
+loadmodule "modules/chanserv/owner";
+loadmodule "modules/chanserv/protect";
+loadmodule "modules/chanserv/halfop";
+```
 
 The provided protocol module assumes `+qaohv`, so if you want to disable certain
 statuses, then you should use atheme's protocol mixin modules.
