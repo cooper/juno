@@ -44,6 +44,19 @@ sub init {
     }, 'adduser.change');
 }
 
+# Creates a fake user
+#
+# my $user = $mod->add_user($id,
+#   nick    => nickname         defaults to the auto-generated UID
+#   ident   => usernae          defaults to nick or 'user'
+#   host    => real host        defaults to local server name
+#   cloak   => visible host     defaults to host or local server name
+#   real    => real name        defaults to nick or 'realname'
+#   ip      => IP address       defaults to 0. must not start with colon
+# )
+#
+# Note that this method can fail and return nothing
+#
 sub add_user {
     my ($mod, $event, $id, %opts) = @_;
 
@@ -66,13 +79,13 @@ sub add_user {
     my $user = $pool->new_user(
       # nick  => defaults to UID
       # cloak => defaults to host
-        ident  => 'user',
-        host   => ($opts{server} || $me)->name,
-        real   => $opts{nick} || 'realname',
-        source => $me->id,
-        ip     => '0',
-        fake   => 1,
+        ident           => $opts{nick}  || 'user',
+        host            => ($opts{server} || $me)->name,
+        real            => $opts{nick} || 'realname',
+        ip              => '0',
         %opts,
+        fake            => 1,
+        source          => $me->id,
         adduser_id      => $id,
         adduser_owner   => $mod->name
     ) or return;
@@ -90,10 +103,23 @@ sub add_user {
     return $user;
 }
 
+#   nick    => nickname         defaults to the auto-generated UID
+#   ident   => usernae          defaults to nick or 'user'
+#   host    => real host        defaults to local server name
+#   cloak   => visible host     defaults to host or local server name
+#   real    => real name        defaults to nick or 'realname'
+#   ip      => IP address       defaults to 0. must not start with colon
 sub update_user {
     my ($user, %opts) = @_;
     return if !$user->{fake};
-    # TODO
+    $user->get_mask_changed(
+        $opts{ident} // $user->{ident},
+        $opts{cloak} // $user->{cloak}
+    );
+    for (qw/host ip real/) {
+        $user->{$_} = $opts{$_} if length $opts{$_};
+        # FIXME: see if cloak was same
+    }
 }
 
 sub delete_user {
