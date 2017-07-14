@@ -238,6 +238,19 @@ sub new_user {
     weaken($user->{server}   ||= $me);
     weaken($user->{location} ||= $me);
 
+    # low-level UID collision
+    if ($pool->{users}{ $opts{uid} }) {
+        L('BUG: Internal UID collision on '.$opts{uid});
+        return;
+    }
+    
+    # low-level nick collision
+    my $taken = $pool->{nicks}{ irc_lc($opts{nick}) };
+    if ($taken && $taken->isa('user')) {
+        L('BUG: Internal nick collision on '.$opts{nick});
+        return;
+    }
+
     # store the user by ID and nick.
     $pool->{users}{ $opts{uid} } =
     $pool->{nicks}{ irc_lc($opts{nick}) } = $user;

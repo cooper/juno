@@ -1,0 +1,15 @@
+{
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
+   "depends" : {
+      "bases" : [
+         "AddUser"
+      ]
+   },
+   "description" : "AddUser API test",
+   "name" : "AddUserTest",
+   "package" : "M::AddUserTest",
+   "version" : "0.2"
+}

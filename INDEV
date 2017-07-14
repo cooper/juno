@@ -4113,3 +4113,5 @@ CHANGES:
     22. add ircd::change_start() and ircd::change_end().
         update Modules and Reload to use these.
         add compatibility fix in channel->do_modes().
+        
+    23. In AddUser, drop clients after a module is unloaded, but try to preserve them if reloading.

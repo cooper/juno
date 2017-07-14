@@ -459,10 +459,12 @@ sub setup_api {
 # initiate changes
 sub change_start {
     L('Storing current state');
-    return {
+    my $state = {
         modes => server::protocol::mode_change_start($me),
         caps  => $pool->capability_change_start
     };
+    $pool->fire(change_start => $state);
+    return $state;
 }
 
 # finalize changes
@@ -473,6 +475,7 @@ sub change_end {
         if $state->{modes};
     $pool->capability_change_end($state->{caps})
         if $state->{caps};
+    $pool->fire(change_end => $state);
     L('Accepted');
 }
 
