@@ -4109,3 +4109,7 @@ CHANGES:
         
     21. fix bug in ModeSync (caused by changes to channel modes API).
         more work on AddUser API.
+
+    22. add ircd::change_start() and ircd::change_end().
+        update Modules and Reload to use these.
+        add compatibility fix in channel->do_modes().

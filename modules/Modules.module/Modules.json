@@ -12,5 +12,5 @@
    "description" : "manage modules from IRC",
    "name" : "Modules",
    "package" : "M::Modules",
-   "version" : "7.5"
+   "version" : "7.6"
 }

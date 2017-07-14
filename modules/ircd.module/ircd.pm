@@ -456,6 +456,26 @@ sub setup_api {
     return 1;
 }
 
+# initiate changes
+sub change_start {
+    L('Storing current state');
+    return {
+        modes => server::protocol::mode_change_start($me),
+        caps  => $pool->capability_change_start
+    };
+}
+
+# finalize changes
+sub change_end {
+    L('Accepting changes');
+    my $state = shift;
+    server::protocol::mode_change_end($me, $state->{modes})
+        if $state->{modes};
+    $pool->capability_change_end($state->{caps})
+        if $state->{caps};
+    L('Accepted');
+}
+
 #############################
 ### PHASE 7: Server setup ###
 ################################################################################

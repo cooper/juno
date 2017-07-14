@@ -98,10 +98,8 @@ sub cmd_reload {
     }
     $ircd::disable_warnings--;
 
-    # before reloading any modules, copy the mode mapping and cap tables.
-    my $old_modes = server::protocol::mode_change_start($me);
-    my $old_caps  = $pool->capability_change_start
-        if $pool->can('capability_change_start');
+    # store old state
+    my $previous_state = ircd::change_start();
 
     # determine modules loaded beforehand.
     my @mods_loaded = @{ $api->{loaded} };
@@ -183,10 +181,8 @@ sub cmd_reload {
         $info = 'reloaded';
     }
 
-    # notify servers of mode/cap changes
-    server::protocol::mode_change_end($me, $old_modes);
-    $pool->capability_change_end($old_caps)
-        if $pool->can('capability_change_end');
+    # accept changes
+    ircd::change_end($previous_state);
 
     $api->delete_callback('log', $cb->{name}) if $verbose;
     gnotice($user, reload => $me->name, $info, $user->notice_info);

@@ -4,10 +4,12 @@
       "website" : "https://github.com/cooper"
    },
    "depends" : {
-      "modules" : "API::Methods"
+      "modules" : [
+         "API::Methods"
+      ]
    },
    "description" : "virtual user support",
    "name" : "Base::AddUser",
    "package" : "M::Base::AddUser",
-   "version" : "0.6"
+   "version" : "0.7"
 }

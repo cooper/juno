@@ -901,6 +901,12 @@ sub do_modes_local { _do_modes(1, @_) }
 sub _do_modes {
     my $local = shift;
     my ($channel, $source, $modes, $force, $organize, $unloaded) = @_;
+    
+    # compatibility fix:
+    # turn unblessed array ref into mode ref
+    $modes = modes->new->push_modes($modes)
+        if ref $modes eq 'ARRAY';
+    
     $modes->count or return;
 
     # handle the mode.
