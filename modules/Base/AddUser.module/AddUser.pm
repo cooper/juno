@@ -1,4 +1,4 @@
-# Copyright (c) 2009-16, Mitchell Cooper
+# Copyright (c) 2009-17, Mitchell Cooper
 #
 # @name:            "Base::AddUser"
 # @package:         "M::Base::AddUser"
@@ -66,7 +66,7 @@ sub add_user {
         # same owner; we can preserve it
         if ($exists->{adduser_owner} eq $mod->name) {
             update_user($exists, %opts);
-            $mod->list_store_add(added_users => $exists->id);
+            $mod->list_store_add(virtual_users => $exists->id);
             return $exists;
         }
 
@@ -99,7 +99,7 @@ sub add_user {
     # simulate initialization
     $user->{init_complete}++;
 
-    $mod->list_store_add(added_users => $user->id);
+    $mod->list_store_add(virtual_users => $user->id);
     return $user;
 }
 
@@ -114,11 +114,12 @@ sub update_user {
     return if !$user->{fake};
     $user->get_mask_changed(
         $opts{ident} // $user->{ident},
-        $opts{cloak} // $user->{cloak}
+        $opts{cloak} // $opts{host} // $user->{cloak}
     );
     for (qw/host ip real/) {
         $user->{$_} = $opts{$_} if length $opts{$_};
-        # FIXME: see if cloak was same
+        # note that there's no reliable way to propagate changes to
+        # real host or ip
     }
 }
 
@@ -130,7 +131,7 @@ sub delete_user {
 
 sub on_unload {
     my $mod = shift;
-    foreach my $uid ($mod->list_store_items('added_users')) {
+    foreach my $uid ($mod->list_store_items('virtual_users')) {
         my $user = $pool->lookup_user($uid) or next;
         next if !$user->{fake};
         $unloaded_users{ $user->{adduser_id} } = $user;

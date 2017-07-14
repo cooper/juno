@@ -86,7 +86,7 @@ sub register_jelp_command {
         data     => { forward => $opts{forward} }
     ) if $opts{forward};
 
-    $mod->list_store_add('jelp_commands', $command);
+    $mod->list_store_add('JELP_commands', $command);
 }
 
 sub register_global_command {
@@ -127,7 +127,7 @@ sub register_outgoing_command {
     }
 
     # register to juno
-    $opts{name} = uc $opts{name};
+    $opts{name} = lc $opts{name};
     $pool->register_outgoing_handler(
         $mod->name,
         $opts{name},

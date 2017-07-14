@@ -77,7 +77,7 @@ sub display_module {
 
     foreach my $store (@array_stores) {
         next if $store eq 'managed_events';
-        (my $pretty = uc $store) =~ s/_/ /g;
+        (my $pretty = ucfirst $store) =~ s/_/ /g;
         $say->($pretty);
 
         # fetch the items. for a hash, use keys.

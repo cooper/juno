@@ -4116,3 +4116,5 @@ CHANGES:
         
     23. In AddUser, drop clients after a module is unloaded, but try to preserve them if reloading.
         if preserving, update cloak, ident, etc.
+        improve list store naming.
+        use lowercase for outgoing command hooks.

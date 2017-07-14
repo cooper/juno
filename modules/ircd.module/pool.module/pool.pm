@@ -606,7 +606,7 @@ sub fire_wallops_local {
 # register an outgoing server command.
 sub register_outgoing_handler {
     my ($pool, $source, $command, $ref, $proto) = @_;
-    $command = uc $command;
+    $command = lc $command;
 
     # does it already exist?
     if (exists $pool->{outgoing_commands}{$proto}{$command}) {

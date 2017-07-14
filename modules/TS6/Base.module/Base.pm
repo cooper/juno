@@ -133,7 +133,7 @@ sub register_ts6_capability {
 
     # store it.
     $capabilities{$cap} = \%opts;
-    $mod->list_store_add('ts6_capabilities', $cap);
+    $mod->list_store_add('TS6_capabilities', $cap);
 
     # enable it, unless told not to.
     $me->add_cap($cap)
@@ -192,7 +192,7 @@ sub register_ts6_command {
 #        data     => { forward => $opts{forward} }
 #    ) if $opts{forward};
 
-    $mod->list_store_add('ts6_commands', $command);
+    $mod->list_store_add('TS6_commands', $command);
 }
 
 sub register_outgoing_ts6_command {
@@ -207,7 +207,7 @@ sub register_outgoing_ts6_command {
     }
 
     # register to juno
-    $opts{name} = uc $opts{name};
+    $opts{name} = lc $opts{name};
     $pool->register_outgoing_handler(
         $mod->name,
         $opts{name},
@@ -216,7 +216,7 @@ sub register_outgoing_ts6_command {
     ) or return;
 
     L("TS6 outgoing command $opts{name} registered");
-    $mod->list_store_add('outgoing_ts6_commands', $opts{name});
+    $mod->list_store_add('outgoing_TS6_commands', $opts{name});
     return 1;
 }
 
@@ -379,10 +379,10 @@ sub unload_module {
 
     # delete outgoing commands
     $pool->delete_outgoing_handler($_, 'ts6')
-        foreach $mod->list_store_items('outgoing_ts6_commands');
+        foreach $mod->list_store_items('outgoing_TS6_commands');
 
     # delete capabilities
-    foreach my $cap ($mod->list_store_items('ts6_capabilities')) {
+    foreach my $cap ($mod->list_store_items('TS6_capabilities')) {
         delete $capabilities{$cap};
         $me->remove_cap($cap); # may or may not be enabled
     }
