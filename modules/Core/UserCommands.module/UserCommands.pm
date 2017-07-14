@@ -479,6 +479,10 @@ sub add_join_callbacks {
     $pool->on('user.can_join' => sub {
         my ($user, $event, $channel) = @_;
 
+        # no connection; can't check limit (fake user?)
+        return $JOIN_OK
+            if !$user->conn;
+
         # hasn't reached the limit.
         return $JOIN_OK
             unless $user->channels >= $user->conn->class_max('channel');

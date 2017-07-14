@@ -33,7 +33,7 @@ sub cmodes_changed {
 
     # first, locally unset the modes which were removed
     for my $channel ($pool->channels) {
-        my @all_modes;
+        my $all_modes = modes->new;
         for my $name (@$removed) {
 
             # get all modes of this name
@@ -46,12 +46,12 @@ sub cmodes_changed {
                 $modes->[$_] = '-'.$modes->[$_];
             }
 
-            push @all_modes, @$modes;
+            $all_modes->push_modes($modes);
         }
 
         # commit the changes
         $channel->do_modes_local(
-            $me, \@all_modes,
+            $me, $all_modes,
             1,          # force
             undef,      # not over protocol
             1,          # organize

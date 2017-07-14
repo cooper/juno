@@ -43,6 +43,7 @@ sub new {
         modes       => [],
         flags       => [],
         nick_time   => time,
+        time        => time,
         cloak       => $opts{host},
         %opts
     }, $class;

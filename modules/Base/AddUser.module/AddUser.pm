@@ -32,10 +32,9 @@ sub add_user {
       # cloak => defaults to host
         ident  => 'user',
         host   => ($opts{server} || $me)->name,
-        real   => 'realname',
+        real   => $opts{nick} || 'realname',
         source => $me->id,
         ip     => '0',
-        time   => time,
         fake   => 1,
         %opts
     );
@@ -45,6 +44,8 @@ sub add_user {
     broadcast(new_user => $user);
     $user->fire('initially_propagated');
     $user->{initially_propagated}++;
+    
+    # simulate initialization
     $user->{init_complete}++;
 
     return $user;
