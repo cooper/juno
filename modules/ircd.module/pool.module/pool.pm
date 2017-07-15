@@ -239,13 +239,14 @@ sub new_user {
     weaken($user->{location} ||= $me);
 
     # low-level UID collision
-    # if ($pool->{users}{ $opts{uid} }) {
-    #     L('BUG: Internal UID collision on '.$opts{uid});
-    #     return;
-    # }
+    my $taken = $pool->{users}{ $opts{uid} };
+    if ($taken && $taken->isa('user')) {
+        L('BUG: Internal UID collision on '.$opts{uid});
+        return;
+    }
     
     # low-level nick collision
-    my $taken = $pool->{nicks}{ irc_lc($opts{nick}) };
+    $taken = $pool->{nicks}{ irc_lc($opts{nick}) };
     if ($taken && $taken->isa('user')) {
         L('BUG: Internal nick collision on '.$opts{nick});
         return;
