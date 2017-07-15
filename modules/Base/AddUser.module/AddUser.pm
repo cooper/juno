@@ -75,6 +75,8 @@ sub add_user {
         delete_user($exists);
     }
 
+    # Safe point - New user will be created now
+
     # create
     my $user = $pool->new_user(
       # nick  => defaults to UID
@@ -103,23 +105,30 @@ sub add_user {
     return $user;
 }
 
-#   nick    => nickname         defaults to the auto-generated UID
-#   ident   => usernae          defaults to nick or 'user'
-#   host    => real host        defaults to local server name
-#   cloak   => visible host     defaults to host or local server name
-#   real    => real name        defaults to nick or 'realname'
-#   ip      => IP address       defaults to 0. must not start with colon
 sub update_user {
     my ($user, %opts) = @_;
     return if !$user->{fake};
-    $user->get_mask_changed(
-        $opts{ident} // $user->{ident},
-        $opts{cloak} // $opts{host} // $user->{cloak}
-    );
+         
+    # quietly overwrite these fields if they're present
+    # TODO: these fields should be added to user info update for propagation
     for (qw/host ip real/) {
         $user->{$_} = $opts{$_} if length $opts{$_};
         # note that there's no reliable way to propagate changes to
         # real host or ip
+    }
+    
+    # change ident/cloak
+    # this is silently ignored if neither have changed
+    $user->get_mask_changed(
+        $opts{ident} // $user->{ident},
+        $opts{cloak} // $opts{host} // $user->{cloak}
+    );
+    
+    # change nick if needed
+    if (length $opts{nick} && $opts{nick} ne $user->name) {
+        $user->send_to_channels("NICK $opts{nick}");
+        $user->change_nick($opts{nick}, time);
+        broadcast(nick_change => $user);
     }
 }
 

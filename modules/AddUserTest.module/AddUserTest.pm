@@ -18,7 +18,10 @@ use 5.010;
 our ($api, $mod, $pool);
 
 sub init {
-    my $u = $mod->add_user('nickserv', nick => 'NickServ', cloak => 'asdfasdfasdf.com') or return;
+    my $u = $mod->add_user('addusertest',
+        nick    => 'AddUserTest',
+        cloak   => 'add.user.test'
+    ) or return;
     $u->handle('JOIN #k');
     $u->handle('PRIVMSG #k :Hello');
 }

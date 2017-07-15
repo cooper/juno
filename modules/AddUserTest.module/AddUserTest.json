@@ -11,5 +11,5 @@
    "description" : "AddUser API test",
    "name" : "AddUserTest",
    "package" : "M::AddUserTest",
-   "version" : "0.6"
+   "version" : "1.1"
 }

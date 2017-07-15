@@ -11,5 +11,5 @@
    "description" : "virtual user support",
    "name" : "Base::AddUser",
    "package" : "M::Base::AddUser",
-   "version" : "3"
+   "version" : "3.2"
 }
