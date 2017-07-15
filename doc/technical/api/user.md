@@ -4,7 +4,7 @@ Instances of the `user` package represent IRC users, both local and remote.
 The package is provided by the ircd::user submodule of
 [ircd](../../modules.md#ircd).
 
-## Low-level methods
+# Low-level methods
 
 These methods are most often used internally. Many of them exist merely to
 standardize the way certain user fields are stored and retrieved.
@@ -14,7 +14,7 @@ do not notify local clients or uplinks about any changes. Most modules will find
 the high-level methods more useful because they deal with the logistics
 associated with the changing of user data.
 
-### user->new(%opts)
+## user->new(%opts)
 
 Creates a new user object.
 
@@ -33,7 +33,7 @@ my $user = $pool->new_user(
 
 * __%opts__ - hash of constructor options.
 
-### $user->is_mode($mode_name)
+## $user->is_mode($mode_name)
 
 Returns true if user has the supplied mode set.
 
@@ -45,7 +45,7 @@ if ($user->is_mode('ircop')) {
 
 * __$mode_name__ - name of the mode being tested.
 
-### $user->set_mode($mode_name)
+## $user->set_mode($mode_name)
 
 The lowest level of user mode setting.
 
@@ -63,7 +63,7 @@ if (password_correct($pw)) {
 
 * __$mode_name__ - name of the mode being set.
 
-### $user->unset_mode($mode_name)
+## $user->unset_mode($mode_name)
 
 The lowest level of user mode unsetting.
 
@@ -79,7 +79,7 @@ $user->unset_mode('invisible');
 
 * __$mode_name__ - name of the mode being unset.
 
-### $user->handle_mode_string($mode_string, $force)
+## $user->handle_mode_string($mode_string, $force)
 
 The lowest level of mode string handling.
 
@@ -102,7 +102,7 @@ perspective of user's server.
 * __$force__ - _optional_, if true, failure of user mode blocks will be ignored,
 forcing the changes.
 
-### $user->mode_string
+## $user->mode_string
 
 Returns string of all modes set on user; e.g. `+iox`.
 
@@ -113,11 +113,11 @@ substr($all_modes, 0, 1) = '-';
 $user->handle_mode_string($all_modes, 1);
 ```
 
-### $user->flags
+## $user->flags
 
 Returns the list of oper flags belonging to user.
 
-### $user->has_flag($flag)
+## $user->has_flag($flag)
 
 Returns true if user has the specified oper flag enabled.
 
@@ -130,7 +130,7 @@ if (!$user->has_flag('gkill')) {
 
 * __$flag__ - name of the flag being tested; e.g. `kill`.
 
-### $user->add_flags(@flags)
+## $user->add_flags(@flags)
 
 The lowest level of oper flag handling.
 
@@ -143,7 +143,7 @@ $user->add_flags('kill', 'gkill');
 
 * __@flags__ - list of oper flags to add.
 
-### $user->remove_flags(@flags)
+## $user->remove_flags(@flags)
 
 The lowest level of oper flag handling.
 
@@ -156,18 +156,18 @@ $user->remove_flags('kill', 'gkill');
 
 * __@flags__ - list of oper flags to remove.
 
-### $user->clear_flags
+## $user->clear_flags
 
 Removes all of user's oper flags at a low level.
 
-### $user->update_flags
+## $user->update_flags
 
 After committing oper flag changes, sets or unsets user's
 IRCop mode as necessary. Also notifies user and other opers of flags granted.
 
 Used for both local and remote users.
 
-### $user->has_notice($flag)
+## $user->has_notice($flag)
 
 Returns true if user has the supplied oper notice flag enabled.
 
@@ -179,7 +179,7 @@ if ($user->has_notice('user_nick_change')) {
 
 * __$flag__ - oper notice flag being tested.
 
-### $user->add_notices(@flags)
+## $user->add_notices(@flags)
 
 Adds any of the supplied oper notice flags that user does not already have.
 
@@ -191,7 +191,7 @@ $user->add_notices('user_nick_change', 'user_killed');
 
 * __@flags__ - list of oper notice flags to enable.
 
-### $user->change_nick($new_nick, $new_nick_ts)
+## $user->change_nick($new_nick, $new_nick_ts)
 
 The lowest level of user nick changing.
 
@@ -210,7 +210,7 @@ $user->change_nick('newbie');
 * __$new_nick__ - nick to replace the current one.
 * __$new_nick_ts__ - _optional_, new nick TS. defaults to current time.
 
-### $user->set_away($reason)
+## $user->set_away($reason)
 
 The lowest level of marking a user as away.
 
@@ -223,7 +223,7 @@ $user->set_away('Be back later.');
 
 * __$reason__ - comment for why user is away.
 
-### $user->unset_away
+## $user->unset_away
 
 The lowest level of marking a user as here.
 
@@ -234,7 +234,7 @@ Local clients and uplinks are NOT notified. You likely want
 $user->unset_away();
 ```
 
-### $user->quit($reason)
+## $user->quit($reason)
 
 The lowest level of user quitting for both local and remote users.
 
@@ -251,7 +251,7 @@ $user->quit('~ <insert meaningless quote here>');
 
 * __$reason__ - reason for quitting.
 
-### $user->channels
+## $user->channels
 
 Returns list of channel objects of which user is a member.
 
@@ -264,7 +264,7 @@ for my $channel ($user->channels) {
 say "I have ops in $n channels across 1 networks. But no one cares.";
 ```
 
-### $user->is_local
+## $user->is_local
 
 Returns true if user belongs to the local server.
 
@@ -274,7 +274,7 @@ if ($user->is_local) {
 }
 ```
 
-### $user->full
+## $user->full
 
 Returns string `nick!ident@host` where host may be either an artificial
 host (cloak) or the actual hostname.
@@ -283,7 +283,7 @@ host (cloak) or the actual hostname.
 $user->sendfrom($other->full, 'AWAY :Be back later.');
 ```
 
-### $user->fullreal
+## $user->fullreal
 
 Returns string `nick!ident@host` where host is always the actual hostname,
 ignoring any possible cloak or artificial host.
@@ -296,7 +296,7 @@ return value may be exposed to other users.
 notice(user_nick_change => $user->fullreal, $new_nick);
 ```
 
-### $user->fullip
+## $user->fullip
 
 Returns string `nick!ident@host` where host is the human-readable IP
 address of user, completely ignoring any host or cloak.
@@ -307,7 +307,7 @@ if (match($mask, $user->fullip)) {
 }
 ```
 
-### $user->notice_info
+## $user->notice_info
 
 Returns a list of user's nick, ident, and actual host in that order.
 Useful for oper notices where these three items are commonly displayed.
@@ -316,7 +316,7 @@ Useful for oper notices where these three items are commonly displayed.
 notice(user_nick_change => $user->notice_info, $new_nick);
 ```
 
-### $user->hops_to($target)
+## $user->hops_to($target)
 
 Returns the number of hops to a server or user.
 
@@ -328,7 +328,7 @@ $user->hops_to($other_server);  # 1
 * __$target__ - target user or server object. if it's a user, the result is
 the same as calling with `$target->server`.
 
-### $user->id
+## $user->id
 
 Returns the globally unique internal identifier associated with user.
 
@@ -338,7 +338,7 @@ Returns the globally unique internal identifier associated with user.
 push @invited_users, $user->id;
 ```
 
-### $user->name
+## $user->name
 
 Returns user's nick.
 
@@ -347,7 +347,7 @@ my $target = $pool->lookup_channel($id) || $pool->lookup_user($id);
 say 'Sending the message to '.$target->name;
 ```
 
-### $user->server
+## $user->server
 
 Returns the server to which user belongs, regardless of whether that
 server is directly linked to the local one.
@@ -358,7 +358,7 @@ if ($user->server != $fwd_serv) {
 }
 ```
 
-## High-level methods
+# High-level methods
 
 High-level methods are typically for modifying data associated with a user
 and then notifying local clients and uplinks.
@@ -367,7 +367,7 @@ Most modules will find the high-level methods more useful than the low-level
 ones because they deal with the logistics associated with changing data
 associated with user.
 
-### $user->server_notice($info, $message)
+## $user->server_notice($info, $message)
 
 Send a notice to user from the local server.
 
@@ -384,7 +384,7 @@ $user->server_notice(kill => $other_user->name.' was killed');
 formatted in an appealing way; e.g. 'kill' for a kill command result.
 * __$message__ - notice message to send to user.
 
-### $user->numeric($const, @args)
+## $user->numeric($const, @args)
 
 Send a numeric reply to user from the local server.
 
@@ -399,7 +399,7 @@ $user->numeric(RPL_MAP => $spaces, $server->name, $users, $per);
 * __@args__ - _optional_ (depending on the numeric), a list of arguments for the
 user numeric handler.
 
-### $user->simulate_numeric($const, @args)
+## $user->simulate_numeric($const, @args)
 
 Like [`->numeric`](#user-numericconst-args), except instead of actually sending
 the numeric, returns the data which would have been sent.
@@ -407,7 +407,7 @@ the numeric, returns the data which would have been sent.
 Useful for checking the length of what the base of a numeric reply will be so
 that the message byte limit is not exceeded.
 
-### $user->handle_unsafe($data)
+## $user->handle_unsafe($data)
 
 Emulates that user sent a piece of data to the local server.
 
@@ -424,7 +424,7 @@ $user->handle_unsafe("TOPIC $ch_name :$new_topic");
 * __$data__ - one or more _complete_ lines of data, including any possible
 trailing newlines or carriage returns.
 
-### $user->handle_with_opts_unsafe($data, %opts)
+## $user->handle_with_opts_unsafe($data, %opts)
 
 Same as [`->handle_unsafe()`](#user-handle_unsafedata), except that the provided
 options will be passed to the underlying call.
@@ -438,7 +438,7 @@ trailing newlines or carriage returns.
 * __%opts__ - _optional_, a hash of options to pass to the underlying function
 call.
 
-### $user->get_killed_by($murderer, $reason)
+## $user->get_killed_by($murderer, $reason)
 
 Handles a kill on a local level.
 
@@ -455,7 +455,7 @@ $user->get_killed_by($other_user, $reason);
 * __$murderer__ - user committing the action.
 * __$reason__ - comment for why user was killed.
 
-### $user->get_mask_changed($new_ident, $new_host)
+## $user->get_mask_changed($new_ident, $new_host)
 
 Handles an ident or cloak change on a local level.
 
@@ -480,7 +480,7 @@ $user->get_mask_changed($user->{ident}, 'my.vhost');
 * __$new_ident__ - new ident. if unchanged, the current ident MUST be passed.
 * __$new_host__ - new cloak. if unchanged, the current cloak MUST be passed.
 
-### $user->save_locally
+## $user->save_locally
 
 Handles a nick collision on user at a local level, adopting his UID as a nick.
 
@@ -496,7 +496,7 @@ if ($save_old) {
 }
 ```
 
-### $user->do_away($reason)
+## $user->do_away($reason)
 
 Processes an away or return for both local and remote users.
 
@@ -520,11 +520,11 @@ $user->do_away(undef);
 * __$reason__ - _optional_, the away comment. if undefined or empty string,
 user is considered to have returned from being away.
 
-### $user->do_away_local($reason)
+## $user->do_away_local($reason)
 
 Local version.
 
-### $user->do_part_all
+## $user->do_part_all
 
 Parts user from all channels, notifying local clients.
 
@@ -536,11 +536,11 @@ if ($target eq '0') {
 }
 ```
 
-### $user->do_part_all_local
+## $user->do_part_all_local
 
 Local version.
 
-### $user->do_login($act_name, $no_num)
+## $user->do_login($act_name, $no_num)
 
 Logs user into the given account name.
 
@@ -559,11 +559,11 @@ $user->do_login($act_name);
 reply. this is useful if the reply was already sent before calling this method,
 such as during SASL authentication.
 
-### $user->do_login_local($act_name, $no_num)
+## $user->do_login_local($act_name, $no_num)
 
 Local version.
 
-### $user->do_logout
+## $user->do_logout
 
 Logs user out from their current account.
 
@@ -579,11 +579,11 @@ capability are also notified.
 $user->do_logout();
 ```
 
-### $user->do_logout_local
+## $user->do_logout_local
 
 Local version.
 
-### $user->do_nick($new_nick, $new_nick_ts)
+## $user->do_nick($new_nick, $new_nick_ts)
 
 Changes user's nick, notifying local clients and uplinks.
 
@@ -599,11 +599,11 @@ Returns the new nick TS if the nick was changed successfully. This can fail if
 it is invalid or already taken. Note that true is returned if the new nick is
 the same as it was already.
 
-### $user->do_nick($new_nick, $new_nick_ts)
+## $user->do_nick($new_nick, $new_nick_ts)
 
 Local version.
 
-### $user->do_privmsgnotice($command, $source, $message, %opts)
+## $user->do_privmsgnotice($command, $source, $message, %opts)
 
 Handles a PRIVMSG or NOTICE to user.
 
@@ -632,11 +632,11 @@ __%opts__
 * __dont_forward__ - if specified, the message will NOT be forwarded to uplinks
   when user is not local.
 
-### $user->do_privmsgnotice_local($command, $source, $message, %opts)
+## $user->do_privmsgnotice_local($command, $source, $message, %opts)
 
 Local version.
 
-### $user->do_mode_string($mode_string, $force)
+## $user->do_mode_string($mode_string, $force)
 
 Handles a mode string with
 [`->handle_mode_string()`](#user-handle_mode_stringmode_string-force),
@@ -654,7 +654,7 @@ perspective of user's server, `$user->server`.
 * __$force__ - _optional_, if true, failure of user mode blocks will be ignored,
 forcing the changes.
 
-### $user->do_mode_string_local($mode_string, $force)
+## $user->do_mode_string_local($mode_string, $force)
 
 Handles a mode string with
 [`->handle_mode_string()`](#user-handle_mode_stringmode_string-force), notifying
@@ -675,7 +675,7 @@ perspective of user's server, `$user->server`.
 * __$force__ - _optional_, if true, failure of user mode blocks will be ignored,
 forcing the changes.
 
-### $user->send_to_channels($line, %opts)
+## $user->send_to_channels($line, %opts)
 
 Sends data with user as the source to all local users with at least one channel
 in common with user.
@@ -701,7 +701,7 @@ Many of these methods require that the user is local because they involve
 using methods on their connection object, e.g. sending data directly to the
 associated socket.
 
-### $user->handle($data)
+## $user->handle($data)
 
 Handle one or more lines of incoming data from user.
 
@@ -720,7 +720,7 @@ $user->handle("MOTD $$serv{name}");
 * __$data__ - one or more _complete_ lines of data, including any possible
 trailing newlines or carriage returns.
 
-### $user->handle_with_opts($data, %opts)
+## $user->handle_with_opts($data, %opts)
 
 Same as [`->handle()`](#user-handledata), except that the provided options will
 be passed to the underlying call.
@@ -734,7 +734,7 @@ trailing newlines or carriage returns.
 * __%opts__ - _optional_, a hash of options to pass to the underlying function
 call.
 
-### $user->send($line)
+## $user->send($line)
 
 Sends a line of data to user.  
 
@@ -750,7 +750,7 @@ $user->send(':'.$me->name.' NOTICE '.$user->name.' :welcome to our server');
 
 * __$line__ - line of data WITHOUT a suffixing newline and carriage return.
 
-### $user->sendfrom($from, $line)
+## $user->sendfrom($from, $line)
 
 Sends a line of data from a source.
 
@@ -770,7 +770,7 @@ $user->send(':'.$ouser->full.' AWAY :gtg bye');
 * __$from__ - source string of the message.
 * __$line__ - line of data WITHOUT a suffixing newline and carriage return.
 
-### $user->sendme($line)
+## $user->sendme($line)
 
 Sends a line of data from the local server.
 
@@ -788,7 +788,7 @@ $user->server_notice('Hi!');
 
 * __$line__ - line of data WITHOUT a suffixing newline and carriage return.
 
-### $user->has_cap($flag)
+## $user->has_cap($flag)
 
 Returns true if user has the specified client capability enabled.
 
@@ -800,7 +800,7 @@ if ($user->has_cap('away-notify')) {
 
 * __$flag__ - name of the capability.
 
-### $user->add_cap($flag)
+## $user->add_cap($flag)
 
 Enables a client capability.
 
@@ -810,7 +810,7 @@ $user->add_cap('userhost-in-names');
 
 * __$flag__ - name of the capability.
 
-### $user->remove_cap($flag)
+## $user->remove_cap($flag)
 
 Disables a client capability.
 
@@ -820,11 +820,11 @@ $user->remove_cap('multi-prefix');
 
 * __$flag__ - name of the capability.
 
-### $user->forward($event_name, @args)
+## $user->forward($event_name, @args)
 
 Convenience method for [`$user->location->forward(...)`](server.md).
 
-### $user->conn
+## $user->conn
 
 Returns the connection object associated with user.
 
@@ -835,13 +835,13 @@ users. Thus, you must always test for it.
 $user->conn->done('Goodbye');
 ```
 
-## Procedural functions
+# Procedural functions
 
 These functions typically involve operations on multiple users. Rather than
 being called in the `$user->method()` form, they should be used directly from
 the `user` package, as in `user::some_function()`.
 
-### sendfrom_to_many($from, $line, @users)
+## sendfrom_to_many($from, $line, @users)
 
 Sends a piece of data to several users at once from the specified source.
 
@@ -858,7 +858,7 @@ user::sendfrom_to_many($user->full, 'NICK steve', @users, $user);
 * __$line__ - line of data WITHOUT a suffixing newline and carriage return.
 * __@users__ - list of users to send the data to.
 
-### sendfrom_to_many_with_opts($from, $line, \%opts, @users)
+## sendfrom_to_many_with_opts($from, $line, \%opts, @users)
 
 Same as [`sendfrom_to_many()`](#sendfrom_to_manyfrom-line-users),
 except that additional features may be used
@@ -876,7 +876,7 @@ user::sendfrom_to_many($user->full, 'NICK steve', $opts, @users);
 * __\%opts__ - _optional_, a hash reference of options.
 * __@users__ - list of users to send the data to.
 
-#### Supported options
+### Supported options
 
 * __ignore__ - _optional_, user object to ignore. if ignored user is found in
   the provided list, they are skipped and will not receive the message.
@@ -889,12 +889,12 @@ user::sendfrom_to_many($user->full, 'NICK steve', $opts, @users);
 * __batch__ - _optional_, batch that this message belongs to, as returned by
   [`message->new_batch()`](message.md#message-new_batchbatch_type-params).
 
-### sendfrom_to_all($from, $line)
+## sendfrom_to_all($from, $line)
 
 Like [`sendfrom_to_many()`](#sendfrom_to_manyfrom-line-users), except that it
 sends the message to all local users.
 
-### sendfrom_to_all_with_opts($from, $line, \%opts, @users)
+## sendfrom_to_all_with_opts($from, $line, \%opts, @users)
 
 Like [`sendfrom_to_many_with_opts()`](#sendfrom_to_many_with_optsfrom-line-opts-users),
 except that it sends the message to all local users.
@@ -906,7 +906,7 @@ User objects are
 [pool](pool.md). Most events involving user interaction with a channel are fired
 on the [channel](channel.md) object rather than the user object.
 
-### user.can_join($channel)
+## user.can_join($channel)
 
 Fired before a local user joins a channel.
 
@@ -945,7 +945,7 @@ $pool->on('user.can_join' => sub {
 
 * __$channel__ - channel user is attempting to join.
 
-### user.can_invite($t_user, $ch_name, $channel, $quiet)
+## user.can_invite($t_user, $ch_name, $channel, $quiet)
 
 Fired before a local user invites someone to a channel.
 
@@ -982,7 +982,7 @@ necessary because we allow invitations to nonexistent channels
 * __$channel__ - channel object or `undef` if it does not yet exist.
 * __$quiet__ - if true, the handler MUST NOT send error replies to user.
 
-### user.can_message($target, \$message, $lc_cmd)
+## user.can_message($target, \$message, $lc_cmd)
 
 Fired on a local user who is attempting to send a message.
 
@@ -1036,7 +1036,7 @@ $pool->on('user.can_message_channel' => sub {
  overwrite this to modify the message.
 * __$lc_cmd__ - `privmsg` or `notice`. only useful for `can_message_*` events.
 
-### user.cant_message($target, $message, $can_fire, $lc_cmd)
+## user.cant_message($target, $message, $can_fire, $lc_cmd)
 
 You can hook onto this event using any of these:
 
@@ -1059,7 +1059,7 @@ You can hook onto this event using any of these:
   blocked.
 * __$lc_cmd__ - `privmsg` or `notice`. only useful for `cant_message_*` events.
 
-### user.can_receive_message($target, \$message, $lc_cmd)
+## user.can_receive_message($target, \$message, $lc_cmd)
 
 Fired on a local user who is about to receive a message.
 
