@@ -186,19 +186,24 @@ $user->add_notices('user_nick_change', 'user_killed');
 
 * __@flags__ - a list of oper notice flags to enable.
 
-### $user->change_nick($new_nick)
+### $user->change_nick($new_nick, $new_nick_ts)
 
-The lowest level of user nick changing. This method does not notify any
-users of the change. There is currently no method for safely changing nicks;
-so `->change_nick()` should not be used directly at this time.  
+The lowest level of user nick changing.
 
-Returns the new nick if successful otherwise `undef`.
+This method does not notify any users of the change. You probably want
+[`->do_nick()`](#user-do_nicknew_nick-new_nick_ts) or
+[`->do_nick_local()`](#user-do_nick_localnew_nick-new_nick_ts) instead.
+
+Returns the new nick TS if the nick was changed successfully. This can fail if
+it is invalid or already taken. Note that true is returned if the new nick is
+the same as it was already.
 
 ```perl
 $user->change_nick('newbie');
 ```
 
 * __$new_nick__ - nick to replace the current one.
+* __$new_nick_ts__ - _optional_, new nick TS. defaults to current time.
 
 ### $user->set_away($reason)
 
@@ -574,9 +579,9 @@ $user->do_nick($new_nick); # use current time
 * __$new_nick__ - nick to replace the current one.
 * __$new_nick_ts__ - _optional_, new nick TS. defaults to current time.
 
-Returns true if the nick was changed successfully. This can fail if it is
-invalid or already taken. Note that true is returned if the new nick is the same
-as it was already.
+Returns the new nick TS if the nick was changed successfully. This can fail if
+it is invalid or already taken. Note that true is returned if the new nick is
+the same as it was already.
 
 ### $user->do_nick($new_nick, $new_nick_ts)
 

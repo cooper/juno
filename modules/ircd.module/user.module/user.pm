@@ -229,26 +229,26 @@ sub add_notices {
 
 # low-level nick change
 #
-# returns true on success.
+# returns new nick time on success.
 # succeeds when the nick was the same as before.
 #
 sub change_nick {
     my ($user, $new_nick, $new_time) = @_;
     my ($old_nick, $old_time) = @$user{ qw(nick nick_time) };
-    $new_time ||= $old_time;
-    my @args = ($old_nick, $new_nick, $old_time, $new_time);
+    $new_time ||= time;
 
-    # update the user table
+    # update the user table. this can fail if taken or invalid
     $pool->change_user_nick($user, $new_nick) or return;
-    $user->fire(will_change_nick => @args);
+    my @event_args = ($old_nick, $new_nick, $old_time, $new_time);
+    $user->fire(will_change_nick => @event_args);
 
     # do the change
     $user->{nick}      = $new_nick;
     $user->{nick_time} = $new_time;
 
-    $user->fire(change_nick => @args);
+    $user->fire(change_nick => @event_args);
     notice(user_nick_change => $user->notice_info, $new_nick);
-    return 1;
+    return $new_time;
 }
 
 # set away msg.
@@ -519,7 +519,7 @@ sub get_mask_changed {
         my @levels = $channel->user_get_levels($user); # already sorted
         my $letters = join '',
             map { $ircd::channel_mode_prefixes{$_}[0] } @levels;
-        $letters .= join(' ', '', ($user->{nick}) x length $letters);
+        $letters .= join(' ', '', ($user->name) x length $letters);
 
         # send commands to users we didn't already do above.
         my %sent_quit; # only send QUIT once, but send JOIN/MODE for each chan
@@ -551,7 +551,7 @@ sub get_mask_changed {
     $user->{ident} = $new_ident;
     $user->{cloak} = $new_host;
 
-    notice(user_mask_change => $user->{nick},
+    notice(user_mask_change => $user->name,
         $old_ident, $old_host, $new_ident, $new_host)
         if !$user->is_local || $user->{init_complete};
     return 1;
@@ -562,7 +562,7 @@ sub get_mask_changed {
 sub save_locally {
     my $user = shift;
     my $uid  = $user->{uid};
-    my $old_nick = $user->{nick};
+    my $old_nick = $user->name;
 
     # notify the user, tell his buddies, and change his nick.
     $user->numeric(RPL_SAVENICK => $uid) if $user->is_local;
@@ -716,10 +716,9 @@ sub do_nick {
 sub do_nick_local {
     my ($user, $new_nick, $new_time) = @_;
     my $old_nick = $user->name;
-    $new_time ||= time;
     
     # do change (this can fail)
-    $user->change_nick($new_nick, $new_time) or return;
+    $new_time = $user->change_nick($new_nick, $new_time) or return;
 
     # tell ppl
     $user->send_to_channels("NICK $new_nick")
@@ -758,7 +757,7 @@ sub do_privmsgnotice {
 
     # tell them of away if set
     if ($source_user && $command eq 'PRIVMSG' && length $user->{away}) {
-        $source_user->numeric(RPL_AWAY => $user->{nick}, $user->{away});
+        $source_user->numeric(RPL_AWAY => $user->name, $user->{away});
     }
 
     # it's a user. fire the can_* events.
@@ -826,7 +825,7 @@ sub do_privmsgnotice {
         my $msg = message->new(
             source      => $source,
             command     => $command,
-            params      => [ $user->{nick}, $my_message ],
+            params      => [ $user->name, $my_message ],
             sentinel    => 1 # force sentinel on final parameter
         );
         
@@ -1121,7 +1120,7 @@ sub _new_connection {
 
     # send numerics.
     my $network = conf('server', 'network') // conf('network', 'name');
-    $user->numeric(RPL_WELCOME  => $network, $user->{nick}, $user->{ident}, $user->{host});
+    $user->numeric(RPL_WELCOME  => $network, $user->name, $user->{ident}, $user->{host});
     $user->numeric(RPL_YOURHOST => $me->{name}, v('TNAME').q(-).v('VERSION'));
     $user->numeric(RPL_CREATED  => irc_time(v('START')));
     $user->numeric(RPL_MYINFO   =>
@@ -1140,7 +1139,7 @@ sub _new_connection {
     $user->handle('MOTD');
 
     # send mode string
-    $user->sendfrom($user->{nick}, "MODE $$user{nick} :".$user->mode_string);
+    $user->sendfrom($user->name, "MODE $$user{nick} :".$user->mode_string);
     $user->numeric(RPL_HOSTHIDDEN => $user->{cloak})
         if $user->{cloak} ne $user->{host};
 
@@ -1194,7 +1193,7 @@ sub _do_mode_string {
     return if $user->is_local  && !$user->{init_complete};  # local user not done registering
 
     # tell the user himself..
-    $user->sendfrom($user->{nick}, "MODE $$user{nick} :$result")
+    $user->sendfrom($user->name, "MODE $$user{nick} :$result")
         if $user->is_local && length $result > 1;
 
     # tell other servers.
