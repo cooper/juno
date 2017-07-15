@@ -4128,3 +4128,5 @@ CHANGES:
         use ->package instead of ->{package} (returns primary package).
         bless virtual users to M::Base::AddUser::User, which will allow adding extra user methods.
         
+    26. fix bug in UID collision check.
+        fix modes in incorrect order in channel MODE reply.

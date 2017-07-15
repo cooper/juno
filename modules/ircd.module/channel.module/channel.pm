@@ -695,8 +695,9 @@ sub send_modes {
 
     # create a mode string with all modes except status and list modes.
     # remove parameters if the user is not in the channel.
+    # ->to_string($serv, $over_protocol, $organize, $skip_checks)
     my $mode_str = $channel->all_modes
-        ->remove(MODE_LIST, MODE_STATUS)->to_string($me);
+        ->remove(MODE_LIST, MODE_STATUS)->to_string($me, 0, 1);
     $mode_str = (split ' ', $mode_str, 2)[0]
         unless $channel->has_user($user);
 
