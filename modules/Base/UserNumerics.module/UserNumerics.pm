@@ -22,7 +22,7 @@ sub init {
     $mod->register_module_method('register_user_numeric') or return;
 
     # module events.
-    $api->on('module.unload' => \&unload_module, 'void.user.numerics');
+    $api->on('module.unload' => \&on_unload, 'void.user.numerics');
     $api->on('module.init'   => \&module_init,   '%user_numerics');
 
     return 1;
@@ -53,7 +53,7 @@ sub register_user_numeric {
     return 1;
 }
 
-sub unload_module {
+sub on_unload {
     my ($mod, $event) = @_;
     $pool->delete_numeric($mod->name, $_) foreach $mod->list_store_items('user_numerics');
     return 1;

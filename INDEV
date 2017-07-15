@@ -4122,3 +4122,9 @@ CHANGES:
         
     24. add user->do_nick() and ->do_nick_local().
         update proto modules and other APIs to use these new methods.
+        
+    25. update Evented::API::Engine.
+        rename unload_module to on_unload throughout bases to avoid conflict.
+        use ->package instead of ->{package} (returns primary package).
+        bless virtual users to M::Base::AddUser::User, which will allow adding extra user methods.
+        

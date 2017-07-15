@@ -24,7 +24,7 @@ sub init {
     $mod->register_module_method('register_channel_mode_block') or return;
 
     # module events.
-    $api->on('module.unload' => \&unload_module, 'void.channel.modes');
+    $api->on('module.unload' => \&on_unload, 'void.channel.modes');
     $api->on('module.init'   => \&module_init,   '%channel_modes');
 
     return 1;
@@ -162,7 +162,7 @@ sub register_channel_mode_block {
             },
             priority    => $proto eq '1459' ? 0 : 100, # 1459 comes last
             name        => $proto,
-            _caller     => $mod->{package}
+            _caller     => $mod->package
         );
     }
 
@@ -170,7 +170,7 @@ sub register_channel_mode_block {
     $mod->list_store_add('channel_modes', $opts{name});
 }
 
-sub unload_module {
+sub on_unload {
     my ($mod, $event) = @_;
 
     # delete all mode blocks.

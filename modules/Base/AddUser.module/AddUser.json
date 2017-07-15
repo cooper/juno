@@ -10,6 +10,9 @@
    },
    "description" : "virtual user support",
    "name" : "Base::AddUser",
-   "package" : "M::Base::AddUser",
-   "version" : "3.2"
+   "package" : [
+      "M::Base::AddUser",
+      "M::Base::AddUser::User"
+   ],
+   "version" : "4.2"
 }

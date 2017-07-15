@@ -22,7 +22,7 @@ sub init {
     $mod->register_module_method('register_oper_notice') or return;
 
     # module events.
-    $api->on('module.unload' => \&unload_module, 'void.oper.notices');
+    $api->on('module.unload' => \&on_unload, 'void.oper.notices');
     $api->on('module.init'   => \&module_init,   '%oper_notices');
 
     return 1;
@@ -53,7 +53,7 @@ sub register_oper_notice {
     return 1;
 }
 
-sub unload_module {
+sub on_unload {
     my ($mod, $event) = @_;
     $pool->delete_notice($mod->name, $_) foreach $mod->list_store_items('oper_notices');
     return 1;

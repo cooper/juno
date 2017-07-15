@@ -42,7 +42,7 @@ sub init {
     $mod->register_module_method('register_ts6_capability'      ) or return;
 
     # module events.
-    $api->on('module.unload' => \&unload_module, with_eo => 1);
+    $api->on('module.unload' => \&on_unload,  with_eo => 1);
     $api->on('module.init'   => \&module_init,
         name    => '%ts6_outgoing_commands',
         with_eo => 1
@@ -177,7 +177,7 @@ sub register_ts6_command {
         with_eo  => 1,
         %opts,
         name     => "ts6.$command",
-        _caller  => $mod->{package},
+        _caller  => $mod->package,
     data => {
         parameters => $opts{parameters} // $opts{params},
         cb_code    => $opts{code}
@@ -187,7 +187,7 @@ sub register_ts6_command {
 #    $pool->on($e_name => \&_forward_handler,
 #        priority => 0,
 #        with_eo  => 1,
-#        _caller  => $mod->{package},
+#        _caller  => $mod->package,
 #        name     => "ts6.$command.forward",
 #        data     => { forward => $opts{forward} }
 #    ) if $opts{forward};
@@ -374,7 +374,7 @@ sub _param_ts {
 ### Module events ###
 #####################
 
-sub unload_module {
+sub on_unload {
     my ($mod, $event) = @_;
 
     # delete outgoing commands

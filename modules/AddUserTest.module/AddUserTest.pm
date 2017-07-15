@@ -18,6 +18,7 @@ use 5.010;
 our ($api, $mod, $pool);
 
 sub init {
+    L("INIT");
     my $u = $mod->add_user('addusertest',
         nick    => 'AddUserTest',
         cloak   => 'add.user.test'

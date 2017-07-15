@@ -22,7 +22,7 @@ sub init {
     $mod->register_module_method('register_user_mode_block') or return;
 
     # module unload event.
-    $api->on('module.unload' => \&unload_module, 'void.user.modes');
+    $api->on('module.unload' => \&on_unload, 'void.user.modes');
 
     return 1;
 }
@@ -51,7 +51,7 @@ sub register_user_mode_block {
     return 1;
 }
 
-sub unload_module {
+sub on_unload {
     my ($mod, $event) = @_;
     $pool->delete_user_mode_block($_, $mod->name)
       foreach $mod->list_store_items('user_modes');

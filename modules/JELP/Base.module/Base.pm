@@ -32,7 +32,7 @@ sub init {
     $mod->register_module_method('register_outgoing_command') or return;
 
     # module events.
-    $api->on('module.unload' => \&unload_module, with_eo => 1);
+    $api->on('module.unload' => \&on_unload, with_eo => 1);
     $api->on('module.init'   => \&module_init,
         name    => '%jelp_outgoing_commands',
         with_eo => 1
@@ -71,7 +71,7 @@ sub register_jelp_command {
         with_eo  => 1,
         %opts,
         name     => "jelp.$command",
-        _caller  => $mod->{package},
+        _caller  => $mod->package,
     data => {
         parameters => $opts{parameters} // $opts{params},
         cb_code    => $opts{code}
@@ -81,7 +81,7 @@ sub register_jelp_command {
     $pool->on($e_name => \&_forward_handler,
         priority => 0,
         with_eo  => 1,
-        _caller  => $mod->{package},
+        _caller  => $mod->package,
         name     => "jelp.$command.forward",
         data     => { forward => $opts{forward} }
     ) if $opts{forward};
@@ -321,7 +321,7 @@ sub module_init {
     return 1;
 }
 
-sub unload_module {
+sub on_unload {
     my ($mod, $event) = @_;
     $pool->delete_outgoing_handler($_, 'jelp')
         foreach $mod->list_store_items('outgoing_commands');

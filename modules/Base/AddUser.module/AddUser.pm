@@ -1,7 +1,8 @@
 # Copyright (c) 2009-17, Mitchell Cooper
 #
 # @name:            "Base::AddUser"
-# @package:         "M::Base::AddUser"
+# @package+         "M::Base::AddUser"
+# @package+         "M::Base::AddUser::User"
 # @description:     "virtual user support"
 #
 # @depends.modules+ "API::Methods"
@@ -59,7 +60,7 @@ sub init {
 #
 sub add_user {
     my ($mod, $event, $id, %opts) = @_;
-
+    L("ADDUSER");
     # already existed at this ID
     if (my $exists = delete $unloaded_users{$id}) {
 
@@ -91,6 +92,7 @@ sub add_user {
         adduser_id      => $id,
         adduser_owner   => $mod->name
     ) or return;
+    bless $user, 'M::Base::AddUser::User';
     L('New virtual user '.$user->full);
 
     # propagate
@@ -144,5 +146,9 @@ sub on_unload {
         $unloaded_users{ $user->{adduser_id} } = $user;
     }
 }
+
+package M::Base::AddUser::User;
+
+use parent 'user';
 
 $mod

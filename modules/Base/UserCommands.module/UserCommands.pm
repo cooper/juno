@@ -56,7 +56,7 @@ sub register_user_command_new {
         with_eo     => 1,
         name        => $command,
         %opts,
-        _caller     => $mod->{package},
+        _caller     => $mod->package,
     data => {
         parameters  => $opts{parameters},
         cb_code     => $opts{code}

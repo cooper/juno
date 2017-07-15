@@ -71,7 +71,7 @@ sub init {
     $mod->register_module_method('register_ban_type')       or return;
     $mod->register_module_method('register_ban_action')     or return;
     $mod->register_module_method('get_ban_action')          or return;
-    $api->on('module.unload' => \&unload_module, 'void.ban.types');
+    $api->on('module.unload' => \&on_unload, 'void.ban.types');
 
     # add protocol submodules.
     $mod->add_companion_submodule('JELP::Base', 'JELP');
@@ -654,7 +654,7 @@ sub delete_ban_action {
     L("$action unloaded");
 }
 
-sub unload_module {
+sub on_unload {
     my $mod_ = shift;
     delete_ban_type($_)   foreach $mod_->list_store_items('ban_types');
     delete_ban_action($_) foreach $mod_->list_store_items('ban_actions');

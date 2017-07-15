@@ -33,7 +33,7 @@ sub init {
     register_capability($mod, undef, 'cap-notify');
 
     # on unload, void capabilities
-    $api->on('module.unload' => \&unload_module, 'void.capabilities');
+    $api->on('module.unload' => \&on_unload, 'void.capabilities');
 
     # methods for monitoring changes to capabilities. these will still
     # exist even when this module is unloaded (which is desired)
@@ -224,7 +224,7 @@ sub do_cap_new {
     return 1;
 }
 
-sub unload_module {
+sub on_unload {
     my ($mod, $event) = @_;
     foreach my $name ($mod->list_store_items('capabilities')) {
         disable_capability($mod, undef, $name, 1);

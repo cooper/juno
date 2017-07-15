@@ -632,14 +632,14 @@ sub register_outgoing_handler {
 
 # delete an outgoing server command.
 sub delete_outgoing_handler {
-    my ($pool, $command, $proto) = (shift, uc shift, shift);
+    my ($pool, $command, $proto) = (shift, lc shift, shift);
     L("deleting outgoing $proto command $command");
     delete $pool->{outgoing_commands}{$proto}{$command};
 }
 
 # fire an outgoing server command for a single server.
 sub fire_command {
-    my ($pool, $server, $command, @args) = (shift, shift, uc shift, @_);
+    my ($pool, $server, $command, @args) = (shift, shift, lc shift, @_);
     return if $server->{fake};
     return if $server == $me;
 
