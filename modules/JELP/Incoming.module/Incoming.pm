@@ -378,8 +378,7 @@ sub nick {
     my ($server, $msg, $user, $new_nick, $new_nick_ts) = @_;
 
     # tell ppl
-    $user->send_to_channels("NICK $new_nick");
-    $user->change_nick($new_nick, $new_nick_ts);
+    $user->do_nick_local($new_nick, $new_nick_ts);
 
     # === Forward ===
     $msg->broadcast(nick_change => $user);
@@ -993,9 +992,7 @@ sub _userinfo {
     # nick change
     if (length(my $new_nick = $msg->tag('nick')) &&
       length(my $new_nick_time = $msg->tag('nick_time'))) {
-        $user->send_to_channels("NICK $new_nick")
-            unless $new_nick eq $user->{nick};
-        $user->change_nick($new_nick, $new_nick_time);
+        $user->do_nick_local($new_nick, $new_nick_time);
     }
 
     # real host change

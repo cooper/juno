@@ -266,9 +266,7 @@ sub update_user_info {
     # servers that the existing user's fields have changed.
     if ($user) {
         if ($update_nick) {
-            $user->send_to_channels("NICK $nick")
-                unless $nick eq $user->{nick};
-            $user->change_nick($nick, $nick_ts);
+            $user->do_nick_local($nick, $nick_ts);
         }
         if ($update_ident || $update_cloak) {
             $user->get_mask_changed(

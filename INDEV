@@ -4119,3 +4119,6 @@ CHANGES:
         improve list store naming.
         use lowercase for outgoing command hooks.
         in AddUser, change nick if necessary.
+        
+    24. add user->do_nick() and ->do_nick_local().
+        update proto modules and other APIs to use these new methods.

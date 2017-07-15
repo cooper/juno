@@ -227,7 +227,11 @@ sub add_notices {
 #=== Actions ===#
 #===============#
 
-# low-level nick change.
+# low-level nick change
+#
+# returns true on success.
+# succeeds when the nick was the same as before.
+#
 sub change_nick {
     my ($user, $new_nick, $new_time) = @_;
     my ($old_nick, $old_time) = @$user{ qw(nick nick_time) };
@@ -244,6 +248,7 @@ sub change_nick {
 
     $user->fire(change_nick => @args);
     notice(user_nick_change => $user->notice_info, $new_nick);
+    return 1;
 }
 
 # set away msg.
@@ -561,8 +566,7 @@ sub save_locally {
 
     # notify the user, tell his buddies, and change his nick.
     $user->numeric(RPL_SAVENICK => $uid) if $user->is_local;
-    $user->send_to_channels("NICK $uid");
-    $user->change_nick($uid, 100);
+    $user->do_nick_local($uid, 100);
 
     notice(user_saved => $user->notice_info, $old_nick);
     return 1;
@@ -696,6 +700,31 @@ sub do_logout_local {
 
     notice(user_logged_out => $user->notice_info, $old->{name});
     return 1;
+}
+
+# returns new nick TS on success, false otherwise.
+# note that this succeeds if the nick is the same as it was already
+sub do_nick {
+    my $user = shift;
+    my $ret = $user->do_nick_local(@_);
+    broadcast(nick_change => $user) if $ret;
+    return $ret;
+}
+
+# returns new nick TS on success, false otherwise.
+# note that this succeeds if the nick is the same as it was already
+sub do_nick_local {
+    my ($user, $new_nick, $new_time) = @_;
+    my $old_nick = $user->name;
+    $new_time ||= time;
+    
+    # do change (this can fail)
+    $user->change_nick($new_nick, $new_time) or return;
+
+    # tell ppl
+    $user->send_to_channels("NICK $new_nick")
+        unless $new_nick eq $old_nick;
+    return $new_time;
 }
 
 # ->do_privmsgnotice()

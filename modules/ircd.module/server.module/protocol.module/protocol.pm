@@ -137,9 +137,8 @@ sub handle_svsnick {
     }
 
     # change the nickname.
-    $user->send_to_channels("NICK $new_nick")
-        unless $user->{nick} eq $new_nick;
-    $user->change_nick($new_nick, $new_nick_ts);
+    # if the nick is the same, this will at least update the nick TS
+    $user->do_nick_local($new_nick, $new_nick_ts);
 
     #=== Forward ===#
     #

@@ -998,8 +998,7 @@ sub nick {
     $newnick = $user->{uid} if $newnick eq ts6_id($user);
 
     # tell ppl
-    $user->send_to_channels("NICK $newnick");
-    $user->change_nick($newnick, $newts);
+    $user->do_nick_local($newnick, $newts);
 
     # === Forward ===
     $msg->broadcast(nick_change => $user);

@@ -188,17 +188,17 @@ $user->add_notices('user_nick_change', 'user_killed');
 
 ### $user->change_nick($new_nick)
 
-The lowest level of user nickname changing. This method does not notify any
-users of the change. There is currently no method for safely changing nicknames;
+The lowest level of user nick changing. This method does not notify any
+users of the change. There is currently no method for safely changing nicks;
 so `->change_nick()` should not be used directly at this time.  
 
-Returns the new nickname if successful otherwise `undef`.
+Returns the new nick if successful otherwise `undef`.
 
 ```perl
 $user->change_nick('newbie');
 ```
 
-* __$new_nick__ - the nickname to replace the current nickname.
+* __$new_nick__ - nick to replace the current one.
 
 ### $user->set_away($reason)
 
@@ -333,7 +333,7 @@ push @invited_users, $user->id;
 
 ### $user->name
 
-Returns the user's nickname.
+Returns the user's nick.
 
 ```perl
 my $target = $pool->lookup_channel($id) || $pool->lookup_user($id);
@@ -469,11 +469,11 @@ $user->get_mask_changed($user->{ident}, 'my.vhost');
 ### $user->save_locally
 
 Deals with a user who was saved from a nick collision on a local level.
-Changes the user's nickname to his unique identifier.
+Changes the user's nick to his unique identifier.
 
 This method works under the presumption that remote servers have been notified
 (such as through a SAVE, NICK, or similar message) that the user was saved and
-will adopt his UID as his nickname.
+will adopt his UID as his nick.
 
 ```perl
 if ($save_old) {
@@ -559,6 +559,26 @@ $user->do_logout();
 ```
 
 ### $user->do_logout_local
+
+Local version.
+
+### $user->do_nick($new_nick, $new_nick_ts)
+
+Changes a user's nick, notifying local clients and uplinks.
+
+```perl
+$user->do_nick($new_nick, $new_nick_ts);
+$user->do_nick($new_nick); # use current time
+```
+
+* __$new_nick__ - nick to replace the current one.
+* __$new_nick_ts__ - _optional_, new nick TS. defaults to current time.
+
+Returns true if the nick was changed successfully. This can fail if it is
+invalid or already taken. Note that true is returned if the new nick is the same
+as it was already.
+
+### $user->do_nick($new_nick, $new_nick_ts)
 
 Local version.
 

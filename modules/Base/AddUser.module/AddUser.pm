@@ -126,9 +126,7 @@ sub update_user {
     
     # change nick if needed
     if (length $opts{nick} && $opts{nick} ne $user->name) {
-        $user->send_to_channels("NICK $opts{nick}");
-        $user->change_nick($opts{nick}, time);
-        broadcast(nick_change => $user);
+        $user->do_nick($opts{nick});
     }
 }
 

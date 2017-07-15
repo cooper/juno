@@ -271,9 +271,7 @@ sub nick {
     return if $user->{nick} eq $new_nick;
 
     # change it
-    $user->send_to_channels("NICK $new_nick");
-    $user->change_nick($new_nick, time);
-    broadcast(nick_change => $user);
+    $user->do_nick($new_nick);
 }
 
 # view IRCd information
