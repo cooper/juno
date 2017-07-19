@@ -4130,3 +4130,6 @@ CHANGES:
         
     26. fix bug in UID collision check.
         fix modes in incorrect order in channel MODE reply.
+        
+    27. fix NICK message being sent from new nick (broken since 13.24).
+        fix wrong nick in nick change server notices.

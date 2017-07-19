@@ -242,12 +242,15 @@ sub change_nick {
     my @event_args = ($old_nick, $new_nick, $old_time, $new_time);
     $user->fire(will_change_nick => @event_args);
 
+    # get notice info before changing
+    my @notice_info = $user->notice_info;
+
     # do the change
     $user->{nick}      = $new_nick;
     $user->{nick_time} = $new_time;
 
     $user->fire(change_nick => @event_args);
-    notice(user_nick_change => $user->notice_info, $new_nick);
+    notice(user_nick_change => @notice_info, $new_nick);
     return $new_time;
 }
 
@@ -717,13 +720,16 @@ sub do_nick_local {
     my ($user, $new_nick, $new_time) = @_;
     my $old_nick = $user->name;
     
-    # do change (this can fail)
-    $new_time = $user->change_nick($new_nick, $new_time) or return;
-
+    # in use
+    my $in_use = $pool->nick_in_use($new_nick);
+    return if $in_use && $in_use != $user;
+    
     # tell ppl
     $user->send_to_channels("NICK $new_nick")
         unless $new_nick eq $old_nick;
-    return $new_time;
+    
+    # do change
+    return $user->change_nick($new_nick, $new_time);
 }
 
 # ->do_privmsgnotice()
