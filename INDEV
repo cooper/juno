@@ -4138,3 +4138,6 @@ CHANGES:
         fix bugs in connection classes pre-registration.
         new allow_anons option allows classes to match unregistered connections.
         update Evented::API::Engine.
+        
+    29. don't debug network traffic by default.
+        update Evented::API::Engine.

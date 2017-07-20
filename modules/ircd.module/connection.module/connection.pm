@@ -97,7 +97,7 @@ sub handle {
     return if $conn->{goodbye} || !length $data;
 
     my $name = $conn->type ? $conn->type->name : '(unregistered)';
-    D("R[$name] $data");
+    D("R[$name] $data") if $::enable_data_debug;
 
     # create a message.
     my $msg = message->new(
@@ -295,7 +295,10 @@ sub send {
     return if $conn->{goodbye};
     @msg = grep defined, @msg;
     my $name = $conn->type ? $conn->type->name : '(unregistered)';
-    D("S[$name] $_") for @msg;
+    for (@msg) {
+        last if !$::enable_data_debug;
+        D("S[$name] $_");
+    }
     $conn->stream->write("$_\r\n") foreach @msg;
 }
 
