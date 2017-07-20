@@ -11,7 +11,7 @@ There. Very good.
 
 # Introduction
 
-This is juno-ircd, a seriously modern IRC server daemon written from scratch
+This is juno, a seriously modern IRC daemon written from scratch
 in Perl. Really.
 
 > Perl is the right language for IRC. IRC is chock full of various strings and
@@ -29,7 +29,7 @@ Come chat with us at
 
 ## Features
 
-There are a lot! But here are some things that make juno-ircd stand out.
+There are a lot! But here are some things that make juno stand out.
 
 You can
 
@@ -45,7 +45,7 @@ You can
 * Or rather, [beg us](http://juno.notroll.net/page/chat) to add the features you
   want.
 
-Plus, juno-ircd
+Plus, juno
 
 * Is free and open-source.
 * Is written in Perl, making it fun and easy to tinker with.
@@ -64,7 +64,7 @@ Plus, juno-ircd
 
 ## Concepts
 
-* __Eventedness__: The core unifying policy of juno-ircd is the excessive use of
+* __Eventedness__: The core unifying policy of juno is the excessive use of
 events. Just about any operation that occurs is represented as an event. This
 is made possible by
 [Evented::Object](https://metacpan.org/pod/Evented::Object),
@@ -303,7 +303,7 @@ If you discover a reproducible bug, please
 
 Mitchell Cooper, mitchell@notroll.net  
 
-juno-ircd was my first project in Perl — ever. Scary, right? Luckily it's been
+juno was my first project in Perl — ever. Scary, right? Luckily it's been
 through several years of constant improvement, including
 [a few rewrites](doc/history.md). I am awfully proud of the cleanliness of the
 current codebase, which dates back to [juno3](https://github.com/cooper/juno3).

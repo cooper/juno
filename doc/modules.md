@@ -1,7 +1,7 @@
 # Modules
 
 This is a complete list of the official modules packaged with the
-juno-ircd repository. juno consists of
+juno repository. juno consists of
 [under 30 lines](https://github.com/cooper/juno/blob/master/bin/ircd)
 of standalone code. The
 entire remainder consists of reloadable modules, all but [one](#ircd) of which
@@ -209,8 +209,8 @@ is also supported.
 ## JELP
 
 The set of __JELP__ modules comprise the Juno Extensible Linking protocol
-implementation. This is the preferred protocol to be used when linking juno-ircd
-to other instances of juno-ircd.
+implementation. This is the preferred protocol to be used when linking juno
+to other instances of juno.
 
 The primary JELP module itself does not provide any functionality. However,
 it depends on several other modules, providing a convenient way to load the
@@ -226,17 +226,17 @@ entire JELP implementation at once.
 ## TS6
 
 The set of TS6 modules comprise the TS6 linking protocol implementation. These
-modules allow juno-ircd to establish connections with IRC servers running
+modules allow juno to establish connections with IRC servers running
 different software, as well as many IRC services packages.
 
-When linking juno-ircd to other instances of juno-ircd, the Juno Extensible
+When linking juno to other instances of juno, the Juno Extensible
 Linking Protocol (JELP) is preferred over TS6.
 
 The primary __TS6__ module itself does not provide any functionality. However,
 it depends on several other modules, providing a convenient way to load the
 entire TS6 implementation at once.
 
-juno-ircd's TS6 implementation is [thoroughly documented](ts6.md).
+juno's TS6 implementation is [thoroughly documented](ts6.md).
 
 * __TS6::Base__ - provides the programming interfaces for registering TS6
   commands. This is a dependency of all modules which transmit data via TS6.

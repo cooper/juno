@@ -75,7 +75,7 @@ On PyLink 2.0+, specify `ircd: elemental`. On earlier versions, instead enable
 the `use_elemental_modes: true` option.
 
 Also enable `use_owner`, `use_admin`, and `use_halfop` if these modes are
-enabled on your juno-ircd instance
+enabled on your juno instance
 (with juno's default configuration, these should be enabled).
 
 Example configuration for PyLink 2.0+
