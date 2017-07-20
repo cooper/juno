@@ -658,6 +658,15 @@ sub class_name {
                  
             push @used_bits, @conns;
         }
+        
+        # class has no allow options
+        else {
+            L("'$maybe' has none of allow_anons, allow_users, allow_servers");
+            next;
+        }
+        
+        # nothing matched
+        next if !@used_bits;
 
         # determine priority
         my $priority = $class_ref->{priority} += _get_priority(@used_bits);
