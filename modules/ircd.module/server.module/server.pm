@@ -100,7 +100,7 @@ sub quit {
 sub add_umode {
     my ($server, $name, $mode) = @_;
     $server->{umodes}{$name} = { letter => $mode };
-    L("$$server{name} registered $mode:$name");
+    D("$$server{name} registered $mode:$name");
     return 1;
 }
 
@@ -108,7 +108,7 @@ sub add_umode {
 sub remove_umode {
     my ($server, $name) = @_;
     my $u = delete $server->{umodes}{$name} or return;
-    L("$$server{name} deleted $$u{letter}:$name");
+    D("$$server{name} deleted $$u{letter}:$name");
     return 1;
 }
 
@@ -164,11 +164,11 @@ sub convert_umode_string {
 
     # if we have nothing but a sign, return +.
     if (length $string == 1) {
-        L("$mode_str ($$server1{name}) -> nothing at all ($$server2{name})");
+        D("$mode_str ($$server1{name}) -> nothing at all ($$server2{name})");
         return '+';
     }
 
-    L("$mode_str ($$server1{name}) -> $string ($$server2{name})");
+    D("$mode_str ($$server1{name}) -> $string ($$server2{name})");
     return $string;
 }
 
@@ -179,14 +179,14 @@ sub add_cmode {
         letter => $mode,
         type   => $type
     };
-    L("$$server{name} registered $mode:$name");
+    D("$$server{name} registered $mode:$name");
     return 1;
 }
 
 sub remove_cmode {
     my ($server, $name) = @_;
     my $c = delete $server->{cmodes}{$name} or return;
-    L("$$server{name} deleted $$c{letter}:$name");
+    D("$$server{name} deleted $$c{letter}:$name");
     return 1;
 }
 
@@ -377,7 +377,7 @@ sub start_burst {
     
     # start burst time
     $server->{is_burst} = time;
-    L("$$server{name} is bursting information");
+    D("$$server{name} is bursting information");
 
     # batch for netjoin
     $server->{netjoin_batch} = message->new_batch('netjoin',

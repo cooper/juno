@@ -126,7 +126,7 @@ sub on_got_host2 {
 sub on_error {
     my ($conn, $err) = (shift, shift // 'unknown error');
     $conn->early_reply(NOTICE => ":*** Couldn't resolve your hostname");
-    L("Lookup for $$conn{ip} failed: $err");
+    D("Lookup for $$conn{ip} failed: $err");
     _finish($conn);
     return;
 }

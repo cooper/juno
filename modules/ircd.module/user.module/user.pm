@@ -1,4 +1,4 @@
-# Copyright (c) 2009-16, Mitchell Cooper
+# Copyright (c) 2009-17, Mitchell Cooper
 #
 # @name:            "ircd::user"
 # @package:         "user"
@@ -64,7 +64,7 @@ sub is_mode {
 sub set_mode {
     my ($user, $name) = @_;
     return if $user->is_mode($name);
-    L("$$user{nick} +$name");
+    D("$$user{nick} +$name");
     push @{ $user->{modes} }, $name;
 }
 
@@ -74,12 +74,12 @@ sub unset_mode {
 
     # is the user set to this mode?
     if (!$user->is_mode($name)) {
-        L("attempted to unset mode $name on that is not set on $$user{nick}; ignoring.");
+        D("attempted to set -$name on $$user{nick}, but it wasn't set");
         return;
     }
 
     # he is, so remove it.
-    L("$$user{nick} -$name");
+    D("$$user{nick} -$name");
     @{ $user->{modes} } = grep { $_ ne $name } @{ $user->{modes} };
 
     return 1;
@@ -90,7 +90,7 @@ sub unset_mode {
 # string, or '+' if no changes were made.
 sub handle_mode_string {
     my ($user, $mode_str, $force) = @_;
-    L("set $mode_str on $$user{nick}");
+    D("$$user{nick} $mode_str");
     my $state = 1;
     my $str   = '+';
     letter: foreach my $letter (split //, $mode_str) {
@@ -140,7 +140,6 @@ sub handle_mode_string {
     $str =~ s/\+\-/\-/g;
     $str =~ s/\-\+/\+/g;
 
-    L("end of mode handle");
     return '' if $str eq '+' || $str eq '-';
     return $str;
 }
@@ -258,14 +257,14 @@ sub change_nick {
 sub set_away {
     my ($user, $reason) = @_;
     $user->{away} = $reason;
-    L("$$user{nick} is now away: $reason");
+    D("$$user{nick} is now away: $reason");
 }
 
 # return from away.
 sub unset_away {
     my $user = shift;
     return if !defined $user->{away};
-    L("$$user{nick} has returned from being away: $$user{away}");
+    D("$$user{nick} returned from away: $$user{away}");
     delete $user->{away};
 }
 
@@ -720,7 +719,7 @@ sub do_nick_local {
     my ($user, $new_nick, $new_time) = @_;
     my $old_nick = $user->name;
     
-    # in use
+    # in use (we have to check manually here before sending NICK messages)
     my $in_use = $pool->nick_in_use($new_nick);
     return if $in_use && $in_use != $user;
     
@@ -1100,7 +1099,7 @@ sub _check_local {
     my $user = $_[0];
     if (!$user->is_local) {
         my $sub = (caller 1)[3];
-        L("Attempted to call ->${sub}() on nonlocal user");
+        L("Attempted to call ->${sub}() on nonlocal user!");
         return;
     }
     return unless $user->conn;

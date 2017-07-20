@@ -11,5 +11,5 @@
    "description" : "the core set of oper notices",
    "name" : "Core::OperNotices",
    "package" : "M::Core::OperNotices",
-   "version" : "12.55"
+   "version" : "13.05"
 }

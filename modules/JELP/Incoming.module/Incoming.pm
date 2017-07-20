@@ -927,7 +927,7 @@ sub login {
     my @items = split /,/, $str;
     my $act_name = $items[0];
 
-    L("JELP login $$user{nick} as $act_name");
+    D("JELP login $$user{nick} as $act_name");
     $user->do_login_local($act_name);
 
     # === Forward ===
@@ -1014,7 +1014,7 @@ sub _userinfo {
     # account change. * is used for logout.
     if (length(my $new_act_name = $msg->tag('account'))) {
         undef $new_act_name if $new_act_name eq '*';
-        L("JELP login $$user{nick} as $new_act_name");
+        D("JELP login $$user{nick} as $new_act_name");
         $user->do_login_local($new_act_name);
     }
 
@@ -1158,7 +1158,7 @@ sub flogin {
 
     # no account name = logout.
     if (!length $act_name) {
-        L("JELP logout $$user{nick}");
+        D("JELP logout $$user{nick}");
         $user->do_logout_local();
 
         #=== Forward ===#
@@ -1168,7 +1168,7 @@ sub flogin {
     }
 
     # login.
-    L("JELP login $$user{nick} as $act_name");
+    D("JELP login $$user{nick} as $act_name");
     $user->do_login_local($act_name);
 
     #=== Forward ===#

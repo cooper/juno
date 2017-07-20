@@ -4133,3 +4133,8 @@ CHANGES:
         
     27. fix NICK message being sent from new nick (broken since 13.24).
         fix wrong nick in nick change server notices.
+        
+    28. in the process of moving many unimportant log messages to debug level.
+        fix bugs in connection classes pre-registration.
+        new allow_anons option allows classes to match unregistered connections.
+        update Evented::API::Engine.

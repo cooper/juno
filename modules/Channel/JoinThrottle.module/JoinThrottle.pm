@@ -105,7 +105,7 @@ sub on_user_joined {
         my $secs_to_lock = $throttle->{time} || 60;
         $throttle->{count}  = 0;
         $throttle->{locked} = time() + $secs_to_lock;
-        L("join throttle: locking $$channel{name} for $secs_to_lock seconds")
+        D("join throttle: locking $$channel{name} for $secs_to_lock seconds")
     }
 }
 
@@ -118,7 +118,7 @@ sub on_user_can_join {
 
     # time to unlock the channel.
     if (time >= $throttle->{locked}) {
-        L("join throttle: unlocking $$channel{name}");
+        D("join throttle: unlocking $$channel{name}");
         delete $throttle->{locked};
         return;
     }

@@ -9,14 +9,14 @@ Opers with `all` receive all notices.
 
 ## Local connections
 ```
-new_connection          => '%s (%d)'
+new_connection          => '%s (%d) {%s}'
 connection_terminated   => '%s (%s): %s'
 connection_invalid      => '%s: %s'
 ```
 
 ## Users
 ```
-new_user                => '%s [%s] on %s'
+new_user                => '%s [%s] {%s}'
 user_quit               => '%s [%s] from %s (%s)'
 user_opered             => '%s gained flags on %s: %s'
 user_deopered           => '%s is no longer an IRC operator'

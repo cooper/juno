@@ -260,7 +260,7 @@ sub command {
             on_read => sub {
                 my ($stream, $buffref) = @_;
                 while ($$buffref =~ s/^(.*)\n//) {
-                    L("$command_name: $1");
+                    D("$command_name: $1");
                     $stdout_cb->($1) if $stdout_cb;
                 }
             }
@@ -287,11 +287,11 @@ sub command {
                 return;
             }
 
-            L("Finished: $command_name");
+            D("Finished: $command_name");
             $finish_cb->() if $finish_cb;
         }
     );
-    L("Running: $command_name");
+    D("Running: $command_name");
     $::loop->add($process);
 }
 

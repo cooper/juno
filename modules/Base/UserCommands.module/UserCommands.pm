@@ -85,7 +85,7 @@ sub _handle_command {
         ($ok, @params) = $msg->parse_params($params);
         if (!$ok) {
             my $cmd = $msg->command;
-            L("Unsatisfied parameters for $cmd [$params] -> [@params]");
+            D("Unsatisfied parameters for $cmd [$params] -> [@params]");
             return;
         }
     }

@@ -53,7 +53,7 @@ sub new_connection {
     # update total connection count
     my $conn_num = v('connection_count') + 1;
     set_v(connection_count => $conn_num);
-    notice(new_connection => $conn->{ip}, $conn_num);
+    notice(new_connection => $conn->{ip}, $conn_num, $conn->class_name);
 
     # update maximum connection count.
     if (scalar keys %{ $pool->{connections} } > v('max_connection_count')) {
@@ -211,7 +211,7 @@ sub delete_server {
     delete $pool->{servers}{ $server->{sid} };
     delete $pool->{server_names}{ irc_lc($server->{name}) };
 
-    L("deleted server $$server{name}");
+    D("deleted server $$server{name}");
     return 1;
 }
 
@@ -274,8 +274,12 @@ sub new_user {
     my $c_g   = scalar $pool->real_users;
     set_v(max_local_user_count  => $c_l) if $c_l > $max_l;
     set_v(max_global_user_count => $c_g) if $c_g > $max_g;
-    notice(new_user => $user->notice_info, $user->{real}, $user->{server}{name})
-        unless $user->location->{is_burst};
+    notice(new_user =>
+        $user->notice_info,
+        $user->{real},
+        $user->conn     ? $user->conn->class_name :
+        $user->is_local ? 'virtual' : $user->server->name,
+    ) unless $user->location->{is_burst};
 
     $user->fire('new');
     return $user;
@@ -350,7 +354,7 @@ sub delete_user {
     delete $pool->{users}{ $user->{uid} };
     delete $pool->{nicks}{ irc_lc($user->{nick}) };
 
-    L("deleted user $$user{nick}");
+    D("deleted user $$user{nick}");
     return 1;
 }
 
@@ -478,7 +482,6 @@ sub register_numeric {
     }
 
     $pool->{numerics}{$numeric} = [$num, $fmt, $allowed];
-    #L("$source registered $numeric $num");
     return 1;
 }
 
@@ -493,8 +496,6 @@ sub delete_numeric {
     }
 
     delete $pool->{numerics}{$numeric};
-    #L("$source deleted $numeric");
-
     return 1;
 }
 
@@ -519,7 +520,6 @@ sub register_notice {
     }
 
     $pool->{oper_notices}{$notice} = $fmt;
-    #L("$source registered oper notice '$notice'");
     return 1;
 }
 
@@ -534,8 +534,6 @@ sub delete_notice {
     }
 
     delete $pool->{oper_notices}{$notice};
-    #L("$source deleted oper notice '$notice'");
-
     return 1;
 }
 
@@ -627,14 +625,13 @@ sub register_outgoing_handler {
         source  => $source
     };
 
-    #L("$source registered $command");
     return 1;
 }
 
 # delete an outgoing server command.
 sub delete_outgoing_handler {
     my ($pool, $command, $proto) = (shift, lc shift, shift);
-    L("deleting outgoing $proto command $command");
+    D("deleting outgoing $proto command $command");
     delete $pool->{outgoing_commands}{$proto}{$command};
 }
 
@@ -664,21 +661,21 @@ sub fire_command {
 # register a user mode block.
 sub register_user_mode_block {
     my ($pool, $name, $what, $code) = @_;
-
+    my $pkg = (caller)[0];
+    
     # not a code reference.
     if (ref $code ne 'CODE') {
-        L((caller)[0]." tried to register a block to $name that isn't CODE.");
+        L("$pkg tried to register a block to $name that isn't CODE");
         return;
     }
 
     # already exists from this source.
     if (exists $pool->{user_modes}{$name}{$what}) {
-        L((caller)[0]." tried to register $what to $name which is already registered");
+        L("$pkg tried to register $what to $name which is already registered");
         return;
     }
 
     $pool->{user_modes}{$name}{$what} = $code;
-    #L("registered $name from $what");
     return 1;
 }
 
@@ -688,7 +685,6 @@ sub delete_user_mode_block {
     if (my $hash = $pool->{user_modes}{$name}) {
         delete $hash->{$what};
         delete $pool->{user_modes}{$name} unless scalar keys %$hash;
-        #L("deleting user mode block for $name: $what");
         return 1;
     }
     return;
@@ -736,20 +732,20 @@ sub user_mode_string {
 # register a block check to a mode.
 sub register_channel_mode_block {
     my ($pool, $name, $what, $code) = @_;
-
+    my $pkg = (caller)[0];
+    
     # not a code reference.
     if (ref $code ne 'CODE') {
-        L((caller)[0]." tried to register a block to $name that isn't CODE.");
+        L("$pkg tried to register a block to $name that isn't CODE.");
         return;
     }
 
     # it exists already from this source.
     if (exists $pool->{channel_modes}{$name}{$what}) {
-        L((caller)[0]." tried to register $name to $what which is already registered");
+        L("$pkg tried to register $name to $what which is already registered");
         return;
     }
 
-    #L("registered $name from $what");
     $pool->{channel_modes}{$name}{$what} = $code;
     return 1;
 }
@@ -877,7 +873,7 @@ sub add_resv {
     my ($pool, $mask, $expires) = @_;
     return if $expires && $expires < time;
     $pool->{nick_reserves}{ irc_lc($mask) } = $expires || -1;
-    L("Reserved mask '$mask'");
+    D("Reserved mask '$mask'");
     return 1;
 }
 
@@ -885,7 +881,7 @@ sub add_resv {
 sub delete_resv {
     my ($pool, $mask) = @_;
     delete $pool->{nick_reserves}{ irc_lc($mask) } or return;
-    L("Unreserved mask '$mask'");
+    D("Unreserved mask '$mask'");
 }
 
 # expire RESVs on rehash.
@@ -900,7 +896,7 @@ sub expire_resvs {
         $amnt++;
     }
     my $s = $amnt == 1 ? '' : 's';
-    L("Expired $amnt reserve$s") if $amnt;
+    D("Expired $amnt reserve$s") if $amnt;
 }
 
 # returns true if a nick matches any RESVs.

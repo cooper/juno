@@ -15,5 +15,5 @@
    "description" : "git repository management",
    "name" : "Git",
    "package" : "M::Git",
-   "version" : "4.7"
+   "version" : "4.8"
 }

@@ -438,7 +438,7 @@ sub euid {
     # log the user in
     my $act_name = delete $user->{account_name};
     if (length $act_name && $act_name ne '*') {
-        L("TS6 login $$user{nick} as $act_name");
+        D("TS6 login $$user{nick} as $act_name");
         $user->do_login_local($act_name);
     }
 
@@ -797,7 +797,7 @@ sub encap {
     return 1 if $msg->{encap_forwarded};
 
     # otherwise, forward as-is to TS6 servers.
-    L(
+    D(
         "ENCAP $encap_cmd is not explicitly forwarded by this server; ".
         'propagating as-is'
     );
@@ -835,7 +835,7 @@ sub login {
     $msg->{encap_forwarded}++;
 
     # login.
-    L("TS6 login $$user{nick} as $act_name");
+    D("TS6 login $$user{nick} as $act_name");
     $user->do_login_local($act_name);
 
     #=== Forward ===#
@@ -857,7 +857,7 @@ sub su {
 
     # no account name = logout.
     if (!length $act_name) {
-        L("TS6 logout $$user{nick}");
+        D("TS6 logout $$user{nick}");
         $user->do_logout_local();
 
         #=== Forward ===#
@@ -867,7 +867,7 @@ sub su {
     }
 
     # login.
-    L("TS6 login $$user{nick} as $act_name");
+    D("TS6 login $$user{nick} as $act_name");
     $user->do_login_local($act_name);
 
     #=== Forward ===#
@@ -924,7 +924,6 @@ sub part {
 
         # remove the user and tell others
         $channel->do_part_local($user, $reason);
-
     }
 
     # === Forward ===

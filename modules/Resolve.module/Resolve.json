@@ -6,5 +6,5 @@
    "description" : "resolve hostnames",
    "name" : "Resolve",
    "package" : "M::Resolve",
-   "version" : "5"
+   "version" : "5.1"
 }

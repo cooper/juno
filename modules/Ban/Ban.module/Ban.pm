@@ -176,7 +176,7 @@ sub register_ban_type {
         name => $type_name
     };
 
-    L("$type_name registered");
+    D("$type_name registered");
     $mod_->list_store_add(ban_types => $type_name);
 
     # initial activation
@@ -198,7 +198,7 @@ sub register_ban_action {
         name => $action
     };
 
-    L("'$action' registered");
+    D("'$action' registered");
     $mod_->list_store_add(ban_actions => $action);
     return $ban_actions{$action}{name};
 }
@@ -645,13 +645,13 @@ sub ban_action_kill {
 sub delete_ban_type {
     my $type_name = lc shift;
     my $type = delete $ban_types{$type_name} or return;
-    L("$type_name unloaded");
+    D("$type_name unloaded");
 }
 
 sub delete_ban_action {
     my $action = lc shift;
     delete $ban_actions{$action} or return;
-    L("$action unloaded");
+    D("$action unloaded");
 }
 
 sub on_unload {

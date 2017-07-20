@@ -48,7 +48,7 @@ sub register_user_numeric {
         $opts{allow_conn} || $opts{allow_connection}
     ) or return;
 
-    L("$opts{name} $opts{number} registered");
+    D("$opts{name} $opts{number} registered");
     $mod->list_store_add('user_numerics', $opts{name});
     return 1;
 }

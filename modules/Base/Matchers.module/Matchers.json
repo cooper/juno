@@ -10,5 +10,5 @@
    },
    "name" : "Base::Matchers",
    "package" : "M::Base::Matchers",
-   "version" : "11.14"
+   "version" : "11.24"
 }

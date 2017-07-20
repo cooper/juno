@@ -99,7 +99,7 @@ sub register_registration_command {
         _caller  => $mod->package
     );
 
-    L("$command ($opts{cb_name}) registered");
+    D("$command ($opts{cb_name}) registered");
     $mod->list_store_add('registration_commands', $command);
     return $result;
 }

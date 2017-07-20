@@ -309,7 +309,7 @@ if (match($mask, $user->fullip)) {
 
 ### $user->notice_info
 
-Returns a list of user's nick, ident, and actual host in that order.
+Returns a string containing user's nick, ident, and actual host.
 Useful for oper notices where these three items are commonly displayed.
 
 ```perl

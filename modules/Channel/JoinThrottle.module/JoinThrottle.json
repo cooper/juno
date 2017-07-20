@@ -12,5 +12,5 @@
    "description" : "channel mode to prevent join flooding",
    "name" : "Channel::JoinThrottle",
    "package" : "M::Channel::JoinThrottle",
-   "version" : "1.8"
+   "version" : "1.9"
 }

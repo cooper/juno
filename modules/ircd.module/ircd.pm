@@ -58,7 +58,7 @@ sub init {
     #   during reload; it only applies to the initial startup.
     #
 
-    L('this is '.v('NAME')." version $VERSION");
+    L('this is '.v('TNAME')." version $VERSION");
 
     &boot;                  # boot if we haven't already
 
@@ -169,12 +169,13 @@ sub get_version {
 
 # set global variables
 sub set_variables {
-
+    $api->{log_sub} = $api->{debug_sub} = sub { say $_[1] };
+    
     # defaults; replace current values.
     my %v_replace = (
         NAME    => 'ava',           # major version name
         SNAME   => 'juno',          # short ircd name
-        LNAME   => 'juno-ircd',     # long ircd name
+        LNAME   => 'juno',          # long ircd name
         VERSION => $VERSION         # combination of these 3 in VERSION command
     );
     $v_replace{TNAME} = $v_replace{SNAME}.'-'.$v_replace{NAME};
@@ -196,7 +197,6 @@ sub set_variables {
     # insertions.
     my @missing_keys    = grep { not exists $::v{$_} } keys %v_insert;
     @::v{@missing_keys} = @v_insert{@missing_keys};
-
 }
 
 #####################
@@ -398,16 +398,14 @@ sub setup_logging {
     open $::log_fh, '>>', $logfile or return;
     $::log_fh->autoflush(1);
 
-    # register the callback.
+    # register the callback
+    # write to file maybe
     $api->delete_callback('log', 'log.to.file');
     $api->on(log => sub {
         my (undef, $line) = @_;
-
-        # write to file maybe.
         if ($::log_fh && openhandle($::log_fh)) {
-            print $::log_fh "$line\n";
+            say $::log_fh $line;
         }
-
     }, name => 'log.to.file');
 }
 
@@ -443,7 +441,8 @@ sub setup_api {
             '$me'   => $me,
             '$pool' => $pool,
             '$conf' => $conf,
-            '*L'    => sub { _L($obj, [caller 1], @_) }
+            '*L'    => sub { _L($obj, 'log',   [caller 1], @_) },
+            '*D'    => sub { _L($obj, 'debug', [caller 1], @_) }
         });
     });
 
@@ -458,7 +457,7 @@ sub setup_api {
 
 # initiate changes
 sub change_start {
-    L('Storing current state');
+    D('Storing current state');
     my $state = {
         modes => server::protocol::mode_change_start($me),
         caps  => $pool->capability_change_start
@@ -469,14 +468,14 @@ sub change_start {
 
 # finalize changes
 sub change_end {
-    L('Accepting changes');
+    D('Accepting changes');
     my $state = shift;
     server::protocol::mode_change_end($me, $state->{modes})
         if $state->{modes};
     $pool->capability_change_end($state->{caps})
         if $state->{caps};
     $pool->fire(change_end => $state);
-    L('Accepted');
+    D('Accepted');
 }
 
 #############################
@@ -516,9 +515,9 @@ sub setup_modules {
         push @modules, $mod_name;
     }
 
-    L('Loading API configuration modules');
+    D('Loading API configuration modules');
     $api->load_modules(@modules);
-    L('Done loading modules');
+    D('Done loading modules');
 }
 
 # setup listening sockets
@@ -645,14 +644,14 @@ sub load_or_reload {
     # it might be loaded with an appropriate version already.
     no warnings 'numeric';
     if ((my $v = $name->VERSION // -1) >= $min_v) {
-        L("$name is loaded and up-to-date ($v)");
+        D("$name is loaded and up-to-date ($v)");
         return 1;
     }
 
     # it hasn't been loaded yet at all.
     # use require to load it the first time.
     if (!is_loaded($name) && !$name->VERSION) {
-        L("Loading $name");
+        D("Loading $name");
         require $file
             or return startup_error("Could not load $name!".($@ || $!));
         return 1;
@@ -803,7 +802,6 @@ sub listen_addr_port {
         my $listener = $listeners{$l_key}{listener} = $f->get;
         configure_listener($listener);
         L("Listening on $l_key");
-
     });
 
     return 1;
@@ -974,7 +972,7 @@ foreach my $conn ($pool->connections) {
 # this just tells the internal server what
 # mode is associated with what letter and type by configuration
 sub add_internal_channel_modes {
-    L('registering channel status modes');
+    D('registering channel status modes');
 
     # clear the old modes
     $me->{cmodes} = {};
@@ -995,7 +993,7 @@ sub add_internal_channel_modes {
     }
 
     # add the new non-status modes
-    L('registering channel mode letters');
+    D('registering channel mode letters');
     foreach my $name ($conf->keys_of_block(['modes', 'channel'])) {
         $me->add_cmode(
             $name,
@@ -1008,7 +1006,7 @@ sub add_internal_channel_modes {
 # this just tells the internal server what
 # mode is associated with what letter as defined by the configuration
 sub add_internal_user_modes {
-    L('registering user mode letters');
+    D('registering user mode letters');
 
     # clear the previous ones
     $me->{umodes} = {};
@@ -1097,14 +1095,15 @@ sub WARNING {
 ### LOGGING ###
 ###############
 
-# L() must be explicitly defined in ircd.pm only.
-sub L { _L($mod, [caller 1], @_) }
+# L() and D() must be explicitly defined in ircd.pm only.
+sub L { _L($mod, 'log',   [caller 1], @_) }
+sub D { _L($mod, 'debug', [caller 1], @_) }
 
 # this is called by L() throughout. it can be modified safely
 # past the $caller argument only.
 sub _L {
-    my ($obj, $caller, $line) = (shift, shift, shift);
-
+    my ($obj, $level, $caller, $line) = splice @_, 0, 4;
+    
     # use a different object.
     if (blessed $line && $line->isa('Evented::API::Module')) {
         $obj  = $line;
@@ -1120,7 +1119,6 @@ sub _L {
     # the main package which literally just calls say() and nothing else.
     return unless $obj->can('Log');
     $obj->Log($line);
-
 }
 
 $mod

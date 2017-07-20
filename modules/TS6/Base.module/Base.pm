@@ -139,7 +139,7 @@ sub register_ts6_capability {
     $me->add_cap($cap)
         unless $opts{dont_enable};
 
-    L("TS6 capability $cap registered");
+    D("TS6 capability $cap registered");
     return 1;
 }
 
@@ -215,7 +215,7 @@ sub register_outgoing_ts6_command {
         'ts6'
     ) or return;
 
-    L("TS6 outgoing command $opts{name} registered");
+    D("TS6 outgoing command $opts{name} registered");
     $mod->list_store_add('outgoing_TS6_commands', $opts{name});
     return 1;
 }

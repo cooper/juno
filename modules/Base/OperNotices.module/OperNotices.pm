@@ -47,8 +47,7 @@ sub register_oper_notice {
         $opts{format} // $opts{code}
     ) or return;
 
-    L("'$opts{name}' registered");
-
+    D("'$opts{name}' registered");
     $mod->list_store_add('oper_notices', $opts{name});
     return 1;
 }

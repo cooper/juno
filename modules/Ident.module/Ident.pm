@@ -216,7 +216,7 @@ sub ident_cancel {
     return if $conn->{ident_checked};
     ident_done(@_);
     $err //= 'unknown error';
-    L("Request for $$conn{ip} terminated: $err");
+    D("Request for $$conn{ip} terminated: $err");
 }
 
 # whether succeeded or failed, we're done.

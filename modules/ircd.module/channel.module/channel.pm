@@ -83,7 +83,7 @@ sub set_mode {
         time      => time
         # list for list modes and status
     };
-    L("$$channel{name} +$name");
+    D("$$channel{name} +$name");
     return 1
 }
 
@@ -93,7 +93,7 @@ sub unset_mode {
     my ($channel, $name) = @_;
     return unless $channel->is_mode($name);
     delete $channel->{modes}{$name};
-    L("$$channel{name} -$name");
+    D("$$channel{name} -$name");
     return 1;
 }
 
@@ -105,12 +105,12 @@ sub set_mlock {
     my ($channel, $mlock) = @_;
     if (!$mlock) {
         undef $channel->{mlock};
-        L("$$channel{name} MLOCK disabled");
+        D("$$channel{name} MLOCK disabled");
         return;
     }
     $channel->{mlock} = $mlock;
     my $str = $mlock->to_string($me, 1);
-    L("$$channel{name} MLOCK $str");
+    D("$$channel{name} MLOCK $str");
 }
 
 sub mlock { shift->{mlock} }
@@ -173,7 +173,7 @@ sub add_to_list {
     };
 
     # add it
-    L("$$channel{name}: adding $parameter to $name list");
+    D("$$channel{name}: adding $parameter to $name list");
     my $ref = [ $parameter, \%opts ];
     push @{ $channel->{modes}{$name}{list} }, $ref;
 
@@ -193,7 +193,7 @@ sub remove_from_list {
     return if @old == @new;
     
     $channel->{modes}{$name}{list} = \@new;
-    L("$$channel{name}: removing $what from $name list");
+    D("$$channel{name}: removing $what from $name list");
     return 1;
 }
 
@@ -241,7 +241,7 @@ sub has_user {
 # low-level channel time set.
 sub set_time {
     my ($channel, $time) = @_;
-    L("warning: setting time to a lower time from $$channel{time} to $time")
+    L("warning: setting time to a newer time! $$channel{time} -> $time")
         if $time > $channel->{time};
     $channel->{time} = $time;
 }
@@ -270,7 +270,7 @@ sub handle_modes {
         # find the mode type.
         my $type = $me->cmode_type($name);
         if ($type == MODE_UNKNOWN) {
-            L("Mode '$name' is not known to this server; skipped");
+            D("Mode '$name' is not known to this server; skipped");
             next MODE;
         }
 
@@ -284,13 +284,13 @@ sub handle_modes {
         #
         my $takes = $me->cmode_takes_parameter($name, $state) || 0;
         if (!defined $param && $takes == 1) {
-            L("Mode '$name' is missing a parameter; skipped");
+            D("Mode '$name' is missing a parameter; skipped");
             next MODE;
         }
 
         # parameters have to have length and can't start with colons.
         if (defined $param && (!length $param || substr($param, 0, 1) eq ':')) {
-            L("Mode '$name' has malformed parameter '$param'; skipped");
+            D("Mode '$name' has malformed parameter '$param'; skipped");
             next MODE;
         }
 
@@ -750,7 +750,7 @@ sub take_lower_time {
     return $channel->{time} if $time >= $channel->{time};
 
     # the new time is older; reset.
-    L("locally resetting $$channel{name} time to $time");
+    D("locally resetting $$channel{name} time to $time");
     $channel->set_time($time);
 
     # unset all channel modes.

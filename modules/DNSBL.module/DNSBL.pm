@@ -123,7 +123,7 @@ sub got_reply2 {
 # called when the connection is good-to-go.
 sub dnsbl_ok {
     my ($conn, $list_name) = @_;
-    L("$$conn{ip} is not listed on $list_name");
+    D("$$conn{ip} is not listed on $list_name");
     finish($conn, $list_name);
 }
 

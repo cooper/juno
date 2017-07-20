@@ -35,7 +35,7 @@ sub register_matcher {
         _caller => $mod->package
     ) or return;
 
-    L("'$opts{name}' registered");
+    D("'$opts{name}' registered");
     $mod->list_store_add('matchers', $opts{name});
     return $opts{name};
 }

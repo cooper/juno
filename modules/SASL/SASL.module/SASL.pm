@@ -79,7 +79,7 @@ sub find_saslserv {
     # we can't find the agent, so start looking for it.
     if (!$saslserv) {
         undef $have_saslserv;
-        L('Watching for SASL agent');
+        D('Watching for SASL agent');
     }
 
     # we found the agent.
@@ -94,14 +94,14 @@ sub find_saslserv {
 
             # disable it and start monitoring again
             $weak_mod->disable_capability('sasl');
-            L('Lost SaslServ');
+            D('Lost SaslServ');
             undef $have_saslserv;
 
         }, 'saslserv.monitor');
 
         # enable the capability for now
         $mod->enable_capability('sasl');
-        L('Found SASL agent');
+        D('Found SASL agent');
     }
 
     return $saslserv;
@@ -343,7 +343,7 @@ sub on_user_set_modes {
     # this might be a local user which is now ready to login
     $user->is_local or return;
     my $act_name = delete $user->{sasl_account} or return;
-    L("SASL login $$user{nick} as $act_name");
+    D("SASL login $$user{nick} as $act_name");
     $user->do_login_local($act_name, 1); # the 1 means no RPL_LOGGED*
 }
 

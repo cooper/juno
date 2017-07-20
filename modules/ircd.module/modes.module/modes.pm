@@ -96,7 +96,7 @@ sub new_from_string {
         if ($takes = $server->cmode_takes_parameter($name, $state)) {
             $param = shift @m;
             if (!defined $param && $takes == 1) {
-                L("Mode '$name' is missing a parameter; skipped");
+                D("Mode '$name' is missing a parameter; skipped");
                 next MODE;
             }
         }
@@ -268,7 +268,7 @@ sub _to_strings {
             # find the mode type.
             my $type = $me->cmode_type($name);
             if (!defined $type || $type == MODE_UNKNOWN) {
-                L("Mode '$name' is not known to this server; skipped");
+                D("Mode '$name' is not known to this server; skipped");
                 next MODE;
             }
 
@@ -282,7 +282,7 @@ sub _to_strings {
             #
             my $takes = $me->cmode_takes_parameter($name, $state) || 0;
             if (!defined $param && $takes == 1) {
-                L("Mode '$name' is missing a parameter; skipped");
+                D("Mode '$name' is missing a parameter; skipped");
                 next MODE;
             }
 

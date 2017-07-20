@@ -96,8 +96,8 @@ sub handle {
     # connection is being closed or empty line.
     return if $conn->{goodbye} || !length $data;
 
-my $name = $conn->type ? $conn->type->name : '(unregistered)';
-print "R[$name] $data\n";
+    my $name = $conn->type ? $conn->type->name : '(unregistered)';
+    D("R[$name] $data");
 
     # create a message.
     my $msg = message->new(
@@ -190,11 +190,12 @@ sub ready {
         # create a new user.
         my $user = $conn->{type} = $pool->new_user(
             %$conn,
+            conn                     => $conn,
             $Evented::Object::props  => {},
             $Evented::Object::events => {}
         );
 
-        weaken($user->{conn} = $conn);
+        weaken($user->{conn});
         $conn->fire(user_ready => $user);
 
         # we notify other servers of the new user in $user->_new_connection
@@ -254,9 +255,11 @@ sub verify {
         return 'Alien';
     }
     
-    # connection matches no class
+    # force class recalculation
     delete $conn->{class_name};
     my $class = $conn->class_name;
+    
+    # connection matches no class
     return 'Not accepting connections'
         if !$class;
 
@@ -291,8 +294,8 @@ sub send {
     return unless $conn->stream->write_handle;
     return if $conn->{goodbye};
     @msg = grep defined, @msg;
-my $name = $conn->type ? $conn->type->name : '(unregistered)';
-print "S[$name] $_\n" for @msg;
+    my $name = $conn->type ? $conn->type->name : '(unregistered)';
+    D("S[$name] $_") for @msg;
     $conn->stream->write("$_\r\n") foreach @msg;
 }
 
@@ -609,12 +612,6 @@ sub class_name {
     my $conn = shift;
     return $conn->{class_name} if $conn->{class_name};
     
-    # called before ->verify
-    if (!$conn->{verify}) {
-        L('class name requested before verify()');
-        return undef;
-    }
-    
     # determine the class
     my ($class_chosen, $class);
     foreach my $maybe ($conf->names_of_block('class')) {
@@ -624,10 +621,14 @@ sub class_name {
         # skip oper classes here
         next if $class_ref->{requires_oper};
         
-        # server
+        # find allowed server and user masks
         my @servers = ref_to_list($class_ref->{allow_servers});
         my @users   = ref_to_list($class_ref->{allow_users});
-        if ($conn->{looks_like_server} && @servers) {
+        my @conns   = ref_to_list($class_ref->{allow_anons});
+        
+        # server
+        if (@servers) {
+            next if !$conn->{looks_like_server};
             
             # neither hostname nor IP match
             next if !irc_match($conn->{host}, @servers)
@@ -637,22 +638,27 @@ sub class_name {
         }
         
         # user
-        elsif ($conn->{looks_like_user} && @users) {
+        elsif (@users) {
+            next if !$conn->{looks_like_user};
             
             # neither user@hostname nor user@IP match
-            my $prefix = "$$conn{ident}\@";
+            my $prefix = ($$conn{ident} // '*').'@';
             next if !irc_match($prefix.$conn->{host}, @users)
                  && !irc_match($prefix.$conn->{ip},   @users);
                  
             push @used_bits, @users;
         }
         
-        # neither user nor server
-        else {
-            L("'$maybe' has neither allow_users nor allow_servers");
-            next;
+        # unregistered connection
+        elsif (@conns) {
+            
+            # neither hostname nor IP match
+            next if !irc_match($conn->{host}, @conns)
+                 && !irc_match($conn->{ip},   @conns);
+                 
+            push @used_bits, @conns;
         }
-        
+
         # determine priority
         my $priority = $class_ref->{priority} += _get_priority(@used_bits);
         
@@ -669,6 +675,7 @@ sub class_name {
         $class = $maybe;
     }
     
+    D("Using class '$class' for $$conn{ip}");
     return $conn->{class_name} = $class;
 }
 

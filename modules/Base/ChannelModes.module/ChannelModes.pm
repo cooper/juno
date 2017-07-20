@@ -166,7 +166,7 @@ sub register_channel_mode_block {
         );
     }
 
-    L("'$opts{name}' registered");
+    D("'$opts{name}' registered");
     $mod->list_store_add('channel_modes', $opts{name});
 }
 

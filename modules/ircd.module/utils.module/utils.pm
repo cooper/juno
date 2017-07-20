@@ -410,7 +410,7 @@ sub notice {
     # log it.
     return if !$api || !ircd->can('_L');
     my $obj = $api->package_to_module($caller[0]) || $ircd::mod or return;
-    ircd::_L($obj, \@caller, "$key: $str");
+    ircd::_L($obj, 'info', \@caller, "$key: $str");
 
     return $str;
 }
@@ -514,6 +514,7 @@ sub import {
 
 
 # utils must have its own L() because it is loaded before anything else.
-sub L { ircd::_L($mod, [caller 1], @_) if ircd->can('_L') }
+*L = \&ircd::L;
+*D = \&ircd::D;
 
 $mod

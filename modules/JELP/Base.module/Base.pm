@@ -135,7 +135,7 @@ sub register_outgoing_command {
         'jelp'
     ) or return;
 
-    L("JELP outgoing command $opts{name} registered");
+    D("JELP outgoing command $opts{name} registered");
     $mod->list_store_add('outgoing_commands', $opts{name});
     return 1;
 }

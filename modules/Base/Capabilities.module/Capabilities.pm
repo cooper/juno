@@ -52,7 +52,7 @@ sub register_capability {
     $pool->register_cap($mod->name, $name, $cap) or return;
     $mod->list_store_add('capabilities', $name);
     $pool->fire(capability_registered => $cap);
-    L("Registered '$name'");
+    D("Registered '$name'");
 
     # set the initial value
     set_capability_value($mod, undef, $name, $cap->{value})
@@ -92,7 +92,7 @@ sub enable_capability {
     return if $cap->{enabled};
     $cap->{enabled}++;
     $pool->fire(capability_enabled => $cap);
-    L("Enabled '$name'");
+    D("Enabled '$name'");
 
     return 1 if $pool::monitoring_cap_changes;
 
@@ -108,7 +108,7 @@ sub disable_capability {
     return if !$cap->{enabled};
     delete $cap->{enabled} unless $no_delete;
     $pool->fire(capability_disabled => $cap);
-    L("Disabled '$name'");
+    D("Disabled '$name'");
 
     return 1 if $pool::monitoring_cap_changes;
 

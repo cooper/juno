@@ -75,6 +75,7 @@
 [ limit ]
 
     connection  = 100                           # max local connections
+    client      = 80                            # max local users
 
     # Maximum number of characters in:
 

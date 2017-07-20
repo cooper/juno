@@ -16,9 +16,7 @@ BEGIN {
 sub get_version { $_ = $api->_slurp('ircd', "$run_dir/VERSION"); chomp; $_ }
 sub safe_call   { my $f = shift; (ircd->can($f) or return)->(@_) }
 $api = Evented::API::Engine->new(
-    mod_inc => ['modules', 'lib/evented-api-engine/mod'],
-    log_sub => sub { say $_[1] }
-);
+    mod_inc => ['modules', 'lib/evented-api-engine/mod']);
 our $VERSION = get_version() or die "Can't read VERSION";
 $api->load_module('ircd') or exit 1;
 ircd::loop();

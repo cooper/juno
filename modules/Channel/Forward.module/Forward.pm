@@ -55,7 +55,7 @@ sub cmode_forward {
 
         # first thing's first. make sure the channel name is valid.
         if (!utils::validchan($f_ch_name)) {
-            L("Invalid forward channel name for $$channel{name}: $f_ch_name");
+            D("Invalid forward channel name for $$channel{name}: $f_ch_name");
             return;
         }
 
