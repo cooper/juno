@@ -1063,6 +1063,7 @@ sub rehash {
     add_internal_user_modes();
     add_internal_channel_modes();
 
+    $pool->fire('rehash_success');
     $pool->fire('rehash_after');
     gnotice(@arg, 'rehash_success');
     return 1;

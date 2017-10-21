@@ -4141,3 +4141,7 @@ CHANGES:
         
     29. don't debug network traffic by default.
         update Evented::API::Engine.
+        
+    30. fix bug where you could /MODUNLOAD ircd, causing crash.
+        
+    
