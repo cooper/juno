@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# Copyright (c) 2010-16, Mitchell Cooper
+# Copyright (c) 2010-17, Mitchell Cooper
 use warnings; use strict; use 5.010;
 foreach ([qw(__WARN__ WARNING)], [qw(TERM terminate )], [qw(KILL terminate)],
          [qw(INT    terminate)], [qw(PIPE signalpipe)], [qw(HUP  signalhup)]) {
@@ -9,7 +9,7 @@ BEGIN {
     defined($run_dir = shift @ARGV) or die "No directory specified";
     die "Run directory does not exist" unless -d $run_dir;
     chdir $run_dir or die "Can't access run directory";
-    foreach (map { "$run_dir/lib$_" } ('', qw(/evented-object/lib
+    foreach ($run_dir, map { "$run_dir/lib$_" } ('', qw(/evented-object/lib
         /evented-api-engine/lib))) { unshift @INC, $_ }
     require Evented::API::Engine;
 }
