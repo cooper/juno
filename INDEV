@@ -4143,5 +4143,7 @@ CHANGES:
         update Evented::API::Engine.
         
     30. fix bug where you could /MODUNLOAD ircd, causing crash.
+    
+    31. fix compatibility with perl 5.26.
         
     
