@@ -8,7 +8,7 @@
     network     = 'JunoDevNet'                  # network name
     name        = 'devserver.example.com'       # server name
     description = 'juno development server'     # server description
-    sex         = 'male'                        # server gender
+    sex         = 'male'                        # server gender - 'male' or 'female'
     id          = 0                             # server ID (must be a unique integer)
     casemapping = 'rfc1459'                     # 'rfc1459' or 'ascii'
                                                 # you MUST use rfc1459 if using TS6
@@ -20,12 +20,12 @@
 
     # Basic stuff
 
-    Core                        # Loads core commands, modes, etc.
+    Core                        # Core commands, modes, etc.
     Resolve                     # Resolve hostnames
-    Ident                       # Resolve user identities (ident protocol)
+    Ident                       # Resolve user identities (Ident protocol)
     Cloak                       # Hostname cloaking
-    Alias                       # Support for command aliases
-    SASL                        # Support for SASL authentication (for services)
+    Alias                       # Command aliases
+    SASL                        # SASL authentication (for services)
     JELP                        # Juno Extensible Linking Protocol
     #TS6                        # TS6 linking protocol
 
@@ -33,22 +33,22 @@
 
     Channel::Fantasy            # Fantasy commands
     Channel::Access             # Access list mode (+A)
-    Channel::Invite             # Invitation support (INVITE, +i, +I, +g)
+    Channel::Invite             # Invitations (INVITE, +i, +I, +g)
     Channel::Key                # Key support (+k)
-    Channel::Limit              # Member limit support (+l)
-    Channel::Secret             # Secret/private channel support (+s/+p)
-    Channel::OperOnly           # Oper-only channel support (+O)
-    Channel::Forward            # Channel forward support (+f, +F)
+    Channel::Limit              # Member limit (+l)
+    Channel::Secret             # Secret/private channels (+s/+p)
+    Channel::OperOnly           # Oper-only channels (+O)
+    Channel::Forward            # Channel forwarding (+f, +F)
     Channel::Mute               # Mute/quiet bans (+Z)
-    Channel::TopicAdditions     # Commands to prepend or append topic
-    Channel::Permanent          # Preserve empty channels, make permanent (+P)
-    Channel::RegisteredOnly     # Registered only channel support (+r)
-    Channel::SSLOnly            # SSL users only channel support (+S)
+    Channel::TopicAdditions     # Topic management (TOPICPREPEND, TOPICAPPEND)
+    Channel::Permanent          # Preserve empty channels (+P)
+    Channel::RegisteredOnly     # Registered users only (+r)
+    Channel::SSLOnly            # SSL users only (+S)
     Channel::NoColor            # Strip colors from messages (+c)
-    Channel::OpModerate         # Sends blocked messages to chanops (+z)
-    Channel::ModeSync           # Improves channel mode synchronization
-    Channel::JoinThrottle       # Prevents channel join flooding (+j)
-    Channel::LargeList          # Enable large ban lists (+L)
+    Channel::OpModerate         # Send blocked messages to chanops (+z)
+    Channel::ModeSync           # Improves mode synchronization
+    Channel::JoinThrottle       # Prevents join flooding (+j)
+    Channel::LargeList          # Large ban lists (+L)
     
     # Server management
 
@@ -125,24 +125,24 @@
 
 [ services ]
 
-    nickserv = 'NickServ'       # nickname of nick service. used with TS6
-    saslserv = 'SaslServ'       # nickname of SASL service. used by SASL
+    nickserv = 'NickServ'       # nickname of nick service. used by TS6 module
+    saslserv = 'SaslServ'       # nickname of SASL service. used by SASL module
 
 
 # IPv4 listen
 
 [ listen: 0.0.0.0 ]
 
-    port    = [6667..6669, 7000]                # unsecured listening ports
-    sslport = [6697]                            # secure ports
+    port    = [ 6667..6669, 7000 ]              # unsecured listening ports
+    sslport = [ 6697 ]                          # secure ports
 
 
 # IPv6 listen
 
 [ listen: :: ]
 
-    port    = [6667..6669, 7000]                # unsecured listening ports
-    sslport = [6697]                            # secure ports
+    port    = [ 6667..6669, 7000 ]              # unsecured listening ports
+    sslport = [ 6697 ]                          # secure ports
 
 
 # Server uplinks
@@ -153,7 +153,7 @@
     # MUST be IP addresses, not hostnames.
     # Wildcards are accepted. Any number of address allowed.
 
-        address = ['192.168.1.*', '127.0.0.1']
+        address = [ '192.168.1.*', '127.0.0.1' ]
 
     # Outgoing port. If initiating a connection, the server will try this port.
     # Currently, this option does not affect incoming connections.
@@ -202,7 +202,7 @@
     # These can include either hostnames or IP addresses.
     # Multiple values accepted. Wildcards accepted.
 
-        host = ['*@*']
+        host = [ '*@*' ]
 
     # The password and encryption for it.
     # Use ./juno mkpasswd to generated an encrypted password.
@@ -217,14 +217,14 @@
     # Multiple flags accepted. Wildcards NOT accepted.
     # See doc/oper_flags.md. 'all' matches all flags.
 
-        flags = ['all']
+        flags = [ 'all' ]
 
     # Oper notice flags (optional).
     # Notice flags which are specific to this oper. These will be granted in
     # conjunction with any others that might exist from oper classes.
     # Multiple flags accepted. Wildcards not accepted. 'all' matches all flags.
 
-        notices = ['all']
+        notices = [ 'all' ]
 
 
 # Command aliases
@@ -274,7 +274,7 @@
     ipv4     = on
     ipv6     = off
     timeout  = 3
-    matches  = [100]
+    matches  = [ 100 ]
     duration = '1d'
     reason   = "Your host is listed as a Tor node."
 
