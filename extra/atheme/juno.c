@@ -3,7 +3,7 @@
  * Copyright (c) 2005-2008 Atheme Development Group
  * Copyright (c) 2008-2010 ShadowIRCd Development Group
  * Copyright (c) 2013 PonyChat Development Group
- * Copyright (c) 2019 Mitchell Cooper
+ * Copyright (c) 2020 Mitchell Cooper
  *
  * Rights to this code are documented in LICENSE.
  *
@@ -27,7 +27,7 @@
 
 /* Protocol definition */
 
-ircd_t juno = {
+static struct ircd juno = {
     .ircdname           = "juno",
     .tldprefix          = "$$",
     .uses_uid           = true,
@@ -53,7 +53,8 @@ ircd_t juno = {
     .flags              = IRCD_CIDR_BANS | IRCD_HOLDNICK
 };
 
-struct cmode_ juno_mode_list[] = {
+
+static const struct cmode juno_mode_list[] = {
     { 'i', CMODE_INVITE         },      /* invite only                              */
     { 'm', CMODE_MOD            },      /* moderated                                */
     { 'n', CMODE_NOEXT          },      /* block external messages                  */
@@ -73,50 +74,14 @@ struct cmode_ juno_mode_list[] = {
     { '\0', 0 }
 };
 
-static bool check_forward(const char *, channel_t *, mychan_t *, user_t *, myuser_t *);
-static bool check_jointhrottle(const char *value, channel_t *c, mychan_t *mc, user_t *u, myuser_t *mu);
-
-struct extmode juno_ignore_mode_list[] = {
-    { 'f', check_forward        },
-    { 'j', check_jointhrottle   },
-    { '\0', 0 }
-};
-
-struct cmode_ juno_status_mode_list[] = {
-    { 'y', CSTATUS_OWNER        },
-    { 'a', CSTATUS_PROTECT      },
-    { 'o', CSTATUS_OP           },
-    { 'h', CSTATUS_HALFOP       },
-    { 'v', CSTATUS_VOICE        },
-    { '\0', 0 }
-};
-
-/* these can be any arbitrary symbols
- * as long as they are consistent with
- * those in juno's default.conf. */
-struct cmode_ juno_prefix_mode_list[] = {
-    { '~', CSTATUS_OWNER        },
-    { '&', CSTATUS_PROTECT      },
-    { '@', CSTATUS_OP           },
-    { '%', CSTATUS_HALFOP       },
-    { '+', CSTATUS_VOICE        },
-    { '\0', 0 }
-};
-
-struct cmode_ juno_user_mode_list[] = {
-    { 'i', UF_INVIS             },          /*  invisible user  (juno +i)   */
-    { 'o', UF_IRCOP             },          /*  IRC operator    (juno +o)   */
-    { 'D', UF_DEAF              },          /*  deaf user                   */
-    { 'S', UF_SERVICE           },          /*  network service (juno +S)   */
-    { '\0', 0 }
-};
-
 /* check if setting +f is valid */
-static bool check_forward(const char *value, channel_t *c, mychan_t *mc, user_t *u, myuser_t *mu)
+static bool
+check_forward(const char *value, struct channel *c, struct mychan *mc, struct user *u, struct myuser *mu)
 {
-    channel_t *target_c;
-    mychan_t *target_mc;
-    chanuser_t *target_cu;
+
+    struct channel *target_c;
+	struct mychan *target_mc;
+    struct chanuser *target_cu;
 
     /* check channel validity */
     if (!VALID_GLOBAL_CHANNEL_PFX(value) || strlen(value) > 50)
@@ -158,31 +123,70 @@ static bool check_forward(const char *value, channel_t *c, mychan_t *mc, user_t 
 }
 
 /* check if setting +j is valid */
-static bool check_jointhrottle(const char *value, channel_t *c, mychan_t *mc, user_t *u, myuser_t *mu)
+static bool
+check_jointhrottle(const char *value, struct channel *c, struct mychan *mc, struct user *u, struct myuser *mu)
 {
-	const char *p, *arg2;
+    const char *p, *arg2;
 
-	p = value, arg2 = NULL;
-	while (*p != '\0')
-	{
-		if (*p == ':')
-		{
-			if (arg2 != NULL)
-				return false;
-			arg2 = p + 1;
-		}
-		else if (!isdigit((unsigned char)*p))
-			return false;
-		p++;
-	}
-	if (arg2 == NULL)
-		return false;
-	if (p - arg2 > 10 || arg2 - value - 1 > 10 || !atoi(value) || !atoi(arg2))
-		return false;
-	return true;
+    p = value;
+    arg2 = NULL;
+
+    while (*p != '\0')
+    {
+        if (*p == ':')
+        {
+            if (arg2 != NULL)
+                return false;
+            arg2 = p + 1;
+        }
+        else if (!isdigit((unsigned char)*p))
+            return false;
+        p++;
+    }
+    if (arg2 == NULL)
+        return false;
+    if (p - arg2 > 10 || arg2 - value - 1 > 10 || !atoi(value) || !atoi(arg2))
+        return false;
+    return true;
 }
 
-static void mod_init(struct module *const restrict m)
+struct extmode juno_ignore_mode_list[] = {
+    { 'f', check_forward        },
+    { 'j', check_jointhrottle   },
+    { '\0', 0 }
+};
+
+static const struct cmode juno_status_mode_list[] = {
+    { 'y', CSTATUS_OWNER        },
+    { 'a', CSTATUS_PROTECT      },
+    { 'o', CSTATUS_OP           },
+    { 'h', CSTATUS_HALFOP       },
+    { 'v', CSTATUS_VOICE        },
+    { '\0', 0 }
+};
+
+/* these can be any arbitrary symbols
+ * as long as they are consistent with
+ * those in juno's default.conf. */
+static const struct cmode juno_prefix_mode_list[] = {
+    { '~', CSTATUS_OWNER        },
+    { '&', CSTATUS_PROTECT      },
+    { '@', CSTATUS_OP           },
+    { '%', CSTATUS_HALFOP       },
+    { '+', CSTATUS_VOICE        },
+    { '\0', 0 }
+};
+
+static const struct cmode juno_user_mode_list[] = {
+    { 'i', UF_INVIS             },          /*  invisible user  (juno +i)   */
+    { 'o', UF_IRCOP             },          /*  IRC operator    (juno +o)   */
+    { 'D', UF_DEAF              },          /*  deaf user                   */
+    { 'S', UF_SERVICE           },          /*  network service (juno +S)   */
+    { '\0', 0 }
+};
+
+static void
+mod_init(struct module *const restrict m)
 {
     MODULE_TRY_REQUEST_DEPENDENCY(m, "protocol/charybdis");
 
@@ -195,7 +199,8 @@ static void mod_init(struct module *const restrict m)
     ircd = &juno;
 }
 
-static void mod_deinit(const enum module_unload_intent ATHEME_VATTR_UNUSED intent)
+static void
+mod_deinit(const enum module_unload_intent ATHEME_VATTR_UNUSED intent)
 {
 
 }
