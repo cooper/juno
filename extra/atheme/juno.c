@@ -3,7 +3,7 @@
  * Copyright (c) 2005-2008 Atheme Development Group
  * Copyright (c) 2008-2010 ShadowIRCd Development Group
  * Copyright (c) 2013 PonyChat Development Group
- * Copyright (c) 2017 Mitchell Cooper
+ * Copyright (c) 2019 Mitchell Cooper
  *
  * Rights to this code are documented in LICENSE.
  *
@@ -11,9 +11,7 @@
  *
  */
 
-#include "atheme.h"
-#include "uplink.h"
-#include "pmodule.h"
+#include <atheme.h>
 
 #define   CMODE_NOCOLOR         0x00001000   /* hyperion     +c     strip color codes       */
 #define   CMODE_REGONLY         0x00002000   /*  hyperion    +r     register users only     */
@@ -27,21 +25,7 @@
 #define   CMODE_SSLONLY         0x01000000   /*  shadowircd  +S     SSL users only allowed  */
 #define   CMODE_STRIP          0x200000000   /*  unreal      +S     strip color codes       */
 
-/* Compatibility stuff */
-
-#ifdef PROTOCOL_ELEMENTAL_IRCD
-    #define PROTOCOL_JUNO PROTOCOL_ELEMENTAL_IRCD
-#else
-    #define PROTOCOL_JUNO PROTOCOL_SHADOWIRCD
-#endif
-
-#ifndef MYCHAN_FROM
-    #define MYCHAN_FROM(x) mychan_from(x)
-#endif
-
 /* Protocol definition */
-
-DECLARE_MODULE_V1("protocol/juno", true, _modinit, NULL, PACKAGE_STRING, "Mitchell Cooper <https://github.com/cooper>");
 
 ircd_t juno = {
     .ircdname           = "juno",
@@ -60,7 +44,7 @@ ircd_t juno = {
     .owner_mchar        = "+y",
     .protect_mchar      = "+a",
     .halfops_mchar      = "+h",
-    .type               = PROTOCOL_JUNO,
+    .type               = PROTOCOL_ELEMENTAL_IRCD, /* closest hint */
     .perm_mode          = CMODE_PERM,
     .oimmune_mode       = 0,
     .ban_like_modes     = "AIbeq",
@@ -143,7 +127,7 @@ static bool check_forward(const char *value, channel_t *c, mychan_t *mc, user_t 
 
     /* can't find channel */
     target_c = channel_find(value);
-    target_mc = MYCHAN_FROM(target_c);
+    target_mc = mychan_from(target_c);
     if (target_c == NULL && target_mc == NULL)
         return false;
 
@@ -198,7 +182,7 @@ static bool check_jointhrottle(const char *value, channel_t *c, mychan_t *mc, us
 	return true;
 }
 
-void _modinit(module_t * m)
+static void mod_init(struct module *const restrict m)
 {
     MODULE_TRY_REQUEST_DEPENDENCY(m, "protocol/charybdis");
 
@@ -209,7 +193,11 @@ void _modinit(module_t * m)
     prefix_mode_list = juno_prefix_mode_list;
 
     ircd = &juno;
-
-    m->mflags = MODTYPE_CORE;
-    pmodule_loaded = true;
 }
+
+static void mod_deinit(const enum module_unload_intent ATHEME_VATTR_UNUSED intent)
+{
+
+}
+
+SIMPLE_DECLARE_MODULE_V1("protocol/juno", MODULE_UNLOAD_CAPABILITY_NEVER)
