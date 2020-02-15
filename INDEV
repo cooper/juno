@@ -4145,5 +4145,9 @@ CHANGES:
     30. fix bug where you could /MODUNLOAD ircd, causing crash.
     
     31. fix compatibility with perl 5.26.
+
+    32. new atheme protocol module.
+    
+    33. update /INFO.
         
     

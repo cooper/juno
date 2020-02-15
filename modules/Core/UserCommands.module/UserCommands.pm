@@ -285,19 +285,18 @@ sub info {
         return 1;
     }
 
-    # TODO: (#148) does not support remote
-    my ($LNAME, $NAME, $VERSION) = map v($_), qw(LNAME NAME VERSION);
+    my ($LNAME, $NAME, $SITE, $VERSION) = map v($_), qw(LNAME NAME SITE VERSION);
     my $info = <<"END";
 
 \2***\2 this is \2$LNAME\2 $NAME version \2$VERSION ***\2
 
-Copyright (c) 2010-20, the $NAME developers
+Copyright (c) 2010-20, the $LNAME developers
 
 This program is free software.
 You are free to modify and redistribute it under the terms of
 the three-clause "New" BSD license (see LICENSE in source.)
 
-$NAME wouldn't be here if it weren't for the people who have
+$LNAME wouldn't be here if it weren't for the people who have
 contributed time, effort, care, and love to the project.
 
 \2Developers\2
@@ -315,11 +314,8 @@ contributed time, effort, care, and love to the project.
     Nick Dalsheimer, \"AstroTurf\" <astronomerturf\@gmail.com>
     Corey Chex, \"Corey\" <corey\@notroll.net>
 
-If you have any questions or concerns, feel free to email the above
-developers directly or contact NoTrollPlzNet at <contact\@notroll.net>.
-
-Proudly brought to you by \2\x0302No\x0313Troll\x0304Plz\x0309Net\x0f
-http://notroll.net
+Check our $LNAME's website at $SITE
+Come chat with us at irc.notroll.net #k
 
 END
     $user->numeric(RPL_INFO      => $_) for split /\n/, $info;

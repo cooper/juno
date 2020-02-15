@@ -176,7 +176,8 @@ sub set_variables {
         NAME    => 'ava',           # major version name
         SNAME   => 'juno',          # short ircd name
         LNAME   => 'juno',          # long ircd name
-        VERSION => $VERSION         # combination of these 3 in VERSION command
+        VERSION => $VERSION,        # combination of these 3 in VERSION command
+        SITE    => 'https://juno.mitchellcooper.me'
     );
     $v_replace{TNAME} = $v_replace{SNAME}.'-'.$v_replace{NAME};
 
