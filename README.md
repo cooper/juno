@@ -301,5 +301,4 @@ through more than 10 years of improvement, including
 
 ## License
 
-Released under the three-clause "New" BSD license. A [copy](LICENSE) should be
-included in the root directory of all instances of this software.
+This is free software released under the [ISC license](LICENSE).
