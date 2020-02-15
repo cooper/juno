@@ -1620,7 +1620,7 @@ sub rsfnc {
     # the target user has to be local.
     return if !$user->is_local;
 
-    return server::linkage::handle_svsnick(
+    return server::protocol::handle_svsnick(
         $msg, $source_serv, $user, $new_nick,
         $new_nick_ts, $old_nick_ts
     );

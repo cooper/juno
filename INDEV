@@ -4150,6 +4150,8 @@ CHANGES:
     
     33. update /INFO.
 
-    34. fix bug with message->forward_to() return value. #183
+    34. fix bug with message->forward_to_mask() return value. #183
+
+    35. fix RSFNC #183
         
     
