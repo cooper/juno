@@ -3115,7 +3115,7 @@ CHANGES:
 
         79. fixed an issue where TB and TOPICBURST were propagated even when the topic was unchanged. closes #43
             fixed an issue where a separate BMASK was sent for every ban. closes #42
-            @GLolol suggested to try limiting SJOINs to 15 arguments. #41
+            @jlu5 suggested to try limiting SJOINs to 15 arguments. #41
             use join_with_modes for channel creation.
 
     8. ->convert_cmode_string() now has an option to strip the string of status modes.
@@ -3175,7 +3175,7 @@ CHANGES:
             updated Evented::Configuration.
             updated Evented::Database. closes #68.
 
-        98. fixed incorrect CASEMAPPING in RPL_ISUPPORT. thx @GLolol.
+        98. fixed incorrect CASEMAPPING in RPL_ISUPPORT. thx @jlu5.
             renamed repository to "juno."
 
         99. fixed #74 where the forward channel could be the same as the original one.
@@ -3452,7 +3452,7 @@ CHANGES:
             match code provided by ban modules such as Ban::Kline and Ban::Dline must now return a special identifier to indicate how the ban should be enforced.
             Ban provides the built-in action 'kill'; modules will add other actions in the future.
             added some server warnings for if TS6 ban propagation is not possible due to the agent being unavailable.
-            this should fix a bug described at GLolol/PyLink#286 where the sentinel was sometimes lost in TS6 numeric handling.
+            this should fix a bug described at jlu5/PyLink#286 where the sentinel was sometimes lost in TS6 numeric handling.
 
     6. added param type 'hunted' which is now used in several commands in TS6::Incoming.
         it yields a single server object in a similar manner to charybdis hunt_server().
@@ -3634,7 +3634,7 @@ CHANGES:
 
         87. bans now have a 'lifetime' field which allows them to be preserved for some time after expiration. #114.
             delete_deactivate_ban_by_id() no longer deletes the ban. it disables it until expiration.
-            fixed irc_match() to use irc_lc(). thanks @GLolol for pointing this out.
+            fixed irc_match() to use irc_lc(). thanks @jlu5 for pointing this out.
             fixed deep recursion in pretty_mask().
             message.pm now checks if tags are undefined. the ->data() method can now use a new optional 'source_stringify_method' to stringify a source object.
 

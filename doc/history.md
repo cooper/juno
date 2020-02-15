@@ -46,7 +46,7 @@ included some of the
 [ugliest code](https://github.com/cooper/juno1/blob/ea8737edc1a221c3fd263560326a8768a4de9a62/Channel.pm#L759)
 in all of Perl history. An example of the
 attention juno-ircd received from the
-[Atheme](http://atheme.net) community:
+[Atheme](http://atheme.org) community:
 
 ```
 [04:15pm] -Global- [Network Notice] Alice (nenolod) - We will be upgrading to "juno-ircd" in 5 seconds.
@@ -166,7 +166,7 @@ introduced lots of new functionality: the ability to
 and [command aliases](modules.md#alias)
 to name a few. It opened a new door of possibility by adding partial
 [TS6 protocol](ts6.md) support, and it even supports
-[Atheme](http://atheme.net) now to some extent. New channel modes include
+[Atheme](http://atheme.org) now to some extent. New channel modes include
 [invite exception](modules.md#channelinvite) (+I),
 [free invite](modules.md#channelinvite) (+g),
 [channel forward](modules.md#channelforward) (+F),
@@ -196,8 +196,8 @@ among other challenges. But we
 pulled through, and now juno almost fully supports a variety of TS6 servers such
 as [charybdis](https://github.com/charybdis-ircd/charybdis) and [elemental-ircd](https://github.com/Elemental-IRCd/elemental-ircd), as well as
 many pseudoserver packages like
-[Atheme](http://atheme.net) IRC Services and
-[PyLink](https://github.com/GLolol/PyLink) relay software.
+[Atheme](http://atheme.org) IRC Services and
+[PyLink](https://github.com/jlu5/PyLink) relay software.
 Adding TS6 resulted in a positive side effect: several improvements within JELP
 in order to stay competitive with the newly-supported protocol. Aside from
 server-to-server improvements, new noteworthy features in yiria include built-in

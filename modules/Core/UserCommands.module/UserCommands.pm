@@ -291,7 +291,7 @@ sub info {
 
 \2***\2 this is \2$LNAME\2 $NAME version \2$VERSION ***\2
 
-Copyright (c) 2010-16, the $NAME developers
+Copyright (c) 2010-20, the $NAME developers
 
 This program is free software.
 You are free to modify and redistribute it under the terms of
@@ -304,7 +304,7 @@ contributed time, effort, care, and love to the project.
     Mitchell Cooper, \"cooper\" <mitchell\@notroll.net> https://github.com/cooper
     Matt Barksdale, \"matthew\" <matt\@arinity.org> https://github.com/mattwb65
     Hakkin Lain, \"Hakkin\" <hakkin\@notroll.net> https://github.com/Hakkin
-    James Lu, \"GL\" <GLolol\@overdrivenetworks.com> https://github.com/GLolol
+    James Lu, \"GL\" <james\@overdrivenetworks.com> https://github.com/jlu5
     Kyle Paranoid, \"mac-mini\" <mac-mini\@mac-mini.org> https://github.com/mac-mini
     Daniel Leining, \"daniel\" <daniel\@the-beach.co> https://github.com/blasphemy
     Matthew Carey, \"swarley\" <matthew.b.carey\@gmail.com> https://github.com/swarley

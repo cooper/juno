@@ -25,7 +25,7 @@ functionality. It's super easy to install and even comes with a working
 configuration, so go ahead and [try it already](#installation).
 
 Come chat with us at
-[`#k` on `irc.notroll.net`](http://juno.notroll.net/page/chat) too.
+[`#k` on `irc.notroll.net`](irc://irc.notroll.net/k) too.
 
 ## Features
 
@@ -33,17 +33,15 @@ There are a lot! But here are some things that make juno stand out.
 
 You can
 
-* [Upgrade](doc/modules.md#reload) an entire network without restarting any
-  servers.
+* [Upgrade](doc/modules.md#reload) an entire network from IRC without restarting
+  servers or dropping connections.
 * [Check out](doc/modules.md#git) the latest version from git via IRC.
-* [Modify](doc/modules.md#configurationset) server configuration dynamically
-  from IRC.
+* [Configure](doc/modules.md#configurationset) servers directly from IRC.
 * [Link](doc/ts6.md#supported-software) a complex network of various IRCds and
   services packages spanning multiple server protocols.
 * [Write](doc/index.md#technical) modules for the easy-to-use event-based
   module API.
-* Or rather, [beg us](http://juno.notroll.net/page/chat) to add the features you
-  want.
+* Or rather, [beg](irc://irc.notroll.net/k) for the features you want.
 
 Plus, juno
 
@@ -58,8 +56,8 @@ Plus, juno
 * Supports multiple linking protocols, including several
   [TS variants](doc/ts6.md#supported-software) and a custom
   [user-extensible protocol](doc/technical/proto/jelp.md).
-* Supports [Atheme](http://atheme.net),
-  [PyLink](https://github.com/GLolol/PyLink) and probably other IRC services
+* Supports [Atheme](http://atheme.org),
+  [PyLink](https://github.com/jlu5/PyLink) and probably other IRC services
   packages.
 
 ## Concepts
@@ -271,30 +269,20 @@ To upgrade an existing repository, run the following commands:
 ```bash
 git pull origin master
 git submodule update --init
+git checkout <desired release tag>
 ```
 
-**OR**
+**OR** (from IRC with the Git module loaded)
 
-Use the `UPDATE` command (provided by the Git module) to update the current
-repository. It will report the version of the repository to you after checking
-out.
-
-**THEN**
-
-Assuming the Reload module is loaded on your server, use the `RELOAD` command to
-upgrade the server without restarting. This usually works. However, because
-there are no stable releases, the possibility for this to fail certainly exists.
-
-Currently, the best way to know whether the RELOAD command is safe on a
-production server is to check with the developers, providing your current IRCd
-version. Perhaps one day we will have stable releases that are known to upgrade
-without error.
+1. `UPDATE`
+2. `CHECKOUT <desired release tag>`
+3. `RELOAD`
 
 # Information
 
 ## Contact
 
-Go to [`#k` on `irc.notroll.net`](http://juno.notroll.net/page/chat).
+Go to [`#k` on `irc.notroll.net`](irc://irc.notroll.net/k).
 
 If you discover a reproducible bug, please
 [file an issue](https://github.com/cooper/juno/issues).
@@ -304,9 +292,8 @@ If you discover a reproducible bug, please
 Mitchell Cooper, mitchell@notroll.net  
 
 juno was my first project in Perl — ever. Scary, right? Luckily it's been
-through several years of constant improvement, including
-[a few rewrites](doc/history.md). I am awfully proud of the cleanliness of the
-current codebase, which dates back to [juno3](https://github.com/cooper/juno3).
+through more than 10 years of improvement, including
+[a few rewrites](doc/history.md); and I am awfully proud of the current codebase.
 
 ## License
 
