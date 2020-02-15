@@ -63,10 +63,10 @@ Plus, juno
 ## Concepts
 
 * __Eventedness__: The core unifying policy of juno is the excessive use of
-events. Just about any operation that occurs is represented as an event. This
-is made possible by
-[Evented::Object](https://metacpan.org/pod/Evented::Object),
-the base of every class within the IRCd.
+  events. Just about any operation that occurs is represented as an event. This
+  is made possible by [Evented::Object](https://metacpan.org/pod/Evented::Object),
+  the base of every class within the IRCd.
+
 ```perl
 # if it's a server, add the $PROTO_message events
 if (my $server = $connection->server) {
@@ -81,9 +81,10 @@ my $fire = $connection->prepare(@events)->fire('safe');
 ```
 
 * __Extensibility__: Through the use of events and other mechanisms,
-extensibility is another important guideline around which juno is designed. It
-should not be assumed that any commands, modes, prefixes, etc. are fixed or
-finite. They should be changeable, replaceable, and unlimited.
+  extensibility is another important guideline around which juno is designed. It
+  should not be assumed that any commands, modes, prefixes, etc. are fixed or
+  finite. They should be changeable, replaceable, and unlimited.
+
 ```
 [ modes: channel ]
     no_ext        = [ mode_normal, 'n' ]    # no external channel messages
@@ -96,12 +97,13 @@ finite. They should be changeable, replaceable, and unlimited.
 ```
 
 * __Modularity__: By responding to events, [modules](doc/modules.md) add new
-features and functionality. Without them, juno is made up of
-[under thirty lines](https://github.com/cooper/juno/blob/master/bin/ircd) of
-code. Modules work together to create a single functioning body whose parts can
-be added, removed, and modified dynamically. This is made possible by the
-[Evented::API::Engine](https://github.com/cooper/evented-api-engine),
-a class that manages modules and automatically tracks their events.
+  features and functionality. Without them, juno is made up of
+  [under thirty lines](https://github.com/cooper/juno/blob/master/bin/ircd) of
+  code. Modules work together to create a single functioning body whose parts can
+  be added, removed, and modified dynamically. This is made possible by the
+  [Evented::API::Engine](https://github.com/cooper/evented-api-engine),
+  a class that manages modules and automatically tracks their events.
+
 ```
 Ban::TS6 10.6
    TS6 ban propagation
@@ -116,25 +118,27 @@ Ban::TS6 10.6
 ```
 
 * __Upgradability__: The beauty of Perl's malleable symbol table makes it
-possible for an entire piece of software to be upgraded or reloaded without
-restarting it. With the help of the
-[Evented::API::Engine](https://github.com/cooper/evented-api-engine) and with
-modularity as a central principle, juno aims to do exactly that. With just
-[one command](doc/modules.md#reload), you can jump up one or one hundred
-versions, all without your users disconnecting.
+  possible for an entire piece of software to be upgraded or reloaded without
+  restarting it. With the help of the
+  [Evented::API::Engine](https://github.com/cooper/evented-api-engine) and with
+  modularity as a central principle, juno aims to do exactly that. With just
+  [one command](doc/modules.md#reload), you can jump up one or one hundred
+  versions, all without your users disconnecting.
+
 ```
 *** Update: k.notroll.net git repository updated to version 12.88 (juno12-mihret-209-g269c83c)
 *** Reload: k.notroll.net upgraded from 12.48 to 12.88 (up 88 versions since start)
 ```
 
 * __Configurability__: Very few values are hard coded. Many have defaults, but
-nearly everything is [configurable](doc/config.md). In spite of that, the
-included working configuration is minimal and easy-to-follow. This is made
-possible by
-[Evented::Configuration](https://metacpan.org/pod/Evented::Configuration).
-[Real-time modification](doc/modules.md#configurationset) of the configuration
-is also feasible, thanks to
-[Evented::Database](https://github.com/cooper/evented-database).
+  nearly everything is [configurable](doc/config.md). In spite of that, the
+  included working configuration is minimal and easy-to-follow. This is made
+  possible by
+  [Evented::Configuration](https://metacpan.org/pod/Evented::Configuration).
+  [Real-time modification](doc/modules.md#configurationset) of the configuration
+  is also feasible, thanks to
+  [Evented::Database](https://github.com/cooper/evented-database).
+
 ```
 [ listen: 0.0.0.0 ]
     port    = [6667..6669, 7000]
@@ -147,9 +151,9 @@ is also feasible, thanks to
 ```
 
 * __Efficiency__: Modern IRC servers have a higher per-user load and therefore
-must be prompt at fulfilling requests. Utilizing the wonderful
-[IO::Async](https://metacpan.org/pod/IO::Async) framework, juno is quite
-reactive.
+  must be prompt at fulfilling requests. Utilizing the wonderful
+  [IO::Async](https://metacpan.org/pod/IO::Async) framework, juno is quite
+  reactive.
 
 # Setup and operation
 
@@ -237,28 +241,28 @@ usage: ./juno [action]
 * __start__: Runs the server in the background as a daemon.
 
 * __forcestart__: Runs the server in the background, ignoring the PID file if it
-appears to already be running.
+  appears to already be running.
 
 * __stop__: Terminates the IRCd if it is currently running.
 
 * __debug__: Runs the IRCd in the foreground, printing the logging output.
 
 * __forever__: Runs the IRCd continuously in the background. In other words, if
-it is stopped for any reason (such as a crash or exploit or SHUTDOWN), it will
-immediately start again. Don't worry though, it will not stress out your
-processor if it fails over and over.
+  it is stopped for any reason (such as a crash or exploit or SHUTDOWN), it will
+  immediately start again. Don't worry though, it will not stress out your
+  processor if it fails over and over.
 
 * __foreverd__: Runs the IRCd continuously in the foreground, printing the
-logging output.
+  logging output.
 
 * __rehash__: Notifies the currently-running server to reload its configuration
-file.
+  file.
 
 * __mkpasswd__: Runs the script for generating encrypted passwords for use in
-oper and connect blocks in the server configuration.
+  oper and connect blocks in the server configuration.
 
 * __dev__: Includes a number of subcommand tools for developers; see
-`./juno dev help`.
+  `./juno dev help`.
 
 On Windows, start juno with `juno-start.bat`.
 
