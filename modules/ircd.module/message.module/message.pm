@@ -759,13 +759,15 @@ sub forward_to_mask {
     my ($amnt, $matches_me) = 0;
     foreach ($pool->lookup_server_mask($mask)) {
 
+        # it's me!
+        $matches_me++, next if $_ == $me;
+
         # don't send to servers who haven't received my burst.
         next unless $_->{i_sent_burst};
 
         # don't send to the server we got it from.
         next if $_ == $server;
 
-        $matches_me++, next if $_ == $me;
         $amnt++ if $_->forward($e_name => @args);
     }
 

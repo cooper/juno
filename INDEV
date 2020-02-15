@@ -4149,5 +4149,7 @@ CHANGES:
     32. new atheme protocol module.
     
     33. update /INFO.
+
+    34. fix bug with message->forward_to() return value. #183
         
     
