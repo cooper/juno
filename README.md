@@ -212,7 +212,7 @@ juno comes with a working example configuration. So if you want to try it with
 next to no effort, just copy `etc/ircd.conf.example` to `etc/ircd.conf`.
 The password for the default oper account `admin` is `k`.  
 
-The configuration is, for the most part, self-explanitory. Anything that might
+The configuration is, for the most part, self-explanatory. Anything that might
 be questionable probably has a comment that explains it. Explanations of all
 options are available in the [configuration spec](doc/config.md).
 
