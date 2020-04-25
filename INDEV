@@ -4153,5 +4153,7 @@ CHANGES:
     34. fix bug with message->forward_to_mask() return value. #183
 
     35. fix RSFNC #183
+
+    36. update Evented::Configuration to 4.03 for [include] config bug fix.
         
     
