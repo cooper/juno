@@ -314,15 +314,15 @@ sub load_dependencies {
 
         [ 'IO::Socket::IP',                0.25 ],
 
-        [ 'Evented::Object',               5.65 ],
-        [ 'Evented::Object::Collection',   5.65 ],
-        [ 'Evented::Object::EventFire',    5.65 ],
+        [ 'Evented::Object',               5.67 ],
+        [ 'Evented::Object::Collection',   5.67 ],
+        [ 'Evented::Object::EventFire',    5.67 ],
 
-        [ 'Evented::API::Engine',          4.12 ],
-        [ 'Evented::API::Module',          4.12 ],
-        [ 'Evented::API::Events',          4.12 ],
+        [ 'Evented::API::Engine',          4.13 ],
+        [ 'Evented::API::Module',          4.13 ],
+        [ 'Evented::API::Events',          4.13 ],
 
-        [ 'Evented::Configuration',        4.02 ],
+        [ 'Evented::Configuration',        4.04 ],
 
         [ 'Evented::Database',             1.15 ],
         [ 'Evented::Database::Rows',       1.15 ],

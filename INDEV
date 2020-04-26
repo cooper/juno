@@ -4155,5 +4155,6 @@ CHANGES:
     35. fix RSFNC #183
 
     36. update Evented::Configuration to 4.03 for [include] config bug fix.
-        
+
+    37. update Evented:: dependencies.
     
