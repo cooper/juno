@@ -314,7 +314,7 @@ contributed time, effort, care, and love to the project.
     Nick Dalsheimer, \"AstroTurf\" <astronomerturf\@gmail.com>
     Corey Chex, \"Corey\" <corey\@notroll.net>
 
-Check our $LNAME's website at $SITE
+Check out $LNAME\'s website at $SITE
 Come chat with us at irc.notroll.net #k
 
 END
