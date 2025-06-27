@@ -1,12 +1,12 @@
 [submodule "lib/evented-configuration"]
 	path = lib/evented-configuration
-	url = git://github.com/cooper/evented-configuration.git
+	url = https://github.com/cooper/evented-configuration.git
 [submodule "lib/evented-database"]
 	path = lib/evented-database
-	url = git://github.com/cooper/evented-database.git
+	url = https://github.com/cooper/evented-database.git
 [submodule "lib/evented-object"]
 	path = lib/evented-object
-	url = git://github.com/cooper/evented-object.git
+	url = https://github.com/cooper/evented-object.git
 [submodule "lib/evented-api-engine"]
 	path = lib/evented-api-engine
 	url = https://github.com/cooper/evented-api-engine.git
