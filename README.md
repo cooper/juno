@@ -29,9 +29,7 @@ Come chat with us at
 
 ## Features
 
-There are a lot! But here are some things that make juno stand out.
-
-You can
+Here are some things that make juno stand out. You can
 
 * [Upgrade](doc/modules.md#reload) an entire network from IRC without restarting
   servers or dropping connections.
@@ -41,7 +39,6 @@ You can
   services packages spanning multiple server protocols.
 * [Write](doc/index.md#technical) modules for the easy-to-use event-based
   module API.
-* Or rather, [beg](irc://irc.notroll.net/k) for the features you want.
 
 Plus, juno
 
@@ -51,14 +48,12 @@ Plus, juno
 * Is excessively [configurable](doc/config.md).
 * Despite that, ships with a working configuration and runs out-of-the-box.
 * Consists entirely of [modules](doc/modules.md) and therefore can be as minimal
-  or as bloated as you're comfortable with.
+  or bloated as you're comfortable with.
 * Supports the latest [IRCv3](doc/ircv3.md) standards.
-* Supports multiple linking protocols, including several
-  [TS variants](doc/ts6.md#supported-software) and a custom
-  [user-extensible protocol](doc/technical/proto/jelp.md).
-* Supports [Atheme](http://atheme.org),
-  [PyLink](https://github.com/jlu5/PyLink) and probably other IRC services
-  packages.
+* Supports multiple linking protocols, including [TS6](doc/ts6.md#supported-software)
+  and [JELP](doc/technical/proto/jelp.md).
+* Supports [Atheme](http://atheme.org), [PyLink](https://github.com/jlu5/PyLink)
+  and probably other IRC services packages.
 
 ## Concepts
 
@@ -278,9 +273,9 @@ git checkout <desired release tag>
 
 **OR** (from IRC with the Git module loaded)
 
-1. `UPDATE`
-2. `CHECKOUT <desired release tag>`
-3. `RELOAD`
+1. `/UPDATE`
+2. `/CHECKOUT <desired release tag>`
+3. `/RELOAD`
 
 # Information
 
