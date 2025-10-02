@@ -1,4 +1,4 @@
-# Copyright (c) 2009-16, Mitchell Cooper
+# Copyright (c) 2009-25, Mitchell Cooper
 #
 # @name:            "ircd::message"
 # @package:         "message"
@@ -22,6 +22,7 @@ use utils qw(trim col ref_to_list);
 
 our ($api, $mod, $pool, $me);
 our $TRUE = \'__TAG_TRUE__';
+our $msgid_counter = 0;
 
 # message->new('data')
 # message->new(command => '', params => [], tags => {})
@@ -81,8 +82,8 @@ sub parse {
                 # does it have a value?
                 my $i = index $tag, '=';
                 if ($i != -1) {
-                    $tags{ substr $tag, 0, $i - 1 } =
-                        _parse_value(substr $tag, ++$i, length $tag);
+                    $tags{ substr $tag, 0, $i } =
+                        _parse_value(substr $tag, $i + 1);
                     next TAG;
                 }
 
@@ -249,6 +250,72 @@ sub set_tag {
         return;
     }
     $msg->{tags}{$key} = $val;
+}
+
+# https://ircv3.net/specs/extensions/message-ids
+sub add_msgid {
+    my ($msg, $msgid) = @_;
+    
+    # if msgid provided, use it; otherwise generate one
+    if (!defined $msgid) {
+        $msgid_counter++;
+        $msgid_counter = 0 if $msgid_counter > 999999;
+        $msgid = sprintf('%s-%d-%06d', $me->id, time, $msgid_counter);
+    }
+    
+    $msg->set_tag(msgid => $msgid);
+    return $msgid;
+}
+
+# https://ircv3.net/specs/extensions/server-time
+sub add_time {
+    my ($msg, $time) = @_;
+    $time //= time;
+    
+    # format as iso 8601 with ms
+    my ($sec, $min, $hour, $mday, $mon, $year) = gmtime($time);
+    my $timestamp = sprintf('%04d-%02d-%02dT%02d:%02d:%02d.000Z',
+        $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
+    
+    $msg->set_tag(time => $timestamp);
+    return $timestamp;
+}
+
+# https://ircv3.net/specs/extensions/labeled-response
+sub set_label {
+    my ($msg, $label) = @_;
+    return unless defined $label && length $label;
+    $msg->set_tag(label => $label);
+    return $label;
+}
+
+sub get_label {
+    my $msg = shift;
+    return $msg->tag('label');
+}
+
+sub is_client_tag {
+    my ($msg, $tag) = @_;
+    return substr($tag, 0, 1) eq '+';
+}
+
+sub client_tags {
+    my $msg = shift;
+    my %tags = %{ $msg->tags };
+    return map { $_ => $tags{$_} } grep { substr($_, 0, 1) eq '+' } keys %tags;
+}
+
+# https://ircv3.net/specs/extensions/bot-mode
+sub set_bot_tag {
+    my $msg = shift;
+    $msg->set_tag(bot => $TRUE);
+    return $msg;
+}
+
+sub is_bot {
+    my $msg = shift;
+    my $bot_tag = $msg->tag('bot');
+    return (ref $bot_tag && $bot_tag == $TRUE) || $bot_tag;
 }
 
 # new message like this one
