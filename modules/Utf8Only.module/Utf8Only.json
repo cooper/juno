@@ -1,0 +1,9 @@
+{
+	"name": "Utf8Only",
+	"description": "Enforces UTF-8 encoding on the network",
+	"version": "1.0",
+	"author": {
+		"name": "juno",
+		"website": "https://github.com/cooper/juno"
+	}
+}

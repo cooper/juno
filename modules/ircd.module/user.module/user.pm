@@ -993,6 +993,12 @@ sub has_cap    { &_check_local or return; shift->conn->has_cap(@_)    }
 sub add_cap    { &_check_local or return; shift->conn->add_cap(@_)    }
 sub remove_cap { &_check_local or return; shift->conn->remove_cap(@_) }
 
+# standard-replies shortcuts.
+sub sendstd  { &_check_local or return; shift->conn->sendstd(@_)  }
+sub sendnote { &_check_local or return; shift->conn->sendnote(@_) }
+sub sendwarn { &_check_local or return; shift->conn->sendwarn(@_) }
+sub sendfail { &_check_local or return; shift->conn->sendfail(@_) }
+
 sub conn {
     my $conn = shift->{conn};
     return if !$conn || !blessed $conn;

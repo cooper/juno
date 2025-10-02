@@ -148,6 +148,11 @@ our %ts6_incoming_commands = (
         params => '-source(user) *          skip     *',
         code   => \&ENCAP_CHGHOST
     },
+    SETNAME => {
+                  # :uid SETNAME :new_realname
+        params => '-source(user)          :',
+        code   => \&setname
+    },
     SQUIT => {
                   # :sid SQUIT     sid    :reason
         params => '-source(opt)    server :',
@@ -1297,6 +1302,34 @@ sub encap_chghost {
     my ($server, $msg, $user, $serv_mask, $new_host) = @_;
     $msg->{encap_forwarded}++;
     return chghost(@_[0..2], $new_host);
+}
+
+# SETNAME
+#
+# IRCv3 setname
+# source:       user
+# parameters:   new realname
+#
+sub setname {
+    my ($server, $msg, $user, $new_real) = @_;
+
+    # same as current realname.
+    return if $user->{real} eq $new_real;
+
+    # update the realname.
+    $user->{real} = $new_real;
+
+    # send SETNAME to local users with the capability.
+    $user->send_to_channels(
+        "SETNAME :$new_real",
+        cap     => 'setname',
+        myself  => 1
+    );
+
+    # broadcast to other servers.
+    $msg->broadcast(setname => $user, $new_real);
+
+    return 1;
 }
 
 # SQUIT

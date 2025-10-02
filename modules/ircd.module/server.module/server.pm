@@ -324,6 +324,12 @@ sub server   { shift                }   # the server itself
 sub parent   { shift->{parent}      }   # parent server
 sub location { shift->{location}    }   # uplink this server is reached through
 
+# standard-replies shortcuts.
+sub sendstd  { my $c = shift->conn or return; $c->sendstd(@_)  }
+sub sendnote { my $c = shift->conn or return; $c->sendnote(@_) }
+sub sendwarn { my $c = shift->conn or return; $c->sendwarn(@_) }
+sub sendfail { my $c = shift->conn or return; $c->sendfail(@_) }
+
 # ->all_users           every single user on the server
 #
 # ->real_users          all REAL users on the server (those which are not

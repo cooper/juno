@@ -317,6 +317,34 @@ sub sendme {
     $conn->sendfrom($source, @_);
 }
 
+sub sendnote { shift->sendstd('NOTE', @_) }
+sub sendwarn { shift->sendstd('WARN', @_) }
+sub sendfail { shift->sendstd('FAIL', @_) }
+
+sub sendstd {
+    my ($conn, $type, $command, $code, @context) = @_;
+    my $desc = pop @context;
+    return unless $conn && $code && $desc;
+    $command //= '*';
+
+    # if client has no such cap, send a server notice instead
+    if (!$conn->has_cap('standard-replies')) {
+        $conn->server_notice($command => "$code: $desc");
+        return;
+    }
+
+    $conn->sendme(join ' ', $type, $command, $code, @context, ":$desc");
+}
+
+sub server_notice {
+    my $conn = shift;
+    return $conn->user->server_notice(@_)
+        if $conn->user;
+    my $cmd = ucfirst $_[0];
+    my $msg = defined $_[1] ? "*** \2$cmd:\2 $_[1]" : $_[0];
+    $conn->sendme("NOTICE * :$msg");
+}
+
 sub stream { shift->{stream}                }   # IO::Async::Stream
 sub sock   { shift->stream->{write_handle}  }   # IO::Socket::IP
 sub ip     { shift->{ip}                    }   # IP address

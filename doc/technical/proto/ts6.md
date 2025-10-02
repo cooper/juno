@@ -266,6 +266,16 @@ Changes the visible hostname of a client.
 
 Opers are notified unless the source is a server or a service.
 
+### SETNAME
+    IRCv3 setname
+    source: user
+    propagation: broadcast
+    parameters: new realname
+
+Changes the realname (gecos) of a user.
+
+Only clients with the `setname` capability will see this message.
+
 ### CONNECT
     source: any
     parameters: server to connect to, port, hunted

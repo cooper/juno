@@ -842,4 +842,16 @@ sub forward_to_mask {
     return !$matches_me;
 }
 
+# reply to the connection that sent this message
+sub reply {
+    my $msg = shift;
+    return if !$msg->{real_message};
+    $msg->source->send(@_);
+}
+
+sub reply_std  { shift->source->sendstd(@_) }
+sub reply_note { shift->reply_std('NOTE', @_) }
+sub reply_warn { shift->reply_std('WARN', @_) }
+sub reply_fail { shift->reply_std('FAIL', @_) }
+
 $mod

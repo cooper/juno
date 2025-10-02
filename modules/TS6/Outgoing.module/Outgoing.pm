@@ -56,6 +56,7 @@ our %ts6_outgoing_commands = (
      wallops        => \&wallops,
      chghost        => \&chghost,
      realhost       => \&realhost,
+     setname        => \&setname,
      save_user      => \&save,
      update_user    => \&update_user,
      num            => \&num,
@@ -928,6 +929,19 @@ sub realhost {
     my ($to_server, $user, $host) = @_;
     my $uid = ts6_id($user);
     ":$uid ENCAP * REALHOST $host"
+}
+
+# SETNAME
+#
+# IRCv3 setname
+# source:       user
+# propagation:  broadcast
+# parameters:   new realname
+#
+sub setname {
+    my ($to_server, $user, $new_real) = @_;
+    my $uid = ts6_id($user);
+    ":$uid SETNAME :$new_real"
 }
 
 # SAVE

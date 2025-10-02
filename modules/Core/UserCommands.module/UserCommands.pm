@@ -205,6 +205,7 @@ sub init {
     $mod->register_capability('echo-message');
     $mod->register_capability('account-tag');
     $mod->register_capability('batch');
+    $mod->register_capability('standard-replies');
 
     return 1;
 }

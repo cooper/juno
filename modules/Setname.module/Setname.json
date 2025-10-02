@@ -1,0 +1,15 @@
+{
+   "author" : {
+      "name" : "Mitchell Cooper",
+      "website" : "https://github.com/cooper"
+   },
+   "depends" : {
+      "bases" : [
+         "UserCommands"
+      ]
+   },
+   "description" : "IRCv3 setname extension",
+   "name" : "Setname",
+   "package" : "M::Setname",
+   "version" : "1.00"
+}

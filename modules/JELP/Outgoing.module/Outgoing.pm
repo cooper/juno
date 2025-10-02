@@ -55,6 +55,7 @@ my %ocommands = (
     update_user     => \&userinfo,
     chghost         => \&chghost,
     realhost        => \&realhost,
+    setname         => \&setname,
     lusers          => \&lusers,
     users           => \&users,
     info            => \&info,
@@ -659,6 +660,12 @@ sub chghost {
 sub realhost {
     my ($to_server, $user, $host) = @_;
     return _userinfo_or_f(undef, $to_server, $user, real_host => $host);
+}
+
+# in JELP, SETNAME can use USERINFO like CHGHOST does
+sub setname {
+    my ($to_server, $user, $new_real) = @_;
+    return _userinfo_or_f(undef, $to_server, $user, real => $new_real);
 }
 
 sub userinfo { _userinfo_or_f(undef, @_) }

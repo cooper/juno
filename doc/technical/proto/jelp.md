@@ -229,6 +229,24 @@ Marks a user as away.
 * __reason__ - _optional_, reason for being away. if omitted, the user is
   returning from away state
 
+### SETNAME
+
+Changes a user's realname (gecos).
+
+[Propagation](#propagation): _broadcast_
+
+```
+:<UID> SETNAME :<realname>
+```
+
+* __UID__ - user whose realname is changing
+* __realname__ - new realname
+
+Clients with the `setname` IRCv3 capability will see this message.
+
+Note: Realname changes can also be communicated via [`USERINFO`](#userinfo)
+using the `real` tag.
+
 ### BURST
 
 Sent to indicate the start of a burst.
@@ -739,7 +757,7 @@ Propagates the changing of one or more user fields.
 [Propagation](#propagation): _broadcast_
 
 ```
-[@nick=][;nick_time=][;real_host=][;host=][;ident=][;account=] :<UID> USERINFO
+[@nick=][;nick_time=][;real_host=][;host=][;ident=][;account=][;real=] :<UID> USERINFO
 ```
 
 * __nick__ - _optional_, new nick
@@ -748,6 +766,7 @@ Propagates the changing of one or more user fields.
 * __host__ - _optional_, new visible canonical host
 * __ident__ - _optional_, new ident/username
 * __account__ - _optional_, new account name or `*` for logout
+* __real__ - _optional_, new realname (gecos). see also [`SETNAME`](#setname)
 * __UID__ - user whose fields should be changed
 
 ## Optional core commands

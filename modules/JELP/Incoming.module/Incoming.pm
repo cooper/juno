@@ -81,6 +81,11 @@ my %scommands = (
         params  => '-source(user) :(opt)',
         code    => \&away
     },
+    SETNAME => {
+                   # :uid SETNAME :realname
+        params  => '-source(user) :',
+        code    => \&setname
+    },
     CMODE => {
                    # :src   channel   time   perspective   modes
         params  => '-source channel   ts     server        ...',
@@ -516,6 +521,30 @@ sub away {
 
     # === Forward ===
     $msg->broadcast(away => $user);
+
+    return 1;
+}
+
+# change user realname
+sub setname {
+    # :uid SETNAME :realname
+    my ($server, $msg, $user, $new_real) = @_;
+
+    # same as current realname.
+    return if $user->{real} eq $new_real;
+
+    # update the realname.
+    $user->{real} = $new_real;
+
+    # send SETNAME to local users with the capability.
+    $user->send_to_channels(
+        "SETNAME :$new_real",
+        cap     => 'setname',
+        myself  => 1
+    );
+
+    # === Forward ===
+    $msg->broadcast(setname => $user, $new_real);
 
     return 1;
 }
@@ -1016,6 +1045,16 @@ sub _userinfo {
         undef $new_act_name if $new_act_name eq '*';
         D("JELP login $$user{nick} as $new_act_name");
         $user->do_login_local($new_act_name);
+    }
+
+    # realname change
+    if (length(my $new_real = $msg->tag('real'))) {
+        $user->{real} = $new_real;
+        $user->send_to_channels(
+            "SETNAME :$new_real",
+            cap     => 'setname',
+            myself  => 1
+        );
     }
 
     #=== Forward ===#
