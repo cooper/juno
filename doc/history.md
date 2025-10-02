@@ -1,22 +1,23 @@
 # History
 
 juno-ircd was born a fork of [pIRCd](http://pircd.sourceforge.net) (the Perl IRC
-daemon) but has since been rewritten (multiple times) from the ground up.
+daemon) but has since been rewritten multiple times over. This doc lists the main
+achievements of each iteration.
 
 * [__pIRCd__](http://pircd.sourceforge.net):
-Born in the 20th century and written by Jay Kominek, pIRCd is a very buggy,
-poorly-coded, feature-lacking (well, compared to those now) IRC server. During
-its time, it was one of only a number of IRCds featuring [SSL support](https://github.com/jkominek/pircd/blob/master/README.SSL).
+Born in the 20th century and written by Jay Kominek, pIRCd was a buggy and incomplete
+Perl-based IRC server. It was exactly what I needed to stumble upon to learn Perl.
+During its time, it was one of only a number of IRCds featuring
+[SSL support](https://github.com/jkominek/pircd/blob/master/README.SSL).
 Having been abandoned in 2002, pIRCd is ancient history.
 
 * __pIRCd2__:
-A PHP novice, I was convinced by someone to learn Perl. I discovered pIRCd
-and spent hours trying to change something without breaking it. pIRCd2 allowed
-you to use the dollar sign ($) in nicknames, adding support for users such as
+A PHP novice, I was convinced by someone on IRC to learn Perl, so I forked pIRCd.
+pIRCd2 allowed you to use the dollar sign ($) in nicknames, adding support for users such as
 [Ke$ha](https://twitter.com/KeshaRose). Truly revolutionary to IRC as a whole.
 
-* [__juno-ircd__](https://github.com/cooper/juno1) (juno1):
-A fork of pIRCd2, juno-ircd introduced a handful of new features:
+* [__juno1__](https://github.com/cooper/juno1):
+The continuation of pIRCd2, juno-ircd introduced a handful of new features:
 [five prefixes](https://github.com/cooper/juno1/blob/ea8737edc1a221c3fd263560326a8768a4de9a62/Channel.pm#L765)
 (~&@%+),
 hard-coded CAP
@@ -52,10 +53,10 @@ attention juno-ircd received from the
 [04:15pm] -Global- [Network Notice] Alice (nenolod) - We will be upgrading to "juno-ircd" in 5 seconds.
 ```
 
-* [__juno__](https://github.com/cooper/juno2) (juno2):
-At some point, some [IRC bullies](http://stop-irc-bullying.eu/stop/) made me
-realize how horrific juno-ircd was. I decided to dramatically announce that I
-would no longer be developing the project, but I could not resist for long. I
+* [__juno2__](https://github.com/cooper/juno2):
+At some point, some [IRC bullies](https://stop-irc-bullying.org/stop/) made me
+realize how atrocious juno-ircd really was. I dramatically announced that I
+would no longer be developing the project, but I could not resist it for long. I
 soon started from scratch, dropping the '-ircd' from the name. juno was actually
 quite complete and surprisingly reliable. Unlike pIRCd and its derivatives, it
 introduced an interface for modules which later became a separate project,
@@ -86,8 +87,7 @@ users. It was less buggy but also less featureful, lacking many standard IRC
 functions due to my shift of focus to a reliable core.
 
 * [__juno-mesh__](https://github.com/cooper/juno-mesh) (juno4): It was
-recommended to me by [Andrew Sorensen](http://andrewsorensen.net) (AndrewX192)
-that I should implement mesh server linking. It seemed that it would be easy to
+recommended to me that I should implement mesh server linking. It seemed that it would be easy to
 implement, so I forked juno3 to create juno-mesh. In addition to mesh linking,
 it introduced several new
 [commands](https://github.com/cooper/juno-mesh/blob/master/mod/core_ucommands.pm)
@@ -108,16 +108,16 @@ that were introduced in juno-mesh. juno5 also reintroduced
 (+A), this time in the form of a module.
 
 * [__kedler__](https://github.com/cooper/juno/tree/juno6-kedler) (juno6):
-Named after a Haitian computer technician, kedler was a continuation of juno5.
-Its main goal was to implement the missing standard IRC functions that had never
-been implemented in the third juno generation. kedler reintroduced
+Named after a coworker originally from Haiti whose name I liked, kedler was the
+continuation of juno5. Its main goal was to implement the missing standard IRC functions
+that had never been implemented in the third juno generation. kedler reintroduced
 [hostname resolving](https://github.com/cooper/juno/tree/master/modules/Resolve.module),
 a long-broken feature that
 had not worked properly since juno2. kedler featured new APIs and improvements
 to the [linking protocol](technical/proto/jelp.md).
 
 * [__vulpia__](https://github.com/cooper/juno/tree/juno7-vulpia) (juno7):
-Romanian for a female wolf, vulpia was named after the alias of a dear friend,
+Romanian for female wolf, vulpia was named after the alias of a dear friend,
 [Ruin](https://github.com/RuinIsProbablyTaken). It included several
 improvements, making the IRCd more extensible than ever before. The
 [Evented::API::Engine](https://github.com/cooper/evented-api-engine)
@@ -207,11 +207,9 @@ server-to-server improvements, new noteworthy features in yiria include built-in
 As always, there were lots of bug fixes and efficiency improvements too.
 
 * [__janet__](https://github.com/cooper/juno/tree/juno11-janet) (juno11):
-Upon the release of mihret (juno12), a new versioning system was adopted.
-Releases now occur at the start of the next major version (in this case,
-v12.00), rather than at an arbitrary version as before. So janet and mihret are
-actually the same release. See below. This new system is less confusing and
-makes it easier to release patches.
+Upon the release of mihret (juno12), I switched to a versioning system that makes more
+sense and essentially skipped the version 11 release that was codenamed janet. The
+same code ultimately was released as mihret.
 
 * [__mihret__](https://github.com/cooper/juno/tree/juno12-mihret) (juno12):
 A lot was accomplished during the short-lived development of mihret.
@@ -258,6 +256,9 @@ now supports IPv6 blacklists and has improved caching helping to decrease the
 effects of malicious attacks. Further work on TS6 and JELP includes improved ban
 propagation and more S2S security measures.
 
-* [__dev__](https://github.com/cooper/juno) (juno14): Yet to be named, the next
-release will be based on the current git, a continuation of ava under active
-development.
+* [__deannie__](https://github.com/cooper/juno) (juno14): This is under development
+as of late 2025. I'm currently building out additional IRCv3 capabilities and working
+on InspIRCd linking. Since PyLink is no longer maintained, and juno has strong
+foundations for modularity and hot reloading, I intend to expand its server bridging
+capabilities. Please join us at irc.notroll.net or use the issue tracker if you have
+feature requests for this release.

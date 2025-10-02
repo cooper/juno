@@ -27,128 +27,41 @@ configuration, so go ahead and [try it already](#installation).
 Come chat with us at
 [`#k` on `irc.notroll.net`](irc://irc.notroll.net/k) too.
 
+## YES, this project is maintained!
+
+As of Q4 2025, this project is being developed during my free time. I'm currently
+building out additional IRCv3 capabilities and working on InspIRCd linking. Since
+PyLink is no longer maintained, and juno has strong foundations for modules and
+hot reloading, I intend to expand its bridging capabilities. I am all ears for
+other feature requests.
+
 ## Features
 
 Here are some things that make juno stand out. You can
 
-* [Upgrade](doc/modules.md#reload) an entire network from IRC without restarting
-  servers or dropping connections.
-* [Check out](doc/modules.md#git) the latest version from git via IRC.
-* [Configure](doc/modules.md#configurationset) servers directly from IRC.
+* [Check out](doc/modules.md#git) the latest code and [hot reload](doc/modules.md#reload)
+  your entire network with one IRC command, without restarting servers or dropping a
+  single connection.
 * [Link](doc/ts6.md#supported-software) a complex network of various IRCds and
   services packages spanning multiple server protocols.
+* [Configure](doc/modules.md#configurationset) servers en masse directly from IRC.
 * [Write](doc/index.md#technical) modules for the easy-to-use event-based
   module API.
 
 Plus, juno
 
-* Is free and open-source.
-* Is written in Perl, making it fun and easy to tinker with.
+* Is free and open-source with [over 15 years of development](doc/history.md).
+* Is written in Perl, making it fun and easy to tinker with and extend.
+* Is already way more feature-complete than you're likely expecting.
 * Is extensively [documented](doc/index.md).
-* Is excessively [configurable](doc/config.md).
-* Despite that, ships with a working configuration and runs out-of-the-box.
-* Consists entirely of [modules](doc/modules.md) and therefore can be as minimal
-  or bloated as you're comfortable with.
+* Is excessively [configurable](doc/config.md), but also runs out-of-the-box.
+* Consists entirely of [modules](doc/modules.md) that can be optionally loaded.
 * Supports the latest [IRCv3](doc/ircv3.md) standards.
-* Supports multiple linking protocols, including [TS6](doc/ts6.md#supported-software)
+* Supports multiple server protocols, including [TS6](doc/ts6.md#supported-software)
   and [JELP](doc/technical/proto/jelp.md).
-* Supports [Atheme](http://atheme.org), [PyLink](https://github.com/jlu5/PyLink)
-  and probably other IRC services packages.
+* Fully supports most IRC Services (Atheme, Anope, PyLink, etc.).
 
-## Concepts
-
-* __Eventedness__: The core unifying policy of juno is the excessive use of
-  events. Just about any operation that occurs is represented as an event. This
-  is made possible by [Evented::Object](https://metacpan.org/pod/Evented::Object),
-  the base of every class within the IRCd.
-
-```perl
-# if it's a server, add the $PROTO_message events
-if (my $server = $connection->server) {
-    my $proto = $server->{link_type};
-    push @events, [ $server, "${proto}_message"        => $msg ],
-                  [ $server, "${proto}_message_${cmd}" => $msg ];
-    $msg->{_physical_server} = $server;
-}
-
-# fire the events
-my $fire = $connection->prepare(@events)->fire('safe');
-```
-
-* __Extensibility__: Through the use of events and other mechanisms,
-  extensibility is another important guideline around which juno is designed. It
-  should not be assumed that any commands, modes, prefixes, etc. are fixed or
-  finite. They should be changeable, replaceable, and unlimited.
-
-```
-[ modes: channel ]
-    no_ext        = [ mode_normal, 'n' ]    # no external channel messages
-    protect_topic = [ mode_normal, 't' ]    # only ops can set the topic
-    ban           = [ mode_list,   'b' ]    # ban
-    except        = [ mode_list,   'e' ]    # ban exception
-    limit         = [ mode_pset,   'l' ]    # user limit
-    forward       = [ mode_pset,   'f' ]    # channel forward mode
-    key           = [ mode_key,    'k' ]    # keyword for entry
-```
-
-* __Modularity__: By responding to events, [modules](doc/modules.md) add new
-  features and functionality. Without them, juno is made up of
-  [under thirty lines](https://github.com/cooper/juno/blob/master/bin/ircd) of
-  code. Modules work together to create a single functioning body whose parts can
-  be added, removed, and modified dynamically. This is made possible by the
-  [Evented::API::Engine](https://github.com/cooper/evented-api-engine),
-  a class that manages modules and automatically tracks their events.
-
-```
-Ban::TS6 10.6
-   TS6 ban propagation
-   TS6 CAPABILITIES
-       BAN, KLN, UNKLN
-   TS6 COMMANDS
-       BAN, ENCAP_DLINE, ENCAP_KLINE, ENCAP_NICKDELAY
-       ENCAP_RESV, ENCAP_UNDLINE, ENCAP_UNKLINE
-       ENCAP_UNRESV, KLINE, RESV, UNKLINE, UNRESV
-   OUTGOING TS6 COMMANDS
-       BAN, BANDEL, BANINFO
-```
-
-* __Upgradability__: The beauty of Perl's malleable symbol table makes it
-  possible for an entire piece of software to be upgraded or reloaded without
-  restarting it. With the help of the
-  [Evented::API::Engine](https://github.com/cooper/evented-api-engine) and with
-  modularity as a central principle, juno aims to do exactly that. With just
-  [one command](doc/modules.md#reload), you can jump up one or one hundred
-  versions, all without your users disconnecting.
-
-```
-*** Update: k.notroll.net git repository updated to version 12.88 (juno12-mihret-209-g269c83c)
-*** Reload: k.notroll.net upgraded from 12.48 to 12.88 (up 88 versions since start)
-```
-
-* __Configurability__: Very few values are hard coded. Many have defaults, but
-  nearly everything is [configurable](doc/config.md). In spite of that, the
-  included working configuration is minimal and easy-to-follow. This is made
-  possible by
-  [Evented::Configuration](https://metacpan.org/pod/Evented::Configuration).
-  [Real-time modification](doc/modules.md#configurationset) of the configuration
-  is also feasible, thanks to
-  [Evented::Database](https://github.com/cooper/evented-database).
-
-```
-[ listen: 0.0.0.0 ]
-    port    = [6667..6669, 7000]
-    sslport = [6697]
-    ts6port = [7050]
-
-[ ssl ]
-    cert = 'etc/ssl/cert.pem'   
-    key  = 'etc/ssl/key.pem'    
-```
-
-* __Efficiency__: Modern IRC servers have a higher per-user load and therefore
-  must be prompt at fulfilling requests. Utilizing the wonderful
-  [IO::Async](https://metacpan.org/pod/IO::Async) framework, juno is quite
-  reactive.
+See [Concepts](doc/concepts.md) for more on my goals for juno.
 
 # Setup and operation
 
@@ -205,15 +118,14 @@ on more port(s) using the format: `<protocol name>sslport`; e.g. `ts6sslport`.
 
 juno comes with a working example configuration. So if you want to try it with
 next to no effort, just copy `etc/ircd.conf.example` to `etc/ircd.conf`.
-The password for the default oper account `admin` is `k`.  
+The password for the default oper account `admin` is `k`. You'll want to change that.
 
-The configuration is, for the most part, self-explanatory. Anything that might
-be questionable probably has a comment that explains it. Explanations of all
-options are available in the [configuration spec](doc/config.md).
+The config is for the most part self-explanatory, but the [configuration spec](doc/config.md)
+has all the details.
 
 Note that, because juno ships with a configuration suitable for fiddling, the
-default values in the `limit` block are rather low. A production IRC server will
-likely require less strict limits on connection and client count, for example.
+default values in the `limit` block are rather low. A production IRC server may
+require higher limits on connection and client count, for example.
 
 ## Operation
 
@@ -240,12 +152,12 @@ usage: ./juno [action]
 
 * __stop__: Terminates the IRCd if it is currently running.
 
-* __debug__: Runs the IRCd in the foreground, printing the logging output.
+* __debug__: Runs the IRCd in the foreground, printing the logging output. Note,
+ the log messages do NOT include raw messages as many IRC softwares do in debug mode.
 
 * __forever__: Runs the IRCd continuously in the background. In other words, if
   it is stopped for any reason (such as a crash or exploit or SHUTDOWN), it will
-  immediately start again. Don't worry though, it will not stress out your
-  processor if it fails over and over.
+  start again (with an incremental timeout if stopping repeatedly).
 
 * __foreverd__: Runs the IRCd continuously in the foreground, printing the
   logging output.
@@ -283,16 +195,13 @@ git checkout <desired release tag>
 
 Go to [`#k` on `irc.notroll.net`](irc://irc.notroll.net/k).
 
-If you discover a reproducible bug, please
-[file an issue](https://github.com/cooper/juno/issues).
+[File issues and feature requests here.](https://github.com/cooper/juno/issues)
 
 ## Author
 
-Mitchell Cooper, mitchell@notroll.net  
+Mitchell Cooper, aka cooper on irc.notroll.net #k
 
-juno was my first project in Perl — ever. Scary, right? Luckily it's been
-through more than 10 years of improvement, including
-[a few rewrites](doc/history.md); and I am awfully proud of the current codebase.
+I've been working on this forever; see [history](doc/history.md)
 
 ## License
 
