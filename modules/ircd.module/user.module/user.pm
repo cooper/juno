@@ -919,8 +919,7 @@ sub _get_data {
         
         # string
         if (!ref $item) {
-            push @data, $item;
-            next;
+            $item = message->new($item);
         }
         
         # message object
@@ -947,7 +946,7 @@ sub _get_data {
         
         # arrayref
         if (ref $item eq 'ARRAY') {
-            push @data, $user->_get_data(@$item);
+            push @data, $user->_get_data($source, @$item);
             next;
         }
         
