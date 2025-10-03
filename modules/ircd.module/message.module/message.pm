@@ -51,7 +51,8 @@ sub new {
 
     # parse data if provided
     $msg->parse if length $msg->{data};
-
+ 
+    $msg->add_msgid;
     return $msg;
 }
 
@@ -182,21 +183,26 @@ sub _escape_value {
 
 # fetch or construct data
 sub data {
-    my $msg = shift;
+    my ($msg, $user) = @_;
     return $msg->{data} if length $msg->{data};
     my @parts;
 
     # message tags.
-    my ($t, $tagstr, @tags) = (0, '@', keys %{ $msg->tags });
-    foreach my $tag (@tags) {
-        my $value = $msg->tag($tag);
-        next if !defined $value;
-        $tagstr .= ref $value && $value == $TRUE ?
-            $tag : $tag.'='._escape_value($value);
-        $tagstr .= ';' unless $t == $#tags;
-        $t++;
+    my @tags = keys %{ $msg->tags };
+    @tags = () if $user && @tags && !$user->has_cap('message-tags');
+
+    if (@tags) {
+        my ($t, $tagstr) = (0, '@');
+        foreach my $tag (@tags) {
+            my $value = $msg->tag($tag);
+            next if !defined $value;
+            $tagstr .= ref $value && $value == $TRUE ?
+                $tag : $tag.'='._escape_value($value);
+            $tagstr .= ';' unless $t == $#tags;
+            $t++;
+        }
+        push @parts, $tagstr;
     }
-    push @parts, $tagstr if @tags;
 
     # source.
     if (defined(my $source = $msg->source)) {
@@ -256,7 +262,10 @@ sub set_tag {
 sub add_msgid {
     my ($msg, $msgid) = @_;
     
-    # if msgid provided, use it; otherwise generate one
+    # don't overwrite existing msgid
+    return if $msg->tag('msgid');
+    
+    # generate msgid if not provided
     if (!defined $msgid) {
         $msgid_counter++;
         $msgid_counter = 0 if $msgid_counter > 999999;

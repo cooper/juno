@@ -294,18 +294,32 @@ sub send {
     return unless $conn->stream->write_handle;
     return if $conn->{goodbye};
     @msg = grep defined, @msg;
+    
     my $name = $conn->type ? $conn->type->name : '(unregistered)';
-    for (@msg) {
-        last if !$::enable_data_debug;
-        D("S[$name] $_");
+    foreach my $msg (@msg) {
+        my $data = blessed $msg && $msg->isa('message') ? $msg->data($conn->user) : ref $msg ? $$msg : $msg;
+        D("S[$name] $data") if $::enable_data_debug;
+        $conn->stream->write("$data\r\n");
     }
-    $conn->stream->write("$_\r\n") foreach @msg;
 }
 
 # send data with a source
 sub sendfrom {
     my ($conn, $source) = (shift, shift);
-    $conn->send(map { ":$source $_" } @_);
+    $conn->send(map {
+        my $data = $_;
+        if (blessed $data && $data->isa('message')) {
+            $data->{source} = $source;
+            $data->reset_data;
+        }
+        else {
+            $data = ref $data ? $$data : $data;
+            if ($data !~ /^[:@]/) {
+                $data = ":$source $data";
+            }
+        }
+        $data;
+    } @_);
 }
 
 # send data from this server

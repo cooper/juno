@@ -851,7 +851,7 @@ sub do_privmsgnotice {
                 $my_msg->set_tag(account => $source_user->{account}{name});
             }
             
-            $t_user->send($my_msg->data);
+            $t_user->send($my_msg->data($t_user));
         }
     }
 
@@ -927,19 +927,19 @@ sub _get_data {
         if (blessed $item && $item->isa('message')) {
             
             # we might need to send a batch start token
-            push @data, $source ? \$item->{batch}->data : $item->{batch}->data
+            push @data, $source ? \$item->{batch}->data($user) : $item->{batch}->data($user)
                 if $item->{batch} && !$item->{batch}{sent_batch}{ $user->id }++;
 
             # msg data with source
             if ($source) {
                 $item->{source} = $source;
                 $item->reset_data;
-                push @data, \$item->data;
+                push @data, \$item->data($user);
             }
             
             # normal msg data
             else {
-                push @data, $item->data;
+                push @data, $item->data($user);
             }
             
             next;
@@ -970,8 +970,16 @@ sub sendfrom {
     return $user->send(@_) if !length $source;
     $user->conn->send(map {
         my $data = $_;
-        if (ref $data)  { $data = $$data            }
-        else            { $data = ":$source $data"  }
+        if (blessed $data && $data->isa('message')) {
+            $data->{source} = $source;
+            $data->reset_data;
+        }
+        else {
+            $data = ref $data ? $$data : $data;
+            if ($data !~ /^[:@]/) {
+                $data = ":$source $data";
+            }
+        }
         $data;
     } $user->_get_data($source, @_));
 }
@@ -1163,7 +1171,7 @@ sub _handle_with_opts {
     # nonlocal user on ->handle() or some other safe method.
     return if !$allow_nonlocal && !$user->is_local;
 
-    my $msg = blessed $line ? $line : message->new(data => $line);
+    my $msg = blessed $line ? $line : message->new($line);
 
     # fire commands with options.
     my @events = $user->_events_for_message($msg);

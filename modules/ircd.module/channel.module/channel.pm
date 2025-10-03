@@ -1137,7 +1137,7 @@ sub do_privmsgnotice {
                 if $user->has_cap('account-tag') &&
                 $source_user && $source_user->{account};
 
-            $user->send($msg->data);
+            $user->send($msg->data($user));
             next USER;
         }
 
