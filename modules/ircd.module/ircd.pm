@@ -210,6 +210,7 @@ sub boot {
     $boot++;
     $::VERSION = $VERSION;
     $::notice_warnings = 1;
+    $::notice_dies = 1;
 
     # load mandatory boot stuff
     require POSIX;
@@ -281,7 +282,9 @@ sub startup_error {
 
 # loop indefinitely
 sub loop {
-    $loop->loop_forever;
+    while (!eval { $loop->loop_once(undef); 1 }) {
+        notice(event_loop_error => $@ || 'unknown error occurred in the event loop');
+    }
 }
 
 ###################################
@@ -1088,9 +1091,19 @@ sub WARNING {
     my $warn = shift;
     return if $disable_warnings;
     chomp $warn;
-    ircd->can('notice') && $::notice_warnings ?
-    notice(perl_warning => $warn)             :
+    ircd->can('gnotice') && $::notice_warnings ?
+    gnotice(perl_warning => $warn)             :
     L($warn);
+}
+
+# handle uncaught exceptions
+sub DIE {
+    my $err = shift;
+    return if $^S; # don't catch during eval
+    chomp $err;
+    ircd->can('gnotice') && $::notice_dies ?
+    gnotice(exception => "DIE: $err") :
+    L("uncaught exception: $err");
 }
 
 ###############
