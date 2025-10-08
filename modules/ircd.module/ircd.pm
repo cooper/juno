@@ -282,8 +282,9 @@ sub startup_error {
 
 # loop indefinitely
 sub loop {
-    while (!eval { $loop->loop_once(undef); 1 }) {
-        notice(event_loop_error => $@ || 'unknown error occurred in the event loop');
+    while (1) {
+        eval { $loop->loop_once(undef) } or
+            notice(event_loop_error => $@ || 'unknown error occurred in the event loop');
     }
 }
 

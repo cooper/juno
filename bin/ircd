@@ -1,8 +1,9 @@
 #!/usr/bin/perl
 # Copyright (c) 2010-17, Mitchell Cooper
 use warnings; use strict; use 5.010;
-foreach ([qw(__WARN__ WARNING)], [qw(TERM terminate )], [qw(KILL terminate)],
-         [qw(INT    terminate)], [qw(PIPE signalpipe)], [qw(HUP  signalhup)]) {
+foreach ([qw(__WARN__ WARNING)], [qw(__DIE__ DIE)], [qw(TERM terminate)],
+         [qw(KILL terminate)], [qw(INT terminate)], [qw(PIPE signalpipe)],
+         [qw(HUP signalhup)]) {
 my  ($sig, $func) = @$_; $SIG{$sig} = sub { safe_call($func, @_) } }
 our ($run_dir, $loop, $api, $pool, %v); local $0 = 'juno';
 BEGIN {

@@ -72,8 +72,8 @@ Before installing juno, install the **tools** for a common building environment
 Also install a few **Perl modules** from the CPAN:
 
 ```bash
-sudo apt-get install build-essential # or similar
-cpanm --sudo IO::Async IO::Socket::IP Socket::GetAddrInfo JSON JSON::XS DBD::SQLite
+sudo apt-get install build-essential libssl-dev zlib1g-dev
+cpanm --sudo IO::Async IO::Async::SSL IO::Socket::IP Socket::GetAddrInfo JSON JSON::XS DBD::SQLite
 ```
 
 Once you've installed the appropriate Perl packages, **clone the repository**:
@@ -98,16 +98,7 @@ Now [**set up SSL**](#ssl-setup) if you want or skip to the
 
 ### SSL setup
 
-If you wish to use SSL on the server, install `libssl` and the following Perl
-module:
-
-```bash
-sudo apt-get install libssl-dev
-cpanm --sudo IO::Async::SSL
-```
-
-You will now need to run `./juno genssl` to generate your self-signed
-SSL certificate.
+Run `./juno genssl` to generate your self-signed SSL certificate.
 
 In the configuration, use the `sslport` key in your `listen` block(s) to specify
 the port(s) on which to listen for secure connections. If you're setting up
