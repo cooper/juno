@@ -60,6 +60,11 @@ our %ts6_incoming_commands = (
         params  => '-source -command *      :',
         code    => \&privmsgnotice
     },
+    TAGMSG => {
+                   # :src   TAGMSG   target
+        params  => '-source -command *',
+        code    => \&privmsgnotice
+    },
     TMODE => {     # :src TMODE ch_time ch_name      mode_str mode_params...
         params  => '-source     ts      channel      :', # just to join them together
         code    => \&tmode
@@ -666,6 +671,8 @@ sub sjoin {
 #
 sub privmsgnotice {
     my ($server, $msg, $source, $command, $target, $message) = @_;
+    my $is_tagmsg = $command eq 'TAGMSG';
+    $message //= '';
     return server::protocol::handle_privmsgnotice(
         @_[0..5],
         channel_lookup  => sub { $pool->lookup_channel(shift)     },
@@ -676,7 +683,8 @@ sub privmsgnotice {
         opmod_prefix    => '=',
         smask_prefix    => '$$',
         chan_prefixes   => [ keys %{ $server->{ircd_prefixes} || {} } ],
-        chan_lvl_lookup => sub { level_from_prefix_ts6($server, shift) }
+        chan_lvl_lookup => sub { level_from_prefix_ts6($server, shift) },
+        tagmsg          => $is_tagmsg
     );
 }
 

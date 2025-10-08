@@ -733,13 +733,13 @@ sub do_nick_local {
 
 # ->do_privmsgnotice()
 #
-# Handles a PRIVMSG or NOTICE. Notifies local users and uplinks when necessary.
+# Handles a PRIVMSG, NOTICE, or TAGMSG. Notifies local users and uplinks when necessary.
 #
-# $command  one of 'privmsg' or 'notice'.
+# $command  one of 'privmsg', 'notice', or 'tagmsg'.
 #
 # $source   user or server object which is the source of the method.
 #
-# $message  the message text as it was received.
+# $message  the message text as it was received (empty string for TAGMSG).
 #
 # %opts     a hash of options:
 #
@@ -752,6 +752,8 @@ sub do_nick_local {
 #       dont_forward    if specified, the message will NOT be forwarded to other
 #                       servers if the user is not local.
 #
+#       tagmsg          if true, this is a TAGMSG (tag-only message).
+#
 sub do_privmsgnotice {
     my ($user, $command, $source, $message, %opts) = @_;
     my $source_user = $source if $source->isa('user');
@@ -759,6 +761,10 @@ sub do_privmsgnotice {
     $command   = uc $command;
     my $lc_cmd = lc $command;
     my $remote_message = $message;
+    my $is_tagmsg = $opts{tagmsg};
+
+    # tagmsg requires message-tags capability
+    return if $is_tagmsg && !$user->has_cap('message-tags');
 
     # tell them of away if set
     if ($source_user && $command eq 'PRIVMSG' && length $user->{away}) {
@@ -827,12 +833,24 @@ sub do_privmsgnotice {
         return if $recv_fire->stopper;
         
         # construct the message
+        my @params = $is_tagmsg ? ($user->name) : ($user->name, $my_message);
         my $msg = message->new(
             source      => $source,
             command     => $command,
-            params      => [ $user->name, $my_message ],
-            sentinel    => 1 # force sentinel on final parameter
+            params      => \@params,
+            sentinel    => !$is_tagmsg,
         );
+        
+        # copy client tags from source message
+        if ($opts{source_msg}) {
+            my $src_tags = $opts{source_msg}->tags;
+            if ($src_tags) {
+                foreach my $tag (sort keys %$src_tags) {
+                    next unless $tag =~ /^\+/; # only client tags
+                    $msg->set_tag($tag => $src_tags->{$tag});
+                }
+            }
+        }
         
         # send to source if echo-message enabled
         my @targets = $user;

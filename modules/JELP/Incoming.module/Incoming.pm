@@ -66,6 +66,11 @@ my %scommands = (
         params  => '-source -command *      :',
         code    => \&privmsgnotice
     },
+    TAGMSG => {
+                   # :src   TAGMSG   target
+        params  => '-source -command *',
+        code    => \&privmsgnotice
+    },
     JOIN => {
                    # :uid JOIN    ch_name time
         params  => '-source(user) *       ts',
@@ -431,6 +436,8 @@ sub umode {
 # PRIVMSG or NOTICE
 sub privmsgnotice {
     my ($server, $msg, $source, $command, $target, $message) = @_;
+    my $is_tagmsg = $command eq 'TAGMSG';
+    $message //= '';
     my @status_modes = grep { $_->{type} == MODE_STATUS }
         values %{ $server->{cmodes} };
     return server::protocol::handle_privmsgnotice(
@@ -450,7 +457,8 @@ sub privmsgnotice {
                 my $ref = ircd::channel_mode_prefixes{$hideous};
                 return $hideous if $ref->[0] eq $letter;
             }
-        }
+        },
+        tagmsg          => $is_tagmsg
     );
 }
 

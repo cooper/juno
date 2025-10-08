@@ -258,7 +258,8 @@ sub handle_privmsgnotice {
         #  ->do_privmsgnotice() deals with routing
         return $target_object->do_privmsgnotice(
             $command, $source, $message,
-            force => 1
+            force  => 1,
+            tagmsg => $opts{tagmsg}
         );
     }
 
@@ -334,8 +335,9 @@ sub _privmsgnotice_opmod {
     #
     $channel->do_privmsgnotice(
         $command, $source, $message,
-        force => 1,
-        op_moderated => 1
+        force        => 1,
+        op_moderated => 1,
+        tagmsg       => $opts{tagmsg}
     );
 
     return 1;
@@ -396,7 +398,8 @@ sub _privmsgnotice_status {
     #=== Forward ===#
     $channel->do_privmsgnotice(
         $command, $source, $message,
-        force => 1,
+        force  => 1,
+        tagmsg => $opts{tagmsg},
         min_level => $level
     );
 

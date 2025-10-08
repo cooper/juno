@@ -269,6 +269,10 @@ sub privmsgnotice {
     $target or return;
     my $id  = $source->id;
     my $tid = $target->id;
+    
+    # tagmsg has no message
+    return ":$id $cmd $tid" if $cmd eq 'TAGMSG';
+
     ":$id $cmd $tid :$message"
 }
 

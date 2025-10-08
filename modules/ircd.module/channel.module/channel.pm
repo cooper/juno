@@ -967,13 +967,13 @@ sub _do_mode_string {
 # ->do_privmsgnotice()
 # ->do_privmsgnotice_local()
 #
-# Handles a PRIVMSG or NOTICE. Notifies local users and uplinks when necessary.
+# Handles a PRIVMSG, NOTICE, or TAGMSG. Notifies local users and uplinks when necessary.
 #
-# $command  one of 'privmsg' or 'notice'.
+# $command  one of 'privmsg', 'notice', or 'tagmsg'.
 #
 # $source   user or server object which is the source of the method.
 #
-# $message  the message text as it was received.
+# $message  the message text as it was received (empty string for TAGMSG).
 #
 # %opts     a hash of options:
 #
@@ -1011,6 +1011,8 @@ sub _do_mode_string {
 #                       message will be sent to users with the prefix; e.g.
 #                       @#channel or +#channel.
 #
+#       tagmsg          if true, this is a TAGMSG (tag-only message).
+#
 sub do_privmsgnotice {
     my ($channel, $command, $source, $message, %opts) = @_;
     my ($source_user, $source_serv) = ($source->user, $source->server);
@@ -1018,6 +1020,7 @@ sub do_privmsgnotice {
     $command   = uc $command;
     my $lc_cmd = lc $command;
     my $remote_message = $message;
+    my $is_tagmsg = $opts{tagmsg};
 
     # find the destinations
     my @users;
@@ -1104,6 +1107,9 @@ sub do_privmsgnotice {
         # if a server has all-deaf users, it will never receive the message.
         next USER if $user->is_mode('deaf');
 
+        # tagmsg requires message-tags capability
+        next USER if $is_tagmsg && !$user->has_cap('message-tags');
+
         # the user is local.
         if ($user->is_local) {
 
@@ -1125,12 +1131,24 @@ sub do_privmsgnotice {
             next USER if $recv_fire->stopper;
             
             # construct the message
+            my @params = $is_tagmsg ? ($target_name) : ($target_name, $my_message);
             my $msg = message->new(
                 source      => $source,
                 command     => $command,
-                params      => [ $target_name, $my_message ],
-                sentinel    => 1 # force sentinel on final parameter
+                params      => \@params,
+                sentinel    => !$is_tagmsg,
             );
+            
+            # copy client tags from source message
+            if ($opts{source_msg}) {
+                my $src_tags = $opts{source_msg}->tags;
+                if ($src_tags) {
+                    foreach my $tag (sort keys %$src_tags) {
+                        next unless $tag =~ /^\+/; # only client tags
+                        $msg->set_tag($tag => $src_tags->{$tag});
+                    }
+                }
+            }
             
             # add the account name if the target has account-tag
             $msg->set_tag(account => $source_user->{account}{name})

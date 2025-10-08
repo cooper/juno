@@ -148,6 +148,11 @@ our %user_commands = (
         desc   => 'send a notice to a user or channel',
         params => '-message -command * :'
     },
+    TAGMSG => {
+        code   => \&tagmsg,
+        desc   => 'send a tag-only message to a user or channel',
+        params => '-message -command *'
+    },
     MODE => {
         code   => \&mode,
         desc   => 'view or change user and channel modes',
@@ -403,7 +408,35 @@ sub privmsgnotice {
 
     # found
     if ($target) {
-        $target->do_privmsgnotice($command, $user, $message);
+        $target->do_privmsgnotice($command, $user, $message, source_msg => $msg);
+        $msg->{target} = $target;
+        return 1;
+    }
+
+    # no such nick/channel
+    $user->numeric(ERR_NOSUCHNICK => $t_name);
+    return;
+}
+
+# TAGMSG
+sub tagmsg {
+    my ($user, $event, $msg, $command, $t_name) = @_;
+
+    # requires message-tags capability
+    return unless $user->has_cap('message-tags');
+    
+    # must have at least one client tag (starting with +)
+    my $tags = $msg->tags;
+    return unless $tags && grep /^\+/, keys %$tags;
+
+    # lookup user/channel
+    my $target =
+        $pool->lookup_user_nick($t_name) ||
+        $pool->lookup_channel($t_name);
+
+    # found
+    if ($target) {
+        $target->do_privmsgnotice($command, $user, '', tagmsg => 1, source_msg => $msg);
         $msg->{target} = $target;
         return 1;
     }
