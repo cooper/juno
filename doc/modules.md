@@ -48,8 +48,10 @@ Module                                              | Provides
 [Modules](#modules-1)                               | Manage modules from IRC (`MODLOAD`, `MODUNLOAD`, `MODRELOAD`, `MODULES`)
 [Monitor](#monitor)                                 | Client availability notifications (`MONITOR`)
 [Reload](#reload)                                   | Reload the entire server code from IRC (`RELOAD`)
+[Setname](#setname)                                 | IRCv3 SETNAME extension (`SETNAME`)
 [DNSBL](#dnsbl)                                     | Built-in DNS blacklist checking
 [LOLCAT](#lolcat)                                   | SPEEK LIEK A LOLCATZ (`LOLCAT`)
+[Utf8Only](#utf8only)                               | Enforces UTF-8 encoding on the network
 
 # Essentials
 
@@ -926,6 +928,23 @@ significant bug was introduced.
 
 This category includes non-essential modules that may not appeal to all users.
 
+## Setname
+
+**Setname** provides the IRCv3 SETNAME extension, allowing users to change their
+real name (GECOS) after connecting.
+
+**`SETNAME`** allows a user to change their real name.
+```
+SETNAME :<new real name>
+```
+* __new real name__ - the new real name to set.
+
+The SETNAME command requires the `setname` capability to be enabled. When a user
+changes their real name, all other users with the `setname` capability enabled
+will be notified of the change.
+
+This extension follows the [IRCv3 setname specification](https://ircv3.net/specs/extensions/setname).
+
 ## DNSBL
 
 **DNSBL** provides built-in blacklist checking. It supports both IPv4 and IPv6.
@@ -966,3 +985,19 @@ LOLCAT <CHANNEL> <MESSUJ>
 ```
 
 TEH TRANSLAYTED MESSUJ WILL ALSO BE ECHOD BACK 2 TEH SOURCE USR.
+
+## Utf8Only
+
+**Utf8Only** enforces UTF-8 encoding on the network by validating all incoming
+messages from clients. Enabling it is preferred for modern IRC clients.
+
+When this module is loaded, all incoming messages are validated to ensure they
+contain valid UTF-8. If a message contains invalid UTF-8, it will be modified
+to remove or replace the invalid sequences, and the client will receive a warning
+notification.
+
+The module adds `UTF8ONLY` to the server's `RPL_ISUPPORT` tokens to indicate that
+UTF-8 encoding is enforced on the network.
+
+This helps maintain consistent character encoding across the network and prevents
+encoding-related display issues.
