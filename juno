@@ -3,6 +3,13 @@
 
 DIR=`dirname "$(cd "${0%/*}" 2>/dev/null; echo "$PWD"/"${0##*/}")"`
 
+if [ -d "$DIR/local/lib/perl5" ]; then
+    export PERL5LIB="$DIR/local/lib/perl5${PERL5LIB:+:$PERL5LIB}"
+fi
+if [ -d "$DIR/local/bin" ]; then
+    export PATH="$DIR/local/bin${PATH:+:$PATH}"
+fi
+
 showusage() {
     cat << EOF
 usage: $0 [action]
